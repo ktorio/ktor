@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -11,14 +11,14 @@ import kotlinx.coroutines.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
-fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+public fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return isLastHttpRequest(http11, connectionOptions)
 }
 
 /**
  * HTTP request handler function
  */
-typealias HttpRequestHandler = suspend ServerRequestScope.(
+public typealias HttpRequestHandler = suspend ServerRequestScope.(
     request: Request
 ) -> Unit
 
@@ -26,19 +26,19 @@ typealias HttpRequestHandler = suspend ServerRequestScope.(
  * HTTP pipeline coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
+public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
 /**
  * HTTP pipeline writer coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
+public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
 
 /**
  * HTTP request handler coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
+public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -55,16 +55,15 @@ val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
     "This is going to become internal. " +
         "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts."
 )
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
-)
-fun CoroutineScope.startConnectionPipeline(
+public fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,
     handler: suspend CoroutineScope.(
         request: Request,
-        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        upgraded: CompletableDeferred<Boolean>?
     ) -> Unit
 ): Job {
     val pipeline = ServerIncomingConnection(input, output, null, null)
@@ -72,4 +71,3 @@ fun CoroutineScope.startConnectionPipeline(
         handler(this, request, input, output, upgraded)
     }
 }
-

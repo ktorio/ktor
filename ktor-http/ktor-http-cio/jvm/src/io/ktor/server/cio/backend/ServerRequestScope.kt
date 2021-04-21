@@ -18,22 +18,24 @@ import kotlin.coroutines.*
  * @property remoteAddress of the client (if known)
  * @property localAddress on which the client was accepted (if known)
  */
-@KtorExperimentalAPI
-class ServerRequestScope internal constructor(
+public class ServerRequestScope internal constructor(
     override val coroutineContext: CoroutineContext,
-    val input: ByteReadChannel,
-    val output: ByteWriteChannel,
-    val remoteAddress: SocketAddress?,
-    val localAddress: SocketAddress?,
-    val upgraded: CompletableDeferred<Boolean>?
+    public val input: ByteReadChannel,
+    public val output: ByteWriteChannel,
+    public val remoteAddress: SocketAddress?,
+    public val localAddress: SocketAddress?,
+    public val upgraded: CompletableDeferred<Boolean>?
 ) : CoroutineScope {
     /**
      * Creates another request scope with same parameters except coroutine context
      */
-    @KtorExperimentalAPI
-    fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
+    public fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(
             this.coroutineContext + coroutineContext,
-            input, output, remoteAddress, localAddress, upgraded
+            input,
+            output,
+            remoteAddress,
+            localAddress,
+            upgraded
         )
 }

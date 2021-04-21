@@ -7,8 +7,8 @@ package io.ktor.server.cio
 import io.ktor.application.*
 import io.ktor.http.cio.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.net.*
 import kotlin.coroutines.*
 

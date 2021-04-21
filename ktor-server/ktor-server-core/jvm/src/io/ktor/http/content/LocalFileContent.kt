@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import java.io.*
 import java.nio.file.*
@@ -16,8 +16,8 @@ import java.nio.file.*
  *
  * @param file specifies the File to be served to a client
  */
-class LocalFileContent(
-    val file: File,
+public class LocalFileContent(
+    public val file: File,
     override val contentType: ContentType = ContentType.defaultForFile(file)
 ) : OutgoingContent.ReadChannelContent() {
 
@@ -37,8 +37,9 @@ class LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(
-    baseDir: File, relativePath: String,
+public fun LocalFileContent(
+    baseDir: File,
+    relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent =
     LocalFileContent(baseDir.combineSafe(relativePath), contentType)
@@ -46,8 +47,9 @@ fun LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(
-    baseDir: Path, relativePath: Path,
+public fun LocalFileContent(
+    baseDir: Path,
+    relativePath: Path,
     contentType: ContentType = ContentType.defaultForFile(relativePath)
 ): LocalFileContent =
     LocalFileContent(baseDir.combineSafe(relativePath), contentType)

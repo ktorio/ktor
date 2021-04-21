@@ -11,7 +11,6 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import java.math.*
 import kotlin.test.*
 
@@ -23,7 +22,8 @@ private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = w
 
 @OptIn(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
-    @Location("/") class index
+    @Location("/")
+    class index
 
     @Test fun `location without URL`() = withLocationsApplication {
         val href = application.locations.href(index())
@@ -39,8 +39,8 @@ class LocationsTest {
 
     @Test fun `locationLocal`() {
         // ^^^ do not add spaces to method name, inline breaks
-
-        @Location("/") class indexLocal
+        @Location("/")
+        class indexLocal
         withLocationsApplication {
             val href = application.locations.href(indexLocal())
             assertEquals("/", href)
@@ -54,7 +54,8 @@ class LocationsTest {
         }
     }
 
-    @Location("/about") class about
+    @Location("/about")
+    class about
 
     @Test fun `location with URL`() = withLocationsApplication {
         val href = application.locations.href(about())
@@ -68,7 +69,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/about/123")
     }
 
-    @Location("/user/{id}") class user(val id: Int)
+    @Location("/user/{id}")
+    class user(val id: Int)
 
     @Test fun `location with path param`() = withLocationsApplication {
         val href = application.locations.href(user(123))
@@ -83,7 +85,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/user?id=123")
     }
 
-    @Location("/user/{id}/{name}") class named(val id: Int, val name: String)
+    @Location("/user/{id}/{name}")
+    class named(val id: Int, val name: String)
 
     @Test fun `location with urlencoded path param`() = withLocationsApplication {
         val href = application.locations.href(named(123, "abc def"))
@@ -100,7 +103,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/user/123")
     }
 
-    @Location("/favorite") class favorite(val id: Int)
+    @Location("/favorite")
+    class favorite(val id: Int)
 
     @Test fun `location with query param`() = withLocationsApplication {
         val href = application.locations.href(favorite(123))
@@ -116,9 +120,12 @@ class LocationsTest {
         urlShouldBeUnhandled("/favorite")
     }
 
-    @Location("/container/{id}") class pathContainer(val id: Int) {
-        @Location("/items") class items(val container: pathContainer)
-        @Location("/items") class badItems
+    @Location("/container/{id}")
+    class pathContainer(val id: Int) {
+        @Location("/items")
+        class items(val container: pathContainer)
+        @Location("/items")
+        class badItems
     }
 
     @Test fun `location with path parameter and nested data`() = withLocationsApplication {
@@ -139,9 +146,12 @@ class LocationsTest {
         urlShouldBeUnhandled("/container/items?id=123")
     }
 
-    @Location("/container") class queryContainer(val id: Int) {
-        @Location("/items") class items(val container: queryContainer)
-        @Location("/items") class badItems
+    @Location("/container")
+    class queryContainer(val id: Int) {
+        @Location("/items")
+        class items(val container: queryContainer)
+        @Location("/items")
+        class badItems
     }
 
     @Test fun `location with query parameter and nested data`() = withLocationsApplication {
@@ -162,7 +172,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/container/123/items")
     }
 
-    @Location("/container") class optionalName(val id: Int, val optional: String? = null)
+    @Location("/container")
+    class optionalName(val id: Int, val optional: String? = null)
 
     @Test fun `location with missing optional String parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalName(123))
@@ -179,8 +190,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/container/123")
     }
 
-
-    @Location("/container") class optionalIndex(val id: Int, val optional: Int = 42)
+    @Location("/container")
+    class optionalIndex(val id: Int, val optional: Int = 42)
 
     @Test fun `location with missing optional Int parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalIndex(123))
@@ -212,8 +223,10 @@ class LocationsTest {
         urlShouldBeUnhandled("/container/123")
     }
 
-    @Location("/container/{id?}") class optionalContainer(val id: Int? = null) {
-        @Location("/items") class items(val optional: String? = null)
+    @Location("/container/{id?}")
+    class optionalContainer(val id: Int? = null) {
+        @Location("/items")
+        class items(val optional: String? = null)
     }
 
     @Test fun `location with optional path and query parameter`() = withLocationsApplication {
@@ -228,15 +241,16 @@ class LocationsTest {
                 assertEquals("text", it.optional)
                 call.respond(HttpStatusCode.OK)
             }
-
         }
         urlShouldBeHandled(href)
         urlShouldBeHandled("/container")
         urlShouldBeHandled("/container/123/items?optional=text")
     }
 
-    @Location("/container") class simpleContainer {
-        @Location("/items") class items
+    @Location("/container")
+    class simpleContainer {
+        @Location("/items")
+        class items
     }
 
     @Test fun `location with simple path container and items`() = withLocationsApplication {
@@ -255,7 +269,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/items")
     }
 
-    @Location("/container/{path...}") class tailCard(val path: List<String>)
+    @Location("/container/{path...}")
+    class tailCard(val path: List<String>)
 
     @Test fun `location with tailcard`() = withLocationsApplication {
         val href = application.locations.href(tailCard(emptyList()))
@@ -264,15 +279,16 @@ class LocationsTest {
             get<tailCard> {
                 call.respond(it.path.toString())
             }
-
         }
         urlShouldBeHandled(href, "[]")
         urlShouldBeHandled("/container/some", "[some]")
         urlShouldBeHandled("/container/123/items?optional=text", "[123, items]")
     }
 
-    @Location("/") class multiquery(val value: List<Int>)
-    @Location("/") class multiquery2(val name: List<String>)
+    @Location("/")
+    class multiquery(val value: List<Int>)
+    @Location("/")
+    class multiquery2(val name: List<String>)
 
     @Test fun `location with multiple query values`() = withLocationsApplication {
         val href = application.locations.href(multiquery(listOf(1, 2, 3)))
@@ -281,7 +297,6 @@ class LocationsTest {
             get<multiquery> {
                 call.respond(it.value.toString())
             }
-
         }
         urlShouldBeHandled(href, "[1, 2, 3]")
     }
@@ -296,7 +311,6 @@ class LocationsTest {
             get<multiquery2> {
                 call.respond("2: ${it.name}")
             }
-
         }
         urlShouldBeHandled(href, "1: [1]")
     }
@@ -311,12 +325,12 @@ class LocationsTest {
             get<multiquery2> {
                 call.respond("2: ${it.name}")
             }
-
         }
         urlShouldBeHandled(href, "2: [john, mary]")
     }
 
-    @Location("/") class multiqueryWithDefault(val value: List<Int> = emptyList())
+    @Location("/")
+    class multiqueryWithDefault(val value: List<Int> = emptyList())
 
     @Test fun `location with multiple query values and default`() = withLocationsApplication {
         val href = application.locations.href(multiqueryWithDefault(listOf()))
@@ -329,16 +343,27 @@ class LocationsTest {
         urlShouldBeHandled(href, "[]")
     }
 
-    @Location("/space in") class SpaceInPath
-    @Location("/plus+in") class PlusInPath
+    @Location("/space in")
+    class SpaceInPath
+    @Location("/plus+in")
+    class PlusInPath
 
     @Test
     fun testURLBuilder() = withLocationsApplication {
         application.routing {
             handle {
-                assertEquals("http://localhost/container?id=1&optional=ok", call.url(optionalName(1, "ok")))
-                assertEquals("http://localhost/container?id=1&optional=ok%2B.plus", call.url(optionalName(1, "ok+.plus")))
-                assertEquals("http://localhost/container?id=1&optional=ok+space", call.url(optionalName(1, "ok space")))
+                assertEquals(
+                    "http://localhost/container?id=1&optional=ok",
+                    call.url(optionalName(1, "ok"))
+                )
+                assertEquals(
+                    "http://localhost/container?id=1&optional=ok%2B.plus",
+                    call.url(optionalName(1, "ok+.plus"))
+                )
+                assertEquals(
+                    "http://localhost/container?id=1&optional=ok+space",
+                    call.url(optionalName(1, "ok space"))
+                )
 
                 assertEquals("http://localhost/space%20in", call.url(SpaceInPath()))
                 assertEquals("http://localhost/plus+in", call.url(PlusInPath()))
@@ -350,7 +375,8 @@ class LocationsTest {
         urlShouldBeHandled("/", "http://localhost/container?id=1&optional=ok")
     }
 
-    @Location("/") object root
+    @Location("/")
+    object root
 
     @Test fun `location root by object`() = withLocationsApplication {
         val href = application.locations.href(root)
@@ -364,7 +390,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/index")
     }
 
-    @Location("/help") object help
+    @Location("/help")
+    object help
 
     @Test fun `location by object`() = withLocationsApplication {
         val href = application.locations.href(help)
@@ -378,9 +405,12 @@ class LocationsTest {
         urlShouldBeUnhandled("/help/123")
     }
 
-    @Location("/users") object users {
-        @Location("/me") object me
-        @Location("/{id}") class user(val id: Int)
+    @Location("/users")
+    object users {
+        @Location("/me")
+        object me
+        @Location("/{id}")
+        class user(val id: Int)
     }
 
     @Test fun `location by object in object`() = withLocationsApplication {
@@ -408,16 +438,20 @@ class LocationsTest {
         urlShouldBeUnhandled("/users/me")
     }
 
-    @Location("/items/{id}") object items
+    @Location("/items/{id}")
+    object items
 
-    @Test(expected = IllegalArgumentException::class) fun `location by object has bind argument`() =
-            withLocationsApplication {
-                application.locations.href(items)
-            }
+    @Test(expected = IllegalArgumentException::class)
+    fun `location by object has bind argument`() =
+        withLocationsApplication {
+            application.locations.href(items)
+        }
 
-    @Location("/items/{itemId}/{extra?}") class OverlappingPath1(val itemId: Int, val extra: String?)
+    @Location("/items/{itemId}/{extra?}")
+    class OverlappingPath1(val itemId: Int, val extra: String?)
 
-    @Location("/items/{extra}") class OverlappingPath2(val extra: String)
+    @Location("/items/{extra}")
+    class OverlappingPath2(val extra: String)
 
     @Test fun `overlapping paths are resolved as expected`() = withLocationsApplication {
         application.install(CallLogging)
@@ -437,7 +471,8 @@ class LocationsTest {
         A, B, C
     }
 
-    @Location("/") class LocationWithEnum(val e: LocationEnum)
+    @Location("/")
+    class LocationWithEnum(val e: LocationEnum)
 
     @Test fun `location class with enum value`() = withLocationsApplication {
         application.routing {
@@ -454,7 +489,8 @@ class LocationsTest {
         }
     }
 
-    @Location("/") class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
+    @Location("/")
+    class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
 
     @Test fun `location class with big numbers`() = withLocationsApplication {
         val bd = BigDecimal("123456789012345678901234567890")
@@ -469,16 +505,21 @@ class LocationsTest {
             }
         }
 
-        urlShouldBeHandled("/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
-            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890")
+        urlShouldBeHandled(
+            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
+            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890"
+        )
     }
 
     @Test fun `location parameter mismatch should lead to bad request status`() = withLocationsApplication {
-        @Location("/") data class L(val text: String, val number: Int, val longNumber: Long)
+        @Location("/")
+        data class L(val text: String, val number: Int, val longNumber: Long)
 
         application.routing {
             get<L> { instance ->
-                call.respondText("text = ${instance.text}, number = ${instance.number}, longNumber = ${instance.longNumber}")
+                call.respondText(
+                    "text = ${instance.text}, number = ${instance.number}, longNumber = ${instance.longNumber}"
+                )
             }
         }
 
@@ -487,7 +528,7 @@ class LocationsTest {
         // missing parameter text
         handleRequest(HttpMethod.Get, "/?number=1&longNumber=2").let { call ->
             // null because missing parameter leads to routing miss
-            assertEquals(null, call.response.status())
+            assertEquals(HttpStatusCode.NotFound, call.response.status())
         }
 
         // illegal value for numeric property
@@ -501,4 +542,3 @@ class LocationsTest {
         }
     }
 }
-

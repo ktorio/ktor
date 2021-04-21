@@ -9,19 +9,10 @@ private val BUFFER_OBJECT_POOL_SIZE = getIOIntProperty("BufferObjectPoolSize", 1
 
 // ------------- standard shared pool objects -------------
 
-internal val BufferPool: ObjectPool<ByteBuffer> =
-    object : DefaultPool<ByteBuffer>(BUFFER_POOL_SIZE) {
-        override fun produceInstance(): ByteBuffer =
-            ByteBuffer.allocateDirect(BUFFER_SIZE)
-        override fun clearInstance(instance: ByteBuffer): ByteBuffer =
-            instance.also { it.clear() }
-        override fun validateInstance(instance: ByteBuffer) {
-            require(instance.capacity() == BUFFER_SIZE)
-        }
-    }
+internal val BufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(BUFFER_POOL_SIZE, BUFFER_SIZE)
 
 internal val BufferObjectPool: ObjectPool<ReadWriteBufferState.Initial> =
-    object: DefaultPool<ReadWriteBufferState.Initial>(BUFFER_OBJECT_POOL_SIZE) {
+    object : DefaultPool<ReadWriteBufferState.Initial>(BUFFER_OBJECT_POOL_SIZE) {
         override fun produceInstance() =
             ReadWriteBufferState.Initial(BufferPool.borrow())
         override fun disposeInstance(instance: ReadWriteBufferState.Initial) {

@@ -116,7 +116,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLeadingDot() = clientTests(listOf("Js")) {
+    fun testWithLeadingDot() = clientTests(listOf("Js", "iOS", "native:CIO")) {
         config {
             install(HttpCookies)
         }
@@ -197,6 +197,27 @@ class CookiesTest : ClientLoader() {
                 assertEquals("base64=Zmlyc3QsIGNvb2tpZQ==", cookieStrings[2])
                 assertEquals("dquotes=\"first, cookie\"", cookieStrings[3])
             }
+        }
+    }
+
+    @Test
+    fun testRequestBuilderSingleCookie() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get<String>("$TEST_HOST/respond-single-cookie") {
+                cookie("single", value = "abacaba")
+            }
+            assertEquals("abacaba", result)
+        }
+    }
+
+    @Test
+    fun testRequestBuilderMultipleCookies() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get<String>("$TEST_HOST/respond-a-minus-b") {
+                cookie("a", value = "10")
+                cookie("b", value = "4")
+            }
+            assertEquals("6", result)
         }
     }
 

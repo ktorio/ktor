@@ -1,10 +1,12 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 pluginManagement {
     repositories {
         mavenCentral()
-        jcenter()
         google()
         gradlePluginPortal()
-        maven { url "https://dl.bintray.com/orangy/maven" }
     }
     resolutionStrategy {
         eachPlugin {
@@ -17,17 +19,29 @@ pluginManagement {
 rootProject.name = 'ktor'
 enableFeaturePreview('GRADLE_METADATA')
 
+ext.native_targets_enabled = properties['disable_native_targets'] == null
+
+// copied from versions.gradle
+def versionComponents = System.getProperty('java.version')?.
+    split("\\.")?.
+    take(2)?.
+    findAll { !it.isBlank() }?.
+    collect { Integer.parseInt(it) } ?:
+    [1]
+
+ext.currentJdk = versionComponents[0] == 1 ? versionComponents[1] : versionComponents[0]
+
 include ':ktor-server:ktor-server-core'
 include ':ktor-server:ktor-server-tests'
 include ':ktor-server:ktor-server-host-common'
 include ':ktor-server:ktor-server-test-host'
+include ':ktor-server:ktor-server-test-suites'
 include ':ktor-server:ktor-server-jetty'
 include ':ktor-server:ktor-server-jetty:ktor-server-jetty-test-http2'
 include ':ktor-server:ktor-server-servlet'
 include ':ktor-server:ktor-server-tomcat'
 include ':ktor-server:ktor-server-netty'
 include ':ktor-server:ktor-server-cio'
-include ':ktor-server:ktor-server-benchmarks'
 include ':ktor-server'
 include ':ktor-client'
 include ':ktor-client:ktor-client-core'
@@ -35,13 +49,17 @@ include ':ktor-client:ktor-client-tests'
 include ':ktor-client:ktor-client-apache'
 include ':ktor-client:ktor-client-android'
 include ':ktor-client:ktor-client-cio'
-include ':ktor-client:ktor-client-curl'
-include ':ktor-client:ktor-client-ios'
+if (native_targets_enabled) {
+    include ':ktor-client:ktor-client-curl'
+    include ':ktor-client:ktor-client-ios'
+}
+if (ext.currentJdk >= 11) {
+    include ':ktor-client:ktor-client-java'
+}
 include ':ktor-client:ktor-client-jetty'
 include ':ktor-client:ktor-client-js'
 include ':ktor-client:ktor-client-mock'
 include ':ktor-client:ktor-client-okhttp'
-include ':ktor-client:ktor-client-benchmarks'
 include ':ktor-client:ktor-client-features'
 include ':ktor-client:ktor-client-features:ktor-client-json'
 include ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-tests'
@@ -54,7 +72,7 @@ include ':ktor-client:ktor-client-features:ktor-client-logging'
 include ':ktor-client:ktor-client-features:ktor-client-encoding'
 include ':ktor-client:ktor-client-features:ktor-client-websockets'
 //include ':ktor-client:ktor-client-features:ktor-client-tracing'
-//include ':ktor-client:ktor-client-featurlass'
+//include ':ktor-client:ktor-client-features:ktor-client-tracing:ktor-client-tracing-stetho'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-mustache'
 include ':ktor-features:ktor-thymeleaf'

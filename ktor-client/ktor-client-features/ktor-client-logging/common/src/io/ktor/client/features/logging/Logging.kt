@@ -17,44 +17,54 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.*
 
 /**
  * [HttpClient] logging feature.
  */
-class Logging(
-    val logger: Logger,
-    var level: LogLevel,
-    var filters: List<(HttpRequestBuilder) -> Boolean>
+public class Logging(
+    public val logger: Logger,
+    public var level: LogLevel,
+    public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
 ) {
-    /**
-     * Constructor
-     */
-    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+
+    public constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+
+    private val mutex = Mutex()
 
     /**
      * [Logging] feature configuration
      */
-    class Config {
+    public class Config {
         /**
          * filters
          */
         internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
+
         /**
          * [Logger] instance to use
          */
-        var logger: Logger = Logger.DEFAULT
+        public var logger: Logger = Logger.DEFAULT
 
         /**
          * log [LogLevel]
          */
-        var level: LogLevel = LogLevel.HEADERS
+        public var level: LogLevel = LogLevel.HEADERS
 
         /**
          * Log messages for calls matching a [predicate]
          */
-        fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
+        public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
             filters.add(predicate)
         }
+    }
+
+    private suspend fun beginLogging() {
+        mutex.lock()
+    }
+
+    private fun doneLogging() {
+        mutex.unlock()
     }
 
     private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
@@ -62,8 +72,19 @@ class Logging(
             logger.log("REQUEST: ${Url(request.url)}")
             logger.log("METHOD: ${request.method}")
         }
+
         val content = request.body as OutgoingContent
-        if (level.headers) logHeaders(request.headers.entries(), content.headers)
+
+        if (level.headers) {
+            logger.log("COMMON HEADERS")
+            logHeaders(request.headers.entries())
+
+            logger.log("CONTENT HEADERS")
+            content.contentLength?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
+            content.contentType?.let { logger.logHeader(HttpHeaders.ContentType, it.toString()) }
+            logHeaders(content.headers.entries())
+        }
+
         return if (level.body) {
             logRequestBody(content)
         } else null
@@ -77,15 +98,23 @@ class Logging(
         }
 
         if (level.headers) {
+            logger.log("COMMON HEADERS")
             logHeaders(response.headers.entries())
         }
+    }
+
+    private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel): Unit = with(logger) {
+        log("BODY Content-Type: $contentType")
+        log("BODY START")
+        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
+        log(message)
+        log("BODY END")
     }
 
     private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
         if (level.info) {
             logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
         }
-
     }
 
     private fun logResponseException(context: HttpClientCall, cause: Throwable) {
@@ -94,54 +123,35 @@ class Logging(
         }
     }
 
-    private fun logHeaders(
-        requestHeaders: Set<Map.Entry<String, List<String>>>,
-        contentHeaders: Headers? = null
-    ) {
-        with(logger) {
-            log("COMMON HEADERS")
-            requestHeaders.forEach { (key, values) ->
-                log("-> $key: ${values.joinToString("; ")}")
-            }
+    private fun logHeaders(headers: Set<Map.Entry<String, List<String>>>) {
+        val sortedHeaders = headers.toList().sortedBy { it.key }
 
-            contentHeaders ?: return@with
-
-            log("CONTENT HEADERS")
-            contentHeaders.forEach { key, values ->
-                log("-> $key: ${values.joinToString("; ")}")
-            }
+        sortedHeaders.forEach { (key, values) ->
+            logger.logHeader(key, values.joinToString("; "))
         }
     }
 
-    private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel) {
-        with(logger) {
-            log("BODY Content-Type: $contentType")
-            log("BODY START")
-            val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
-            log(message)
-            log("BODY END")
-        }
+    private fun Logger.logHeader(key: String, value: String) {
+        log("-> $key: $value")
     }
 
     private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
-        with(logger) {
-            log("BODY Content-Type: ${content.contentType}")
+        logger.log("BODY Content-Type: ${content.contentType}")
 
-            val charset = content.contentType?.charset() ?: Charsets.UTF_8
+        val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
-            val channel = ByteChannel()
-            GlobalScope.launch(Dispatchers.Unconfined) {
-                val text = channel.readText(charset)
-                log("BODY START")
-                log(text)
-                log("BODY END")
-            }
-
-            return content.observe(channel)
+        val channel = ByteChannel()
+        GlobalScope.launch(Dispatchers.Unconfined) {
+            val text = channel.tryReadText(charset) ?: "[request body omitted]"
+            logger.log("BODY START")
+            logger.log(text)
+            logger.log("BODY END")
         }
+
+        return content.observe(channel)
     }
 
-    companion object : HttpClientFeature<Config, Logging> {
+    public companion object : HttpClientFeature<Config, Logging> {
         override val key: AttributeKey<Logging> = AttributeKey("ClientLogging")
 
         override fun prepare(block: Config.() -> Unit): Logging {
@@ -151,28 +161,44 @@ class Logging(
 
         override fun install(feature: Logging, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
-                val response = try {
-                    if (feature.filters.isEmpty() || feature.filters.any { it(context) }) {
+                val response = if (feature.filters.isEmpty() || feature.filters.any { it(context) }) {
+                    try {
+                        feature.beginLogging()
                         feature.logRequest(context)
-                    } else {
+                    } catch (_: Throwable) {
                         null
+                    } finally {
+                        feature.doneLogging()
                     }
-                } catch (_: Throwable) {
-                    null
-                } ?: subject
+                } else null
 
                 try {
-                    proceedWith(response)
+                    proceedWith(response ?: subject)
                 } catch (cause: Throwable) {
                     feature.logRequestException(context, cause)
                     throw cause
+                } finally {
+                }
+            }
+
+            scope.receivePipeline.intercept(HttpReceivePipeline.State) {
+                try {
+                    feature.beginLogging()
+                    feature.logResponse(context.response)
+                    proceedWith(subject)
+                } catch (cause: Throwable) {
+                    feature.logResponseException(context, cause)
+                    throw cause
+                } finally {
+                    if (!feature.level.body) {
+                        feature.doneLogging()
+                    }
                 }
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 try {
-                    feature.logResponse(context.response)
-                    proceedWith(subject)
+                    proceed()
                 } catch (cause: Throwable) {
                     feature.logResponseException(context, cause)
                     throw cause
@@ -187,6 +213,8 @@ class Logging(
                 try {
                     feature.logResponseBody(it.contentType(), it.content)
                 } catch (_: Throwable) {
+                } finally {
+                    feature.doneLogging()
                 }
             }
 
@@ -198,9 +226,12 @@ class Logging(
 /**
  * Configure and install [Logging] in [HttpClient].
  */
-fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
+public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }
 
-private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
+internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
     readRemaining().readText(charset = charset)
+} catch (cause: Throwable) {
+    null
+}

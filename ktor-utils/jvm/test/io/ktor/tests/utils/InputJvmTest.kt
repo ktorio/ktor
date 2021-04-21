@@ -6,7 +6,6 @@ package io.ktor.tests.utils
 
 import io.ktor.util.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
 import kotlin.test.*
 
 class InputJvmTest {
@@ -57,5 +56,4 @@ class InputJvmTest {
         val read = stream.read(byteArrayOf(), 0, 5)
         assertEquals(-1, read)
     }
-
 }

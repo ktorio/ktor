@@ -4,7 +4,71 @@
 
 package io.ktor.tests.server.jetty
 
+import io.ktor.application.*
+import io.ktor.client.statement.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.jetty.*
-import io.ktor.server.testing.*
+import io.ktor.server.servlet.*
+import io.ktor.server.testing.suites.*
+import org.eclipse.jetty.server.*
+import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.util.component.*
+import javax.servlet.http.*
+import kotlin.test.*
 
-class JettyEngineTest : EngineTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyCompressionTest :
+    CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyContentTest : ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty
+) {
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        super.configure(configuration)
+        configuration.configureServer = {
+            addAttributesHandler()
+        }
+    }
+
+    @Test
+    fun testServletAttributes() {
+        createAndStartServer {
+            get("/tomcat/attributes") {
+                call.respondText(
+                    call.request.servletRequestAttributes["ktor.test.attribute"]?.toString() ?: "Not found"
+                )
+            }
+        }
+
+        withUrl("/tomcat/attributes") {
+            assertEquals("135", call.response.readText())
+        }
+    }
+
+    private fun Server.addAttributesHandler() {
+        addLifeCycleListener(
+            object : AbstractLifeCycle.AbstractLifeCycleListener() {
+                override fun lifeCycleStarting(event: LifeCycle?) {
+                    super.lifeCycleStarting(event)
+                    val delegate = handler
+                    handler = object : DefaultHandler() {
+                        override fun handle(
+                            target: String?,
+                            baseRequest: Request?,
+                            request: HttpServletRequest?,
+                            response: HttpServletResponse?
+                        ) {
+                            request?.setAttribute("ktor.test.attribute", "135")
+                            delegate?.handle(target, baseRequest, request, response)
+                        }
+                    }
+                }
+            }
+        )
+    }
+}
+
+class JettySustainabilityTest :
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)

@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.html.*
-import org.junit.Test
 import kotlin.test.*
 
 class MenuTemplate : Template<FlowContent> {
@@ -90,7 +89,8 @@ class HtmlTemplateTest {
         handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
             assertNotNull(response.content)
             val lines = response.content!!
-            assertEquals("""<!DOCTYPE html>
+            assertEquals(
+                """<!DOCTYPE html>
 <html>
   <head>
     <title>Template</title>
@@ -106,7 +106,9 @@ class HtmlTemplateTest {
     </ul>
   </body>
 </html>
-""", lines)
+""",
+                lines
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }

@@ -5,7 +5,7 @@ package io.ktor.utils.io.bits
 import kotlinx.cinterop.*
 import kotlin.experimental.*
 
-actual inline fun Memory.loadShortAt(offset: Int): Short {
+public actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
@@ -13,7 +13,7 @@ actual inline fun Memory.loadShortAt(offset: Int): Short {
     else loadShortSlowAt(pointer)
 }
 
-actual inline fun Memory.loadShortAt(offset: Long): Short {
+public actual inline fun Memory.loadShortAt(offset: Long): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
@@ -21,7 +21,7 @@ actual inline fun Memory.loadShortAt(offset: Long): Short {
     else loadShortSlowAt(pointer)
 }
 
-actual inline fun Memory.loadIntAt(offset: Int): Int {
+public actual inline fun Memory.loadIntAt(offset: Int): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -29,7 +29,7 @@ actual inline fun Memory.loadIntAt(offset: Int): Int {
     else loadIntSlowAt(pointer)
 }
 
-actual inline fun Memory.loadIntAt(offset: Long): Int {
+public actual inline fun Memory.loadIntAt(offset: Long): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -37,7 +37,7 @@ actual inline fun Memory.loadIntAt(offset: Long): Int {
     else loadIntSlowAt(pointer)
 }
 
-actual inline fun Memory.loadLongAt(offset: Int): Long {
+public actual inline fun Memory.loadLongAt(offset: Int): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -45,7 +45,7 @@ actual inline fun Memory.loadLongAt(offset: Int): Long {
     else loadLongSlowAt(pointer)
 }
 
-actual inline fun Memory.loadLongAt(offset: Long): Long {
+public actual inline fun Memory.loadLongAt(offset: Long): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -53,7 +53,7 @@ actual inline fun Memory.loadLongAt(offset: Long): Long {
     else loadLongSlowAt(pointer)
 }
 
-actual inline fun Memory.loadFloatAt(offset: Int): Float {
+public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -61,7 +61,7 @@ actual inline fun Memory.loadFloatAt(offset: Int): Float {
     else loadFloatSlowAt(pointer)
 }
 
-actual inline fun Memory.loadFloatAt(offset: Long): Float {
+public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -69,7 +69,7 @@ actual inline fun Memory.loadFloatAt(offset: Long): Float {
     else loadFloatSlowAt(pointer)
 }
 
-actual inline fun Memory.loadDoubleAt(offset: Int): Double {
+public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -77,7 +77,7 @@ actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     else loadDoubleSlowAt(pointer)
 }
 
-actual inline fun Memory.loadDoubleAt(offset: Long): Double {
+public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -88,7 +88,7 @@ actual inline fun Memory.loadDoubleAt(offset: Long): Double {
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
+public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -102,7 +102,7 @@ actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
+public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -116,7 +116,7 @@ actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
+public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
@@ -130,7 +130,7 @@ actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
+public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
@@ -144,7 +144,7 @@ actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
+public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -158,7 +158,7 @@ actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
+public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -172,7 +172,7 @@ actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
+public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -186,7 +186,7 @@ actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
+public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
@@ -200,7 +200,7 @@ actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
+public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -214,7 +214,7 @@ actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
+public actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
@@ -268,22 +268,26 @@ internal inline fun loadShortSlowAt(pointer: CPointer<ByteVar>): Short {
 
 @PublishedApi
 internal inline fun loadIntSlowAt(pointer: CPointer<ByteVar>): Int {
-    return ((pointer[0].toInt() shl 24) or
-        (pointer[1].toInt() shl 16) or
-        (pointer[2].toInt() shl 18) or
-        (pointer[3].toInt() and 0xff))
+    return (
+        (pointer[0].toInt() shl 24) or
+            (pointer[1].toInt() shl 16) or
+            (pointer[2].toInt() shl 18) or
+            (pointer[3].toInt() and 0xff)
+        )
 }
 
 @PublishedApi
 internal inline fun loadLongSlowAt(pointer: CPointer<ByteVar>): Long {
-    return ((pointer[0].toLong() shl 56) or
-        (pointer[1].toLong() shl 48) or
-        (pointer[2].toLong() shl 40) or
-        (pointer[3].toLong() shl 32) or
-        (pointer[4].toLong() shl 24) or
-        (pointer[5].toLong() shl 16) or
-        (pointer[6].toLong() shl 8) or
-        (pointer[7].toLong() and 0xffL))
+    return (
+        (pointer[0].toLong() shl 56) or
+            (pointer[1].toLong() shl 48) or
+            (pointer[2].toLong() shl 40) or
+            (pointer[3].toLong() shl 32) or
+            (pointer[4].toLong() shl 24) or
+            (pointer[5].toLong() shl 16) or
+            (pointer[6].toLong() shl 8) or
+            (pointer[7].toLong() and 0xffL)
+        )
 }
 
 @PublishedApi

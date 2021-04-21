@@ -20,7 +20,7 @@ class ProxyTest : ClientLoader() {
     fun testHttpProxy() = clientTests(listOf("Js")) {
         config {
             engine {
-                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
+                proxy = ProxyBuilder.http(TCP_SERVER)
             }
         }
 
@@ -34,7 +34,7 @@ class ProxyTest : ClientLoader() {
     fun testProxyWithSerialization() = clientTests(listOf("Js")) {
         config {
             engine {
-                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
+                proxy = ProxyBuilder.http(TCP_SERVER)
             }
 
             install(JsonFeature)

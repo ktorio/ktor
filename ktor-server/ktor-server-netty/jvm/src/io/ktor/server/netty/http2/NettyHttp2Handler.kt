@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http2
@@ -88,6 +88,7 @@ internal class NettyHttp2Handler(
         responseWriter.ensureRunning()
     }
 
+    @UseHttp2Push
     internal fun startHttp2PushPromise(context: ChannelHandlerContext, builder: ResponsePushBuilder) {
         val channel = context.channel() as Http2StreamChannel
         val streamId = channel.stream().id()
@@ -123,7 +124,14 @@ internal class NettyHttp2Handler(
         child.setId(promisedStreamId)
 
         val promise = rootContext.newPromise()
-        codec.encoder().writePushPromise(rootContext, streamId, promisedStreamId, headers, 0, promise)
+        val childStream = connection.local().createStream(promisedStreamId, false)
+        if (!child.stream().setStreamAndProperty(codec, childStream)) {
+            childStream.close()
+            child.close()
+            return
+        }
+
+        codec.encoder().frameWriter().writePushPromise(rootContext, streamId, promisedStreamId, headers, 0, promise)
         if (promise.isSuccess) {
             startHttp2(child.pipeline().firstContext(), headers)
         } else {
@@ -140,6 +148,31 @@ internal class NettyHttp2Handler(
         stream.idField.setInt(stream, streamId)
     }
 
+    private val streamKeyField: Field? by lazy {
+        try {
+            Http2FrameCodec::class.javaObjectType.getDeclaredField("streamKey")
+                .also { it.isAccessible = true }
+        } catch (cause: Throwable) {
+            null
+        }
+    }
+
+    private fun Http2FrameStream.setStreamAndProperty(codec: Http2FrameCodec, childStream: Http2Stream): Boolean {
+        val streamKey = streamKeyField?.get(codec) as? Http2Connection.PropertyKey ?: return false
+
+        val function = javaClass.declaredMethods
+            .firstOrNull { it.name == "setStreamAndProperty" }
+            ?.also { it.isAccessible = true } ?: return false
+
+        try {
+            function.invoke(this, streamKey, childStream)
+        } catch (cause: Throwable) {
+            return false
+        }
+
+        return true
+    }
+
     private val Http2FrameStream.idField: Field
         get() = javaClass.findIdField()
 
@@ -154,6 +187,7 @@ internal class NettyHttp2Handler(
         return superclass.findIdField()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private class Http2ClosedChannelException(
         val errorCode: Long
     ) : ClosedChannelException(), CopyableThrowable<Http2ClosedChannelException> {
@@ -165,7 +199,7 @@ internal class NettyHttp2Handler(
         }
     }
 
-    companion object {
+    public companion object {
         private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?

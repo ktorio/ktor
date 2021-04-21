@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.application
@@ -12,37 +12,41 @@ import kotlin.coroutines.*
 /**
  * Represents an environment in which [Application] runs
  */
-interface ApplicationEnvironment {
+public interface ApplicationEnvironment {
     /**
      * Parent coroutine context for an application
      */
-    val parentCoroutineContext: CoroutineContext
+    public val parentCoroutineContext: CoroutineContext
 
     /**
      * [ClassLoader] used to load application.
      *
      * Useful for various reflection-based services, like dependency injection.
      */
-    val classLoader: ClassLoader
+    public val classLoader: ClassLoader
 
     /**
      * Instance of [Logger] to be used for logging.
      */
-    val log: Logger
+    public val log: Logger
 
     /**
      * Configuration for the [Application]
      */
-    val config: ApplicationConfig
+    public val config: ApplicationConfig
 
     /**
      * Provides events on Application lifecycle
      */
-    val monitor: ApplicationEvents
+    public val monitor: ApplicationEvents
 
     /**
      * Application's root path (prefix, context path in servlet container).
      */
-    @KtorExperimentalAPI
-    val rootPath: String
+    public val rootPath: String
+
+    /**
+     * Indicates if development mode is enabled.
+     */
+    public val developmentMode: Boolean
 }

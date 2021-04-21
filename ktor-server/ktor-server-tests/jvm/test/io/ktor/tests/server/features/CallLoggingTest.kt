@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -12,13 +12,11 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Test
 import org.slf4j.*
 import org.slf4j.event.*
+import java.util.concurrent.*
 import kotlin.test.*
 
-@OptIn(ObsoleteCoroutinesApi::class)
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>
@@ -49,8 +47,7 @@ class CallLoggingTest {
         log = logger
     }
 
-
-    @Before
+    @BeforeTest
     fun setup() {
         messages = ArrayList()
     }
@@ -63,9 +60,22 @@ class CallLoggingTest {
             hash = application.toString()
         }
 
-        assertEquals("TRACE: Application started: $hash", messages[1])
-        assertEquals("TRACE: Application stopping: $hash", messages[2])
-        assertEquals("TRACE: Application stopped: $hash", messages[3])
+        assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
+        assertEquals(
+            "TRACE: Application started: $hash",
+            messages[messages.size - 3],
+            "No started message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopping: $hash",
+            messages[messages.size - 2],
+            "No stopping message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopped: $hash",
+            messages[messages.size - 1],
+            "No stopped message logged:\n$messages"
+        )
     }
 
     @Test
@@ -74,7 +84,7 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/")
         }
 
-        assertTrue("TRACE: Unhandled: GET - /" in messages)
+        assertTrue("TRACE: 404 Not Found: GET - /" in messages)
     }
 
     @Test
@@ -188,7 +198,7 @@ class CallLoggingTest {
         }
 
         withApplication(environment) {
-            newSingleThreadContext("mdc-test-ctx").use { dispatcher ->
+            Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { dispatcher ->
                 application.routing {
                     get("/*") {
                         withContext(dispatcher) {
@@ -202,7 +212,9 @@ class CallLoggingTest {
                     assertTrue { call.requestHandled }
 
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }
@@ -226,6 +238,7 @@ class CallLoggingTest {
         }
 
         withApplication(environment) {
+            @OptIn(ObsoleteCoroutinesApi::class)
             newFixedThreadPoolContext(1, "test-dispatcher").use { dispatcher ->
                 application.routing {
                     get("/*") {
@@ -240,7 +253,9 @@ class CallLoggingTest {
                     assertTrue { call.requestHandled }
 
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }

@@ -12,6 +12,7 @@ class CodecTest {
     private val swissAndGerman = "\u0047\u0072\u00fc\u0065\u007a\u0069\u005f\u007a\u00e4\u006d\u00e4"
     private val russian = "\u0412\u0441\u0435\u043c\u005f\u043f\u0440\u0438\u0432\u0435\u0442"
     private val urlPath = "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana\u2013Champaign_logo.svg"
+    private val surrogateSymbolUrlPath = "/path/🐕"
 
     @Test/*(timeout = 1000L)*/
     @Ignore
@@ -27,10 +28,10 @@ class CodecTest {
             }
 
             try {
-                String(sb).decodeURLQueryComponent()
+                sb.concatToString().decodeURLQueryComponent()
             } catch (ignore: URLDecodeException) {
             } catch (t: Throwable) {
-                fail("Failed at ${String(sb)} with: $t")
+                fail("Failed at ${sb.concatToString()} with: $t")
             }
         }
     }
@@ -57,6 +58,26 @@ class CodecTest {
         assertEquals("Test%20me!", test.encodeURLQueryComponent())
         assertEquals("Test%20me%21", test.encodeURLParameter())
         encodeAndDecodeTest(test)
+    }
+
+    @Test
+    fun testEncodeURLPathPreservesPercentEncoding() {
+        val test = "/a/path/with/a%20space/"
+        assertEquals(test, test.encodeURLPath())
+    }
+
+    @Test
+    fun testEncodeURLPathPreservesValidPartsAndSlashes() {
+        val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+        val VALID_PATH_PART = listOf(
+            ':', '@',
+            '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
+            '-', '.', '_', '~'
+        )
+        val preservedSymbols = listOf(URL_ALPHABET, VALID_PATH_PART, listOf("/")).flatten().joinToString("")
+        val test = "/a/path/$preservedSymbols/"
+
+        assertEquals(test, test.encodeURLPath())
     }
 
     @Test
@@ -105,9 +126,30 @@ class CodecTest {
 
     @Test
     fun testEncodeURLPathUTF() {
-        assertEquals("/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana%E2%80%93Champaign_logo.svg", urlPath.encodeURLPath())
+        assertEquals(
+            "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana%E2%80%93Champaign_logo.svg",
+            urlPath.encodeURLPath()
+        )
         assertEquals("%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82", russian.encodeURLPath())
         assertEquals("Gr%C3%BCezi_z%C3%A4m%C3%A4", swissAndGerman.encodeURLPath())
+    }
+
+    @Test
+    fun testFormUrlEncode() {
+        val result = StringBuilder()
+
+        mapOf(
+            "a" to listOf("b", "c", "d"),
+            "1" to listOf("2"),
+            "x" to listOf("y", "z"),
+        ).entries.formUrlEncodeTo(result)
+
+        assertEquals("a=b&a=c&a=d&1=2&x=y&x=z", result.toString())
+    }
+
+    @Test
+    fun testEncodeURLPathSurrogateSymbol() {
+        assertEquals("/path/%F0%9F%90%95", surrogateSymbolUrlPath.encodeURLPath())
     }
 
     private fun encodeAndDecodeTest(text: String) {

@@ -26,6 +26,7 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testIgnoreBodyWithoutPipelining() = clientTests {
         config {
             engine {
@@ -41,7 +42,7 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
-    fun testBodyObserver() = clientTests {
+    fun testBodyObserver() = clientTests(listOf("CIO", "Curl")) {
         val body = "Hello, world"
         val task = Job()
         config {

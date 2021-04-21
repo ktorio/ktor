@@ -6,7 +6,6 @@ package io.ktor.tests.server.application
 
 import io.ktor.application.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class ApplicationEventTest {
@@ -27,7 +26,6 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 
     @Test
@@ -47,7 +45,6 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 
     @Test
@@ -67,6 +64,5 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 }

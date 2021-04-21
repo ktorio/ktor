@@ -10,19 +10,19 @@ import java.net.*
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
  */
-internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) :
-    ClassLoader(parentClassLoader), Closeable {
+internal class OverridingClassLoader(
+    classpath: List<URL>,
+    parentClassLoader: ClassLoader?
+) : ClassLoader(parentClassLoader), Closeable {
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)
 
     @Synchronized
-    override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        try {
-            // first we try to find a class inside the child classloader
-            return childClassLoader.findClass(name)
-        } catch (e: ClassNotFoundException) {
-            // didn't find it, try the parent
-            return super.loadClass(name, resolve)
-        }
+    override fun loadClass(name: String, resolve: Boolean): Class<*> = try {
+        // first we try to find a class inside the child classloader
+        childClassLoader.findClass(name)
+    } catch (e: ClassNotFoundException) {
+        // didn't find it, try the parent
+        super.loadClass(name, resolve)
     }
 
     override fun close() {
@@ -37,8 +37,9 @@ internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: Cl
         URLClassLoader(urls, null) {
         public override fun findClass(name: String): Class<*> {
             val loaded = super.findLoadedClass(name)
-            if (loaded != null)
+            if (loaded != null) {
                 return loaded
+            }
 
             try {
                 // first try to use the URLClassLoader findClass

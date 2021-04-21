@@ -8,29 +8,46 @@ import io.ktor.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * Describes a node in a routing tree
+ * Describes a node in a routing tree.
  *
- * @param parent is a parent node in the tree, or null for root node
- * @param selector is an instance of [RouteSelector] for this node
+ * @param parent is a parent node in the tree, or null for root node.
+ * @param selector is an instance of [RouteSelector] for this node.
+ * @param developmentMode is flag to switch report level for stack traces.
  */
 @ContextDsl
-open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
+public open class Route(
+    public val parent: Route?,
+    public val selector: RouteSelector,
+    developmentMode: Boolean,
+) : ApplicationCallPipeline(developmentMode) {
+
+    /**
+     * Describes a node in a routing tree.
+     *
+     * @param parent is a parent node in the tree, or null for root node.
+     * @param selector is an instance of [RouteSelector] for this node.
+     */
+    public constructor(
+        parent: Route?,
+        selector: RouteSelector,
+    ) : this(parent, selector, developmentMode = false)
 
     /**
      * List of child routes for this node
      */
-    val children: List<Route> get() = childList
+    public val children: List<Route> get() = childList
 
     private val childList: MutableList<Route> = ArrayList()
 
-    @Volatile private var cachedPipeline: ApplicationCallPipeline? = null
+    @Volatile
+    private var cachedPipeline: ApplicationCallPipeline? = null
 
     internal val handlers = ArrayList<PipelineInterceptor<Unit, ApplicationCall>>()
 
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector
      */
-    fun createChild(selector: RouteSelector): Route {
+    public fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = Route(this, selector)
@@ -43,12 +60,12 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
     /**
      * Allows using route instance for building additional routes
      */
-    operator fun invoke(body: Route.() -> Unit): Unit = body()
+    public operator fun invoke(body: Route.() -> Unit): Unit = body()
 
     /**
      * Installs a handler into this route which will be called when the route is selected for a call
      */
-    fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
+    public fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)
 
         // Adding a handler invalidates only pipeline for this entry
@@ -70,7 +87,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
     internal fun buildPipeline(): ApplicationCallPipeline {
         return cachedPipeline ?: run {
             var current: Route? = this
-            val pipeline = ApplicationCallPipeline()
+            val pipeline = ApplicationCallPipeline(developmentMode)
             val routePipelines = mutableListOf<ApplicationCallPipeline>()
             while (current != null) {
                 routePipelines.add(current)

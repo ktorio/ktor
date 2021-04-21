@@ -7,15 +7,17 @@ package io.ktor.server.engine
 import com.typesafe.config.*
 import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.util.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
+import kotlin.text.toCharArray
 
 /**
  * Creates an [ApplicationEngineEnvironment] instance from command line arguments
  */
-fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
+public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let {
@@ -46,6 +48,8 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
     val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
 
+    val developmentModeKey = "ktor.development"
+
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val appLog = LoggerFactory.getLogger(applicationId)
     if (configFile != null && !configFile.exists()) {
@@ -70,8 +74,10 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
                     .render()
             )
         } else {
-            log.trace("No configuration provided: neither application.conf " +
-                "nor system properties nor command line options (-config or -P:ktor...=) provided")
+            log.trace(
+                "No configuration provided: neither application.conf " +
+                    "nor system properties nor command line options (-config or -P:ktor...=) provided"
+            )
         }
 
         val host = argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath) ?: "0.0.0.0"
@@ -82,6 +88,9 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
         val sslPrivateKeyPassword = combinedConfig.tryGetString(hostSslPrivateKeyPassword)?.trim()
         val sslKeyAlias = combinedConfig.tryGetString(hostSslKeyAlias) ?: "mykey"
 
+        developmentMode = combinedConfig.tryGetString(developmentModeKey)
+            ?.let { it.toBoolean() } ?: PlatformUtils.IS_DEVELOPMENT_MODE
+
         if (port != null) {
             connector {
                 this.host = host
@@ -91,34 +100,38 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
 
         if (sslPort != null) {
             if (sslKeyStorePath == null) {
-                throw IllegalArgumentException("SSL requires keystore: use -sslKeyStore=path or $hostSslKeyStore config")
+                throw IllegalArgumentException(
+                    "SSL requires keystore: use -sslKeyStore=path or $hostSslKeyStore config"
+                )
             }
             if (sslKeyStorePassword == null) {
                 throw IllegalArgumentException("SSL requires keystore password: use $hostSslKeyStorePassword config")
             }
             if (sslPrivateKeyPassword == null) {
-                throw IllegalArgumentException("SSL requires certificate password: use $hostSslPrivateKeyPassword config")
+                throw IllegalArgumentException(
+                    "SSL requires certificate password: use $hostSslPrivateKeyPassword config"
+                )
             }
 
             val keyStoreFile = File(sslKeyStorePath).let { file ->
-                if (file.exists() || file.isAbsolute)
-                    file
-                else
-                    File(".", sslKeyStorePath).absoluteFile
+                if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile
             }
             val keyStore = KeyStore.getInstance("JKS").apply {
                 FileInputStream(keyStoreFile).use {
                     load(it, sslKeyStorePassword.toCharArray())
                 }
 
-                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) {
+                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray())) {
                     "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath"
                 }
             }
 
-            sslConnector(keyStore, sslKeyAlias,
+            sslConnector(
+                keyStore,
+                sslKeyAlias,
                 { sslKeyStorePassword.toCharArray() },
-                { sslPrivateKeyPassword.toCharArray() }) {
+                { sslPrivateKeyPassword.toCharArray() }
+            ) {
                 this.host = host
                 this.port = sslPort.toInt()
                 this.keyStorePath = keyStoreFile
@@ -150,7 +163,7 @@ private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let 
 /**
  * Load engine's configuration suitable for all engines from [deploymentConfig]
  */
-fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
+public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
         callGroupSize = it
     }

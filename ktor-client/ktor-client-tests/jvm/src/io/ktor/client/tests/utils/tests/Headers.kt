@@ -13,7 +13,7 @@ import kotlin.test.*
 internal fun Application.headersTestServer() {
     routing {
         route("/headers") {
-            get("/") {
+            get {
                 call.response.header("X-Header-Single-Value", "foo")
                 call.response.header("X-Header-Double-Value", "foo")
                 call.response.header("X-Header-Double-Value", "bar")
@@ -43,12 +43,12 @@ internal fun Application.headersTestServer() {
 
         route("/headers-merge") {
             accept(ContentType.Application.Json) {
-                get("/") {
+                get {
                     call.respondText("JSON", ContentType.Application.Json, HttpStatusCode.OK)
                 }
             }
             accept(ContentType.Application.Xml) {
-                get("/") {
+                get {
                     call.respondText("XML", ContentType.Application.Xml, HttpStatusCode.OK)
                 }
             }

@@ -8,7 +8,7 @@ import io.ktor.utils.io.core.internal.*
  * All regular types such as [ByteReadPacket], [BytePacketBuilder], [AbstractInput] and [AbstractOutput]
  * are always optimized so no bytes will be copied.
  */
-fun Input.copyTo(output: Output): Long {
+public fun Input.copyTo(output: Output): Long {
     if (this !is AbstractInput || output !is AbstractOutput) {
         // slow-path
         return copyToFallback(output)

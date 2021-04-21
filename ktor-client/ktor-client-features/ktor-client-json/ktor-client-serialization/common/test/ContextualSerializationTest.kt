@@ -5,18 +5,17 @@ import io.ktor.client.call.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
-import kotlin.reflect.*
-import kotlin.reflect.typeOf
 import kotlin.test.*
-
 
 @Serializable
 data class UserData(val id: Int, val name: String)
 
 object UserDataSerializer : KSerializer<UserData> {
-    override val descriptor: SerialDescriptor = SerialDescriptor("UserData")
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("UserData")
 
     override fun deserialize(decoder: Decoder): UserData {
         val id = decoder.decodeString().toInt(16)
@@ -35,7 +34,7 @@ class ContextualSerializationTest {
     @Test
     fun testSerializationWithContext() {
         val context = serializersModuleOf(UserData::class, UserDataSerializer)
-        val contextual = KotlinxSerializer(Json(context = context))
+        val contextual = KotlinxSerializer(Json { serializersModule = context })
         val simple = KotlinxSerializer()
 
         val data = UserData(1, "kotlin")
@@ -46,7 +45,7 @@ class ContextualSerializationTest {
         assertEquals("\"1\"\"kotlin\"", contextualString)
         assertEquals("{\"id\":1,\"name\":\"kotlin\"}", simpleString)
 
-        val makeInput =  { text: String ->
+        val makeInput = { text: String ->
             buildPacket { writeText(text) }
         }
 

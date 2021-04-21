@@ -14,6 +14,11 @@ class JsonFeatureTest {
 
         assertEquals(1, config.acceptContentTypes.size)
         assertTrue { config.acceptContentTypes.contains(ContentType.Application.Json) }
+
+        val feature = JsonFeature(config)
+        assertTrue { feature.canHandle(ContentType.parse("application/json")) }
+        assertTrue { feature.canHandle(ContentType.parse("application/vnd.foo+json")) }
+        assertFalse { feature.canHandle(ContentType.parse("text/json")) }
     }
 
     @Test
@@ -35,5 +40,21 @@ class JsonFeatureTest {
         assertFalse { config.acceptContentTypes.contains(ContentType.Application.Json) }
         assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
         assertTrue { config.acceptContentTypes.contains(ContentType.Application.Pdf) }
+    }
+
+    @Test
+    fun testContentTypesFilter() {
+        val config = JsonFeature.Config().apply {
+            receive(
+                object : ContentTypeMatcher {
+                    override fun contains(contentType: ContentType): Boolean {
+                        return contentType.toString() == "text/json"
+                    }
+                }
+            )
+        }
+
+        val feature = JsonFeature(config)
+        assertTrue { feature.canHandle(ContentType.parse("text/json")) }
     }
 }

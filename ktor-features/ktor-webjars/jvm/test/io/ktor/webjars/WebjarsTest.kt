@@ -17,8 +17,6 @@ import io.ktor.server.testing.withTestApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-
 
 class WebjarsTest {
 
@@ -27,8 +25,8 @@ class WebjarsTest {
         withTestApplication {
             application.install(Webjars)
             handleRequest(HttpMethod.Get, "/webjars/foo.js").let { call ->
-                //Should be handled by some other routing
-                assertNull(call.response.status())
+                // Should be handled by some other routing
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
             }
         }
     }
@@ -45,7 +43,6 @@ class WebjarsTest {
             handleRequest(HttpMethod.Get, "/webjars-something/jquery").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("Something Else", call.response.content)
-
             }
         }
     }
@@ -93,7 +90,6 @@ class WebjarsTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
             }
-
         }
     }
 
@@ -143,8 +139,6 @@ class WebjarsTest {
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
                 assertNotNull(call.response.headers["Last-Modified"])
             }
-
         }
     }
-
 }

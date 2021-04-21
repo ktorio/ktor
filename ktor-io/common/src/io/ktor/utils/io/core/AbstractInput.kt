@@ -11,17 +11,20 @@ import io.ktor.utils.io.pool.*
  * The default abstract base class implementing [Input] interface.
  * @see [AbstractInput.fill] and [AbstractInput.closeSource].
  */
-abstract class AbstractInput(
+public abstract class AbstractInput(
     head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
-    val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+    public val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Input {
+    private val state = AbstractInputSharedState(head, remaining)
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(head: IoBuffer = IoBuffer.Empty,
-                remaining: Long = head.remainingAll(),
-                pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(head as ChunkBuffer, remaining, pool)
+    public constructor(
+        head: IoBuffer = IoBuffer.Empty,
+        remaining: Long = head.remainingAll(),
+        pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+    ) : this(head as ChunkBuffer, remaining, pool)
 
     /**
      * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
@@ -43,12 +46,13 @@ abstract class AbstractInput(
     /**
      * Current head chunk reference
      */
-    private final var _head: ChunkBuffer = head
+    private final var _head: ChunkBuffer
+        get() = state.head
         set(newHead) {
-            field = newHead
-            headMemory = newHead.memory
-            headPosition = newHead.readPosition
-            headEndExclusive = newHead.writePosition
+            state.head = newHead
+            state.headMemory = newHead.memory
+            state.headPosition = newHead.readPosition
+            state.headEndExclusive = newHead.writePosition
         }
 
     @PublishedApi
@@ -61,40 +65,40 @@ abstract class AbstractInput(
         }
 
     @PublishedApi
-    internal final var headMemory: Memory = head.memory
+    internal final var headMemory: Memory
+        get() = state.headMemory
+        set(value) {
+            state.headMemory = value
+        }
 
     @PublishedApi
-    internal final var headPosition = head.readPosition
+    internal final var headPosition: Int
+        get() = state.headPosition
+        set(value) {
+            state.headPosition = value
+        }
 
     @PublishedApi
-    internal final var headEndExclusive = head.writePosition
+    internal final var headEndExclusive: Int
+        get() = state.headEndExclusive
+        set(value) {
+            state.headEndExclusive = value
+        }
 
     @PublishedApi
     @Suppress("DEPRECATION_ERROR")
-    internal final var headRemaining
+    internal final var headRemaining: Int
         inline get() = headEndExclusive - headPosition
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
         set(newRemaining) {
             updateHeadRemaining(newRemaining)
         }
 
-    private var tailRemaining: Long = remaining - headRemaining
+    private var tailRemaining: Long
+        get() = state.tailRemaining
         set(newValue) {
-            if (newValue < 0) {
-                error("tailRemaining is negative: $newValue")
-            }
-            if (newValue == 0L) {
-                val tail = _head.next?.remainingAll() ?: 0L
-                if (tail != 0L) {
-                    error("tailRemaining is set 0 while there is a tail of size $tail")
-                }
-            }
-            val tailSize = _head.next?.remainingAll() ?: 0L
-            if (newValue != tailSize) {
-                error("tailRemaining is set to a value that is not consistent with the actual tail: $newValue != $tailSize")
-            }
-
-            field = newValue
+            require(newValue >= 0) { "tailRemaining shouldn't be negative: $newValue" }
+            state.tailRemaining = newValue
         }
 
     @Deprecated(
@@ -182,28 +186,28 @@ abstract class AbstractInput(
     /**
      * Number of bytes available for read
      */
-    final val remaining: Long get() = headRemaining.toLong() + tailRemaining
+    public final val remaining: Long get() = headRemaining.toLong() + tailRemaining
 
     /**
      * @return `true` if there is at least one byte to read
      */
-    final fun canRead() = headPosition != headEndExclusive || tailRemaining != 0L
+    public final fun canRead(): Boolean = headPosition != headEndExclusive || tailRemaining != 0L
 
     /**
      * @return `true` if there are at least [n] bytes to read
      */
-    final fun hasBytes(n: Int) = headRemaining + tailRemaining >= n
+    public final fun hasBytes(n: Int): Boolean = headRemaining + tailRemaining >= n
 
     /**
      * `true` if no bytes available for read
      */
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final val isEmpty: Boolean
+    public final val isEmpty: Boolean
         get() = endOfInput
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final val isNotEmpty: Boolean
+    public final val isNotEmpty: Boolean
         get() = isNotEmpty
 
     private var noMoreChunksAvailable = false
@@ -216,7 +220,7 @@ abstract class AbstractInput(
      * If it has been copied via [ByteReadPacket.copy]
      * then the copy should be released as well.
      */
-    final fun release() {
+    public final fun release() {
         val head = head
         val empty = ChunkBuffer.Empty
 
@@ -322,13 +326,13 @@ abstract class AbstractInput(
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun readShort() = readShort()
+    final override fun readShort(): Short = readShort()
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun readFloat() = readFloat()
+    final override fun readFloat(): Float = readFloat()
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun readDouble() = readDouble()
+    final override fun readDouble(): Double = readDouble()
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readInt(): Int {
@@ -346,14 +350,16 @@ abstract class AbstractInput(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         val rc = readAvailable(dst, offset, length)
-        if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        if (rc != length) {
+            throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        }
     }
 
     /**
      * Discards at most [n] bytes
      * @return number of bytes has been discarded
      */
-    final fun discard(n: Int): Int {
+    public final fun discard(n: Int): Int {
         require(n >= 0) { "Negative discard is not allowed: $n" }
         return discardAsMuchAsPossible(n, 0)
     }
@@ -361,7 +367,7 @@ abstract class AbstractInput(
     /**
      * Discards exactly [n] bytes or fails with [EOFException]
      */
-    final fun discardExact(n: Int) {
+    public final fun discardExact(n: Int) {
         if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
     }
 
@@ -377,7 +383,7 @@ abstract class AbstractInput(
         read(n, block)
     }
 
-    /*
+    /**
      * Returns next byte (unsigned) or `-1` if no more bytes available
      */
     final override fun tryPeek(): Int {
@@ -443,9 +449,9 @@ abstract class AbstractInput(
      * Read at least [min] and at most [max] characters and append them to [out]
      * @return number of characters appended
      */
-    fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
+    public fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         if (max.toLong() >= remaining) {
-            val s = readTextExactBytes(bytesCount = remaining.toInt() )
+            val s = readTextExactBytes(bytesCount = remaining.toInt())
             out.append(s)
             return s.length
         }
@@ -455,17 +461,17 @@ abstract class AbstractInput(
     /**
      * Read exactly [exactCharacters] characters and append them to [out]
      */
-    fun readTextExact(out: Appendable, exactCharacters: Int) {
+    public fun readTextExact(out: Appendable, exactCharacters: Int) {
         readText(out, exactCharacters, exactCharacters)
     }
 
     /**
      * Read a string at last [min] and at most [max] characters length
      */
-    fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
+    public fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || endOfInput)) return ""
         val remaining = remaining
-        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt() )
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
@@ -475,7 +481,7 @@ abstract class AbstractInput(
     /**
      * Read a string exactly [exactCharacters] length
      */
-    fun readTextExact(exactCharacters: Int): String {
+    public fun readTextExact(exactCharacters: Int): String {
         return readText(exactCharacters, exactCharacters)
     }
 
@@ -562,15 +568,25 @@ abstract class AbstractInput(
         return discardAsMuchAsPossible(n - size, skipped + size)
     }
 
-    private tailrec fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
-        if (n == 0) return skipped
-        val current = prepareRead(1) ?: return skipped
-        val size = minOf(current.readRemaining, n)
-        current.discardExact(size)
-        headPosition += size
-        afterRead(current)
+    private fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
+        var currentCount = n
+        var currentSkipped = skipped
 
-        return discardAsMuchAsPossible(n - size, skipped + size)
+        while (true) {
+            if (currentCount == 0) {
+                return currentSkipped
+            }
+
+            val current = prepareRead(1) ?: return currentSkipped
+
+            val size = minOf(current.readRemaining, currentCount)
+            current.discardExact(size)
+            headPosition += size
+            afterRead(current)
+
+            currentCount -= size
+            currentSkipped += size
+        }
     }
 
     private tailrec fun readAsMuchAsPossible(array: ByteArray, offset: Int, length: Int, copied: Int): Int {
@@ -594,7 +610,7 @@ abstract class AbstractInput(
     }
 
     @Deprecated("Not supported anymore.", level = DeprecationLevel.ERROR)
-    fun updateHeadRemaining(remaining: Int) {
+    public fun updateHeadRemaining(remaining: Int) {
         // the only external usages are from readDirect
         // so after using head chunk directly we should fix positions instead
         val newPosition = headEndExclusive - remaining
@@ -607,19 +623,19 @@ abstract class AbstractInput(
     }
 
     @DangerousInternalIoApi
-    fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareReadLoop(minSize, head)
+    public fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareReadLoop(minSize, head)
 
     @DangerousInternalIoApi
-    fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
+    public fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
 
     @PublishedApi
-    internal fun ensureNext(current: ChunkBuffer) = ensureNext(
+    internal fun ensureNext(current: ChunkBuffer): ChunkBuffer? = ensureNext(
         current,
         ChunkBuffer.Empty
     )
 
     @DangerousInternalIoApi
-    fun fixGapAfterRead(current: ChunkBuffer) {
+    public fun fixGapAfterRead(current: ChunkBuffer) {
         val next = current.next ?: return fixGapAfterReadFallback(current)
 
         val remaining = current.readRemaining
@@ -837,5 +853,5 @@ abstract class AbstractInput(
         return next
     }
 
-    companion object
+    public companion object
 }

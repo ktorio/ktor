@@ -12,9 +12,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
@@ -25,7 +25,9 @@ import java.nio.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.executeRequest(
-    client: HTTP2Client, config: JettyEngineConfig, callContext: CoroutineContext
+    client: HTTP2Client,
+    config: JettyEngineConfig,
+    callContext: CoroutineContext
 ): HttpResponseData {
     val requestTime = GMTDate()
     val session: HTTP2ClientSession = client.connect(url, config).apply {
@@ -36,9 +38,11 @@ internal suspend fun HttpRequestData.executeRequest(
     val responseChannel = ByteChannel()
     val responseListener = JettyResponseListener(this, session, responseChannel, callContext)
 
-    val jettyRequest = JettyHttp2Request(withPromise { promise ->
-        session.newStream(headersFrame, promise, responseListener)
-    })
+    val jettyRequest = JettyHttp2Request(
+        withPromise { promise ->
+            session.newStream(headersFrame, promise, responseListener)
+        }
+    )
 
     sendRequestBody(jettyRequest, body, callContext)
 
@@ -55,7 +59,8 @@ internal suspend fun HttpRequestData.executeRequest(
 }
 
 internal suspend fun HTTP2Client.connect(
-    url: Url, config: JettyEngineConfig
+    url: Url,
+    config: JettyEngineConfig
 ): Session = withPromise { promise ->
     val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
     connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
@@ -107,4 +112,3 @@ private fun writeRequest(
         request.endBody()
     }
 }
-

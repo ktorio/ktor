@@ -12,7 +12,7 @@ import kotlin.time.*
  * Duration to tell the client to keep CORS options.
  */
 @ExperimentalTime
-var CORS.Configuration.maxAgeDuration: Duration
+public var CORS.Configuration.maxAgeDuration: Duration
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
         require(!newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
@@ -20,7 +20,7 @@ var CORS.Configuration.maxAgeDuration: Duration
     }
 
 @ExperimentalTime
-var HSTS.Configuration.maxAgeDuration: Duration
+public var HSTS.Configuration.maxAgeDuration: Duration
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
         require(!newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
@@ -33,7 +33,7 @@ var HSTS.Configuration.maxAgeDuration: Duration
  * cookies at browser or window close unless the session is restored.
  */
 @ExperimentalTime
-var CookieConfiguration.maxAge: Duration?
+public var CookieConfiguration.maxAge: Duration?
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
         require(newMaxAge == null || !newMaxAge.isNegative()) { "Only non-negative durations can be specified" }

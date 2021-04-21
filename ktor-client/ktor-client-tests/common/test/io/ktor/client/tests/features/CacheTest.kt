@@ -1,20 +1,26 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.client.tests.features
 
 import io.ktor.client.features.cache.*
-import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
 
 class CacheTest : ClientLoader() {
+    var storage: HttpCache.Config? by shared(null)
+
     @Test
     fun testNoStore() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -38,7 +44,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testNoCache() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -62,7 +67,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testETagCache() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -84,7 +88,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testLastModified() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -106,7 +109,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testVary() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -116,9 +118,9 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/vary")
 
+            // first header value from Vary
             val first = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-
             }
 
             val second = client.get<String>(url) {
@@ -127,32 +129,172 @@ class CacheTest : ClientLoader() {
 
             assertEquals(first, second)
 
+            // second header value from Vary
             val third = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-
             }
 
             assertNotEquals(third, second)
 
             val fourth = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-
             }
 
             assertEquals(third, fourth)
 
+            // first header value from Vary
             val fifth = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-
             }
 
             assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
+        }
+    }
+
+    @Test
+    fun testVaryStale() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-stale")
+
+            // first header value from Vary
+            val first = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            val second = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, second)
+
+            // second header value from Vary
+            val third = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertNotEquals(third, second)
+
+            val fourth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertEquals(third, fourth)
+
+            // first header value from Vary
+            val fifth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
+        }
+    }
+
+    @Test
+    fun testNoVaryIn304() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
+                if (response.status == HttpStatusCode.NotModified) {
+                    val headers = buildHeaders {
+                        response.headers
+                            .filter { name, _ ->
+                                !name.equals(HttpHeaders.Vary, ignoreCase = true)
+                            }
+                            .forEach(::appendAll)
+                    }
+                    proceedWith(
+                        object : HttpResponse() {
+                            override val call get() = response.call
+                            override val content get() = response.content
+                            override val coroutineContext get() = response.coroutineContext
+                            override val headers = headers
+                            override val requestTime get() = response.requestTime
+                            override val responseTime get() = response.responseTime
+                            override val status get() = response.status
+                            override val version get() = response.version
+                        }
+                    )
+                }
+            }
+
+            val url = Url("$TEST_SERVER/cache/vary-stale")
+
+            // first header value from Vary
+            val first = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            val second = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, second)
+
+            // second header value from Vary
+            val third = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertNotEquals(third, second)
+
+            val fourth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertEquals(third, fourth)
+
+            // first header value from Vary
+            val fifth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
         }
     }
 
     @Test
     fun testMaxAge() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -177,8 +319,66 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests {
-        var storage: HttpCache.Config? = null
+    fun testExpires() = clientTests {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val now = GMTDate() + 2000L
+            val url = Url("$TEST_SERVER/cache/expires")
+
+            @OptIn(ExperimentalTime::class)
+            suspend fun getWithHeader(expires: String): String {
+                delayGMTDate(1)
+
+                return client.get(url) {
+                    header("X-Expires", expires)
+                }
+            }
+
+            val first = getWithHeader(now.toHttpDate())
+            val cache = storage!!.publicStorage.findByUrl(url)
+            assertEquals(1, cache.size)
+
+            // this should be from the cache
+            val second = client.get<String>(url)
+
+            assertEquals(first, second)
+            delay(5000)
+
+            // now it should be already expired
+            val third = client.get<String>(url)
+            assertNotEquals(first, third)
+
+            // illegal values: broken, "0" and blank should be treated as already expired
+            // so shouldn't be cached
+            var previous = third
+            getWithHeader("broken-date").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            getWithHeader("0").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            getWithHeader(" ").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            delayGMTDate(1)
+            val last = client.get<String>(url)
+            assertNotEquals(previous, last)
+        }
+    }
+
+    @Test
+    fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
         config {
             install(HttpCache) {
                 storage = this
@@ -229,5 +429,27 @@ class CacheTest : ClientLoader() {
 
             assertSame(publicCacheEntry, publicCache().first())
         }
+    }
+
+    /**
+     * Does delay and ensures that the [GMTDate] measurements report at least
+     * the specified number of [milliseconds].
+     * The reason why it's not the same is that on some platforms time granularity of GMTDate
+     * is not that high and could be even larger than a millisecond.
+     */
+    private suspend fun delayGMTDate(milliseconds: Long) {
+        var delayValue = milliseconds
+
+        do {
+            val start = GMTDate()
+            delay(delayValue)
+            val end = GMTDate()
+            if (end > start + milliseconds) {
+                break
+            }
+            if (delayValue != 1L) {
+                delayValue = 1L
+            }
+        } while (true)
     }
 }

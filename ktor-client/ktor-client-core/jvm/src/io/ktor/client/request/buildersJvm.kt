@@ -16,8 +16,9 @@ import java.net.*
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.request(
-    url: URL, block: HttpRequestBuilder.() -> Unit = {}
+public suspend inline fun <reified T> HttpClient.request(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     this.url.takeFrom(url)
     block()
@@ -29,7 +30,7 @@ suspend inline fun <reified T> HttpClient.request(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.get(
+public suspend inline fun <reified T> HttpClient.get(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = get {
@@ -43,7 +44,7 @@ suspend inline fun <reified T> HttpClient.get(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.post(
+public suspend inline fun <reified T> HttpClient.post(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = post {
@@ -57,7 +58,7 @@ suspend inline fun <reified T> HttpClient.post(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.put(
+public suspend inline fun <reified T> HttpClient.put(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = put {
@@ -71,7 +72,7 @@ suspend inline fun <reified T> HttpClient.put(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.patch(
+public suspend inline fun <reified T> HttpClient.patch(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = patch {
@@ -85,7 +86,7 @@ suspend inline fun <reified T> HttpClient.patch(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.options(
+public suspend inline fun <reified T> HttpClient.options(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = options {
@@ -99,7 +100,7 @@ suspend inline fun <reified T> HttpClient.options(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.head(
+public suspend inline fun <reified T> HttpClient.head(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = head {
@@ -113,7 +114,7 @@ suspend inline fun <reified T> HttpClient.head(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.delete(
+public suspend inline fun <reified T> HttpClient.delete(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = delete {

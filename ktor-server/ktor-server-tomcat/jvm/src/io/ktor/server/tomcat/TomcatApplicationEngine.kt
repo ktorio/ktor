@@ -20,21 +20,22 @@ import org.slf4j.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
+import kotlin.coroutines.*
 
 /**
  * Tomcat application engine that runs it in embedded mode
  */
-class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
+public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
     /**
      * Tomcat engine specific configuration builder
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property to provide a lambda that will be called
          * during Tomcat server initialization with the server instance as argument.
          */
-        var configureTomcat: Tomcat.() -> Unit = {}
+        public var configureTomcat: Tomcat.() -> Unit = {}
     }
 
     private val configuration = Configuration().apply(configure)
@@ -52,6 +53,8 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
             get() = DefaultServletUpgrade
         override val logger: Logger
             get() = this@TomcatApplicationEngine.environment.log
+        override val coroutineContext: CoroutineContext
+            get() = super.coroutineContext + environment.parentCoroutineContext
     }
 
     private val server = Tomcat().apply {
@@ -62,36 +65,41 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
             }
 
             environment.connectors.forEach { ktorConnector ->
-                addConnector(Connector().apply {
-                    port = ktorConnector.port
+                addConnector(
+                    Connector().apply {
+                        port = ktorConnector.port
 
-                    if (ktorConnector is EngineSSLConnectorConfig) {
-                        secure = true
-                        scheme = "https"
+                        if (ktorConnector is EngineSSLConnectorConfig) {
+                            secure = true
+                            scheme = "https"
 
-                        if (ktorConnector.keyStorePath == null) {
-                            throw IllegalArgumentException("Tomcat requires keyStorePath")
+                            if (ktorConnector.keyStorePath == null) {
+                                throw IllegalArgumentException(
+                                    "Tomcat requires keyStorePath. Make sure you're setting " +
+                                        "the property in the EngineSSLConnectorConfig class used"
+                                )
+                            }
+
+                            setAttribute("keyAlias", ktorConnector.keyAlias)
+                            setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
+                            setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
+                            setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                            setAttribute("clientAuth", false)
+                            setAttribute("sslProtocol", "TLS")
+                            setAttribute("SSLEnabled", true)
+
+                            val sslImpl = chooseSSLImplementation()
+
+                            setAttribute("sslImplementationName", sslImpl.name)
+
+                            if (sslImpl.simpleName == "OpenSSLImplementation") {
+                                addUpgradeProtocol(Http2Protocol())
+                            }
+                        } else {
+                            scheme = "http"
                         }
-
-                        setAttribute("keyAlias", ktorConnector.keyAlias)
-                        setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
-                        setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
-                        setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                        setAttribute("clientAuth", false)
-                        setAttribute("sslProtocol", "TLS")
-                        setAttribute("SSLEnabled", true)
-
-                        val sslImpl = chooseSSLImplementation()
-
-                        setAttribute("sslImplementationName", sslImpl.name)
-
-                        if (sslImpl.simpleName == "OpenSSLImplementation") {
-                            addUpgradeProtocol(Http2Protocol())
-                        }
-                    } else {
-                        scheme = "http"
                     }
-                })
+                )
             }
         }
 
@@ -133,7 +141,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
         }
     }
 
-    companion object {
+    public companion object {
         private val nativeNames = listOf(
 //            "netty-tcnative",
 //            "libnetty-tcnative",

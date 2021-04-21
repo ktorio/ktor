@@ -10,26 +10,26 @@ import java.util.concurrent.*
 
 @Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
-class Serializer {
-    private val q = ArrayBlockingQueue<Frame>(1024)
+public class Serializer {
+    private val messages = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
 
-    var masking: Boolean = false
+    public var masking: Boolean = false
 
-    val hasOutstandingBytes: Boolean
-        get() = q.isNotEmpty() || frameBody != null
+    public val hasOutstandingBytes: Boolean
+        get() = messages.isNotEmpty() || frameBody != null
 
-    val remainingCapacity: Int get() = q.remainingCapacity()
+    public val remainingCapacity: Int get() = messages.remainingCapacity()
 
-    fun enqueue(f: Frame) {
-        q.put(f)
+    public fun enqueue(f: Frame) {
+        messages.put(f)
     }
 
-    fun serialize(buffer: ByteBuffer) {
+    public fun serialize(buffer: ByteBuffer) {
         while (writeCurrentPayload(buffer)) {
-            val frame = q.peek() ?: break
+            val frame = messages.peek() ?: break
             val mask = masking
             setMaskBuffer(mask)
 
@@ -39,30 +39,31 @@ class Serializer {
             }
 
             serializeHeader(frame, buffer, mask)
-            q.remove()
+            messages.remove()
             frameBody = frame.buffer.maskedIfNeeded()
         }
     }
 
     private fun serializeHeader(frame: Frame, buffer: ByteBuffer, mask: Boolean) {
         val size = frame.buffer.remaining()
-        val length1 = when {
+        val formattedLength = when {
             size < 126 -> size
             size <= 0xffff -> 126
             else -> 127
         }
 
-        buffer.put(
-            (frame.fin.flagAt(7) or frame.frameType.opcode).toByte()
-        )
-        buffer.put(
-            (mask.flagAt(7) or length1).toByte()
-        )
+        val header = frame.fin.flagAt(7) or
+            frame.rsv1.flagAt(6) or
+            frame.rsv2.flagAt(5) or
+            frame.rsv3.flagAt(4) or
+            frame.frameType.opcode
 
-        if (length1 == 126) {
-            buffer.putShort(frame.buffer.remaining().toShort())
-        } else if (length1 == 127) {
-            buffer.putLong(frame.buffer.remaining().toLong())
+        buffer.put(header.toByte())
+        buffer.put((mask.flagAt(7) or formattedLength).toByte())
+
+        when (formattedLength) {
+            126 -> buffer.putShort(frame.buffer.remaining().toShort())
+            127 -> buffer.putLong(frame.buffer.remaining().toLong())
         }
 
         maskBuffer?.duplicate()?.moveTo(buffer)
@@ -76,7 +77,6 @@ class Serializer {
             else -> 2 + 8
         } + maskSize(mask)
     }
-
 
     private fun writeCurrentPayload(buffer: ByteBuffer): Boolean {
         val frame = frameBody ?: return true

@@ -5,9 +5,9 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -45,7 +45,6 @@ class ETagsTest {
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
-
 
     @Test
     fun testIfMatchConditionAccepted(): Unit = withConditionalApplication {
@@ -159,7 +158,6 @@ class ETagsTest {
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
-
 }
 
 @RunWith(Parameterized::class)
@@ -509,7 +507,6 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 }
 
-
 class LastModifiedVersionTest {
     private fun temporaryDefaultTimezone(timeZone: TimeZone, block: () -> Unit) {
         val originalTimeZone: TimeZone = TimeZone.getDefault()
@@ -521,10 +518,11 @@ class LastModifiedVersionTest {
         }
     }
 
-    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion: (Date) -> LastModifiedVersion) {
+    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(
+        constructLastModifiedVersion: (Date) -> LastModifiedVersion
+    ) {
         // setup: any non-zero-offset-Timezone will do
         temporaryDefaultTimezone(TimeZone.getTimeZone("GMT+08:00")) {
-
             // guard: local default timezone needs to be different from GMT for the problem to manifest
             assertTrue(
                 TimeZone.getDefault().rawOffset != 0,
@@ -574,7 +572,7 @@ class LastModifiedVersionTest {
             }
 
             // guard: file lastmodified is actually set as expected
-            Assert.assertEquals(input.time, file.lastModified())
+            assertEquals(input.time, file.lastModified())
 
             // setup: object to test
             LastModifiedVersion(Files.getLastModifiedTime(file.toPath()))

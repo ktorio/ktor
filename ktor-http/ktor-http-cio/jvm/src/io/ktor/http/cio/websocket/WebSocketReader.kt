@@ -1,15 +1,16 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.*
 import java.nio.*
 import java.nio.channels.*
 import kotlin.coroutines.*
@@ -21,10 +22,10 @@ import kotlin.coroutines.*
  * @param maxFrameSize maximum frame size that could be read
  */
 @WebSocketInternalAPI
-class WebSocketReader(
+public class WebSocketReader(
     private val byteChannel: ByteReadChannel,
     override val coroutineContext: CoroutineContext,
-    var maxFrameSize: Long,
+    public var maxFrameSize: Long,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
     private var state = State.HEADER
@@ -33,6 +34,7 @@ class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
         val buffer = pool.borrow()
         try {
@@ -55,7 +57,7 @@ class WebSocketReader(
     /**
      * Channel receiving Websocket's [Frame] objects read from [byteChannel].
      */
-    val incoming: ReceiveChannel<Frame> get() = queue
+    public val incoming: ReceiveChannel<Frame> get() = queue
 
     private suspend fun readLoop(buffer: ByteBuffer) {
         buffer.clear()
@@ -103,7 +105,11 @@ class WebSocketReader(
     private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state = State.HEADER
-            queue.send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
+            val frame = with(frameParser) {
+                Frame.byType(fin, frameType, collector.take(maskKey).moveToByteArray(), rsv1, rsv2, rsv3)
+            }
+
+            queue.send(frame)
             frameParser.bodyComplete()
         }
     }
@@ -112,7 +118,10 @@ class WebSocketReader(
      * Raised when the frame is bigger than allowed in a current websocket session
      * @param frameSize size of received or posted frame that is too big
      */
-    class FrameTooBigException(val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public class FrameTooBigException(
+        public val frameSize: Long
+    ) : Exception(), CopyableThrowable<FrameTooBigException> {
 
         override val message: String
             get() = "Frame is too big: $frameSize"

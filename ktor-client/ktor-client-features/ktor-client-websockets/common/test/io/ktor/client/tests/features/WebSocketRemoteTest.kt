@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.client.tests.features
 
@@ -13,16 +13,17 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {
-    private val echoWebsocket = "echo.websocket.org"
+    private val echoWebsocket = "$TEST_WEBSOCKET_SERVER/websockets/echo"
+    private val skipEngines = listOf("Android", "Apache")
 
     @Test
-    fun testRemotePingPong() = clientTests {
+    fun testRemotePingPong() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            client.ws(host = echoWebsocket) {
+            client.ws(echoWebsocket) {
                 repeat(10) {
                     ping(it.toString())
                 }
@@ -31,13 +32,14 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSecureRemotePingPong() = clientTests {
+    @Ignore
+    fun testSecureRemotePingPong() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            client.wss(host = echoWebsocket) {
+            client.wss(echoWebsocket) {
                 repeat(10) {
                     ping(it.toString())
                 }
@@ -46,7 +48,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLogging() = clientTests {
+    fun testWithLogging() = clientTests(skipEngines) {
         config {
             install(Logging) {
                 level = LogLevel.ALL
@@ -56,40 +58,47 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            client.wss(host = echoWebsocket) {
+            client.wss(echoWebsocket) {
                 ping("hello, world")
             }
         }
     }
 
     @Test
-    fun testSessionClose() = clientTests {
+    fun testSessionClose() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            val session = client.webSocket(host = echoWebsocket, request = {
-                url.protocol = URLProtocol.WSS
-                url.port = DEFAULT_PORT
-            }) {
+            val session = client.webSocket(echoWebsocket) {
                 close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
             }
         }
     }
 
     @Test
-    fun testSessionTermination() = clientTests {
+    fun testSessionTermination() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            client.webSocket(host = echoWebsocket, request = {
-                url.protocol = URLProtocol.WSS
-                url.port = DEFAULT_PORT
-            }) {
+            client.webSocket(echoWebsocket) {
                 cancel()
+            }
+        }
+    }
+
+    @Test
+    fun testBadCloseReason() = clientTests(skipEngines) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket(echoWebsocket) {
+                close(CloseReason(1005, "Reserved close code"))
             }
         }
     }

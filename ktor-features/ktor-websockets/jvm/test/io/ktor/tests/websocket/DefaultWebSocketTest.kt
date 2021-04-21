@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
@@ -13,6 +13,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.Rule
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DefaultWebSocketTest {
     @get:Rule
     val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
@@ -32,8 +33,12 @@ class DefaultWebSocketTest {
         server2client = ByteChannel()
 
         server = DefaultWebSocketSession(
-            RawWebSocket(client2server, server2client, coroutineContext = parent), -1L, 1000L
+            RawWebSocket(client2server, server2client, coroutineContext = parent),
+            -1L,
+            1000L
         )
+        server.start()
+
         client = RawWebSocket(server2client, client2server, coroutineContext = parent)
     }
 

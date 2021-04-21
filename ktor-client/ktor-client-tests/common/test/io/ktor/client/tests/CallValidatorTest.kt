@@ -4,20 +4,24 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class CallValidatorTest {
+    private var firstHandler by shared(0)
+    private var secondHandler by shared(0)
+    private var handleTriggered by shared(false)
+    private var validator by shared(0)
+
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
-        var firstHandler = 0
-        var secondHandler = 0
-
         config {
             engine {
                 addHandler { respondOk() }
@@ -53,7 +57,6 @@ class CallValidatorTest {
 
     @Test
     fun testExceptionFromEngine() = testWithEngine(MockEngine) {
-        var handleTriggered = 0
         config {
             engine {
                 addHandler { throw CallValidatorTestException() }
@@ -61,7 +64,7 @@ class CallValidatorTest {
             HttpResponseValidator {
                 handleResponseException {
                     assertTrue(it is CallValidatorTestException)
-                    handleTriggered++
+                    firstHandler++
                 }
             }
         }
@@ -71,13 +74,12 @@ class CallValidatorTest {
             } catch (_: CallValidatorTestException) {
             }
 
-            assertEquals(1, handleTriggered)
+            assertEquals(1, firstHandler)
         }
     }
 
     @Test
-    fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
-        var handleTriggered = false
+    fun testExceptionFromResponsePipeline() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { respondOk() }
@@ -101,10 +103,31 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testMergeMultipleConfigs() = testWithEngine(MockEngine) {
-        var firstHandler = 0
-        var secondHandler = 0
+    fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { respondOk() }
+            }
+            HttpResponseValidator {
+                handleResponseException {
+                    assertTrue(it is CallValidatorTestException)
+                    handleTriggered = true
+                }
+            }
+        }
+        test { client ->
+            client.receivePipeline.intercept(HttpReceivePipeline.State) { throw CallValidatorTestException() }
+            try {
+                client.get<String>()
+            } catch (_: CallValidatorTestException) {
+            }
 
+            assertTrue(handleTriggered)
+        }
+    }
+
+    @Test
+    fun testMergeMultipleConfigs() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { respondOk() }
@@ -127,22 +150,20 @@ class CallValidatorTest {
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
-            var thirdHandler = false
             try {
                 client.get<String>()
             } catch (_: CallValidatorTestException) {
-                thirdHandler = true
+                handleTriggered = true
             }
 
             assertEquals(1, firstHandler)
             assertEquals(1, secondHandler)
-            assertTrue(thirdHandler)
+            assertTrue(handleTriggered)
         }
     }
 
     @Test
     fun testResponseValidation() = testWithEngine(MockEngine) {
-        var validator = 0
         config {
             engine {
                 addHandler {
@@ -163,6 +184,218 @@ class CallValidatorTest {
             val response = client.get<String>()
             assertEquals("Awesome response", response)
             assertEquals(1, validator)
+        }
+    }
+
+    @Test
+    fun testResponseValidationOnHttpResponse() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(42, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+
+            HttpResponseValidator {
+                validateResponse {
+                    assertEquals(42, it.status.value)
+                    validator++
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpResponse>()
+            assertEquals(1, validator)
+        }
+    }
+
+    @Test
+    fun testResponseValidationThrowsResponseException() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<HttpResponse>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseValidationThrowsResponseExceptionOnReceive() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseValidationPerRequestConfigFromFalseToTrue() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = false
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            // expectSuccess default
+            val response = client.get<HttpResponse>()
+            assertEquals(900, response.status.value)
+
+            // expectSuccess overwritten
+            try {
+                client.get<HttpResponse> {
+                    expectSuccess = true
+                }
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseValidationPerRequestConfigFromTrueToFalse() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            // expectSuccess overwritten
+            val response = client.get<HttpResponse> {
+                expectSuccess = false
+            }
+            assertEquals(900, response.status.value)
+
+            // expectSuccess default
+            try {
+                client.get<HttpResponse>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testCustomResponseValidationRunsAfterDefault() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("Should not throw")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testCustomResponseValidationWithoutDefault() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = false
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("My custom error")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: IllegalStateException) {
+                assertEquals("My custom error", cause.message)
+            }
+        }
+    }
+
+    @Test
+    fun testCustomResponseValidationWithoutDefaultPerRequestLevel() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("My custom error")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String> { expectSuccess = false }
+                fail("Should fail")
+            } catch (cause: IllegalStateException) {
+                assertEquals("My custom error", cause.message)
+            }
         }
     }
 }

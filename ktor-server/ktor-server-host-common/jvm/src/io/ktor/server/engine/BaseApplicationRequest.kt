@@ -10,9 +10,10 @@ import io.ktor.request.*
 /**
  * Base class for implementing [ApplicationRequest]
  */
-abstract class BaseApplicationRequest(override val call: ApplicationCall) : ApplicationRequest {
-    override val pipeline = ApplicationReceivePipeline().apply {
+public abstract class BaseApplicationRequest(final override val call: ApplicationCall) : ApplicationRequest {
+    override val pipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(
+        call.application.environment.developmentMode
+    ).apply {
         merge(call.application.receivePipeline)
     }
 }
-

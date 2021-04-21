@@ -16,8 +16,8 @@ private const val TEST_FILE_SIZE = 1024 * 1024
 
 internal fun Application.multiPartFormDataTest() {
     routing {
-        route("/multipart") {
-            post("/") {
+        route("multipart") {
+            post {
                 call.receiveMultipart().forEachPart {
                     try {
                         if (it is PartData.FileItem) {
@@ -28,6 +28,10 @@ internal fun Application.multiPartFormDataTest() {
                         it.dispose()
                     }
                 }
+                call.respond(HttpStatusCode.OK)
+            }
+            post("empty") {
+                call.receiveMultipart().readPart()
                 call.respond(HttpStatusCode.OK)
             }
         }

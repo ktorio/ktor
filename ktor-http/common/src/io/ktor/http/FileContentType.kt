@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -11,29 +11,31 @@ import kotlin.native.concurrent.*
 /**
  * Default [ContentType] for [extension]
  */
-fun ContentType.Companion.defaultForFileExtension(extension: String): ContentType =
+public fun ContentType.Companion.defaultForFileExtension(extension: String): ContentType =
     ContentType.fromFileExtension(extension).selectDefault()
 
 /**
  * Default [ContentType] for file [path]
  */
-fun ContentType.Companion.defaultForFilePath(path: String): ContentType = ContentType.fromFilePath(path).selectDefault()
+public fun ContentType.Companion.defaultForFilePath(path: String): ContentType =
+    ContentType.fromFilePath(path).selectDefault()
 
 /**
  * Recommended content types by file [path]
  */
-fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
+public fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
     val slashIndex = path.lastIndexOfAny("/\\".toCharArray())
     val index = path.indexOf('.', startIndex = slashIndex + 1)
-    if (index == -1)
+    if (index == -1) {
         return emptyList()
+    }
     return fromFileExtension(path.substring(index + 1))
 }
 
 /**
  * Recommended content type by file name extension
  */
-fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
+public fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
     var current = ext.removePrefix(".").toLowerCasePreservingASCIIRules()
     while (current.isNotEmpty()) {
         val type = contentTypesByExtensions[current]
@@ -49,7 +51,7 @@ fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
 /**
  * Recommended file name extensions for this content type
  */
-fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
+public fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
@@ -65,8 +67,10 @@ private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
 
 internal fun List<ContentType>.selectDefault(): ContentType {
     val contentType = firstOrNull() ?: ContentType.Application.OctetStream
-    return if (contentType.contentType == "text" && contentType.charset() == null)
-        contentType.withCharset(Charsets.UTF_8) else contentType
+    return when {
+        contentType.contentType == "text" && contentType.charset() == null -> contentType.withCharset(Charsets.UTF_8)
+        else -> contentType
+    }
 }
 
 internal fun <A, B> Sequence<Pair<A, B>>.groupByPairs() = groupBy { it.first }

@@ -13,7 +13,7 @@ private val initHook = Ios
  * [HttpClientEngineFactory] using a [NSURLRequest] in implementation
  * with the the associated requestConfig [HttpClientEngineConfig].
  */
-object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
+public object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
     init {
         engines.append(this)
     }
@@ -21,5 +21,5 @@ object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
     override fun create(block: IosClientEngineConfig.() -> Unit): HttpClientEngine =
         IosClientEngine(IosClientEngineConfig().apply(block))
 
-    override fun toString() = "Ios"
+    override fun toString(): String = "Ios"
 }

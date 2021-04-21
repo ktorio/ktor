@@ -12,12 +12,12 @@ import io.ktor.util.*
  * Base class for implementing an [ApplicationCall].
  */
 @EngineAPI
-abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
-    final override val attributes = Attributes()
+public abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
+    public final override val attributes: Attributes = Attributes()
     override val parameters: Parameters get() = request.queryParameters
 
-    abstract override val request: BaseApplicationRequest
-    abstract override val response: BaseApplicationResponse
+    public abstract override val request: BaseApplicationRequest
+    public abstract override val response: BaseApplicationResponse
 
     /**
      * Put engine response attribute. This is required for base implementation to work properly

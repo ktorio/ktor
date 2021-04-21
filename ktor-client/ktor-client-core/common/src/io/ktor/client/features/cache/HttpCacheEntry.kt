@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.cache
@@ -23,18 +23,19 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
  */
 @KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
-class HttpCacheEntry internal constructor(
-    val expires: GMTDate,
-    val varyKeys: Map<String, String>,
-    val response: HttpResponse,
-    val body: ByteArray
+public class HttpCacheEntry internal constructor(
+    public val expires: GMTDate,
+    public val varyKeys: Map<String, String>,
+    public val response: HttpResponse,
+    public val body: ByteArray
 ) {
     internal val responseHeaders: Headers = Headers.build {
         appendAll(response.headers)
     }
 
     internal fun produceResponse(): HttpResponse {
-        val call = SavedHttpCall(response.call.client)
+        val currentClient = response.call.client ?: error("Failed to save response in cache in different thread.")
+        val call = SavedHttpCall(currentClient)
         call.response = SavedHttpResponse(call, body, response)
         call.request = SavedHttpRequest(call, response.call.request)
 
@@ -52,7 +53,6 @@ class HttpCacheEntry internal constructor(
     }
 }
 
-
 internal fun HttpResponse.varyKeys(): Map<String, String> {
     val validationKeys = vary() ?: return emptyMap()
 
@@ -66,7 +66,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(): GMTDate {
+internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
     val cacheControl = cacheControl()
 
     val isPrivate = CacheControl.PRIVATE in cacheControl
@@ -81,8 +81,17 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
         return call.response.requestTime + maxAge * 1000L
     }
 
-    headers[HttpHeaders.Expires]?.fromHttpToGmtDate()?.let { return it }
-    return GMTDate()
+    val expires = headers[HttpHeaders.Expires]
+    return expires?.let {
+        // Handle "0" case faster
+        if (it == "0" || it.isBlank()) return fallback()
+
+        return try {
+            it.fromHttpToGmtDate()
+        } catch (e: Throwable) {
+            fallback()
+        }
+    } ?: fallback()
 }
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {

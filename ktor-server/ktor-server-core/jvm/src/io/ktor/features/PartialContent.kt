@@ -1,19 +1,19 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.properties.*
 
@@ -23,18 +23,18 @@ import kotlin.properties.*
  * It is essential for streaming video and restarting downloads.
  *
  */
-class PartialContent(private val maxRangeCount: Int) {
+public class PartialContent(private val maxRangeCount: Int) {
 
     /**
      * Configuration for [PartialContent].
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Maximum number of ranges that will be accepted from HTTP request.
          *
          * If HTTP request specifies more ranges, they will all be merged into a single range.
          */
-        var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
+        public var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
             new > 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
@@ -42,7 +42,7 @@ class PartialContent(private val maxRangeCount: Int) {
     /**
      * `ApplicationFeature` implementation for [PartialContent]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContent> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContent> {
         private val PartialContentPhase = PipelinePhase("PartialContent")
 
         override val key: AttributeKey<PartialContent> = AttributeKey("Partial Content")
@@ -162,8 +162,10 @@ class PartialContent(private val maxRangeCount: Int) {
                 range = null,
                 fullLength = length
             ) // https://tools.ietf.org/html/rfc7233#section-4.4
-            val statusCode =
-                HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)")
+            val statusCode = HttpStatusCode.RequestedRangeNotSatisfiable.description(
+                "Couldn't satisfy range request $rangesSpecifier: " +
+                    "it should comply with the restriction [0; $length)"
+            )
             proceedWith(HttpStatusCodeContent(statusCode))
             return
         }
@@ -259,7 +261,11 @@ class PartialContent(private val maxRangeCount: Int) {
                 )
 
             override fun readFrom() = writeMultipleRangesImpl(
-                { range -> original.readFrom(range) }, ranges, length, boundary, contentType.toString()
+                { range -> original.readFrom(range) },
+                ranges,
+                length,
+                boundary,
+                contentType.toString()
             )
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {

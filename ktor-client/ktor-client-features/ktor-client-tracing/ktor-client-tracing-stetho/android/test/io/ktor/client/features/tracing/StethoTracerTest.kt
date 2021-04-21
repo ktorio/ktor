@@ -11,7 +11,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import org.mockito.Mockito.*
 import kotlin.test.*
 

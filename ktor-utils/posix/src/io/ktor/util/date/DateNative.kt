@@ -8,7 +8,7 @@ import kotlinx.cinterop.*
 import platform.posix.*
 import utils.*
 
-actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
+public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {
         time(timeHolder.ptr)
@@ -34,8 +34,13 @@ actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     }
 }
 
-actual fun GMTDate(
-    seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
+public actual fun GMTDate(
+    seconds: Int,
+    minutes: Int,
+    hours: Int,
+    dayOfMonth: Int,
+    month: Month,
+    year: Int
 ): GMTDate = memScoped {
     val nativeYear = year - 1900
 
@@ -56,3 +61,8 @@ actual fun GMTDate(
 
     return GMTDate(timestamp * 1000L)
 }
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public actual fun getTimeMillis(): Long = GMTDate().timestamp

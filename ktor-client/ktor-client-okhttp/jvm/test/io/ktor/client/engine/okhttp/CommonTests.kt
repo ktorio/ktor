@@ -6,6 +6,13 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.tests.*
 
-class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
-
 class OkHttpHttpClientTest : HttpClientTest(OkHttp)
+
+class OkHttpSslOverProxyTest : SslOverProxyTest<OkHttpConfig>(OkHttp) {
+
+    override fun OkHttpConfig.disableCertificatePinning() {
+        config {
+            sslSocketFactory(unsafeSslContext.socketFactory, trustAllCertificates[0])
+        }
+    }
+}

@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.CancellationException
@@ -23,20 +23,26 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * It is acting for every client's ping frame and replying with corresponding pong
  */
 @OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    ExperimentalCoroutinesApi::class,
+    ObsoleteCoroutinesApi::class
 )
-fun CoroutineScope.ponger(
+public fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
     try {
         consumeEach { frame ->
             val buffer = frame.buffer.copy(pool)
-            outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
-                override fun dispose() {
-                    pool.recycle(buffer)
-                }
-            }))
+            outgoing.send(
+                Frame.Pong(
+                    buffer,
+                    object : DisposableHandle {
+                        override fun dispose() {
+                            pool.recycle(buffer)
+                        }
+                    }
+                )
+            )
         }
     } catch (_: ClosedSendChannelException) {
     }
@@ -46,18 +52,19 @@ fun CoroutineScope.ponger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
-@OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-)
-fun CoroutineScope.pinger(
+public fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
     timeoutMillis: Long,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Pong> {
     val actorJob = Job()
+
+    @OptIn(ObsoleteCoroutinesApi::class)
     val result = actor<Frame.Pong>(
-        actorJob + PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY
+        actorJob + PingerCoroutineName,
+        capacity = Channel.UNLIMITED,
+        start = CoroutineStart.LAZY
     ) {
         // note that this coroutine need to be lazy
         val buffer = pool.borrow()
@@ -66,7 +73,7 @@ fun CoroutineScope.pinger(
         val pingIdBytes = ByteArray(32)
 
         try {
-            while (!isClosedForReceive) {
+            while (true) {
                 // drop pongs during period delay as they are irrelevant
                 // here we expect a timeout, so ignore it
                 withTimeoutOrNull(periodMillis) {

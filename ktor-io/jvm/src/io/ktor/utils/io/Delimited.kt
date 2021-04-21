@@ -14,7 +14,7 @@ import java.nio.*
  *
  * @return non-negative number of copied bytes, possibly 0
  */
-suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst: ByteBuffer): Int {
+public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst: ByteBuffer): Int {
     require(delimiter.hasRemaining())
     require(delimiter !== dst)
 
@@ -38,7 +38,7 @@ suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst: ByteB
     else readUntilDelimiterSuspend(delimiter, dst, copied)
 }
 
-suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteBuffer) {
+public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteBuffer) {
     require(delimiter.hasRemaining())
 
     var found = false
@@ -59,7 +59,11 @@ private suspend fun ByteReadChannel.skipDelimiterSuspend(delimiter: ByteBuffer) 
     }
 }
 
-private suspend fun ByteReadChannel.readUntilDelimiterSuspend(delimiter: ByteBuffer, dst: ByteBuffer, copied0: Int): Int {
+private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
+    delimiter: ByteBuffer,
+    dst: ByteBuffer,
+    copied0: Int
+): Int {
     require(delimiter !== dst)
     require(copied0 >= 0)
 

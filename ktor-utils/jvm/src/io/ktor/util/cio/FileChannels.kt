@@ -5,11 +5,11 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.nio.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.nio.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
@@ -23,7 +23,7 @@ import kotlin.coroutines.*
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
 @OptIn(ExperimentalIoApi::class)
-fun File.readChannel(
+public fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
     coroutineContext: CoroutineContext = Dispatchers.IO
@@ -32,7 +32,10 @@ fun File.readChannel(
     val file = RandomAccessFile(this@readChannel, "r")
     return CoroutineScope(coroutineContext).writer(CoroutineName("file-reader") + coroutineContext, autoFlush = false) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
-        require(endInclusive <= fileLength - 1) { "endInclusive points to the position out of the file: file size = ${file.length()}, endInclusive = $endInclusive" }
+        require(endInclusive <= fileLength - 1) {
+            "endInclusive points to the position out of the file: " +
+                "file size = ${file.length()}, endInclusive = $endInclusive"
+        }
 
         file.use {
             val fileChannel: FileChannel = file.channel
@@ -90,7 +93,7 @@ fun File.readChannel(
     ReplaceWith("writeChannel()"),
     level = DeprecationLevel.ERROR
 )
-fun File.writeChannel(
+public fun File.writeChannel(
     @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
 ): ByteWriteChannel = writeChannel()
 
@@ -101,7 +104,7 @@ fun File.writeChannel(
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-fun File.writeChannel(
+public fun File.writeChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteWriteChannel = GlobalScope.reader(CoroutineName("file-writer") + coroutineContext, autoFlush = true) {
     @Suppress("BlockingMethodInNonBlockingContext")

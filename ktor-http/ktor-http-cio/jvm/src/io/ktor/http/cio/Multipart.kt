@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -7,11 +7,11 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.network.util.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import java.io.*
 import java.io.EOFException
 import java.nio.*
@@ -20,17 +20,17 @@ import kotlin.coroutines.*
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
  */
-sealed class MultipartEvent {
+public sealed class MultipartEvent {
     /**
      * Release underlying data/packet.
      */
-    abstract fun release()
+    public abstract fun release()
 
     /**
      * Represents a multipart content preamble. A multipart stream could have at most one preamble.
      * @property body contains preamble's content
      */
-    class Preamble(val body: ByteReadPacket) : MultipartEvent() {
+    public class Preamble(public val body: ByteReadPacket) : MultipartEvent() {
         override fun release() {
             body.release()
         }
@@ -44,7 +44,10 @@ sealed class MultipartEvent {
      * @property headers deferred that will be completed once will be parsed
      * @property body a channel of part content
      */
-    class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
+    public class MultipartPart(
+        public val headers: Deferred<HttpHeadersMap>,
+        public val body: ByteReadChannel
+    ) : MultipartEvent() {
         @OptIn(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
@@ -62,7 +65,7 @@ sealed class MultipartEvent {
      * Represents a multipart content epilogue. A multipart stream could have at most one epilogue.
      * @property body contains epilogue's content
      */
-    class Epilogue(val body: ByteReadPacket) : MultipartEvent() {
+    public class Epilogue(public val body: ByteReadPacket) : MultipartEvent() {
         override fun release() {
             body.release()
         }
@@ -74,7 +77,7 @@ sealed class MultipartEvent {
     "Simply copy required number of bytes from input to output instead",
     level = DeprecationLevel.HIDDEN
 )
-suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
+public suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
     input.copyTo(out, length)
 }
@@ -84,7 +87,7 @@ suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: 
  * @return number of bytes copied
  */
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
-suspend fun parsePreamble(
+public suspend fun parsePreamble(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
     output: BytePacketBuilder,
@@ -116,8 +119,10 @@ private suspend fun parsePreambleImpl(
  * Parse multipart part headers and body. Body bytes will be copied to [output] but up to [limit] bytes
  */
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
-suspend fun parsePart(
-    boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel,
+public suspend fun parsePart(
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     limit: Long = Long.MAX_VALUE
 ): Pair<HttpHeadersMap, Long> {
     val headers = parsePartHeadersImpl(input)
@@ -134,7 +139,7 @@ suspend fun parsePart(
  * Parse multipart part headers
  */
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
-suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
+public suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
     return parsePartHeadersImpl(input)
 }
 
@@ -157,10 +162,12 @@ private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap
  * Parse multipart part body copying them to [output] channel but up to [limit] bytes
  */
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
-suspend fun parsePartBody(
+public suspend fun parsePartBody(
     boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel, output: ByteWriteChannel,
-    headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    headers: HttpHeadersMap,
+    limit: Long = Long.MAX_VALUE
 ): Long {
     return parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
 }
@@ -170,8 +177,10 @@ suspend fun parsePartBody(
  */
 private suspend fun parsePartBodyImpl(
     boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel, output: ByteWriteChannel,
-    headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    headers: HttpHeadersMap,
+    limit: Long = Long.MAX_VALUE
 ): Long {
     val cl = headers["Content-Length"]?.parseDecLong()
     val size = if (cl != null) {
@@ -190,15 +199,18 @@ private suspend fun parsePartBodyImpl(
  */
 @OptIn(ExperimentalIoApi::class)
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
-suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
+public suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     return skipBoundary(boundaryPrefixed, input)
 }
 
 /**
  * Skip multipart boundary
+ * @return `true` if end channel encountered
  */
 private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
-    input.skipDelimiter(boundaryPrefixed)
+    if (!input.skipDelimiterOrEof(boundaryPrefixed)) {
+        return true
+    }
 
     var result = false
     @Suppress("DEPRECATION")
@@ -232,13 +244,13 @@ private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadCh
  * Check if we have multipart content
  */
 @Deprecated("This is going to be removed.")
-fun expectMultipart(headers: HttpHeadersMap): Boolean {
+public fun expectMultipart(headers: HttpHeadersMap): Boolean {
     return headers["Content-Type"]?.startsWith("multipart/") ?: false
 }
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
 @Deprecated("Specify CoroutineScope explicitly", level = DeprecationLevel.HIDDEN)
-fun parseMultipart(
+public fun parseMultipart(
     coroutineContext: CoroutineContext,
     input: ByteReadChannel,
     headers: HttpHeadersMap
@@ -246,12 +258,13 @@ fun parseMultipart(
     return CoroutineScope(coroutineContext).parseMultipart(input, headers)
 }
 
-
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@KtorExperimentalAPI
-fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
+public fun CoroutineScope.parseMultipart(
+    input: ByteReadChannel,
+    headers: HttpHeadersMap
+): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
 
@@ -260,7 +273,7 @@ fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMa
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
 @Deprecated("Specify coroutine scope explicitly", level = DeprecationLevel.HIDDEN)
-fun parseMultipart(
+public fun parseMultipart(
     coroutineContext: CoroutineContext,
     input: ByteReadChannel,
     contentType: CharSequence,
@@ -272,14 +285,15 @@ fun parseMultipart(
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@KtorExperimentalAPI
-fun CoroutineScope.parseMultipart(
+public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?
 ): ReceiveChannel<MultipartEvent> {
-    if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
-    val boundaryBytes = parseBoundary(contentType)
+    if (!contentType.startsWith("multipart/")) {
+        throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
+    }
+    val boundaryBytes = parseBoundaryInternal(contentType)
 
     // TODO fail if contentLength = 0 and content subtype is wrong
 
@@ -292,7 +306,7 @@ private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
 @Deprecated("Use parseMultipart with coroutine scope specified", level = DeprecationLevel.HIDDEN)
-fun parseMultipart(
+public fun parseMultipart(
     coroutineContext: CoroutineContext,
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
@@ -305,9 +319,12 @@ fun parseMultipart(
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Deprecated("This is going to be removed. Use parseMultipart(contentType) instead.")
-fun CoroutineScope.parseMultipart(
-    boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
+public fun CoroutineScope.parseMultipart(
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
     @Suppress("DEPRECATION")
     val readBeforeParse = input.totalBytesRead
@@ -330,11 +347,9 @@ fun CoroutineScope.parseMultipart(
 
     do {
         input.readUntilDelimiter(CrLf, trailingBuffer)
-        if (input.readUntilDelimiter(
-                CrLf,
-                trailingBuffer
-            ) != 0
-        ) throw IOException("Failed to parse multipart: boundary line is too long")
+        if (input.readUntilDelimiter(CrLf, trailingBuffer) != 0) {
+            throw IOException("Failed to parse multipart: boundary line is too long")
+        }
         input.skipDelimiter(CrLf)
 
         val body = ByteChannel()
@@ -360,6 +375,7 @@ fun CoroutineScope.parseMultipart(
 
         body.close()
     } while (!skipBoundary(boundaryPrefixed, input))
+    input.skipDelimiter(CrLf)
 
     if (totalLength != null) {
         @Suppress("DEPRECATION")
@@ -472,11 +488,25 @@ private fun findBoundary(contentType: CharSequence): Int {
  * Parse multipart boundary encoded in [contentType] header value
  * @return a buffer containing CRLF, prefix '--' and boundary bytes
  */
-@KtorExperimentalAPI
-fun parseBoundary(contentType: CharSequence): ByteBuffer {
+@Deprecated(
+    "This is going to become internal. " +
+        "Use parseMultipart instead or file a ticket explaining why do you need this function."
+)
+@Suppress("unused")
+public fun parseBoundary(contentType: CharSequence): ByteBuffer {
+    return parseBoundaryInternal(contentType)
+}
+
+/**
+ * Parse multipart boundary encoded in [contentType] header value
+ * @return a buffer containing CRLF, prefix '--' and boundary bytes
+ */
+internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
     val boundaryParameter = findBoundary(contentType)
 
-    if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
+    if (boundaryParameter == -1) {
+        throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
+    }
     val boundaryStart = boundaryParameter + 9
 
     val boundaryBytes: ByteBuffer = ByteBuffer.allocate(74)
@@ -490,7 +520,11 @@ fun parseBoundary(contentType: CharSequence): ByteBuffer {
     loop@ for (i in boundaryStart until contentType.length) {
         val ch = contentType[i]
         val v = ch.toInt() and 0xffff
-        if (v and 0xffff > 0x7f) throw IOException("Failed to parse multipart: wrong boundary byte 0x${v.toString(16)} - should be 7bit character")
+        if (v and 0xffff > 0x7f) {
+            throw IOException(
+                "Failed to parse multipart: wrong boundary byte 0x${v.toString(16)} - should be 7bit character"
+            )
+        }
 
         when (state) {
             0 -> {
@@ -551,4 +585,106 @@ fun parseBoundary(contentType: CharSequence): ByteBuffer {
     }
 
     return boundaryBytes
+}
+
+/**
+ * Tries to skip the specified [delimiter] or fails if encounters bytes differs from the required.
+ * @return `true` if the delimiter was found and skipped or `false` when EOF.
+ */
+internal suspend fun ByteReadChannel.skipDelimiterOrEof(delimiter: ByteBuffer): Boolean {
+    require(delimiter.hasRemaining())
+    require(delimiter.remaining() <= DEFAULT_BUFFER_SIZE) {
+        "Delimiter of ${delimiter.remaining()} bytes is too long: at most $DEFAULT_BUFFER_SIZE bytes could be checked"
+    }
+
+    var found = false
+
+    lookAhead {
+        found = tryEnsureDelimiter(delimiter) == delimiter.remaining()
+    }
+
+    if (found) {
+        return true
+    }
+
+    return trySkipDelimiterSuspend(delimiter)
+}
+
+private suspend fun ByteReadChannel.trySkipDelimiterSuspend(delimiter: ByteBuffer): Boolean {
+    var result = true
+
+    lookAheadSuspend {
+        if (!awaitAtLeast(delimiter.remaining()) && !awaitAtLeast(1)) {
+            result = false
+            return@lookAheadSuspend
+        }
+        if (tryEnsureDelimiter(delimiter) != delimiter.remaining()) throw IOException("Broken delimiter occurred")
+    }
+
+    return result
+}
+
+@Suppress("DEPRECATION")
+private fun LookAheadSession.tryEnsureDelimiter(delimiter: ByteBuffer): Int {
+    val found = startsWithDelimiter(delimiter)
+    if (found == -1) throw IOException("Failed to skip delimiter: actual bytes differ from delimiter bytes")
+    if (found < delimiter.remaining()) return found
+
+    consumed(delimiter.remaining())
+    return delimiter.remaining()
+}
+
+@Suppress("LoopToCallChain")
+private fun ByteBuffer.startsWith(prefix: ByteBuffer, prefixSkip: Int = 0): Boolean {
+    val size = minOf(remaining(), prefix.remaining() - prefixSkip)
+    if (size <= 0) return false
+
+    val position = position()
+    val prefixPosition = prefix.position() + prefixSkip
+
+    for (i in 0 until size) {
+        if (get(position + i) != prefix.get(prefixPosition + i)) return false
+    }
+
+    return true
+}
+
+/**
+ * @return Number of bytes of the delimiter found (possibly 0 if no bytes available yet) or -1 if it doesn't start
+ */
+@Suppress("DEPRECATION")
+private fun LookAheadSession.startsWithDelimiter(delimiter: ByteBuffer): Int {
+    val buffer = request(0, 1) ?: return 0
+    val index = buffer.indexOfPartial(delimiter)
+    if (index != 0) return -1
+
+    val found = minOf(buffer.remaining() - index, delimiter.remaining())
+    val notKnown = delimiter.remaining() - found
+
+    if (notKnown > 0) {
+        val next = request(index + found, notKnown) ?: return found
+        if (!next.startsWith(delimiter, found)) return -1
+    }
+
+    return delimiter.remaining()
+}
+
+@Suppress("LoopToCallChain")
+private fun ByteBuffer.indexOfPartial(sub: ByteBuffer): Int {
+    val subPosition = sub.position()
+    val subSize = sub.remaining()
+    val first = sub[subPosition]
+    val limit = limit()
+
+    outer@for (idx in position() until limit) {
+        if (get(idx) == first) {
+            for (j in 1 until subSize) {
+                if (idx + j == limit) break
+                if (get(idx + j) != sub.get(subPosition + j)) continue@outer
+            }
+            return idx - position()
+        }
+    }
+
+    return -1
 }

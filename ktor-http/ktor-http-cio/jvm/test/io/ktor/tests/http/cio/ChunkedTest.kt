@@ -5,10 +5,9 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import kotlin.test.*
@@ -21,6 +20,31 @@ class ChunkedTest {
         val parsed = ByteChannel()
 
         decodeChunked(ch, parsed)
+    }
+
+    @Test
+    fun testChunkedWithContentLength() = runBlocking {
+        val chunkedContent = listOf(
+            "3\r\n",
+            "a=1\r\n",
+            "0\r\n",
+            "\r\n",
+        )
+
+        val input = writer {
+            chunkedContent.forEach {
+                channel.writeStringUtf8(it)
+            }
+        }.channel
+
+        val output = ByteChannel()
+        launch {
+            decodeChunked(input, output, 1L)
+            output.close()
+        }
+
+        val content = output.readRemaining().readText()
+        assertEquals("a=1", content)
     }
 
     @Test(expected = EOFException::class)
@@ -109,7 +133,7 @@ class ChunkedTest {
 
     @Test
     fun testEncodeChunks() = runBlocking {
-        val output = ByteChannel(true)
+        val output = ByteChannel(false)
         val encoded = ByteChannel()
 
         launch {
@@ -190,9 +214,5 @@ class ChunkedTest {
         val second = read.await()
 
         assertEquals(first, second)
-    }
-
-    private suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
-        return decodeChunked(input, out, -1L)
     }
 }

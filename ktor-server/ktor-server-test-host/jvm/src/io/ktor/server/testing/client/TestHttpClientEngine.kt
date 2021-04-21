@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.client
@@ -17,8 +17,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
-class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
     override val dispatcher = Dispatchers.IO
 
@@ -31,19 +30,38 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
+        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 
-        return HttpResponseData(
-            testServerCall.status()!!, GMTDate(),
-            testServerCall.headers.allValues(),
-            HttpProtocolVersion.HTTP_1_1,
-            ByteReadChannel(testServerCall.byteContent ?: byteArrayOf()),
-            callContext()
-        )
+        return if (testServerCall.requestHandled) {
+            with(testServerCall.response) {
+                HttpResponseData(
+                    status()!!,
+                    GMTDate(),
+                    headers.allValues(),
+                    HttpProtocolVersion.HTTP_1_1,
+                    ByteReadChannel(byteContent ?: byteArrayOf()),
+                    callContext()
+                )
+            }
+        } else {
+            HttpResponseData(
+                HttpStatusCode.NotFound,
+                GMTDate(),
+                Headers.build {
+                    this[HttpHeaders.ContentLength] = "0"
+                },
+                HttpProtocolVersion.HTTP_1_1,
+                ByteReadChannel(byteArrayOf()),
+                callContext()
+            )
+        }
     }
 
     private fun runRequest(
-        method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
+        method: HttpMethod,
+        url: String,
+        headers: Headers,
+        content: OutgoingContent
     ): TestApplicationCall = app.handleRequest(method, url) {
         headers.flattenForEach { name, value ->
             if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
@@ -72,7 +90,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         clientJob.complete()
     }
 
-    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)
@@ -89,5 +107,3 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 }
-
-

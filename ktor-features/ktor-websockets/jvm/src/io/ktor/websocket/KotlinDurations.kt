@@ -15,7 +15,7 @@ import java.nio.*
 import kotlin.time.*
 
 @ExperimentalTime
-fun WebSockets(
+public fun WebSockets(
     pingInterval: Duration?,
     timeout: Duration,
     maxFrameSize: Long,
@@ -32,7 +32,7 @@ fun WebSockets(
  * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
  */
 @ExperimentalTime
-fun CoroutineScope.pinger(
+public fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     period: Duration,
     timeout: Duration,

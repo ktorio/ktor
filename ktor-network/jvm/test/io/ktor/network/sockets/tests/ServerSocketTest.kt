@@ -6,9 +6,9 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import io.ktor.utils.io.*
 import org.junit.*
 import org.junit.Test
 import java.io.*
@@ -40,7 +40,7 @@ class ServerSocketTest : CoroutineScope {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(15)
 
-    @After
+    @AfterTest
     fun tearDown() {
         testJob.cancel()
         tearDown = true

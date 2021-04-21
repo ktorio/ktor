@@ -1,29 +1,31 @@
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.cinterop.*
 
 /**
  * Read at most [limit] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int) =
+public fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int): Int =
     readAsMuchAsPossible(dst, limit.toLong(), 0L).toInt()
 
 /**
  * Read at most [limit] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Long) = readAsMuchAsPossible(dst, limit, 0L)
+public fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Long): Long =
+    readAsMuchAsPossible(dst, limit, 0L)
 
 /**
  * Read exactly [size] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
+public fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
     val rc = readAsMuchAsPossible(dst, size.toLong(), 0L)
-    if (rc != size.toLong())
+    if (rc != size.toLong()) {
         throw EOFException("Not enough data in packet to fill buffer: ${size.toLong() - rc} more bytes required")
+    }
     return rc.toInt()
 }
 
@@ -31,7 +33,7 @@ fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
  * Read exactly [size] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Long): Long {
+public fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Long): Long {
     val rc = readAsMuchAsPossible(dst, size, 0L)
     if (rc != size) throw EOFException("Not enough data in packet to fill buffer: ${size - rc} more bytes required")
     return rc
@@ -62,7 +64,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(
 /**
  * Write all [src] buffer remaining bytes and change it's position accordingly
  */
-fun BytePacketBuilder.writeFully(src: CPointer<ByteVar>, size: Int) {
+public fun BytePacketBuilder.writeFully(src: CPointer<ByteVar>, size: Int) {
     var remaining = size
     var offset = 0
 

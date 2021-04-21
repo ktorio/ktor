@@ -1,22 +1,17 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
-import io.ktor.client.response.readText
 import io.ktor.client.statement.*
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import java.io.*
 import java.net.*
 import java.time.*
@@ -39,7 +34,7 @@ class CIOHttpClientTest {
                     val reader = client.inputStream.bufferedReader()
 
                     val headers = reader.lineSequence().takeWhile { it.isNotBlank() }
-                            .associateBy({ it.substringBefore(":", "") }, { it.substringAfter(":").trimStart() })
+                        .associateBy({ it.substringBefore(":", "") }, { it.substringAfter(":").trimStart() })
                     headersSync.add(headers)
 
                     val requestContentBuffer = CharArray(headers[HttpHeaders.ContentLength]!!.toInt())
@@ -55,12 +50,16 @@ class CIOHttpClientTest {
                     receivedContentSync.add(requestContent)
 
                     client.outputStream.writer().apply {
-                        write("""
-                    HTTP/1.1 200 OK
-                    Server: test
-                    Date: ${LocalDateTime.now().toHttpDateString()}
-                    Connection: close
-                    """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\nok"))
+                        write(
+                            """
+                            HTTP/1.1 200 OK
+                            Server: test
+                            Date: ${LocalDateTime.now().toHttpDateString()}
+                            Connection: close
+                            """.trimIndent()
+                                .lines()
+                                .joinToString("\r\n", postfix = "\r\n\r\nok")
+                        )
                         flush()
                     }
                 }
@@ -107,7 +106,7 @@ class CIOHttpClientTest {
                     val reader = client.inputStream.bufferedReader()
 
                     val headers = reader.lineSequence().takeWhile { it.isNotBlank() }
-                            .associateBy({ it.substringBefore(":", "") }, { it.substringAfter(":").trimStart() })
+                        .associateBy({ it.substringBefore(":", "") }, { it.substringAfter(":").trimStart() })
                     headersSync.complete(headers)
 
                     assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
@@ -136,16 +135,20 @@ class CIOHttpClientTest {
                     receivedContentSync.complete(requestContent)
 
                     client.outputStream.writer().apply {
-                        write("""
-                    HTTP/1.1 200 OK
-                    Server: test
-                    Date: ${LocalDateTime.now().toHttpDateString()}
-                    Transfer-Encoding: chunked
-
-                    2
-                    ok
-                    0
-                    """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\n"))
+                        write(
+                            """
+                            HTTP/1.1 200 OK
+                            Server: test
+                            Date: ${LocalDateTime.now().toHttpDateString()}
+                            Transfer-Encoding: chunked
+        
+                            2
+                            ok
+                            0
+                            """.trimIndent()
+                                .lines()
+                                .joinToString("\r\n", postfix = "\r\n\r\n")
+                        )
                         flush()
                     }
                 }

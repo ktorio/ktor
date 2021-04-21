@@ -7,21 +7,25 @@ package io.ktor.client.engine.mock
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
-import kotlinx.atomicfu.locks.*
+import io.ktor.util.collections.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
  */
-class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
-    override val dispatcher = Dispatchers.Unconfined
-    override val supportedCapabilities = setOf(HttpTimeout)
-    private var invocationCount = 0
+public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
+    override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
     private val mutex = Lock()
-    private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
-    private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
     private val contextState: CompletableJob = Job()
+
+    private val _requestsHistory: MutableList<HttpRequestData> = ConcurrentList()
+    private val _responseHistory: MutableList<HttpResponseData> = ConcurrentList()
+
+    private var invocationCount: Int by shared(0)
 
     init {
         check(config.requestHandlers.size > 0) {
@@ -32,12 +36,12 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
     /**
      * History of executed requests.
      */
-    val requestHistory: List<HttpRequestData> get() = _requestsHistory
+    public val requestHistory: List<HttpRequestData> get() = _requestsHistory
 
     /**
      * History of sent responses.
      */
-    val responseHistory: List<HttpResponseData> get() = _responseHistory
+    public val responseHistory: List<HttpResponseData> get() = _responseHistory
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -73,16 +77,19 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
         }
     }
 
-    companion object : HttpClientEngineFactory<MockEngineConfig> {
+    public companion object : HttpClientEngineFactory<MockEngineConfig> {
         override fun create(block: MockEngineConfig.() -> Unit): HttpClientEngine =
             MockEngine(MockEngineConfig().apply(block))
 
         /**
          * Create [MockEngine] instance with single request handler.
          */
-        operator fun invoke(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): MockEngine =
-            MockEngine(MockEngineConfig().apply {
+        public operator fun invoke(
+            handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData
+        ): MockEngine = MockEngine(
+            MockEngineConfig().apply {
                 requestHandlers.add(handler)
-            })
+            }
+        )
     }
 }

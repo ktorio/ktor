@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -19,12 +19,14 @@ import java.nio.*
 /**
  * Base class for implementing an [ApplicationResponse]
  */
-abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
+public abstract class BaseApplicationResponse(final override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
 
-    override val cookies by lazy { ResponseCookies(this, call.request.origin.scheme == "https") }
+    override val cookies: ResponseCookies by lazy {
+        ResponseCookies(this, call.request.origin.scheme == "https")
+    }
 
-    override fun status() = _status
+    override fun status(): HttpStatusCode? = _status
     override fun status(value: HttpStatusCode) {
         _status = value
         setStatus(value)
@@ -32,7 +34,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     private var responded = false
 
-    final override val pipeline = ApplicationSendPipeline().apply {
+    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
+        call.application.environment.developmentMode
+    ).apply {
         merge(call.application.sendPipeline)
     }
 
@@ -40,8 +44,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
      * Commit header values and status and pass them to the underlying engine
      */
     protected fun commitHeaders(content: OutgoingContent) {
-        if (responded)
-            throw BaseApplicationResponse.ResponseAlreadySentException()
+        if (responded) throw BaseApplicationResponse.ResponseAlreadySentException()
         responded = true
 
         var transferEncodingSet = false
@@ -51,15 +54,19 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             when (name) {
                 HttpHeaders.TransferEncoding -> transferEncodingSet = true
                 HttpHeaders.Upgrade -> {
-                    if (content !is OutgoingContent.ProtocolUpgrade)
+                    if (content !is OutgoingContent.ProtocolUpgrade) {
                         throw InvalidHeaderForContent(HttpHeaders.Upgrade, "non-upgrading response")
-                    for (value in values)
+                    }
+                    for (value in values) {
                         headers.append(name, value, safeOnly = false)
+                    }
                     return@forEach
                 }
             }
-            for (value in values)
+
+            for (value in values) {
                 headers.append(name, value)
+            }
         }
 
         val contentLength = content.contentLength
@@ -233,6 +240,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
      */
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         link(builder.url.buildString(), LinkHeader.Rel.Prefetch)
     }
@@ -240,27 +248,30 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * Thrown when there was already response sent but we are trying to respond again
      */
-    class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
+    public class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 
     /**
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
      */
-    class InvalidHeaderForContent(
-        private val name: String, private val content: String
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public class InvalidHeaderForContent(
+        private val name: String,
+        private val content: String
     ) : IllegalStateException("Header $name is not allowed for $content"),
         CopyableThrowable<InvalidHeaderForContent> {
         override fun createCopy(): InvalidHeaderForContent? = InvalidHeaderForContent(name, content).also {
             it.initCause(this)
         }
-
     }
 
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooSmall(
-        private val expected: Long, private val actual: Long
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public class BodyLengthIsTooSmall(
+        private val expected: Long,
+        private val actual: Long
     ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
         CopyableThrowable<BodyLengthIsTooSmall> {
         override fun createCopy(): BodyLengthIsTooSmall? = BodyLengthIsTooSmall(expected, actual).also {
@@ -271,33 +282,35 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
-        "Body.size is too long. Expected $expected"
-    ), CopyableThrowable<BodyLengthIsTooLong> {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public class BodyLengthIsTooLong(private val expected: Long) :
+        IllegalStateException("Body.size is too long. Expected $expected"), CopyableThrowable<BodyLengthIsTooLong> {
         override fun createCopy(): BodyLengthIsTooLong? = BodyLengthIsTooLong(expected).also {
             it.initCause(this)
         }
-
     }
 
-    companion object {
+    public companion object {
         /**
          * Attribute key to access engine's response instance.
          * This is engine internal API and should be never used by end-users
          * unless you are writing your own engine implementation
          */
         @EngineAPI
-        val EngineResponseAtributeKey = AttributeKey<BaseApplicationResponse>("EngineResponse")
+        public val EngineResponseAtributeKey: AttributeKey<BaseApplicationResponse> =
+            AttributeKey<BaseApplicationResponse>("EngineResponse")
 
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
          * to start response object processing via [respondOutgoingContent]
          */
         @EngineAPI
-        fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
+        public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
-                    throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
+                    throw IllegalArgumentException(
+                        "Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent"
+                    )
                 }
 
                 val call = call

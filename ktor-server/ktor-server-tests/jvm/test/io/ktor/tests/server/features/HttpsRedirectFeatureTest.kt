@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class HttpsRedirectFeatureTest {
@@ -23,7 +22,6 @@ class HttpsRedirectFeatureTest {
                     call.respond("ok")
                 }
             }
-
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
@@ -43,10 +41,9 @@ class HttpsRedirectFeatureTest {
                 }
             }
 
-
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
-            }).let { call ->
+            }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }
         }
@@ -85,13 +82,15 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testRedirectHttpsExemption() {
+    fun testRedirectHttpsPrefixExemption() {
         withTestApplication {
             application.install(HttpsRedirect) {
                 excludePrefix("/exempted")
             }
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond("ok")
+            application.routing {
+                get("/exempted/path") {
+                    call.respond("ok")
+                }
             }
 
             handleRequest(HttpMethod.Get, "/nonexempted").let { call ->
@@ -99,6 +98,28 @@ class HttpsRedirectFeatureTest {
             }
 
             handleRequest(HttpMethod.Get, "/exempted/path").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testRedirectHttpsSuffixExemption() {
+        withTestApplication {
+            application.install(HttpsRedirect) {
+                excludeSuffix("exempted")
+            }
+            application.routing {
+                get("/path/exempted") {
+                    call.respond("ok")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/exemptednot").let { call ->
+                assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/path/exempted").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -8,8 +8,10 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -18,13 +20,12 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.json.simple.*
-import org.junit.*
-import org.junit.Test
 import java.net.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class OAuth2Test {
     private val executor = Executors.newSingleThreadExecutor()
     private val dispatcher = executor.asCoroutineDispatcher()
@@ -66,49 +67,100 @@ class OAuth2Test {
         requestMethod = HttpMethod.Post
     )
 
-    private val testClient = createOAuth2Server(object : OAuth2Server {
-        override fun requestToken(
-            clientId: String,
-            clientSecret: String,
-            grantType: String,
-            state: String?,
-            code: String?,
-            redirectUri: String?,
-            userName: String?,
-            password: String?
-        ): OAuthAccessTokenResponse.OAuth2 {
-            if (clientId != "clientId1") {
-                throw OAuth2Exception.InvalidGrant("Wrong clientId $clientId")
-            }
-            if (clientSecret != "clientSecret1") {
-                throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
-            }
-            if (grantType == OAuthGrantTypes.AuthorizationCode) {
-                if (state != "state1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong state $state")
-                }
-                if (code != "code1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong code $code")
-                }
-                if (redirectUri != "http://localhost/login") {
-                    throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
-                }
+    private fun DefaultSettingsWithAccessTokenInterceptor(post: Boolean) = OAuthServerSettings.OAuth2ServerSettings(
+        name = "oauth2",
+        authorizeUrl = "https://login-server-com/authorize",
+        accessTokenUrl = "https://login-server-com/oauth/access_token",
+        clientId = "clientId1",
+        clientSecret = "clientSecret1",
+        requestMethod = when (post) {
+            false -> HttpMethod.Get
+            true -> HttpMethod.Post
+        },
+        accessTokenInterceptor = {
+            url.parameters.remove("state")
 
-                return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-            } else if (grantType == OAuthGrantTypes.Password) {
-                if (userName != "user1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong username $userName")
+            if (method == HttpMethod.Post) {
+                body = runBlocking {
+                    val query = parseQueryString((body as OutgoingContent).toByteReadPacket().readText())
+                    val filtered = ParametersBuilder().apply {
+                        appendFiltered(query) { key, _ -> key != "state" }
+                    }.build()
+                    TextContent(filtered.formUrlEncode(), ContentType.Application.FormUrlEncoded)
                 }
-                if (password != "password1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong password $password")
-                }
-
-                return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-            } else {
-                throw OAuth2Exception.UnsupportedGrantType(grantType)
             }
         }
-    })
+    )
+
+    private val testClient = createOAuth2Server(
+        object : OAuth2Server {
+            override fun requestToken(
+                clientId: String,
+                clientSecret: String,
+                grantType: String,
+                state: String?,
+                code: String?,
+                redirectUri: String?,
+                userName: String?,
+                password: String?
+            ): OAuthAccessTokenResponse.OAuth2 {
+                if (clientId != "clientId1") {
+                    throw OAuth2Exception.InvalidGrant("Wrong clientId $clientId")
+                }
+                if (clientSecret != "clientSecret1") {
+                    throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
+                }
+                if (grantType == OAuthGrantTypes.AuthorizationCode) {
+                    if (state != "state1" && state != null) {
+                        throw OAuth2Exception.InvalidGrant("Wrong state $state")
+                    }
+                    if (code != "code1" && code != "code2") {
+                        throw OAuth2Exception.InvalidGrant("Wrong code $code")
+                    }
+                    if ((code == "code1" && state == null) || (code == "code2" && state != null)) {
+                        throw OAuth2Exception.InvalidGrant("Wrong code $code or state $state")
+                    }
+                    if (redirectUri != "http://localhost/login") {
+                        throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
+                    }
+                    if (userName != null || password != null) {
+                        throw OAuth2Exception.UnknownException(
+                            "User/password shouldn't be specified for authorization_code grant type.",
+                            "none"
+                        )
+                    }
+
+                    return OAuthAccessTokenResponse.OAuth2(
+                        "accessToken1",
+                        "type",
+                        Long.MAX_VALUE,
+                        null,
+                        when (state) {
+                            null -> parametersOf("noState", "Had no state")
+                            else -> Parameters.Empty
+                        }
+                    )
+                } else if (grantType == OAuthGrantTypes.Password) {
+                    if (userName != "user1") {
+                        throw OAuth2Exception.InvalidGrant("Wrong username $userName")
+                    }
+                    if (password != "password1") {
+                        throw OAuth2Exception.InvalidGrant("Wrong password $password")
+                    }
+                    if (state != null || code != null) {
+                        throw OAuth2Exception.UnknownException(
+                            "State/code shouldn't be specified for password grant type.",
+                            "none"
+                        )
+                    }
+
+                    return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
+                } else {
+                    throw OAuth2Exception.UnsupportedGrantType(grantType)
+                }
+            }
+        }
+    )
 
     val failures = ArrayList<Throwable>()
     fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
@@ -144,7 +196,7 @@ class OAuth2Test {
         }
     }
 
-    @After
+    @AfterTest
     fun tearDown() {
         testClient.close()
         executor.shutdownNow()
@@ -314,7 +366,8 @@ class OAuth2Test {
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -347,7 +400,8 @@ class OAuth2Test {
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code2",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -389,16 +443,23 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["badContentType"] = "true"
-                    }) { token ->
+                    @Suppress("DEPRECATION")
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["badContentType"] = "true" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -418,16 +479,23 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["respondHttpStatus"] = "500"
-                    }) { token ->
+                    @Suppress("DEPRECATION")
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["respondHttpStatus"] = "500" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -445,16 +513,23 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["respondHttpStatus"] = "404"
-                    }) { token ->
+                    @Suppress("DEPRECATION")
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["respondHttpStatus"] = "404" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -479,7 +554,6 @@ class OAuth2Test {
             assertFailures()
             assertEquals("ok", result.response.content)
         }
-
     }
 
     @Test
@@ -527,6 +601,66 @@ class OAuth2Test {
         }
     }
 
+    @Test
+    fun testRemoveStateFromAccessTokenRequest(): Unit = withApplication(createTestEnvironment()) {
+        with(application) {
+            routing {
+                get("/login") {
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettingsWithAccessTokenInterceptor(post = false),
+                        "http://localhost/login",
+                        "/login"
+                    ) { token ->
+                        token as OAuthAccessTokenResponse.OAuth2
+                        call.respondText(token.extraParameters["noState"] ?: "Had state")
+                    }
+                }
+            }
+        }
+
+        val result = handleRequest(
+            HttpMethod.Get,
+            "/login?" + listOf(
+                OAuth2RequestParameters.Code to "code2",
+                OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode()
+        ).response.content
+
+        assertEquals("Had no state", result)
+    }
+
+    @Test
+    fun testRemoveStateFromAccessTokenRequestMethodPost(): Unit = withApplication(createTestEnvironment()) {
+        with(application) {
+            routing {
+                get("/login") {
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettingsWithAccessTokenInterceptor(post = true),
+                        "http://localhost/login",
+                        "/login"
+                    ) { token ->
+                        token as OAuthAccessTokenResponse.OAuth2
+                        call.respondText(token.extraParameters["noState"] ?: "Had state")
+                    }
+                }
+            }
+        }
+
+        val result = handleRequest(
+            HttpMethod.Get,
+            "/login?" + listOf(
+                OAuth2RequestParameters.Code to "code2",
+                OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode()
+        ).response.content
+
+        assertEquals("Had no state", result)
+    }
+
     private fun waitExecutor() {
         val latch = CountDownLatch(1)
         executor.submit {
@@ -554,7 +688,9 @@ private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: Stri
 private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
     val header =
-        parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+        parseAuthorizationHeader(
+            response.response.headers[HttpHeaders.WWWAuthenticate]!!
+        ) as HttpAuthHeader.Parameterized
 
     assertEquals(AuthScheme.Basic, header.authScheme)
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))

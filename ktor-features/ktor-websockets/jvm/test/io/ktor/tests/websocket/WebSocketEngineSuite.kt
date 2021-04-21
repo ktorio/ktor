@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
@@ -18,7 +18,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.junit.*
-import org.junit.Test
 import org.junit.rules.*
 import java.io.*
 import java.net.*
@@ -29,10 +28,9 @@ import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 import kotlin.test.Ignore
+import kotlin.test.Test
 
-@OptIn(
-    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
-)
+@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
@@ -264,7 +262,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             socket {
                 negotiateHttpWebSocket()
                 shutdownInput()
-                println("Input closed!")
                 delay(10000)
             }
         }
@@ -604,7 +601,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testClientClosingFirst() {
+    open fun testClientClosingFirst() {
         val deferred = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -660,7 +657,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     Origin: http://localhost:$port
                     Sec-WebSocket-Protocol: chat
                     Sec-WebSocket-Version: 13
-                    """.trimIndent().replace("\n", "\r\n").toByteArray()
+                """.trimIndent().replace(
+                    "\n",
+                    "\r\n"
+                ).toByteArray()
             )
             write("\r\n\r\n".toByteArray())
             flush()

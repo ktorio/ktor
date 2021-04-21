@@ -1,3 +1,4 @@
+// ktlint-disable filename
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -11,23 +12,23 @@ import kotlinx.coroutines.*
 /**
  * Helper interface to test client.
  */
-actual abstract class ClientLoader {
+public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
     /**
      * Perform test against all clients from dependencies.
      */
-    actual fun clientTests(
+    public actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): dynamic = {
         val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
         if (skipEnginesLowerCase.contains("js")) GlobalScope.async {}.asPromise() else testWithEngine(Js) {
-            withTimeout(30 * 1000) {
+            withTimeout(timeoutSeconds.toLong() * 1000) {
                 block()
             }
         }
     }()
 
-    actual fun dumpCoroutines() {
+    public actual fun dumpCoroutines() {
         error("Debug probes unsupported[js]")
     }
 }

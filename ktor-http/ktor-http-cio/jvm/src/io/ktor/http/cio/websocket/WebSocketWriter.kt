@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.*
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -20,14 +20,11 @@ import kotlin.coroutines.*
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
-@OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-)
-class WebSocketWriter(
+public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
-    var masking: Boolean = false,
-    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    public var masking: Boolean = false,
+    public val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
     private val queue = Channel<Any>(capacity = 8)
@@ -37,9 +34,9 @@ class WebSocketWriter(
     /**
      * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
      */
-    val outgoing: SendChannel<Frame> get() = queue
+    public val outgoing: SendChannel<Frame> get() = queue
 
-    @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val writeLoopJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
         pool.useInstance { writeLoop(it) }
     }
@@ -50,7 +47,11 @@ class WebSocketWriter(
             loop@ for (message in queue) {
                 when (message) {
                     is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
-                    is FlushRequest -> message.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
+                    is FlushRequest -> {
+                        // we don't need writeChannel.flush() here as
+                        // we do flush at end of every drainQueueAndSerialize
+                        message.complete()
+                    }
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
@@ -67,7 +68,7 @@ class WebSocketWriter(
     }
 
     private fun drainQueueAndDiscard() {
-        check(queue.isClosedForSend)
+        queue.close()
 
         try {
             do {
@@ -145,12 +146,12 @@ class WebSocketWriter(
     /**
      * Send a frame and write it and all outstanding frames in the queue
      */
-    suspend fun send(frame: Frame): Unit = queue.send(frame)
+    public suspend fun send(frame: Frame): Unit = queue.send(frame)
 
     /**
      * Ensures all enqueued messages has been written
      */
-    suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
+    public suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             queue.send(it)
         } catch (closed: ClosedSendChannelException) {
@@ -166,13 +167,13 @@ class WebSocketWriter(
      * Closes the message queue
      */
     @Deprecated("Will be removed")
-    fun close() {
+    public fun close() {
         queue.close()
     }
 
     private class FlushRequest(parent: Job?) {
         private val done: CompletableJob = Job(parent)
-        fun complete(): Boolean = done.complete()
+        public fun complete(): Boolean = done.complete()
         suspend fun await(): Unit = done.join()
     }
 }

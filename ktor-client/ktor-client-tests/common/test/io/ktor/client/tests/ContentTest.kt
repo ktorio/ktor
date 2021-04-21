@@ -21,8 +21,11 @@ import kotlin.test.*
 
 class ContentTest : ClientLoader() {
     private val testSize = listOf(
-        0, 1, // small edge cases
-        4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
+        0,
+        1, // small edge cases
+        4 * 1024 - 1,
+        4 * 1024,
+        4 * 1024 + 1, // ByteChannel edge cases
         10 * 4 * 1024, // 4 chunks
         10 * 4 * (1024 + 8), // 4 chunks
         8 * 1024 * 1024 // big
@@ -37,7 +40,9 @@ class ContentTest : ClientLoader() {
             )
 
             val response = client.submitForm<String>(
-                "$TEST_SERVER/content/news", encodeInQuery = true, formParameters = form
+                "$TEST_SERVER/content/news",
+                encodeInQuery = true,
+                formParameters = form
             )
 
             assertEquals("100", response)
@@ -73,13 +78,15 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "iOS")) {
+    fun testString() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
                 val requestWithBody = client.echo<String>(content)
                 assertArrayEquals(
-                    "Test fail with size: $size", content.toByteArray(), requestWithBody.toByteArray()
+                    "Test fail with size: $size",
+                    content.toByteArray(),
+                    requestWithBody.toByteArray()
                 )
             }
         }
@@ -102,7 +109,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "iOS")) {
+    fun testTextContent() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -139,6 +146,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testMultipartFormData() = clientTests(listOf("Js")) {
         val data = {
             formData {
@@ -162,7 +170,8 @@ class ContentTest : ClientLoader() {
 
         test { client ->
             val response = client.submitFormWithBinaryData<String>(
-                "$TEST_SERVER/content/upload", formData = data()
+                "$TEST_SERVER/content/upload",
+                formData = data()
             )
             val contentString = data().makeString()
             assertEquals(contentString, response)
@@ -205,7 +214,7 @@ class ContentTest : ClientLoader() {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals("{}", response)
+            assertEquals("", response)
         }
     }
 
@@ -224,7 +233,8 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
+    @Ignore
+    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Curl")) {
         test { client ->
             val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
             content.cancel()
@@ -232,7 +242,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl", "CIO")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
             }
@@ -240,7 +250,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
+    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js", "Curl")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
                 it.cancel()
@@ -249,7 +259,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "Curl", "CIO")) {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")

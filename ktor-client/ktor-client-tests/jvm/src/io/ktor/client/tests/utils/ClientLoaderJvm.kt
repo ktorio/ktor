@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -17,18 +18,18 @@ import java.util.*
  * Helper interface to test client.
  */
 @RunWith(Parameterized::class)
-actual abstract class ClientLoader {
+public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
 
     @Parameterized.Parameter
-    lateinit var engine: HttpClientEngineContainer
+    public lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    open val timeout = CoroutinesTimeout.seconds(60)
+    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
 
     /**
      * Perform test against all clients from dependencies.
      */
-    actual fun clientTests(
+    public actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
@@ -53,7 +54,8 @@ actual abstract class ClientLoader {
         testWithEngine(engine.factory, this, block)
     }
 
-    actual fun dumpCoroutines() {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
     }
 
@@ -63,7 +65,8 @@ actual abstract class ClientLoader {
      * 2. Nonce generator
      */
     // @After
-    fun waitForAllCoroutines() {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {
             "Debug probes isn't installed."
         }
@@ -75,17 +78,17 @@ actual abstract class ClientLoader {
         }
 
         val message = buildString {
-            appendln("Test failed. There are running coroutines")
-            appendln(info.dump())
+            appendLine("Test failed. There are running coroutines")
+            appendLine(info.dump())
         }
 
         error(message)
     }
 
-    companion object {
+    public companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
-        fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
+        public fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
             ServiceLoader.load(it, it.classLoader).toList()
         }
     }
@@ -102,13 +105,12 @@ private val OS_NAME: String
         }
     }
 
-
+@OptIn(ExperimentalCoroutinesApi::class)
 private fun List<CoroutineInfo>.dump(): String = buildString {
     this@dump.forEach { info ->
-        appendln("Coroutine: $info")
+        appendLine("Coroutine: $info")
         info.lastObservedStackTrace().forEach {
-            appendln("\t$it")
+            appendLine("\t$it")
         }
     }
 }
-

@@ -4,12 +4,18 @@
 
 package io.ktor.auth
 
+import io.ktor.features.*
 import io.ktor.http.auth.*
+import io.ktor.http.parsing.*
 import io.ktor.request.*
 
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].
  */
-fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
-    parseAuthorizationHeader(it)
+public fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
+    try {
+        parseAuthorizationHeader(it)
+    } catch (cause: ParseException) {
+        throw BadRequestException("Invalid auth header $it", cause)
+    }
 }

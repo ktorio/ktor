@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -12,23 +12,23 @@ import javax.net.ssl.*
 /**
  * [TLSConfig] builder.
  */
-class TLSConfigBuilder {
+public actual class TLSConfigBuilder {
     /**
      * List of client certificate chains with private keys.
      */
-    val certificates: MutableList<CertificateAndKey> = mutableListOf()
+    public val certificates: MutableList<CertificateAndKey> = mutableListOf()
 
     /**
      * [SecureRandom] to use in encryption.
      */
-    var random: SecureRandom? = null
+    public var random: SecureRandom? = null
 
     /**
      * Custom [X509TrustManager] to verify server authority.
      *
      * Use system by default.
      */
-    var trustManager: TrustManager? = null
+    public var trustManager: TrustManager? = null
         set(value) {
             value?.let {
                 check(it is X509TrustManager) {
@@ -42,65 +42,90 @@ class TLSConfigBuilder {
     /**
      * List of allowed [CipherSuite]s.
      */
-    var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
+    public var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
 
     /**
      * Custom server name for TLS server name extension.
      * See also: https://en.wikipedia.org/wiki/Server_Name_Indication
      */
-    var serverName: String? = null
+    public actual var serverName: String? = null
 
     /**
      * Create [TLSConfig].
      */
-    fun build(): TLSConfig = TLSConfig(
+    public actual fun build(): TLSConfig = TLSConfig(
         random ?: SecureRandom(),
-        certificates, trustManager as? X509TrustManager ?: findTrustManager(),
-        cipherSuites, serverName
+        certificates,
+        trustManager as? X509TrustManager ?: findTrustManager(),
+        cipherSuites,
+        serverName
     )
+}
+
+/**
+ * Append config from [other] builder.
+ */
+public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
+    certificates += other.certificates
+    random = other.random
+    cipherSuites = other.cipherSuites
+    serverName = other.serverName
+    trustManager = other.trustManager
 }
 
 /**
  * Add client certificate chain to use.
  */
-fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
+public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
     certificates += CertificateAndKey(chain, key)
 }
 
 /**
- * Add client certificates from [store].
+ * Add client certificates from [store] by using all certificates
  */
-fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+@Suppress("unused") // Keep for binary compatibility
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
+    addKeyStore(store, password)
+}
+
+/**
+ * Add client certificates from [store] by using the certificate with specific [alias]
+ * or all certificates, if [alias] is null.
+ */
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
     keyManagerFactory.init(store, password)
     val managers = keyManagerFactory.keyManagers.filterIsInstance<X509KeyManager>()
 
-    val aliases = store.aliases()!!
-    loop@ for (alias in aliases) {
-        val chain = store.getCertificateChain(alias)
+    val aliases = alias?.let { listOf(it) } ?: store.aliases()!!.toList()
+    loop@ for (certAlias in aliases) {
+        val chain = store.getCertificateChain(certAlias)
 
         val allX509 = chain.all { it is X509Certificate }
         check(allX509) { "Fail to add key store $store. Only X509 certificate format supported." }
 
         for (manager in managers) {
-            val key = manager.getPrivateKey(alias) ?: continue
+            val key = manager.getPrivateKey(certAlias) ?: continue
 
             val map = chain.map { it as X509Certificate }
             addCertificateChain(map.toTypedArray(), key)
             continue@loop
         }
 
-        throw NoPrivateKeyException(alias, store)
+        throw NoPrivateKeyException(certAlias, store)
     }
 }
 
 /**
  * Throws if failed to find [PrivateKey] for any alias in [KeyStore].
  */
-class NoPrivateKeyException(
-    private val alias: String, private val store: KeyStore
+@OptIn(ExperimentalCoroutinesApi::class)
+public class NoPrivateKeyException(
+    private val alias: String,
+    private val store: KeyStore
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {
 

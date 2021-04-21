@@ -1,22 +1,5 @@
-description = "Ktor client Auth support"
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-kotlin.sourceSets {
-    commonMain {
-        dependencies {
-            api(project(":ktor-client:ktor-client-core"))
-        }
-    }
-    commonTest {
-        dependencies {
-            api(project(":ktor-client:ktor-client-tests"))
-        }
-    }
-    jvmTest {
-        dependencies {
-            runtimeOnly(project(":ktor-client:ktor-client-apache"))
-            runtimeOnly(project(":ktor-client:ktor-client-cio"))
-            runtimeOnly(project(":ktor-client:ktor-client-android"))
-            runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-        }
-    }
-}
+description = "Ktor client Auth support"

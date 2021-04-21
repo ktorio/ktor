@@ -1,5 +1,7 @@
 description = ''
 
+def boot_version = project.ext.jetty_alpn_boot_version
+
 kotlin.sourceSets.jvmMain.dependencies {
     api project(':ktor-server:ktor-server-core')
     api project(':ktor-server:ktor-server-host-common')
@@ -8,7 +10,6 @@ kotlin.sourceSets.jvmMain.dependencies {
     api project(':ktor-client:ktor-client-core')
     api project(':ktor-client:ktor-client-jetty')
     api project(':ktor-client:ktor-client-cio')
-    api project(':ktor-client:ktor-client-tests')
 
     // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
     // so shouldn't increase the size of the final artifact.
@@ -18,7 +19,10 @@ kotlin.sourceSets.jvmMain.dependencies {
     api group: 'org.eclipse.jetty.http2', name: 'http2-client', version: jetty_version
     api group: 'org.eclipse.jetty', name: 'jetty-client', version: jetty_version
     api group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version: jetty_version
-    api group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: project.ext.jetty_alpn_boot_version
+
+    if (boot_version != null) {
+        api group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: boot_version
+    }
 
     api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
     api group: 'junit', name: 'junit', version: junit_version
@@ -26,8 +30,6 @@ kotlin.sourceSets.jvmMain.dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
 }
 
-if (!project.ext.ideaActive) {
-    dependencies {
-        jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    }
+dependencies {
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
 }

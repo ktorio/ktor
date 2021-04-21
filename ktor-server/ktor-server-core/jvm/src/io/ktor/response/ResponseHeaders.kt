@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.response
@@ -9,26 +9,26 @@ import io.ktor.http.*
 /**
  * Server's response headers
  */
-abstract class ResponseHeaders {
+public abstract class ResponseHeaders {
     /**
      * Check if there is response HTTP header with [name] set
      */
-    operator fun contains(name: String): Boolean = get(name) != null
+    public operator fun contains(name: String): Boolean = get(name) != null
 
     /**
      * Find first response HTTP header with [name] or return `null`
      */
-    open operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
+    public open operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
 
     /**
      * Find all response HTTP header values for [name]
      */
-    fun values(name: String): List<String> = getEngineHeaderValues(name)
+    public fun values(name: String): List<String> = getEngineHeaderValues(name)
 
     /***
      * Build a [Headers] instance from response HTTP header values
      */
-    fun allValues(): Headers = Headers.build {
+    public fun allValues(): Headers = Headers.build {
         getEngineHeaderNames().forEach {
             appendAll(it, getEngineHeaderValues(it))
         }
@@ -38,9 +38,10 @@ abstract class ResponseHeaders {
      * Append HTTP response header
      * @param safeOnly `true` by default, prevents from setting unsafe headers
      */
-    fun append(name: String, value: String, safeOnly: Boolean = true) {
-        if (safeOnly && HttpHeaders.isUnsafe(name))
+    public fun append(name: String, value: String, safeOnly: Boolean = true) {
+        if (safeOnly && HttpHeaders.isUnsafe(name)) {
             throw UnsafeHeaderException(name)
+        }
         HttpHeaders.checkHeaderName(name)
         HttpHeaders.checkHeaderValue(value)
         engineAppendHeader(name, value)
@@ -61,4 +62,3 @@ abstract class ResponseHeaders {
      */
     protected abstract fun getEngineHeaderValues(name: String): List<String>
 }
-

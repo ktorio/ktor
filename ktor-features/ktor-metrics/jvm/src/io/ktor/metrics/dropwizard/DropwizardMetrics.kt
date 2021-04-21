@@ -7,9 +7,9 @@ package io.ktor.metrics.dropwizard
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
 import io.ktor.application.*
-import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import java.util.concurrent.*
 
 /**
@@ -17,7 +17,10 @@ import java.util.concurrent.*
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
  */
-class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = MetricRegistry.name("ktor.calls")) {
+public class DropwizardMetrics(
+    public val registry: MetricRegistry,
+    public val baseName: String = MetricRegistry.name("ktor.calls")
+) {
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
     private val active = registry.counter(MetricRegistry.name(baseName, "active"))
     private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
@@ -26,23 +29,23 @@ class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = Met
     /**
      * Metrics feature configuration object that is used during feature installation.
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Dropwizard metrics base name (prefix)
          */
-        var baseName: String = MetricRegistry.name("ktor.calls")
+        public var baseName: String = MetricRegistry.name("ktor.calls")
 
         /**
          * Dropwizard metric registry.
          */
-        var registry: MetricRegistry = MetricRegistry()
+        public var registry: MetricRegistry = MetricRegistry()
     }
 
     /**
      * Metrics feature companion
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
-        override val key = AttributeKey<DropwizardMetrics>("metrics")
+    public companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
+        override val key: AttributeKey<DropwizardMetrics> = AttributeKey("metrics")
 
         private class RoutingMetrics(val name: String, val context: Timer.Context)
 
@@ -52,11 +55,17 @@ class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = Met
             val configuration = Configuration().apply(configure)
             val feature = DropwizardMetrics(configuration.registry, configuration.baseName)
 
-            configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
-            configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
-            configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
-            configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
-            configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
+            listOf<Pair<String, () -> Metric>>(
+                "jvm.memory" to ::MemoryUsageGaugeSet,
+                "jvm.garbage" to ::GarbageCollectorMetricSet,
+                "jvm.threads" to ::ThreadStatesGaugeSet,
+                "jvm.files" to ::FileDescriptorRatioGauge,
+                "jvm.attributes" to ::JvmAttributeGaugeSet
+            )
+                .filter { (name, _) ->
+                    !configuration.registry.names.any { existingName -> existingName.startsWith(name) }
+                }
+                .forEach { (name, metric) -> configuration.registry.register(name, metric()) }
 
             val phase = PipelinePhase("DropwizardMetrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
@@ -95,7 +104,6 @@ class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = Met
             return feature
         }
     }
-
 
     private data class CallMeasure(val timer: Timer.Context)
 

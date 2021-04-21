@@ -11,40 +11,40 @@ import io.ktor.utils.io.*
 /**
  * Represents client's request
  */
-interface ApplicationRequest {
+public interface ApplicationRequest {
     /**
      * [ApplicationCall] instance this ApplicationRequest is attached to
      */
-    val call: ApplicationCall
+    public val call: ApplicationCall
 
     /**
      * Pipeline for receiving content
      */
-    val pipeline: ApplicationReceivePipeline
+    public val pipeline: ApplicationReceivePipeline
 
     /**
      * Parameters provided in an URL
      */
-    val queryParameters: Parameters
+    public val queryParameters: Parameters
 
     /**
      * Headers for this request
      */
-    val headers: Headers
+    public val headers: Headers
 
     /**
      * Contains http request and connection details such as a host name used to connect, port, scheme and so on.
      * No proxy headers could affect it. Use [ApplicationRequest.origin] if you need override headers support
      */
-    val local: RequestConnectionPoint
+    public val local: RequestConnectionPoint
 
     /**
      * Cookies for this request
      */
-    val cookies: RequestCookies
+    public val cookies: RequestCookies
 
     /**
      * Request's body channel (for content only)
      */
-    fun receiveChannel(): ByteReadChannel
+    public fun receiveChannel(): ByteReadChannel
 }

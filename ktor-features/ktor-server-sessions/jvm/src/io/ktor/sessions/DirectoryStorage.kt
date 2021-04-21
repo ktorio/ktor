@@ -6,15 +6,14 @@ package io.ktor.sessions
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.io.*
-
 
 /**
  * Creates a session storage that serializes them into regular files under the specified [rootDir]
  */
-fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {
+public fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {
     true -> CacheStorage(DirectoryStorage(rootDir), 60000)
     false -> DirectoryStorage(rootDir)
 }

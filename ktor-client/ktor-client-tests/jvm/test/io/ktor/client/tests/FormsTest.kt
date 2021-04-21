@@ -34,7 +34,8 @@ class FormsTest {
             val builder = HttpRequestBuilder().apply {
                 body = MultiPartFormDataContent(
                     formData {
-                        appendInput("file",
+                        appendInput(
+                            "file",
                             Headers.build {
                                 append(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
                                 append(HttpHeaders.ContentDisposition, "filename=myfile.txt")

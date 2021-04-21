@@ -9,6 +9,13 @@ import java.net.*
 /**
  * Construct [Url] from [String]
  */
-operator fun Url.Companion.invoke(fullUrl: String): Url = URLBuilder().apply {
+public operator fun Url.Companion.invoke(fullUrl: String): Url = URLBuilder().apply {
     takeFrom(URI(fullUrl))
 }.build()
+
+/**
+ * Hostname of current origin.
+ *
+ * It uses "localhost" for all platforms except js.
+ */
+internal actual val URLBuilder.Companion.originHost: String? get() = null

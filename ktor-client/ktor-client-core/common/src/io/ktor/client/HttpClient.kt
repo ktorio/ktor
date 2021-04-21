@@ -9,7 +9,10 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.checkCoroutinesVersion
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -22,7 +25,7 @@ import kotlin.coroutines.*
  * https://ktor.io/clients/http-client/engines.html
  */
 @HttpClientDsl
-expect fun HttpClient(
+public expect fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
 
@@ -31,7 +34,7 @@ expect fun HttpClient(
  * and an optional [block] for configuring this client.
  */
 @HttpClientDsl
-fun <T : HttpClientEngineConfig> HttpClient(
+public fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
     block: HttpClientConfig<T>.() -> Unit = {}
 ): HttpClient {
@@ -40,7 +43,7 @@ fun <T : HttpClientEngineConfig> HttpClient(
     val client = HttpClient(engine, config, manageEngine = true)
 
     // If the engine was created using factory Ktor is responsible for its lifecycle management. Otherwise user has to
-    // close engine by himself.
+    // close engine by themself.
     client.coroutineContext[Job]!!.invokeOnCompletion {
         engine.close()
     }
@@ -53,7 +56,7 @@ fun <T : HttpClientEngineConfig> HttpClient(
  * and a [block] for configuring this client.
  */
 @HttpClientDsl
-fun HttpClient(
+public fun HttpClient(
     engine: HttpClientEngine,
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(engine, HttpClientConfig<HttpClientEngineConfig>().apply(block), manageEngine = false)
@@ -65,11 +68,11 @@ fun HttpClient(
  * @property engine: [HttpClientEngine] for executing requests.
  */
 @OptIn(InternalCoroutinesApi::class)
-class HttpClient(
-    val engine: HttpClientEngine,
+public class HttpClient(
+    public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
-    private var manageEngine: Boolean = false
+    private var manageEngine: Boolean by shared(false)
 
     internal constructor(
         engine: HttpClientEngine,
@@ -81,34 +84,34 @@ class HttpClient(
 
     private val closed = atomic(false)
 
-    private val clientJob: CompletableJob = Job()
+    private val clientJob: CompletableJob = Job(engine.coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
+    public override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
 
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
+    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for processing all the responses sent by the server.
      */
-    val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
+    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for sending the request.
      */
-    val sendPipeline: HttpSendPipeline = HttpSendPipeline()
+    public val sendPipeline: HttpSendPipeline = HttpSendPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for receiving request.
      */
-    val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
+    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline(userConfig.developmentMode)
 
     /**
      * Typed attributes used as a lightweight container for this client.
      */
-    val attributes: Attributes = Attributes(concurrent = true)
+    public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Dispatcher handles io operations.
@@ -118,20 +121,26 @@ class HttpClient(
         replaceWith = ReplaceWith("coroutineContext"),
         level = DeprecationLevel.ERROR
     )
-    val dispatcher: CoroutineDispatcher
+    public val dispatcher: CoroutineDispatcher
         get() = engine.dispatcher
 
     /**
      * Client engine config.
      */
-    val engineConfig: HttpClientEngineConfig = engine.config
+    public val engineConfig: HttpClientEngineConfig = engine.config
 
     internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
-        val engineJob = engine.coroutineContext[Job]!!
-        @Suppress("DEPRECATION_ERROR")
-        clientJob.attachChild(engineJob as ChildJob)
+        checkCoroutinesVersion()
+
+        if (manageEngine) {
+            clientJob.invokeOnCompletion {
+                if (it != null) {
+                    engine.cancel()
+                }
+            }
+        }
 
         engine.install(this)
 
@@ -149,10 +158,6 @@ class HttpClient(
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) {
-                config.addDefaultResponseValidation()
-            }
-
             config.install(HttpSend)
 
             if (followRedirects) {
@@ -160,8 +165,13 @@ class HttpClient(
             }
 
             config += this
+
+            config.addDefaultResponseValidation()
+
             config.install(this@HttpClient)
         }
+
+        makeShared()
     }
 
     /**
@@ -177,13 +187,13 @@ class HttpClient(
         )
     )
     @InternalAPI
-    suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
+    public suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
         requestPipeline.execute(builder, builder.body) as HttpClientCall
 
     /**
      * Check if the specified [capability] is supported by this client.
      */
-    fun isSupported(capability: HttpClientEngineCapability<*>): Boolean {
+    public fun isSupported(capability: HttpClientEngineCapability<*>): Boolean {
         return engine.supportedCapabilities.contains(capability)
     }
 
@@ -191,7 +201,7 @@ class HttpClient(
      * Returns a new [HttpClient] copying this client configuration,
      * and additionally configured by the [block] parameter.
      */
-    fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
+    public fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
         engine,
         HttpClientConfig<HttpClientEngineConfig>().apply {
             plusAssign(userConfig)
@@ -224,4 +234,3 @@ class HttpClient(
 
     override fun toString(): String = "HttpClient[$engine]"
 }
-

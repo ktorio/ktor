@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -11,20 +11,19 @@ import java.io.*
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
  */
 @KtorExperimentalAPI
-fun File.combineSafe(relativePath: String): File = combineSafe(this, File(relativePath))
+public fun File.combineSafe(relativePath: String): File = combineSafe(this, File(relativePath))
 
 /**
  * Remove all redundant `.` and `..` path elements. Leading `..` are also considered redundant.
  */
-@KtorExperimentalAPI
-fun File.normalizeAndRelativize(): File = normalize().notRooted().dropLeadingTopDirs()
+public fun File.normalizeAndRelativize(): File = normalize().notRooted().dropLeadingTopDirs()
 
 private fun combineSafe(dir: File, relativePath: File): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
         throw IllegalArgumentException("Bad relative path $relativePath")
     }
-    check(!normalized.isAbsolute) { "Bad relative path $relativePath"}
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return File(dir, normalized.path)
 }

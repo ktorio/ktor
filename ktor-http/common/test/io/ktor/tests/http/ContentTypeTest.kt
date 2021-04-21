@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -23,6 +23,11 @@ class ContentTypeTest {
         assertEquals("text", ct.contentType)
         assertEquals("plain", ct.contentSubtype)
         assertEquals(0, ct.parameters.size)
+    }
+
+    @Test
+    fun testBlankIsAny() {
+        assertEquals(ContentType.Any, ContentType.parse(""))
     }
 
     @Test
@@ -76,5 +81,42 @@ class ContentTypeTest {
     fun contentTypeRenderWorks() {
         // rendering tests are in [HeadersTest] so it is just a smoke test
         assertEquals("text/plain; p1=v1", ContentType.Text.Plain.withParameter("p1", "v1").toString())
+    }
+
+    @Test
+    fun testContentTypeInvalid() {
+        val result = ContentType.parse("image/png; charset=utf-8\" but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "utf-8\" but not really"), result)
+    }
+
+    @Test
+    fun testContentTypeSingleQuoteAtStart() {
+        val result = ContentType.parse("image/png; charset=\"utf-8 but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8 but not really"), result)
+    }
+
+    @Test
+    fun testContentTypeQuotedAtStartAndMiddle() {
+        val result = ContentType.parse("image/png; charset=\"utf-8\" but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8\" but not really"), result)
+    }
+
+    @Test
+    fun testWithoutParameters() {
+        assertEquals(ContentType.Text.Plain, ContentType.Text.Plain.withoutParameters())
+        assertEquals(
+            ContentType.Text.Plain,
+            ContentType.Text.Plain.withParameter("a", "1").withoutParameters()
+        )
+
+        assertEquals(
+            "text/plain",
+            ContentType.Text.Plain.withParameter("a", "1").withoutParameters().toString()
+        )
+
+        assertEquals(
+            "text/html",
+            ContentType.parse("text/html;charset=utf-8").withoutParameters().toString()
+        )
     }
 }

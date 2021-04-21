@@ -5,6 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
@@ -118,6 +119,29 @@ internal fun Buffer.writeIntHex(value: Int) {
     }
 }
 
+internal suspend fun ByteWriteChannel.writeIntHex(value: Int) {
+    require(value > 0) { "Does only work for positive numbers" } // zero is not included!
+    var current = value
+    val table = HexLetterTable
+    var digits = 0
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+
+        if (v != 0) {
+            writeByte(table[v])
+            break
+        }
+    }
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+        writeByte(table[v])
+    }
+}
+
 private fun hexNumberFormatException(s: CharSequence, idx: Int): Nothing {
     throw NumberFormatException("Invalid HEX number: $s, wrong digit: ${s[idx]}")
 }
@@ -129,4 +153,3 @@ private fun numberFormatException(cs: CharSequence, idx: Int) {
 private fun numberFormatException(cs: CharSequence) {
     throw NumberFormatException("Invalid number $cs: too large for Long type")
 }
-

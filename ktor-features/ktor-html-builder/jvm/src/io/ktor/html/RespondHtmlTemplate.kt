@@ -4,11 +4,15 @@
 
 package io.ktor.html
 
-import kotlinx.html.*
 import io.ktor.application.*
 import io.ktor.http.*
+import kotlinx.html.*
 
-suspend fun <TTemplate : Template<HTML>> ApplicationCall.respondHtmlTemplate(template: TTemplate, status: HttpStatusCode = HttpStatusCode.OK, body: TTemplate.() -> Unit) {
+public suspend fun <TTemplate : Template<HTML>> ApplicationCall.respondHtmlTemplate(
+    template: TTemplate,
+    status: HttpStatusCode = HttpStatusCode.OK,
+    body: TTemplate.() -> Unit
+) {
     template.body()
     respondHtml(status) { with(template) { apply() } }
 }

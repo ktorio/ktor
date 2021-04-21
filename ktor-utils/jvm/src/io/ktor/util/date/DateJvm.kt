@@ -14,14 +14,20 @@ private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @Suppress("FunctionName")
-actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
+public actual fun GMTDate(timestamp: Long?): GMTDate =
+    Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
  */
 @Suppress("FunctionName")
-actual fun GMTDate(
-    seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
+public actual fun GMTDate(
+    seconds: Int,
+    minutes: Int,
+    hours: Int,
+    dayOfMonth: Int,
+    month: Month,
+    year: Int
 ): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {
     set(Calendar.YEAR, year)
     set(Calendar.MONTH, month.ordinal)
@@ -33,7 +39,7 @@ actual fun GMTDate(
 }.toDate(timestamp = null)
 
 @InternalAPI
-fun Calendar.toDate(timestamp: Long?): GMTDate {
+public fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }
 
     val seconds = get(Calendar.SECOND)
@@ -63,4 +69,9 @@ fun Calendar.toDate(timestamp: Long?): GMTDate {
 /**
  * Convert to [Date]
  */
-fun GMTDate.toJvmDate(): Date = Date(timestamp)
+public fun GMTDate.toJvmDate(): Date = Date(timestamp)
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public actual fun getTimeMillis(): Long = System.currentTimeMillis()

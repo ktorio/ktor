@@ -4,17 +4,14 @@
 
 package io.ktor.tests.websocket
 
-import io.ktor.util.cio.*
 import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-@OptIn(
-    WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class
-)
+@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {

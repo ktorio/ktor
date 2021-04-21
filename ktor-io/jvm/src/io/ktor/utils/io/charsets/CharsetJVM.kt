@@ -9,19 +9,20 @@ import java.nio.charset.*
 private const val DECODE_CHAR_BUFFER_SIZE = 8192
 
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
-actual typealias Charset = java.nio.charset.Charset
+public actual typealias Charset = java.nio.charset.Charset
 
-actual val Charset.name: String get() = name()
+public actual val Charset.name: String get() = name()
 
-actual typealias CharsetEncoder = java.nio.charset.CharsetEncoder
+public actual typealias CharsetEncoder = java.nio.charset.CharsetEncoder
 
-actual val CharsetEncoder.charset: Charset get() = charset()
+public actual val CharsetEncoder.charset: Charset get() = charset()
 
-actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
+public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     if (input is String) {
-        if (fromIndex == 0 && toIndex == input.length)
+        if (fromIndex == 0 && toIndex == input.length) {
             return (input as java.lang.String).getBytes(charset())
+        }
         return (input.substring(fromIndex, toIndex) as java.lang.String).getBytes(charset())
     }
 
@@ -51,7 +52,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return before - cb.remaining()
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
+public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     if (charset === Charsets.UTF_8) {
         dst.writePacket(input)
         return
@@ -171,11 +172,11 @@ internal actual fun CharsetDecoder.decodeBuffer(
 
 // -----------------------
 
-actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
+public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 
-actual val CharsetDecoder.charset: Charset get() = charset()!!
+public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
-actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
+public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
@@ -184,7 +185,6 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     input.takeWhileSize { buffer: Buffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
-
 
         buffer.readDirect { bb: ByteBuffer ->
             cb.clear()
@@ -226,7 +226,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     return copied
 }
 
-actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input is AbstractInput && input.headRemaining >= inputLength) {
         // if we have a packet or a buffered input with the first head containing enough bytes
@@ -306,7 +306,9 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
     }
 
     if (remainingInputBytes > 0) {
-        throw EOFException("Not enough bytes available: had only ${inputLength - remainingInputBytes} instead of $inputLength")
+        throw EOFException(
+            "Not enough bytes available: had only ${inputLength - remainingInputBytes} instead of $inputLength"
+        )
     }
     if (remainingInputBytes < 0) {
         throw AssertionError("remainingInputBytes < 0")
@@ -326,10 +328,11 @@ private fun CoderResult.throwExceptionWrapped() {
 
 // ----------------------------------
 
-actual typealias Charsets = kotlin.text.Charsets
+public actual typealias Charsets = kotlin.text.Charsets
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
+public actual open class MalformedInputException
+actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message
 
     override val message: String?

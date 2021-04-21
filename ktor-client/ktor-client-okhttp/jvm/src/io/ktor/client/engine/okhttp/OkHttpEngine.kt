@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -7,11 +7,11 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.network.sockets.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
@@ -25,7 +25,7 @@ import kotlin.coroutines.*
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
+public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     public override val dispatcher: CoroutineDispatcher by lazy {
         Dispatchers.clientDispatcher(
@@ -34,7 +34,8 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         )
     }
 
-    public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
+        setOf(HttpTimeout, WebSocketCapability)
 
     private val requestsJob: CoroutineContext
 
@@ -44,17 +45,20 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
      * Cache that keeps least recently used [OkHttpClient] instances.
      */
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
+
     init {
         val parent = super.coroutineContext[Job]!!
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestsJob[Job]!!.join()
             } finally {
                 clientCache.forEach { (_, client) ->
                     client.connectionPool.evictAll()
+                    client.dispatcher.executorService.shutdown()
                 }
                 (dispatcher as Closeable).close()
             }
@@ -86,7 +90,12 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         callContext: CoroutineContext
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val session = OkHttpWebsocketSession(engine, engineRequest, callContext).apply { start() }
+        val session = OkHttpWebsocketSession(
+            engine,
+            config.webSocketFactory ?: engine,
+            engineRequest,
+            callContext
+        ).apply { start() }
 
         val originResponse = session.originResponse.await()
         return buildResponseData(originResponse, requestTime, session, callContext)
@@ -109,7 +118,10 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     private fun buildResponseData(
-        response: Response, requestTime: GMTDate, body: Any, callContext: CoroutineContext
+        response: Response,
+        requestTime: GMTDate,
+        body: Any,
+        callContext: CoroutineContext
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
@@ -131,6 +143,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     private fun createOkHttpClient(timeoutExtension: HttpTimeout.HttpTimeoutCapabilityConfiguration?): OkHttpClient {
         val builder = (config.preconfigured ?: okHttpClientPrototype).newBuilder()
 
+        builder.dispatcher(Dispatcher())
         builder.apply(config.config)
         config.proxy?.let { builder.proxy(it) }
         timeoutExtension?.let {
@@ -175,7 +188,6 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
             body.convertToOkHttpBody(callContext)
         } else null
-
 
         method(method.value, bodyBytes)
     }

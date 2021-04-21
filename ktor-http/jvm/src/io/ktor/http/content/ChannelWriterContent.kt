@@ -12,8 +12,7 @@ import io.ktor.utils.io.*
  * [OutgoingContent] to respond with [ByteWriteChannel].
  * The stream would be automatically closed after [body] finish.
  */
-@KtorExperimentalAPI
-class ChannelWriterContent(
+public class ChannelWriterContent(
     private val body: suspend ByteWriteChannel.() -> Unit,
     override val contentType: ContentType?,
     override val status: HttpStatusCode? = null

@@ -6,13 +6,13 @@ package io.ktor.sessions
 
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class CacheStorage(val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
+public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
-        delegate.read(id) { input -> input.toInputStream().readBytes() }
+        delegate.read(id) { input -> input.readRemaining().readBytes() }
     }
     private val cache = BaseTimeoutCache(idleTimeout, true, referenceCache)
 

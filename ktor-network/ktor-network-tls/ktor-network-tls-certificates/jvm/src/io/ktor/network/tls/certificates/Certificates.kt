@@ -15,7 +15,6 @@ import java.text.*
 import java.time.*
 import java.util.*
 
-
 /**
  * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword],
  * and a JKS keystore to hold it in [file] with [jksPassword].
@@ -25,7 +24,7 @@ import java.util.*
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
  */
-fun generateCertificate(
+public fun generateCertificate(
     file: File,
     algorithm: String = "SHA1withRSA",
     keyAlias: String = "mykey",
@@ -42,19 +41,23 @@ fun generateCertificate(
     val keyPair = keyPairGenerator.genKeyPair()!!
 
     val id = Counterparty(
-        country = "RU", organization = "JetBrains", organizationUnit = "Kotlin", commonName = "localhost"
+        country = "RU",
+        organization = "JetBrains",
+        organizationUnit = "Kotlin",
+        commonName = "localhost"
     )
 
     val from = Date()
     val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
 
-
     val certificateBytes = buildPacket {
         writeCertificate(
-            issuer = id, subject = id,
+            issuer = id,
+            subject = id,
             keyPair = keyPair,
             algorithm = algorithm,
-            from = from, to = to,
+            from = from,
+            to = to,
             domains = listOf("127.0.0.1", "localhost"),
             ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
         )
@@ -74,7 +77,6 @@ fun generateCertificate(
     return keyStore
 }
 
-
 internal data class Counterparty(
     val country: String = "",
     val organization: String = "",
@@ -92,7 +94,6 @@ internal fun BytePacketBuilder.writeX509Info(
     domains: List<String>,
     ipAddresses: List<InetAddress>
 ) {
-
     val version = BigInteger(64, SecureRandom())
 
     writeDerSequence {
@@ -187,7 +188,8 @@ internal fun BytePacketBuilder.writeCertificate(
     subject: Counterparty,
     keyPair: KeyPair,
     algorithm: String,
-    from: Date, to: Date,
+    from: Date,
+    to: Date,
     domains: List<String>,
     ipAddresses: List<InetAddress>
 ) {
@@ -249,16 +251,20 @@ private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 
 }
 
 private fun BytePacketBuilder.writeDerUTCTime(date: Date) {
-    writeDerUTF8String(SimpleDateFormat("yyMMddHHmmss'Z'").apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }.format(date), 0x17)
+    writeDerUTF8String(
+        SimpleDateFormat("yyMMddHHmmss'Z'").apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(date),
+        0x17
+    )
 }
 
 private fun BytePacketBuilder.writeDerGeneralizedTime(date: Date) {
     writeDerUTF8String(
         SimpleDateFormat("yyyyMMddHHmmss'Z'").apply { timeZone = TimeZone.getTimeZone("UTC") }.format(
             date
-        ), 0x18
+        ),
+        0x18
     )
 }
 
@@ -418,19 +424,3 @@ private fun BytePacketBuilder.writeDerInt(value: Int) {
         }
     }
 }
-
-//private fun ByteArray.hexdump(): String = buildString(size * 4) {
-//    for (idx in 0 until size) {
-//        val s = (this@hexdump[idx].toInt() and 0xff).toString(16)
-//        if (s.length == 1) {
-//            append('0')
-//        }
-//        append(s)
-//
-//        when (idx and 0x0f) { // col
-//            15 -> appendln()
-//            7 -> append("  ")
-//            else -> append(' ')
-//        }
-//    }
-//}

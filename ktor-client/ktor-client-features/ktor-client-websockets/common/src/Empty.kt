@@ -6,4 +6,3 @@
  * Workaround missing klib for metadata generation.
  */
 internal object Empty
-

@@ -5,5 +5,12 @@
 package io.ktor.tests.websocket
 
 import io.ktor.server.tomcat.*
+import kotlin.test.*
 
-class TomcatWebSocketTest : WebSocketEngineSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat)
+class TomcatWebSocketTest :
+    WebSocketEngineSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+
+    @Ignore
+    override fun testClientClosingFirst() {
+    }
+}

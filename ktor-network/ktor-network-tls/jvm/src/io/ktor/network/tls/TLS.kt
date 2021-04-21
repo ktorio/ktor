@@ -12,8 +12,9 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-suspend fun Socket.tls(
-    coroutineContext: CoroutineContext, config: TLSConfig
+public actual suspend fun Socket.tls(
+    coroutineContext: CoroutineContext,
+    config: TLSConfig
 ): Socket {
     val reader = openReadChannel()
     val writer = openWriteChannel()
@@ -31,7 +32,7 @@ suspend fun Socket.tls(
 /**
  * Make [Socket] connection secure with TLS.
  */
-suspend fun Socket.tls(
+public suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
     trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
@@ -47,5 +48,5 @@ suspend fun Socket.tls(
 /**
  * Make [Socket] connection secure with TLS configured with [block].
  */
-suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit = {}): Socket =
+public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())

@@ -11,7 +11,10 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import java.net.*
 
-internal class NettyConnectionPoint(val request: HttpRequest, val context: ChannelHandlerContext) : RequestConnectionPoint {
+internal class NettyConnectionPoint(
+    val request: HttpRequest,
+    val context: ChannelHandlerContext
+) : RequestConnectionPoint {
     override val version: String
         get() = request.protocolVersion().text()
 
@@ -25,10 +28,8 @@ internal class NettyConnectionPoint(val request: HttpRequest, val context: Chann
 
     override val host: String
         get() = request.headers().get(HttpHeaders.Host)?.substringBefore(":")
-                ?: (context.channel().localAddress() as? InetSocketAddress)?.let {
-                    it.hostName ?: it.address.hostAddress
-                }
-                ?: "localhost"
+            ?: (context.channel().localAddress() as? InetSocketAddress)
+                ?.let { it.hostName ?: it.address.hostAddress } ?: "localhost"
 
     override val port: Int
         get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: 80

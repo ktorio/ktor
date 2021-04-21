@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -25,7 +25,7 @@ import kotlin.coroutines.*
  * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
  */
 @EngineAPI
-class NettyChannelInitializer(
+public class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEngineEnvironment,
     private val callEventGroup: EventExecutorGroup,
@@ -113,14 +113,13 @@ class NettyChannelInitializer(
 
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
-                    if(requestReadTimeout > 0) {
+                    if (requestReadTimeout > 0) {
                         addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
                     }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
-
                 }
 
                 pipeline.context("codec").fireChannelActive()
@@ -148,7 +147,7 @@ class NettyChannelInitializer(
     }
 
     @EngineAPI
-    companion object {
+    public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
 
         private fun findAlpnProvider(): SslProvider? {

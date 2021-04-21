@@ -2,11 +2,8 @@
 
 package io.ktor.utils.io.internal
 
-import io.ktor.utils.io.ByteBufferChannel
-import io.ktor.utils.io.WriterSuspendSession
-import io.ktor.utils.io.core.ByteOrder
-import io.ktor.utils.io.core.IoBuffer
-import java.nio.ByteBuffer
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSession {
     private var locked = 0
@@ -39,7 +36,6 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
         if (locked < min) return null
         current.prepareWriteBuffer(byteBuffer, locked)
         if (byteBuffer.remaining() < min) return null
-        //if (current.joining != null) return null
         @Suppress("DEPRECATION")
         view.resetFromContentToWrite(byteBuffer)
 
@@ -51,7 +47,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
             writtenFailed(n)
         }
         locked -= n
-        current.bytesWrittenFromSesion(byteBuffer, ringBufferCapacity, n)
+        current.bytesWrittenFromSession(byteBuffer, ringBufferCapacity, n)
     }
 
     private fun writtenFailed(n: Int): Nothing {
@@ -65,7 +61,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
     override suspend fun tryAwait(n: Int) {
         val joining = current.getJoining()
         if (joining != null) {
-            return tryAwaitJoinSwitch(n, joining)
+            return tryAwaitJoinSwitch(n)
         }
 
         if (locked >= n) return
@@ -77,7 +73,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
         return current.tryWriteSuspend(n)
     }
 
-    private suspend fun tryAwaitJoinSwitch(n: Int, joining: ByteBufferChannel.JoiningState) {
+    private suspend fun tryAwaitJoinSwitch(n: Int) {
         if (locked > 0) {
             ringBufferCapacity.completeRead(locked)
             locked = 0
@@ -100,18 +96,4 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
     override fun flush() {
         current.flush()
     }
-
-
-    private fun ByteBuffer.prepareBuffer(order: ByteOrder, position: Int, available: Int) {
-        require(position >= 0)
-        require(available >= 0)
-
-        val bufferLimit = capacity() - current.reservedSize
-        val virtualLimit = position + available
-
-        order(order.nioOrder)
-        limit(virtualLimit.coerceAtMost(bufferLimit))
-        position(position)
-    }
-
 }

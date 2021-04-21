@@ -14,6 +14,7 @@ import io.ktor.serialization.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlin.reflect.*
 import kotlin.test.*
 
 class SerializationTest {
@@ -250,7 +251,8 @@ class SerializationTest {
 
         application.routing {
             val model = MyEntity(
-                777, "Cargo",
+                777,
+                "Cargo",
                 listOf(
                     ChildEntity("Qube", 1),
                     ChildEntity("Sphere", 2),
@@ -273,7 +275,10 @@ class SerializationTest {
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""),
+                listOf(
+                    """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                        """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -282,18 +287,23 @@ class SerializationTest {
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
-            setBody("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}""")
+            setBody(
+                """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                    """{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}"""
+            )
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""),
+                listOf(
+                    """MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), """ +
+                        """ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
-
     }
 
     @Serializable
@@ -344,7 +354,7 @@ class SerializationTest {
             post("/") {
                 val result = try {
                     call.receive<NullValues>().toString()
-                } catch (expected: JsonDecodingException) {
+                } catch (expected: SerializationException) {
                     "OK"
                 }
                 call.respondText(result)
@@ -367,22 +377,32 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(json {
-                    "a" to "1"
-                    "b" to json {
-                        "c" to 3
+                call.respond(
+                    buildJsonObject {
+                        put("a", "1")
+                        put(
+                            "b",
+                            buildJsonObject {
+                                put("c", 3)
+                            }
+                        )
+                        put("x", JsonNull)
                     }
-                    "x" to JsonNull
-                })
+                )
             }
             get("/array") {
-                call.respond(json {
-                    "a" to "1"
-                    "b" to jsonArray {
-                        +"c"
-                        +JsonPrimitive(2)
+                call.respond(
+                    buildJsonObject {
+                        put("a", "1")
+                        put(
+                            "b",
+                            buildJsonArray {
+                                add("c")
+                                add(JsonPrimitive(2))
+                            }
+                        )
                     }
-                })
+                )
             }
         }
 
@@ -403,11 +423,13 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(mapOf(
-                    "a" to "1",
-                    null to "2",
-                    "b" to null
-                ))
+                call.respond(
+                    mapOf(
+                        "a" to "1",
+                        null to "2",
+                        "b" to null
+                    )
+                )
             }
         }
 
@@ -416,7 +438,139 @@ class SerializationTest {
             assertEquals("""{"a":"1",null:"2","b":null}""", it.response.content)
         }
     }
+
+    @Test
+    fun testRespondPolymorphic(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/sealed") {
+                call.respond(listOf(TestSealed.A("valueA"), TestSealed.B("valueB")))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/sealed") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals(
+                """[{"type":"io.ktor.tests.serialization.TestSealed.A","valueA":"valueA"},""" +
+                    """{"type":"io.ktor.tests.serialization.TestSealed.B","valueB":"valueB"}]""",
+                call.response.content
+            )
+        }
+    }
+
+    @Test
+    fun testRespondAny(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                call.respond(listOf(TextPlainData(777), TextPlainData(888)) as Any)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals(
+                """[{"x":777},{"x":888}]""",
+                call.response.content
+            )
+        }
+    }
+
+    @Test
+    fun testRespondDifferentRuntimeTypes(): Unit = withTestApplication {
+        var counter = 0
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                call.respond(
+                    when (counter) {
+                        0 -> TextPlainData(777)
+                        1 -> TestSealed.A("A")
+                        2 -> TestSealed.B("B")
+                        else -> HttpStatusCode.Accepted
+                    }
+                )
+                counter++
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"x":777}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueA":"A"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueB":"B"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Accepted, call.response.status())
+            assertNull(call.response.content)
+        }
+    }
+
+    @Test
+    fun testGeneric(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            json()
+        }
+        application.routing {
+            get("/generic") {
+                call.respond(GenericEntity(id = 1, data = "asd"))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/generic").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"id":1,"data":"asd"}""", it.response.content)
+        }
+    }
+
+    @Test
+    fun testRespondCollection(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                val collection: Collection<String> = listOf("a", "b")
+                call.respond(collection)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""["a","b"]""", call.response.content)
+        }
+    }
 }
+
+@Serializable
+data class GenericEntity<T>(val id: Int, val data: T)
 
 @Serializable
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
@@ -424,5 +578,14 @@ data class MyEntity(val id: Int, val name: String, val children: List<ChildEntit
 @Serializable
 data class ChildEntity(val item: String, val quantity: Int)
 
+@Serializable
+sealed class TestSealed {
+    @Serializable
+    data class A(val valueA: String) : TestSealed()
+
+    @Serializable
+    data class B(val valueB: String) : TestSealed()
+}
+
 private fun SerializationConverter(): SerializationConverter =
-    SerializationConverter(Json(DefaultJsonConfiguration))
+    SerializationConverter(DefaultJson)

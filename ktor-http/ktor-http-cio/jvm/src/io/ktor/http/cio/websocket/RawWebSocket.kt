@@ -19,8 +19,9 @@ import kotlin.properties.*
  * Represents a RAW web socket session
  */
 @OptIn(WebSocketInternalAPI::class)
-class RawWebSocket(
-    input: ByteReadChannel, output: ByteWriteChannel,
+public class RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
@@ -32,6 +33,10 @@ class RawWebSocket(
     override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
+
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
 
     override var maxFrameSize: Long by Delegates.observable(maxFrameSize) { _, _, newValue ->
         reader.maxFrameSize = newValue
@@ -50,7 +55,6 @@ class RawWebSocket(
                 for (frame in reader.incoming) {
                     filtered.send(frame)
                 }
-
             } catch (cause: WebSocketReader.FrameTooBigException) {
                 outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
                 filtered.close(cause)
@@ -81,7 +85,7 @@ class RawWebSocket(
 @Suppress("KDocMissingDocumentation")
 @OptIn(WebSocketInternalAPI::class)
 @InternalAPI
-suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
+public suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     try {
         handler()
         writer.flush()

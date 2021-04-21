@@ -21,13 +21,10 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.thymeleaf.Thymeleaf
 import io.ktor.thymeleaf.ThymeleafContent
 import io.ktor.thymeleaf.respondTemplate
-import org.junit.Test
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.StringTemplateResolver
 import java.util.zip.GZIPInputStream
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.shouldBe
+import kotlin.test.*
 
 class ThymeleafTest {
     @Test
@@ -45,10 +42,9 @@ class ThymeleafTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                (kotlin.test.assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                })
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, response.content!!.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -75,10 +71,9 @@ class ThymeleafTest {
                 addHeader(HttpHeaders.AcceptEncoding, "gzip")
             }.response.let { response ->
                 val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-                @Suppress("DEPRECATION_ERROR")
-                (kotlin.test.assert(content.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                })
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, content.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -102,10 +97,9 @@ class ThymeleafTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                (kotlin.test.assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                })
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, response.content!!.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals(null, response.headers[HttpHeaders.ETag])
@@ -178,5 +172,4 @@ class ThymeleafTest {
             <h1 th:text="$bax{title}"></h1>
         """.trimIndent()
     }
-
 }

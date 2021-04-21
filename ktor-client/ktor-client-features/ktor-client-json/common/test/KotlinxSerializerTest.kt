@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.json
 
+import io.ktor.client.features.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -80,21 +81,32 @@ class KotlinxSerializerTest : ClientLoader() {
 
             assertTrue(throwed, "Connection exception expected.")
         }
-
     }
 
     @Test
     fun testStringWithJsonFeature() = clientTests {
         config {
             install(JsonFeature)
+            defaultRequest {
+                val contentType = ContentType.parse("application/vnd.string+json")
+                accept(contentType)
+                contentType(contentType)
+            }
         }
 
         test { client ->
-            val response = client.post<String>("$TEST_SERVER/echo") {
+            val response = client.post<String>("$TEST_SERVER/echo-with-content-type") {
                 body = "Hello"
             }
+            assertEquals("\"Hello\"", response)
 
-            assertEquals("Hello", response)
+            val textResponse = client.post<String>("$TEST_SERVER/echo") {
+                body = "Hello"
+            }
+            assertEquals("\"Hello\"", textResponse)
+
+            val emptyResponse = client.post<String>("$TEST_SERVER/echo")
+            assertEquals("", emptyResponse)
         }
     }
 
@@ -105,6 +117,9 @@ class KotlinxSerializerTest : ClientLoader() {
         config {
             install(JsonFeature) {
                 serializer = testSerializer
+            }
+            defaultRequest {
+                accept(ContentType.Application.Json)
             }
         }
 

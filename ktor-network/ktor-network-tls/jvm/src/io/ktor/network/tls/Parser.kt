@@ -42,7 +42,9 @@ internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
     readFully(random)
     val sessionIdLength = readByte().toInt() and 0xff
 
-    if (sessionIdLength > 32) throw TLSException("sessionId length limit of 32 bytes exceeded: $sessionIdLength specified")
+    if (sessionIdLength > 32) {
+        throw TLSException("sessionId length limit of 32 bytes exceeded: $sessionIdLength specified")
+    }
 
     val sessionId = ByteArray(32)
     readFully(sessionId, 0, sessionIdLength)
@@ -50,15 +52,20 @@ internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
     val suite = readShort()
 
     val compressionMethod = readByte().toShort() and 0xff
-    if (compressionMethod.toInt() != 0) throw TLSException("Unsupported TLS compression method $compressionMethod (only null 0 compression method is supported)")
+    if (compressionMethod.toInt() != 0) {
+        throw TLSException(
+            "Unsupported TLS compression method $compressionMethod (only null 0 compression method is supported)"
+        )
+    }
 
     if (remaining.toInt() == 0) return TLSServerHello(version, random, sessionId, suite, compressionMethod)
 
     // handle extensions
     val extensionSize = readShort().toInt() and 0xffff
 
-    if (remaining.toInt() != extensionSize)
+    if (remaining.toInt() != extensionSize) {
         throw TLSException("Invalid extensions size: requested $extensionSize, available $remaining")
+    }
 
     val extensions = mutableListOf<TLSExtension>()
     while (remaining > 0) {
@@ -66,7 +73,8 @@ internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
         val length = readShort().toInt() and 0xffff
 
         extensions += TLSExtension(
-            TLSExtensionType.byCode(type), length,
+            TLSExtensionType.byCode(type),
+            length,
             buildPacket { writeFully(readBytes(length)) }
         )
     }
@@ -82,8 +90,8 @@ internal fun ByteReadPacket.readCurveParams(): NamedCurve {
 
             return NamedCurve.fromCode(curveId) ?: throw TLSException("Unknown EC id")
         }
-        ServerKeyExchangeType.ExplicitPrime -> TODO("ExplicitPrime server key exchange type is not yet supported")
-        ServerKeyExchangeType.ExplicitChar -> TODO("ExplicitChar server key exchange type is not yet supported")
+        ServerKeyExchangeType.ExplicitPrime -> error("ExplicitPrime server key exchange type is not yet supported")
+        ServerKeyExchangeType.ExplicitChar -> error("ExplicitChar server key exchange type is not yet supported")
     }
 }
 
@@ -95,7 +103,9 @@ internal fun ByteReadPacket.readTLSCertificate(): List<Certificate> {
 
     while (certificateBase < certificatesChainLength) {
         val certificateLength = readTripleByteLength()
-        if (certificateLength > (certificatesChainLength - certificateBase)) throw TLSException("Certificate length is too big")
+        if (certificateLength > (certificatesChainLength - certificateBase)) {
+            throw TLSException("Certificate length is too big")
+        }
         if (certificateLength > remaining) throw TLSException("Certificate length is too big")
 
         val certificate = ByteArray(certificateLength)
@@ -123,8 +133,6 @@ internal fun ByteReadPacket.readECPoint(fieldSize: Int): ECPoint {
         BigInteger(1, readBytes(componentLength))
     )
 }
-
-internal class TLSException(message: String, cause: Throwable? = null) : IOException(message, cause)
 
 private suspend fun ByteReadChannel.readTLSVersion() =
     TLSVersion.byCode(readShortCompatible() and 0xffff)

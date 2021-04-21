@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.sessions
 
 import io.ktor.http.*
 import io.ktor.sessions.*
-import org.junit.Test
 import java.math.*
 import java.util.*
 import kotlin.test.*
@@ -57,6 +56,28 @@ class AutoSerializerTest {
     @Test
     fun testEnumInCollection() {
         assertSerializeDeserialize(EnumCollectionSession(), defaultSessionSerializer())
+    }
+
+    @Test
+    fun testCompoundClasses() {
+        assertSerializeDeserialize(CompoundSession(), defaultSessionSerializer())
+    }
+
+    @Test
+    fun testSealedSession() {
+        assertSerializeDeserialize(SealedSession.SS(), defaultSessionSerializer())
+        assertSerializeDeserialize(SealedSession.SS(), defaultSessionSerializer<SealedSession>())
+    }
+
+    @Test
+    fun testSealedSessionObject() {
+        assertSerializeDeserialize(SealedSession.E, defaultSessionSerializer())
+        assertSerializeDeserialize(SealedSession.E, defaultSessionSerializer<SealedSession>())
+    }
+
+    @Test
+    fun testSessionWithSealedMember() {
+        assertSerializeDeserialize(SessionWithSealedMember(), defaultSessionSerializer())
     }
 
     private fun <T : Any> assertSerializeDeserialize(session: T, serializer: SessionSerializer<T>) {
@@ -115,3 +136,13 @@ data class EnumCollectionSession(
     val ss: Set<TestEnum> = setOf(TestEnum.A),
     val mm: Map<TestEnum, TestEnum> = mapOf(TestEnum.A to TestEnum.B)
 )
+
+data class Part(val i: Int)
+data class CompoundSession(val part: Part = Part(779))
+
+sealed class SealedSession {
+    data class SS(val e: Int = 834) : SealedSession()
+    object E : SealedSession()
+}
+
+data class SessionWithSealedMember(val member: SealedSession = SealedSession.SS())

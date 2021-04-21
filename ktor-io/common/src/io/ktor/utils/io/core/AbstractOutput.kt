@@ -3,9 +3,9 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.ObjectPool
+import io.ktor.utils.io.pool.*
 
 /**
  * The default [Output] implementation.
@@ -13,14 +13,14 @@ import io.ktor.utils.io.pool.ObjectPool
  * @see closeDestination
  */
 @ExperimentalIoApi
-abstract class AbstractOutput
+public abstract class AbstractOutput
 internal constructor(
     private val headerSizeHint: Int,
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Output {
-    constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
+    public constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
 
-    constructor() : this(ChunkBuffer.Pool)
+    public constructor() : this(ChunkBuffer.Pool)
 
     /**
      * An implementation should write [source] to the destination exactly [length] bytes.
@@ -34,8 +34,19 @@ internal constructor(
      */
     protected abstract fun closeDestination()
 
-    private var _head: ChunkBuffer? = null
-    private var _tail: ChunkBuffer? = null
+    private val state = AbstractOutputSharedState()
+
+    private var _head: ChunkBuffer?
+        get() = state.head
+        set(value) {
+            state.head = value
+        }
+
+    private var _tail: ChunkBuffer?
+        get() = state.tail
+        set(value) {
+            state.tail = value
+        }
 
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
@@ -54,17 +65,38 @@ internal constructor(
             appendChain(newValue)
         }
 
-    internal var tailMemory: Memory = Memory.Empty
-    internal var tailPosition = 0
-    internal var tailEndExclusive = 0
-        private set
+    internal var tailMemory: Memory
+        get() = state.tailMemory
+        set(value) {
+            state.tailMemory = value
+        }
 
-    private var tailInitialPosition = 0
+    internal var tailPosition
+        get() = state.tailPosition
+        set(value) {
+            state.tailPosition = value
+        }
+
+    internal var tailEndExclusive
+        get() = state.tailEndExclusive
+        private set(value) {
+            state.tailEndExclusive = value
+        }
+
+    private var tailInitialPosition
+        get() = state.tailInitialPosition
+        set(value) {
+            state.tailInitialPosition = value
+        }
 
     /**
      * Number of bytes buffered in the chain except the tail chunk
      */
-    private var chainedSize: Int = 0
+    private var chainedSize: Int
+        get() = state.chainedSize
+        set(value) {
+            state.chainedSize = value
+        }
 
     internal inline val tailRemaining: Int get() = tailEndExclusive - tailPosition
 
@@ -259,7 +291,7 @@ internal constructor(
     /**
      * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
      */
-    fun writePacket(p: ByteReadPacket) {
+    public fun writePacket(p: ByteReadPacket) {
         val foreignStolen = p.stealAll()
         if (foreignStolen == null) {
             p.release()
@@ -272,10 +304,23 @@ internal constructor(
             return
         }
 
-        writePacketMerging(_tail, foreignStolen, p)
+        writePacketMerging(_tail, foreignStolen, p.pool)
     }
 
-    private fun writePacketMerging(tail: ChunkBuffer, foreignStolen: ChunkBuffer, p: ByteReadPacket) {
+    /**
+     * Write chunk buffer to current [Output]. Assuming that chunk buffer is from current pool.
+     */
+    internal fun writeChunkBuffer(chunkBuffer: ChunkBuffer) {
+        val _tail = _tail
+        if (_tail == null) {
+            appendChain(chunkBuffer)
+            return
+        }
+
+        writePacketMerging(_tail, chunkBuffer, pool)
+    }
+
+    private fun writePacketMerging(tail: ChunkBuffer, foreignStolen: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) {
         tail.commitWrittenUntilIndex(tailPosition)
 
         val lastSize = tail.readRemaining
@@ -303,7 +348,7 @@ internal constructor(
                 appendChain(next)
             }
 
-            foreignStolen.release(p.pool)
+            foreignStolen.release(pool)
         } else if (appendSize == -1 || prependSize < appendSize) {
             writePacketSlowPrepend(foreignStolen, tail)
         } else {
@@ -341,7 +386,7 @@ internal constructor(
     /**
      * Write exact [n] bytes from packet to the builder
      */
-    fun writePacket(p: ByteReadPacket, n: Int) {
+    public fun writePacket(p: ByteReadPacket, n: Int) {
         var remaining = n
 
         while (remaining > 0) {
@@ -361,7 +406,7 @@ internal constructor(
     /**
      * Write exact [n] bytes from packet to the builder
      */
-    fun writePacket(p: ByteReadPacket, n: Long) {
+    public fun writePacket(p: ByteReadPacket, n: Long) {
         var remaining = n
 
         while (remaining > 0L) {
@@ -402,12 +447,12 @@ internal constructor(
     }
 
     @Deprecated("Use writeText instead", ReplaceWith("writeText(s)"))
-    fun writeStringUtf8(s: String) {
+    public fun writeStringUtf8(s: String) {
         writeText(s)
     }
 
     @Deprecated("Use writeText instead", ReplaceWith("this.writeText(cs)"))
-    fun writeStringUtf8(cs: CharSequence) {
+    public fun writeStringUtf8(cs: CharSequence) {
         writeText(cs)
     }
 
@@ -437,12 +482,12 @@ internal constructor(
     /**
      * Release any resources that the builder holds. Builder shouldn't be used after release
      */
-    final fun release() {
+    public final fun release() {
         close()
     }
 
     @DangerousInternalIoApi
-    fun prepareWriteHead(n: Int): ChunkBuffer {
+    public fun prepareWriteHead(n: Int): ChunkBuffer {
         if (tailRemaining >= n) {
             _tail?.let {
                 it.commitWrittenUntilIndex(tailPosition)
@@ -453,15 +498,18 @@ internal constructor(
     }
 
     @DangerousInternalIoApi
-    fun afterHeadWrite() {
+    public fun afterHeadWrite() {
         _tail?.let { tailPosition = it.writePosition }
     }
 
     @PublishedApi
-    internal inline fun write(size: Int, block: (Buffer) -> Int) {
+    internal inline fun write(size: Int, block: (Buffer) -> Int): Int {
         val buffer = prepareWriteHead(size)
         try {
-            check(block(buffer) >= 0) { "The returned value shouldn't be negative" }
+            val result = block(buffer)
+            check(result >= 0) { "The returned value shouldn't be negative" }
+
+            return result
         } finally {
             afterHeadWrite()
         }
@@ -484,12 +532,14 @@ internal constructor(
     }
 
     @Suppress("DEPRECATION")
-    @Deprecated("Use appendNewChunk instead",
+    @Deprecated(
+        "Use appendNewChunk instead",
         replaceWith = ReplaceWith("appendNewChunk()"),
-        level = DeprecationLevel.HIDDEN)
-    fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
+        level = DeprecationLevel.HIDDEN
+    )
+    public fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    open fun reset() {
+    public open fun reset() {
     }
 }

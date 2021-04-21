@@ -6,9 +6,8 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class RequestParserTest {

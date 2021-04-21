@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import kotlin.test.*
 
 class UrlEncodedTest {
@@ -85,14 +84,14 @@ class UrlEncodedTest {
     @Test
     fun testRenderUrlEncoded() {
         assertEquals("p1=a+b", listOf("p1" to "a b").formUrlEncode())
-        assertEquals("p%3D1=a%3Db", listOf("p=1" to "a=b").formUrlEncode())
+        assertEquals("p%3D1=a=b", listOf("p=1" to "a=b").formUrlEncode())
         assertEquals("p1=a&p1=b&p2=c", listOf("p1" to "a", "p1" to "b", "p2" to "c").formUrlEncode())
     }
 
     @Test
     fun testRenderUrlEncodedStringValues() {
         assertEquals("p1=a+b", parametersOf("p1", listOf("a b")).formUrlEncode())
-        assertEquals("p%3D1=a%3Db", parametersOf("p=1", listOf("a=b")).formUrlEncode())
+        assertEquals("p%3D1=a=b", parametersOf("p=1", listOf("a=b")).formUrlEncode())
         assertEquals("p1=a&p1=b&p2=c", parametersOf("p1" to listOf("a", "b"), "p2" to listOf("c")).formUrlEncode())
     }
 }

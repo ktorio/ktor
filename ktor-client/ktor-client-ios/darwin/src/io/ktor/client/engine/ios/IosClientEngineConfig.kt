@@ -10,7 +10,7 @@ import platform.Foundation.*
 /**
  * Challenge handler type for [NSURLSession].
  */
-typealias ChallengeHandler = (
+public typealias ChallengeHandler = (
     session: NSURLSession,
     task: NSURLSessionTask,
     challenge: NSURLAuthenticationChallenge,
@@ -20,11 +20,11 @@ typealias ChallengeHandler = (
 /**
  * Custom [IosClientEngine] config.
  */
-class IosClientEngineConfig : HttpClientEngineConfig() {
+public class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Request configuration.
      */
-    var requestConfig: NSMutableURLRequest.() -> Unit = {}
+    public var requestConfig: NSMutableURLRequest.() -> Unit = {}
         @Deprecated(
             "[requestConfig] property is deprecated. Consider using [configureRequest] instead",
             replaceWith = ReplaceWith("this.configureRequest(value)")
@@ -36,7 +36,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Session configuration.
      */
-    var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
+    public var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
         @Deprecated(
             "[sessionConfig] property is deprecated. Consider using [configureSession] instead",
             replaceWith = ReplaceWith("this.configureSession(value)")
@@ -48,13 +48,13 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Handles the challenge of HTTP responses [NSURLSession].
      */
-    var challengeHandler: ChallengeHandler? = null
+    public var challengeHandler: ChallengeHandler? = null
         private set
 
     /**
      * Appends block with [NSMutableURLRequest] configuration to [requestConfig].
      */
-    fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
+    public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
         val old = requestConfig
 
         @Suppress("DEPRECATION")
@@ -67,7 +67,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Appends block with [NSURLSessionConfiguration] configuration to [sessionConfig].
      */
-    fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
+    public fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
         val old = sessionConfig
 
         @Suppress("DEPRECATION")
@@ -80,7 +80,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Sets the [block] as an HTTP request challenge handler replacing the old one.
      */
-    fun handleChallenge(block: ChallengeHandler) {
+    public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
     }
 }

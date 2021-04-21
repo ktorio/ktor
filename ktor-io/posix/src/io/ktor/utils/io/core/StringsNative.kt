@@ -1,15 +1,15 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.charsets.*
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.cinterop.*
 
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
  * interpreting characters in the specified [charset].
  */
 @Suppress("FunctionName")
-actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
+public actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (length == 0 && offset <= bytes.size) return ""
 
     return bytes.usePinned { pinned ->
@@ -31,4 +31,3 @@ internal actual fun String.getCharsInternal(dst: CharArray, dstOffset: Int) {
         dst[dstIndex++] = this[srcIndex]
     }
 }
-

@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
+import kotlin.native.concurrent.*
 
 internal class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngineBase("ktor-ios") {
 
@@ -47,7 +48,9 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
         }
 
         val session = NSURLSession.sessionWithConfiguration(
-            configuration, responseReader, delegateQueue = NSOperationQueue.mainQueue()
+            configuration,
+            responseReader.freeze(),
+            delegateQueue = NSOperationQueue.mainQueue()
         )
 
         val task = session.dataTaskWithRequest(nativeRequest)
@@ -56,15 +59,9 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
             task.resume()
         }
 
-        /**
-         * TODO: uncomment to fix memory leak. Blocked by: https://youtrack.jetbrains.com/issue/KT-37225
-         *
-         * After the session.finishTaskAndInvalidate, the delegate object will be reassigned on different thread.
-         * It leads to `releaseHeapRefStrict` of kotlin object on wrong native thread and fails.
-         */
-//        callContext[Job]!!.invokeOnCompletion {
-//            session.finishTasksAndInvalidate()
-//        }
+        callContext[Job]!!.invokeOnCompletion {
+            session.finishTasksAndInvalidate()
+        }
 
         return try {
             responseReader.awaitResponse()

@@ -1,10 +1,12 @@
 @file:Suppress("DEPRECATION_ERROR", "DEPRECATION", "RedundantModalityModifier")
+
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.contracts.*
 import kotlin.native.concurrent.*
@@ -15,15 +17,22 @@ internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-actual class IoBuffer actual constructor(
+public actual class IoBuffer internal actual constructor(
     memory: Memory,
-    origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(memory, origin) {
-    internal var refCount = 1
+    origin: ChunkBuffer?,
+    parentPool: ObjectPool<IoBuffer>?
+) : Input, Output, ChunkBuffer(memory, origin, parentPool as? ObjectPool<ChunkBuffer>) {
+    internal var refCount by shared(1)
 
     private val contentCapacity: Int get() = memory.size32
 
-    constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(Memory.of(content, contentCapacity), null)
+    public actual constructor(
+        memory: Memory,
+        origin: ChunkBuffer?,
+    ) : this(memory, origin, null)
+
+    public constructor(content: CPointer<ByteVar>, contentCapacity: Int) :
+        this(Memory.of(content, contentCapacity), null)
 
     override val endOfInput: Boolean get() = !canRead()
 
@@ -130,7 +139,6 @@ actual class IoBuffer actual constructor(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: LongArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
-
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -197,7 +205,7 @@ actual class IoBuffer actual constructor(
      * Apply [block] to a native pointer for writing to the buffer. Lambda should return number of bytes were written.
      * @return number of bytes written
      */
-    fun writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
+    public fun writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
         val rc = block((content + writePosition)!!)
         check(rc >= 0) { "block function should return non-negative results: $rc" }
         check(rc <= writeRemaining)
@@ -209,7 +217,7 @@ actual class IoBuffer actual constructor(
      * Apply [block] to a native pointer for reading from the buffer. Lambda should return number of bytes were read.
      * @return number of bytes read
      */
-    fun readDirect(block: (CPointer<ByteVar>) -> Int): Int {
+    public fun readDirect(block: (CPointer<ByteVar>) -> Int): Int {
         val rc = block((content + readPosition)!!)
         check(rc >= 0) { "block function should return non-negative results: $rc" }
         check(rc <= readRemaining) { "result value is too large: $rc > $readRemaining" }
@@ -289,11 +297,11 @@ actual class IoBuffer actual constructor(
         return this
     }
 
-    fun appendChars(csq: CharArray, start: Int, end: Int): Int {
+    public fun appendChars(csq: CharArray, start: Int, end: Int): Int {
         return (this as Buffer).appendChars(csq, start, end)
     }
 
-    fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
+    public fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
         return (this as Buffer).appendChars(csq, start, end)
     }
 
@@ -302,7 +310,7 @@ actual class IoBuffer actual constructor(
         return (this as Input).peekTo(buffer)
     }
 
-    fun makeView(): IoBuffer {
+    public fun makeView(): IoBuffer {
         return duplicate()
     }
 
@@ -320,38 +328,41 @@ actual class IoBuffer actual constructor(
         throw UnsupportedOperationException("close for buffer view is not supported")
     }
 
-    actual fun release(pool: ObjectPool<IoBuffer>) {
+    public actual fun release(pool: ObjectPool<IoBuffer>) {
         releaseImpl(pool)
     }
 
     override fun toString(): String =
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
-    actual companion object {
+    public actual companion object {
         /**
          * Number of bytes usually reserved in the end of chunk
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        actual val ReservedSize: Int get() = Buffer.ReservedSize
+        public actual val ReservedSize: Int
+            get() = Buffer.ReservedSize
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
-        actual val Empty = IoBuffer(Memory.Empty, null)
+        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
          */
-        actual val Pool: ObjectPool<IoBuffer> get() = BufferPoolNativeWorkaround
+        public actual val Pool: ObjectPool<IoBuffer> get() = BufferPoolNativeWorkaround
 
-        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+        public actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
                 return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
             }
 
             override fun recycle(instance: IoBuffer) {
-                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.refCount == 0) {
+                    "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}"
+                }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
             }
@@ -363,12 +374,14 @@ actual class IoBuffer actual constructor(
             }
 
             override fun recycle(instance: IoBuffer) {
-                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.refCount == 0) {
+                    "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}"
+                }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
             }
         }
 
-        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
+        public actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
     }
 }
 
@@ -388,21 +401,25 @@ private object BufferPoolNativeWorkaround : DefaultPool<IoBuffer>(BUFFER_VIEW_PO
     override fun validateInstance(instance: IoBuffer) {
         super.validateInstance(instance)
 
-        require(instance.referenceCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})" }
+        require(instance.referenceCount == 0) {
+            "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})"
+        }
         require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
     }
 
     override fun disposeInstance(instance: IoBuffer) {
-        require(instance.referenceCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}" }
+        require(instance.referenceCount == 0) {
+            "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}"
+        }
         nativeHeap.free(instance.memory)
     }
 }
 
-fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {
+public fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {
     readFully(pointer, offset.toLong(), length)
 }
 
-fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
+public fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
     readExact(length, "content") { memory, start ->
@@ -410,11 +427,11 @@ fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
     }
 }
 
-fun Buffer.readAvailable(pointer: CPointer<ByteVar>, offset: Int, length: Int): Int {
+public fun Buffer.readAvailable(pointer: CPointer<ByteVar>, offset: Int, length: Int): Int {
     return readAvailable(pointer, offset.toLong(), length)
 }
 
-fun Buffer.readAvailable(pointer: CPointer<ByteVar>, offset: Long, length: Int): Int {
+public fun Buffer.readAvailable(pointer: CPointer<ByteVar>, offset: Long, length: Int): Int {
     val available = readRemaining
     if (available == 0) return -1
     val resultSize = minOf(available, length)
@@ -422,7 +439,7 @@ fun Buffer.readAvailable(pointer: CPointer<ByteVar>, offset: Long, length: Int):
     return resultSize
 }
 
-fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {
+public fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
 
@@ -431,7 +448,7 @@ fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {
     }
 }
 
-fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
+public fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
 
@@ -440,7 +457,7 @@ fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Long, length: Int) {
     }
 }
 
-inline fun Buffer.readDirect(block: (CPointer<ByteVar>) -> Int): Int {
+public inline fun Buffer.readDirect(block: (CPointer<ByteVar>) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -450,7 +467,7 @@ inline fun Buffer.readDirect(block: (CPointer<ByteVar>) -> Int): Int {
     }
 }
 
-inline fun Buffer.writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
+public inline fun Buffer.writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -460,10 +477,10 @@ inline fun Buffer.writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
     }
 }
 
-fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
+public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
     return IoBuffer(Memory.of(ptr, lengthInBytes), origin)
 }
 
-fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
+public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
     return IoBuffer(Memory.of(ptr, lengthInBytes), origin)
 }

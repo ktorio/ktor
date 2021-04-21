@@ -12,20 +12,22 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
+public abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+    override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
                 call.respondText("")
@@ -33,11 +35,15 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
             get("/hello") {
                 call.respondText("hello")
             }
+            post("/echo") {
+                val text = call.receiveText()
+                call.respondText(text)
+            }
         }
     }
 
     @Test
-    fun testWithNoParentJob() {
+    public fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
@@ -46,20 +52,22 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
 
         val latch = ArrayBlockingQueue<Result<Unit>>(1)
 
-        block.startCoroutine(object : Continuation<Unit> {
-            override val context: CoroutineContext
-                get() = EmptyCoroutineContext
+        block.startCoroutine(
+            object : Continuation<Unit> {
+                override val context: CoroutineContext
+                    get() = EmptyCoroutineContext
 
-            override fun resumeWith(result: Result<Unit>) {
-                latch.put(result)
+                override fun resumeWith(result: Result<Unit>) {
+                    latch.put(result)
+                }
             }
-        })
+        )
 
         latch.take().exceptionOrNull()?.let { throw it }
     }
 
     @Test
-    fun configCopiesOldFeaturesAndInterceptors() {
+    public fun configCopiesOldFeaturesAndInterceptors() {
         val customFeatureKey = AttributeKey<Boolean>("customFeature")
         val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
 
@@ -109,4 +117,18 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         assertTrue(newClient.attributes.contains(anotherCustomFeatureKey), "no other custom feature installed")
     }
 
+    @Test
+    fun testErrorInWritingPropagates() = testSuspend {
+        val client = HttpClient(factory)
+        val channel = ByteChannel(true)
+        channel.writeAvailable("text".toByteArray())
+        channel.close(SendException())
+        assertFailsWith<SendException>("Error on write") {
+            client.post<String>("http://localhost:$serverPort/echo") {
+                body = channel
+            }
+        }
+    }
+
+    private class SendException : RuntimeException("Error on write")
 }

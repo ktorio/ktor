@@ -1,18 +1,17 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.nio.ByteBuffer
 import java.util.zip.*
 import kotlin.coroutines.*
-
 
 internal const val GZIP_MAGIC: Short = 0x8b1f.toShort()
 internal val GZIP_HEADER_PADDING: ByteArray = ByteArray(7)
@@ -58,8 +57,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
-@KtorExperimentalAPI
-fun ByteReadChannel.deflated(
+public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
@@ -84,6 +82,10 @@ fun ByteReadChannel.deflated(
             channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
         }
 
+        if (this is ByteChannel) {
+            closedCause?.let { throw it }
+        }
+
         deflater.finish()
         channel.deflateWhile(deflater, compressed) { !deflater.finished() }
 
@@ -101,11 +103,10 @@ fun ByteReadChannel.deflated(
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
-@KtorExperimentalAPI
-fun ByteWriteChannel.deflated(
+public fun ByteWriteChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
-    channel.deflated(gzip, pool, coroutineContext).joinTo(this@deflated, closeOnEnd = true)
+    channel.deflated(gzip, pool, coroutineContext).copyTo(this@deflated)
 }.channel

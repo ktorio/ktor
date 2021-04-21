@@ -26,7 +26,7 @@ internal class IosResponseReader(
 
     private val requestTime = GMTDate()
 
-    suspend fun awaitResponse(): HttpResponseData {
+    public suspend fun awaitResponse(): HttpResponseData {
         val response = rawResponse.await()
 
         @Suppress("UNCHECKED_CAST")
@@ -39,6 +39,7 @@ internal class IosResponseReader(
 
         val responseBody = GlobalScope.writer(callContext + Dispatchers.Unconfined, autoFlush = true) {
             try {
+                @OptIn(ExperimentalCoroutinesApi::class)
                 chunks.consumeEach {
                     channel.writeFully(it)
                     channel.flush()
@@ -52,8 +53,12 @@ internal class IosResponseReader(
         val version = HttpProtocolVersion.HTTP_1_1
 
         return HttpResponseData(
-            status, requestTime, headers, version,
-            responseBody, callContext
+            status,
+            requestTime,
+            headers,
+            version,
+            responseBody,
+            callContext
         )
     }
 

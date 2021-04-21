@@ -1,9 +1,8 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
-
 
 /**
  * Represents a nonce manager. It's responsibility is to produce nonce values
@@ -13,26 +12,23 @@ package io.ktor.util
  * Note that there is usually some timeout for nonce values to reduce memory usage and to avoid replay attacks.
  * Nonce length is unspecified.
  */
-@KtorExperimentalAPI
-interface NonceManager {
+public interface NonceManager {
     /**
      * Generate new nonce instance
      */
-    suspend fun newNonce(): String
+    public suspend fun newNonce(): String
 
     /**
      * Verify [nonce] value
      * @return `true` if [nonce] is valid
      */
-    suspend fun verifyNonce(nonce: String): Boolean
+    public suspend fun verifyNonce(nonce: String): Boolean
 }
-
 
 /**
  * This implementation does only generate nonce values but doesn't validate them. This is recommended for testing only.
  */
-@KtorExperimentalAPI
-object GenerateOnlyNonceManager : NonceManager {
+public object GenerateOnlyNonceManager : NonceManager {
     override suspend fun newNonce(): String {
         return generateNonce()
     }
@@ -48,7 +44,7 @@ object GenerateOnlyNonceManager : NonceManager {
  */
 @Deprecated("This should be removed with OAuth2StateProvider", level = DeprecationLevel.ERROR)
 @InternalAPI
-object AlwaysFailNonceManager : NonceManager {
+public object AlwaysFailNonceManager : NonceManager {
     override suspend fun newNonce(): String {
         throw UnsupportedOperationException("This manager should never be used")
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -16,17 +16,16 @@ import javax.crypto.spec.*
  * @property timeoutMillis specifies the amount of time for a nonce to be considered valid
  * @property nonceGenerator function that produces random values
  */
-@KtorExperimentalAPI
-class StatelessHmacNonceManager(
-    val keySpec: SecretKeySpec,
-    val algorithm: String = "HmacSHA256",
-    val timeoutMillis: Long = 60000,
-    val nonceGenerator: () -> String = { generateNonce() }
+public class StatelessHmacNonceManager(
+    public val keySpec: SecretKeySpec,
+    public val algorithm: String = "HmacSHA256",
+    public val timeoutMillis: Long = 60000,
+    public val nonceGenerator: () -> String = { generateNonce() }
 ) : NonceManager {
     /**
      * Helper constructor that makes a secret key from [key] ByteArray
      */
-    constructor(
+    public constructor(
         key: ByteArray,
         algorithm: String = "HmacSHA256",
         timeoutMillis: Long = 60000,
@@ -35,7 +34,10 @@ class StatelessHmacNonceManager(
         SecretKeySpec(
             key,
             algorithm
-        ), algorithm, timeoutMillis, nonceGenerator
+        ),
+        algorithm,
+        timeoutMillis,
+        nonceGenerator
     )
 
     /**
@@ -50,10 +52,12 @@ class StatelessHmacNonceManager(
         val random = nonceGenerator()
         val time = System.nanoTime().toString(16).padStart(16, '0')
 
-        val mac = hex(Mac.getInstance(algorithm).apply {
-            init(keySpec)
-            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-        }.doFinal())
+        val mac = hex(
+            Mac.getInstance(algorithm).apply {
+                init(keySpec)
+                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+            }.doFinal()
+        )
 
         return "$random+$time+$mac"
     }
@@ -70,10 +74,12 @@ class StatelessHmacNonceManager(
         val nanoTime = time.toLong(16)
         if (nanoTime + TimeUnit.MILLISECONDS.toNanos(timeoutMillis) < System.nanoTime()) return false
 
-        val computedMac = hex(Mac.getInstance(algorithm).apply {
-            init(keySpec)
-            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-        }.doFinal())
+        val computedMac = hex(
+            Mac.getInstance(algorithm).apply {
+                init(keySpec)
+                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+            }.doFinal()
+        )
 
         var validCount = 0
         for (i in 0 until minOf(computedMac.length, mac.length)) {

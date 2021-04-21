@@ -10,39 +10,46 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
-import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 
 /**
  * Install default transformers.
  * Usually installed by default so there is no need to use it
  * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
  */
-fun HttpClient.defaultTransformers() {
-    requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
+public fun HttpClient.defaultTransformers() {
+    val client = this
 
+    requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
         if (context.headers[HttpHeaders.Accept] == null) {
             context.headers.append(HttpHeaders.Accept, "*/*")
         }
 
-        when (body) {
-            is String -> {
-                val contentType = context.headers[HttpHeaders.ContentType]?.let {
-                    context.headers.remove(HttpHeaders.ContentType)
-                    ContentType.parse(it)
-                } ?: ContentType.Text.Plain
+        val contentType = context.headers[HttpHeaders.ContentType]?.let {
+            ContentType.parse(it)
+        }
 
-                proceedWith(TextContent(body, contentType))
+        val content = when (body) {
+            is String -> {
+                TextContent(body, contentType ?: ContentType.Text.Plain)
             }
-            is ByteArray -> proceedWith(object : OutgoingContent.ByteArrayContent() {
+            is ByteArray -> object : OutgoingContent.ByteArrayContent() {
+                override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
-            })
-            is ByteReadChannel -> proceedWith(object : OutgoingContent.ReadChannelContent() {
+            }
+            is ByteReadChannel -> object : OutgoingContent.ReadChannelContent() {
+                override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override fun readFrom(): ByteReadChannel = body
-            })
+            }
+            else -> null
+        }
+
+        if (content != null) {
+            context.headers.remove(HttpHeaders.ContentType)
+            proceedWith(content)
         }
     }
 
@@ -74,7 +81,11 @@ fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
             }
             ByteReadChannel::class -> {
-                val channel: ByteReadChannel = writer {
+                // the response job could be already completed so the job holder
+                // could be cancelled immediately, but it doesn't matter
+                // since the copying job is running under the client job
+                val responseJobHolder = Job(response.coroutineContext[Job])
+                val channel: ByteReadChannel = writer(client.coroutineContext) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                     } catch (cause: CancellationException) {
@@ -85,6 +96,10 @@ fun HttpClient.defaultTransformers() {
                         throw cause
                     } finally {
                         response.complete()
+                    }
+                }.also { writerJob ->
+                    writerJob.invokeOnCompletion {
+                        responseJobHolder.complete()
                     }
                 }.channel
 

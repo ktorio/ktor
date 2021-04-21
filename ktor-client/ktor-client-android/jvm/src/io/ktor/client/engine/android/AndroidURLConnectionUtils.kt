@@ -6,6 +6,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -43,12 +44,15 @@ private fun HttpURLConnection.setupRequestTimeoutAttributes(
 }
 
 /**
- * Call [HttpURLConnection.connect] catching [java.net.SocketTimeoutException] and returning [SocketTimeoutException] instead
+ * Executes [block] catching [java.net.SocketTimeoutException] and returning [SocketTimeoutException] instead
  * of it. If request timeout happens earlier [HttpRequestTimeoutException] will be thrown.
  */
-internal suspend fun HttpURLConnection.timeoutAwareConnect(request: HttpRequestData) {
+internal suspend fun <T> HttpURLConnection.timeoutAwareConnection(
+    request: HttpRequestData,
+    block: (HttpURLConnection) -> T
+): T {
     try {
-        connect()
+        return block(this)
     } catch (cause: Throwable) {
         // Allow to throw request timeout cancellation exception instead of connect timeout exception if needed.
         yield()

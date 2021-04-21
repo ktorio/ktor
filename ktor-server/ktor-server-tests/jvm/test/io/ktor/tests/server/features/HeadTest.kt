@@ -5,14 +5,13 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import org.junit.Test
 import java.lang.IllegalStateException
 import kotlin.test.*
 
@@ -93,14 +92,16 @@ class HeadTest {
         withHeadApplication {
             application.routing {
                 get("/") {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override fun readFrom() = ByteReadChannel("Hello".toByteArray())
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override fun readFrom() = ByteReadChannel("Hello".toByteArray())
 
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append("M", "2")
-                            }
-                    })
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append("M", "2")
+                                }
+                        }
+                    )
                 }
             }
 
@@ -124,7 +125,9 @@ class HeadTest {
     @Test
     fun testWithStatusPages() = withHeadApplication {
         application.install(StatusPages) {
-            exception<IllegalStateException> { call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError) }
+            exception<IllegalStateException> {
+                call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError)
+            }
             status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
         }
 
@@ -134,12 +137,6 @@ class HeadTest {
             }
             get("/page2") {
                 throw IllegalStateException("page2 failed")
-            }
-        }
-
-        application.intercept(ApplicationCallPipeline.Fallback) {
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
             }
         }
 

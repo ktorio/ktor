@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -30,14 +30,15 @@ import javax.crypto.spec.*
  * @property encryptAlgorithm is an encryption algorithm name
  * @property signAlgorithm is a signing algorithm name
  */
-class SessionTransportTransformerEncrypt(
-    val encryptionKeySpec: SecretKeySpec,
-    val signKeySpec: SecretKeySpec,
-    val ivGenerator: (size: Int) -> ByteArray = { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
-    val encryptAlgorithm: String = encryptionKeySpec.algorithm,
-    val signAlgorithm: String = signKeySpec.algorithm
+public class SessionTransportTransformerEncrypt(
+    public val encryptionKeySpec: SecretKeySpec,
+    public val signKeySpec: SecretKeySpec,
+    public val ivGenerator: (size: Int) -> ByteArray =
+        { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
+    public val encryptAlgorithm: String = encryptionKeySpec.algorithm,
+    public val signAlgorithm: String = signKeySpec.algorithm
 ) : SessionTransportTransformer {
-    companion object {
+    public companion object {
         private val log = LoggerFactory.getLogger(SessionTransportTransformerEncrypt::class.qualifiedName)
     }
 
@@ -46,7 +47,7 @@ class SessionTransportTransformerEncrypt(
     /**
      * Encryption key size in bytes
      */
-    val encryptionKeySize: Int get() = encryptionKeySpec.encoded.size
+    public val encryptionKeySize: Int get() = encryptionKeySpec.encoded.size
 
     // Check that input keys are right
     init {
@@ -54,7 +55,7 @@ class SessionTransportTransformerEncrypt(
         mac(byteArrayOf())
     }
 
-    constructor(
+    public constructor(
         encryptionKey: ByteArray,
         signKey: ByteArray,
         ivGenerator: (size: Int) -> ByteArray = { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },

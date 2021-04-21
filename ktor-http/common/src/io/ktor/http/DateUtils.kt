@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -28,7 +28,7 @@ private val HTTP_DATE_FORMATS = listOf(
  *
  * Note that only GMT(UTC) date is valid http date.
  */
-fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
+public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
     for (format in HTTP_DATE_FORMATS) {
         try {
             val parser = GMTDateParser(format)
@@ -45,8 +45,7 @@ fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
  *
  * @see [fromHttpToGmtDate]
  */
-@KtorExperimentalAPI
-fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
+public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
     try {
         val parser = CookieDateParser()
         return parser.parse(this@with)
@@ -59,7 +58,7 @@ fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
 /**
  * Convert [GMTDate] to valid http date [String]
  */
-fun GMTDate.toHttpDate(): String = buildString {
+public fun GMTDate.toHttpDate(): String = buildString {
     append("${dayOfWeek.value}, ")
     append("${dayOfMonth.padZero(2)} ")
     append("${month.value} ")

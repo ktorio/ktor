@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -16,22 +16,22 @@ import kotlin.reflect.full.*
  * Throwing this exception in a handler will lead to 400 Bad Request response
  * unless a custom [io.ktor.features.StatusPages] handler registered.
  */
-open class BadRequestException(message: String, cause: Throwable? = null) : Exception(message, cause)
+public open class BadRequestException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
  * This exception means that the requested resource is not found.
  * HTTP status 404 Not found will be replied when this exception is thrown and not caught.
  * 404 status page could be configured by registering a custom [io.ktor.features.StatusPages] handler.
  */
-class NotFoundException(message: String? = "Resource not found") : Exception(message)
+public class NotFoundException(message: String? = "Resource not found") : Exception(message)
 
 /**
  * This exception is thrown when a required parameter with name [parameterName] is missing
  * @property parameterName of missing request parameter
  */
-@KtorExperimentalAPI
-class MissingRequestParameterException(
-    val parameterName: String
+@OptIn(ExperimentalCoroutinesApi::class)
+public class MissingRequestParameterException(
+    public val parameterName: String
 ) : BadRequestException("Request parameter $parameterName is missing"),
     CopyableThrowable<MissingRequestParameterException> {
 
@@ -45,9 +45,12 @@ class MissingRequestParameterException(
  * @property parameterName of missing request parameter
  * @property type this parameter is unable to convert to
  */
-@KtorExperimentalAPI
-class ParameterConversionException(val parameterName: String, val type: String, cause: Throwable? = null) :
-    BadRequestException("Request parameter $parameterName couldn't be parsed/converted to $type", cause),
+@OptIn(ExperimentalCoroutinesApi::class)
+public class ParameterConversionException(
+    public val parameterName: String,
+    public val type: String,
+    cause: Throwable? = null
+) : BadRequestException("Request parameter $parameterName couldn't be parsed/converted to $type", cause),
     CopyableThrowable<ParameterConversionException> {
 
     override fun createCopy(): ParameterConversionException =
@@ -61,8 +64,9 @@ class ParameterConversionException(val parameterName: String, val type: String, 
  * It is not defined which status code will be replied when an exception of this type is thrown and not caught.
  * Depending on child type it could be 4xx or 5xx status code. By default it will be 500 Internal Server Error.
  */
-abstract class ContentTransformationException(message: String) : Exception(message)
+public abstract class ContentTransformationException(message: String) : Exception(message)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class CannotTransformContentToTypeException(
     private val type: KType
 ) : ContentTransformationException("Cannot transform this request's content to $type"),
@@ -81,7 +85,8 @@ internal class CannotTransformContentToTypeException(
  * Thrown when there is no conversion for a content type configured.
  * HTTP status 415 Unsupported Media Type will be replied when this exception is thrown and not caught.
  */
-class UnsupportedMediaTypeException(
+@OptIn(ExperimentalCoroutinesApi::class)
+public class UnsupportedMediaTypeException(
     private val contentType: ContentType
 ) : ContentTransformationException("Content type $contentType is not supported"),
     CopyableThrowable<UnsupportedMediaTypeException> {

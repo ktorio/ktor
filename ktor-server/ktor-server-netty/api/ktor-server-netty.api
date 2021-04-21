@@ -1,0 +1,189 @@
+public final class io/ktor/server/netty/CIOKt {
+	public static final fun suspendAwait (Lio/netty/util/concurrent/Future;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun suspendAwait (Lio/netty/util/concurrent/Future;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun suspendWriteAwait (Lio/netty/util/concurrent/Future;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/netty/DevelopmentEngine {
+	public static final field INSTANCE Lio/ktor/server/netty/DevelopmentEngine;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/netty/EngineMain {
+	public static final field INSTANCE Lio/ktor/server/netty/EngineMain;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/EventLoopGroup {
+	public static final field Companion Lio/ktor/server/netty/EventLoopGroupProxy$Companion;
+	public fun <init> (Lkotlin/reflect/KClass;Lio/netty/channel/EventLoopGroup;)V
+	public fun awaitTermination (JLjava/util/concurrent/TimeUnit;)Z
+	public fun execute (Ljava/lang/Runnable;)V
+	public final fun getChannel ()Lkotlin/reflect/KClass;
+	public fun invokeAll (Ljava/util/Collection;)Ljava/util/List;
+	public fun invokeAll (Ljava/util/Collection;JLjava/util/concurrent/TimeUnit;)Ljava/util/List;
+	public fun invokeAny (Ljava/util/Collection;)Ljava/lang/Object;
+	public fun invokeAny (Ljava/util/Collection;JLjava/util/concurrent/TimeUnit;)Ljava/lang/Object;
+	public fun isShutdown ()Z
+	public fun isShuttingDown ()Z
+	public fun isTerminated ()Z
+	public fun iterator ()Ljava/util/Iterator;
+	public fun next ()Lio/netty/channel/EventLoop;
+	public synthetic fun next ()Lio/netty/util/concurrent/EventExecutor;
+	public fun register (Lio/netty/channel/Channel;)Lio/netty/channel/ChannelFuture;
+	public fun register (Lio/netty/channel/Channel;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;
+	public fun register (Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;
+	public fun schedule (Ljava/lang/Runnable;JLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/ScheduledFuture;
+	public synthetic fun schedule (Ljava/lang/Runnable;JLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;
+	public fun schedule (Ljava/util/concurrent/Callable;JLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/ScheduledFuture;
+	public synthetic fun schedule (Ljava/util/concurrent/Callable;JLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;
+	public fun scheduleAtFixedRate (Ljava/lang/Runnable;JJLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/ScheduledFuture;
+	public synthetic fun scheduleAtFixedRate (Ljava/lang/Runnable;JJLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;
+	public fun scheduleWithFixedDelay (Ljava/lang/Runnable;JJLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/ScheduledFuture;
+	public synthetic fun scheduleWithFixedDelay (Ljava/lang/Runnable;JJLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;
+	public fun shutdown ()V
+	public fun shutdownGracefully ()Lio/netty/util/concurrent/Future;
+	public fun shutdownGracefully (JJLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/Future;
+	public fun shutdownNow ()Ljava/util/List;
+	public fun submit (Ljava/lang/Runnable;)Lio/netty/util/concurrent/Future;
+	public synthetic fun submit (Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
+	public fun submit (Ljava/lang/Runnable;Ljava/lang/Object;)Lio/netty/util/concurrent/Future;
+	public synthetic fun submit (Ljava/lang/Runnable;Ljava/lang/Object;)Ljava/util/concurrent/Future;
+	public fun submit (Ljava/util/concurrent/Callable;)Lio/netty/util/concurrent/Future;
+	public synthetic fun submit (Ljava/util/concurrent/Callable;)Ljava/util/concurrent/Future;
+	public fun terminationFuture ()Lio/netty/util/concurrent/Future;
+}
+
+public final class io/ktor/server/netty/EventLoopGroupProxy$Companion {
+	public final fun create (I)Lio/ktor/server/netty/EventLoopGroupProxy;
+}
+
+public final class io/ktor/server/netty/Netty : io/ktor/server/engine/ApplicationEngineFactory {
+	public static final field INSTANCE Lio/ktor/server/netty/Netty;
+	public synthetic fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/netty/NettyApplicationEngine;
+}
+
+public abstract class io/ktor/server/netty/NettyApplicationCall : io/ktor/server/engine/BaseApplicationCall {
+	public fun <init> (Lio/ktor/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	public abstract fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
+	public abstract fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
+	public final fun getResponseWriteJob ()Lkotlinx/coroutines/Job;
+}
+
+public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
+	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
+	public fun start (Z)Lio/ktor/server/netty/NettyApplicationEngine;
+	public fun stop (JJ)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
+	public fun <init> ()V
+	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
+	public final fun getHttpServerCodec ()Lkotlin/jvm/functions/Function0;
+	public final fun getRequestQueueLimit ()I
+	public final fun getRequestReadTimeoutSeconds ()I
+	public final fun getResponseWriteTimeoutSeconds ()I
+	public final fun getRunningLimit ()I
+	public final fun getShareWorkGroup ()Z
+	public final fun getTcpKeepAlive ()Z
+	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
+	public final fun setHttpServerCodec (Lkotlin/jvm/functions/Function0;)V
+	public final fun setRequestQueueLimit (I)V
+	public final fun setRequestReadTimeoutSeconds (I)V
+	public final fun setResponseWriteTimeoutSeconds (I)V
+	public final fun setRunningLimit (I)V
+	public final fun setShareWorkGroup (Z)V
+	public final fun setTcpKeepAlive (Z)V
+}
+
+public abstract class io/ktor/server/netty/NettyApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/String;Z)V
+	public final fun close ()V
+	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	public fun getCookies ()Lio/ktor/request/RequestCookies;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getQueryParameters ()Lio/ktor/http/Parameters;
+	protected final fun getUri ()Ljava/lang/String;
+	protected abstract fun newDecoder ()Lio/netty/handler/codec/http/multipart/HttpPostMultipartRequestDecoder;
+	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+}
+
+public final class io/ktor/server/netty/NettyApplicationRequestHeaders : io/ktor/http/Headers {
+	public fun <init> (Lio/netty/handler/codec/http/HttpRequest;)V
+	public fun contains (Ljava/lang/String;)Z
+	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun entries ()Ljava/util/Set;
+	public fun forEach (Lkotlin/jvm/functions/Function2;)V
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public fun getAll (Ljava/lang/String;)Ljava/util/List;
+	public fun getCaseInsensitiveName ()Z
+	public fun isEmpty ()Z
+	public fun names ()Ljava/util/Set;
+}
+
+public abstract class io/ktor/server/netty/NettyApplicationResponse : io/ktor/server/engine/BaseApplicationResponse {
+	public static final field Companion Lio/ktor/server/netty/NettyApplicationResponse$Companion;
+	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;Lio/netty/channel/ChannelHandlerContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun cancel ()V
+	protected final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	protected final fun getEngineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getResponseMessage ()Lkotlinx/coroutines/CompletableDeferred;
+	protected final fun getResponseMessageSent ()Z
+	protected final fun getUserContext ()Lkotlin/coroutines/CoroutineContext;
+	protected fun respondFromBytes ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun respondNoContent (Lio/ktor/http/content/OutgoingContent$NoContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun respondOutgoingContent (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected abstract fun responseMessage (ZZ)Ljava/lang/Object;
+	protected fun responseMessage (Z[B)Ljava/lang/Object;
+	protected final fun setResponseMessageSent (Z)V
+}
+
+public final class io/ktor/server/netty/NettyApplicationResponse$Companion {
+	public final fun getResponseStatusCache ()[Lio/netty/handler/codec/http/HttpResponseStatus;
+}
+
+public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/channel/ChannelInitializer {
+	public static final field Companion Lio/ktor/server/netty/NettyChannelInitializer$Companion;
+	public fun <init> (Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIIILkotlin/jvm/functions/Function0;)V
+	public synthetic fun initChannel (Lio/netty/channel/Channel;)V
+}
+
+public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
+}
+
+public abstract class io/ktor/server/netty/cio/WriterEncapsulation {
+	public abstract fun endOfStream (Z)Ljava/lang/Object;
+	public fun getRequiresContextClose ()Z
+	public abstract fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
+	public abstract fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
+}
+
+public final class io/ktor/server/netty/cio/WriterEncapsulation$Http1 : io/ktor/server/netty/cio/WriterEncapsulation {
+	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Http1;
+	public fun endOfStream (Z)Ljava/lang/Object;
+	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
+	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
+}
+
+public final class io/ktor/server/netty/cio/WriterEncapsulation$Http2 : io/ktor/server/netty/cio/WriterEncapsulation {
+	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Http2;
+	public fun endOfStream (Z)Ljava/lang/Object;
+	public fun getRequiresContextClose ()Z
+	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
+	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
+}
+
+public final class io/ktor/server/netty/cio/WriterEncapsulation$Raw : io/ktor/server/netty/cio/WriterEncapsulation {
+	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Raw;
+	public fun endOfStream (Z)Ljava/lang/Object;
+	public fun getRequiresContextClose ()Z
+	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
+	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
+}
+

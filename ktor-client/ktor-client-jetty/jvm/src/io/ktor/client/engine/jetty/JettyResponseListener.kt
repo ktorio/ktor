@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty
@@ -7,11 +7,10 @@ package io.ktor.client.engine.jetty
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
-import io.ktor.utils.io.*
-import kotlinx.coroutines.selects.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
@@ -80,6 +79,20 @@ internal class JettyResponseListener(
         }
     }
 
+    override fun onFailure(stream: Stream?, error: Int, reason: String?, failure: Throwable?, callback: Callback?) {
+        callback?.succeeded()
+
+        val messagePrefix = reason ?: "HTTP/2 failure"
+        val message = when (error) {
+            0 -> messagePrefix
+            else -> "$messagePrefix, code $error"
+        }
+
+        val cause = IOException(message, failure)
+        backendChannel.close(cause)
+        onHeadersReceived.completeExceptionally(cause)
+    }
+
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
         frame.metaData.fields.forEach { field ->
             headersBuilder.append(field.name, field.value)
@@ -89,24 +102,23 @@ internal class JettyResponseListener(
             backendChannel.close()
         }
 
-        onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
-            val (status, reason) = it.status to it.reason
-            reason?.let { HttpStatusCode(status, it) } ?: HttpStatusCode.fromValue(status)
-        })
+        onHeadersReceived.complete(
+            (frame.metaData as? MetaData.Response)?.let {
+                val (status, reason) = it.status to it.reason
+                reason?.let { text -> HttpStatusCode(status, text) } ?: HttpStatusCode.fromValue(status)
+            }
+        )
     }
 
     suspend fun awaitHeaders(): StatusWithHeaders {
-        onHeadersReceived.await()
-        val statusCode = onHeadersReceived.getCompleted() ?: throw IOException("Connection reset")
+        val statusCode = onHeadersReceived.await() ?: throw IOException("Connection reset")
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
-        while (!backendChannel.isClosedForReceive) {
-            val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
+        @OptIn(ExperimentalCoroutinesApi::class)
+        while (true) {
+            val (buffer, callback) = backendChannel.receiveOrNull() ?: break
             try {
                 if (buffer.remaining() > 0) channel.writeFully(buffer)
                 callback.succeeded()
@@ -123,7 +135,11 @@ internal class JettyResponseListener(
     }.invokeOnCompletion { cause ->
         channel.close(cause)
         backendChannel.close()
-        GlobalScope.launch { backendChannel.consumeEach { it.callback.succeeded() } }
+        GlobalScope.launch {
+            for ((_, callback) in backendChannel) {
+                callback.succeeded()
+            }
+        }
     }
 
     companion object {

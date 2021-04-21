@@ -1,11 +1,13 @@
-<img src="http://ktor.io/assets/images/ktor_logo.png" alt="Ktor" width="600" style="max-width:100%;">
+<img src="https://repository-images.githubusercontent.com/40136600/f3f5fd00-c59e-11e9-8284-cb297d193133" alt="Ktor" width="500" style="max-width:100%;">
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
-[![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
-[![TeamCity Build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_Ktor_BuildGradle.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_Ktor_BuildGradle&branch_KotlinTools_Ktor=%3Cdefault%3E&tab=buildTypeStatusDiv)
+[![Maven Central](https://img.shields.io/maven-central/v/io.ktor/ktor)](https://mvnrepository.com/artifact/io.ktor)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.4.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Slack channel](https://img.shields.io/badge/chat-slack-green.svg?logo=slack)](https://kotlinlang.slack.com/messages/ktor/)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
+Ktor is an asynchronous framework for creating microservices, web applications and more. Written in Kotlin from the ground up.
+
 
 ```kotlin
 import io.ktor.server.netty.*
@@ -59,21 +61,32 @@ extent without actually doing any networking. It provides easy way to test an ap
 too much stuff, and still achieve good performance while validating application calls. Running integration tests with a real 
 embedded web server are of course possible, too.
 
+## JetBrains Product
+
+Ktor is an official [JetBrains](https://jetbrains.com) product and is primarily developed by the team at JetBrains, with contributions
+from the community. 
+
 ## Documentation
 
 Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
 
-* Getting started with [Gradle](http://ktor.io/quickstart/gradle.html) 
-* Getting started with [Maven](http://ktor.io/quickstart/maven.html) 
-* Getting started with [IDEA](http://ktor.io/quickstart/intellij-idea.html) 
+* Getting started with [Gradle](https://ktor.io/docs/gradle.html) 
+* Getting started with [Maven](https://ktor.io/docs/maven.html) 
+* Getting started with [IDEA](https://ktor.io/docs/intellij-idea.html) 
+
+## Reporting Issues / Support
+
+Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
+
+There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
+
+## Reporting Security Vulnerabilities
+
+If you find a security vulnerability in Ktor, we kindly request that you reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
 
 ## Inspirations
 
 Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
-
-## Reporting Security Vulnerabilities
-
-If you find a security vulnerability in Ktor, we kindly request that instead of using our public issue tracker, you instead reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
 
 ## Contributing
 

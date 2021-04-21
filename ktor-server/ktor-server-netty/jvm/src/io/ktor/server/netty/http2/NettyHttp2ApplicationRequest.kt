@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http2
@@ -49,7 +49,8 @@ internal class NettyHttp2ApplicationRequest(
 
     @OptIn(ObsoleteCoroutinesApi::class)
     val contentActor = actor<Http2DataFrame>(
-        Dispatchers.Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
+        Dispatchers.Unconfined,
+        kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http2frameLoop(contentByteChannel)
     }
@@ -60,8 +61,7 @@ internal class NettyHttp2ApplicationRequest(
         context.channel().remoteAddress() as? InetSocketAddress
     )
 
-    override val cookies: RequestCookies
-        get() = throw UnsupportedOperationException()
+    override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
     override fun newDecoder(): HttpPostMultipartRequestDecoder {
         val hh = DefaultHttpHeaders(false)
@@ -73,4 +73,3 @@ internal class NettyHttp2ApplicationRequest(
         return HttpPostMultipartRequestDecoder(request)
     }
 }
-

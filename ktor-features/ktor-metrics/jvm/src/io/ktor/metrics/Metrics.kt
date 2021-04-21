@@ -10,10 +10,12 @@ import io.ktor.metrics.dropwizard.*
  * Dropwizard metrics feature. Use [DropwizardMetrics] or instead.
  */
 @Suppress("unused")
-@Deprecated(message = "Use DropwizardMetrics or MicrometerMetrics instead.",
+@Deprecated(
+    message = "Use DropwizardMetrics or MicrometerMetrics instead.",
     replaceWith = ReplaceWith(
         expression = "DropwizardMetrics",
-        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")),
-    level = DeprecationLevel.ERROR)
-typealias Metrics = DropwizardMetrics
-
+        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")
+    ),
+    level = DeprecationLevel.ERROR
+)
+public typealias Metrics = DropwizardMetrics

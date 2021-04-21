@@ -15,12 +15,12 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-interface Cache<in K : Any, V : Any> {
-    suspend fun getOrCompute(key: K): V
-    fun peek(key: K): V?
-    fun invalidate(key: K): V?
-    fun invalidate(key: K, value: V): Boolean
-    fun invalidateAll()
+public interface Cache<in K : Any, V : Any> {
+    public suspend fun getOrCompute(key: K): V
+    public fun peek(key: K): V?
+    public fun invalidate(key: K): V?
+    public fun invalidate(key: K, value: V): Boolean
+    public fun invalidateAll()
 }
 
 internal interface CacheReference<out K> {
@@ -77,7 +77,10 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
     }
 }
 
-internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: suspend (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
+internal open class ReferenceCache<K : Any, V : Any, out R>(
+    val calc: suspend (K) -> V,
+    val wrapFunction: (K, V, ReferenceQueue<V>) -> R
+) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
     private val queue = ReferenceQueue<V>()
     private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, calc(key), queue) }
     private val workerThread by lazy { Thread(ReferenceWorker(container, queue)).apply { isDaemon = true; start() } }
@@ -121,7 +124,10 @@ internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: suspend (K
     }
 }
 
-private class ReferenceWorker<out K : Any, R : CacheReference<K>>(owner: Cache<K, R>, val queue: ReferenceQueue<*>) : Runnable {
+private class ReferenceWorker<out K : Any, R : CacheReference<K>>(
+    owner: Cache<K, R>,
+    val queue: ReferenceQueue<*>
+) : Runnable {
     private val owner = WeakReference(owner)
 
     override fun run() {
@@ -138,15 +144,21 @@ private class ReferenceWorker<out K : Any, R : CacheReference<K>>(owner: Cache<K
     }
 }
 
-internal class CacheSoftReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : SoftReference<V>(value, queue), CacheReference<K>
-internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : WeakReference<V>(value, queue), CacheReference<K>
+internal class CacheSoftReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) :
+    SoftReference<V>(value, queue), CacheReference<K>
+internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) :
+    WeakReference<V>(value, queue), CacheReference<K>
 
-internal class SoftReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) : ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
-internal class WeakReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) : ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
+internal class SoftReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
+    ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
+internal class WeakReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
+    ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
 
-internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long,
-                                                     val touchOnGet: Boolean,
-                                                     val delegate: Cache<K, V>) : Cache<K, V> {
+internal class BaseTimeoutCache<in K : Any, V : Any>(
+    val timeoutValue: Long,
+    val touchOnGet: Boolean,
+    val delegate: Cache<K, V>
+) : Cache<K, V> {
 
     private val lock = ReentrantLock()
     private val cond = lock.newCondition()
@@ -154,7 +166,9 @@ internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long,
     private val items = PullableLinkedList<KeyState<K>>()
     private val map = WeakHashMap<K, KeyState<K>>()
 
-    private val workerThread by lazy { Thread(TimeoutWorker(this, lock, cond, items)).apply { isDaemon = true; start() } }
+    private val workerThread by lazy {
+        Thread(TimeoutWorker(this, lock, cond, items)).apply { isDaemon = true; start() }
+    }
 
     override suspend fun getOrCompute(key: K): V {
         if (touchOnGet) {
@@ -223,14 +237,19 @@ private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>(
     val key: WeakReference<K> = WeakReference(key)
     var lastAccess = System.currentTimeMillis()
 
-    fun touch() {
+    public fun touch() {
         lastAccess = System.currentTimeMillis()
     }
 
-    fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
+    public fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
 }
 
-private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: ReentrantLock, val cond: Condition, val items: PullableLinkedList<KeyState<K>>) : Runnable {
+private class TimeoutWorker<K : Any>(
+    owner: BaseTimeoutCache<K, *>,
+    val lock: ReentrantLock,
+    val cond: Condition,
+    val items: PullableLinkedList<KeyState<K>>
+) : Runnable {
     private val owner = WeakReference(owner)
 
     override fun run() {
@@ -255,13 +274,13 @@ private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: Re
     }
 
     private fun head() =
-            lock.withLock {
-                while (items.isEmpty() && owner.get() != null) {
-                    cond.await(60, TimeUnit.SECONDS)
-                }
-
-                if (owner.get() == null) null else items.head()
+        lock.withLock {
+            while (items.isEmpty() && owner.get() != null) {
+                cond.await(60, TimeUnit.SECONDS)
             }
+
+            if (owner.get() == null) null else items.head()
+        }
 }
 
 private abstract class ListElement<E : ListElement<E>> {
@@ -273,11 +292,11 @@ private class PullableLinkedList<E : ListElement<E>> {
     private var head: E? = null
     private var tail: E? = null
 
-    fun isEmpty() = head == null
-    fun take(): E = head().apply { remove(this) }
-    fun head(): E = head ?: throw NoSuchElementException()
+    public fun isEmpty() = head == null
+    public fun take(): E = head().apply { remove(this) }
+    public fun head(): E = head ?: throw NoSuchElementException()
 
-    fun add(element: E) {
+    public fun add(element: E) {
         require(element.next == null)
         require(element.prev == null)
 
@@ -292,7 +311,7 @@ private class PullableLinkedList<E : ListElement<E>> {
         }
     }
 
-    fun remove(element: E) {
+    public fun remove(element: E) {
         if (element == head) {
             head = null
         }
@@ -305,12 +324,12 @@ private class PullableLinkedList<E : ListElement<E>> {
         element.prev = null
     }
 
-    fun clear() {
+    public fun clear() {
         head = null
         tail = null
     }
 
-    fun pull(element: E) {
+    public fun pull(element: E) {
         if (element !== head) {
             remove(element)
             add(element)

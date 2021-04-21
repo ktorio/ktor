@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -9,7 +9,7 @@ package io.ktor.util
  * It also discards all reserved characters and component names that are reserved (such as `CON`, `NUL`).
  */
 @InternalAPI
-fun List<String>.normalizePathComponents(): List<String> {
+public fun List<String>.normalizePathComponents(): List<String> {
     for (index in indices) {
         val component = get(index)
         if (component.shouldBeReplaced()) {
@@ -39,7 +39,11 @@ private fun List<String>.filterComponentsImpl(startIndex: Int): List<String> {
 }
 
 private fun MutableList<String>.processAndReplaceComponent(component: String) {
-    if (component.isEmpty() || component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords) return
+    if (component.isEmpty() ||
+        component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords
+    ) {
+        return
+    }
     if (component == "..") {
         if (isNotEmpty()) {
             removeAt(lastIndex)
@@ -76,7 +80,9 @@ private fun String.shouldBeReplaced(): Boolean {
         return true
     }
 
-    if (first in FirstReservedLetters && (this in ReservedWords || this.toUpperCasePreservingASCIIRules() in ReservedWords)) {
+    if (first in FirstReservedLetters &&
+        (this in ReservedWords || this.toUpperCasePreservingASCIIRules() in ReservedWords)
+    ) {
         return true
     }
 

@@ -5,9 +5,11 @@
 package io.ktor.server.jetty.internal
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
+import io.ktor.utils.io.pool.ByteBufferPool
+import kotlinx.coroutines.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*
@@ -22,15 +24,12 @@ private val EndpointReaderCoroutineName = CoroutineName("jetty-upgrade-endpoint-
 
 private val EndpointWriterCoroutineName = CoroutineName("jetty-upgrade-endpoint-writer")
 
-private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL_SIZE) {
-    override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(4096)!!
-
-    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
-}
+private val JettyWebSocketPool = ByteBufferPool(JETTY_WEBSOCKET_POOL_SIZE, 4096)
 
 internal class EndPointReader(
     endpoint: EndPoint,
-    override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel
+    override val coroutineContext: CoroutineContext,
+    private val channel: ByteWriteChannel
 ) : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
     private val currentHandler = AtomicReference<Continuation<Unit>>()
     private val buffer = JettyWebSocketPool.borrow()
@@ -108,27 +107,36 @@ internal fun CoroutineScope.endPointWriter(
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
 ): ReaderJob = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
-        while (!channel.isClosedForRead) {
+        val source = channel
+
+        while (!source.isClosedForRead) {
             buffer.clear()
-            if (channel.readAvailable(buffer) == -1) break
+            if (source.readAvailable(buffer) == -1) break
 
             buffer.flip()
             endPoint.write(buffer)
         }
         endPoint.flush()
+
+        if (source is ByteChannel) {
+            source.closedCause?.let { throw it }
+        }
     }
 }
 
 private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
-    write(object : Callback {
-        override fun succeeded() {
-            continuation.resume(Unit)
-        }
+    write(
+        object : Callback {
+            override fun succeeded() {
+                continuation.resume(Unit)
+            }
 
-        override fun failed(cause: Throwable) {
-            continuation.resumeWithException(ChannelWriteException(exception = cause))
-        }
-    }, buffer)
+            override fun failed(cause: Throwable) {
+                continuation.resumeWithException(ChannelWriteException(exception = cause))
+            }
+        },
+        buffer
+    )
 }
 
 private fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {

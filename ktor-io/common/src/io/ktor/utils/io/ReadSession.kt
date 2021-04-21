@@ -17,7 +17,7 @@ import io.ktor.utils.io.core.internal.*
  * @return number of bytes consumed, possibly 0
  */
 @ExperimentalIoApi
-suspend inline fun ByteReadChannel.read(
+public suspend inline fun ByteReadChannel.read(
     desiredSize: Int = 1,
     block: (source: Memory, start: Long, endExclusive: Long) -> Int
 ): Int {
@@ -36,18 +36,18 @@ suspend inline fun ByteReadChannel.read(
 }
 
 @Deprecated("Use read { } instead.")
-interface ReadSession {
+public interface ReadSession {
     /**
      * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
      * requested at once
      */
-    val availableForRead: Int
+    public val availableForRead: Int
 
     /**
      * Discard at most [n] available bytes or 0 if no bytes available yet
      * @return number of bytes actually discarded, could be 0
      */
-    fun discard(n: Int): Int
+    public fun discard(n: Int): Int
 
     /**
      * Request buffer range [atLeast] bytes length
@@ -61,12 +61,12 @@ interface ReadSession {
      * @throws Throwable if the channel has been closed with an exception or cancelled
      */
     @Suppress("DEPRECATION")
-    fun request(atLeast: Int = 1): IoBuffer?
+    public fun request(atLeast: Int = 1): IoBuffer?
 }
 
 @Suppress("DEPRECATION")
 @Deprecated("Use read { } instead.")
-interface SuspendableReadSession : ReadSession {
+public interface SuspendableReadSession : ReadSession {
     /**
      * Suspend until [atLeast] bytes become available or end of stream encountered (possibly due to exceptional close)
      *
@@ -75,7 +75,7 @@ interface SuspendableReadSession : ReadSession {
      * @throws Throwable if the channel has been closed with an exception or cancelled
      * @throws IllegalArgumentException if [atLeast] is negative to too big (usually bigger that 4088)
      */
-    suspend fun await(atLeast: Int = 1): Boolean
+    public suspend fun await(atLeast: Int = 1): Boolean
 }
 
 @PublishedApi
@@ -136,9 +136,9 @@ private suspend fun ByteReadChannel.requestBufferFallback(desiredSize: Int): Chu
 
 internal interface HasReadSession {
     @Suppress("DEPRECATION")
-    fun startReadSession(): SuspendableReadSession
+    public fun startReadSession(): SuspendableReadSession
 
-    fun endReadSession()
+    public fun endReadSession()
 }
 
 @Suppress("DEPRECATION", "NOTHING_TO_INLINE")

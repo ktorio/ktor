@@ -6,8 +6,6 @@ package io.ktor.util.date
 
 import io.ktor.util.*
 
-private typealias DateChunkParser = GMTDateBuilder.(String) -> Unit
-
 /**
  * Build [GMTDate] parser using [pattern] string.
  *
@@ -22,7 +20,7 @@ private typealias DateChunkParser = GMTDateBuilder.(String) -> Unit
  * | Any char | *            | Match any character                                  |
  */
 @InternalAPI
-class GMTDateParser(private val pattern: String) {
+public class GMTDateParser(private val pattern: String) {
     init {
         check(pattern.isNotEmpty()) { "Date parser pattern shouldn't be empty." }
     }
@@ -30,7 +28,7 @@ class GMTDateParser(private val pattern: String) {
     /**
      * Parse [GMTDate] from [dateString] using [pattern].
      */
-    fun parse(dateString: String): GMTDate {
+    public fun parse(dateString: String): GMTDate {
         val builder = GMTDateBuilder()
 
         var start = 0
@@ -66,7 +64,8 @@ class GMTDateParser(private val pattern: String) {
     }
 
     private fun GMTDateBuilder.handleToken(
-        type: Char, chunk: String
+        type: Char,
+        chunk: String
     ): Unit = when (type) {
         SECONDS -> {
             seconds = chunk.toInt()
@@ -94,20 +93,19 @@ class GMTDateParser(private val pattern: String) {
         }
     }
 
-    companion object {
-        const val SECONDS = 's'
-        const val MINUTES = 'm'
-        const val HOURS = 'h'
+    public companion object {
+        public const val SECONDS: Char = 's'
+        public const val MINUTES: Char = 'm'
+        public const val HOURS: Char = 'h'
 
-        const val DAY_OF_MONTH = 'd'
-        const val MONTH = 'M'
-        const val YEAR = 'Y'
+        public const val DAY_OF_MONTH: Char = 'd'
+        public const val MONTH: Char = 'M'
+        public const val YEAR: Char = 'Y'
 
-        const val ZONE = 'z'
+        public const val ZONE: Char = 'z'
 
-        const val ANY = '*'
+        public const val ANY: Char = '*'
     }
-
 }
 
 internal class GMTDateBuilder {
@@ -119,12 +117,14 @@ internal class GMTDateBuilder {
     lateinit var month: Month
     var year: Int? = null
 
-    fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month, year!!)
+    public fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month, year!!)
 }
 
 /**
  * Thrown when the date string doesn't the string pattern.
  */
-class InvalidDateStringException(
-    data: String, at: Int, pattern: String
+public class InvalidDateStringException(
+    data: String,
+    at: Int,
+    pattern: String
 ) : IllegalStateException("Failed to parse date string: \"${data}\" at index $at. Pattern: \"$pattern\"")

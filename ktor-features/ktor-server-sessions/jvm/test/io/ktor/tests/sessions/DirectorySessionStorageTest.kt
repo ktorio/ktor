@@ -5,11 +5,9 @@
 package io.ktor.tests.sessions
 
 import io.ktor.sessions.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import org.junit.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.file.*
 import java.util.*
@@ -19,7 +17,7 @@ class DirectorySessionStorageTest {
     private val dir = Files.createTempDirectory("ktor-tests-").toFile()!!
     private val storage = directorySessionStorage(dir, false)
 
-    @After
+    @AfterTest
     fun tearDown() {
         (storage as Closeable).close()
         assertTrue { dir.deleteRecursively() }

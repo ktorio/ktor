@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -7,7 +7,7 @@ package io.ktor.http
 /**
  * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
  */
-fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000): Parameters {
+public fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000): Parameters {
     return if (startIndex > query.lastIndex) {
         Parameters.Empty
     } else {
@@ -20,10 +20,10 @@ private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) 
     var nameIndex = startIndex
     var equalIndex = -1
     for (index in startIndex..query.lastIndex) {
-        if (count == limit)
+        if (count == limit) {
             return
-        val ch = query[index]
-        when (ch) {
+        }
+        when (query[index]) {
             '&' -> {
                 appendParam(query, nameIndex, equalIndex, index)
                 nameIndex = index + 1
@@ -31,13 +31,15 @@ private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) 
                 count++
             }
             '=' -> {
-                if (equalIndex == -1)
+                if (equalIndex == -1) {
                     equalIndex = index
+                }
             }
         }
     }
-    if (count == limit)
+    if (count == limit) {
         return
+    }
     appendParam(query, nameIndex, equalIndex, query.length)
 }
 

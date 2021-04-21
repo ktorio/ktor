@@ -6,17 +6,15 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import org.junit.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class HeadersTest {
     private val ch = ByteChannel(true)
     private val builder = CharArrayBuilder()
 
-    @After
+    @AfterTest
     fun tearDown() {
         ch.close()
         builder.release()
@@ -240,7 +238,6 @@ class HeadersTest {
         headers.release()
     }
 
-
     @Test
     fun testWrongHeader() = runBlocking<Unit> {
         ch.writeStringUtf8("Hello world\r\n\r\n")
@@ -251,5 +248,4 @@ class HeadersTest {
             }
         }
     }
-
 }

@@ -5,15 +5,15 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import io.ktor.utils.io.*
 import kotlin.test.*
 
 class StatusPageTest {
@@ -71,8 +71,6 @@ class StatusPageTest {
     @Test
     fun testStatus404() {
         withTestApplication {
-            installFallback()
-
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
                     call.respondText("${it.value} ${it.description}", status = it)
@@ -117,10 +115,12 @@ class StatusPageTest {
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
-                call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override val status = HttpStatusCode.NotFound
-                    override fun readFrom(): ByteReadChannel = fail("Should never reach here")
-                })
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override val status = HttpStatusCode.NotFound
+                        override fun readFrom(): ByteReadChannel = fail("Should never reach here")
+                    }
+                )
             }
 
             handleRequest(HttpMethod.Get, "/missing").let { call ->
@@ -136,8 +136,6 @@ class StatusPageTest {
         class O
 
         withTestApplication {
-            installFallback()
-
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
                     call.respondText("${it.value} ${it.description}", status = it)
@@ -146,8 +144,7 @@ class StatusPageTest {
 
             application.intercept(ApplicationCallPipeline.Features) {
                 call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
-                    if (message is O)
-                        proceedWith(HttpStatusCode.NotFound)
+                    if (message is O) proceedWith(HttpStatusCode.NotFound)
                 }
             }
 
@@ -201,8 +198,9 @@ class StatusPageTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Features) {
                 call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
-                    if (message is O)
+                    if (message is O) {
                         throw IllegalStateException()
+                    }
                 }
             }
 
@@ -236,8 +234,6 @@ class StatusPageTest {
                     call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
-
-            installFallback()
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.InternalServerError, call.response.status())
@@ -429,14 +425,6 @@ class StatusPageTest {
         handleRequest(HttpMethod.Get, "/not-found").let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("NotFound", call.response.content)
-        }
-    }
-}
-
-private fun TestApplicationEngine.installFallback() {
-    application.intercept(ApplicationCallPipeline.Fallback) {
-        if (call.response.status() == null) {
-            call.respond(HttpStatusCode.NotFound)
         }
     }
 }

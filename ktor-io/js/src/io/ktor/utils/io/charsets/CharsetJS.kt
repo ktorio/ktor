@@ -4,34 +4,33 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.js.*
 import org.khronos.webgl.*
 
-actual abstract class Charset(internal val _name: String) {
-    actual abstract fun newEncoder(): CharsetEncoder
-    actual abstract fun newDecoder(): CharsetDecoder
+public actual abstract class Charset(internal val _name: String) {
+    public actual abstract fun newEncoder(): CharsetEncoder
+    public actual abstract fun newDecoder(): CharsetDecoder
 
-    actual companion object {
-        actual fun forName(name: String): Charset {
+    public actual companion object {
+        public actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            if (name == "ISO-8859-1" || name == "iso-8859-1"
-                || name.replace('_', '-').let { it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1" }
-                || name == "latin1"
+            if (name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-').let {
+                it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
+            } || name == "latin1"
             ) {
                 return Charsets.ISO_8859_1
             }
             throw IllegalArgumentException("Charset $name is not supported")
         }
-
     }
 }
 
-actual val Charset.name: String get() = _name
+public actual val Charset.name: String get() = _name
 
 // -----------------------
 
-actual abstract class CharsetEncoder(internal val _charset: Charset)
+public actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
-actual val CharsetEncoder.charset: Charset get() = _charset
+public actual val CharsetEncoder.charset: Charset get() = _charset
 
-actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
+public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
     encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
@@ -42,7 +41,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
     require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
-    val encoder = TextEncoderCtor()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
+    val encoder = TextEncoder() // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
     var dstRemaining = dst.writeRemaining
 
@@ -65,7 +64,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return start - fromIndex
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
+public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     require(charset === Charsets.UTF_8)
     // we only support UTF-8 so as far as input is UTF-8 encoded string then we simply copy bytes
     dst.writePacket(input)
@@ -73,15 +72,13 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
 
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
-
 // ----------------------------------------------------------------------
 
-
-actual abstract class CharsetDecoder(internal val _charset: Charset)
+public actual abstract class CharsetDecoder(internal val _charset: Charset)
 
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
 
-actual val CharsetDecoder.charset: Charset get() = _charset
+public actual val CharsetDecoder.charset: Charset get() = _charset
 
 internal actual fun CharsetDecoder.decodeBuffer(
     input: Buffer,
@@ -91,7 +88,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 ): Int {
     if (max == 0) return 0
 
-    val decoder = TextDecoderFatal(charset.name)
+    val decoder = Decoder(charset.name)
     val copied: Int
 
     input.readDirectInt8Array { view ->
@@ -105,8 +102,8 @@ internal actual fun CharsetDecoder.decodeBuffer(
     return copied
 }
 
-actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
-    val decoder = TextDecoderFatal(charset.name, true)
+public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
+    val decoder = Decoder(charset.name, true)
     var charactersCopied = 0
 
     // use decode stream while we have remaining characters count > buffer size in bytes
@@ -167,10 +164,10 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     return charactersCopied
 }
 
-actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input is AbstractInput && input.headRemaining >= inputLength) {
-        val decoder = TextDecoderFatal(charset._name, true)
+        val decoder = Decoder(charset._name, true)
 
         val head = input.head
         val view = input.headMemory.view
@@ -193,9 +190,9 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 
 // -----------------------------------------------------------
 
-actual object Charsets {
-    actual val UTF_8: Charset = CharsetImpl("UTF-8")
-    actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
+public actual object Charsets {
+    public actual val UTF_8: Charset = CharsetImpl("UTF-8")
+    public actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
 }
 
 private data class CharsetImpl(val name: String) : Charset(name) {
@@ -203,12 +200,10 @@ private data class CharsetImpl(val name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
-
+public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
-    val decoder = TextDecoderFatal(charset.name, true)
+    val decoder = Decoder(charset.name, true)
     var inputRemaining = inputLength
     val sb = StringBuilder(inputLength)
 
@@ -226,7 +221,8 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
                         buffer.memory.view.buffer,
                         buffer.memory.view.byteOffset + buffer.readPosition,
                         size
-                    ), true
+                    ),
+                    true
                 )
             }
             sb.append(text)
@@ -250,7 +246,8 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
                             buffer.memory.view.buffer,
                             buffer.memory.view.byteOffset + buffer.readPosition,
                             size
-                        ), true
+                        ),
+                        true
                     )
                 }
                 sb.append(text)
@@ -263,5 +260,10 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
         sb.append(decoder.decode())
     }
 
+    if (inputRemaining > 0) {
+        throw EOFException(
+            "Not enough bytes available: had only ${inputLength - inputRemaining} instead of $inputLength"
+        )
+    }
     return sb.toString()
 }

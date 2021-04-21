@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -14,26 +14,37 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
+private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
 
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
 @Suppress("DEPRECATION", "UNUSED")
 @Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
-inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> =
+    defaultSessionSerializer<T>() as SessionSerializerReflection<T>
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
+@Suppress("DEPRECATION")
 @Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
-fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
+public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> =
+    defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
 /**
- * Creates the the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for type [T]
  */
-@KtorExperimentalAPI
+@OptIn(ExperimentalStdlibApi::class)
+public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
+    defaultSessionSerializer(typeOf<T>())
+
+/**
+ * Creates the default [SessionSerializer] by [typeInfo]
+ */
 @Suppress("DEPRECATION")
-inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
+public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
+    SessionSerializerReflection(typeInfo)
 
 /**
  * Default reflection-based session serializer that does it via reflection.
@@ -41,60 +52,109 @@ inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = 
  *
  * @property type is a session instance class handled by this serializer
  */
-@KtorExperimentalAPI
-class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
+@Deprecated(
+    "Don't refer to the implementation class directly. " +
+        "Use interface type if possible or use defaultSessionSerializer function to create."
+)
+public class SessionSerializerReflection<T : Any> internal constructor(
+    internal val typeInfo: KType
+) : SessionSerializer<T> {
+
+    @Deprecated("Use defaultSessionSerializer() function instead")
+    public constructor(type: KClass<T>) : this(type.starProjectedType)
+
+    @Suppress("UNCHECKED_CAST")
+    public val type: KClass<T> = typeInfo.jvmErasure as KClass<T>
+
     private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {
         val values = parseQueryString(text)
 
         @Suppress("UNCHECKED_CAST")
-        if (type == Parameters::class)
+        if (type == Parameters::class) {
             return values as T
-
-        val instance = newInstance(values)
-
-        for (p in properties) {
-            val encodedValue = values[p.name]
-            if (encodedValue != null) {
-                val value = deserializeValue(encodedValue)
-                val coerced = coerceType(p.returnType, value)
-                assignValue(instance, p, coerced)
-            }
         }
 
-        return instance
+        return deserializeObject(type, text)
     }
 
     override fun serialize(session: T): String {
-        if (type == Parameters::class)
+        if (type == Parameters::class) {
             return (session as Parameters).formUrlEncode()
+        }
         val typed = session.cast(type)
-        return properties.map { it.name to serializeValue(it.get(typed)) }.formUrlEncode()
+        return serializeClassInstance(typed)
     }
 
-    private fun newInstance(bundle: StringValues): T {
-        val constructor = findConstructor(bundle)
+    private fun <T : Any> newInstance(type: KClass<T>, bundle: StringValues): T {
+        type.objectInstance?.let { return it }
+
+        val constructor = findConstructor(type, bundle)
+
         val params = constructor
             .parameters
-            .associateBy({ it }, { coerceType(it.type, deserializeValue(bundle[it.name!!]!!)) })
+            .associateBy(
+                { it },
+                {
+                    when (it.kind) {
+                        KParameter.Kind.INSTANCE,
+                        KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
+                        KParameter.Kind.VALUE ->
+                            coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+                    }
+                }
+            )
 
         return constructor.callBy(params)
     }
 
-    private fun findConstructor(bundle: StringValues): KFunction<T> =
-        type.constructors
-            .filter { it.parameters.all { parameter -> parameter.name != null && parameter.name!! in bundle } }
-            .maxBy { it.parameters.size }
-            ?: throw IllegalArgumentException("Couldn't instantiate type $type for parameters ${bundle.names()}")
+    private fun <T : Any> findParticularType(type: KClass<T>, bundle: StringValues): KClass<out T> {
+        if (type.isSealed) {
+            val typeToken = bundle[TYPE_TOKEN_PARAMETER_NAME] ?: error("No typeToken found for sealed $type")
+            return type.sealedSubclasses.firstOrNull { it.simpleName == typeToken }
+                ?: error("No sealed subclass $typeToken found in $type")
+        }
+        if (type.isAbstract) {
+            error("Abstract types are not supported: $type")
+        }
 
-    private fun assignValue(instance: T, p: KProperty1<T, *>, value: Any?) {
+        return type
+    }
+
+    private fun <T : Any> findConstructor(type: KClass<T>, bundle: StringValues): KFunction<T> {
+        if (type.isSealed) {
+            val particularType = findParticularType(type, bundle)
+            val filtered = bundle.filter { key, _ -> key != TYPE_TOKEN_PARAMETER_NAME }
+            return findConstructor(particularType, filtered)
+        }
+        if (type.isAbstract) {
+            error("Abstract types are not supported: $type")
+        }
+
+        bundle[TYPE_TOKEN_PARAMETER_NAME]?.let { typeName ->
+            require(type.simpleName == typeName)
+        }
+
+        if (type.objectInstance != null) {
+            val getter = KClass<T>::objectInstance
+            @Suppress("UNCHECKED_CAST")
+            return getter.getter as KFunction<T>
+        }
+
+        return type.constructors
+            .filter { it.parameters.all { parameter -> parameter.name != null && parameter.name!! in bundle } }
+            .maxByOrNull { it.parameters.size }
+            ?: throw IllegalArgumentException("Couldn't instantiate $type for parameters ${bundle.names()}")
+    }
+
+    private fun <X> assignValue(instance: X, p: KProperty1<X, *>, value: Any?) {
         val originalValue = p.get(instance)
 
         when {
             isListType(p.returnType) -> when {
                 value !is List<*> -> assignValue(instance, p, coerceType(p.returnType, value))
-                p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+                p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableList<*> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -105,7 +165,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             }
             isSetType(p.returnType) -> when {
                 value !is Set<*> -> assignValue(instance, p, coerceType(p.returnType, value))
-                p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+                p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableSet<*> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -116,7 +176,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             }
             isMapType(p.returnType) -> when {
                 value !is Map<*, *> -> assignValue(instance, p, coerceType(p.returnType, value))
-                p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+                p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableMap<*, *> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -125,8 +185,9 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                 }
                 else -> throw IllegalStateException("Couldn't inject property ${p.name} from value $value")
             }
-            p is KMutableProperty1<T, *> -> when {
-                value == null && !p.returnType.isMarkedNullable -> throw IllegalArgumentException("Couldn't inject null to property ${p.name}")
+            p is KMutableProperty1<X, *> -> when {
+                value == null && !p.returnType.isMarkedNullable ->
+                    throw IllegalArgumentException("Couldn't inject null to property ${p.name}")
                 else -> p.setter.call(instance, coerceType(p.returnType, value))
             }
             else -> {
@@ -139,11 +200,15 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             value == null -> null
             isListType(type) -> when {
                 value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
-                value !is List<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+                value !is List<*> -> throw IllegalArgumentException(
+                    "Couldn't coerce type ${value::class.java} to $type"
+                )
 
                 else -> {
                     val contentType = type.arguments.single().type
-                        ?: throw IllegalArgumentException("Star projections are not supported for list element: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for list element: ${type.arguments[0]}"
+                        )
 
                     listOf(type.toJavaClass().kotlin, ArrayList::class)
                         .toTypedList<MutableList<*>>()
@@ -160,7 +225,9 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
 
                 else -> {
                     val contentType = type.arguments.single().type
-                        ?: throw IllegalArgumentException("Star projections are not supported for set element: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for set element: ${type.arguments[0]}"
+                        )
 
                     listOf(type.toJavaClass().kotlin, LinkedHashSet::class, HashSet::class, TreeSet::class)
                         .toTypedList<MutableSet<*>>()
@@ -175,9 +242,14 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                 !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 else -> {
                     val keyType = type.arguments[0].type
-                        ?: throw IllegalArgumentException("Star projections are not supported for map key: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for map key: ${type.arguments[0]}"
+                        )
+
                     val valueType = type.arguments[1].type
-                        ?: throw IllegalArgumentException("Star projections are not supported for map value ${type.arguments[1]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for map value ${type.arguments[1]}"
+                        )
 
                     listOf(
                         type.toJavaClass().kotlin,
@@ -191,12 +263,15 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
                         ?.withUnsafe {
-                            putAll(value.mapKeys { coerceType(keyType, it.key) }.mapValues {
-                                coerceType(
-                                    valueType,
-                                    it.value
-                                )
-                            }); this
+                            putAll(
+                                value.mapKeys { coerceType(keyType, it.key) }.mapValues {
+                                    coerceType(
+                                        valueType,
+                                        it.value
+                                    )
+                                }
+                            )
+                            this
                         }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
@@ -248,7 +323,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
     private fun <T : Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    private fun deserializeValue(value: String): Any? =
+    private fun deserializeValue(owner: KClass<*>, value: String): Any? =
         if (!value.startsWith("#")) throw IllegalArgumentException("Bad serialized value")
         else when (value.getOrNull(1)) {
             null, 'n' -> null
@@ -267,7 +342,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             }
             'o' -> when (value.getOrNull(2)) {
                 'm' -> Optional.empty<Any?>()
-                'p' -> Optional.ofNullable(deserializeValue(value.drop(3)))
+                'p' -> Optional.ofNullable(deserializeValue(owner, value.drop(3)))
                 else -> throw IllegalArgumentException("Unsupported o-value ${value.take(3)}")
             }
             's' -> value.drop(2)
@@ -278,6 +353,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                 else -> throw IllegalArgumentException("Unsupported c-type ${value.take(3)}")
             }
             'm' -> deserializeMap(value.drop(2))
+            '#' -> deserializeObject(owner, value.drop(2))
             else -> throw IllegalArgumentException("Unsupported type ${value.take(2)}")
         }
 
@@ -302,14 +378,45 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             is Map<*, *> -> "#m${serializeMap(value)}"
             is Enum<*> -> "#s${value.name}"
             is UUID -> "#s$value"
-            else -> throw IllegalArgumentException("Unsupported value type ${value::class.java.name}")
+            else -> "##${serializeClassInstance(value)}"
         }
+
+    private fun <T : Any> serializeClassInstance(value: T): String {
+        @Suppress("UNCHECKED_CAST")
+        val type = value::class as KClass<T>
+
+        var bundle = type.memberProperties.sortedBy { it.name }.map { p ->
+            p.name to serializeValue(p.get(value))
+        }
+
+        if (type.simpleName != null && type.superclasses.any { it.isSealed }) {
+            bundle += Pair(TYPE_TOKEN_PARAMETER_NAME, type.simpleName!!)
+        }
+
+        return bundle.formUrlEncode()
+    }
+
+    private fun <Y : Any> deserializeObject(type: KClass<Y>, encoded: String): Y {
+        val bundle = parseQueryString(encoded)
+        val instance = newInstance(type, bundle)
+
+        for (p in type.memberProperties) {
+            val encodedValue = bundle[p.name]
+            if (encodedValue != null) {
+                val value = deserializeValue(p.returnType.jvmErasure, encodedValue)
+                val coerced = coerceType(p.returnType, value)
+                assignValue(instance, p, coerced)
+            }
+        }
+
+        return instance
+    }
 
     private fun deserializeCollection(value: String): List<*> = value
         .decodeURLQueryComponent()
         .split("&")
         .filter { it.isNotEmpty() }
-        .map { deserializeValue(it.decodeURLQueryComponent()) }
+        .map { deserializeValue(Any::class, it.decodeURLQueryComponent()) }
 
     private fun serializeCollection(value: Collection<*>): String = value
         .joinToString("&") { serializeValue(it).encodeURLQueryComponent() }
@@ -320,12 +427,15 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         .split("&")
         .filter { it.isNotEmpty() }
         .associateBy(
-            { deserializeValue(it.substringBefore('=').decodeURLQueryComponent()) },
-            { deserializeValue(it.substringAfter('=').decodeURLQueryComponent()) }
+            { deserializeValue(Any::class, it.substringBefore('=').decodeURLQueryComponent()) },
+            { deserializeValue(Any::class, it.substringAfter('=').decodeURLQueryComponent()) }
         )
 
     private fun serializeMap(value: Map<*, *>): String = value
-        .map { serializeValue(it.key).encodeURLQueryComponent() + "=" + serializeValue(it.value).encodeURLQueryComponent() }
+        .map {
+            serializeValue(it.key).encodeURLQueryComponent() +
+                "=" + serializeValue(it.value).encodeURLQueryComponent()
+        }
         .joinToString("&")
         .encodeURLQueryComponent()
 
@@ -358,8 +468,6 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
     }
 }
 
-
 @Suppress("UNCHECKED_CAST")
 private fun <T : Any> Any.cast(type: KClass<T>) =
     if (type.java.isInstance(this)) this as T else throw ClassCastException("${this::class} couldn't be cast to $type")
-

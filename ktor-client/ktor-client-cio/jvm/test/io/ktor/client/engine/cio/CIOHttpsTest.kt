@@ -19,6 +19,7 @@ import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.junit.Ignore
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -27,20 +28,28 @@ import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(keyStore, "sha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-            port = serverPort
-            keyStorePath = keyStoreFile.absoluteFile
+    override val server: ApplicationEngine = embeddedServer(
+        Jetty,
+        applicationEngineEnvironment {
+            sslConnector(
+                keyStore,
+                "sha384ecdsa",
+                { "changeit".toCharArray() },
+                { "changeit".toCharArray() }
+            ) {
+                port = serverPort
+                keyStorePath = keyStoreFile.absoluteFile
 
-            module {
-                routing {
-                    get("/") {
-                        call.respondText("Hello, world")
+                module {
+                    routing {
+                        get("/") {
+                            call.respondText("Hello, world")
+                        }
                     }
                 }
             }
         }
-    })
+    )
 
     companion object {
         val keyStoreFile = File("build/temp.jks")
@@ -85,11 +94,10 @@ class CIOHttpsTest : TestWithKtor() {
             sslContext.init(null, tmf.trustManagers, null)
             x509TrustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
         }
-
     }
 
     @Test
-    fun hello(): Unit {
+    fun hello() {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
             /**
              * Outdated by jetty.
@@ -131,7 +139,7 @@ class CIOHttpsTest : TestWithKtor() {
                         assertEquals("Hello, world", actual)
                     } catch (cause: Throwable) {
                         println("${suite.name}: $cause")
-                        client.cancel()
+                        client.cancel("Failed with: $cause")
                         fail("${suite.name}: $cause")
                     }
                 }
@@ -140,7 +148,8 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun external() = testWithEngine(CIO) {
+    @Ignore
+    fun testExternal() = testWithEngine(CIO) {
         test { client ->
             client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -154,7 +163,8 @@ class CIOHttpsTest : TestWithKtor() {
             "https://google.com",
             "https://facebook.com",
             "https://elster.de",
-            "https://freenode.net"
+            "https://freenode.net",
+            "https://tls-v1-2.badssl.com:1012/"
         )
 
         config {
@@ -177,7 +187,7 @@ class CIOHttpsTest : TestWithKtor() {
                 maxConnectionsCount = 1_000_000
                 pipelining = true
                 endpoint.apply {
-                    connectRetryAttempts = 1
+                    connectAttempts = 1
                     maxConnectionsPerRoute = 10_000
                 }
             }

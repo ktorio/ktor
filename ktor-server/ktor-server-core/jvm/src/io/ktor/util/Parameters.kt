@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -28,8 +28,7 @@ import kotlin.reflect.jvm.*
  * @throws MissingRequestParameterException if no values associated with name
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
-@KtorExperimentalAPI
-inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
+public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
     return getOrFail<R>(property.name)
 }
 
@@ -37,9 +36,8 @@ inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, propert
  * Get parameters value associated with this [name] or fail with [MissingRequestParameterException]
  * @throws MissingRequestParameterException if no values associated with this [name]
  */
-@KtorExperimentalAPI
 @Suppress("NOTHING_TO_INLINE")
-inline fun Parameters.getOrFail(name: String): String {
+public inline fun Parameters.getOrFail(name: String): String {
     return get(name) ?: throw MissingRequestParameterException(name)
 }
 
@@ -49,9 +47,8 @@ inline fun Parameters.getOrFail(name: String): String {
  * @throws MissingRequestParameterException if no values associated with this [name]
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
-@KtorExperimentalAPI
 @OptIn(ExperimentalStdlibApi::class)
-inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
+public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
     return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
 }
 
@@ -64,4 +61,3 @@ internal fun <R : Any> Parameters.getOrFailImpl(name: String, type: KClass<R>, j
         throw ParameterConversionException(name, type.jvmName, cause)
     }
 }
-

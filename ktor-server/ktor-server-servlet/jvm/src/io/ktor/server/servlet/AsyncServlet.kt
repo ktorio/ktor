@@ -1,16 +1,16 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
@@ -18,7 +18,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-open class AsyncServletApplicationCall(
+public open class AsyncServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
@@ -36,18 +36,27 @@ open class AsyncServletApplicationCall(
     override val response: ServletApplicationResponse by lazy {
         AsyncServletApplicationResponse(
             this,
-            servletRequest, servletResponse,
-            engineContext, userContext, upgrade, parentCoroutineContext + engineContext
+            servletRequest,
+            servletResponse,
+            engineContext,
+            userContext,
+            upgrade,
+            parentCoroutineContext + engineContext
         ).also {
             putResponseAttribute(it)
         }
+    }
+
+    init {
+        putServletAttributes(servletRequest)
     }
 }
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-class AsyncServletApplicationRequest(
-    call: ApplicationCall, servletRequest: HttpServletRequest,
+public class AsyncServletApplicationRequest(
+    call: ApplicationCall,
+    servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 
@@ -66,7 +75,7 @@ class AsyncServletApplicationRequest(
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-open class AsyncServletApplicationResponse(
+public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
@@ -78,7 +87,7 @@ open class AsyncServletApplicationResponse(
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 
-    final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    public final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         try {
             servletResponse.flushBuffer()
         } catch (e: IOException) {
@@ -91,19 +100,21 @@ open class AsyncServletApplicationResponse(
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
     }
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         if (!tryPush(servletRequest, builder)) {
             super.push(builder)
         }
     }
 
+    @UseHttp2Push
     private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
         return foundPushImpls.any { function ->
             tryInvoke(function, request, builder)
         }
     }
 
-    companion object {
+    public companion object {
         private val foundPushImpls by lazy {
             listOf("io.ktor.servlet.v4.PushKt.doPush").mapNotNull { tryFind(it) }
         }
@@ -119,6 +130,7 @@ open class AsyncServletApplicationResponse(
             null
         }
 
+        @UseHttp2Push
         private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
             function.invoke(null, request, builder) as Boolean
         } catch (ignore: ReflectiveOperationException) {

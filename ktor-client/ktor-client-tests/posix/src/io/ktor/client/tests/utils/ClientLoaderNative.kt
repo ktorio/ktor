@@ -7,30 +7,58 @@ package io.ktor.client.tests.utils
 import io.ktor.client.engine.*
 import kotlinx.coroutines.*
 
+private class TestFailure(val name: String, val cause: Throwable) {
+    override fun toString(): String = buildString {
+        appendLine("Test failed with engine: $name")
+        appendLine(cause)
+        for (stackline in cause.getStackTrace()) {
+            appendLine("\t$stackline")
+        }
+    }
+}
+
 /**
  * Helper interface to test client.
  */
-actual abstract class ClientLoader {
+public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
     /**
      * Perform test against all clients from dependencies.
      */
-    actual fun clientTests(
+    public actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
-        engines
-            .filter { !skipEnginesLowerCase.contains(it.toString().toLowerCase()) }
-            .forEach {
-                testWithEngine(it) {
-                    withTimeout(3000) {
+        if (skipEngines.any { it.startsWith("native") }) return
+
+        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }.toSet()
+        val filteredEngines = engines.filter {
+            val name = it.toString().toLowerCase()
+            !skipEnginesLowerCase.contains(name) && !skipEnginesLowerCase.contains("native:$name")
+        }
+
+        val failures = mutableListOf<TestFailure>()
+        for (engine in filteredEngines) {
+            val result = runCatching {
+                testWithEngine(engine) {
+                    withTimeout(timeoutSeconds.toLong() * 1000L) {
                         block()
                     }
                 }
             }
+
+            if (result.isFailure) {
+                failures += TestFailure(engine.toString(), result.exceptionOrNull()!!)
+            }
+        }
+
+        if (failures.isEmpty()) {
+            return
+        }
+
+        error(failures.joinToString("\n"))
     }
 
-    actual fun dumpCoroutines() {
+    public actual fun dumpCoroutines() {
         error("Debug probes unsupported native.")
     }
 }

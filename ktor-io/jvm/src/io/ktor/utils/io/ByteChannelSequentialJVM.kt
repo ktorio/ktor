@@ -7,7 +7,8 @@ import java.nio.*
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @ExperimentalIoApi
-class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
+    ByteChannelSequentialBase(initial, autoFlush) {
 
     @Volatile
     private var attachedJob: Job? = null
@@ -34,10 +35,9 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
     }
 
     private suspend fun writeAvailableSuspend(src: ByteBuffer): Int {
-        awaitFreeSpace()
+        awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)
     }
-
 
     override suspend fun writeFully(src: ByteBuffer) {
         tryWriteAvailable(src)
@@ -48,8 +48,9 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
 
     private suspend fun writeFullySuspend(src: ByteBuffer) {
         while (src.hasRemaining()) {
-            awaitFreeSpace()
-            tryWriteAvailable(src)
+            awaitAtLeastNBytesAvailableForWrite(1)
+            val count = tryWriteAvailable(src)
+            afterWrite(count)
         }
     }
 
@@ -80,6 +81,27 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         if (rc != 0) return rc
         if (!dst.hasRemaining()) return 0
         return readAvailableSuspend(dst)
+    }
+
+    override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
+        if (closed) {
+            throw closedCause ?: ClosedSendChannelException("Channel closed for read")
+        }
+
+        if (availableForRead < min) {
+            return -1
+        }
+
+        prepareFlushedBytes()
+
+        var result = 0
+        readable.readDirect(min) {
+            val position = it.position()
+            block(it)
+            result = it.position() - position
+        }
+
+        return result
     }
 
     private suspend fun readAvailableSuspend(dst: ByteBuffer): Int {
@@ -115,9 +137,16 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         return when {
             closedCause != null -> throw closedCause
             closed -> {
-                readable.readAvailable(dst).takeIf { it != 0 }.also { afterRead() } ?: -1
+                val count = readable.readAvailable(dst)
+
+                if (count != 0) {
+                    afterRead(count)
+                    count
+                } else {
+                    -1
+                }
             }
-            else -> readable.readAvailable(dst).also { afterRead() }
+            else -> readable.readAvailable(dst).also { afterRead(it) }
         }
     }
 
@@ -143,11 +172,11 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
     }
 
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override suspend fun read(min: Int, consumer: (ByteBuffer) -> Unit) {
@@ -158,6 +187,10 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         readable.readDirect(min) { bb ->
             consumer(bb)
         }
+    }
+
+    override suspend fun awaitContent() {
+        await(1)
     }
 
     override fun writeAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
@@ -183,8 +216,10 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         if (closed) {
             throw closedCause ?: ClosedSendChannelException("Channel closed for write")
         }
-        writable.writeDirect(min) { block(it) }
-        awaitFreeSpace()
+
+        awaitAtLeastNBytesAvailableForWrite(min)
+        val count = writable.writeByteBufferDirect(min) { block(it) }
+        afterWrite(count)
     }
 
     override suspend fun writeWhile(block: (ByteBuffer) -> Boolean) {
@@ -193,15 +228,14 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
                 throw closedCause ?: ClosedSendChannelException("Channel closed for write")
             }
 
-            var cont = false
-            writable.writeDirect(1) {
-                cont = block(it)
+            var shouldContinue: Boolean = false
+            awaitAtLeastNBytesAvailableForWrite(1)
+            val result = writable.writeByteBufferDirect(1) {
+                shouldContinue = block(it)
             }
 
-            awaitFreeSpace()
-
-            if (!cont) break
+            afterWrite(result)
+            if (!shouldContinue) break
         }
     }
 }
-

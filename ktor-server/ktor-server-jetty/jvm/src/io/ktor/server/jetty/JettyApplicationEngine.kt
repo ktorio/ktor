@@ -11,8 +11,9 @@ import kotlinx.coroutines.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Jetty
  */
-class JettyApplicationEngine(
-    environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit
+public class JettyApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit
 ) : JettyApplicationEngineBase(environment, configure) {
 
     private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())

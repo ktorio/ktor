@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.http.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 private val NEWLINE = "\r\n".toByteArray(Charsets.ISO_8859_1)
 private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + HttpHeaders.ContentRange.length
@@ -15,7 +15,7 @@ private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + 
  * Start multirange response writer coroutine
  */
 @Deprecated("This is going to be removed. Use PartialContent feature instead.")
-fun CoroutineScope.writeMultipleRanges(
+public fun CoroutineScope.writeMultipleRanges(
     channelProducer: (LongRange) -> ByteReadChannel,
     ranges: List<LongRange>,
     fullLength: Long?,
@@ -38,14 +38,13 @@ internal fun CoroutineScope.writeMultipleRangesImpl(
     for (range in ranges) {
         val current = channelProducer(range)
         channel.writeHeaders(range, boundary, contentType, fullLength)
-        current.joinTo(channel, closeOnEnd = false)
+        current.copyTo(channel)
         channel.writeFully(NEWLINE)
     }
 
     channel.writeFully("--$boundary--".toByteArray(Charsets.ISO_8859_1))
     channel.writeFully(NEWLINE)
 }.channel
-
 
 private suspend fun ByteWriteChannel.writeHeaders(
     range: LongRange,

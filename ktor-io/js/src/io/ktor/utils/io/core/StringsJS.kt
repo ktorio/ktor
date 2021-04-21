@@ -11,7 +11,7 @@ import kotlin.require
  * interpreting characters in the specified [charset].
  */
 @Suppress("FunctionName")
-actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
+public actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (offset < 0 || length < 0 || offset + length > bytes.size) {
         checkIndices(offset, length, bytes)
     }
@@ -22,14 +22,14 @@ actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset):
     val buffer = i8.buffer.slice(bufferOffset, bufferOffset + length)
 
     @Suppress("DEPRECATION")
-    val view = IoBuffer(Memory.of(buffer), null)
+    val view = IoBuffer(Memory.of(buffer), null, IoBuffer.NoPool)
     view.resetForRead()
     val packet = ByteReadPacket(view, ChunkBuffer.NoPoolManuallyManaged)
 
     return charset.newDecoder().decode(packet, Int.MAX_VALUE)
 }
 
-fun checkIndices(offset: Int, length: Int, bytes: ByteArray): Nothing {
+public fun checkIndices(offset: Int, length: Int, bytes: ByteArray): Nothing {
     require(offset >= 0) { throw IndexOutOfBoundsException("offset ($offset) shouldn't be negative") }
     require(length >= 0) { throw IndexOutOfBoundsException("length ($length) shouldn't be negative") }
     require(offset + length <= bytes.size) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -8,9 +8,9 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
@@ -21,7 +21,7 @@ private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth2")
  * OAuth versions used in configuration
  */
 @Suppress("KDocMissingDocumentation")
-enum class OAuthVersion {
+public enum class OAuthVersion {
     V10a, V20
 }
 
@@ -31,16 +31,16 @@ enum class OAuthVersion {
  * a state need to be a signed set of parameters that could be verified later
  */
 @Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
-interface OAuth2StateProvider {
+public interface OAuth2StateProvider {
     /**
      * Generates a new state for given [call]
      */
-    suspend fun getState(call: ApplicationCall): String
+    public suspend fun getState(call: ApplicationCall): String
 
     /**
      * Verifies [state] and throws exceptions if it's not valid
      */
-    suspend fun verifyState(state: String)
+    public suspend fun verifyState(state: String)
 }
 
 /**
@@ -48,7 +48,7 @@ interface OAuth2StateProvider {
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated("Use NonceManager instead", level = DeprecationLevel.HIDDEN)
-object DefaultOAuth2StateProvider : OAuth2StateProvider {
+public object DefaultOAuth2StateProvider : OAuth2StateProvider {
     override suspend fun getState(call: ApplicationCall): String {
         TODO("This is no longer supported")
     }
@@ -63,7 +63,7 @@ object DefaultOAuth2StateProvider : OAuth2StateProvider {
  * @property name configuration name
  * @property version OAuth version (1a or 2)
  */
-sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
+public sealed class OAuthServerSettings(public val name: String, public val version: OAuthVersion) {
     /**
      * OAuth1a server settings
      * @property requestTokenUrl OAuth server token request URL
@@ -72,15 +72,29 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
      * @property consumerKey consumer key parameter (provided by OAuth server vendor)
      * @property consumerSecret a secret key parameter (provided by OAuth server vendor)
      */
-    class OAuth1aServerSettings(
+    public class OAuth1aServerSettings(
         name: String,
-        val requestTokenUrl: String,
-        val authorizeUrl: String,
-        val accessTokenUrl: String,
+        public val requestTokenUrl: String,
+        public val authorizeUrl: String,
+        public val accessTokenUrl: String,
 
-        val consumerKey: String,
-        val consumerSecret: String
-    ) : OAuthServerSettings(name, OAuthVersion.V10a)
+        public val consumerKey: String,
+        public val consumerSecret: String,
+
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+    ) : OAuthServerSettings(name, OAuthVersion.V10a) {
+        @Suppress("unused")
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            requestTokenUrl: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+
+            consumerKey: String,
+            consumerSecret: String
+        ) : this(name, requestTokenUrl, authorizeUrl, accessTokenUrl, consumerKey, consumerSecret, {})
+    }
 
     /**
      * OAuth2 server settings
@@ -94,55 +108,88 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
      * @property passParamsInURL whether to pass request parameters in POST requests in URL instead of body.
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
+     * @property accessTokenInterceptor an interceptor function to customize access token request
      */
-    class OAuth2ServerSettings(
+    public class OAuth2ServerSettings(
         name: String,
-        val authorizeUrl: String,
-        val accessTokenUrl: String,
-        val requestMethod: HttpMethod = HttpMethod.Get,
+        public val authorizeUrl: String,
+        public val accessTokenUrl: String,
+        public val requestMethod: HttpMethod = HttpMethod.Get,
 
-        val clientId: String,
-        val clientSecret: String,
-        val defaultScopes: List<String> = emptyList(),
-        val accessTokenRequiresBasicAuth: Boolean = false,
+        public val clientId: String,
+        public val clientSecret: String,
+        public val defaultScopes: List<String> = emptyList(),
+        public val accessTokenRequiresBasicAuth: Boolean = false,
 
-        val nonceManager: NonceManager = GenerateOnlyNonceManager,
+        public val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
-        val passParamsInURL: Boolean = false
-    ) : OAuthServerSettings(name, OAuthVersion.V20)
+        public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+        public val passParamsInURL: Boolean = false,
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+    ) : OAuthServerSettings(name, OAuthVersion.V20) {
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            authorizeUrlInterceptor,
+            passParamsInURL,
+            {}
+        )
+    }
 }
 
 /**
  * OAauth callback parameters
  */
-sealed class OAuthCallback {
+public sealed class OAuthCallback {
     /**
      * An OAuth1a token pair callback parameters
      * @property token OAuth1a token
      * @property tokenSecret OAuth1a token secret
      */
-    data class TokenPair(val token: String, val tokenSecret: String) : OAuthCallback()
+    public data class TokenPair(val token: String, val tokenSecret: String) : OAuthCallback()
 
     /**
      * OAuth2 token callback parameter
      * @property token OAuth2 token provided by server
      * @property state passed from a client (ktor server) during authorization startup
      */
-    data class TokenSingle(val token: String, val state: String) : OAuthCallback()
+    public data class TokenSingle(val token: String, val state: String) : OAuthCallback()
 }
 
 /**
  * OAuth access token acquired from the server
  */
-sealed class OAuthAccessTokenResponse : Principal {
+public sealed class OAuthAccessTokenResponse : Principal {
     /**
      * OAuth1a access token acquired from the server
      * @property token itself
      * @property tokenSecret token secret to be used with [token]
      * @property extraParameters contains additional parameters provided by the server
      */
-    data class OAuth1a(
+    public data class OAuth1a(
         val token: String,
         val tokenSecret: String,
         val extraParameters: Parameters = Parameters.Empty
@@ -156,7 +203,7 @@ sealed class OAuthAccessTokenResponse : Principal {
      * @property refreshToken to be used to refresh access token after expiration
      * @property extraParameters contains additional parameters provided by the server
      */
-    data class OAuth2(
+    public data class OAuth2(
         val accessToken: String,
         val tokenType: String,
         val expiresIn: Long,
@@ -169,18 +216,20 @@ sealed class OAuthAccessTokenResponse : Principal {
  * OAuth grant types constants
  */
 @Suppress("KDocMissingDocumentation")
-object OAuthGrantTypes {
-    const val AuthorizationCode = "authorization_code"
-    const val Password = "password"
+public object OAuthGrantTypes {
+    public const val AuthorizationCode: String = "authorization_code"
+    public const val Password: String = "password"
 }
 
 /**
  * Install both OAuth1a and OAuth2 authentication helpers that do redirect to OAuth server authorization page
  * and handle corresponding callbacks
  */
-@KtorExperimentalAPI
-suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
-    client: HttpClient, dispatcher: CoroutineDispatcher,
+@Suppress("unused")
+@Deprecated("Install and configure OAuth instead.")
+public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
     urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
@@ -191,8 +240,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
 /**
  * Respond OAuth redirect
  */
-@KtorExperimentalAPI
-suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
+@Deprecated("Install and configure OAuth instead.")
+public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
     provider: OAuthServerSettings,
@@ -207,7 +256,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(
-                provider, callbackUrl,
+                provider,
+                callbackUrl,
                 provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor
@@ -217,10 +267,29 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
 }
 
 /**
- * Handle OAuth callback
+ * Handle OAuth callback. Usually it leads to requesting an access token.
  */
-@KtorExperimentalAPI
-suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
+@Deprecated("Install and configure OAuth instead.")
+public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
+    provider: OAuthServerSettings,
+    callbackUrl: String,
+    loginPageUrl: String,
+    block: suspend (OAuthAccessTokenResponse) -> Unit
+) {
+    @Suppress("DEPRECATION")
+    oauthHandleCallback(client, dispatcher, provider, callbackUrl, loginPageUrl, {}, block)
+}
+
+/**
+ * Handle OAuth callback.
+ */
+@Deprecated(
+    "Specifying an extra configuration function will be deprecated. " +
+        "Please provide it via OAuthServerSettings."
+)
+public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
     provider: OAuthServerSettings,

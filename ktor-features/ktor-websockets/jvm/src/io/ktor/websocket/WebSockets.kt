@@ -25,18 +25,28 @@ import kotlin.coroutines.*
  * }
  * ```
  *
- * @param pingIntervalMillis duration between pings or `null` to disable pings
- * @param timeoutMillis write/ping timeout after that a connection will be closed
- * @param maxFrameSize maximum frame that could be received or sent
- * @param masking whether masking need to be enabled (useful for security)
+ * @param pingIntervalMillis duration between pings or `null` to disable pings.
+ * @param timeoutMillis write/ping timeout after that a connection will be closed.
+ * @param maxFrameSize maximum frame that could be received or sent.
+ * @param masking whether masking need to be enabled (useful for security).
+ * @param extensionsConfig is configuration for WebSocket extensions.
  */
-class WebSockets(
-    val pingIntervalMillis: Long,
-    val timeoutMillis: Long,
-    val maxFrameSize: Long,
-    val masking: Boolean
+public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
+    public val pingIntervalMillis: Long,
+    public val timeoutMillis: Long,
+    public val maxFrameSize: Long,
+    public val masking: Boolean,
+    public val extensionsConfig: WebSocketExtensionsConfig
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
+
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    public constructor(
+        pingIntervalMillis: Long,
+        timeoutMillis: Long,
+        maxFrameSize: Long,
+        masking: Boolean
+    ) : this(pingIntervalMillis, timeoutMillis, maxFrameSize, masking, WebSocketExtensionsConfig())
 
     override val coroutineContext: CoroutineContext
         get() = parent
@@ -54,13 +64,16 @@ class WebSockets(
     /**
      * Websockets configuration options
      */
-    class WebSocketOptions {
+    public class WebSocketOptions {
+        @ExperimentalWebSocketExtensionApi
+        internal val extensionsConfig = WebSocketExtensionsConfig()
+
         /**
          * Duration between pings or `null` to disable pings
          */
         @Suppress("unused")
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        var pingPeriod: Duration?
+        public var pingPeriod: Duration?
             get() = pingPeriod
             set(new) {
                 pingPeriod = new
@@ -69,14 +82,14 @@ class WebSockets(
         /**
          * Duration between pings or `0` to disable pings
          */
-        var pingPeriodMillis: Long = 0
+        public var pingPeriodMillis: Long = 0
 
         /**
          * write/ping timeout after that a connection will be closed
          */
         @Suppress("unused")
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        var timeout: Duration
+        public var timeout: Duration
             get() = timeout
             set(new) {
                 timeout = new
@@ -85,38 +98,58 @@ class WebSockets(
         /**
          * write/ping timeout after that a connection will be closed
          */
-        var timeoutMillis: Long = 15000L
+        public var timeoutMillis: Long = 15000L
 
         /**
          * Maximum frame that could be received or sent
          */
-        var maxFrameSize: Long = Long.MAX_VALUE
+        public var maxFrameSize: Long = Long.MAX_VALUE
 
         /**
          * Whether masking need to be enabled (useful for security)
          */
-        var masking: Boolean = false
+        public var masking: Boolean = false
+
+        /**
+         * Configure WebSocket extensions.
+         */
+        @ExperimentalWebSocketExtensionApi
+        public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
+            extensionsConfig.apply(block)
+        }
     }
 
     /**
-     * Feature installation object
+     * Feature installation object.
      */
-    companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
-        override val key = AttributeKey<WebSockets>("WebSockets")
+    public companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
+        override val key: AttributeKey<WebSockets> = AttributeKey("WebSockets")
+
+        /**
+         * Key for saving configured WebSocket extensions for the specific call.
+         */
+        @ExperimentalWebSocketExtensionApi
+        public val EXTENSIONS_KEY: AttributeKey<List<WebSocketExtension<*>>> =
+            AttributeKey("WebSocket extensions")
 
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
-                val webSockets = WebSockets(pingPeriodMillis, timeoutMillis, maxFrameSize, masking)
+                @OptIn(ExperimentalWebSocketExtensionApi::class)
+                val webSockets = WebSockets(
+                    pingPeriodMillis,
+                    timeoutMillis,
+                    maxFrameSize,
+                    masking,
+                    extensionsConfig
+                )
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
                     webSockets.shutdown()
                 }
 
                 pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) {
-                    if (it is WebSocketUpgrade) {
-                        it.call
-                    }
+                    if (it !is WebSocketUpgrade) return@intercept
                 }
 
                 return webSockets

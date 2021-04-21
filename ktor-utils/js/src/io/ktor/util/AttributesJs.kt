@@ -8,10 +8,10 @@ package io.ktor.util
  * Create ES specific [Attributes] instance.
  */
 @JsName("AttributesJsFn")
-actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
+public actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
 
 @Suppress("KDocMissingDocumentation")
-class AttributesJs : Attributes {
+public class AttributesJs : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")

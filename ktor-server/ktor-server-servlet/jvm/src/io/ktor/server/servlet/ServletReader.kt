@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
 
 import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
@@ -24,7 +24,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
-    suspend fun run() {
+    public suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             input.setReadListener(this)
@@ -36,10 +36,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 events.close()
                 return
             }
-            @Suppress("DEPRECATION")
-            @OptIn(
-                ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-            )
+            @OptIn(ExperimentalCoroutinesApi::class)
             events.receiveOrNull() ?: return
             loop(buffer)
 
@@ -67,10 +64,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 channel.writeFully(buffer, 0, rc)
             } else {
                 channel.flush()
-                @Suppress("DEPRECATION")
-                @OptIn(
-                    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-                )
+                @OptIn(ExperimentalCoroutinesApi::class)
                 events.receiveOrNull() ?: break
             }
         }
@@ -100,7 +94,10 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
         return when (t) {
             is EOFException -> null
             is TimeoutException,
-            is IOException -> ChannelReadException("Cannot read from a servlet input stream", exception = t as Exception)
+            is IOException -> ChannelReadException(
+                "Cannot read from a servlet input stream",
+                exception = t as Exception
+            )
             else -> t
         }
     }

@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.cio
 
-import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import kotlin.coroutines.*
@@ -17,8 +16,7 @@ import kotlin.coroutines.*
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
  */
-@KtorExperimentalAPI
-fun InputStream.toByteReadChannel(
+public fun InputStream.toByteReadChannel(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     context: CoroutineContext = Dispatchers.Unconfined,
     parent: Job = Job()

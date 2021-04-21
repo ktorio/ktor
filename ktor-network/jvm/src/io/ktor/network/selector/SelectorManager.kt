@@ -1,28 +1,32 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.selector
 
 import io.ktor.util.*
-import java.io.*
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
+import kotlin.coroutines.*
+
+@InternalAPI
+public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager = ActorSelectorManager(dispatcher)
 
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
  */
-interface SelectorManager {
+public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * NIO selector provider
      */
-    @KtorExperimentalAPI
-    val provider: SelectorProvider
+    public val provider: SelectorProvider
 
     /**
      * Notifies the selector that selectable has been closed.
      */
-    fun notifyClosed(s: Selectable)
+    public actual fun notifyClosed(s: Selectable)
 
     /**
      * Suspends until [interest] is selected for [selectable]
@@ -33,43 +37,19 @@ interface SelectorManager {
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
      */
-    suspend fun select(selectable: Selectable, interest: SelectInterest)
+    public actual suspend fun select(selectable: Selectable, interest: SelectInterest)
 
-    companion object
-}
-
-/**
- * Select interest kind
- * @property flag to be set in NIO selector
- */
-@Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
-enum class SelectInterest(val flag: Int) {
-    READ(SelectionKey.OP_READ),
-    WRITE(SelectionKey.OP_WRITE),
-    ACCEPT(SelectionKey.OP_ACCEPT),
-    CONNECT(SelectionKey.OP_CONNECT);
-
-    companion object {
-        @InternalAPI
-        val AllInterests: Array<SelectInterest> = values()
-
-        /**
-         * interest's flags in enum entry order
-         */
-        @InternalAPI
-        val flags: IntArray = values().map { it.flag }.toIntArray()
-
-        @InternalAPI
-        val size: Int = values().size
-    }
+    public actual companion object
 }
 
 /**
  * Creates a NIO entity via [create] and calls [setup] on it. If any exception happens then the entity will be closed
  * and an exception will be propagated.
  */
-inline fun <C : Closeable, R> SelectorManager.buildOrClose(create: SelectorProvider.() -> C, setup: C.() -> R): R {
+public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
+    create: SelectorProvider.() -> C,
+    setup: C.() -> R
+): R {
     while (true) {
         val result = create(provider)
 
@@ -79,5 +59,26 @@ inline fun <C : Closeable, R> SelectorManager.buildOrClose(create: SelectorProvi
             result.close()
             throw t
         }
+    }
+}
+
+/**
+ * Select interest kind
+ * @property [flag] to be set in NIO selector
+ */
+@Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
+@InternalAPI
+public actual enum class SelectInterest(public val flag: Int) {
+    READ(SelectionKey.OP_READ),
+    WRITE(SelectionKey.OP_WRITE),
+    ACCEPT(SelectionKey.OP_ACCEPT),
+    CONNECT(SelectionKey.OP_CONNECT);
+
+    public actual companion object {
+        public actual val AllInterests: Array<SelectInterest> = values()
+
+        public val flags: IntArray = values().map { it.flag }.toIntArray()
+
+        public val size: Int = values().size
     }
 }

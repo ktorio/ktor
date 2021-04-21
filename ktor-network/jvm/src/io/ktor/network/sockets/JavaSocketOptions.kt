@@ -18,9 +18,7 @@ internal object SocketOptionsPlatformCapabilities {
             ?.fields
             ?.filter {
                 it.modifiers.let { modifiers ->
-                    Modifier.isStatic(modifiers)
-                        && Modifier.isFinal(modifiers)
-                        && Modifier.isPublic(modifiers)
+                    Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers)
                 }
             }
             ?.associateBy { it.name }
@@ -36,12 +34,11 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } && method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
@@ -54,12 +51,12 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } &&
+                method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
@@ -72,34 +69,38 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } &&
+                method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
     }
 
-    fun setReusePort(channel: SocketChannel) {
+    public fun setReusePort(channel: SocketChannel) {
         val option = socketOption(SO_REUSEPORT)
         channelSetOption!!.invoke(channel, option, true)
     }
 
-    fun setReusePort(channel: ServerSocketChannel) {
+    public fun setReusePort(channel: ServerSocketChannel) {
         val option = socketOption(SO_REUSEPORT)
         serverChannelSetOption!!.invoke(channel, option, true)
     }
 
-    fun setReusePort(channel: DatagramChannel) {
+    public fun setReusePort(channel: DatagramChannel) {
         val option = socketOption(SO_REUSEPORT)
         datagramSetOption!!.invoke(channel, option, true)
     }
 
     private fun socketOption(name: String) =
         standardSocketOptions[name]?.get(null) ?: throw IOException("Socket option $name is not supported")
+}
+
+internal fun SelectableChannel.nonBlocking() {
+    configureBlocking(false)
 }
 
 internal fun SelectableChannel.assignOptions(options: SocketOptions) {

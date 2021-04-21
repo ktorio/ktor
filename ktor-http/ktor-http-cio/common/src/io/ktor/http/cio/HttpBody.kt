@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -8,13 +8,13 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
  * parsed [connectionOptions]
  */
-@KtorExperimentalAPI
-fun expectHttpUpgrade(
+public fun expectHttpUpgrade(
     method: HttpMethod,
     upgrade: CharSequence?,
     connectionOptions: ConnectionOptions?
@@ -25,8 +25,7 @@ fun expectHttpUpgrade(
 /**
  * @return `true` if an http upgrade is expected according to [request]
  */
-@KtorExperimentalAPI
-fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
+public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
     request.method,
     request.headers["Upgrade"],
     ConnectionOptions.parse(request.headers["Connection"])
@@ -35,15 +34,18 @@ fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
 /**
  * @return `true` if request or response with the specified parameters could have a body
  */
-@KtorExperimentalAPI
-fun expectHttpBody(
+public fun expectHttpBody(
     method: HttpMethod,
     contentLength: Long,
     transferEncoding: CharSequence?,
     connectionOptions: ConnectionOptions?,
     contentType: CharSequence?
 ): Boolean {
-    if (transferEncoding != null) return true
+    if (transferEncoding != null) {
+        // verify header value
+        isTransferEncodingChunked(transferEncoding)
+        return true
+    }
     if (contentLength != -1L) return contentLength > 0L
     if (contentType != null) return true
 
@@ -56,8 +58,7 @@ fun expectHttpBody(
 /**
  * @return `true` if request or response with the specified parameters could have a body
  */
-@KtorExperimentalAPI
-fun expectHttpBody(request: Request): Boolean = expectHttpBody(
+public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
     request.method,
     request.headers["Content-Length"]?.parseDecLong() ?: -1,
     request.headers["Transfer-Encoding"],
@@ -73,22 +74,15 @@ fun expectHttpBody(request: Request): Boolean = expectHttpBody(
  * @param transferEncoding header or `null`
  * @param
  */
-@KtorExperimentalAPI
-suspend fun parseHttpBody(
+public suspend fun parseHttpBody(
     contentLength: Long,
     transferEncoding: CharSequence?,
     connectionOptions: ConnectionOptions?,
     input: ByteReadChannel,
     out: ByteWriteChannel
 ) {
-    if (transferEncoding != null) {
-        when {
-            transferEncoding.equalsLowerCase(other = "chunked") -> return decodeChunked(input, out, contentLength)
-            transferEncoding.equalsLowerCase(other = "identity") -> {
-                // do nothing special
-            }
-            else -> out.close(IllegalStateException("Unsupported transfer-encoding $transferEncoding"))
-        }
+    if (transferEncoding != null && isTransferEncodingChunked(transferEncoding)) {
+        return decodeChunked(input, out)
     }
 
     if (contentLength != -1L) {
@@ -116,8 +110,7 @@ suspend fun parseHttpBody(
  * Parse HTTP request or response body using request/response's [headers]
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  */
-@KtorExperimentalAPI
-suspend fun parseHttpBody(
+public suspend fun parseHttpBody(
     headers: HttpHeadersMap,
     input: ByteReadChannel,
     out: ByteWriteChannel
@@ -125,5 +118,33 @@ suspend fun parseHttpBody(
     headers["Content-Length"]?.parseDecLong() ?: -1,
     headers["Transfer-Encoding"],
     ConnectionOptions.parse(headers["Connection"]),
-    input, out
+    input,
+    out
 )
+
+private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
+    if (transferEncoding.equalsLowerCase(other = "chunked")) {
+        return true
+    }
+    if (transferEncoding.equalsLowerCase(other = "identity")) {
+        return false
+    }
+
+    var chunked = false
+    transferEncoding.split(",").forEach {
+        when (val name = it.trim().toLowerCase()) {
+            "chunked" -> {
+                if (chunked) {
+                    throw IllegalArgumentException("Double-chunked TE is not supported: $transferEncoding")
+                }
+                chunked = true
+            }
+            "identity" -> {
+                // ignore this token
+            }
+            else -> throw IllegalArgumentException("Unsupported transfer encoding $name")
+        }
+    }
+
+    return chunked
+}

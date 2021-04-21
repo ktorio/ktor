@@ -9,7 +9,6 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class URLBuilderTest {
@@ -60,6 +59,64 @@ class URLBuilderTest {
     }
 
     @Test
+    fun testPathComponentsNoFirstSlash() {
+        val s = url {
+            encodedPath = ""
+            pathComponents("asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathComponentsFirstSlash() {
+        val s = url {
+            encodedPath = "/"
+            pathComponents("/asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathComponentsFunctionVararg() {
+        val s = url {
+            pathComponents("a", "b")
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathComponentsFunctionList() {
+        val s = url {
+            pathComponents(listOf("a", "b"))
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathComponentsWithSpace() {
+        assertEquals("http://localhost/a%20b/c", url { pathComponents("a b", "c") })
+    }
+
+    @Test
+    fun testPathComponentsWithPlus() {
+        assertEquals("http://localhost/a+b/c", url { pathComponents("a+b", "c") })
+    }
+
+    @Test
+    fun testPathComponentsWithTrailingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("asd///") })
+    }
+
+    @Test
+    fun testPathComponentsWithLeadingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("///asd") })
+    }
+
+    @Test
     fun testPort() {
         assertEquals("http://localhost/", url { port = 80 })
         assertEquals("http://localhost:8080/", url { port = 8080 })
@@ -80,7 +137,11 @@ class URLBuilderTest {
         assertEquals("http://localhost/?p1=v1&p1=v2", url { parameters.appendAll("p1", listOf("v1", "v2")) })
         assertEquals(
             "http://localhost/?p1=v1&p2=v2",
-            url { parameters.append("p1", "v1"); parameters.append("p2", "v2") })
+            url {
+                parameters.append("p1", "v1")
+                parameters.append("p2", "v2")
+            }
+        )
     }
 
     @Test
@@ -110,16 +171,25 @@ class URLBuilderTest {
 
     @Test
     fun testFragment() {
-        assertEquals("http://localhost/?p=v#a", url {
-            parameters.append("p", "v")
-            fragment = "a"
-        })
-        assertEquals("http://localhost/#a", url {
-            fragment = "a"
-        })
-        assertEquals("http://localhost/#a%20+%20b", url {
-            fragment = "a + b"
-        })
+        assertEquals(
+            "http://localhost/?p=v#a",
+            url {
+                parameters.append("p", "v")
+                fragment = "a"
+            }
+        )
+        assertEquals(
+            "http://localhost/#a",
+            url {
+                fragment = "a"
+            }
+        )
+        assertEquals(
+            "http://localhost/#a%20+%20b",
+            url {
+                fragment = "a + b"
+            }
+        )
     }
 
     @Test
@@ -127,11 +197,14 @@ class URLBuilderTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("http://my-host/path%20/to?p=v", call.url())
-                assertEquals("http://my-host/path%20/to?p=v", call.url {
-                    assertEquals("my-host", host)
-                    assertEquals("/path%20/to", encodedPath)
-                    assertEquals("v", parameters["p"])
-                })
+                assertEquals(
+                    "http://my-host/path%20/to?p=v",
+                    call.url {
+                        assertEquals("my-host", host)
+                        assertEquals("/path%20/to", encodedPath)
+                        assertEquals("v", parameters["p"])
+                    }
+                )
             }
 
             handleRequest(HttpMethod.Get, "/path%20/to?p=v") {
@@ -160,12 +233,15 @@ class URLBuilderTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("http://my-host:8080/path%20/to?p=v", call.url())
-                assertEquals("http://my-host:8080/path%20/to?p=v", call.url {
-                    assertEquals(8080, port)
-                    assertEquals("my-host", host)
-                    assertEquals("/path%20/to", encodedPath)
-                    assertEquals("v", parameters["p"])
-                })
+                assertEquals(
+                    "http://my-host:8080/path%20/to?p=v",
+                    call.url {
+                        assertEquals(8080, port)
+                        assertEquals("my-host", host)
+                        assertEquals("/path%20/to", encodedPath)
+                        assertEquals("v", parameters["p"])
+                    }
+                )
             }
 
             handleRequest(HttpMethod.Get, "/path%20/to?p=v") {

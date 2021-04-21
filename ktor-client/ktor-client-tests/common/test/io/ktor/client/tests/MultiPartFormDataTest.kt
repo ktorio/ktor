@@ -9,8 +9,6 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.io.*
-import kotlinx.serialization.internal.*
 import kotlin.test.*
 
 /**
@@ -19,21 +17,34 @@ import kotlin.test.*
 class MultiPartFormDataTest : ClientLoader() {
 
     @Test
-    fun testMultiPartFormData() = clientTests {
+    fun testMultiPartFormData() = clientTests(listOf("native")) {
         test { client ->
             val result = client.post<HttpStatement>("$TEST_SERVER/multipart") {
-                body = MultiPartFormDataContent(formData {
-                    append(
-                        "file",
-                        ByteArray(1024 * 1024),
-                        Headers.build {
-                            append(HttpHeaders.ContentDisposition, """form-data; name="file"; filename="test.png"""")
-                        }
-                    )
-                })
+                body = MultiPartFormDataContent(
+                    formData {
+                        append(
+                            "file",
+                            ByteArray(1024 * 1024),
+                            Headers.build {
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    """form-data; name="file"; filename="test.png""""
+                                )
+                            }
+                        )
+                    }
+                )
             }.execute()
 
             assertEquals(HttpStatusCode.OK, result.status)
+        }
+    }
+
+    @Test
+    fun testEmptyMultiPartFormData() = clientTests {
+        test { client ->
+            val response = client.submitFormWithBinaryData<HttpResponse>("$TEST_SERVER/multipart/empty", emptyList())
+            assertTrue(response.status.isSuccess())
         }
     }
 }

@@ -5,25 +5,25 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.request.*
-import io.ktor.http.auth.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 
 /**
  * Authentication provider interface.
  */
-interface AuthProvider {
+public interface AuthProvider {
     /**
      * Wait for [HttpStatusCode.Unauthorized] to send credentials.
      */
-    val sendWithoutRequest: Boolean
+    public val sendWithoutRequest: Boolean
 
     /**
      * Check if current provider is applicable to the request.
      */
-    fun isApplicable(auth: HttpAuthHeader): Boolean
+    public fun isApplicable(auth: HttpAuthHeader): Boolean
 
     /**
      * Add authentication method headers and creds.
      */
-    suspend fun addRequestHeaders(request: HttpRequestBuilder)
+    public suspend fun addRequestHeaders(request: HttpRequestBuilder)
 }

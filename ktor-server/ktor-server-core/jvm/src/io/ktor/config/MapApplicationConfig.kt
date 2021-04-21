@@ -1,16 +1,13 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.config
 
-import io.ktor.util.*
-
 /**
  * Mutable application config backed by a hash map
  */
-@KtorExperimentalAPI
-open class MapApplicationConfig : ApplicationConfig {
+public open class MapApplicationConfig : ApplicationConfig {
     /**
      * A backing map for this config
      */
@@ -26,20 +23,20 @@ open class MapApplicationConfig : ApplicationConfig {
         this.path = path
     }
 
-    constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
-    constructor() : this(mutableMapOf<String, String>(), "")
+    public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
+    public constructor() : this(mutableMapOf<String, String>(), "")
 
     /**
      * Set property value
      */
-    fun put(path: String, value: String) {
+    public fun put(path: String, value: String) {
         map[path] = value
     }
 
     /**
      * Put list property value
      */
-    fun put(path: String, values: Iterable<String>) {
+    public fun put(path: String, values: Iterable<String>) {
         var size = 0
         values.forEachIndexed { i, value ->
             put(combine(path, i.toString()), value)
@@ -49,7 +46,9 @@ open class MapApplicationConfig : ApplicationConfig {
     }
 
     override fun property(path: String): ApplicationConfigValue {
-        return propertyOrNull(path) ?: throw ApplicationConfigurationException("Property ${combine(this.path, path)} not found.")
+        return propertyOrNull(path) ?: throw ApplicationConfigurationException(
+            "Property ${combine(this.path, path)} not found."
+        )
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
@@ -76,11 +75,14 @@ open class MapApplicationConfig : ApplicationConfig {
      * @property map is usually owner's backing map
      * @property path to this value
      */
-    @KtorExperimentalAPI
-    protected class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
+    protected class MapApplicationConfigValue(
+        public val map: Map<String, String>,
+        public val path: String
+    ) : ApplicationConfigValue {
         override fun getString(): String = map[path]!!
         override fun getList(): List<String> {
-            val size = map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
+            val size =
+                map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
             return (0 until size.toInt()).map { map[combine(path, it.toString())]!! }
         }
     }

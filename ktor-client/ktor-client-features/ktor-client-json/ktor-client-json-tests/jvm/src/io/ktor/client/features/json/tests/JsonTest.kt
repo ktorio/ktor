@@ -2,36 +2,42 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING")
+
 package io.ktor.client.features.json.tests
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
 /** Base class for JSON tests. */
 @Suppress("KDocMissingDocumentation")
-abstract class JsonTest : TestWithKtor() {
-    val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
-    val users = listOf(
+public abstract class JsonTest : TestWithKtor() {
+    private val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
+    private val users = listOf(
         User("vasya", 10),
         User("foo", 45)
     )
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
+    override val server: ApplicationEngine = embeddedServer(io.ktor.server.cio.CIO, serverPort) {
         install(ContentNegotiation) {
             gson()
             gson(customContentType)
@@ -41,7 +47,7 @@ abstract class JsonTest : TestWithKtor() {
         }
     }
 
-    val customContentType = ContentType.parse("application/x-json")
+    private val customContentType = ContentType.parse("application/x-json")
 
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/widget") {
@@ -69,23 +75,53 @@ abstract class JsonTest : TestWithKtor() {
 
     protected fun TestClientBuilder<*>.configClient() {
         config {
-            install(JsonFeature) {
-                serializer = serializerImpl
+            configJsonFeature()
+        }
+    }
+
+    private fun HttpClientConfig<*>.configJsonFeature(block: JsonFeature.Config.() -> Unit = {}) {
+        install(JsonFeature) {
+            serializerImpl?.let {
+                serializer = it
             }
+            block()
         }
     }
 
     private fun TestClientBuilder<*>.configCustomContentTypeClient(block: JsonFeature.Config.() -> Unit) {
         config {
-            install(JsonFeature) {
-                serializer = serializerImpl
-                block()
+            configJsonFeature(block)
+        }
+    }
+
+    @org.junit.Test
+    public fun testEmptyBody() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { request ->
+                    respond(
+                        request.body.toByteReadPacket().readText(),
+                        headers = buildHeaders {
+                            append("X-ContentType", request.body.contentType.toString())
+                        }
+                    )
+                }
             }
+            defaultRequest {
+                contentType(ContentType.Application.Json)
+            }
+            configJsonFeature()
+        }
+
+        test { client ->
+            val response: HttpResponse = client.get("https://test.com")
+            assertEquals("", response.readText())
+            assertEquals("null", response.headers["X-ContentType"])
         }
     }
 
     @Test
-    fun testSerializeSimple() = testWithEngine(CIO) {
+    public fun testSerializeSimple() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -98,7 +134,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeNested() = testWithEngine(CIO) {
+    public fun testSerializeNested() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -111,7 +147,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypes() = testWithEngine(CIO) {
+    public fun testCustomContentTypes() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(customContentType)
         }
@@ -149,7 +185,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesMultiple() = testWithEngine(CIO) {
+    public fun testCustomContentTypesMultiple() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Json, customContentType)
         }
@@ -167,7 +203,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesWildcard() = testWithEngine(CIO) {
+    public fun testCustomContentTypesWildcard() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Any)
         }
@@ -199,20 +235,20 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Serializable
-    data class Response<T>(
+    public data class Response<T>(
         val ok: Boolean,
         val result: T?
     )
 
     @Serializable
-    data class Widget(
+    public data class Widget(
         val name: String,
         val value: Int,
         val tags: List<String> = emptyList()
     )
 
     @Serializable
-    data class User(
+    public data class User(
         val name: String,
         val age: Int
     )

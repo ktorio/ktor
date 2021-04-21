@@ -1,10 +1,9 @@
-
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 apply from: project.rootProject.file('gradle/pom.gradle')
 
 task emptyJar(type: Jar) {
+    archiveAppendix.set("empty")
 }
 
 def selectArtifactId(project, type, defaultName) {
@@ -16,11 +15,11 @@ def selectArtifactId(project, type, defaultName) {
     switch (type) {
         case 'metadata':
             if (!isCommon) return "$name-$type"
-            return commonIsRoot ? "$name" : "$name-common"
+            return "$name-metadata"
             break
         case 'kotlinMultiplatform':
             if (!hasNative) return "$name-kotlinMultiplatform"
-            return isCommon ? "$name-native" : "$name"
+            return name
             break
         case 'jvm':
             return commonIsRoot ? "$name-jvm" : "$name"
@@ -36,7 +35,7 @@ def isAvailableForPublication(publication) {
     if (name in ['maven']) return true
 
     def result = false
-    result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'metadata', 'kotlinMultiplatform'])
+    result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'jsLegacy', 'metadata', 'kotlinMultiplatform'])
     result = result | (project.ext.isLinuxHost && name == 'linuxX64')
     result = result | (project.ext.isWinHost && name == 'mingwX64')
     result = result | (project.ext.isMacosHost && name in ['iosX64', 'iosArm32', 'iosArm64', 'macosX64', 'watchosArm32', 'watchosArm64', 'watchosX86', 'tvosArm64', 'tvosX64'])
@@ -48,19 +47,20 @@ tasks.withType(AbstractPublishToMaven).all {
     onlyIf { isAvailableForPublication(publication) }
 }
 
+def publishingUser = System.getenv('PUBLISHING_USER')
+def publishingPassword = System.getenv('PUBLISHING_PASSWORD')
+def publishingUrl = System.getenv("PUBLISHING_URL")
+
 publishing {
     repositories {
         maven {
             if (publishLocal) {
                 url globalM2
             } else {
-                def user = 'kotlin'
-                def repo = 'ktor'
-                def name = 'ktor'
-                url = "https://api.bintray.com/maven/$user/$repo/$name/;publish=0"
+                url = publishingUrl
                 credentials {
-                    username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-                    password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+                    username = publishingUser
+                    password = publishingPassword
                 }
             }
         }
@@ -73,10 +73,9 @@ publishing {
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
 
-        if (id.endsWith('native')) {
+        if (name == "kotlinMultiplatform") {
             it.artifact(emptyJar) { classifier 'javadoc' }
             it.artifact(emptyJar) { classifier 'kdoc' }
-            it.artifact emptyJar
         }
     }
 
@@ -100,20 +99,27 @@ publishing {
                 }
             }
 
-            if (target.platformType.name != 'native') {
-                publication.moduleDescriptorGenerator = null
-            } else {
+            if (target.platformType.name == 'native') {
                 publication.artifact emptyJar
             }
         }
     }
-
-    // Disable gradle metadata in root jvm modules
-    def hasNative = project.ext.has("hasNative") && project.ext.hasNative
-    if (!hasNative) {
-        def rootPublication = publishing.publications.findByName('kotlinMultiplatform')
-        rootPublication.moduleDescriptorGenerator = null
-    }
 }
 
 publish.dependsOn publishToMavenLocal
+
+
+def signingKey = System.getenv("SIGN_KEY_ID")
+def signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
+
+if (signingKey != null && signingKey != "") {
+    project.ext["signing.gnupg.keyName"] = signingKey
+    project.ext["signing.gnupg.passphrase"] = signingKeyPassphrase
+
+    apply plugin: 'signing'
+
+    signing {
+        useGpgCmd()
+        sign publishing.publications
+    }
+}

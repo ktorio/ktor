@@ -9,26 +9,26 @@ import java.util.concurrent.*
 /**
  * Create JVM specific attributes instance.
  */
-actual fun Attributes(concurrent: Boolean): Attributes =
+public actual fun Attributes(concurrent: Boolean): Attributes =
     if (concurrent) ConcurrentSafeAttributes() else HashMapAttributes()
 
 private abstract class AttributesJvmBase : Attributes {
     protected abstract val map: MutableMap<AttributeKey<*>, Any?>
 
     @Suppress("UNCHECKED_CAST")
-    final override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
+    public final override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
 
-    final override operator fun contains(key: AttributeKey<*>): Boolean = map.containsKey(key)
+    public final override operator fun contains(key: AttributeKey<*>): Boolean = map.containsKey(key)
 
-    final override fun <T : Any> put(key: AttributeKey<T>, value: T) {
+    public final override fun <T : Any> put(key: AttributeKey<T>, value: T) {
         map[key] = value
     }
 
-    final override fun <T : Any> remove(key: AttributeKey<T>) {
+    public final override fun <T : Any> remove(key: AttributeKey<T>) {
         map.remove(key)
     }
 
-    final override val allKeys: List<AttributeKey<*>>
+    public final override val allKeys: List<AttributeKey<*>>
         get() = map.keys.toList()
 }
 

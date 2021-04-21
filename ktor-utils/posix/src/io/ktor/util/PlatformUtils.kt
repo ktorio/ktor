@@ -5,9 +5,11 @@
 package io.ktor.util
 
 @InternalAPI
-actual object PlatformUtils {
-    actual val IS_BROWSER: Boolean = false
-    actual val IS_NODE: Boolean = false
-    actual val IS_JVM: Boolean = false
-    actual val IS_NATIVE: Boolean = true
+public actual object PlatformUtils {
+    public actual val IS_BROWSER: Boolean = false
+    public actual val IS_NODE: Boolean = false
+    public actual val IS_JVM: Boolean = false
+    public actual val IS_NATIVE: Boolean = true
+
+    public actual val IS_DEVELOPMENT_MODE: Boolean = false
 }

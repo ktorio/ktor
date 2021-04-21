@@ -6,6 +6,11 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.tests.*
 
-class ApacheMultithreadedTest : MultithreadedTest(Apache)
-
 class ApacheHttpClientTest : HttpClientTest(Apache)
+
+class ApacheSslOverProxyTest : SslOverProxyTest<ApacheEngineConfig>(Apache) {
+
+    override fun ApacheEngineConfig.disableCertificatePinning() {
+        this.sslContext = this@ApacheSslOverProxyTest.unsafeSslContext
+    }
+}

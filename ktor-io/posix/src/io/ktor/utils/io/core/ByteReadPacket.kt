@@ -2,12 +2,17 @@
 
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.cinterop.*
 
-actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (ByteArray) -> Unit): ByteReadPacket {
+public actual fun ByteReadPacket(
+    array: ByteArray,
+    offset: Int,
+    length: Int,
+    block: (ByteArray) -> Unit
+): ByteReadPacket {
     if (length == 0) {
         block(array)
         return ByteReadPacket.Empty
@@ -24,7 +29,7 @@ actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (By
             pinned = content
 
             @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(base, length), null)
+            return IoBuffer(Memory.of(base, length), null, this as ObjectPool<IoBuffer>)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {

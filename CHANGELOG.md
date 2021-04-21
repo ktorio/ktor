@@ -1,3 +1,271 @@
+# 1.5.3
+> Published 2 Apr 2021
+
+*  Upgraded to coroutines 1.4.3 ([KTOR-2254](https://youtrack.jetbrains.com/issue/KTOR-2254))
+*  Upgraded kotlinx.serialization to 1.1.0 ([KTOR-2238](https://youtrack.jetbrains.com/issue/KTOR-2238))
+*  Fixed I/O readRemaining sometimes looses exception ([KTOR-2263](https://youtrack.jetbrains.com/issue/KTOR-2263))
+*  Fixed autoreload with 1.5.x when using embeddedServer NOT in debug mode regression  ([KTOR-2214](https://youtrack.jetbrains.com/issue/KTOR-2214))
+*  Fixed flaky CIOSustainabilityTest.testBlockingConcurrency[jvm] ([KTOR-2265](https://youtrack.jetbrains.com/issue/KTOR-2265))
+*  Resolve 'node-fetch' on libs produced by jsBrowserProductionLibraryDistribution regression  ([KTOR-2230](https://youtrack.jetbrains.com/issue/KTOR-2230))
+*  Updated doc string for FormPart ([KTOR-2173](https://youtrack.jetbrains.com/issue/KTOR-2173))
+*  Fixed java.lang.IllegalStateException: No instance for key AttributeKey: ExpectSuccessAttribyteKey regression  ([KTOR-2389](https://youtrack.jetbrains.com/issue/KTOR-2389))
+*  Supported overriding Kotlin module configuration using jackson dsl function ([KTOR-1692](https://youtrack.jetbrains.com/issue/KTOR-1692))
+*  Fixed CORS can't pass on some none standard orgin on jvm  ([KTOR-469](https://youtrack.jetbrains.com/issue/KTOR-469))
+*  Fixed unexpected exception when using Session feature: "Using blocking primitives on this dispatcher is not allowed" regression jvm  ([KTOR-1452](https://youtrack.jetbrains.com/issue/KTOR-1452))
+*  Fixed NettyApplicationEngine providing a configureBootstrap in the configuration throws IllegalStateException: group set already ([KTOR-2078](https://youtrack.jetbrains.com/issue/KTOR-2078))
+*  Fixed wrong indentation in `Serving Static Content` guide ([KTOR-2017](https://youtrack.jetbrains.com/issue/KTOR-2017))
+*  Fixed InsufficientSpaceException trying to build ByteReadPacket jvm  ([KTOR-960](https://youtrack.jetbrains.com/issue/KTOR-960))
+*  Fixed flaky ProxyTest.testHttpProxy[CIO][jvm] ([KTOR-2082](https://youtrack.jetbrains.com/issue/KTOR-2082))
+*  Fixed invalid assertion for existence of the key in the key store ([KTOR-2311](https://youtrack.jetbrains.com/issue/KTOR-2311))
+*  Fixed incorrect grammar in exception messages ([KTOR-2284](https://youtrack.jetbrains.com/issue/KTOR-2284))
+*  Fixed flaky JavaEngineTests.testThreadLeak[jvm] ([KTOR-2098](https://youtrack.jetbrains.com/issue/KTOR-2098))
+*  Fixed flaky JettyStressTest.highLoadStressTest ([KTOR-2080](https://youtrack.jetbrains.com/issue/KTOR-2080))
+*  Fixed flaky ExceptionsJvmTest.testConnectionClosedDuringRequest[jvm] ([KTOR-2063](https://youtrack.jetbrains.com/issue/KTOR-2063))
+
+# 1.5.2
+> Published 25 Feb 2021
+
+* Fixed Dokka building for master ([KTOR-2206](https://youtrack.jetbrains.com/issue/KTOR-2206))
+* Fixed native build on linux machine ([KTOR-2200](https://youtrack.jetbrains.com/issue/KTOR-2200))
+* Fixed docker doc is incorrect / does not work ([KTOR-2179](https://youtrack.jetbrains.com/issue/KTOR-2179))
+* Fixed crash with Firebase Performance in iOS ([KTOR-642](https://youtrack.jetbrains.com/issue/KTOR-642))
+* Fixed Ktor Client CIO engine Jvm ignores Cipher suites with key strength more than 128 bits. ([KTOR-1914](https://youtrack.jetbrains.com/issue/KTOR-1914))
+* Fixed mandatory Path Segment parameter can be empty, if no explicit route with trailing / is defined ([KTOR-2054](https://youtrack.jetbrains.com/issue/KTOR-2054))
+* Fixed flaky ClientSocketTest.testSelfConnect[jvm] ([KTOR-2060](https://youtrack.jetbrains.com/issue/KTOR-2060))
+* Switch JS Fetch API to Standard Library (org.w3c.fetch.*) ([KTOR-1460](https://youtrack.jetbrains.com/issue/KTOR-1460))
+* Fixed CIO server always start on "0.0.0.0" - does not respect "connector" configuration ([KTOR-334](https://youtrack.jetbrains.com/issue/KTOR-334))
+* Fixed server/netty: IllegalReferenceCountException ([KTOR-1801](https://youtrack.jetbrains.com/issue/KTOR-1801))
+* Fixed digest authentication: cannot successfully pass authentication using curl or web browser ([KTOR-1466](https://youtrack.jetbrains.com/issue/KTOR-1466))
+* Fixed HTTP Client exception is masked by JobCancellationException with Ktor 1.5.0 ([KTOR-1967](https://youtrack.jetbrains.com/issue/KTOR-1967))
+* Fixed changing `requestTimeoutMillis` in config of HttpTimeout feature doesn't change the CIO's timeout ([KTOR-2000](https://youtrack.jetbrains.com/issue/KTOR-2000))
+* Fixed test a POST with MultiPart using TestApplicationEngine does not success or fail ([KTOR-345](https://youtrack.jetbrains.com/issue/KTOR-345))
+* Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
+* Fixed custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
+* Fixed session cookie with very long max age duration ([KTOR-692](https://youtrack.jetbrains.com/issue/KTOR-692))
+
+# 1.5.1
+> Published 27 Jan 2021
+
+* Circular reference for SocketException and StackOverflowError when using SLF4J logger ([KTOR-1080](https://youtrack.jetbrains.com/issue/KTOR-1080))
+* start.ktor.io - Incorrect import for websockets for ktor 1.2.4 ([KTOR-274](https://youtrack.jetbrains.com/issue/KTOR-274))
+* Unable to catch socket exceptions ([KTOR-1166](https://youtrack.jetbrains.com/issue/KTOR-1166))
+* Support explicit WebSocket session close ([KTOR-340](https://youtrack.jetbrains.com/issue/KTOR-340))
+* ktor-client-apache: thread stuck in ByteBufferChannel.readRemainingSuspend ([KTOR-1463](https://youtrack.jetbrains.com/issue/KTOR-1463))
+* Logging tests fails due to floating log entries ([KTOR-1870](https://youtrack.jetbrains.com/issue/KTOR-1870))
+* Adding existing dropwizard metrics registry to Ktor ([KTOR-1798](https://youtrack.jetbrains.com/issue/KTOR-1798))
+* Exception kotlinx.serialization.SerializationException: Class 'ArrayList' is not registered for polymorphic serialization in the scope of 'Collection' in 1.5.0 ([KTOR-1795](https://youtrack.jetbrains.com/issue/KTOR-1795))
+* Prevent double quotes on header params ([KTOR-1797](https://youtrack.jetbrains.com/issue/KTOR-1797))
+* Post request shows empty body after upgrading v1.3.2 ([KTOR-426](https://youtrack.jetbrains.com/issue/KTOR-426))
+* CIO native selector doesn't select new descriptors ([KTOR-1856](https://youtrack.jetbrains.com/issue/KTOR-1856))
+* Client logging docs don't mention all required dependencies ([KTOR-280](https://youtrack.jetbrains.com/issue/KTOR-280))
+* Out of date self-signed-certificate documentation ([KTOR-272](https://youtrack.jetbrains.com/issue/KTOR-272))
+* ClosedReceiveChannelException when making request with CIO engine using a proxy to https ([KTOR-1458](https://youtrack.jetbrains.com/issue/KTOR-1458))
+* Incorrect encoding function used for URL path by URLBuilder ([KTOR-1543](https://youtrack.jetbrains.com/issue/KTOR-1543))
+* A single slash gets ignored for defining a route, but 1.5 requires them due to KTOR-372 ([KTOR-1615](https://youtrack.jetbrains.com/issue/KTOR-1615))
+* Wrong shadow plugin version in Fat JAR docs ([KTOR-1359](https://youtrack.jetbrains.com/issue/KTOR-1359))
+* ktor server documentation is returning 404 ([KTOR-1602](https://youtrack.jetbrains.com/issue/KTOR-1602))
+* CORS doesn't reject bad headers ([KTOR-1662](https://youtrack.jetbrains.com/issue/KTOR-1662))
+* OkHTTP client engine tries to close the connection twice during the closing handshake ([KTOR-1374](https://youtrack.jetbrains.com/issue/KTOR-1374))
+* Dispatcher is closing earlier than client ([KTOR-1661](https://youtrack.jetbrains.com/issue/KTOR-1661))
+* Server losing channel exceptions at receive ([KTOR-1590](https://youtrack.jetbrains.com/issue/KTOR-1590))
+* Request parameters should have name ([KTOR-378](https://youtrack.jetbrains.com/issue/KTOR-378))
+* Status-code must be 3-digit ([KTOR-370](https://youtrack.jetbrains.com/issue/KTOR-370))
+* Connect request sends wrong status line ([KTOR-1612](https://youtrack.jetbrains.com/issue/KTOR-1612))
+* Response channel is always cancelled with Logging feature ([KTOR-1598](https://youtrack.jetbrains.com/issue/KTOR-1598))
+* Java client logging tests are fluky ([KTOR-1599](https://youtrack.jetbrains.com/issue/KTOR-1599))
+* HttpTimeoutTest.testConnect are flaky ([KTOR-1583](https://youtrack.jetbrains.com/issue/KTOR-1583))
+* Jetty: requests to resources, that doesn't respond with HTTP/2, lead to unexpected behaviour ([KTOR-874](https://youtrack.jetbrains.com/issue/KTOR-874))
+* "Unfinished workers detected" using client on native ([KTOR-1220](https://youtrack.jetbrains.com/issue/KTOR-1220))
+* HttpTimeout.testSocketTimeoutWriteFail is flaky ([KTOR-1584](https://youtrack.jetbrains.com/issue/KTOR-1584))
+* Reserved characters in path is not encoded ([KTOR-570](https://youtrack.jetbrains.com/issue/KTOR-570))
+* testTimeoutCancelsWhenParentScopeCancels is flaky ([KTOR-1585](https://youtrack.jetbrains.com/issue/KTOR-1585))
+* Java client freeze ([KTOR-1567](https://youtrack.jetbrains.com/issue/KTOR-1567))
+* CallLoggingTest is flaky ([KTOR-1582](https://youtrack.jetbrains.com/issue/KTOR-1582))
+* Missing dependency information the Authentication and Authorization topic ([KTOR-1575](https://youtrack.jetbrains.com/issue/KTOR-1575))
+* "Using a Self-Signed Certificate" docs provide wrong dependency for 1.3.x ([KTOR-21](https://youtrack.jetbrains.com/issue/KTOR-21))
+* "Testing Http Client" docs page contains artifact name with -native suffix ([KTOR-1006](https://youtrack.jetbrains.com/issue/KTOR-1006))
+* Custom JSON mapping with Jackson ([KTOR-603](https://youtrack.jetbrains.com/issue/KTOR-603))
+* Serialization for client section does not explain how to use it ([KTOR-999](https://youtrack.jetbrains.com/issue/KTOR-999))
+* Add information about required artifacts to the WebSockets topic ([KTOR-1532](https://youtrack.jetbrains.com/issue/KTOR-1532))
+* Missing dependency information the Client Auth topic ([KTOR-1533](https://youtrack.jetbrains.com/issue/KTOR-1533))
+* New documentation lacks artifacts information for Gradle and Maven ([KTOR-1167](https://youtrack.jetbrains.com/issue/KTOR-1167))
+* ResponseException is no longer serializable starting from 1.4.0 (breaking change) ([KTOR-1552](https://youtrack.jetbrains.com/issue/KTOR-1552))
+* Upgrade kotlin to 1.4.21 ([KTOR-1637](https://youtrack.jetbrains.com/issue/KTOR-1637))
+
+# 1.5.0
+> Published 22 Dec 2020
+
+* Fixed crash when sending large responses in 1.4.2 ([KTOR-1369](https://youtrack.jetbrains.com/issue/KTOR-1369))
+* Introduced URLBuilder function to append paths ([KTOR-403](https://youtrack.jetbrains.com/issue/KTOR-403))
+* Allowed `OkHttpConfig` to configure `WebSocket.Factory` ([KTOR-951](https://youtrack.jetbrains.com/issue/KTOR-951))
+* Get client certificate information from request ([KTOR-424](https://youtrack.jetbrains.com/issue/KTOR-424))
+* Fixed quoting `Content-Disposition` additional parameters ([KTOR-455](https://youtrack.jetbrains.com/issue/KTOR-455))
+* Support Java HTTP Client ([KTOR-348](https://youtrack.jetbrains.com/issue/KTOR-348))
+* Serializing collections of different element types ([KTOR-1163](https://youtrack.jetbrains.com/issue/KTOR-1163))
+* Introduced Netty `tcpKeepAlive` option ([KTOR-368](https://youtrack.jetbrains.com/issue/KTOR-368))
+* Implemented development mode for Ktor ([KTOR-1184](https://youtrack.jetbrains.com/issue/KTOR-1184))
+* Implemented proper unhandled exception handling strategy ([KTOR-835](https://youtrack.jetbrains.com/issue/KTOR-835))
+* Added OAuth feature config to avoid Dropbox issue ([KTOR-715](https://youtrack.jetbrains.com/issue/KTOR-715))
+* Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))
+* Added CIO client proxy tunneling support ([KTOR-1458](https://youtrack.jetbrains.com/issue/KTOR-1458))
+* Supported Sealed Classes inside Session-Objects ([KTOR-826](https://youtrack.jetbrains.com/issue/KTOR-826))
+* Fixed code autoreload ([KTOR-664](https://youtrack.jetbrains.com/issue/KTOR-664))
+* Added response text to the message of `ResponseException` and derived
+  exceptions ([KTOR-844](https://youtrack.jetbrains.com/issue/KTOR-844))
+* Added ability to send cookies with `HttpRequestBuilder` ([KTOR-926](https://youtrack.jetbrains.com/issue/KTOR-926))
+* Added warning to HTTP/2 push API ([KTOR-1329](https://youtrack.jetbrains.com/issue/KTOR-1329))
+* Fixed parsing Authorization header diagnostics ([KTOR-1406](https://youtrack.jetbrains.com/issue/KTOR-1406))
+* Fixed CORS character encoding issue ([KTOR-1370](https://youtrack.jetbrains.com/issue/KTOR-1370))
+* Added CORS `anyHeader` in feature configuration ([KTOR-977](https://youtrack.jetbrains.com/issue/KTOR-977),
+  [KTOR-1263](https://youtrack.jetbrains.com/issue/KTOR-1263))
+* Added curl engine option sslVerify ([KTOR-1093](https://youtrack.jetbrains.com/issue/KTOR-1093))
+* Fixed client response validation in some cases ([KTOR-1412](https://youtrack.jetbrains.com/issue/KTOR-1412))
+* Introduced support for pre-compresed files ([KTOR-1447](https://youtrack.jetbrains.com/issue/KTOR-1447))
+* Fixed Apache client engine sometimes hits an unrecoverable socket timeout when using
+  ChannelWriterContent ([KTOR-1149](https://youtrack.jetbrains.com/issue/KTOR-1149))
+* Fixed typo `val socketTimeout` in `CIOEngineConfig` cause it's a property in the
+  config ([KTOR-1240](https://youtrack.jetbrains.com/issue/KTOR-1240))
+* Added excludeSuffix to HttpsRedirect feature ([KTOR-1197](https://youtrack.jetbrains.com/issue/KTOR-1197))
+* Fixed CIO client connectRetryAttempts = 0 handling ([KTOR-1125](https://youtrack.jetbrains.com/issue/KTOR-1125))
+* Added option to use specific alias from keystore in CIO TLSConfigBuilder JVM
+  ([KTOR-941](https://youtrack.jetbrains.com/issue/KTOR-941))
+
+# 1.4.3
+> Published 1 Dec 2020
+
+* Client: URL encode / escaping is wrong ([KTOR-341](https://youtrack.jetbrains.com/issue/KTOR-341))
+* HTTP/2 push fails with netty engine ([KTOR-800](https://youtrack.jetbrains.com/issue/KTOR-800))
+* Request headers exceeding expected threshold are not handled correctly ([KTOR-905](https://youtrack.jetbrains.com/issue/KTOR-905))
+* iOS client fails with CoroutinesInternalError when Logging is used ([KTOR-924](https://youtrack.jetbrains.com/issue/KTOR-924))
+* Experimental API and compatibility guarantees ([KTOR-1035](https://youtrack.jetbrains.com/issue/KTOR-1035))
+* CIO: client engine exceptions are both logged and thrown ([KTOR-1127](https://youtrack.jetbrains.com/issue/KTOR-1127))
+* Timeout﻿ feature: android engine throws Java's SocketTimeoutException instead of ConnectTimeoutException ([KTOR-1229](https://youtrack.jetbrains.com/issue/KTOR-1229))
+* Input.readTextExactBytes(n) on empty input different behavior per platform ([KTOR-1235](https://youtrack.jetbrains.com/issue/KTOR-1235))
+* HttpRedirect feature alters Location header value ([KTOR-1236](https://youtrack.jetbrains.com/issue/KTOR-1236))
+* Wrong pool is used to release `IOBuffer` after `ByteChannelSequential.copyTo` from static initialized instance. ([KTOR-1237](https://youtrack.jetbrains.com/issue/KTOR-1237))
+* CIO Engine's HttpClient may fail when trying to send large size binary data. ([KTOR-1247](https://youtrack.jetbrains.com/issue/KTOR-1247))
+* `ByteBufferChannel.readRemaining` doesn't read whole channel ([KTOR-1268](https://youtrack.jetbrains.com/issue/KTOR-1268))
+* Cannot receive content via jackson negotiator since 1.4.2 ([KTOR-1286](https://youtrack.jetbrains.com/issue/KTOR-1286))
+* ktor-io: JVM shared function decrease performance starting from 1.4.0 ([KTOR-1290](https://youtrack.jetbrains.com/issue/KTOR-1290))
+* Sessions + SSL (Netty) ([KTOR-1292](https://youtrack.jetbrains.com/issue/KTOR-1292))
+* Netty HTTP/2 HEAD response hangs ([KTOR-1298](https://youtrack.jetbrains.com/issue/KTOR-1298))
+* Using blocking primitives on this dispatcher is not allowed. Consider using async channel instead or use blocking primitives in withContext(Dispatchers.IO) instead. ([KTOR-1305](https://youtrack.jetbrains.com/issue/KTOR-1305))
+* "Wrong HEX escape": gracefully handle invalid URLs ([KTOR-1308](https://youtrack.jetbrains.com/issue/KTOR-1308))
+* Add build parameter to build ktor with JVM IR compiler ([KTOR-1336](https://youtrack.jetbrains.com/issue/KTOR-1336))
+* Update kotlin to 1.4.20 ([KTOR-1346](https://youtrack.jetbrains.com/issue/KTOR-1346))
+* Fix configuration if project without VPN and cache ([KTOR-1347](https://youtrack.jetbrains.com/issue/KTOR-1347))
+* Client: NPE in FormDataContentKt -> Input.copyTo ([KTOR-1349](https://youtrack.jetbrains.com/issue/KTOR-1349))
+* Upgrade Netty to 4.1.54.Final ([KTOR-1363](https://youtrack.jetbrains.com/issue/KTOR-1363))
+* Handle failure in reading request body ([KTOR-1367](https://youtrack.jetbrains.com/issue/KTOR-1367))
+* Remove copyTo usage from ServerPipeline ([KTOR-1381](https://youtrack.jetbrains.com/issue/KTOR-1381))
+
+# 1.4.2 
+
+> Published 10 Nov 2020
+
+Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
+
+# 1.4.1
+> Published 23 Sep 2020
+
+* OkHttp: Can't reuse same HttpRequestBuilder for different network clients ([KTOR-949](https://youtrack.jetbrains.com/issue/KTOR-949))
+* Empty body in response using macosX64 target ([KTOR-479](https://youtrack.jetbrains.com/issue/KTOR-479))
+* Native: InvalidMutabilityException creating HttpClient ([KTOR-915](https://youtrack.jetbrains.com/issue/KTOR-915))
+* MultiPartData.readAllParts() throws java.io.IOException when multipart list is empty ([KTOR-767](https://youtrack.jetbrains.com/issue/KTOR-767))
+* kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen io(.ktor.client.request.HttpRequestPipeline ([KTOR-693](https://youtrack.jetbrains.com/issue/KTOR-693))
+* "FreezingException: freezing of InvokeOnCompletion has failed" using native-mt coroutines ([KTOR-973](https://youtrack.jetbrains.com/issue/KTOR-973))
+* kotlin.native.concurrent.InvalidMutabilityException with 1.3.3-native-mt ([KTOR-497](https://youtrack.jetbrains.com/issue/KTOR-497))
+* Parser Exception in header with character code 1 not allowed ([KTOR-860](https://youtrack.jetbrains.com/issue/KTOR-860))
+* Calling HttpStatement#toString more than once throws IllegalArgumentException ([KTOR-1005](https://youtrack.jetbrains.com/issue/KTOR-1005))
+* Wrong session id get stuck at clients ([KTOR-1007](https://youtrack.jetbrains.com/issue/KTOR-1007))
+* Exception after WebSocketSession.close() invocation. ([KTOR-847](https://youtrack.jetbrains.com/issue/KTOR-847))
+* Error Ktor running on background thread on iOS ([KTOR-499](https://youtrack.jetbrains.com/issue/KTOR-499))
+* HttpClient can only be used on the main thread for native targets ([KTOR-491](https://youtrack.jetbrains.com/issue/KTOR-491))
+* Ignore content length when transfer encoding is chunked for CIO server ([KTOR-1036](https://youtrack.jetbrains.com/issue/KTOR-1036))
+* ConcurrentList.increaseCapacity() throws ArrayIndexOutOfBoundsException ([KTOR-1034](https://youtrack.jetbrains.com/issue/KTOR-1034))
+* Ktor 1.3.1 Fails File Upload with MalformedInputException ([KTOR-391](https://youtrack.jetbrains.com/issue/KTOR-391))
+* Update library versions, fix config after release ([KTOR-1027](https://youtrack.jetbrains.com/issue/KTOR-1027))
+* Fix parsing urls with trailing spaces ([KTOR-886](https://youtrack.jetbrains.com/issue/KTOR-886))
+* 1.4.0: breaking change by making response nullable in ResponseException ([KTOR-916](https://youtrack.jetbrains.com/issue/KTOR-916))
+* Netty: Not started servers leak resources ([KTOR-939](https://youtrack.jetbrains.com/issue/KTOR-939))
+* Ktor websocket client passes configured max frame as timeout millis ([KTOR-923](https://youtrack.jetbrains.com/issue/KTOR-923))
+* Routing: get matcher has higher priority than param matcher on the same level ([KTOR-792](https://youtrack.jetbrains.com/issue/KTOR-792))
+* Confusing log message about failed session lookup ([KTOR-776](https://youtrack.jetbrains.com/issue/KTOR-776))
+* Implement runtime check of using `native-mt` coroutines ([KTOR-956](https://youtrack.jetbrains.com/issue/KTOR-956))
+* Http parse security issue ([KTOR-841](https://youtrack.jetbrains.com/issue/KTOR-841))
+* Bumped versions:
+    - kotlinx.coroutines 1.3.9-native-mt-2
+    - kotlinx.serialization 1.0.0-RC2
+    - kotlin 1.4.10
+
+# 1.4.0
+> Published 18 Aug 2020
+
+* Upgrade to kotlin 1.4.0
+* Add native platform support for CIO client (#2021)
+* Prevent access Tomcat servletRequest after recycling
+* Fix verbose IO exception logging
+* Fix client cookies remove
+* Fix suspend tests for digest provider
+* Add deprecation to BasicAuth feature
+* Add client.get operator for features
+* Add client websocket feature config
+* iOS Certificate Pinning (#1750)
+* Add originHost support in browser
+* Fix client logging issues with POST body
+* Prevent CURL multi-handle double close
+* Add content-type header to default transformers
+* Fix report for multiple failed engines in native
+* Use window.location.origin as default host in URLBuilder
+* Prevent Empty Cookie addition (#2008)
+* Fix executor service termination in okhttp (#1860)
+* Verify sending Content-Type and custom object body via POST (#1897)
+* Fix ByteBufferPool recycle (#2016)
+* Update jetty version
+* Fix CIO exception logged twice
+* Change exception type for long strings in readUtf8Line
+* Fix uri field in digest auth header to include query params (#1992)
+* Fix empty multipart post
+* Move the default test server to CIO
+* Fix webpack warning about ktor-client-core critical dependency
+* Fix missing qop in DigestAuthProvider (Issue #1974)
+* Handle " in different position cases
+* Fix parsing of quoted header parameter value
+* Fix saved call early completion
+* Fix tests with empty json check
+* Fix sending blank ContentType in Apache engine
+* Parse blank content type to Any
+* Fixed serialization of empty body (#1952)
+* JsonFeature: Fixed header behavior and made it more flexible (#1927)
+* Fix max-age header to use '=' instead f ':'. (#1769)
+* Add contextual serialization support
+* Introduce non-suspend api for writing
+* fix memory alignment check (#1742)
+* JetBrains Toolbox icon (#1805)
+* Apache should use existing approach when merging headers (#1919)
+* Fix conditional headers behaviour (Fix #1849).
+* Change IosHttpRequestException parent to improve usability
+* OAuth2: Added option to pass params in URL (#1847)
+* Fix doubling host
+* Enhanced handling of statusCode for AndroidEngine (#1852)
+* Fix deserialization issue in client (Fix #1800).
+* GitHub issue/pr links in IDEA Git log (#1806)
+* Fix log channel is not closed for ByteArrayContent (#1808)
+* Use comma to divide headers (Fix #1765).
+* HTTP Client tracing using Stetho Android library.
+* Fix static content resolution for directories inside Jar (#1777).
+* Improve WebSocket routing API (Fix #1075).
+* Implemented cookies encoding with their own encoding and added test cases for this
+* Fix URI support (#1755)
+* Fix OkHttp WebSocket close reason completion (#1363).
+* Fix package directive; Add unimported cfnetwork constants
+* Fix client.join to wait engine close
+* Verify receive from response in exception
+* Update okhttp version to 4.4.0
+* Cleanup iOS proxy configuration
+* Fix WebSocketTest.testMaxSize
+* Fix UTF8 parsing (#1718).
+
 # 1.3.2
 > Published 12 Mar 2020
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("MemberVisibilityCanBePrivate")
@@ -8,56 +8,60 @@ package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 
 /**
  * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
  */
-class CORS(configuration: Configuration) {
+public class CORS(configuration: Configuration) {
     private val numberRegex = "[0-9]+".toRegex()
 
     /**
      * Allow requests from the same origin
      */
-    val allowSameOrigin: Boolean = configuration.allowSameOrigin
+    public val allowSameOrigin: Boolean = configuration.allowSameOrigin
 
     /**
      * Allow requests from any origin
      */
-    val allowsAnyHost: Boolean = "*" in configuration.hosts
+    public val allowsAnyHost: Boolean = "*" in configuration.hosts
 
     /**
      * Allow to pass credentials
      */
-    val allowCredentials: Boolean = configuration.allowCredentials
+    public val allowCredentials: Boolean = configuration.allowCredentials
 
     /**
      * All allowed headers to be sent including simple
      */
-    val allHeaders: Set<String> = (configuration.headers + Configuration.CorsSimpleRequestHeaders).let { headers ->
-        if (configuration.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
-    }
+    public val allHeaders: Set<String> =
+        (configuration.headers + Configuration.CorsSimpleRequestHeaders).let { headers ->
+            if (configuration.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
+        }
+
+    /**
+     * Prefix for permitted headers
+     */
+    public val headerPredicates: List<(String) -> Boolean> = configuration.headerPredicates
 
     /**
      * All allowed HTTP methods
      */
-    val methods: Set<HttpMethod> = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
+    public val methods: Set<HttpMethod> = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
 
     /**
      * Set of all allowed headers
      */
-    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
+    public val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
 
     private val allowNonSimpleContentTypes: Boolean = configuration.allowNonSimpleContentTypes
 
-    private val headersListHeaderValue =
+    private val headersList =
         configuration.headers.filterNot { it in Configuration.CorsSimpleRequestHeaders }
             .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-            .sorted()
-            .joinToString(", ")
 
     private val methodsListHeaderValue =
         methods.filterNot { it in Configuration.CorsDefaultMethods }
@@ -77,22 +81,32 @@ class CORS(configuration: Configuration) {
      * Feature's call interceptor that does all the job. Usually there is no need to install it as it is done during
      * feature installation
      */
-    suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
+    public suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val call = context.call
 
         if (!allowsAnyHost || allowCredentials) {
             call.corsVary()
         }
 
-        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-            ?.takeIf(this::isValidOrigin)
-            ?: return
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
-        if (allowSameOrigin && call.isSameOrigin(origin)) return
+        when (checkOrigin(origin, call.request.origin)) {
+            OriginCheckResult.OK -> {}
+            OriginCheckResult.SkipCORS -> return
+            OriginCheckResult.Failed -> {
+                context.respondCorsFailed()
+                return
+            }
+        }
 
-        if (!corsCheckOrigins(origin)) {
-            context.respondCorsFailed()
-            return
+        if (!allowNonSimpleContentTypes) {
+            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            if (contentType != null) {
+                if (contentType.withoutParameters() !in Configuration.CorsSimpleContentTypes) {
+                    context.respondCorsFailed()
+                    return
+                }
+            }
         }
 
         if (call.request.httpMethod == HttpMethod.Options) {
@@ -116,8 +130,20 @@ class CORS(configuration: Configuration) {
         }
     }
 
+    internal fun checkOrigin(origin: String, point: RequestConnectionPoint): OriginCheckResult = when {
+        !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
+        allowSameOrigin && isSameOrigin(origin, point) -> OriginCheckResult.SkipCORS
+        !corsCheckOrigins(origin) -> OriginCheckResult.Failed
+        else -> OriginCheckResult.OK
+    }
+
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-        if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
+        val requestHeaders =
+            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
+                it.trim().toLowerCasePreservingASCIIRules()
+            } ?: emptyList()
+
+        if (!corsCheckRequestMethod() || (!corsCheckRequestHeaders(requestHeaders))) {
             respond(HttpStatusCode.Forbidden)
             return
         }
@@ -127,9 +153,12 @@ class CORS(configuration: Configuration) {
         if (methodsListHeaderValue.isNotEmpty()) {
             response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         }
-        if (headersListHeaderValue.isNotEmpty()) {
-            response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
-        }
+
+        val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesAPredicate(header) }
+
+        val headersListHeaderValue = (headersList + requestHeadersMatchingPrefix).sorted().joinToString(", ")
+
+        response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
         accessControlMaxAge()
 
         respond(HttpStatusCode.OK)
@@ -164,8 +193,8 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    private fun ApplicationCall.isSameOrigin(origin: String): Boolean {
-        val requestOrigin = "${this.request.origin.scheme}://${this.request.origin.host}:${this.request.origin.port}"
+    private fun isSameOrigin(origin: String, point: RequestConnectionPoint): Boolean {
+        val requestOrigin = "${point.scheme}://${point.host}:${point.port}"
         return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
     }
 
@@ -173,13 +202,14 @@ class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
-        val requestHeaders =
-            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+    private fun corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+        return requestHeaders.all { header ->
+            header in allHeadersSet || headerMatchesAPredicate(header)
+        }
+    }
 
-        return requestHeaders.none { it !in allHeadersSet }
+    private fun headerMatchesAPredicate(header: String): Boolean {
+        return headerPredicates.any { it(header) }
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -212,11 +242,12 @@ class CORS(configuration: Configuration) {
             return false
         }
 
-        // check proto
-        for (index in 0 until protoDelimiter) {
-            if (!origin[index].isLetter()) {
-                return false
-            }
+        val protoValid = origin[0].isLetter() && origin.subSequence(0, protoDelimiter).all { ch ->
+            ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.'
+        }
+
+        if (!protoValid) {
+            return false
         }
 
         var portIndex = origin.length
@@ -259,12 +290,12 @@ class CORS(configuration: Configuration) {
     /**
      * CORS feature configuration
      */
-    class Configuration {
-        companion object {
+    public class Configuration {
+        public companion object {
             /**
              * Default HTTP methods that are always allowed by CORS
              */
-            val CorsDefaultMethods: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
+            public val CorsDefaultMethods: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
 
             // https://www.w3.org/TR/cors/#simple-header
             /**
@@ -275,7 +306,7 @@ class CORS(configuration: Configuration) {
                 "Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead",
                 level = DeprecationLevel.ERROR
             )
-            val CorsDefaultHeaders: Set<String> = caseInsensitiveSet(
+            public val CorsDefaultHeaders: Set<String> = caseInsensitiveSet(
                 HttpHeaders.CacheControl,
                 HttpHeaders.ContentLanguage,
                 HttpHeaders.ContentType,
@@ -289,31 +320,31 @@ class CORS(configuration: Configuration) {
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              * Please note that `Content-Type` header simplicity depends on it's value.
              */
-            val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
-                    HttpHeaders.Accept,
-                    HttpHeaders.AcceptLanguage,
-                    HttpHeaders.ContentLanguage,
-                    HttpHeaders.ContentType
-                )
+            public val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
+                HttpHeaders.Accept,
+                HttpHeaders.AcceptLanguage,
+                HttpHeaders.ContentLanguage,
+                HttpHeaders.ContentType
+            )
 
             /**
              * Default HTTP headers that are always allowed by CORS to be used in response
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              */
-            val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
-                    HttpHeaders.CacheControl,
-                    HttpHeaders.ContentLanguage,
-                    HttpHeaders.ContentType,
-                    HttpHeaders.Expires,
-                    HttpHeaders.LastModified,
-                    HttpHeaders.Pragma
-                )
+            public val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
+                HttpHeaders.CacheControl,
+                HttpHeaders.ContentLanguage,
+                HttpHeaders.ContentType,
+                HttpHeaders.Expires,
+                HttpHeaders.LastModified,
+                HttpHeaders.Pragma
+            )
 
             /**
              * The allowed set of content types that are allowed by CORS without preflight check
              */
             @Suppress("unused")
-            val CorsSimpleContentTypes: Set<ContentType> =
+            public val CorsSimpleContentTypes: Set<ContentType> =
                 setOf(
                     ContentType.Application.FormUrlEncoded,
                     ContentType.MultiPart.FormData,
@@ -324,34 +355,39 @@ class CORS(configuration: Configuration) {
         /**
          * Allowed CORS hosts
          */
-        val hosts: MutableSet<String> = HashSet()
+        public val hosts: MutableSet<String> = HashSet()
 
         /**
          * Allowed CORS headers
          */
-        val headers: MutableSet<String> = CaseInsensitiveSet()
+        public val headers: MutableSet<String> = CaseInsensitiveSet()
 
         /**
          * Allowed HTTP methods
          */
-        val methods: MutableSet<HttpMethod> = HashSet()
+        public val methods: MutableSet<HttpMethod> = HashSet()
 
         /**
          * Exposed HTTP headers that could be accessed by a client
          */
-        val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
+        public val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
 
         /**
          * Allow sending credentials
          */
-        var allowCredentials: Boolean = false
+        public var allowCredentials: Boolean = false
+
+        /**
+         * If present represents the prefix for headers which are permitted in cors requests.
+         */
+        public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
 
         /**
          * Max-Age for cached CORS options
          */
         @Suppress("unused", "DEPRECATION")
         @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.HIDDEN)
-        var maxAge: java.time.Duration
+        public var maxAge: java.time.Duration
             get() = maxAge
             set(newMaxAge) {
                 maxAge = newMaxAge
@@ -360,7 +396,7 @@ class CORS(configuration: Configuration) {
         /**
          * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
          */
-        var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
+        public var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
             set(newMaxAge) {
                 check(newMaxAge >= 0L) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
                 field = newMaxAge
@@ -369,7 +405,7 @@ class CORS(configuration: Configuration) {
         /**
          * Allow requests from the same origin
          */
-        var allowSameOrigin: Boolean = true
+        public var allowSameOrigin: Boolean = true
 
         /**
          * Allow sending requests with non-simple content-types. The following content types are considered simple:
@@ -377,19 +413,19 @@ class CORS(configuration: Configuration) {
          * - `application/x-www-form-urlencoded`
          * - `multipart/form-data`
          */
-        var allowNonSimpleContentTypes: Boolean = false
+        public var allowNonSimpleContentTypes: Boolean = false
 
         /**
          * Allow requests from any host
          */
-        fun anyHost() {
+        public fun anyHost() {
             hosts.add("*")
         }
 
         /**
          * Allow requests from the specified domains and schemes
          */
-        fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
+        public fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
             if (host == "*") {
                 return anyHost()
             }
@@ -408,7 +444,7 @@ class CORS(configuration: Configuration) {
          * Allow to expose [header]. It adds the [header] to `Access-Control-Expose-Headers` if it is not a
          * simple response header.
          */
-        fun exposeHeader(header: String) {
+        public fun exposeHeader(header: String) {
             if (header !in CorsSimpleResponseHeaders) {
                 exposedHeaders.add(header)
             }
@@ -422,7 +458,7 @@ class CORS(configuration: Configuration) {
             ReplaceWith("allowXHttpMethodOverride()"),
             level = DeprecationLevel.ERROR
         )
-        fun exposeXHttpMethodOverride() {
+        public fun exposeXHttpMethodOverride() {
             exposedHeaders.add(HttpHeaders.XHttpMethodOverride)
         }
 
@@ -430,14 +466,28 @@ class CORS(configuration: Configuration) {
          * Allow to send `X-Http-Method-Override` header
          */
         @Suppress("unused")
-        fun allowXHttpMethodOverride() {
+        public fun allowXHttpMethodOverride() {
             header(HttpHeaders.XHttpMethodOverride)
+        }
+
+        /**
+         * Allow headers prefixed with [headerPrefix]
+         */
+        public fun allowHeadersPrefixed(headerPrefix: String) {
+            this.headerPredicates.add { name -> name.startsWith(headerPrefix) }
+        }
+
+        /**
+         * Allow headers that match [predicate]
+         */
+        public fun allowHeaders(predicate: (String) -> Boolean) {
+            this.headerPredicates.add(predicate)
         }
 
         /**
          * Allow sending [header]
          */
-        fun header(header: String) {
+        public fun header(header: String) {
             if (header.equals(HttpHeaders.ContentType, ignoreCase = true)) {
                 allowNonSimpleContentTypes = true
                 return
@@ -454,7 +504,7 @@ class CORS(configuration: Configuration) {
          * However you can add them here if you are implementing CORS at client side from the scratch
          * that you generally don't need to do.
          */
-        fun method(method: HttpMethod) {
+        public fun method(method: HttpMethod) {
             if (method !in CorsDefaultMethods) {
                 methods.add(method)
             }
@@ -464,11 +514,11 @@ class CORS(configuration: Configuration) {
     /**
      * Feature object for installation
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
         /**
          * The default CORS max age value
          */
-        const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
+        public const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
 
         override val key: AttributeKey<CORS> = AttributeKey("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
@@ -480,4 +530,8 @@ class CORS(configuration: Configuration) {
         private fun caseInsensitiveSet(vararg elements: String): Set<String> =
             CaseInsensitiveSet(elements.asList())
     }
+}
+
+internal enum class OriginCheckResult {
+    OK, SkipCORS, Failed
 }

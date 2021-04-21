@@ -9,11 +9,11 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 
 /**
  * Represents a test application request
@@ -23,12 +23,12 @@ import io.ktor.utils.io.core.*
  * @property version HTTP version to sent or executed
  * @property protocol HTTP protocol to be used or was used
  */
-class TestApplicationRequest constructor(
-        call: TestApplicationCall,
-        closeRequest: Boolean,
-        var method: HttpMethod = HttpMethod.Get,
-        var uri: String = "/",
-        var version: String = "HTTP/1.1"
+public class TestApplicationRequest constructor(
+    call: TestApplicationCall,
+    closeRequest: Boolean,
+    var method: HttpMethod = HttpMethod.Get,
+    var uri: String = "/",
+    var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
     var protocol: String = "http"
 
@@ -70,7 +70,7 @@ class TestApplicationRequest constructor(
     /**
      * Add HTTP request header
      */
-    fun addHeader(name: String, value: String) {
+    public fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         map.getOrPut(name, { arrayListOf() }).add(value)
     }
@@ -91,21 +91,21 @@ class TestApplicationRequest constructor(
 /**
  * Set HTTP request body text content
  */
-fun TestApplicationRequest.setBody(value: String) {
+public fun TestApplicationRequest.setBody(value: String) {
     setBody(value.toByteArray())
 }
 
 /**
  * Set HTTP request body bytes
  */
-fun TestApplicationRequest.setBody(value: ByteArray) {
+public fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
 }
 
 /**
  * Set multipart HTTP request body
  */
-fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
+public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IO) {
         if (parts.isEmpty()) return@writer
 
@@ -117,21 +117,23 @@ fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
                     append("$key: ${values.joinToString(";")}\r\n")
                 }
                 append("\r\n")
-                append(when (it) {
-                    is PartData.FileItem -> {
-                        it.provider().asStream().copyTo(channel.toOutputStream())
-                        ""
+                append(
+                    when (it) {
+                        is PartData.FileItem -> {
+                            it.provider().asStream().copyTo(channel.toOutputStream())
+                            ""
+                        }
+                        is PartData.BinaryItem -> {
+                            it.provider().asStream().copyTo(channel.toOutputStream())
+                            ""
+                        }
+                        is PartData.FormItem -> it.value
                     }
-                    is PartData.BinaryItem -> {
-                        it.provider().asStream().copyTo(channel.toOutputStream())
-                        ""
-                    }
-                    is PartData.FormItem -> it.value
-                })
+                )
                 append("\r\n")
             }
 
-            append("--$boundary--\r\n\r\n")
+            append("--$boundary--\r\n")
         } finally {
             parts.forEach { it.dispose() }
         }

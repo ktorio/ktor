@@ -9,7 +9,6 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
-import org.junit.Test
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
@@ -37,12 +36,13 @@ class MultipleDispatchOnTimeout {
             module {
                 intercept(ApplicationCallPipeline.Call) {
                     callCount.incrementAndGet()
-                    val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
-                    //                    println("Timeout is: $timeout")
+                    val timeout = Math.max(
+                        (call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout,
+                        0
+                    )
                     Thread.sleep(timeout + 1000)
                     call.respondTextWriter {
                         write("A ok!")
-
                     }
                 }
             }
@@ -66,5 +66,4 @@ class MultipleDispatchOnTimeout {
             jetty.stop(1, 5, TimeUnit.SECONDS)
         }
     }
-
 }

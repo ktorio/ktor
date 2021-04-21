@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty
@@ -14,7 +14,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class JettyApplicationResponse(
+public class JettyApplicationResponse(
     call: AsyncServletApplicationCall,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
@@ -32,6 +32,7 @@ class JettyApplicationResponse(
     coroutineContext
 ) {
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         if (baseRequest.isPushSupported) {
             baseRequest.pushBuilder.apply {

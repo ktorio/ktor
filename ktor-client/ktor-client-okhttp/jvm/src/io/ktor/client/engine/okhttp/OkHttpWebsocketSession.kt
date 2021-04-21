@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
@@ -13,9 +14,9 @@ import okio.*
 import okio.ByteString.Companion.toByteString
 import kotlin.coroutines.*
 
-@OptIn(ObsoleteCoroutinesApi::class)
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
+    private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext
 ) : DefaultWebSocketSession, WebSocketListener() {
@@ -26,7 +27,9 @@ internal class OkHttpWebsocketSession(
 
     override var pingIntervalMillis: Long
         get() = engine.pingIntervalMillis.toLong()
-        set(_) = throw WebSocketException("OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration.")
+        set(_) = throw WebSocketException(
+            "OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration."
+        )
 
     override var timeoutMillis: Long
         get() = engine.readTimeoutMillis.toLong()
@@ -49,8 +52,15 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+    }
+
+    @OptIn(ObsoleteCoroutinesApi::class)
     override val outgoing: SendChannel<Frame> = actor {
-        val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
+        val websocket: WebSocket = webSocketFactory.newWebSocket(engineRequest, self.await())
+        var closeReason = DEFAULT_CLOSE_REASON_ERROR
 
         try {
             for (frame in channel) {
@@ -58,17 +68,28 @@ internal class OkHttpWebsocketSession(
                     is Frame.Binary -> websocket.send(frame.data.toByteString(0, frame.data.size))
                     is Frame.Text -> websocket.send(String(frame.data))
                     is Frame.Close -> {
-                        val reason = frame.readReason()!!
-                        websocket.close(reason.code.toInt(), reason.message)
+                        val outgoingCloseReason = frame.readReason()!!
+                        if (!outgoingCloseReason.isReserved()) {
+                            closeReason = outgoingCloseReason
+                        }
                         return@actor
                     }
                     else -> throw UnsupportedFrameTypeException(frame)
                 }
             }
         } finally {
-            websocket.close(CloseReason.Codes.INTERNAL_ERROR.code.toInt(), "Client failure")
+            try {
+                websocket.close(closeReason.code.toInt(), closeReason.message)
+            } catch (cause: Throwable) {
+                websocket.cancel()
+                throw cause
+            }
         }
     }
+
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)
@@ -101,8 +122,9 @@ internal class OkHttpWebsocketSession(
         super.onClosing(webSocket, code, reason)
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
-        if (!outgoing.isClosedForSend) {
+        try {
             outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+        } catch (ignore: Throwable) {
         }
         _incoming.close()
     }
@@ -122,7 +144,7 @@ internal class OkHttpWebsocketSession(
     /**
      * Creates a new web socket and starts the session.
      */
-    fun start() {
+    public fun start() {
         self.complete(this)
     }
 
@@ -135,11 +157,20 @@ internal class OkHttpWebsocketSession(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
-class UnsupportedFrameTypeException(
+public class UnsupportedFrameTypeException(
     private val frame: Frame
 ) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
     override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {
         it.initCause(this)
     }
 }
+
+@Suppress("DEPRECATION")
+private fun CloseReason.isReserved() = CloseReason.Codes.byCode(code).let { recognized ->
+    recognized == null || recognized == CloseReason.Codes.CLOSED_ABNORMALLY
+}
+
+private val DEFAULT_CLOSE_REASON_ERROR: CloseReason =
+    CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Client failure")

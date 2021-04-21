@@ -1,10 +1,9 @@
 package io.ktor.utils.io.core
 
-actual interface Closeable {
-    actual fun close()
+public actual interface Closeable {
+    public actual fun close()
 }
 
 @PublishedApi
 internal actual fun Throwable.addSuppressedInternal(other: Throwable) {
 }
-

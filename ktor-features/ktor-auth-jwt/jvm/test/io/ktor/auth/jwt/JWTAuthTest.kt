@@ -297,7 +297,7 @@ class JWTAuthTest {
             application.configureServerJwt()
             val token = getToken().replace("Bearer", "Bearer:")
             val response = handleRequestWithToken(token)
-            verifyResponseUnauthorized(response)
+            verifyResponseBadRequest(response)
         }
     }
 
@@ -330,7 +330,7 @@ class JWTAuthTest {
             application.configureServerJwk(mock = true)
             val token = getJwkToken(true).replace("Bearer", "Bearer:")
             val response = handleRequestWithToken(token)
-            verifyResponseUnauthorized(response)
+            verifyResponseBadRequest(response)
         }
     }
 
@@ -468,6 +468,12 @@ class JWTAuthTest {
         assertNull(response.response.content)
     }
 
+    private fun verifyResponseBadRequest(response: TestApplicationCall) {
+        assertTrue(response.requestHandled)
+        assertEquals(HttpStatusCode.BadRequest, response.response.status())
+        assertNull(response.response.content)
+    }
+
     private fun verifyResponseForbidden(response: TestApplicationCall) {
         assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.Forbidden, response.response.status())
@@ -516,7 +522,6 @@ class JWTAuthTest {
                     else -> null
                 }
             }
-
         }
     }
 
@@ -532,23 +537,23 @@ class JWTAuthTest {
                     else -> null
                 }
             }
-
         }
     }
 
-    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Configuration.() -> Unit = {}) = configureServer {
-        jwt {
-            this@jwt.realm = this@JWTAuthTest.realm
-            verifier(makeJwtVerifier())
-            validate { credential ->
-                when {
-                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
-                    else -> null
+    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Configuration.() -> Unit = {}) =
+        configureServer {
+            jwt {
+                this@jwt.realm = this@JWTAuthTest.realm
+                verifier(makeJwtVerifier())
+                validate { credential ->
+                    when {
+                        credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                        else -> null
+                    }
                 }
+                extra()
             }
-            extra()
         }
-    }
 
     private fun Application.configureServer(authBlock: (Authentication.Configuration.() -> Unit)) {
         install(Authentication) {
@@ -559,8 +564,6 @@ class JWTAuthTest {
                 get("/") {
                     val principal = call.authentication.principal<JWTPrincipal>()!!
                     principal.payload
-                    //val subjectString = principal.payload.subject.removePrefix("auth0|")
-                    //println(subjectString)
                     call.respondText("Secret info")
                 }
             }
@@ -577,15 +580,15 @@ class JWTAuthTest {
     private val realm = "ktor jwt auth test"
 
     private fun makeJwkProvider(): JwkProvider = JwkProviderBuilder(issuer)
-            .cached(10, 24, TimeUnit.HOURS)
-            .rateLimited(10, 1, TimeUnit.MINUTES)
-            .build()
+        .cached(10, 24, TimeUnit.HOURS)
+        .rateLimited(10, 1, TimeUnit.MINUTES)
+        .build()
 
     private fun makeJwtVerifier(): JWTVerifier = JWT
-            .require(algorithm)
-            .withAudience(audience)
-            .withIssuer(issuer)
-            .build()
+        .require(algorithm)
+        .withAudience(audience)
+        .withIssuer(issuer)
+        .build()
 
     private val kid = "NkJCQzIyQzRBMEU4NjhGNUU4MzU4RkY0M0ZDQzkwOUQ0Q0VGNUMwQg"
 
@@ -610,14 +613,13 @@ class JWTAuthTest {
     }
 
     private fun getJwkToken(prefix: Boolean = true) = (if (prefix) "Bearer " else "") + JWT.create()
-            .withAudience(audience)
-            .withIssuer(issuer)
-            .withKeyId(kid)
-            .sign(jwkAlgorithm)
+        .withAudience(audience)
+        .withIssuer(issuer)
+        .withKeyId(kid)
+        .sign(jwkAlgorithm)
 
     private fun getToken(scheme: String = "Bearer") = "$scheme " + JWT.create()
-            .withAudience(audience)
-            .withIssuer(issuer)
-            .sign(algorithm)
-
+        .withAudience(audience)
+        .withIssuer(issuer)
+        .sign(algorithm)
 }

@@ -12,19 +12,19 @@ import io.ktor.utils.io.core.*
 /**
  * Client json serializer.
  */
-interface JsonSerializer {
+public interface JsonSerializer {
     /**
      * Convert data object to [OutgoingContent].
      */
-    fun write(data: Any, contentType: ContentType): OutgoingContent
+    public fun write(data: Any, contentType: ContentType): OutgoingContent
 
     /**
      * Convert data object to [OutgoingContent].
      */
-    fun write(data: Any): OutgoingContent = write(data, ContentType.Application.Json)
+    public fun write(data: Any): OutgoingContent = write(data, ContentType.Application.Json)
 
     /**
      * Read content from response using information specified in [type].
      */
-    fun read(type: TypeInfo, body: Input): Any
+    public fun read(type: TypeInfo, body: Input): Any
 }

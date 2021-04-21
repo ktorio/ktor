@@ -13,7 +13,8 @@ import kotlinx.coroutines.*
 import kotlin.js.Promise
 
 internal suspend fun commonFetch(
-    input: String, init: RequestInit
+    input: String,
+    init: RequestInit
 ): Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal
@@ -25,7 +26,7 @@ internal suspend fun commonFetch(
     val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
         fetch(input, init)
     } else {
-        jsRequire("node-fetch")(input, init)
+        jsRequireNodeFetch()(input, init)
     }
 
     promise.then(
@@ -55,8 +56,8 @@ internal fun CoroutineScope.readBody(
     readBodyNode(response)
 }
 
-private fun jsRequire(moduleName: String): dynamic = try {
-    js("require(moduleName)")
+private fun jsRequireNodeFetch(): dynamic = try {
+    js("require('node-fetch')")
 } catch (cause: dynamic) {
-    throw Error("Error loading module '$moduleName': $cause")
+    throw Error("Error loading module 'node-fetch': $cause")
 }

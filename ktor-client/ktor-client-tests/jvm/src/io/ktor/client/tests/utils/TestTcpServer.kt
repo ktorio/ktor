@@ -8,10 +8,11 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import kotlinx.coroutines.*
+import java.io.*
 import java.net.*
 import kotlin.coroutines.*
 
-internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) : CoroutineScope {
+internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) : CoroutineScope, Closeable {
     private val selector = ActorSelectorManager(Dispatchers.IO)
     override val coroutineContext: CoroutineContext
 
@@ -24,7 +25,9 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
 
                 try {
                     socket.use { handler(it) }
-                } catch (_: Throwable) {
+                } catch (cause: Throwable) {
+                    println("Exception in tcp server: $cause")
+                    cause.printStackTrace()
                 }
             }
         }.apply {
@@ -34,7 +37,5 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
         }
     }
 
-    fun close() {
-        coroutineContext.cancel()
-    }
+    override fun close() { coroutineContext.cancel() }
 }

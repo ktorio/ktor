@@ -63,7 +63,9 @@ class ConnectErrorsTest {
                     try {
                         newServer.accept().use { client ->
                             client.getOutputStream().let { out ->
-                                out.write("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 2\r\n\r\nOK".toByteArray())
+                                out.write(
+                                    "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 2\r\n\r\nOK".toByteArray()
+                                )
                                 out.flush()
                             }
                             client.getInputStream().readBytes()
@@ -88,33 +90,39 @@ class ConnectErrorsTest {
             init(keyStore)
         }
 
-        HttpClient(CIO.config {
-            maxConnectionsCount = 3
+        HttpClient(
+            CIO.config {
+                maxConnectionsCount = 3
 
-            endpoint {
-                connectTimeout = SOCKET_CONNECT_TIMEOUT
-                connectRetryAttempts = 1
-            }
+                endpoint {
+                    connectTimeout = SOCKET_CONNECT_TIMEOUT
+                    connectRetryAttempts = 1
+                }
 
-            https {
-                trustManager = trustManagerFactory.trustManagers.first { it is X509TrustManager } as X509TrustManager
+                https {
+                    trustManager = trustManagerFactory.trustManagers
+                        .first { it is X509TrustManager } as X509TrustManager
+                }
             }
-        }).use { client ->
+        ).use { client ->
 
             val serverPort = ServerSocket(0).use { it.localPort }
-            val server = embeddedServer(Netty, environment = applicationEngineEnvironment {
-                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                    port = serverPort
-                    keyStorePath = keyStoreFile.absoluteFile
-                }
-                module {
-                    routing {
-                        get {
-                            call.respondText("OK")
+            val server = embeddedServer(
+                Netty,
+                environment = applicationEngineEnvironment {
+                    sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                        port = serverPort
+                        keyStorePath = keyStoreFile.absoluteFile
+                    }
+                    module {
+                        routing {
+                            get {
+                                call.respondText("OK")
+                            }
                         }
                     }
                 }
-            })
+            )
 
             try {
                 client.get<String>(scheme = "https", path = "/", port = serverPort)

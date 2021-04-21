@@ -16,7 +16,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import kotlin.test.*
 
-class JacksonTest: JsonTest() {
+class JacksonTest : JsonTest() {
     override val serializerImpl = JacksonSerializer()
 
     override fun createRoutes(routing: Routing): Unit = with(routing) {
@@ -39,7 +39,9 @@ class JacksonTest: JsonTest() {
 
         test { client ->
             val response = client.post<Response<List<Jackson>>>(
-                port = serverPort, path = "jackson", body = Jackson(
+                port = serverPort,
+                path = "jackson",
+                body = Jackson(
                     "request",
                     "ignored"
                 )

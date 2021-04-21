@@ -13,7 +13,6 @@ import io.ktor.locations.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
-import org.junit.Test
 import java.net.*
 import kotlin.test.*
 
@@ -26,9 +25,13 @@ class OAuthLocationsTest {
             oauth {
                 client = this@withTestApplication.client
                 providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                            "http://oauth-server/token",
-                            clientId = "test", clientSecret = "secret")
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        "a",
+                        "http://oauth-server/auth",
+                        "http://oauth-server/token",
+                        clientId = "test",
+                        clientSecret = "secret"
+                    )
                 }
                 urlProvider = { url(B()) }
             }
@@ -57,9 +60,13 @@ class OAuthLocationsTest {
             oauth {
                 client = this@withTestApplication.client
                 providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                            "http://oauth-server/token",
-                            clientId = "test", clientSecret = "secret")
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        "a",
+                        "http://oauth-server/auth",
+                        "http://oauth-server/token",
+                        clientId = "test",
+                        clientSecret = "secret"
+                    )
                 }
                 urlProvider = { "http://localhost/B" }
             }

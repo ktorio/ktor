@@ -12,7 +12,6 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
 import kotlin.test.*
 
 class TestEngineMultipartTest {
@@ -21,9 +20,12 @@ class TestEngineMultipartTest {
 
     @Test
     fun testNonMultipart() {
-        testMultiParts({
-            assertNull(it, "it should be no multipart data")
-        }, setup = {})
+        testMultiParts(
+            {
+                assertNull(it, "it should be no multipart data")
+            },
+            setup = {}
+        )
     }
 
     @Test
@@ -50,35 +52,40 @@ class TestEngineMultipartTest {
     fun testMultiPartsFileItem() {
         val bytes = ByteArray(256) { it.toByte() }
 
-        testMultiParts({
-            assertNotNull(it, "it should be multipart data")
-            val parts = it.readAllParts()
+        testMultiParts(
+            {
+                assertNotNull(it, "it should be multipart data")
+                val parts = it.readAllParts()
 
-            assertEquals(1, parts.size)
-            val file = parts[0] as PartData.FileItem
+                assertEquals(1, parts.size)
+                val file = parts[0] as PartData.FileItem
 
-            assertEquals("fileField", file.name)
-            assertEquals("file.bin", file.originalFileName)
-            assertEquals(hex(bytes), hex(file.provider().readBytes()))
+                assertEquals("fileField", file.name)
+                assertEquals("file.bin", file.originalFileName)
+                assertEquals(hex(bytes), hex(file.provider().readBytes()))
 
-            file.dispose()
-        }, setup = {
-            addHeader(HttpHeaders.ContentType, contentType.toString())
-            setBody(boundary, listOf(
-                PartData.FileItem(
-                    provider = { bytes.inputStream().asInput() },
-                    dispose = {},
-                    partHeaders = headersOf(
-                            HttpHeaders.ContentDisposition,
-                            ContentDisposition.File
-                                .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
-                                .toString()
+                file.dispose()
+            },
+            setup = {
+                addHeader(HttpHeaders.ContentType, contentType.toString())
+                setBody(
+                    boundary,
+                    listOf(
+                        PartData.FileItem(
+                            provider = { bytes.inputStream().asInput() },
+                            dispose = {},
+                            partHeaders = headersOf(
+                                HttpHeaders.ContentDisposition,
+                                ContentDisposition.File
+                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
+                                    .toString()
+                            )
                         )
                     )
                 )
-            )
-        })
+            }
+        )
     }
 
     @Test
@@ -117,32 +124,39 @@ class TestEngineMultipartTest {
         provider: () -> Input,
         extraFileAssertions: (file: PartData.FileItem) -> Unit
     ) {
-        testMultiParts({
-            assertNotNull(it, "it should be multipart data")
-            val parts = it.readAllParts()
+        testMultiParts(
+            {
+                assertNotNull(it, "it should be multipart data")
+                val parts = it.readAllParts()
 
-            assertEquals(1, parts.size)
-            val file = parts[0] as PartData.FileItem
+                assertEquals(1, parts.size)
+                val file = parts[0] as PartData.FileItem
 
-            assertEquals("fileField", file.name)
-            assertEquals(filename, file.originalFileName)
-            extraFileAssertions(file)
+                assertEquals("fileField", file.name)
+                assertEquals(filename, file.originalFileName)
+                extraFileAssertions(file)
 
-            file.dispose()
-        }, setup = {
-            addHeader(HttpHeaders.ContentType, contentType.toString())
-            setBody(boundary, listOf(
-                PartData.FileItem(
-                provider = provider,
-                dispose = {},
-                partHeaders = headersOf(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.File
-                        .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                        .withParameter(ContentDisposition.Parameters.FileName, filename)
-                        .toString()
+                file.dispose()
+            },
+            setup = {
+                addHeader(HttpHeaders.ContentType, contentType.toString())
+                setBody(
+                    boundary,
+                    listOf(
+                        PartData.FileItem(
+                            provider = provider,
+                            dispose = {},
+                            partHeaders = headersOf(
+                                HttpHeaders.ContentDisposition,
+                                ContentDisposition.File
+                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                    .withParameter(ContentDisposition.Parameters.FileName, filename)
+                                    .toString()
+                            )
+                        )
+                    )
                 )
-            )))
-        })
+            }
+        )
     }
 }

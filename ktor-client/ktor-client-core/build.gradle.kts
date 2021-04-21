@@ -17,12 +17,6 @@ kotlin.sourceSets {
         }
     }
 
-    jvmMain {
-        dependencies {
-            api(project(":ktor-network"))
-        }
-    }
-
     jsMain {
         dependencies {
             api(npm("node-fetch", node_fetch_version))
@@ -33,6 +27,8 @@ kotlin.sourceSets {
 
     commonTest {
         dependencies {
+            api(project(":ktor-test-dispatcher"))
+            api(project(":ktor-client:ktor-client-mock"))
 //            api(project(":ktor-client:ktor-client-tests"))
 //            api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
         }

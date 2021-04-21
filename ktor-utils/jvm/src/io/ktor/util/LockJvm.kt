@@ -1,3 +1,4 @@
+// ktlint-disable filename
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -6,22 +7,20 @@
 
 package io.ktor.util
 
-import io.ktor.utils.io.core.*
 import java.util.concurrent.locks.*
-import java.util.concurrent.locks.Lock
 
 @InternalAPI
-actual class Lock {
+public actual class Lock {
     private val lock = ReentrantLock()
 
-    actual fun lock() {
+    public actual fun lock() {
         lock.lock()
     }
 
-    actual fun unlock() {
+    public actual fun unlock() {
         lock.unlock()
     }
 
-    actual fun close() {
+    public actual fun close() {
     }
 }

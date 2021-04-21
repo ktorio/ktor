@@ -5,14 +5,15 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -21,8 +22,8 @@ import java.util.concurrent.*
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
 @EngineAPI
-fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
-    val pipeline = EnginePipeline()
+public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
+    val pipeline = EnginePipeline(environment.developmentMode)
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
         pipeline.install(ShutDownUrl.EngineFeature) {
@@ -33,22 +34,14 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     pipeline.intercept(EnginePipeline.Call) {
         try {
             call.application.execute(call)
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
-            }
         } catch (error: ChannelIOException) {
             with(CallLogging.Internals) {
-                withMDCBlock {
+                withMDCBlock(call) {
                     call.application.environment.logFailure(call, error)
                 }
             }
         } catch (error: Throwable) {
-            with(CallLogging.Internals) {
-                withMDCBlock {
-                    call.application.environment.logFailure(call, error)
-                    handleFailure(error)
-                }
-            }
+            handleFailure(call, error)
         } finally {
             try {
                 call.request.receiveChannel().discard()
@@ -60,11 +53,26 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     return pipeline
 }
 
+@EngineAPI
+public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
+    logError(call, error)
+    tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
+}
+
+@EngineAPI
+public suspend fun logError(call: ApplicationCall, error: Throwable) {
+    with(CallLogging.Internals) {
+        withMDCBlock(call) {
+            call.application.environment.logFailure(call, error)
+        }
+    }
+}
+
 /**
  * Map [cause] to the corresponding status code or `null` if no default exception mapping for this [cause] type
  */
 @EngineAPI
-fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
+public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     return when (cause) {
         is BadRequestException -> HttpStatusCode.BadRequest
         is NotFoundException -> HttpStatusCode.NotFound
@@ -74,11 +82,7 @@ fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleFailure(cause: Throwable) {
-    tryRespondError(defaultExceptionStatusCode(cause) ?: HttpStatusCode.InternalServerError)
-}
-
-private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
     try {
         if (call.response.status() == null) {
             call.respond(statusCode)
@@ -100,6 +104,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is CancellationException -> log.info("$status: $logString, cancelled")
             is ClosedChannelException -> log.info("$status: $logString, channel closed")
             is ChannelIOException -> log.info("$status: $logString, channel failed")
+            is IOException -> log.info("$status: $logString, io failed")
             is BadRequestException -> log.debug("$status: $logString", cause)
             is NotFoundException -> log.debug("$status: $logString", cause)
             is UnsupportedMediaTypeException -> log.debug("$status: $logString", cause)

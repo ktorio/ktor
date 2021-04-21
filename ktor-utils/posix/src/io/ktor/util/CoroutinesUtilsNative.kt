@@ -5,18 +5,15 @@
 package io.ktor.util
 
 import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 @InternalAPI
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun <R, A>
-    (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
+internal actual inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
     arg: A,
     continuation: Continuation<Unit>
 ): Any? {
-
-    @Suppress("UNCHECKED_CAST")
-    val function = (this as Function3<R, A, Continuation<Unit>, Any?>)
-    return function.invoke(receiver, arg, continuation)
+    val block: suspend () -> Unit = { this(receiver, arg) }
+    return block.startCoroutineUninterceptedOrReturn(continuation)
 }
-

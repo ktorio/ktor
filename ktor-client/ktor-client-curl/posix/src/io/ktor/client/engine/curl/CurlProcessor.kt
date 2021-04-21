@@ -5,11 +5,11 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.internal.*
+import io.ktor.util.collections.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
-
 
 /**
  * Only set in curl worker thread
@@ -21,8 +21,7 @@ internal class CurlProcessor(
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     private val worker: Worker = Worker.start()
-    private val responseConsumers: MutableMap<CurlRequestData, CompletableDeferred<CurlSuccess>> = mutableMapOf()
-    private val closed = atomic(false)
+    private val responseConsumers: ConcurrentMap<CurlRequestData, CompletableDeferred<CurlSuccess>> = ConcurrentMap()
     private val activeRequests = atomic(0)
 
     init {
@@ -31,7 +30,7 @@ internal class CurlProcessor(
         }
     }
 
-    suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
+    public suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
         val deferred = CompletableDeferred<CurlSuccess>()
         responseConsumers[request] = deferred
 
@@ -43,7 +42,6 @@ internal class CurlProcessor(
         }
 
         try {
-
             activeRequests.incrementAndGet()
 
             while (deferred.isActive) {
@@ -58,8 +56,9 @@ internal class CurlProcessor(
         }
     }
 
-    fun close() {
+    public fun close() {
         worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
+        worker.requestTermination()
     }
 
     private fun poll(): Future<List<CurlResponseData>> =

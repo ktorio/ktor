@@ -6,10 +6,8 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import org.junit.*
-import org.junit.Test
+import kotlinx.coroutines.*
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -25,7 +23,7 @@ class IntegrationTest {
         o.close()
     }
 
-    @Before
+    @BeforeTest
     fun setUp() {
         val dispatcher = pool.asCoroutineDispatcher()
         val (j, s) = testHttpServer(0, dispatcher, dispatcher) { request ->
@@ -55,7 +53,7 @@ class IntegrationTest {
         }
     }
 
-    @After
+    @AfterTest
     @OptIn(ExperimentalCoroutinesApi::class)
     fun tearDown() {
         server.invokeOnCompletion { t ->

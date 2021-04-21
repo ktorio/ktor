@@ -6,14 +6,14 @@ package io.ktor.client.utils
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
  * Concrete [OutgoingContent] without a payload.
  */
-object EmptyContent : OutgoingContent.NoContent() {
+public object EmptyContent : OutgoingContent.NoContent() {
     override val contentLength: Long = 0
 
     override fun toString(): String = "EmptyContent"
@@ -23,7 +23,7 @@ object EmptyContent : OutgoingContent.NoContent() {
  * Generates a new [OutgoingContent] of the same abstract type
  * but with [OutgoingContent.headers] transformed by the specified [block].
  */
-fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = when (this) {
+public fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = when (this) {
     is OutgoingContent.NoContent -> object : OutgoingContent.NoContent() {
         override val contentLength: Long? get() = this@wrapHeaders.contentLength
         override val contentType: ContentType? get() = this@wrapHeaders.contentType

@@ -6,13 +6,14 @@ package io.ktor.network.util
 
 import io.ktor.network.sockets.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.pool.*
+import io.ktor.utils.io.pool.DirectByteBufferPool
+import kotlinx.coroutines.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")
 @Deprecated("This is going to be removed", level = DeprecationLevel.HIDDEN)
-val ioThreadGroup = ThreadGroup("io-pool-group")
+public val ioThreadGroup: ThreadGroup = ThreadGroup("io-pool-group")
 
 /**
  * The default I/O coroutine dispatcher
@@ -23,7 +24,7 @@ val ioThreadGroup = ThreadGroup("io-pool-group")
     replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers"),
     level = DeprecationLevel.HIDDEN
 )
-val ioCoroutineDispatcher: CoroutineDispatcher
+public val ioCoroutineDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO
 
 @Suppress("KDocMissingDocumentation")
@@ -38,20 +39,27 @@ internal const val DEFAULT_BYTE_BUFFER_BUFFER_SIZE: Int = 4096
  * Byte buffer pool for general-purpose buffers.
  */
 @InternalAPI
-val DefaultByteBufferPool: ObjectPool<ByteBuffer> =
-    DirectByteBufferPool(DEFAULT_BYTE_BUFFER_BUFFER_SIZE, DEFAULT_BYTE_BUFFER_POOL_SIZE)
+public val DefaultByteBufferPool: ObjectPool<ByteBuffer> =
+    DirectByteBufferPool(DEFAULT_BYTE_BUFFER_POOL_SIZE, DEFAULT_BYTE_BUFFER_BUFFER_SIZE)
 
 /**
  * Byte buffer pool for UDP datagrams
  */
 @InternalAPI
-val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(MAX_DATAGRAM_SIZE, 2048)
+public val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> =
+    io.ktor.utils.io.pool.DirectByteBufferPool(2048, MAX_DATAGRAM_SIZE)
 
+@Deprecated(
+    level = DeprecationLevel.WARNING,
+    message = "ByteBufferPool is moved to `io` module",
+    replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
+)
 internal class DirectByteBufferPool(private val bufferSize: Int, size: Int) : DefaultPool<ByteBuffer>(size) {
     override fun produceInstance(): ByteBuffer = java.nio.ByteBuffer.allocateDirect(bufferSize)
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer {
         instance.clear()
+        instance.order(ByteOrder.BIG_ENDIAN)
         return instance
     }
 

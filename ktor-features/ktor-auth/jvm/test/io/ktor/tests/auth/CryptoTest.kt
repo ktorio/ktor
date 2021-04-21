@@ -5,15 +5,13 @@
 package io.ktor.tests.auth
 
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class CryptoTest {
     @Test
-    @Suppress("DEPRECATION_ERROR")
     fun testBase64() {
-        assertEquals("AAAA", encodeBase64(ByteArray(3)))
-        assertEquals(ByteArray(3), decodeBase64("AAAA"))
+        assertEquals("AAAA", ByteArray(3).encodeBase64())
+        assertEquals(ByteArray(3), "AAAA".decodeBase64Bytes())
     }
 
     @Test

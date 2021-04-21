@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -9,23 +9,25 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-abstract class NettyApplicationResponse(call: NettyApplicationCall,
-                                                 protected val context: ChannelHandlerContext,
-                                                 protected val engineContext: CoroutineContext,
-                                                 protected val userContext: CoroutineContext) : BaseApplicationResponse(call) {
+public abstract class NettyApplicationResponse(
+    call: NettyApplicationCall,
+    protected val context: ChannelHandlerContext,
+    protected val engineContext: CoroutineContext,
+    protected val userContext: CoroutineContext
+) : BaseApplicationResponse(call) {
 
-    val responseMessage = CompletableDeferred<Any>()
+    public val responseMessage: CompletableDeferred<Any> = CompletableDeferred<Any>()
 
     @Volatile
-    protected var responseMessageSent = false
+    protected var responseMessageSent: Boolean = false
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
@@ -75,7 +77,16 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
         if (!responseMessageSent) {
             responseChannel = content
-            responseMessage.complete(responseMessage(chunked, content.isClosedForRead))
+            responseMessage.complete(
+                when {
+                    content.isClosedForRead -> {
+                        responseMessage(chunked = false, data = EmptyByteArray)
+                    }
+                    else -> {
+                        responseMessage(chunked, last = false)
+                    }
+                }
+            )
             responseMessageSent = true
         }
     }
@@ -96,7 +107,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
         // while close only does flush() and doesn't terminate connection
     }
 
-    fun cancel() {
+    public fun cancel() {
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
             responseMessage.cancel()
@@ -104,13 +115,14 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
         }
     }
 
-    companion object {
+    public companion object {
         private val EmptyByteArray = ByteArray(0)
 
-        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes.associateBy { it.value }.let { codes ->
-            Array(1000) {
-                if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+        public val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes
+            .associateBy { it.value }.let { codes ->
+                Array(1000) {
+                    if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+                }
             }
-        }
     }
 }

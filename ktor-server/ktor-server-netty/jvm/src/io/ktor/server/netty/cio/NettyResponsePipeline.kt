@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.cio
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -15,18 +17,17 @@ import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import java.io.*
 import java.util.*
 import kotlin.coroutines.*
 
 private const val UNFLUSHED_LIMIT = 65536
 
-internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
-                                     initialEncapsulation: WriterEncapsulation,
-                                     private val requestQueue: NettyRequestQueue,
-                                     override val coroutineContext: CoroutineContext
+internal class NettyResponsePipeline(
+    private val dst: ChannelHandlerContext,
+    initialEncapsulation: WriterEncapsulation,
+    private val requestQueue: NettyRequestQueue,
+    override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     private val readyQueueSize = requestQueue.readLimit
     private val runningQueueSize = requestQueue.runningLimit
@@ -35,6 +36,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private val ready = ArrayDeque<NettyRequestQueue.CallElement>(readyQueueSize)
     private val running = ArrayDeque<NettyRequestQueue.CallElement>(runningQueueSize)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val responses = launch(
         dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName,
         start = CoroutineStart.UNDISPATCHED
@@ -52,7 +54,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
 
-    fun ensureRunning() {
+    public fun ensureRunning() {
         responses.start()
     }
 
@@ -87,12 +89,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
-            @Suppress("DEPRECATION")
+            @OptIn(ExperimentalCoroutinesApi::class)
             val e = incoming.receiveOrNull()
 
             if (e != null && e.ensureRunning()) {
@@ -143,7 +142,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     private fun processCallFailed(call: NettyApplicationCall, actualException: Throwable) {
         val t = when {
-            actualException is IOException && actualException !is ChannelIOException -> ChannelWriteException(exception = actualException)
+            actualException is IOException && actualException !is ChannelIOException ->
+                ChannelWriteException(exception = actualException)
             else -> actualException
         }
 
@@ -205,6 +205,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
         if (responseMessage is FullHttpResponse) {
             return finishCall(call, null, requestMessageFuture)
+        } else if (responseMessage is Http2HeadersFrame && responseMessage.isEndStream) {
+            return finishCall(call, null, requestMessageFuture)
         }
 
         val responseChannel = response.responseChannel
@@ -241,7 +243,11 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     @OptIn(ExperimentalIoApi::class)
-    private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
+    private suspend fun processBodyGeneral(
+        call: NettyApplicationCall,
+        response: NettyApplicationResponse,
+        requestMessageFuture: ChannelFuture
+    ) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
 
@@ -283,7 +289,11 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     @OptIn(ExperimentalIoApi::class)
-    private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
+    private suspend fun processBodyFlusher(
+        call: NettyApplicationCall,
+        response: NettyApplicationResponse,
+        requestMessageFuture: ChannelFuture
+    ) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
 
@@ -326,19 +336,19 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 }
 
 private fun NettyApplicationResponse.isUpgradeResponse() =
-        status()?.value == HttpStatusCode.SwitchingProtocols.value
+    status()?.value == HttpStatusCode.SwitchingProtocols.value
 
 private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-sealed class WriterEncapsulation {
-    open val requiresContextClose: Boolean get() = true
-    abstract fun transform(buf: ByteBuf, last: Boolean): Any
-    abstract fun endOfStream(lastTransformed: Boolean): Any?
-    abstract fun upgrade(dst: ChannelHandlerContext)
+public sealed class WriterEncapsulation {
+    public open val requiresContextClose: Boolean get() = true
+    public abstract fun transform(buf: ByteBuf, last: Boolean): Any
+    public abstract fun endOfStream(lastTransformed: Boolean): Any?
+    public abstract fun upgrade(dst: ChannelHandlerContext)
 
-    object Http1 : WriterEncapsulation() {
+    public object Http1 : WriterEncapsulation() {
         override fun transform(buf: ByteBuf, last: Boolean): Any {
             return DefaultHttpContent(buf)
         }
@@ -354,7 +364,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Http2 : WriterEncapsulation() {
+    public object Http2 : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {
@@ -370,7 +380,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Raw : WriterEncapsulation() {
+    public object Raw : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {

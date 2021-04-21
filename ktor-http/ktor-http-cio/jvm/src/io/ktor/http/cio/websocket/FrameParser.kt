@@ -9,13 +9,22 @@ import java.util.concurrent.atomic.*
 
 @Suppress("KDocMissingDocumentation", "UsePropertyAccessSyntax")
 @WebSocketInternalAPI
-class FrameParser {
+public class FrameParser {
     private val state = AtomicReference(State.HEADER0)
 
-    var fin: Boolean = false
+    public var fin: Boolean = false
         private set
 
-    var mask: Boolean = false
+    public var rsv1: Boolean = false
+        private set
+
+    public var rsv2: Boolean = false
+        private set
+
+    public var rsv3: Boolean = false
+        private set
+
+    public var mask: Boolean = false
         private set
 
     private var opcode = 0
@@ -23,26 +32,26 @@ class FrameParser {
 
     private var lengthLength = 0
 
-    var length: Long = 0L
+    public var length: Long = 0L
         private set
 
-    var maskKey: Int? = null
+    public var maskKey: Int? = null
         private set
 
-    val frameType: FrameType
+    public val frameType: FrameType
         get() = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode ${Integer.toHexString(opcode)}")
 
-    enum class State {
+    public enum class State {
         HEADER0,
         LENGTH,
         MASK_KEY,
         BODY
     }
 
-    val bodyReady: Boolean
+    public val bodyReady: Boolean
         get() = state.get() == State.BODY
 
-    fun bodyComplete() {
+    public fun bodyComplete() {
         if (!state.compareAndSet(State.BODY, State.HEADER0)) {
             throw IllegalStateException("It should be state BODY but it is ${state.get()}")
         }
@@ -54,9 +63,11 @@ class FrameParser {
         maskKey = null
     }
 
-    tailrec fun frame(bb: ByteBuffer) {
+    public fun frame(bb: ByteBuffer) {
         require(bb.order() == ByteOrder.BIG_ENDIAN) { "Buffer order should be BIG_ENDIAN but it is ${bb.order()}" }
-        if (handleStep(bb)) frame(bb)
+
+        while (handleStep(bb)) {
+        }
     }
 
     private fun handleStep(bb: ByteBuffer) = when (state.get()!!) {
@@ -67,65 +78,64 @@ class FrameParser {
     }
 
     private fun parseHeader1(bb: ByteBuffer): Boolean {
-        if (bb.remaining() >= 2) {
-            val flagsAndOpcode = bb.get().toInt()
-            val maskAndLength1 = bb.get().toInt()
-
-            fin = flagsAndOpcode and 0x80 != 0
-            opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
-            if (!frameType.controlFrame) {
-                lastOpcode = opcode
-            }
-            mask = maskAndLength1 and 0x80 != 0
-            val length1 = maskAndLength1 and 0x7f
-
-            lengthLength = when (length1) {
-                126 -> 2
-                127 -> 8
-                else -> 0
-            }
-
-            length = if (lengthLength == 0) length1.toLong() else 0
-            when {
-                lengthLength > 0 -> state.set(State.LENGTH)
-                mask -> state.set(State.MASK_KEY)
-                else -> state.set(State.BODY)
-            }
-
-            return true
+        if (bb.remaining() < 2) {
+            return false
         }
 
-        return false
+        val flagsAndOpcode = bb.get().toInt()
+        val maskAndLength1 = bb.get().toInt()
+
+        fin = flagsAndOpcode and 0x80 != 0
+        rsv1 = flagsAndOpcode and 0x40 != 0
+        rsv2 = flagsAndOpcode and 0x20 != 0
+        rsv3 = flagsAndOpcode and 0x10 != 0
+
+        opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
+        if (!frameType.controlFrame) {
+            lastOpcode = opcode
+        }
+        mask = maskAndLength1 and 0x80 != 0
+        val length1 = maskAndLength1 and 0x7f
+
+        lengthLength = when (length1) {
+            126 -> 2
+            127 -> 8
+            else -> 0
+        }
+
+        length = if (lengthLength == 0) length1.toLong() else 0
+        when {
+            lengthLength > 0 -> state.set(State.LENGTH)
+            mask -> state.set(State.MASK_KEY)
+            else -> state.set(State.BODY)
+        }
+
+        return true
     }
 
     private fun parseLength(bb: ByteBuffer): Boolean {
-        if (bb.remaining() >= lengthLength) {
-            length = when (lengthLength) {
-                2 -> bb.getShort().toLong() and 0xffff
-                8 -> bb.getLong()
-                else -> throw IllegalStateException()
-            }
-
-            if (mask) {
-                state.set(State.MASK_KEY)
-            } else {
-                state.set(State.BODY)
-            }
-
-            return true
+        if (bb.remaining() < lengthLength) {
+            return false
         }
 
-        return false
+        length = when (lengthLength) {
+            2 -> bb.getShort().toLong() and 0xffff
+            8 -> bb.getLong()
+            else -> throw IllegalStateException()
+        }
+
+        val mask = if (mask) State.MASK_KEY else State.BODY
+        state.set(mask)
+        return true
     }
 
     private fun parseMaskKey(bb: ByteBuffer): Boolean {
-        if (bb.remaining() >= 4) {
-            maskKey = bb.getInt()
-
-            state.set(State.BODY)
-            return true
+        if (bb.remaining() < 4) {
+            return false
         }
 
-        return false
+        maskKey = bb.getInt()
+        state.set(State.BODY)
+        return true
     }
 }

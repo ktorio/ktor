@@ -1,21 +1,20 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.features.*
-import io.ktor.network.sockets.*
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
 import libcurl.*
 
 private class RequestHolders(
     private val requestBody: StableRef<ByteReadPacket>?,
     private val response: StableRef<CurlResponseBuilder>
 ) {
-    fun dispose() {
+    public fun dispose() {
         requestBody?.dispose()
         response.dispose()
     }
@@ -41,14 +40,14 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    fun scheduleRequest(request: CurlRequestData): EasyHandle {
+    public fun scheduleRequest(request: CurlRequestData): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
         val responseData = CurlResponseBuilder(request)
         val responseDataRef = responseData.asStablePointer()
 
-        setupMethod(easyHandle, request.method)
+        setupMethod(easyHandle, request.method, request.content.size)
         val contentHolder = setupUploadContent(easyHandle, request.content)
 
         activeHandles[easyHandle] = RequestHolders(contentHolder?.asStableRef(), responseDataRef.asStableRef())
@@ -72,6 +71,15 @@ internal class CurlMultiApiHandler : Closeable {
 
             request.proxy?.let { proxy ->
                 option(CURLOPT_PROXY, proxy.toString())
+                option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
+                if (request.forceProxyTunneling) {
+                    option(CURLOPT_HTTPPROXYTUNNEL, 1L)
+                }
+            }
+
+            if (!request.sslVerify) {
+                option(CURLOPT_SSL_VERIFYPEER, 0L)
+                option(CURLOPT_SSL_VERIFYHOST, 0L)
             }
         }
 
@@ -84,7 +92,7 @@ internal class CurlMultiApiHandler : Closeable {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
-    fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
+    public fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
         memScoped {
             val transfersRunning = alloc<IntVar>()
             val activeTasks = alloc<IntVar>()
@@ -100,12 +108,21 @@ internal class CurlMultiApiHandler : Closeable {
         return collectCompleted()
     }
 
-    private fun setupMethod(easyHandle: EasyHandle, method: String) {
+    private fun setupMethod(
+        easyHandle: EasyHandle,
+        method: String,
+        size: Int
+    ) {
         easyHandle.apply {
             when (method) {
                 "GET" -> option(CURLOPT_HTTPGET, 1L)
-                "PUT" -> option(CURLOPT_PUT, 1L)
-                "POST" -> option(CURLOPT_POST, 1L)
+                "PUT" -> {
+                    option(CURLOPT_PUT, 1L)
+                }
+                "POST" -> {
+                    option(CURLOPT_POST, 1L)
+                    option(CURLOPT_POSTFIELDSIZE, size)
+                }
                 "HEAD" -> option(CURLOPT_NOBODY, 1L)
                 else -> option(CURLOPT_CUSTOMREQUEST, method)
             }
@@ -191,28 +208,41 @@ internal class CurlMultiApiHandler : Closeable {
 
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
             try {
-                curl_slist_free_all(responseBuilder.request.headers)
+                val request = responseBuilder.request
+                curl_slist_free_all(request.headers)
 
                 if (message != CURLMSG.CURLMSG_DONE) {
                     return CurlFail(
-                        responseBuilder.request,
+                        request,
                         @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Request ${responseBuilder.request} failed: $message")
+                        CurlIllegalStateException("Request $request failed: $message")
                     )
                 }
 
                 if (httpStatusCode.value == 0L) {
                     if (result == CURLE_OPERATION_TIMEDOUT) {
                         return CurlFail(
-                            responseBuilder.request,
-                            ConnectTimeoutException(responseBuilder.request.requestData)
+                            request,
+                            ConnectTimeoutException(request.url, request.connectTimeout)
+                        )
+                    }
+
+                    val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+
+                    if (result == CURLE_PEER_FAILED_VERIFICATION) {
+                        return CurlFail(
+                            request,
+                            @Suppress("DEPRECATION")
+                            CurlIllegalStateException(
+                                "TLS verification failed for request: $request. Reason: $errorMessage"
+                            )
                         )
                     }
 
                     return CurlFail(
-                        responseBuilder.request,
+                        request,
                         @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
+                        CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
                     )
                 }
 
@@ -222,8 +252,10 @@ internal class CurlMultiApiHandler : Closeable {
 
                     CurlSuccess(
                         request,
-                        httpStatusCode.value.toInt(), httpProtocolVersion.value.toUInt(),
-                        headers, body
+                        httpStatusCode.value.toInt(),
+                        httpProtocolVersion.value.toUInt(),
+                        headers,
+                        body
                     )
                 }
             } finally {

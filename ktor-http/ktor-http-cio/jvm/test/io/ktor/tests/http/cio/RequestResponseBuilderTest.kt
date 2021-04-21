@@ -4,17 +4,15 @@
 
 package io.ktor.tests.http.cio
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.utils.io.streams.*
-import org.junit.*
-import org.junit.Test
 import kotlin.test.*
 
 class RequestResponseBuilderTest {
     private val builder = RequestResponseBuilder()
 
-    @After
+    @AfterTest
     fun tearDown() {
         builder.release()
     }
@@ -47,6 +45,9 @@ class RequestResponseBuilderTest {
         val packet = builder.build()
         val response = packet.inputStream().reader().readText()
 
-        assertEquals("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nHello, World!\r\n", response)
+        assertEquals(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nHello, World!\r\n",
+            response
+        )
     }
 }

@@ -9,8 +9,8 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class PostTest : ClientLoader() {
@@ -22,14 +22,14 @@ class PostTest : ClientLoader() {
     }
 
     @Test
-    fun testHugePost() = clientTests(listOf("Js", "iOS")) {
+    fun testHugePost() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             client.postHelper(makeString(32 * 1024 * 1024))
         }
     }
 
     @Test
-    fun testWithPause() = clientTests(listOf("Js", "iOS")) {
+    fun testWithPause() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             val content = makeString(16 * 1024 * 1024)
 
@@ -42,7 +42,6 @@ class PostTest : ClientLoader() {
                         channel.close()
                     }
                 }
-
             }
 
             assertEquals(content + content, response)

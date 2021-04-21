@@ -5,6 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
 
 /**
  * Base class for implementing [ApplicationEngine]
@@ -16,15 +18,15 @@ import io.ktor.application.*
  * @param pipeline pipeline to use with this engine
  */
 @EngineAPI
-abstract class BaseApplicationEngine(
-    final override val environment: ApplicationEngineEnvironment,
-    val pipeline: EnginePipeline = defaultEnginePipeline(environment)
+public abstract class BaseApplicationEngine(
+    public final override val environment: ApplicationEngineEnvironment,
+    public val pipeline: EnginePipeline = defaultEnginePipeline(environment)
 ) : ApplicationEngine {
 
     /**
      * Configuration for the [BaseApplicationEngine]
      */
-    open class Configuration : ApplicationEngine.Configuration()
+    public open class Configuration : ApplicationEngine.Configuration()
 
     init {
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
@@ -33,10 +35,19 @@ abstract class BaseApplicationEngine(
             it.sendPipeline.merge(pipeline.sendPipeline)
             it.receivePipeline.installDefaultTransformations()
             it.sendPipeline.installDefaultTransformations()
+            it.installDefaultInterceptors()
         }
         environment.monitor.subscribe(ApplicationStarted) {
             environment.connectors.forEach {
                 environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
+            }
+        }
+    }
+
+    private fun Application.installDefaultInterceptors() {
+        intercept(ApplicationCallPipeline.Fallback) {
+            if (call.response.status() == null) {
+                call.respond(HttpStatusCode.NotFound)
             }
         }
     }

@@ -1,6 +1,7 @@
 public final class io/ktor/client/engine/cio/CIO : io/ktor/client/engine/HttpClientEngineFactory {
 	public static final field INSTANCE Lio/ktor/client/engine/cio/CIO;
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
@@ -37,6 +38,7 @@ public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
 public final class io/ktor/client/engine/cio/EndpointConfig {
 	public fun <init> ()V
 	public final fun getAllowHalfClose ()Z
+	public final fun getConnectAttempts ()I
 	public final fun getConnectRetryAttempts ()I
 	public final fun getConnectTimeout ()J
 	public final fun getKeepAliveTime ()J
@@ -44,11 +46,13 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 	public final fun getPipelineMaxSize ()I
 	public final fun getSocketTimeout ()J
 	public final fun setAllowHalfClose (Z)V
+	public final fun setConnectAttempts (I)V
 	public final fun setConnectRetryAttempts (I)V
 	public final fun setConnectTimeout (J)V
 	public final fun setKeepAliveTime (J)V
 	public final fun setMaxConnectionsPerRoute (I)V
 	public final fun setPipelineMaxSize (I)V
+	public final fun setSocketTimeout (J)V
 }
 
 public final class io/ktor/client/engine/cio/FailToConnectException : java/lang/Exception {
@@ -60,7 +64,7 @@ public final class io/ktor/client/features/websocket/BuildersCioKt {
 	public static synthetic fun webSocketRaw$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun webSocketRawSession (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun webSocketRawSession$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun ws (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun ws (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun ws$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun wsRaw (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun wsRaw$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;

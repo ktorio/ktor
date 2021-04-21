@@ -16,18 +16,15 @@ import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
 import io.micrometer.core.instrument.simple.*
-import org.junit.*
-import org.junit.Test
 import kotlin.reflect.*
 import kotlin.test.*
-
 
 class MicrometerMetricsTests {
 
     var noHandlerHandledReqeust = false
     var throwableCaughtInEngine: Throwable? = null
 
-    @Before
+    @BeforeTest
     fun reset() {
         noHandlerHandledReqeust = false
         throwableCaughtInEngine = null
@@ -87,7 +84,6 @@ class MicrometerMetricsTests {
         handleRequest {
             uri = "/uri"
         }
-
 
         with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
             assertEquals(1, size)
@@ -203,14 +199,12 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `no handler results in status 404 and no exception`(): Unit = withTestApplication {
-
+    fun `no handler results in status 404 and no exception by default`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
         }
-
 
         installDefaultBehaviour()
 
@@ -233,18 +227,47 @@ class MicrometerMetricsTests {
 
         assertNull(throwableCaughtInEngine)
         assertTrue(noHandlerHandledReqeust)
-
-
     }
 
-    private fun TestApplicationEngine.installDefaultBehaviour() {
+    @Test
+    fun `no handler results in status 404 no route and no exception if distinctNotRegisteredRoutes is false`(): Unit =
+        withTestApplication {
+            val testRegistry = SimpleMeterRegistry()
 
+            application.install(MicrometerMetrics) {
+                registry = testRegistry
+                distinctNotRegisteredRoutes = false
+            }
+
+            installDefaultBehaviour()
+
+            // no routing config
+
+            handleRequest {
+                uri = "/uri"
+            }
+
+            with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+                assertEquals(1, size)
+                this.first().run {
+                    assertTag("throwable", "n/a")
+                    assertTag("status", "404")
+                    assertTag("route", "n/a")
+                    assertTag("method", "GET")
+                    assertTag("address", "localhost:80")
+                }
+            }
+
+            assertNull(throwableCaughtInEngine)
+            assertTrue(noHandlerHandledReqeust)
+        }
+
+    private fun TestApplicationEngine.installDefaultBehaviour() {
         this.callInterceptor = {
             try {
                 call.application.execute(call)
-                if (call.response.status() == null) {
+                if (call.response.status() == HttpStatusCode.NotFound) {
                     noHandlerHandledReqeust = true
-                    call.respond(HttpStatusCode.NotFound)
                 }
             } catch (t: Throwable) {
                 throwableCaughtInEngine = t
@@ -293,10 +316,12 @@ class MicrometerMetricsTests {
     fun `Thread metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(
             JvmThreadMetrics::class,
-            "jvm.threads.peak", "jvm.threads.daemon", "jvm.threads.live", "jvm.threads.states"
+            "jvm.threads.peak",
+            "jvm.threads.daemon",
+            "jvm.threads.live",
+            "jvm.threads.states"
         )
     }
-
 
     private fun TestApplicationEngine.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
@@ -310,7 +335,6 @@ class MicrometerMetricsTests {
 
         meterNames.forEach { testRegistry.shouldHaveMetricFrom(meterBinder, it) }
     }
-
 
     private fun MeterRegistry.shouldHaveMetricFrom(
         meterRegistry: KClass<out MeterBinder>,

@@ -1,0 +1,28 @@
+public final class io/ktor/metrics/micrometer/MicrometerMetrics {
+	public static final field Feature Lio/ktor/metrics/micrometer/MicrometerMetrics$Feature;
+	public static final field activeGaugeName Ljava/lang/String;
+	public static final field requestTimerName Ljava/lang/String;
+	public fun <init> (Lio/micrometer/core/instrument/MeterRegistry;Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun <init> (Lio/micrometer/core/instrument/MeterRegistry;Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;ZLkotlin/jvm/functions/Function3;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/metrics/micrometer/MicrometerMetrics$Configuration {
+	public field registry Lio/micrometer/core/instrument/MeterRegistry;
+	public fun <init> ()V
+	public final fun getDistinctNotRegisteredRoutes ()Z
+	public final fun getDistributionStatisticConfig ()Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;
+	public final fun getMeterBinders ()Ljava/util/List;
+	public final fun getRegistry ()Lio/micrometer/core/instrument/MeterRegistry;
+	public final fun setDistinctNotRegisteredRoutes (Z)V
+	public final fun setDistributionStatisticConfig (Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;)V
+	public final fun setMeterBinders (Ljava/util/List;)V
+	public final fun setRegistry (Lio/micrometer/core/instrument/MeterRegistry;)V
+	public final fun timers (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/metrics/micrometer/MicrometerMetrics$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/metrics/micrometer/MicrometerMetrics;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+

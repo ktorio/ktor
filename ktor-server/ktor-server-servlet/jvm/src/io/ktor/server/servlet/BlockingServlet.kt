@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -8,9 +8,9 @@ import io.ktor.application.*
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
@@ -27,6 +27,7 @@ internal class BlockingServletApplicationCall(
 
     init {
         putResponseAttribute()
+        putServletAttributes(servletRequest)
     }
 }
 
@@ -35,7 +36,9 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool) }
+    private val inputStreamChannel by lazy {
+        servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool)
+    }
 
     override fun receiveChannel() = inputStreamChannel
 }
@@ -76,7 +79,6 @@ internal class BlockingServletApplicationResponse(
     }
 }
 
-
 /**
  * Never do like this! Very special corner-case.
  */
@@ -88,4 +90,3 @@ private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
         block.run()
     }
 }
-

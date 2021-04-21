@@ -20,13 +20,13 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
         val content = readFrom()
 
         content.copyToBoth(log, responseChannel)
-        LoggingContent(responseChannel)
+        LoggedContent(this, responseChannel)
     }
     is OutgoingContent.WriteChannelContent -> {
         val responseChannel = ByteChannel()
         val content = toReadChannel()
         content.copyToBoth(log, responseChannel)
-        LoggingContent(responseChannel)
+        LoggedContent(this, responseChannel)
     }
     else -> {
         log.close()
@@ -34,11 +34,5 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
     }
 }
 
-internal class LoggingContent(private val channel: ByteReadChannel) : OutgoingContent.ReadChannelContent() {
-    override fun readFrom(): ByteReadChannel = channel
-}
-
-private fun OutgoingContent.WriteChannelContent.toReadChannel(
-): ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined) {
-    writeTo(channel)
-}.channel
+private fun OutgoingContent.WriteChannelContent.toReadChannel():
+    ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined) { writeTo(channel) }.channel

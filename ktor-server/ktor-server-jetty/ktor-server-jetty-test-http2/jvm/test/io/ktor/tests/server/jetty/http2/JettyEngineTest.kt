@@ -5,6 +5,16 @@
 package io.ktor.tests.server.jetty.http2
 
 import io.ktor.server.jetty.*
-import io.ktor.server.testing.*
+import io.ktor.server.testing.suites.*
 
-class JettyEngineHttp2Test : EngineTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyEngineHttp2CompressionTest :
+    CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyEngineHttp2ContentTest :
+    ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyEngineHttp2HttpServerTest :
+    HttpServerTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyEngineHttp2SustainabilityTest :
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)

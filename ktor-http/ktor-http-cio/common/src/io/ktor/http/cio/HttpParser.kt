@@ -12,14 +12,16 @@ import kotlin.native.concurrent.*
 /**
  * An HTTP parser exception
  */
-class ParserException(message: String) : Exception(message)
+public class ParserException(message: String) : Exception(message)
 
 private const val HTTP_LINE_LIMIT = 8192
+private const val HTTP_STATUS_CODE_MIN_RANGE = 100
+private const val HTTP_STATUS_CODE_MAX_RANGE = 999
 
 /**
  * Parse an HTTP request line and headers
  */
-suspend fun parseRequest(input: ByteReadChannel): Request? {
+public suspend fun parseRequest(input: ByteReadChannel): Request? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
 
@@ -34,12 +36,9 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
             val version = parseVersion(builder, range)
             skipSpaces(builder, range)
 
-            if (range.start != range.end) throw ParserException(
-                "Extra characters in request line: ${builder.substring(
-                    range.start,
-                    range.end
-                )}"
-            )
+            if (range.start != range.end) {
+                throw ParserException("Extra characters in request line: ${builder.substring(range.start, range.end)}")
+            }
             if (uri.isEmpty()) throw ParserException("URI is not specified")
             if (version.isEmpty()) throw ParserException("HTTP version is not specified")
 
@@ -56,7 +55,7 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
 /**
  * Parse an HTTP response status line and headers
  */
-suspend fun parseResponse(input: ByteReadChannel): Response? {
+public suspend fun parseResponse(input: ByteReadChannel): Response? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
 
@@ -82,7 +81,7 @@ suspend fun parseResponse(input: ByteReadChannel): Response? {
 /**
  * Parse http headers. Not applicable to request and response status lines.
  */
-suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
+public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()
     return parseHeaders(input, builder) ?: HttpHeadersMap(builder)
 }
@@ -132,7 +131,6 @@ internal suspend fun parseHeaders(
         throw t
     }
 }
-
 
 private fun parseHttpMethod(text: CharSequence, range: MutableRange): HttpMethod {
     skipSpaces(text, range)
@@ -190,6 +188,9 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
     for (idx in range.start until range.end) {
         val ch = text[idx]
         if (ch == ' ') {
+            if (statusOutOfRange(status)) {
+                throw ParserException("Status-code must be 3-digit. Status received: $status.")
+            }
             newStart = idx
             break
         } else if (ch in '0'..'9') {
@@ -204,6 +205,7 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
     return status
 }
 
+private fun statusOutOfRange(code: Int) = code < HTTP_STATUS_CODE_MIN_RANGE || code > HTTP_STATUS_CODE_MAX_RANGE
 
 /**
  * Returns index of the next character after the last header name character,
@@ -215,7 +217,7 @@ internal fun parseHeaderName(text: CharArrayBuilder, range: MutableRange): Int {
 
     while (index < end) {
         val ch = text[index]
-        if (ch == ':') {
+        if (ch == ':' && index != range.start) {
             range.start = index + 1
             return index
         }
@@ -231,9 +233,14 @@ internal fun parseHeaderName(text: CharArrayBuilder, range: MutableRange): Int {
 }
 
 private fun parseHeaderNameFailed(text: CharArrayBuilder, index: Int, start: Int, ch: Char): Nothing {
+    if (ch == ':') {
+        throw ParserException("Empty header names are not allowed as per RFC7230.")
+    }
     if (index == start) {
-        throw ParserException("Multiline headers via line folding is not supported " +
-            "since it is deprecated as per RFC7230.")
+        throw ParserException(
+            "Multiline headers via line folding is not supported " +
+                "since it is deprecated as per RFC7230."
+        )
     }
     characterIsNotAllowed(text, ch)
 }
@@ -255,13 +262,11 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     while (index < end) {
         val ch = text[index]
-        when {
-            ch == HTAB || ch == ' ' -> {
+        when (ch) {
+            HTAB, ' ' -> {
             }
-            ch < ' ' -> characterIsNotAllowed(text, ch)
-            else -> {
-                valueLastIndex = index
-            }
+            '\r', '\n' -> characterIsNotAllowed(text, ch)
+            else -> valueLastIndex = index
         }
 
         index++

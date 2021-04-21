@@ -33,16 +33,33 @@ def disableCompilation(targets) {
     }
 }
 
+def skipMingwProjects = [
+    "ktor-network",
+    "ktor-network-tls",
+    "ktor-client-cio"
+]
+
+def host = getHostName()
+def skipMingw = skipMingwProjects.contains(project.name)
+
+if (host == 'windows' && skipMingw) return
+
 kotlin {
     targets {
         if (project.ext.ideaActive) {
+            project.ext.hostname = host
             fromPreset(project.ext.ideaPreset, 'posix')
             project.ext.nativeTargets = [posix]
         } else {
             fromPreset(presets.linuxX64, 'linuxX64')
             fromPreset(presets.macosX64, 'macosX64')
-            fromPreset(presets.mingwX64, 'mingwX64')
-            project.ext.nativeTargets = [macosX64, linuxX64, mingwX64]
+
+            project.ext.nativeTargets += [macosX64, linuxX64]
+
+            if (!skipMingw) {
+                fromPreset(presets.mingwX64, 'mingwX64')
+                project.ext.nativeTargets += [mingwX64]
+            }
 
             if (project.name != 'ktor-client-curl') {
                 fromPreset(presets.iosArm64, 'iosArm64')
@@ -54,25 +71,33 @@ kotlin {
                 fromPreset(presets.watchosArm64, 'watchosArm64')
                 fromPreset(presets.watchosX86, 'watchosX86')
 
-                project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
+                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
             }
 
-            def crossCompileTargets = [linuxX64, macosX64, mingwX64]
-            def host = getHostName()
+            def crossCompileTargets = [linuxX64, macosX64]
+
+            if (!skipMingw) {
+                crossCompileTargets += [mingwX64]
+            }
+
             switch (host) {
                 case 'linux':
                     crossCompileTargets.remove(linuxX64)
                     break
                 case 'windows':
-                    crossCompileTargets.remove(mingwX64)
+                    if (!skipMingw) crossCompileTargets.remove(mingwX64)
                     break
                 case 'macos':
                     crossCompileTargets.remove(macosX64)
                     break
             }
+
             disableCompilation(crossCompileTargets)
-            configure([mingwX64Test]) {
-                environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
+
+            if (!skipMingw) {
+                configure([mingwX64Test]) {
+                    environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
+                }
             }
         }
 
@@ -80,12 +105,12 @@ kotlin {
             binaries.getTest("DEBUG").optimized = false
         }
 
-        project.ext.nativeCompilations = project.ext.nativeTargets.collect { it.compilations.main }
+        project.ext.nativeCompilations += project.ext.nativeTargets.collect { it.compilations.main }
     }
     sourceSets {
         posixMain.dependencies {
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
-            implementation "org.jetbrains.kotlinx:atomicfu-native:$atomicfu_version"
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+            implementation "org.jetbrains.kotlinx:atomicfu:$atomicfu_version"
         }
 
         posixTest

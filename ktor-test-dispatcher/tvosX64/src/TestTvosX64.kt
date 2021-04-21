@@ -3,8 +3,8 @@
 package io.ktor.test.dispatcher
 
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import platform.Foundation.*
+import kotlin.coroutines.*
 
 /**
  * Amount of time any task is processed and can't be rescheduled.
@@ -14,11 +14,11 @@ private const val TIME_QUANTUM = 0.01
 /**
  * Test runner for native suspend tests.
  */
-actual fun testSuspend(
+public actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): Unit = runBlocking {
-    val loop = coroutineContext[ContinuationInterceptor] as EventLoop
+    val loop = ThreadLocalEventLoop.currentOrNull()!!
 
     val task = launch { block() }
     while (!task.isCompleted) {

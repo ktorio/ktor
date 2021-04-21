@@ -12,11 +12,12 @@ import kotlin.coroutines.*
 /**
  * Factory interface for creating [ApplicationEngine] instances
  */
-interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> {
+public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration> {
     /**
      * Creates an engine from the given [environment] and [configure] script
      */
-    fun create(environment: ApplicationEngineEnvironment, configure: TConfiguration.() -> Unit): TEngine
+    public fun create(environment: ApplicationEngineEnvironment, configure: TConfiguration.() -> Unit): TEngine
 }
 
 /**
@@ -25,12 +26,12 @@ interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfigurati
  * @param configure configuration script for the engine
  * @param module application module function
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = emptyList(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
@@ -42,12 +43,12 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
  * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
  * @param module application module function
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = emptyList(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
@@ -70,12 +71,10 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
 /**
  * Creates an embedded server with the given [factory], [environment] and [configure] script
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     environment: ApplicationEngineEnvironment,
     configure: TConfiguration.() -> Unit = {}
 ): TEngine {
     return factory.create(environment, configure)
 }
-

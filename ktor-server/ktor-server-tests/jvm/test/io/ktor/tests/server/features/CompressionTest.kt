@@ -1,35 +1,38 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.time.*
 import java.util.zip.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
 class CompressionTest {
+    private val textToCompress = "text to be compressed\n".repeat(100)
+    private val textToCompressAsBytes = textToCompress.encodeToByteArray()
+
     @Test
     fun testCompressionNotSpecified() {
         withTestApplication {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", null, null, "text to be compressed")
+            handleAndAssert("/", null, null, textToCompress)
         }
     }
 
@@ -39,11 +42,11 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "a,b,c", null, "text to be compressed")
+            handleAndAssert("/", "a,b,c", null, textToCompress)
         }
     }
 
@@ -53,11 +56,11 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "deflate", "deflate", "text to be compressed")
+            handleAndAssert("/", "deflate", "deflate", textToCompress)
         }
     }
 
@@ -67,11 +70,11 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "gzip,deflate", "gzip", "text to be compressed")
+            handleAndAssert("/", "gzip,deflate", "gzip", textToCompress)
         }
     }
 
@@ -84,11 +87,43 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "*", "gzip", "text to be compressed")
+            handleAndAssert("/", "*", "gzip", textToCompress)
+        }
+    }
+
+    @Test
+    fun testShouldNotCompressVideoByDefault() {
+        withTestApplication {
+            application.install(Compression)
+
+            application.routing {
+                get("/") {
+                    call.respondText(textToCompress, ContentType.Video.MP4)
+                }
+            }
+
+            handleAndAssert("/", "*", null, textToCompress)
+        }
+    }
+
+    @Test
+    fun testGzipShouldNotCompressVideoByDefault() {
+        withTestApplication {
+            application.install(Compression) {
+                gzip()
+            }
+
+            application.routing {
+                get("/") {
+                    call.respondText(textToCompress, ContentType.Video.MP4)
+                }
+            }
+
+            handleAndAssert("/", "*", null, textToCompress)
         }
     }
 
@@ -101,11 +136,11 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "*", "deflate", "text to be compressed")
+            handleAndAssert("/", "*", "deflate", textToCompress)
         }
     }
 
@@ -115,11 +150,11 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "special,gzip,deflate", "gzip", "text to be compressed")
+            handleAndAssert("/", "special,gzip,deflate", "gzip", textToCompress)
         }
     }
 
@@ -128,21 +163,24 @@ class CompressionTest {
         withTestApplication {
             application.install(Compression) {
                 default()
-                encoder("special", object : CompressionEncoder {
-                    override fun compress(
-                        readChannel: ByteReadChannel,
-                        coroutineContext: CoroutineContext
-                    ) = readChannel
+                encoder(
+                    "special",
+                    object : CompressionEncoder {
+                        override fun compress(
+                            readChannel: ByteReadChannel,
+                            coroutineContext: CoroutineContext
+                        ) = readChannel
 
-                    override fun compress(
-                        writeChannel: ByteWriteChannel,
-                        coroutineContext: CoroutineContext
-                    ) = writeChannel
-                })
+                        override fun compress(
+                            writeChannel: ByteWriteChannel,
+                            coroutineContext: CoroutineContext
+                        ) = writeChannel
+                    }
+                )
             }
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed")
+                    call.respondText(textToCompress)
                 }
             }
 
@@ -152,7 +190,7 @@ class CompressionTest {
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("special", result.response.headers[HttpHeaders.ContentEncoding])
-            assertEquals("text to be compressed", result.response.byteContent!!.toString(Charsets.UTF_8))
+            assertEquals(textToCompress, result.response.byteContent!!.toString(Charsets.UTF_8))
         }
     }
 
@@ -162,7 +200,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed", status = HttpStatusCode.NotFound)
+                    call.respondText(textToCompress, status = HttpStatusCode.Found)
                 }
             }
 
@@ -170,8 +208,8 @@ class CompressionTest {
                 addHeader(HttpHeaders.AcceptEncoding, "*")
             }
             assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.NotFound, result.response.status())
-            assertEquals("text to be compressed", result.response.byteContent!!.toString(Charsets.UTF_8))
+            assertEquals(HttpStatusCode.Found, result.response.status())
+            assertEquals(textToCompress, result.response.byteContent!!.toString(Charsets.UTF_8))
         }
     }
 
@@ -179,7 +217,32 @@ class CompressionTest {
     fun testMinSize() {
         withTestApplication {
             application.install(Compression) {
-                default()
+                minimumSize(10)
+            }
+
+            application.routing {
+                get("/small") {
+                    call.respondText("0123")
+                }
+                get("/big") {
+                    call.respondText("01234567890123456789")
+                }
+                get("/stream") {
+                    call.respondText("stream content")
+                }
+            }
+
+            handleAndAssert("/big", "gzip,deflate", "gzip", "01234567890123456789")
+            handleAndAssert("/small", "gzip,deflate", null, "0123")
+            handleAndAssert("/stream", "gzip,deflate", "gzip", "stream content")
+        }
+    }
+
+    @Test
+    fun testMinSizeGzip() {
+        withTestApplication {
+            application.install(Compression) {
+                gzip()
                 minimumSize(10)
             }
 
@@ -212,13 +275,13 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("OK", ContentType.parse(call.parameters["t"]!!))
+                    call.respondText(textToCompress, ContentType.parse(call.parameters["t"]!!))
                 }
             }
 
-            handleAndAssert("/?t=text/plain", "gzip,deflate", "gzip", "OK")
-            handleAndAssert("/?t=text/vcard", "gzip,deflate", null, "OK")
-            handleAndAssert("/?t=some/other", "gzip,deflate", null, "OK")
+            handleAndAssert("/?t=text/plain", "gzip,deflate", "gzip", textToCompress)
+            handleAndAssert("/?t=text/vcard", "gzip,deflate", null, textToCompress)
+            handleAndAssert("/?t=some/other", "gzip,deflate", null, textToCompress)
         }
     }
 
@@ -236,13 +299,13 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("OK")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/?e=1", "gzip", "gzip", "OK")
-            handleAndAssert("/?e", "gzip", null, "OK")
-            handleAndAssert("/?e", "gzip,deflate", "deflate", "OK")
+            handleAndAssert("/?e=1", "gzip", "gzip", textToCompress)
+            handleAndAssert("/?e", "gzip", null, textToCompress)
+            handleAndAssert("/?e", "gzip,deflate", "deflate", textToCompress)
         }
     }
 
@@ -260,13 +323,13 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("OK")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "gzip", "gzip", "OK")
-            handleAndAssert("/", "deflate", "deflate", "OK")
-            handleAndAssert("/", "gzip,deflate", "gzip", "OK")
+            handleAndAssert("/", "gzip", "gzip", textToCompress)
+            handleAndAssert("/", "deflate", "deflate", textToCompress)
+            handleAndAssert("/", "gzip,deflate", "gzip", textToCompress)
         }
     }
 
@@ -284,13 +347,13 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("OK")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "gzip", "gzip", "OK")
-            handleAndAssert("/", "deflate", "deflate", "OK")
-            handleAndAssert("/", "gzip,deflate", "deflate", "OK")
+            handleAndAssert("/", "gzip", "gzip", textToCompress)
+            handleAndAssert("/", "deflate", "deflate", textToCompress)
+            handleAndAssert("/", "gzip,deflate", "deflate", textToCompress)
         }
     }
 
@@ -304,14 +367,14 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("OK")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "gzip", "gzip", "OK")
-            handleAndAssert("/", "deflate", "deflate", "OK")
-            handleAndAssert("/", "gzip;q=1,deflate;q=0.1", "gzip", "OK")
-            handleAndAssert("/", "gzip;q=0.1,deflate;q=1", "deflate", "OK")
+            handleAndAssert("/", "gzip", "gzip", textToCompress)
+            handleAndAssert("/", "deflate", "deflate", textToCompress)
+            handleAndAssert("/", "gzip;q=1,deflate;q=0.1", "gzip", textToCompress)
+            handleAndAssert("/", "gzip;q=0.1,deflate;q=1", "deflate", textToCompress)
         }
     }
 
@@ -327,12 +390,12 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText("content")
+                    call.respondText(textToCompress)
                 }
             }
 
-            handleAndAssert("/", "gzip,deflate", null, "content")
-            handleAndAssert("/?compress=true", "gzip,deflate", "gzip", "content")
+            handleAndAssert("/", "gzip,deflate", null, textToCompress)
+            handleAndAssert("/?compress=true", "gzip,deflate", "gzip", textToCompress)
         }
     }
 
@@ -347,23 +410,25 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        init {
-                            versions += LastModifiedVersion(dateTime)
-                            caching = CachingOptions(
-                                cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
-                                expires = dateTime
-                            )
-                        }
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            init {
+                                versions += LastModifiedVersion(dateTime)
+                                caching = CachingOptions(
+                                    cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
+                                    expires = dateTime
+                                )
+                            }
 
-                        override val contentType = ContentType.Text.Plain
-                        override val contentLength = 4L
-                        override fun readFrom() = ByteReadChannel("test".toByteArray())
-                    })
+                            override val contentType = ContentType.Text.Plain
+                            override val contentLength = textToCompressAsBytes.size.toLong()
+                            override fun readFrom() = ByteReadChannel(textToCompressAsBytes)
+                        }
+                    )
                 }
             }
 
-            handleAndAssert("/", "gzip", "gzip", "test").let { call ->
+            handleAndAssert("/", "gzip", "gzip", textToCompress).let { call ->
                 assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
                 assertEquals(dateTime.toHttpDateString(), call.response.headers[HttpHeaders.Expires])
                 assertEquals("no-cache, public", call.response.headers[HttpHeaders.CacheControl])
@@ -445,11 +510,13 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object: OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeStringUtf8("Hello!")
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("Hello!")
+                        }
                     }
-                })
+                )
             }
         }
 
@@ -462,15 +529,15 @@ class CompressionTest {
 
         application.routing {
             get("/text") {
-                call.respondText("123")
+                call.respondText(textToCompress)
             }
             get("/bytes") {
-                call.respondBytes("1234".toByteArray(), ContentType.Application.OctetStream)
+                call.respondBytes(textToCompressAsBytes, ContentType.Application.OctetStream)
             }
         }
 
-        handleAndAssert("/text", "identity", "identity", "123")
-        handleAndAssert("/bytes", "identity", "identity", "1234")
+        handleAndAssert("/text", "identity", "identity", textToCompress)
+        handleAndAssert("/bytes", "identity", "identity", textToCompress)
     }
 
     @Test
@@ -479,18 +546,20 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object: OutgoingContent.ByteArrayContent() {
-                    override val headers: Headers
-                        get() = Headers.build {
-                            appendAll(super.headers)
-                            append(HttpHeaders.ContentEncoding, "identity")
-                        }
+                call.respond(
+                    object : OutgoingContent.ByteArrayContent() {
+                        override val headers: Headers
+                            get() = Headers.build {
+                                appendAll(super.headers)
+                                append(HttpHeaders.ContentEncoding, "identity")
+                            }
 
-                    override fun bytes(): ByteArray = "Hello!".toByteArray()
+                        override fun bytes(): ByteArray = "Hello!".toByteArray()
 
-                    override val contentLength: Long?
-                        get() = 6
-                })
+                        override val contentLength: Long?
+                            get() = 6
+                    }
+                )
             }
         }
 
@@ -503,18 +572,20 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(
-                        input: ByteReadChannel,
-                        output: ByteWriteChannel,
-                        engineContext: CoroutineContext,
-                        userContext: CoroutineContext
-                    ): Job {
-                        return launch {
-                            output.close()
+                call.respond(
+                    object : OutgoingContent.ProtocolUpgrade() {
+                        override suspend fun upgrade(
+                            input: ByteReadChannel,
+                            output: ByteWriteChannel,
+                            engineContext: CoroutineContext,
+                            userContext: CoroutineContext
+                        ): Job {
+                            return launch {
+                                output.close()
+                            }
                         }
                     }
-                })
+                )
             }
         }
 
@@ -562,7 +633,12 @@ class CompressionTest {
         }
     }
 
-    private fun TestApplicationEngine.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
+    private fun TestApplicationEngine.handleAndAssert(
+        url: String,
+        acceptHeader: String?,
+        expectedEncoding: String?,
+        expectedContent: String
+    ): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
                 addHeader(HttpHeaders.AcceptEncoding, acceptHeader)
@@ -598,6 +674,7 @@ class CompressionTest {
     }
 
     private fun TestApplicationResponse.readIdentity() = byteContent!!.inputStream().reader().readText()
-    private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
+    private fun TestApplicationResponse.readDeflate() =
+        InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }

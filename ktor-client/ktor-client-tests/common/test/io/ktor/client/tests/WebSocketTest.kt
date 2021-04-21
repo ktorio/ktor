@@ -4,16 +4,21 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
-class WebSocketTest : ClientLoader() {
+internal val ENGINES_WITHOUT_WEBSOCKETS = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
+internal val ENGINES_WITHOUT_WS_EXTENSIONS = ENGINES_WITHOUT_WEBSOCKETS + "OkHttp" + "Java" + "Js"
 
+@Suppress("PublicApiImplicitType")
+class WebSocketTest : ClientLoader() {
     @Test
-    fun testEcho() = clientTests(listOf("Apache", "Android", "iOS")) {
+    fun testEcho() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             install(WebSockets)
         }
@@ -30,7 +35,8 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testClose() = clientTests(listOf("Apache", "Android", "iOS")) {
+    @Ignore
+    fun testClose() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             install(WebSockets)
         }
@@ -48,21 +54,94 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancel() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
+    @Ignore
+    fun testCancel() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js") {
         config {
             install(WebSockets)
+        }
 
-            test { client ->
-                io.ktor.client.tests.utils.assertFailsWith<CancellationException> {
-                    withTimeout(1000) {
-                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                            repeat(10) {
-                                send(Frame.Text("Hello"))
-                                delay(250)
-                            }
+        test { client ->
+            assertFailsWith<CancellationException> {
+                withTimeout(1000) {
+                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                        repeat(10) {
+                            send(Frame.Text("Hello"))
+                            delay(250)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun testConfiguration() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
+        config {
+            WebSockets {
+                pingInterval = 100
+                maxFrameSize = 1024
+            }
+        }
+
+        test { client ->
+            assertEquals(100, client[WebSockets].pingInterval)
+            assertEquals(1024, client[WebSockets].maxFrameSize)
+        }
+    }
+
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @Test
+    fun testWebSocketExtensions() = clientTests(ENGINES_WITHOUT_WS_EXTENSIONS) {
+        val testLogger = TestLogger(
+            "Client negotiation",
+            "Process outgoing frame: Frame TEXT (fin=true, buffer len = 12)",
+            "Process incoming frame: Frame TEXT (fin=true, buffer len = 12)"
+        )
+
+        config {
+            WebSockets {
+                extensions {
+                    install(FrameLogger) {
+                        logger = testLogger
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                check(extensionOrNull(FrameLogger) != null)
+
+                send("Hello, world")
+                val frame = incoming.receive()
+                assertEquals("Hello, world", (frame as Frame.Text).readText())
+            }
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testExplicitClose() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(Frame.Text("Hello World"))
+                delay(1000) // wait for server response
+                close()
+
+                var packetsCount = 0
+                incoming.consumeEach {
+                    val text = (it as? Frame.Text)?.readText() ?: return@consumeEach
+                    assertEquals("Hello World", text)
+                    packetsCount++
+                }
+                assertEquals(1, packetsCount)
             }
         }
     }

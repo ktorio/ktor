@@ -1,10 +1,10 @@
 package io.ktor.utils.io.streams
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.internal.utils.*
+import kotlinx.cinterop.*
 import platform.posix.*
 
 /**
@@ -12,14 +12,14 @@ import platform.posix.*
  */
 @Suppress("FunctionName")
 @ExperimentalIoApi
-fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescriptor)
+public fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescriptor)
 
 /**
  * Create a blocking [Output] writing to the specified [file] instance using [fwrite].
  */
 @Suppress("FunctionName")
 @ExperimentalIoApi
-fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
+public fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
 
 private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutput() {
     private var closed = false

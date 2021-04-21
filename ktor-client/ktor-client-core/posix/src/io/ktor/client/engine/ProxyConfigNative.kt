@@ -1,6 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.http.*
+import io.ktor.util.network.*
 
 /**
  * Proxy configuration.
@@ -9,7 +10,7 @@ import io.ktor.http.*
  *
  * @param url: proxy url address.
  */
-actual class ProxyConfig(val url: Url) {
+public actual class ProxyConfig(public val url: Url) {
     override fun toString(): String = buildString {
         url.apply {
             append(protocol.name)
@@ -29,13 +30,20 @@ actual class ProxyConfig(val url: Url) {
 }
 
 /**
+ * Resolve remote address of [ProxyConfig].
+ *
+ * This operations can block.
+ */
+public actual fun ProxyConfig.resolveAddress(): NetworkAddress = NetworkAddress(url.host, url.port)
+
+/**
  * [ProxyConfig] factory.
  */
-actual object ProxyBuilder {
+public actual object ProxyBuilder {
     /**
      * Create http proxy from [url].
      */
-    actual fun http(url: Url): ProxyConfig {
+    public actual fun http(url: Url): ProxyConfig {
         require(url.protocol.name.equals(URLProtocol.HTTP.name, ignoreCase = true))
 
         return ProxyConfig(url)
@@ -44,10 +52,23 @@ actual object ProxyBuilder {
     /**
      * Create socks proxy from [host] and [port].
      */
-    actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(URLBuilder().apply {
-        protocol = URLProtocol.SOCKS
+    public actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(
+        URLBuilder().apply {
+            protocol = URLProtocol.SOCKS
 
-        this.host = host
-        this.port = port
-    }.build())
+            this.host = host
+            this.port = port
+        }.build()
+    )
 }
+
+/**
+ * Type of configured proxy.
+ */
+public actual val ProxyConfig.type: ProxyType
+    get() = when (url.protocol) {
+        URLProtocol.HTTP,
+        URLProtocol.HTTPS -> ProxyType.HTTP
+        URLProtocol.SOCKS -> ProxyType.SOCKS
+        else -> ProxyType.UNKNOWN
+    }

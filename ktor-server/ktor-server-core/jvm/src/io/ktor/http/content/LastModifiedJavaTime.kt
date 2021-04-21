@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("FunctionName")
@@ -13,11 +13,11 @@ import java.time.*
 /**
  * Construct [LastModifiedVersion] version from a [ZonedDateTime] instance
  */
-fun LastModifiedVersion(lastModified: ZonedDateTime) : LastModifiedVersion = LastModifiedVersion(lastModified.toGMTDate())
+public fun LastModifiedVersion(lastModified: ZonedDateTime): LastModifiedVersion =
+    LastModifiedVersion(lastModified.toGMTDate())
 
 /**
  * Construct [LastModifiedVersion] version from a [FileTime] instance
  */
-fun LastModifiedVersion(lastModified: FileTime) : LastModifiedVersion =
+public fun LastModifiedVersion(lastModified: FileTime): LastModifiedVersion =
     LastModifiedVersion(GMTDate(lastModified.toMillis()))
-

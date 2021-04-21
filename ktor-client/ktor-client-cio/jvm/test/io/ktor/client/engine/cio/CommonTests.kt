@@ -6,6 +6,13 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.tests.*
 
-class CIOMultithreadedTest : MultithreadedTest(CIO)
-
 class CIOHttpClientTest : HttpClientTest(CIO)
+
+class CIOSslOverProxyTest : SslOverProxyTest<CIOEngineConfig>(CIO) {
+
+    override fun CIOEngineConfig.disableCertificatePinning() {
+        https {
+            trustManager = trustAllCertificates[0]
+        }
+    }
+}

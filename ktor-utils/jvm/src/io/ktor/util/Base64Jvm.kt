@@ -13,14 +13,15 @@ package io.ktor.util
     ReplaceWith("encodedString.decodeBase64Bytes()"),
     level = DeprecationLevel.ERROR
 )
-fun decodeBase64(encodedString: String): ByteArray = encodedString.decodeBase64Bytes()
+public fun decodeBase64(encodedString: String): ByteArray = encodedString.decodeBase64Bytes()
 
 /**
  * Encode [bytes] as a BASE64 string
  */
 @InternalAPI
 @Deprecated(
-    "Use encodeBase64 extension instead", ReplaceWith("bytes.encodeBase64()"),
+    "Use encodeBase64 extension instead",
+    ReplaceWith("bytes.encodeBase64()"),
     level = DeprecationLevel.ERROR
 )
-fun encodeBase64(bytes: ByteArray): String = bytes.encodeBase64()
+public fun encodeBase64(bytes: ByteArray): String = bytes.encodeBase64()

@@ -1,27 +1,39 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
 
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
+import kotlin.random.*
 import kotlin.test.*
 
 class UserHashedTableAuthTest {
+    private val randomSaltPart = Random.nextInt(0, 0x10000)
+        .toString(radix = 16)
+        .padStart(4, '0')
+
+    // for test we don't care of hash stability so we append random part to the hash salt
+    // for production, you should keep salt part in secret and never use constant salt
+    // please see the documentation for explanation and read related articles for best practices
+    private val digestFunction = getDigestFunction("SHA-256") { "ktor-$randomSaltPart-${it.length}" }
 
     @Test
     fun testConfigInlined() {
-        testSingle(UserHashedTableAuth(table = mapOf(
-                "test" to "VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=".decodeBase64Bytes() // sha256 for "test"
-        ), digester = getDigestFunction("SHA-256") { "ktor" }))
+        testSingle(
+            UserHashedTableAuth(
+                table = mapOf(
+                    "test" to digestFunction("test")
+                ),
+                digester = digestFunction
+            )
+        )
     }
 
     private fun testSingle(hashedUserTable: UserHashedTableAuth) {
@@ -78,14 +90,18 @@ class UserHashedTableAuthTest {
         }
     }
 
-    private fun TestApplicationEngine.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
+    private fun TestApplicationEngine.handlePost(
+        uri: String,
+        user: String? = null,
+        password: String? = null
+    ): TestApplicationCall {
         return handleRequest(HttpMethod.Post, uri) {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody(
-                    Parameters.build {
-                        if (user != null) append("user", user)
-                        if (password != null) append("password", password)
-                    }.formUrlEncode()
+                Parameters.build {
+                    if (user != null) append("user", user)
+                    if (password != null) append("password", password)
+                }.formUrlEncode()
             )
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -12,11 +12,10 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-abstract class ServletApplicationRequest(
+public abstract class ServletApplicationRequest(
     call: ApplicationCall,
-    val servletRequest: HttpServletRequest
+    public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
-
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters: Parameters by lazy {
@@ -28,4 +27,3 @@ abstract class ServletApplicationRequest(
     @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
 }
-

@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
@@ -17,7 +17,7 @@ import kotlin.coroutines.*
 /**
  * Logs application lifecycle and call events.
  */
-class CallLogging private constructor(
+public class CallLogging private constructor(
     private val log: Logger,
     private val monitor: ApplicationEvents,
     private val level: Level,
@@ -31,7 +31,7 @@ class CallLogging private constructor(
     /**
      * Configuration for [CallLogging] feature
      */
-    class Configuration {
+    public class Configuration {
         internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
         internal val mdcEntries = mutableListOf<MDCEntry>()
         internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
@@ -39,17 +39,17 @@ class CallLogging private constructor(
         /**
          * Logging level for [CallLogging], default is [Level.TRACE]
          */
-        var level: Level = Level.TRACE
+        public var level: Level = Level.TRACE
 
         /**
          * Customize [Logger], will default to [ApplicationEnvironment.log]
          */
-        var logger: Logger? = null
+        public var logger: Logger? = null
 
         /**
          * Log messages for calls matching a [predicate]
          */
-        fun filter(predicate: (ApplicationCall) -> Boolean) {
+        public fun filter(predicate: (ApplicationCall) -> Boolean) {
             filters.add(predicate)
         }
 
@@ -58,14 +58,14 @@ class CallLogging private constructor(
          * A value will be available in MDC only during [ApplicationCall] lifetime and will be removed after call
          * processing.
          */
-        fun mdc(name: String, provider: (ApplicationCall) -> String?) {
+        public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
             mdcEntries.add(MDCEntry(name, provider))
         }
 
         /**
          * Configure application call log message.
          */
-        fun format(formatter: (ApplicationCall) -> String) {
+        public fun format(formatter: (ApplicationCall) -> String) {
             formatCall = formatter
         }
     }
@@ -111,7 +111,7 @@ class CallLogging private constructor(
     /**
      * Installable feature for [CallLogging].
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, CallLogging> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
@@ -129,7 +129,7 @@ class CallLogging private constructor(
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    withMDC {
+                    withMDC(call) {
                         proceed()
                         feature.logSuccess(call)
                     }
@@ -145,13 +145,17 @@ class CallLogging private constructor(
         }
     }
 
-
     @Suppress("KDocMissingDocumentation")
     @InternalAPI
-    object Internals {
+    public object Internals {
         @InternalAPI
-        suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
-            withMDC(block)
+        public suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
+            withMDCBlock(call) { block.invoke(this) }
+        }
+
+        @InternalAPI
+        public suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
+            withMDC(call, block)
         }
     }
 
@@ -173,8 +177,7 @@ class CallLogging private constructor(
 /**
  * Invoke suspend [block] with a context having MDC configured.
  */
-private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(crossinline block: suspend C.() -> Unit) {
-    val call = call
+private suspend inline fun withMDC(call: ApplicationCall, crossinline block: suspend () -> Unit) {
     val feature = call.application.featureOrNull(CallLogging) ?: return block()
 
     withContext(MDCSurvivalElement(feature.setupMdc(call))) {
@@ -189,7 +192,7 @@ private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(c
 /**
  * Generates a string representing this [ApplicationRequest] suitable for logging
  */
-fun ApplicationRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
+public fun ApplicationRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
 
 private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
     override val key: CoroutineContext.Key<*> get() = Key

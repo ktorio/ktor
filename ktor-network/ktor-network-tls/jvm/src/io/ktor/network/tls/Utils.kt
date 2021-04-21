@@ -12,12 +12,12 @@ internal fun Digest(): Digest = Digest(BytePacketBuilder())
 
 internal inline class Digest(val state: BytePacketBuilder) : Closeable {
 
-    fun update(packet: ByteReadPacket) = synchronized(this) {
+    public fun update(packet: ByteReadPacket) = synchronized(this) {
         if (packet.isEmpty) return
         state.writePacket(packet.copy())
     }
 
-    fun doHash(hashName: String): ByteArray = synchronized(this) {
+    public fun doHash(hashName: String): ByteArray = synchronized(this) {
         state.preview { handshakes: ByteReadPacket ->
             val digest = MessageDigest.getInstance(hashName)!!
 
@@ -41,14 +41,15 @@ internal inline class Digest(val state: BytePacketBuilder) : Closeable {
     override fun close() {
         state.release()
     }
-
 }
 
 internal operator fun Digest.plusAssign(record: TLSHandshake) {
     check(record.type != TLSHandshakeType.HelloRequest)
 
-    update(buildPacket {
-        writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
-        if (record.packet.remaining > 0) writePacket(record.packet.copy())
-    })
+    update(
+        buildPacket {
+            writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
+            if (record.packet.remaining > 0) writePacket(record.packet.copy())
+        }
+    )
 }

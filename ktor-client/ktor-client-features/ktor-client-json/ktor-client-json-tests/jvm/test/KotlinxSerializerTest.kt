@@ -15,15 +15,14 @@ import kotlinx.serialization.modules.*
 import kotlin.test.*
 
 class KotlinxSerializerTest {
-    @OptIn(ImplicitReflectionSerializer::class)
+    @Suppress("EXPERIMENTAL_API_USAGE_ERROR")
     @Test
     fun testCustomDeserializer() {
         val upwrapper = indexListUnwrapper<TestEntry>()
 
-        @OptIn(UnstableDefault::class)
         val serializer = Json {
             ignoreUnknownKeys = true
-            serialModule = serializersModule(upwrapper)
+            serializersModule = serializersModuleOf(upwrapper)
         }
 
         val kotlinxSerializer = KotlinxSerializer(serializer)
@@ -49,10 +48,9 @@ class KotlinxSerializerTest {
 @Serializable
 data class TestEntry(val a: String, val b: Int)
 
-@ImplicitReflectionSerializer
 inline fun <reified T> indexListUnwrapper() =
-    object : JsonTransformingSerializer<List<T>>(serializer<T>().list, "unwrap") {
-        override fun readTransform(element: JsonElement): JsonElement {
+    object : JsonTransformingSerializer<List<T>>(ListSerializer<T>(serializer<T>())) {
+        override fun transformDeserialize(element: JsonElement): JsonElement {
             return if (element is JsonArray) element else element.jsonObject.values.firstOrNull { it is JsonArray }
                 ?: error("Collection not found in json")
         }

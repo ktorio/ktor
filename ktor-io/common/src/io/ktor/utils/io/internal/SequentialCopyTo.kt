@@ -16,21 +16,31 @@ internal suspend fun ByteChannelSequentialBase.joinToImpl(dst: ByteChannelSequen
  */
 internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteChannelSequentialBase, limit: Long): Long {
     require(this !== dst)
+    if (closedCause != null) {
+        dst.close(closedCause)
+        return 0L
+    }
 
     var remainingLimit = limit
 
-    while (true) {
-        if (!awaitInternalAtLeast1()) break
+    while (remainingLimit > 0) {
+        if (!awaitInternalAtLeast1()) {
+            break
+        }
         val transferred = transferTo(dst, remainingLimit)
 
         val copied = if (transferred == 0L) {
             val tail = copyToTail(dst, remainingLimit)
-            if (tail == 0L) break
+            if (tail == 0L) {
+                break
+            }
+
             tail
         } else {
             if (dst.availableForWrite == 0) {
-                dst.notFull.await()
+                dst.awaitAtLeastNBytesAvailableForWrite(1)
             }
+
             transferred
         }
 

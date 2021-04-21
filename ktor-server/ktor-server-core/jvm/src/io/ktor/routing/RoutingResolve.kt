@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 
@@ -13,16 +14,16 @@ import io.ktor.request.*
  *
  * @property route specifies a routing node for successful resolution, or nearest one for failed.
  */
-sealed class RoutingResolveResult(val route: Route) {
+public sealed class RoutingResolveResult(public val route: Route) {
     /**
      * Provides all captured values for this result.
      */
-    abstract val parameters: Parameters
+    public abstract val parameters: Parameters
 
     /**
      * Represents a successful result
      */
-    class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
+    public class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route)"
     }
 
@@ -30,8 +31,10 @@ sealed class RoutingResolveResult(val route: Route) {
      * Represents a failed result
      * @param reason provides information on reason of a failure
      */
-    class Failure(route: Route, val reason: String) : RoutingResolveResult(route) {
-        override val parameters: Nothing get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
+    public class Failure(route: Route, public val reason: String) : RoutingResolveResult(route) {
+        override val parameters: Nothing
+            get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
+
         override fun toString(): String = "FAILURE \"$reason\" @ $route)"
     }
 }
@@ -41,14 +44,32 @@ sealed class RoutingResolveResult(val route: Route) {
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
  */
-class RoutingResolveContext(val routing: Route, val call: ApplicationCall, private val tracers: List<(RoutingResolveTrace) -> Unit>) {
+public class RoutingResolveContext(
+    public val routing: Route,
+    public val call: ApplicationCall,
+    private val tracers: List<(RoutingResolveTrace) -> Unit>
+) {
 
     /**
      * List of path segments parsed out of a [call]
      */
-    val segments: List<String> = parse(call.request.path())
+    public val segments: List<String>
 
-    private val trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
+    /**
+     * Flag showing if path ends with slash
+     */
+    public val hasTrailingSlash: Boolean = call.request.path().endsWith('/')
+
+    private val trace: RoutingResolveTrace?
+
+    init {
+        try {
+            segments = parse(call.request.path())
+            trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
+        } catch (cause: URLDecodeException) {
+            throw BadRequestException("Url decode failed for ${call.request.uri}", cause)
+        }
+    }
 
     private fun parse(path: String): List<String> {
         if (path.isEmpty() || path == "/") return listOf()
@@ -71,13 +92,16 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
+        if (path.endsWith("/")) {
+            segments.add("")
+        }
         return segments
     }
 
     /**
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
      */
-    fun resolve(): RoutingResolveResult {
+    public fun resolve(): RoutingResolveResult {
         val root = routing
         val rootResult = root.selector.evaluate(this, 0)
         if (!rootResult.succeeded) {
@@ -105,16 +129,21 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
         var bestQuality = 0.0
         var bestChild: Route? = null
 
+        val children = flattenChildren(entry.children)
         // iterate using indices to avoid creating iterator
-        for (childIndex in 0..entry.children.lastIndex) {
-            val child = entry.children[childIndex]
+        for (childIndex in 0..children.lastIndex) {
+            val child = children[childIndex]
             val selectorResult = child.selector.evaluate(this, segmentIndex)
             if (!selectorResult.succeeded) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Selector didn't match"))
                 continue // selector didn't match, skip entire subtree
             }
 
-            val immediateSelectQuality = selectorResult.quality
+            val immediateSelectQuality = when (selectorResult.quality) {
+                // handlers of route with qualityTransparent should be treated as ones with qualityConstant
+                RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
+                else -> selectorResult.quality
+            }
 
             if (immediateSelectQuality < bestQuality) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Better match was already found"))
@@ -166,7 +195,10 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
                 bestResult
             } else {
                 // nothing more to match and no handler, or there are more segments and no matched child
-                val reason = if (segmentIndex == segments.size) "Segments exhausted but no handlers found" else "Not all segments matched"
+                val reason = when (segmentIndex) {
+                    segments.size -> "Segments exhausted but no handlers found"
+                    else -> "Not all segments matched"
+                }
                 RoutingResolveResult.Failure(failEntry ?: entry, reason)
             }
         }
@@ -175,5 +207,22 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
         return result
     }
 
-}
+    private fun flattenChildren(children: List<Route>): List<Route> {
+        // to avoid unnecessary allocations, first check in flattening is required
+        // iterate using indices to avoid creating iterator
+        var hasTransparentChildren = false
+        for (childIndex in 0..children.lastIndex) {
+            hasTransparentChildren = children[childIndex].selector.quality == RouteSelectorEvaluation.qualityTransparent
+            if (hasTransparentChildren) break
+        }
+        if (!hasTransparentChildren) return children
 
+        return children.flatMap {
+            when (it.selector.quality) {
+                RouteSelectorEvaluation.qualityTransparent ->
+                    flattenChildren(it.children) + if (it.handlers.isNotEmpty()) listOf(it) else emptyList()
+                else -> listOf(it)
+            }
+        }
+    }
+}

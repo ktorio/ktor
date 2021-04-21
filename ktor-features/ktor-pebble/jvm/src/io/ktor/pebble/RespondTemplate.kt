@@ -9,13 +9,12 @@ import io.ktor.http.*
 import io.ktor.response.*
 import java.util.*
 
-
 /**
  * Respond with the specified [template] passing [model]
  *
  * @see PebbleContent
  */
-suspend fun ApplicationCall.respondTemplate(
+public suspend fun ApplicationCall.respondTemplate(
     template: String,
     model: Map<String, Any>,
     locale: Locale? = null,
@@ -23,4 +22,4 @@ suspend fun ApplicationCall.respondTemplate(
     contentType: ContentType = ContentType.Text.Html.withCharset(
         Charsets.UTF_8
     )
-) = respond(PebbleContent(template, model, locale, etag, contentType))
+): Unit = respond(PebbleContent(template, model, locale, etag, contentType))

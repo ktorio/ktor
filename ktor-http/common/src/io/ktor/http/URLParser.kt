@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -10,7 +10,7 @@ import io.ktor.util.*
  * Take url parts from [urlString]
  * throws [URLParserException]
  */
-fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
     return try {
         takeFromUnsafe(urlString)
     } catch (cause: Throwable) {
@@ -21,8 +21,9 @@ fun URLBuilder.takeFrom(urlString: String): URLBuilder {
 /**
  * Thrown when failed to parse URL
  */
-class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
-    "Fail to parse url: $urlString", cause
+public class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
+    "Fail to parse url: $urlString",
+    cause
 )
 
 internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
@@ -41,6 +42,17 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     val slashCount = count(urlString, startIndex, endIndex, '/')
     startIndex += slashCount
 
+    if (protocol.name == "file") {
+        parseFile(urlString, startIndex, endIndex, slashCount)
+        return this
+    }
+
+    if (protocol.name == "mailto") {
+        require(slashCount == 0)
+        parseMailto(urlString, startIndex, endIndex)
+        return this
+    }
+
     if (slashCount >= 2) {
         loop@ while (true) {
             val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
@@ -49,10 +61,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
                 // user and password check
                 val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
                 if (passwordIndex != -1) {
-                    user = urlString.substring(startIndex, passwordIndex)
-                    password = urlString.substring(passwordIndex + 1, delimiter)
+                    user = urlString.substring(startIndex, passwordIndex).decodeURLPart()
+                    password = urlString.substring(passwordIndex + 1, delimiter).decodeURLPart()
                 } else {
-                    user = urlString.substring(startIndex, delimiter)
+                    user = urlString.substring(startIndex, delimiter).decodeURLPart()
                 }
                 startIndex = delimiter + 1
             } else {
@@ -60,7 +72,6 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
                 startIndex = delimiter
                 break@loop
             }
-
         }
     }
 
@@ -89,34 +100,73 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
         // overwrite the path
         ""
     }
+
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     val rawPath = urlString.substring(startIndex, pathEnd)
+
     encodedPath += rawPath.encodeURLPath()
     startIndex = pathEnd
 
     // Query
     if (startIndex < endIndex && urlString[startIndex] == '?') {
-        if (startIndex + 1 == endIndex) {
-            trailingQuery = true
-            return this
-        }
-
-        val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
-
-        val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart))
-        rawParameters.forEach { key, values ->
-            parameters.appendAll(key, values)
-        }
-
-        startIndex = fragmentStart
+        startIndex = parseQuery(urlString, startIndex, endIndex)
     }
 
     // Fragment
+    parseFragment(urlString, startIndex, endIndex)
+    return this
+}
+
+private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
+    when (slashCount) {
+        2 -> {
+            val nextSlash = urlString.indexOf('/', startIndex)
+            if (nextSlash == -1 || nextSlash == endIndex) {
+                host = urlString.substring(startIndex, endIndex)
+                return
+            }
+
+            host = urlString.substring(startIndex, nextSlash)
+            encodedPath = urlString.substring(nextSlash, endIndex)
+        }
+        3 -> {
+            host = ""
+            encodedPath = "/" + urlString.substring(startIndex, endIndex)
+        }
+        else -> throw IllegalArgumentException("Invalid file url: $urlString")
+    }
+}
+
+private fun URLBuilder.parseMailto(urlString: String, startIndex: Int, endIndex: Int) {
+    val delimiter = urlString.indexOf("@", startIndex)
+    if (delimiter == -1) {
+        throw IllegalArgumentException("Invalid mailto url: $urlString, it should contain '@'.")
+    }
+
+    user = urlString.substring(startIndex, delimiter).decodeURLPart()
+    host = urlString.substring(delimiter + 1, endIndex)
+}
+
+private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: Int): Int {
+    if (startIndex + 1 == endIndex) {
+        trailingQuery = true
+        return endIndex
+    }
+
+    val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
+
+    val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart))
+    rawParameters.forEach { key, values ->
+        parameters.appendAll(key, values)
+    }
+
+    return fragmentStart
+}
+
+private fun URLBuilder.parseFragment(urlString: String, startIndex: Int, endIndex: Int) {
     if (startIndex < endIndex && urlString[startIndex] == '#') {
         fragment = urlString.substring(startIndex + 1, endIndex)
     }
-
-    return this
 }
 
 private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: Int) {
@@ -157,20 +207,20 @@ private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
                 throw IllegalArgumentException("Illegal character in scheme at position $incorrectSchemePosition")
             }
 
-            return current
+            return current - startIndex
         }
 
         // If character '/' or '?' or '#' found this is not a scheme.
         if (char == '/' || char == '?' || char == '#') return -1
 
         // Update incorrect scheme position is current char is illegal.
-        if (incorrectSchemePosition == -1
-            && char !in 'a'..'z'
-            && char !in 'A'..'Z'
-            && char !in '0'..'9'
-            && char != '.'
-            && char != '+'
-            && char != '-'
+        if (incorrectSchemePosition == -1 &&
+            char !in 'a'..'z' &&
+            char !in 'A'..'Z' &&
+            char !in '0'..'9' &&
+            char != '.' &&
+            char != '+' &&
+            char != '-'
         ) {
             incorrectSchemePosition = current
         }

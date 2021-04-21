@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -17,7 +17,7 @@ import java.net.*
  *
  * @return [LocalFileContent] or [JarFileContent] or `null`
  */
-fun ApplicationCall.resolveResource(
+public fun ApplicationCall.resolveResource(
     path: String,
     resourcePackage: String? = null,
     classLoader: ClassLoader = application.environment.classLoader,
@@ -27,8 +27,10 @@ fun ApplicationCall.resolveResource(
         return null
     }
 
-    val normalizedPath = (resourcePackage.orEmpty().split('.', '/', '\\') +
-        path.split('/', '\\')).normalizePathComponents().joinToString("/")
+    val normalizedPath = (
+        resourcePackage.orEmpty().split('.', '/', '\\') +
+            path.split('/', '\\')
+        ).normalizePathComponents().joinToString("/")
 
     // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
 
@@ -46,7 +48,7 @@ fun ApplicationCall.resolveResource(
  * to improve performance and unnecessary [java.io.InputStream] creation.
  */
 @InternalAPI
-fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
+public fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
     return when (url.protocol) {
         "file" -> {
             val file = File(url.path.decodeURLPart())

@@ -9,13 +9,13 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.*
 import kotlin.test.*
 
-
-fun Application.cookiesTest() {
+public fun Application.cookiesTest() {
     routing {
         route("cookies") {
-            get("/") {
+            get {
                 val cookie = Cookie("hello-cookie", "my-awesome-value", domain = "127.0.0.1")
                 context.response.cookies.append(cookie)
 
@@ -89,6 +89,15 @@ fun Application.cookiesTest() {
             }
             get("/encoded") {
                 context.respond(context.request.header(HttpHeaders.Cookie) ?: fail())
+            }
+            get("/respond-single-cookie") {
+                context.respond(context.request.cookies["single"] ?: fail())
+            }
+            get("/respond-a-minus-b") {
+                val a = context.request.cookies["a"]?.toInt() ?: fail()
+                val b = context.request.cookies["b"]?.toInt() ?: fail()
+
+                context.respond((a - b).toString())
             }
         }
     }

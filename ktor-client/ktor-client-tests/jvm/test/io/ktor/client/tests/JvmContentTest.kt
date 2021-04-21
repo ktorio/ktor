@@ -13,17 +13,20 @@ import java.io.*
 
 class JvmContentTest : ClientLoader() {
     private val testSize = listOf(
-        0, 1, // small edge cases
-        4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
+        0,
+        1, // small edge cases
+        4 * 1024 - 1,
+        4 * 1024,
+        4 * 1024 + 1, // ByteChannel edge cases
         16 * 1024 * 1024 // big
     )
 
     @Test
     fun inputStreamTest() = clientTests {
-        testSize.forEach { size ->
-            val content = makeArray(size)
+        test { client ->
+            testSize.forEach { size ->
+                val content = makeArray(size)
 
-            test { client ->
                 val responseData = client.echo<InputStream, ByteArray>(content) { response ->
                     response.readBytes()
                 }
@@ -34,7 +37,8 @@ class JvmContentTest : ClientLoader() {
     }
 
     private suspend inline fun <reified Response : Any, T> HttpClient.echo(
-        body: Any, crossinline block: (Response) -> T
+        body: Any,
+        crossinline block: (Response) -> T
     ): T = post<HttpStatement>("$TEST_SERVER/content/echo") {
         this.body = body
     }.receive<Response, T> {

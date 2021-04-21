@@ -10,7 +10,7 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-class ServletApplicationRequestCookies(
+public class ServletApplicationRequestCookies(
     private val servletRequest: HttpServletRequest,
     request: ApplicationRequest
 ) : RequestCookies(request) {

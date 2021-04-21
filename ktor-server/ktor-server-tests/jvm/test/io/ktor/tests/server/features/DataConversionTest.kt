@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import java.math.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
@@ -19,7 +18,6 @@ class DataConversionTest {
         val id = application.conversionService.fromValues(listOf("1"), Int::class.java)
         assertEquals(1, id)
     }
-
 
     private val expectedList = listOf(1, 2)
 

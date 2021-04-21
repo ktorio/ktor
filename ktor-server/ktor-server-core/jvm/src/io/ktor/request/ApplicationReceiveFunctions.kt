@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.request
@@ -22,18 +22,22 @@ import kotlin.reflect.jvm.*
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
-    @KtorExperimentalAPI val typeInfo: KType,
-    val value: Any,
-    @KtorExperimentalAPI val reusableValue: Boolean = false
+public class ApplicationReceiveRequest constructor(
+    public val typeInfo: KType,
+    public val value: Any,
+    public val reusableValue: Boolean = false
 ) {
     @Deprecated("Use typeOf to pass KType instead")
-    constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
+    public constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
 
     /**
      * Star projected class computed from [typeInfo]
      */
-    val type: KClass<*>
+    @Deprecated(
+        "Use typeInfo instead as it provides type parameter information",
+        ReplaceWith("typeInfo.jvmErasure", "kotlin.reflect.jvm.jvmErasure")
+    )
+    public val type: KClass<*>
         get() = typeInfo.jvmErasure
 }
 
@@ -42,26 +46,28 @@ class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
  *
  * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
  */
-open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+public open class ApplicationReceivePipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
     @Suppress("PublicApiImplicitType")
-    companion object Phases {
+    public companion object Phases {
         /**
          * Executes before any transformations are made
          */
-        val Before = PipelinePhase("Before")
+        public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Executes transformations
          */
-        val Transform = PipelinePhase("Transform")
+        public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Executes after all transformations
          */
-        val After = PipelinePhase("After")
+        public val After: PipelinePhase = PipelinePhase("After")
     }
 }
 
@@ -70,7 +76,7 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 @OptIn(ExperimentalStdlibApi::class)
-suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeOf<T>())
+public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeOf<T>())
 
 /**
  * Receives content for this request.
@@ -78,7 +84,7 @@ suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = recei
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 @OptIn(ExperimentalStdlibApi::class)
-suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeOf<T>())
+public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeOf<T>())
 
 /**
  * Receives content for this request.
@@ -86,7 +92,7 @@ suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(type
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
+public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     return receive(type.starProjectedType)
 }
 
@@ -96,7 +102,7 @@ suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
+public suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
     require(type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
 
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
@@ -124,7 +130,7 @@ suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
-suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
+public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
     return try {
         receive<T>(type)
     } catch (cause: ContentTransformationException) {
@@ -138,7 +144,7 @@ suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
-suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
+public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
     return try {
         receive<T>(type)
     } catch (cause: ContentTransformationException) {
@@ -153,7 +159,7 @@ suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
  * @throws ContentTransformationException when content cannot be transformed to the [String].
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveText(): String = receive()
+public suspend inline fun ApplicationCall.receiveText(): String = receive()
 
 /**
  * Receives channel content for this call.
@@ -161,7 +167,7 @@ suspend inline fun ApplicationCall.receiveText(): String = receive()
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
+public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
 /**
  * Receives stream content for this call.
@@ -169,7 +175,7 @@ suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
  * @throws ContentTransformationException when content cannot be transformed to the [InputStream].
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
+public suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
 
 /**
  * Receives multipart data for this call.
@@ -177,7 +183,7 @@ suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+public suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
 
 /**
  * Receives form parameters for this call.
@@ -185,12 +191,12 @@ suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
  * @throws ContentTransformationException when content cannot be transformed to the [Parameters].
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
+public suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
 
 /**
  * Thrown when content cannot be transformed to the desired type.
  */
-typealias ContentTransformationException = io.ktor.features.ContentTransformationException
+public typealias ContentTransformationException = io.ktor.features.ContentTransformationException
 
 /**
  * This object is attached to an [ApplicationCall] with [DoubleReceivePreventionTokenKey] when
@@ -202,8 +208,9 @@ private object DoubleReceivePreventionToken
 private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**
- * Thrown when a request body has been already received.
+ * Thrown when a request body has already been received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
-@KtorExperimentalAPI
-class RequestAlreadyConsumedException : IllegalStateException("Request body has been already consumed (received).")
+public class RequestAlreadyConsumedException : IllegalStateException(
+    "Request body has already been consumed (received)."
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -10,8 +10,7 @@ import java.io.*
 /**
  * Convert io.ktor.utils.io [Input] to java [InputStream]
  */
-@KtorExperimentalAPI
-fun Input.asStream(): InputStream = object : InputStream() {
+public fun Input.asStream(): InputStream = object : InputStream() {
 
     override fun read(): Int {
         if (endOfInput) return -1
@@ -29,4 +28,3 @@ fun Input.asStream(): InputStream = object : InputStream() {
         this@asStream.close()
     }
 }
-

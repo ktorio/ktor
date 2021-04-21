@@ -8,7 +8,7 @@ package io.ktor.util
  * Root cause of the [Throwable].
  */
 @InternalAPI
-val Throwable.rootCause: Throwable?
+public val Throwable.rootCause: Throwable?
     get() {
         var rootCause: Throwable? = this
         while (rootCause?.cause != null) {

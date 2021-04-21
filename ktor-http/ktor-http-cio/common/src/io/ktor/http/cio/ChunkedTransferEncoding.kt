@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
@@ -27,33 +28,44 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 /**
  * Decoder job type
  */
-typealias DecoderJob = WriterJob
+public typealias DecoderJob = WriterJob
 
 /**
  * Start a chunked stream decoder coroutine
  */
-@Deprecated("Specify content length if known or pass -1L",
-    ReplaceWith("decodeChunked(input, -1L)"))
-fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
+@Deprecated(
+    "Specify content length if known or pass -1L",
+    ReplaceWith("decodeChunked(input, -1L)")
+)
+public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
     decodeChunked(input, -1L)
 
 /**
  * Start a chunked stream decoder coroutine
  */
-fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob = writer(coroutineContext) {
-    decodeChunked(input, channel, contentLength)
-}
+public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
+    writer(coroutineContext) {
+        decodeChunked(input, channel, contentLength)
+    }
 
-@Deprecated("Specify contentLength if provided or pass -1L",
-    ReplaceWith("decodeChunked(input, out, -1L)"))
-suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
+/**
+ * Decode chunked transfer encoding from the [input] channel and write the result in [out].
+ *
+ * @throws EOFException if stream has ended unexpectedly.
+ * @throws ParserException if the format is invalid.
+ */
+public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     return decodeChunked(input, out, -1L)
 }
 
 /**
  * Chunked stream decoding loop
  */
-suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
+@Deprecated(
+    "The contentLength is ignored for chunked transfer encoding",
+    ReplaceWith("decodeChunked(input, out)")
+)
+public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
 
@@ -69,11 +81,6 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, content
             val chunkSize =
                 if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0
                 else chunkSizeBuffer.parseHexLong()
-
-            if (contentLength != -1L && chunkSize > (contentLength - totalBytesCopied)) {
-                input.cancel()
-                throw ParserException("Invalid chunk: chunk-encoded content is larger than expected $contentLength")
-            }
 
             if (chunkSize > 0) {
                 input.copyTo(out, chunkSize)
@@ -91,11 +98,6 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, content
 
             if (chunkSize == 0L) break
         }
-
-        if (contentLength != -1L && totalBytesCopied != contentLength) {
-            input.cancel()
-            throw EOFException("Corrupted chunk-encoded content: steam ended before the expected number of bytes ($contentLength) were decoded.")
-        }
     } catch (t: Throwable) {
         out.close(t)
         throw t
@@ -108,12 +110,12 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, content
 /**
  * Encoder job type
  */
-typealias EncoderJob = ReaderJob
+public typealias EncoderJob = ReaderJob
 
 /**
  * Start chunked stream encoding coroutine
  */
-suspend fun encodeChunked(
+public suspend fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext
 ): EncoderJob = GlobalScope.reader(coroutineContext, autoFlush = false) {
@@ -123,28 +125,31 @@ suspend fun encodeChunked(
 /**
  * Chunked stream encoding loop
  */
-suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
-    val view = IoBuffer.Pool.borrow()
-
+public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     try {
-        input.readSuspendableSession {
-            while (await(DEFAULT_BYTE_BUFFER_SIZE)) {
-                val content = request() ?: return@readSuspendableSession
-                output.writeChunk(content, view)
-            }
-
-            request()?.let { lastChunk ->
-                output.writeChunk(lastChunk, view)
+        while (!input.isClosedForRead) {
+            input.read { source, startIndex, endIndex ->
+                if (endIndex == startIndex) return@read 0
+                output.writeChunk(source, startIndex.toInt(), endIndex.toInt())
             }
         }
 
+        input.rethrowCloseCause()
         output.writeFully(LastChunkBytes)
     } catch (cause: Throwable) {
         output.close(cause)
+        input.cancel(cause)
     } finally {
         output.flush()
-        view.release(IoBuffer.Pool)
     }
+}
+
+private fun ByteReadChannel.rethrowCloseCause() {
+    val cause = when (this) {
+        is ByteChannel -> closedCause
+        else -> null
+    }
+    if (cause != null) throw cause
 }
 
 @SharedImmutable
@@ -156,15 +161,14 @@ private val CrLf = "\r\n".toByteArray()
 @ThreadLocal
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
-private suspend inline fun ByteWriteChannel.writeChunk(chunk: IoBuffer, tempBuffer: IoBuffer) {
-    val size = chunk.readRemaining
+private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {
+    val size = endIndex - startIndex
+    writeIntHex(size)
+    writeShort(CrLfShort)
 
-    tempBuffer.resetForWrite()
-    tempBuffer.writeIntHex(size)
-    tempBuffer.writeShort(CrLfShort)
-
-    writeFully(tempBuffer)
-    writeFully(chunk)
+    writeFully(memory, startIndex, endIndex)
     writeFully(CrLf)
     flush()
+
+    return size
 }

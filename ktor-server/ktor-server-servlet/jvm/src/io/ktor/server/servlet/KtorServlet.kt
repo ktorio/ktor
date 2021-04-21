@@ -23,7 +23,7 @@ import kotlin.coroutines.*
  */
 @EngineAPI
 @OptIn(InternalAPI::class)
-abstract class KtorServlet : HttpServlet(), CoroutineScope {
+public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
     /**
@@ -110,7 +110,9 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
         launch(asyncDispatchers.dispatcher) {
             val call = AsyncServletApplicationCall(
-                application, request, response,
+                application,
+                request,
+                response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,
@@ -119,6 +121,9 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
             try {
                 enginePipeline.execute(call)
+            } catch (cause: Throwable) {
+                logError(call, cause)
+                response.sendErrorIfNotCommitted("")
             } finally {
                 try {
                     asyncContext.complete()
@@ -144,7 +149,7 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
  * Attribute that is added by ktor servlet to application attributes to hold [ServletContext] instance.
  */
 @InternalAPI
-val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")
+public val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")
 
 private class AsyncDispatchers {
     val engineExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
@@ -153,7 +158,7 @@ private class AsyncDispatchers {
     val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
 
-    fun destroy() {
+    public fun destroy() {
         engineDispatcher.prepareShutdown()
         dispatcher.prepareShutdown()
         try {

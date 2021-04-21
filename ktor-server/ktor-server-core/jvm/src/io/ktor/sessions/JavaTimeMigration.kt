@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -9,7 +9,7 @@ import java.time.temporal.*
 
 @Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.")
-var CookieConfiguration.duration: TemporalAmount?
+public var CookieConfiguration.duration: TemporalAmount?
     get() = Duration.ofSeconds(maxAgeInSeconds)
     set(newMaxAge) {
         maxAgeInSeconds = when (newMaxAge) {
@@ -18,4 +18,3 @@ var CookieConfiguration.duration: TemporalAmount?
             else -> newMaxAge[ChronoUnit.SECONDS]
         }
     }
-

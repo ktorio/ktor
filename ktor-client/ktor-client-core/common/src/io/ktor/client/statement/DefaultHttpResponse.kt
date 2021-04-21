@@ -13,8 +13,9 @@ import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @InternalAPI
-class DefaultHttpResponse(
-    override val call: HttpClientCall, responseData: HttpResponseData
+public class DefaultHttpResponse(
+    override val call: HttpClientCall,
+    responseData: HttpResponseData
 ) : HttpResponse() {
     override val coroutineContext: CoroutineContext = responseData.callContext
 

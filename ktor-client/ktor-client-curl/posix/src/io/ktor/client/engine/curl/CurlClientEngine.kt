@@ -12,8 +12,8 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 internal class CurlClientEngine(
     override val config: CurlClientEngineConfig
@@ -23,6 +23,12 @@ internal class CurlClientEngine(
     override val supportedCapabilities = setOf(HttpTimeout)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
+
+    init {
+        coroutineContext[Job]!!.invokeOnCompletion {
+            curlProcessor.close()
+        }
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -44,31 +50,25 @@ internal class CurlClientEngine(
 
             val status = HttpStatusCode.fromValue(status)
 
-            val headers = buildHeaders {
-                appendAll(CIOHeaders(rawHeaders))
-                rawHeaders.release()
-            }
+            val headers = HeadersImpl(rawHeaders.toMap())
+            rawHeaders.release()
 
             HttpResponseData(
-                status, requestTime, headers, version.fromCurl(),
-                body, callContext
+                status,
+                requestTime,
+                headers,
+                version.fromCurl(),
+                body,
+                callContext
             )
-        }
-    }
-
-    override fun close() {
-        super.close()
-
-        coroutineContext[Job]!!.invokeOnCompletion {
-            curlProcessor.close()
         }
     }
 }
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated("This exception will be removed in a future release in favor of a better error handling.")
-class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
+public class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated("This exception will be removed in a future release in favor of a better error handling.")
-class CurlRuntimeException(cause: String) : RuntimeException(cause)
+public class CurlRuntimeException(cause: String) : RuntimeException(cause)

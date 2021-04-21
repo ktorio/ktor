@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.application
@@ -12,30 +12,29 @@ import io.ktor.util.*
 /**
  * Represents a single act of communication between client and server.
  */
-interface ApplicationCall {
+public interface ApplicationCall {
     /**
      * Application being called
      */
-    val application: Application
+    public val application: Application
 
     /**
      * Client request
      */
-    val request: ApplicationRequest
+    public val request: ApplicationRequest
 
     /**
      * Server response
      */
-    val response: ApplicationResponse
+    public val response: ApplicationResponse
 
     /**
      * Attributes attached to this instance
      */
-    val attributes: Attributes
+    public val attributes: Attributes
 
     /**
      * Parameters associated with this call
      */
-    val parameters: Parameters
+    public val parameters: Parameters
 }
-

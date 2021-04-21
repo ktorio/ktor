@@ -1,10 +1,13 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.jvm.javaio
 
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import io.ktor.utils.io.*
-import io.ktor.utils.io.internal.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*
@@ -14,22 +17,31 @@ import kotlin.coroutines.intrinsics.*
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
  */
-fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = InputAdapter(parent, this)
+public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = InputAdapter(parent, this)
 
 /**
  * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
  */
-fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
+public fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
 
 private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) : InputStream() {
+    init {
+        ensureParkingAllowed()
+    }
+
+    private val context = Job(parent)
+
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
             var rc = 0
             while (true) {
                 val buffer = rendezvous(rc) as ByteArray
                 rc = channel.readAvailable(buffer, offset, length)
-                if (rc == -1) break
+                if (rc == -1) {
+                    context.complete()
+                    break
+                }
             }
             finish(rc)
         }
@@ -59,6 +71,9 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
     override fun close() {
         super.close()
         channel.cancel()
+        if (!context.isCompleted) {
+            context.cancel()
+        }
         loop.shutdown()
     }
 }
@@ -67,6 +82,10 @@ private val CloseToken = Any()
 private val FlushToken = Any()
 
 private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel) : OutputStream() {
+    init {
+        ensureParkingAllowed()
+    }
+
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
             try {
@@ -74,12 +93,10 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
                     val task = rendezvous(0)
                     if (task === CloseToken) {
                         break
-                    }
-                    else if (task === FlushToken) {
+                    } else if (task === FlushToken) {
                         channel.flush()
                         channel.closedCause?.let { throw it }
-                    }
-                    else if (task is ByteArray) channel.writeFully(task, offset, length)
+                    } else if (task is ByteArray) channel.writeFully(task, offset, length)
                 }
             } catch (t: Throwable) {
                 if (t !is CancellationException) {
@@ -141,8 +158,10 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
             }
 
             when (before) {
-                is Thread -> LockSupport.unpark(before)
-                is Continuation<*> -> result.exceptionOrNull()?.let { before.resumeWithException(it) }
+                is Thread -> parkingImpl.unpark(before)
+                is Continuation<*> -> result.exceptionOrNull()?.let {
+                    before.resumeWithException(it)
+                }
             }
 
             if (result.isFailure && result.exceptionOrNull() !is CancellationException) {
@@ -154,7 +173,8 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     }
 
     @Suppress("LeakingThis")
-    private val state: AtomicRef<Any> = atomic(this) // could be a thread, a continuation, Unit, an exception or this if not yet started
+    private val state: AtomicRef<Any> =
+        atomic(this) // could be a thread, a continuation, Unit, an exception or this if not yet started
     private val result = atomic(0)
     private val disposable: DisposableHandle? = parent?.invokeOnCompletion { cause ->
         if (cause != null) {
@@ -187,7 +207,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     }
 
     fun submitAndAwait(jobToken: Any): Int {
-        val thread = Thread.currentThread()!!
+        val thread = Thread.currentThread()
 
         var cont: Continuation<Any>? = null
 
@@ -223,16 +243,16 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         return result.value
     }
 
+    @OptIn(InternalCoroutinesApi::class)
     private fun parkingLoop(thread: Thread) {
         if (state.value !== thread) return
-        val eventLoop = detectEventLoop()
 
         do {
-            val nextEventTimeNanos = eventLoop.processEventLoop()
+            val nextEventTimeNanos = processNextEventInCurrentThread()
             if (state.value !== thread) break
 
             if (nextEventTimeNanos > 0L) {
-                LockSupport.parkNanos(nextEventTimeNanos)
+                parkingImpl.park(nextEventTimeNanos)
             }
         } while (true)
     }
@@ -256,7 +276,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
             }
 
             if (thread != null) {
-                LockSupport.unpark(thread)
+                parkingImpl.unpark(thread!!)
             }
 
             COROUTINE_SUSPENDED
@@ -274,5 +294,15 @@ private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         block.run()
+    }
+}
+
+private fun ensureParkingAllowed() {
+    if (!isParkingAllowed()) {
+        error(
+            "Using blocking primitives on this dispatcher is not allowed. " +
+                "Consider using async channel instead or " +
+                "use blocking primitives in withContext(Dispatchers.IO) instead."
+        )
     }
 }
