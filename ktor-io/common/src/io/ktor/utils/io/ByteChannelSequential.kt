@@ -342,6 +342,13 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
+    private fun checkClosed(n: Int, closeable: BytePacketBuilder) {
+        if (closed) {
+            closeable.close()
+            throw closedCause ?: prematureClose(n)
+        }
+    }
+
     private fun prematureClose(n: Int): Exception {
         return EOFException("$n bytes required but EOF reached")
     }
@@ -496,6 +503,8 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
+        checkClosed(size)
+
         val builder = BytePacketBuilder(headerSizeHint)
 
         var remaining = size
@@ -503,6 +512,7 @@ public abstract class ByteChannelSequentialBase(
         remaining -= partSize
         builder.writePacket(readable, partSize)
         afterRead(partSize)
+        checkClosed(remaining, builder)
 
         return if (remaining > 0) readPacketSuspend(builder, remaining)
         else builder.build()
@@ -515,12 +525,14 @@ public abstract class ByteChannelSequentialBase(
             remaining -= partSize
             builder.writePacket(readable, partSize)
             afterRead(partSize)
+            checkClosed(remaining, builder)
 
             if (remaining > 0) {
                 awaitSuspend(1)
             }
         }
 
+        checkClosed(remaining, builder)
         return builder.build()
     }
 
