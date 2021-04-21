@@ -662,6 +662,14 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         assertFailsWith<IOException> { ch.readByte() }
     }
 
+    @Test
+    fun testReadRemainingAvailable() = runTest {
+        ch.writeFully(byteArrayOf(1, 2, 3))
+        ch.flush()
+        val remaining = ch.readRemaining(3).remaining
+        assertEquals(3, remaining)
+    }
+
     private fun assertEquals(expected: Float, actual: Float) {
         if (abs(expected - actual) > 0.000001f) {
             kotlin.test.assertEquals(expected, actual)
