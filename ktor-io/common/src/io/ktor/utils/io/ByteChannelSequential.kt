@@ -1,7 +1,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
@@ -336,21 +335,15 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    private fun checkClosed(n: Int) {
-        if (closed) {
-            throw closedCause ?: prematureClose(n)
+    private fun checkClosed(remaining: Int, closeable: BytePacketBuilder? = null) {
+        closedCause?.let {
+            closeable?.close()
+            throw it
         }
-    }
-
-    private fun checkClosed(n: Int, closeable: BytePacketBuilder) {
-        if (closed) {
-            closeable.close()
-            throw closedCause ?: prematureClose(n)
+        if (closed && availableForRead < remaining) {
+            closeable?.close()
+            throw EOFException("$remaining bytes required but EOF reached")
         }
-    }
-
-    private fun prematureClose(n: Int): Exception {
-        return EOFException("$n bytes required but EOF reached")
     }
 
     private suspend fun readByteSlow(): Byte {
