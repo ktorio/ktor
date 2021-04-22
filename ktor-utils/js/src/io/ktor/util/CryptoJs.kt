@@ -48,7 +48,11 @@ public actual fun Digest(name: String): Digest = object : Digest {
 
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
-private val _crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("(crypto ? crypto : msCrypto)")
+private val _crypto: Crypto = if (PlatformUtils.IS_NODE) {
+    js("eval('require')('crypto')")
+} else {
+    js("(crypto ? crypto : msCrypto)")
+}
 
 private external class Crypto {
     val subtle: SubtleCrypto
