@@ -9,8 +9,10 @@ public final class io/ktor/metrics/dropwizard/DropwizardMetrics {
 public final class io/ktor/metrics/dropwizard/DropwizardMetrics$Configuration {
 	public fun <init> ()V
 	public final fun getBaseName ()Ljava/lang/String;
+	public final fun getRegisterJvmMetricSets ()Z
 	public final fun getRegistry ()Lcom/codahale/metrics/MetricRegistry;
 	public final fun setBaseName (Ljava/lang/String;)V
+	public final fun setRegisterJvmMetricSets (Z)V
 	public final fun setRegistry (Lcom/codahale/metrics/MetricRegistry;)V
 }
 
