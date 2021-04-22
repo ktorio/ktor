@@ -141,10 +141,9 @@ public data class Url(
     val trailingQuery: Boolean
 ) {
     init {
-        require(
-            specifiedPort in 1..65536 ||
-                specifiedPort == DEFAULT_PORT
-        ) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
+        require(specifiedPort in 0..65535) {
+            "port must be between 0 and 65535, or $DEFAULT_PORT if not set"
+        }
     }
 
     val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
