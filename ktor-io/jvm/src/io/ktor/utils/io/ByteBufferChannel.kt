@@ -2153,8 +2153,7 @@ internal open class ByteBufferChannel(
 
             val rc = readAsMuchAsPossible(buffer)
             remaining -= rc
-            readSuspend(1)
-            remaining > 0L && !isClosedForRead
+            remaining > 0L && !isClosedForRead && readSuspend(1)
         }
 
         closedCause?.let { throw it }
