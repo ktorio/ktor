@@ -32,9 +32,9 @@ public class Url internal constructor(
 ) {
     init {
         require(
-            specifiedPort in 1..65536 ||
+            specifiedPort in 0..65535 ||
                 specifiedPort == DEFAULT_PORT
-        ) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
+        ) { "port must be between 1 and 65535, or $DEFAULT_PORT if not set" }
     }
 
     public val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
