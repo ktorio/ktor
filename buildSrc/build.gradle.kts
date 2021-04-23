@@ -2,6 +2,7 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
+import org.jetbrains.kotlin.utils.addToStdlib.*
 import java.util.*
 
 plugins {
@@ -33,14 +34,14 @@ fun version(target: String): String {
         val snapshotVersion = properties["kotlin_snapshot_version"]
         if (snapshotVersion != null) return snapshotVersion.toString()
     }
-
-    return props.getProperty("${target}_version")
+    return properties["${target}_version"].safeAs<String>() ?: props.getProperty("${target}_version")
 }
 
 sourceSets.main {
 }
 
 dependencies {
+    println("Used kotlin version in buildSrc: " + version("kotlin"))
     implementation(kotlin("gradle-plugin", version("kotlin")))
     implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
 }
