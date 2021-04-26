@@ -20,7 +20,7 @@ class StethoTracerTest {
         val activity = createTestAndroidActivity()
         with(activity) {
             val client = HttpClient(Stetho(CIO))
-            val page = runBlocking { client.get<String>("http://www.google.com") }
+            val page = runBlocking { client.get("http://www.google.com").bodyAsText() }
             assertNotNull(page)
         }
     }
