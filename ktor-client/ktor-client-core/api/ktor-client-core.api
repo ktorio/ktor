@@ -54,6 +54,10 @@ public final class io/ktor/client/HttpClientKt {
 	public static synthetic fun HttpClient$default (Lio/ktor/client/engine/HttpClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/HttpClient;
 }
 
+public final class io/ktor/client/call/CompatibilityKt {
+	public static final fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/call/DoubleReceiveException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;)V
 	public fun getMessage ()Ljava/lang/String;
@@ -1092,6 +1096,11 @@ public final class io/ktor/client/response/MigrationKt {
 	public static final fun readBytes (Lio/ktor/client/response/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readText (Lio/ktor/client/response/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun readText$default (Lio/ktor/client/response/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/statement/CompatibilityKt {
+	public static final fun readText (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun readText$default (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/statement/DefaultHttpResponse : io/ktor/client/statement/HttpResponse {
