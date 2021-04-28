@@ -103,28 +103,4 @@ class AndroidHttpsTest : TestWithKtor() {
             assertEquals("Hello, world", actual)
         }
     }
-
-    @Test
-    fun external(): Unit = runBlocking {
-        val client = HttpClient(Android)
-
-        client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
-    }
-
-    @Test
-    fun customDomainsTest() = testWithEngine(Android) {
-        val domains = listOf(
-            "https://www.google.com",
-            "https://github.com",
-            "https://www.wikipedia.org"
-        )
-
-        test { client ->
-            domains.forEach { url ->
-                client.get<String>(url)
-            }
-        }
-    }
 }
