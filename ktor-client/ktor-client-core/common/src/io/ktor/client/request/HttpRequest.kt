@@ -7,11 +7,13 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -78,7 +80,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * The [KType] of [body] for this request. Null for default types that don't need serialization.
      */
-    public var bodyType: KType?
+    public var bodyType: TypeInfo?
         get() = attributes.getOrNull(BodyTypeAttributeKey)
         @InternalAPI set(value) {
             if (value != null) {
@@ -145,7 +147,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         body = builder.body
         bodyType = builder.bodyType
         url.takeFrom(builder.url)
-        url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
+        url.encodedPath = url.encodedPath.ifBlank { "/" }
         headers.appendAll(builder.headers)
         attributes.putAll(builder.attributes)
 

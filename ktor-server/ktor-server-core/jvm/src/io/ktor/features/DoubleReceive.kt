@@ -50,8 +50,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
             val feature = DoubleReceive(Configuration().apply(configure))
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
-                val type = request.typeInfo
-                require(request.type != CachedTransformationResult::class) {
+                val kotlinType = request.typeInfo.kotlinType!!
+                val type = request.typeInfo.type
+                require(type != CachedTransformationResult::class) {
                     "CachedTransformationResult can't be received"
                 }
 
@@ -62,7 +63,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
                     cachedResult is CachedTransformationResult.Failure -> throw RequestReceiveAlreadyFailedException(
                         cachedResult.cause
                     )
-                    cachedResult is CachedTransformationResult.Success<*> && cachedResult.type == type -> {
+                    cachedResult is CachedTransformationResult.Success<*> && cachedResult.type == kotlinType -> {
                         proceedWith(ApplicationReceiveRequest(request.typeInfo, cachedResult.value))
                         return@intercept
                     }
@@ -82,9 +83,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
                 val incomingContent = byteArray?.let { ByteReadChannel(it) } ?: cachedResult ?: request.value
                 val finishedRequest = try {
-                    proceedWith(ApplicationReceiveRequest(type, incomingContent))
+                    proceedWith(ApplicationReceiveRequest(request.typeInfo, incomingContent))
                 } catch (cause: Throwable) {
-                    call.attributes.put(LastReceiveCachedResult, CachedTransformationResult.Failure(type, cause))
+                    call.attributes.put(LastReceiveCachedResult, CachedTransformationResult.Failure(kotlinType, cause))
                     throw cause
                 }
 
@@ -92,7 +93,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
                 when {
                     transformed is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
-                    !request.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
+                    !type.isInstance(transformed) -> throw CannotTransformContentToTypeException(kotlinType)
                 }
 
                 if (finishedRequest.reusableValue &&
@@ -101,7 +102,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
                     @Suppress("UNCHECKED_CAST")
                     call.attributes.put(
                         LastReceiveCachedResult,
-                        CachedTransformationResult.Success(type, finishedRequest.value)
+                        CachedTransformationResult.Success(kotlinType, finishedRequest.value)
                     )
                 }
             }

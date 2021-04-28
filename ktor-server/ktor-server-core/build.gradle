@@ -2,6 +2,7 @@ description = ''
 
 kotlin.sourceSets {
     jvmMain.dependencies {
+        api project(':ktor-shared:ktor-shared-serialization')
         api project(':ktor-utils')
         api project(':ktor-http')
 

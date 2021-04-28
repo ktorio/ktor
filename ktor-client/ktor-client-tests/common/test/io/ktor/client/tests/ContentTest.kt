@@ -6,13 +6,14 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
+import io.ktor.common.serialization.*
+import io.ktor.common.serialization.kotlinx.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
@@ -207,9 +208,7 @@ class ContentTest : ClientLoader() {
     @Test
     fun testJsonPostWithEmptyBody() = clientTests {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
