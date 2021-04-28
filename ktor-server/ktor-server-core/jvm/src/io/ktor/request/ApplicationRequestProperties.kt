@@ -138,7 +138,8 @@ public fun ApplicationRequest.ranges(): RangesSpecifier? =
 public val ApplicationRequest.uri: String get() = origin.uri
 
 /**
- * Returns request HTTP method possibly overridden via header X-Http-Method-Override
+ * Returns request HTTP method possibly overridden via header `X-Http-Method-Override`
+ * (requires [XHttpMethodOverrideSupport] feature).
  */
 public val ApplicationRequest.httpMethod: HttpMethod get() = origin.method
 
