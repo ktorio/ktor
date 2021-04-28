@@ -9,10 +9,12 @@ public final class io/ktor/metrics/micrometer/MicrometerMetrics {
 public final class io/ktor/metrics/micrometer/MicrometerMetrics$Configuration {
 	public field registry Lio/micrometer/core/instrument/MeterRegistry;
 	public fun <init> ()V
+	public final fun getBaseName ()Ljava/lang/String;
 	public final fun getDistinctNotRegisteredRoutes ()Z
 	public final fun getDistributionStatisticConfig ()Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;
 	public final fun getMeterBinders ()Ljava/util/List;
 	public final fun getRegistry ()Lio/micrometer/core/instrument/MeterRegistry;
+	public final fun setBaseName (Ljava/lang/String;)V
 	public final fun setDistinctNotRegisteredRoutes (Z)V
 	public final fun setDistributionStatisticConfig (Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;)V
 	public final fun setMeterBinders (Ljava/util/List;)V
@@ -21,7 +23,9 @@ public final class io/ktor/metrics/micrometer/MicrometerMetrics$Configuration {
 }
 
 public final class io/ktor/metrics/micrometer/MicrometerMetrics$Feature : io/ktor/application/ApplicationFeature {
+	public final fun getActiveRequestsGaugeName ()Ljava/lang/String;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public final fun getRequestTimeTimerName ()Ljava/lang/String;
 	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/metrics/micrometer/MicrometerMetrics;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }

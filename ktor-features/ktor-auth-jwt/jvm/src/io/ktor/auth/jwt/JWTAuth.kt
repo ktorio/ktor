@@ -20,6 +20,7 @@ import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.security.interfaces.*
 import java.util.*
+import java.util.concurrent.*
 
 private val JWTAuthKey: Any = "JWTAuth"
 
@@ -124,7 +125,7 @@ public class JWTAuthenticationProvider internal constructor(config: Configuratio
          * * @param configure function will be applied during [JWTVerifier] construction
          */
         public fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
-            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
+            verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
         }
 
         /**
@@ -132,7 +133,40 @@ public class JWTAuthenticationProvider internal constructor(config: Configuratio
          * @param configure function will be applied during [JWTVerifier] construction
          */
         public fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
-            this.verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
+            verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
+        }
+
+        /**
+         * Configure verifier using [JWTVerifier].
+         *
+         * @param issuer of the JSON Web Token
+         * @param audience restriction
+         * @param [algorithm] for validations of token signatures
+         */
+        public fun verifier(
+            issuer: String,
+            audience: String,
+            algorithm: Algorithm,
+            block: Verification.() -> Unit = {}
+        ) {
+            val verification: Verification = JWT
+                .require(algorithm)
+                .withAudience(audience)
+                .withIssuer(issuer)
+
+            verification.apply(block)
+            verifier(verification.build())
+        }
+
+        /**
+         * Configure verifier using [JwkProvider].
+         *
+         * @param [issuer] the issuer of JSON Web Token
+         * @param [block] configuration of [JwkProvider]
+         */
+        public fun verifier(issuer: String, block: JWTConfigureFunction = {}) {
+            val provider = JwkProviderBuilder(issuer).build()
+            verifier = { token -> getVerifier(provider, token, schemes, block) }
         }
 
         /**
@@ -152,13 +186,6 @@ public class JWTAuthenticationProvider internal constructor(config: Configuratio
 
         internal fun build() = JWTAuthenticationProvider(this)
     }
-}
-
-internal class JWTAuthSchemes(val defaultScheme: String, vararg additionalSchemes: String) {
-    val schemes = (arrayOf(defaultScheme) + additionalSchemes).toSet()
-    val schemesLowerCase = schemes.map { it.toLowerCase() }.toSet()
-
-    operator fun contains(scheme: String): Boolean = scheme.toLowerCase() in schemesLowerCase
 }
 
 /**
@@ -184,14 +211,15 @@ public fun Authentication.Configuration.jwt(
             val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
             if (principal != null) {
                 context.principal(principal)
-            } else {
-                context.bearerChallenge(
-                    AuthenticationFailedCause.InvalidCredentials,
-                    realm,
-                    schemes,
-                    provider.challengeFunction
-                )
+                return@intercept
             }
+
+            context.bearerChallenge(
+                AuthenticationFailedCause.InvalidCredentials,
+                realm,
+                schemes,
+                provider.challengeFunction
+            )
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
             JWTLogger.trace("JWT verification failed: {}", message)
@@ -212,10 +240,12 @@ private fun AuthenticationContext.bearerChallenge(
     realm: String,
     schemes: JWTAuthSchemes,
     challengeFunction: JWTAuthChallengeFunction
-) = challenge(JWTAuthKey, cause) {
-    challengeFunction(this, schemes.defaultScheme, realm)
-    if (!it.completed && call.response.status() != null) {
-        it.complete()
+) {
+    challenge(JWTAuthKey, cause) {
+        challengeFunction(this, schemes.defaultScheme, realm)
+        if (!it.completed && call.response.status() != null) {
+            it.complete()
+        }
     }
 }
 
@@ -289,17 +319,6 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
 } catch (ex: IllegalArgumentException) {
     JWTLogger.trace("Illegal HTTP auth header", ex)
     null
-}
-
-internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
-    "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
-    "RS384" -> Algorithm.RSA384(publicKey as RSAPublicKey, null)
-    "RS512" -> Algorithm.RSA512(publicKey as RSAPublicKey, null)
-    "ES256" -> Algorithm.ECDSA256(publicKey as ECPublicKey, null)
-    "ES384" -> Algorithm.ECDSA384(publicKey as ECPublicKey, null)
-    "ES512" -> Algorithm.ECDSA512(publicKey as ECPublicKey, null)
-    null -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
-    else -> throw IllegalArgumentException("Unsupported algorithm $algorithm")
 }
 
 private fun DecodedJWT.parsePayload(): Payload {

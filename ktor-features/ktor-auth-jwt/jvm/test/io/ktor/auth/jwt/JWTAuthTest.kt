@@ -81,7 +81,7 @@ class JWTAuthTest {
             application.install(Authentication) {
                 jwt(name = "first") {
                     realm = "realm1"
-                    verifier(makeJwtVerifier())
+                    verifier(issuer, audience, algorithm)
                     validate { validated.add("1"); currentPrincipal(it) }
                     challenge { _, _ ->
                         call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
@@ -89,7 +89,7 @@ class JWTAuthTest {
                 }
                 jwt(name = "second") {
                     realm = "realm2"
-                    verifier(makeJwtVerifier())
+                    verifier(issuer, audience, algorithm)
                     validate { validated.add("2"); currentPrincipal(it) }
                     challenge { _, _ ->
                         call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom2", Charsets.UTF_8)))
@@ -443,7 +443,7 @@ class JWTAuthTest {
                 authHeader { call ->
                     call.request.cookies["JWT"]?.let { parseAuthorizationHeader(it) }
                 }
-                verifier(makeJwtVerifier())
+                verifier(issuer, audience, algorithm)
                 validate { jwt ->
                     JWTPrincipal(jwt.payload)
                 }
@@ -490,7 +490,11 @@ class JWTAuthTest {
     private fun Application.configureServerJwk(mock: Boolean = false, challenge: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
-            verifier(if (mock) getJwkProviderMock() else makeJwkProvider(), issuer)
+            if (mock) {
+                verifier(getJwkProviderMock())
+            } else {
+                verifier(issuer)
+            }
             validate { credential ->
                 when {
                     credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
@@ -515,6 +519,11 @@ class JWTAuthTest {
     private fun Application.configureServerJwkNoIssuer(mock: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
+            if (mock) {
+                verifier(getJwkProviderMock())
+            } else {
+                verifier(issuer)
+            }
             verifier(if (mock) getJwkProviderMock() else makeJwkProvider())
             validate { credential ->
                 when {
@@ -528,8 +537,14 @@ class JWTAuthTest {
     private fun Application.configureServerJwtWithLeeway(mock: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
-            verifier(if (mock) getJwkProviderMock() else makeJwkProvider()) {
-                acceptLeeway(5)
+            if (mock) {
+                verifier(getJwkProviderMock()) {
+                    acceptLeeway(5)
+                }
+            } else {
+                verifier(issuer) {
+                    acceptLeeway(5)
+                }
             }
             validate { credential ->
                 when {
@@ -544,7 +559,7 @@ class JWTAuthTest {
         configureServer {
             jwt {
                 this@jwt.realm = this@JWTAuthTest.realm
-                verifier(makeJwtVerifier())
+                verifier(issuer, audience, algorithm)
                 validate { credential ->
                     when {
                         credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
@@ -584,12 +599,6 @@ class JWTAuthTest {
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
 
-    private fun makeJwtVerifier(): JWTVerifier = JWT
-        .require(algorithm)
-        .withAudience(audience)
-        .withIssuer(issuer)
-        .build()
-
     private val kid = "NkJCQzIyQzRBMEU4NjhGNUU4MzU4RkY0M0ZDQzkwOUQ0Q0VGNUMwQg"
 
     private fun getJwkProviderNullAlgorithmMock(): JwkProvider {
@@ -608,17 +617,17 @@ class JWTAuthTest {
         }
         return mock {
             on { get(kid) } doReturn jwk
-            on { get("wrong") } doThrow(SigningKeyNotFoundException("Key not found", null))
+            on { get("wrong") } doThrow (SigningKeyNotFoundException("Key not found", null))
         }
     }
 
-    private fun getJwkToken(prefix: Boolean = true) = (if (prefix) "Bearer " else "") + JWT.create()
+    private fun getJwkToken(prefix: Boolean = true): String = (if (prefix) "Bearer " else "") + JWT.create()
         .withAudience(audience)
         .withIssuer(issuer)
         .withKeyId(kid)
         .sign(jwkAlgorithm)
 
-    private fun getToken(scheme: String = "Bearer") = "$scheme " + JWT.create()
+    private fun getToken(scheme: String = "Bearer"): String = "$scheme " + JWT.create()
         .withAudience(audience)
         .withIssuer(issuer)
         .sign(algorithm)

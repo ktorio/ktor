@@ -58,7 +58,7 @@ public class MicrometerMetrics private constructor(
         timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
     ) : this(registry, timerDistributionConfig, true, timerBuilder)
 
-    private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
+    private val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
 
     init {
         enableTimerDistributionConfig(timerDistributionConfig)
@@ -68,13 +68,14 @@ public class MicrometerMetrics private constructor(
         registry.config().meterFilter(
             object : MeterFilter {
                 override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                    if (id.name == requestTimerName) timerDistributionConfig.merge(config) else config
+                    if (id.name == requestTimeTimerName) timerDistributionConfig.merge(config) else config
             }
         )
     }
 
     /**
      * Configures this Feature
+     * @property baseName The base prefix for metrics. Default: [Feature.defaultBaseName]
      * @property registry The meter registry where the meters are registered. Mandatory
      * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
      * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
@@ -87,6 +88,8 @@ public class MicrometerMetrics private constructor(
      * contain request path or fallback to common `n/a` value. `true` by default
      * */
     public class Configuration {
+
+        public var baseName: String = Feature.defaultBaseName
 
         public lateinit var registry: MeterRegistry
 
@@ -120,7 +123,7 @@ public class MicrometerMetrics private constructor(
 
     private fun CallMeasure.recordDuration(call: ApplicationCall) {
         timer.stop(
-            Timer.builder(requestTimerName)
+            Timer.builder(requestTimeTimerName)
                 .addDefaultTags(call, throwable)
                 .customize(call, throwable)
                 .register(registry)
@@ -166,17 +169,41 @@ public class MicrometerMetrics private constructor(
      * Micrometer feature installation object
      */
     public companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
-        private const val baseName: String = "ktor.http.server"
+        private const val defaultBaseName: String = "ktor.http.server"
+
+        private lateinit var baseName: String
 
         /**
          * Request time timer name
          */
-        public const val requestTimerName: String = "$baseName.requests"
+        @Deprecated(
+            "static request time timer name is deprecated",
+            ReplaceWith("requestTimeTimerName"),
+            DeprecationLevel.WARNING
+        )
+        public const val requestTimerName: String = "$defaultBaseName.requests"
+
+        /**
+         * Request time timer name with configurable base name
+         */
+        public val requestTimeTimerName: String
+            get() = "$baseName.requests"
 
         /**
          * Active requests gauge name
          */
-        public const val activeGaugeName: String = "$baseName.requests.active"
+        @Deprecated(
+            "static gauge name is deprecated",
+            ReplaceWith("activeRequestsGaugeName"),
+            DeprecationLevel.WARNING
+        )
+        public const val activeGaugeName: String = "$defaultBaseName.requests.active"
+
+        /**
+         * Active requests gauge name with configurable base name
+         */
+        public val activeRequestsGaugeName: String
+            get() = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -184,6 +211,14 @@ public class MicrometerMetrics private constructor(
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)
+
+            if (configuration.baseName.isBlank()) {
+                throw IllegalArgumentException(
+                    "Base name should be defined"
+                )
+            }
+
+            baseName = configuration.baseName
 
             if (!configuration.isRegistryInitialized()) {
                 throw IllegalArgumentException(

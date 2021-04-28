@@ -4,10 +4,10 @@
 
 package io.ktor.client.features.json.serializer
 
-import io.ktor.client.call.*
 import io.ktor.client.features.json.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*

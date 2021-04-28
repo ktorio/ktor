@@ -68,7 +68,7 @@ public class DataConversion(private val converters: Map<Type, ConversionService>
             return DataConversion(configuration.converters)
         }
 
-        override val key: AttributeKey<DataConversion> = AttributeKey<DataConversion>("DataConversion")
+        override val key: AttributeKey<DataConversion> = AttributeKey("DataConversion")
     }
 }
 
