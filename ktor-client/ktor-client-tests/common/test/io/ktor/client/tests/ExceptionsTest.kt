@@ -53,7 +53,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.PermanentRedirect,
             message = "Some redirect",
             exceptionType = RedirectResponseException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testTextInClientRequestException() =
@@ -61,7 +63,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.Conflict,
             message = "Some conflict",
             exceptionType = ClientRequestException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testTextInServerRequestException() =
@@ -69,7 +73,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.VariantAlsoNegotiates,
             message = "Some variant",
             exceptionType = ServerResponseException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testBinaryGarbageInExceptionMessage() = testTextInException(
@@ -93,7 +99,8 @@ class ExceptionsTest : ClientLoader() {
     private fun testTextInException(
         code: HttpStatusCode,
         message: String,
-        exceptionType: KClass<out ResponseException>
+        exceptionType: KClass<out ResponseException>,
+        customValidation: (ResponseException) -> Unit = { }
     ) = testSuspend {
         if (PlatformUtils.IS_NATIVE) return@testSuspend
 
@@ -118,6 +125,7 @@ class ExceptionsTest : ClientLoader() {
                 exception.message!!.endsWith("Text: \"$message\""),
                 "Exception message must contain response text"
             )
+            customValidation(exception)
         }
     }
 
