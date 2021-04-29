@@ -1,3 +1,14 @@
+# 1.5.4
+> Unpublished yet
+
+* Fixed extra trailing slashes in Route.toString ([KTOR-2427](https://youtrack.jetbrains.com/issue/KTOR-2427))
+* Fixed ByteReadChannel.read related issues ([KTOR-2615](https://youtrack.jetbrains.com/issue/KTOR-2516),
+  [KTOR-2519](https://youtrack.jetbrains.com/issue/KTOR-2519))
+* Fixed silently ignored exceptions in HTML DSL with StatusPages feature ([KTOR-756](https://youtrack.jetbrains.com/issue/KTOR-756))
+* Changed IosHttpRequestException supertype to IOException ([KTOR-2566](https://youtrack.jetbrains.com/issue/KTOR-2566))
+* Fixed utility collection implementation for K/N ([KTOR-2482](https://youtrack.jetbrains.com/issue/KTOR-2482)) 
+* Fixed client Digest auth realm handling ([KTOR-1464](https://github.com/ktorio/ktor/pull/2347))
+
 # 1.5.3
 > Published 2 Apr 2021
 
