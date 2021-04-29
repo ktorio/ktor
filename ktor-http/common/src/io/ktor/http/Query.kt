@@ -82,8 +82,8 @@ private fun ParametersBuilder.appendParam(query: String, nameIndex: Int, equalIn
             val spaceValueIndex = trimStart(equalIndex + 1, endIndex, query)
             val spaceEndIndex = trimEnd(spaceValueIndex, endIndex, query)
             val value = when {
-                urlEncodingOption.encodeValue -> query
-                    .decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
+                urlEncodingOption.encodeValue ->
+                    query.decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
                 else -> query.substring(spaceValueIndex, spaceEndIndex)
             }
             append(name, value)
