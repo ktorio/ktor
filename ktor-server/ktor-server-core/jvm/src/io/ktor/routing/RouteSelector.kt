@@ -265,7 +265,7 @@ internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluati
         else -> RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "<trailing_slash>"
+    override fun toString(): String = "/"
 }
 
 /**
