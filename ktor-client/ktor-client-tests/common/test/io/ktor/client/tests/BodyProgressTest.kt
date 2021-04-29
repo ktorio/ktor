@@ -180,7 +180,7 @@ class BodyProgressTest : ClientLoader() {
             client.preparePost("$TEST_SERVER/content/echo") {
                 body = channel
                 onDownload(listener)
-            }.body<ByteReadChannel>()
+            }.body<ByteReadChannel, Unit> { it.readRemaining() }
             assertTrue(invokedCount > 2)
         }
     }
