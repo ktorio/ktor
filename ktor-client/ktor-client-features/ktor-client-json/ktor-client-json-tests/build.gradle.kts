@@ -9,6 +9,6 @@ kotlin.sourceSets.jvmMain {
         api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson"))
         api(project(":ktor-client:ktor-client-cio"))
         api(project(":ktor-client:ktor-client-tests"))
-        api(project(":ktor-features:ktor-gson"))
+        api(project(":ktor-shared:ktor-shared-serialization-gson"))
     }
 }

@@ -431,37 +431,16 @@ public abstract interface class io/ktor/features/ConditionsHolderBuilder {
 	public abstract fun getConditions ()Ljava/util/List;
 }
 
-public abstract interface class io/ktor/features/ContentConverter {
-	public abstract fun convertForReceive (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun convertForSend (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/http/ContentType;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/features/ContentNegotiation {
 	public static final field Feature Lio/ktor/features/ContentNegotiation$Feature;
-	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;)V
-	public final fun getRegistrations ()Ljava/util/List;
 }
 
-public final class io/ktor/features/ContentNegotiation$Configuration {
+public final class io/ktor/features/ContentNegotiation$Configuration : io/ktor/shared/serialization/Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
 	public final fun getCheckAcceptHeaderCompliance ()Z
-	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun register$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public final fun setCheckAcceptHeaderCompliance (Z)V
-}
-
-public final class io/ktor/features/ContentNegotiation$ConverterRegistration {
-	public fun <init> (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;)V
-	public final fun component1 ()Lio/ktor/http/ContentType;
-	public final fun component2 ()Lio/ktor/features/ContentConverter;
-	public final fun copy (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;)Lio/ktor/features/ContentNegotiation$ConverterRegistration;
-	public static synthetic fun copy$default (Lio/ktor/features/ContentNegotiation$ConverterRegistration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;ILjava/lang/Object;)Lio/ktor/features/ContentNegotiation$ConverterRegistration;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getContentType ()Lio/ktor/http/ContentType;
-	public final fun getConverter ()Lio/ktor/features/ContentConverter;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/features/ContentNegotiation$Feature : io/ktor/application/ApplicationFeature {
