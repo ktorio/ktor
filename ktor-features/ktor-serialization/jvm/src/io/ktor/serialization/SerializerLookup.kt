@@ -41,7 +41,7 @@ internal fun serializerFromResponseType(
     context: PipelineContext<Any, ApplicationCall>,
     module: SerializersModule
 ): KSerializer<*>? {
-    val responseType = context.call.response.responseType ?: return null
+    val responseType = context.call.response.responseType?.kotlinType ?: return null
     return module.serializer(responseType)
 }
 

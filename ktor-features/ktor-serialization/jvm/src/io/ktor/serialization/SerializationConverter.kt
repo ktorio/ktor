@@ -149,12 +149,17 @@ private constructor(
         }
     }
 
+    @OptIn(InternalSerializationApi::class)
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
+        val typeInfo = context.subject.typeInfo
 
-        val serializer = format.serializersModule.serializer(request.typeInfo)
+        val module = format.serializersModule
+        val serializer = module.getContextual(typeInfo.type)
+            ?: typeInfo.kotlinType?.let { module.serializerOrNull(it) }
+            ?: typeInfo.type.serializer()
         val contentPacket = channel.readRemaining()
 
         return when (format) {

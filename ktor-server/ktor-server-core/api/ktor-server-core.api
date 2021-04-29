@@ -913,12 +913,12 @@ public final class io/ktor/http/content/StaticContentResolutionKt {
 }
 
 public final class io/ktor/request/ApplicationReceiveFunctionsKt {
+	public static final fun receive (Lio/ktor/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveChannel (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveMultipart (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveParameters (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveStream (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveText (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -939,12 +939,10 @@ public final class io/ktor/request/ApplicationReceivePipeline$Phases {
 }
 
 public final class io/ktor/request/ApplicationReceiveRequest {
-	public fun <init> (Lkotlin/reflect/KClass;Ljava/lang/Object;)V
-	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;Z)V
-	public synthetic fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Z)V
+	public synthetic fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getReusableValue ()Z
-	public final fun getType ()Lkotlin/reflect/KClass;
-	public final fun getTypeInfo ()Lkotlin/reflect/KType;
+	public final fun getTypeInfo ()Lio/ktor/util/reflect/TypeInfo;
 	public final fun getValue ()Ljava/lang/Object;
 }
 
@@ -1123,8 +1121,8 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 }
 
 public final class io/ktor/response/ResponseTypeKt {
-	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lkotlin/reflect/KType;
-	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lkotlin/reflect/KType;)V
+	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lio/ktor/util/reflect/TypeInfo;
+	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lio/ktor/util/reflect/TypeInfo;)V
 }
 
 public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
@@ -1946,10 +1944,6 @@ public final class io/ktor/util/ParametersKt {
 
 public final class io/ktor/util/PathsKt {
 	public static final fun normalizePathComponents (Ljava/util/List;)Ljava/util/List;
-}
-
-public final class io/ktor/util/ReflectionUtilsKt {
-	public static final fun toJavaType (Lkotlin/reflect/KType;)Ljava/lang/reflect/Type;
 }
 
 public final class io/ktor/util/URLBuilderKt {

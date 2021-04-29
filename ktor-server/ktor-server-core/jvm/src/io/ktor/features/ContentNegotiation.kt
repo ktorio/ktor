@@ -207,7 +207,7 @@ public class ContentNegotiation internal constructor(
                 // skip if already transformed
                 if (subject.value !is ByteReadChannel) return@intercept
                 // skip if a byte channel has been requested so there is nothing to negotiate
-                if (subject.type == ByteReadChannel::class) return@intercept
+                if (subject.typeInfo.type == ByteReadChannel::class) return@intercept
 
                 val requestContentType = try {
                     call.request.contentType().withoutParameters()

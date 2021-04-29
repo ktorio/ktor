@@ -34,8 +34,8 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
         val channel = request.value as? ByteReadChannel ?: return null
-        val type = request.typeInfo
-        val javaType = type.jvmErasure
+        val typeInfo = request.typeInfo
+        val javaType = typeInfo.kotlinType?.jvmErasure ?: typeInfo.type
 
         if (gson.isExcluded(javaType)) {
             throw ExcludedTypeGsonException(javaType)

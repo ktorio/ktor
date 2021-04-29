@@ -58,11 +58,11 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
-        val type = request.typeInfo
+        val typeInfo = request.typeInfo
         val value = request.value as? ByteReadChannel ?: return null
         return withContext(Dispatchers.IO) {
             val reader = value.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
-            objectmapper.readValue(reader, type.jvmErasure.javaObjectType)
+            objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
         }
     }
 }
