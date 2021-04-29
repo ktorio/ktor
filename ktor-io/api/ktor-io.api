@@ -866,6 +866,20 @@ public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
 	public static synthetic fun writeDirect$default (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
 }
 
+public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
+	public static final fun ChunkBuffer (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
+	public static synthetic fun ChunkBuffer$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
+	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)I
+	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;IILjava/lang/Object;)I
+	public static final fun readDirect (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
+	public static final fun readDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/jvm/functions/Function1;)I
+	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)V
+	public static final fun resetFromContentToWrite (Lio/ktor/utils/io/core/internal/ChunkBuffer;Ljava/nio/ByteBuffer;)V
+	public static final fun writeDirect (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;)I
+	public static final fun writeDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;ILkotlin/jvm/functions/Function1;)I
+	public static synthetic fun writeDirect$default (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
+}
+
 public final class io/ktor/utils/io/core/BuffersKt {
 	public static final fun readBytes (Lio/ktor/utils/io/core/Buffer;I)[B
 	public static synthetic fun readBytes$default (Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)[B
