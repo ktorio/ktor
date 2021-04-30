@@ -7,7 +7,6 @@ package io.ktor.client.features.cache
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -21,8 +20,6 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
 /**
  * Client single response cache with [expires] and [varyKeys].
  */
-@KtorExperimentalAPI
-@Suppress("KDocMissingDocumentation")
 public class HttpCacheEntry internal constructor(
     public val expires: GMTDate,
     public val varyKeys: Map<String, String>,

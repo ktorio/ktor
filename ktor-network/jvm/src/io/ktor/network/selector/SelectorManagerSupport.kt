@@ -4,7 +4,6 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*

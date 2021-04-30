@@ -7,7 +7,6 @@ package io.ktor.client.engine.curl.test
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
-import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*

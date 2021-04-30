@@ -117,8 +117,10 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 launch(CoroutineName("reader") + testDispatcher) {
                     use {
-                        val channel =
-                            getInputStream().toByteReadChannel(context = testDispatcher, pool = KtorDefaultPool)
+                        val channel = getInputStream().toByteReadChannel(
+                            context = testDispatcher,
+                            pool = KtorDefaultPool
+                        )
 
                         repeat(repeatCount) { requestNumber ->
                             parseResponse(channel)?.use { response ->

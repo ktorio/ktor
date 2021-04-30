@@ -30,7 +30,6 @@ public class HttpServer(
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
  */
-@KtorExperimentalAPI
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,

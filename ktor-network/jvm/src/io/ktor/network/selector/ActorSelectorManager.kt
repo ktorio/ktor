@@ -4,7 +4,6 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
@@ -179,7 +178,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     private class ContinuationHolder<R, C : Continuation<R>> {
         private val ref = AtomicReference<C?>(null)
 
-        public fun resume(value: R): Boolean {
+        fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null)
             if (continuation != null) {
                 continuation.resume(value)

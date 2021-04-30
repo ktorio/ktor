@@ -27,7 +27,6 @@ public typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpCli
 /**
  * This interface represents a request send pipeline interceptor chain
  */
-@KtorExperimentalAPI
 public interface Sender {
     /**
      * Execute send pipeline. It could start pipeline execution or replace the call
@@ -39,7 +38,6 @@ public interface Sender {
  * This is internal feature that is always installed.
  * @property maxSendCount is a maximum number of requests that can be sent during a call
  */
-@KtorExperimentalAPI
 public class HttpSend(
     maxSendCount: Int = 20
 ) {
