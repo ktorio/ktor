@@ -10,14 +10,26 @@ public actual abstract class Charset(internal val _name: String) {
 
     public actual companion object {
         public actual fun forName(name: String): Charset {
-            if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            if (name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-').let {
-                it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
-            } || name == "latin1"
-            ) {
-                return Charsets.ISO_8859_1
+            return when {
+                name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8" -> Charsets.UTF_8
+                name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-')
+                    .let {
+                        it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
+                    } || name == "latin1" -> {
+                    Charsets.ISO_8859_1
+                }
+                else -> {
+                    throw IllegalArgumentException("Charset $name is not supported")
+                }
             }
-            throw IllegalArgumentException("Charset $name is not supported")
+        }
+
+        public actual fun isSupported(charset: String): Boolean = when {
+            charset == "UTF-8" || charset == "utf-8" || charset == "UTF8" || charset == "utf8" -> true
+            charset == "ISO-8859-1" || charset == "iso-8859-1" || charset.replace('_', '-').let {
+                it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
+            } || charset == "latin1" -> true
+            else -> false
         }
     }
 }
@@ -28,6 +40,7 @@ public actual val Charset.name: String get() = _name
 
 public actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
+
 public actual val CharsetEncoder.charset: Charset get() = _charset
 
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =

@@ -6,6 +6,7 @@ apiValidation {
         'ktor-client-tests',
         'ktor-client-js',
         'ktor-client-json-tests',
+        'ktor-client-content-negotiation-tests',
         'ktor-client',
         'ktor-client-features',
         'ktor-server-test-suites',
@@ -27,6 +28,7 @@ apiValidation {
         project(":ktor-io"),
         project(":ktor-server"),
         project(":ktor-features"),
+        project(":ktor-shared"),
     ]
 
     while (!queue.isEmpty()) {
