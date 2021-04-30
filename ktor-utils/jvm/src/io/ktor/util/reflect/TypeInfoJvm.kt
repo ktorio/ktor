@@ -13,17 +13,16 @@ public actual typealias Type = java.lang.reflect.Type
 @PublishedApi
 internal open class TypeBase<T>
 
-@OptIn(ExperimentalStdlibApi::class)
 public actual inline fun <reified T> typeInfo(): TypeInfo {
     val base = object : TypeBase<T>() {}
     val superType = base::class.java.genericSuperclass!!
 
     val reifiedType = (superType as ParameterizedType).actualTypeArguments.first()!!
-    return typeInfoImpl(reifiedType, T::class, typeOf<T>())
+    return typeInfoImpl(reifiedType, T::class, tryGetType<T>())
 }
 
-public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
-    TypeInfoImpl(kClass, reifiedType, kType)
+public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
+    TypeInfo(kClass, reifiedType, kType)
 
 /**
  * Check [this] is instance of [type].
@@ -31,5 +30,5 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): Typ
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
 
 @OptIn(ExperimentalStdlibApi::class)
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = javaType

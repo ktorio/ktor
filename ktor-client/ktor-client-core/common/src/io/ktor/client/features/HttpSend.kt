@@ -82,7 +82,7 @@ public class HttpSend(
                 check(content is OutgoingContent) {
                     """
 |Fail to serialize body. Content has type: ${content::class}, but OutgoingContent expected.
-|If you expect serialized body, please check that you have installed the corresponding feature(like `Json`) and set `Content-Type` header."""
+|If you expect serialized body, please check that you have installed the corresponding feature(like `ContentNegotiation`) and set `Content-Type` header."""
                         .trimMargin()
                 }
                 context.setBody(content)
