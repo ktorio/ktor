@@ -6,11 +6,11 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -44,9 +44,7 @@ class MockedTests {
     @Test
     fun testWithLongJson() = testWithEngine(MockEngine) {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
 
             engine {
                 // these differ by one char at the end
@@ -103,8 +101,4 @@ class MockedTests {
 }
 
 @Serializable
-data class Book(val author: String, val name: String, val text: String) {
-    companion object {
-        val kSerializer = serializer()
-    }
-}
+data class Book(val author: String, val name: String, val text: String)
