@@ -54,6 +54,13 @@ internal object TerminatedLookAhead : LookAheadSuspendSession {
     }
 }
 
+@Suppress("DEPRECATION")
+internal class FailedLookAhead(val cause: Throwable) : LookAheadSuspendSession {
+    override fun consumed(n: Int) = throw cause
+    override fun request(skip: Int, atLeast: Int): ByteBuffer = throw cause
+    override suspend fun awaitAtLeast(n: Int): Boolean = throw cause
+}
+
 internal class ClosedElement(val cause: Throwable?) {
     val sendException: Throwable
         get() = cause ?: ClosedWriteChannelException("The channel was closed")
