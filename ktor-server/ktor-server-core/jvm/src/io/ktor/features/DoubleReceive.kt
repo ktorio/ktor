@@ -8,8 +8,8 @@ import io.ktor.application.*
 import io.ktor.features.DoubleReceive.*
 import io.ktor.request.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -51,7 +51,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
             val feature = DoubleReceive(Configuration().apply(configure))
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
-                require(request.typeInfo.jvmErasure != CachedTransformationResult::class) {
+                require(request.typeInfo.kotlinType?.jvmErasure != CachedTransformationResult::class) {
                     "CachedTransformationResult can't be received"
                 }
 
@@ -78,7 +78,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
                 if (shouldReceiveEntirely) {
                     @OptIn(ExperimentalStdlibApi::class)
-                    call.attributes.putSuccessfulCache(typeOf<ByteArray>(), bodyBytes as ByteArray)
+                    call.attributes.putSuccessfulCache(typeInfo<ByteArray>(), bodyBytes as ByteArray)
                 }
 
                 val result = try {
@@ -112,10 +112,10 @@ private fun CachedTransformationResult<*>?.isByteArray(): Boolean {
     return (this is CachedTransformationResult.Success<*> && this.value is ByteArray)
 }
 
-private fun ApplicationReceiveRequest.checkAlreadyConsumedOrWrongType(requestType: KType) {
+private fun ApplicationReceiveRequest.checkAlreadyConsumedOrWrongType(requestType: TypeInfo) {
     when {
         value is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
-        !requestType.jvmErasure.isInstance(value) -> throw CannotTransformContentToTypeException(requestType)
+        requestType.kotlinType?.jvmErasure?.isInstance(value) != true -> throw CannotTransformContentToTypeException(requestType.kotlinType!!)
     }
 }
 
@@ -123,11 +123,11 @@ private fun CachedTransformationResult<*>?.isNothingOrFailure(): Boolean {
     return this == null || this !is CachedTransformationResult.Success
 }
 
-private fun <T : Any> Attributes.putSuccessfulCache(type: KType, value: T) {
+private fun <T : Any> Attributes.putSuccessfulCache(type: TypeInfo, value: T) {
     putCache(CachedTransformationResult.Success(type, value))
 }
 
-private fun Attributes.putFailureCache(type: KType, cause: Throwable) {
+private fun Attributes.putFailureCache(type: TypeInfo, cause: Throwable) {
     putCache(CachedTransformationResult.Failure(type, cause))
 }
 
@@ -143,18 +143,18 @@ private fun Attributes.getCache(): CachedTransformationResult<*>? {
  * Represents a cached transformation result from a previous [ApplicationCall.receive] invocation.
  * @property type requested by the corresponding [ApplicationCall.receive] invocation
  */
-public sealed class CachedTransformationResult<T : Any>(public val type: KType) {
+public sealed class CachedTransformationResult<T : Any>(public val type: TypeInfo) {
     /**
      * Holds a transformation result [value] after a successful transformation.
      * @property value
      */
-    public class Success<T : Any>(type: KType, public val value: T) : CachedTransformationResult<T>(type)
+    public class Success<T : Any>(type: TypeInfo, public val value: T) : CachedTransformationResult<T>(type)
 
     /**
      * Holds a transformation failure [cause]
      * @property cause describes transformation failure
      */
-    public open class Failure(type: KType, public val cause: Throwable) : CachedTransformationResult<Nothing>(type)
+    public open class Failure(type: TypeInfo, public val cause: Throwable) : CachedTransformationResult<Nothing>(type)
 }
 
 /**
@@ -174,4 +174,4 @@ private val LastReceiveCachedResult = AttributeKey<CachedTransformationResult<*>
  */
 @OptIn(ExperimentalStdlibApi::class)
 private val RequestAlreadyConsumedResult =
-    CachedTransformationResult.Failure(typeOf<Any>(), RequestAlreadyConsumedException())
+    CachedTransformationResult.Failure(typeInfo<Any>(), RequestAlreadyConsumedException())
