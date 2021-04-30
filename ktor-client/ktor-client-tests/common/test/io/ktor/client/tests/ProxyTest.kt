@@ -6,9 +6,10 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.json.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -38,7 +39,7 @@ class ProxyTest : ClientLoader() {
                 proxy = ProxyBuilder.http(TCP_SERVER)
             }
 
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
