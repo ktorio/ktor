@@ -17,11 +17,11 @@ public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     when (body) {
         null -> {
             this.body = EmptyContent
-            this.bodyType = null
+            bodyType = null
         }
         is OutgoingContent -> {
             this.body = body
-            this.bodyType = null
+            bodyType = null
         }
         else -> {
             this.body = body

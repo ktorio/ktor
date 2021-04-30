@@ -44,7 +44,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
 
-        val transformed: Any? = when (query.typeInfo.kotlinType!!.jvmErasure) {
+        val transformed: Any? = when (query.typeInfo.type) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
             InputStream::class -> receiveGuardedInputStream(channel)
