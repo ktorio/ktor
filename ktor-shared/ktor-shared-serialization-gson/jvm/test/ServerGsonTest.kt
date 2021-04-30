@@ -3,7 +3,6 @@
  */
 
 import io.ktor.application.*
-import io.ktor.shared.serializaion.gson.*
 import io.ktor.features.*
 import io.ktor.features.ContentTransformationException
 import io.ktor.http.*
@@ -11,6 +10,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.shared.serializaion.gson.*
 import kotlin.test.*
 
 class GsonTest {

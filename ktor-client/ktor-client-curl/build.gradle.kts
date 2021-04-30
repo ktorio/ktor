@@ -67,12 +67,6 @@ kotlin {
                 api(project(":ktor-http:ktor-http-cio"))
             }
         }
-        posixTest {
-            dependencies {
-                api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
-                api(project(":ktor-client:ktor-client-features:ktor-client-json"))
-            }
-        }
 
         // Hack: register the Native interop klibs as outputs of Kotlin source sets:
         if (!ideaActive) {

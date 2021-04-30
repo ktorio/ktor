@@ -49,7 +49,6 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
-            api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
     }
     commonTest {
@@ -57,6 +56,8 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
             api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-content-negotiation"))
+            api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
         }
     }
     jvmMain {
@@ -160,7 +161,7 @@ if (!ideaActive) {
 }
 
 rootProject.allprojects {
-    if (path.contains("ktor-client")) {
+    if (path.contains("ktor-client") || path.contains("ktor-shared")) {
         val tasks = tasks.matching { it.name in testTasks }
         configure(tasks) {
             dependsOn(startTestServer)
