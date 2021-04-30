@@ -431,37 +431,16 @@ public abstract interface class io/ktor/features/ConditionsHolderBuilder {
 	public abstract fun getConditions ()Ljava/util/List;
 }
 
-public abstract interface class io/ktor/features/ContentConverter {
-	public abstract fun convertForReceive (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun convertForSend (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/http/ContentType;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/features/ContentNegotiation {
 	public static final field Feature Lio/ktor/features/ContentNegotiation$Feature;
-	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;)V
-	public final fun getRegistrations ()Ljava/util/List;
 }
 
-public final class io/ktor/features/ContentNegotiation$Configuration {
+public final class io/ktor/features/ContentNegotiation$Configuration : io/ktor/shared/serialization/Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
 	public final fun getCheckAcceptHeaderCompliance ()Z
-	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun register$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public final fun setCheckAcceptHeaderCompliance (Z)V
-}
-
-public final class io/ktor/features/ContentNegotiation$ConverterRegistration {
-	public fun <init> (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;)V
-	public final fun component1 ()Lio/ktor/http/ContentType;
-	public final fun component2 ()Lio/ktor/features/ContentConverter;
-	public final fun copy (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;)Lio/ktor/features/ContentNegotiation$ConverterRegistration;
-	public static synthetic fun copy$default (Lio/ktor/features/ContentNegotiation$ConverterRegistration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;ILjava/lang/Object;)Lio/ktor/features/ContentNegotiation$ConverterRegistration;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getContentType ()Lio/ktor/http/ContentType;
-	public final fun getConverter ()Lio/ktor/features/ContentConverter;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/features/ContentNegotiation$Feature : io/ktor/application/ApplicationFeature {
@@ -913,12 +892,12 @@ public final class io/ktor/http/content/StaticContentResolutionKt {
 }
 
 public final class io/ktor/request/ApplicationReceiveFunctionsKt {
+	public static final fun receive (Lio/ktor/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveChannel (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveMultipart (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveParameters (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveStream (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveText (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -939,12 +918,10 @@ public final class io/ktor/request/ApplicationReceivePipeline$Phases {
 }
 
 public final class io/ktor/request/ApplicationReceiveRequest {
-	public fun <init> (Lkotlin/reflect/KClass;Ljava/lang/Object;)V
-	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;Z)V
-	public synthetic fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Z)V
+	public synthetic fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getReusableValue ()Z
-	public final fun getType ()Lkotlin/reflect/KClass;
-	public final fun getTypeInfo ()Lkotlin/reflect/KType;
+	public final fun getTypeInfo ()Lio/ktor/util/reflect/TypeInfo;
 	public final fun getValue ()Ljava/lang/Object;
 }
 
@@ -1123,8 +1100,8 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 }
 
 public final class io/ktor/response/ResponseTypeKt {
-	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lkotlin/reflect/KType;
-	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lkotlin/reflect/KType;)V
+	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lio/ktor/util/reflect/TypeInfo;
+	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lio/ktor/util/reflect/TypeInfo;)V
 }
 
 public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
@@ -1950,10 +1927,6 @@ public final class io/ktor/util/ParametersKt {
 
 public final class io/ktor/util/PathsKt {
 	public static final fun normalizePathComponents (Ljava/util/List;)Ljava/util/List;
-}
-
-public final class io/ktor/util/ReflectionUtilsKt {
-	public static final fun toJavaType (Lkotlin/reflect/KType;)Ljava/lang/reflect/Type;
 }
 
 public final class io/ktor/util/URLBuilderKt {
