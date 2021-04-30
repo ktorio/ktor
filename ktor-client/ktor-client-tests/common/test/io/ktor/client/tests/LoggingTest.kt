@@ -6,18 +6,18 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.features.compression.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.shared.serialization.kotlinx.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlin.test.*
 
 class LoggingTest : ClientLoader() {
@@ -583,8 +583,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 15",
-            "-> Content-Type: application/json",
-            "BODY Content-Type: application/json",
+            "-> Content-Type: application/json; charset=utf-8",
+            "BODY Content-Type: application/json; charset=utf-8",
             "BODY START",
             "{\"name\":\"Ktor\"}",
             "BODY END",
@@ -602,9 +602,7 @@ class LoggingTest : ClientLoader() {
         )
 
         config {
-            Json {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
 
             Logging {
                 logger = testLogger

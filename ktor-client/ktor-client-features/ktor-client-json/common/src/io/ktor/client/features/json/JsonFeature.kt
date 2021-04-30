@@ -37,6 +37,7 @@ public expect fun defaultSerializer(): JsonSerializer
  * @property serializer that is used to serialize and deserialize request/response bodies
  * @property acceptContentTypes that are allowed when receiving content
  */
+@Deprecated("Please use ContentNegotiation feature")
 public class JsonFeature internal constructor(
     public val serializer: JsonSerializer,
     public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
@@ -169,6 +170,7 @@ public class JsonFeature internal constructor(
 /**
  * Install [JsonFeature].
  */
+@Deprecated("Please use ContentNegotiation feature")
 public fun HttpClientConfig<*>.Json(block: JsonFeature.Config.() -> Unit) {
     install(JsonFeature, block)
 }
