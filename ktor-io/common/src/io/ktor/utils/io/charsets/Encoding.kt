@@ -12,6 +12,7 @@ public expect abstract class Charset {
 
     public companion object {
         public fun forName(name: String): Charset
+        public fun isSupported(charset: String): Boolean
     }
 }
 
