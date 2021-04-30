@@ -10,6 +10,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import java.io.*
 import kotlin.reflect.*
@@ -21,11 +22,7 @@ import kotlin.reflect.*
 @JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
     if (message !is OutgoingContent && message !is String && message !is ByteArray) {
-        try {
-            // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
-            response.responseType = typeOf<T>()
-        } catch (_: Throwable) {
-        }
+        response.responseType = typeInfo<T>()
     }
     response.pipeline.execute(this, message as Any)
 }

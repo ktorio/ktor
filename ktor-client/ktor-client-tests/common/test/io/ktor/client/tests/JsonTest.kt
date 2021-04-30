@@ -5,10 +5,10 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -24,9 +24,7 @@ class JsonTest : ClientLoader() {
     @Test
     fun testUserGenerics() = clientTests(listOf("js")) {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
