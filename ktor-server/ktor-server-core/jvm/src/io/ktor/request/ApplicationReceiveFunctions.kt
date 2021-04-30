@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import java.io.*
 import kotlin.reflect.*
@@ -23,23 +24,10 @@ import kotlin.reflect.jvm.*
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
 public class ApplicationReceiveRequest constructor(
-    public val typeInfo: KType,
+    public val typeInfo: TypeInfo,
     public val value: Any,
     public val reusableValue: Boolean = false
-) {
-    @Deprecated("Use typeOf to pass KType instead")
-    public constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
-
-    /**
-     * Star projected class computed from [typeInfo]
-     */
-    @Deprecated(
-        "Use typeInfo instead as it provides type parameter information",
-        ReplaceWith("typeInfo.jvmErasure", "kotlin.reflect.jvm.jvmErasure")
-    )
-    public val type: KClass<*>
-        get() = typeInfo.jvmErasure
-}
+)
 
 /**
  * Pipeline for processing incoming content
@@ -76,7 +64,7 @@ public open class ApplicationReceivePipeline(
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 @OptIn(ExperimentalStdlibApi::class)
-public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeOf<T>())
+public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -84,7 +72,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 @OptIn(ExperimentalStdlibApi::class)
-public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeOf<T>())
+public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -93,7 +81,8 @@ public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = recei
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
-    return receive(type.starProjectedType)
+    val kotlinType = type.starProjectedType
+    return receive(TypeInfo(type, kotlinType.platformType, kotlinType))
 }
 
 /**
@@ -102,8 +91,8 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
-    require(type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
+public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
+    require(typeInfo.type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
 
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
 
@@ -112,13 +101,13 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
     }
 
     val incomingContent = token ?: request.receiveChannel()
-    val receiveRequest = ApplicationReceiveRequest(type, incomingContent)
+    val receiveRequest = ApplicationReceiveRequest(typeInfo, incomingContent)
     val finishedRequest = request.pipeline.execute(this, receiveRequest)
     val transformed = finishedRequest.value
 
     when {
         transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-        !type.jvmErasure.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
+        !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo.kotlinType!!)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -130,9 +119,9 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
-public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
+public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
-        receive<T>(type)
+        receive(typeInfo)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null
@@ -146,7 +135,7 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
  */
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
     return try {
-        receive<T>(type)
+        receive(type)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null

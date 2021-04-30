@@ -1,5 +1,0 @@
-description = ''
-kotlin.sourceSets.jvmMain.dependencies {
-    api project(':ktor-utils')
-    api group: 'com.google.code.gson', name: 'gson', version: gson_version
-}
