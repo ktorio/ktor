@@ -17,6 +17,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
+@Deprecated("Please use ContentNegotiation feature and its converters")
 public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {
