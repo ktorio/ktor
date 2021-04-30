@@ -48,6 +48,5 @@ internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R)
     }
 }
 
-@KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
 public class IosHttpRequestException(public val origin: NSError) : IOException("Exception in http request: $origin")

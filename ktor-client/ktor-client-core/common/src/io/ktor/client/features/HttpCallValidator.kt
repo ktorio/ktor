@@ -5,7 +5,6 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.features.HttpCallValidator.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -153,4 +152,4 @@ public var HttpRequestBuilder.expectSuccess: Boolean
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
 @SharedImmutable
-internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")
+internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttributeKey")

@@ -178,7 +178,6 @@ public class HttpClient(
     /**
      * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
-
     @Deprecated(
         "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
         level = DeprecationLevel.ERROR,

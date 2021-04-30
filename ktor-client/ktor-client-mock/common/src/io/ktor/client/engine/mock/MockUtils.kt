@@ -14,7 +14,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
@@ -25,7 +24,6 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 }
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()

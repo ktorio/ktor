@@ -13,7 +13,6 @@ public interface Parameters : StringValues {
     /**
      * Returns a [UrlEncodingOption] instance
      */
-    @KtorExperimentalAPI
     public val urlEncodingOption: UrlEncodingOption
         get() = UrlEncodingOption.DEFAULT
 

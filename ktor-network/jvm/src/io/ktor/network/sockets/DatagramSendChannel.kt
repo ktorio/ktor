@@ -99,6 +99,8 @@ internal class DatagramSendChannel(
             socket.interestOp(SelectInterest.WRITE, true)
             socket.selector.select(socket, SelectInterest.WRITE)
 
+            @Suppress("BlockingMethodInNonBlockingContext")
+            // this is actually non-blocking invocation
             if (channel.send(buffer, address) != 0) {
                 socket.interestOp(SelectInterest.WRITE, false)
                 break

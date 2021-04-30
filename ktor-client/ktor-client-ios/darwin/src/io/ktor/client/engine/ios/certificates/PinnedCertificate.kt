@@ -13,7 +13,6 @@ import io.ktor.util.*
  * Represents a pinned certificate. Recommended to use [Builder.add] to construct
  * [CertificatePinner]
  */
-@KtorExperimentalAPI
 public data class PinnedCertificate(
     /**
      * A hostname like `example.com` or a pattern like `*.example.com` (canonical form).

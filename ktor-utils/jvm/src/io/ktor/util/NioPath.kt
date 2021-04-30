@@ -18,7 +18,6 @@ public val Path.extension: String get() = fileName.toString().substringAfterLast
  * Append a [relativePath] safely that means that adding any extra `..` path elements will not let
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
  */
-@KtorExperimentalAPI
 public fun Path.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
@@ -45,7 +44,6 @@ private fun Path.dropLeadingTopDirs(): Path {
  * Append a [relativePath] safely that means that adding any extra `..` path elements will not let
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
  */
-@KtorExperimentalAPI
 public fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {

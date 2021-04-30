@@ -15,7 +15,6 @@ public open class HttpClientEngineConfig {
     /**
      * Network threads count advice.
      */
-    @KtorExperimentalAPI
     public var threadsCount: Int = 4
 
     /**
@@ -28,7 +27,6 @@ public open class HttpClientEngineConfig {
      *
      * See [ProxyBuilder] to create proxy.
      */
-    @KtorExperimentalAPI
     public var proxy: ProxyConfig? = null
 
     @Deprecated(

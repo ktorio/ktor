@@ -30,6 +30,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
             append(HttpHeaders.ContentDisposition, "form-data; name=${key.escapeIfNeeded()}")
             appendAll(headers)
         }
+
         val part = when (value) {
             is String -> PartData.FormItem(value, {}, partHeaders.build())
             is Number -> PartData.FormItem(value.toString(), {}, partHeaders.build())
@@ -165,7 +166,6 @@ public inline fun FormBuilder.append(
  * @property size estimate for data produced by the block or `null` if no size estimation known
  * @param block: content generator
  */
-@KtorExperimentalAPI
 public class InputProvider(public val size: Long? = null, public val block: () -> Input)
 
 /**

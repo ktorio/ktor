@@ -4,9 +4,6 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
-
-@KtorExperimentalAPI
 public actual interface Selectable {
     public val descriptor: Int
 }

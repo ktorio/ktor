@@ -12,7 +12,6 @@ import io.ktor.util.*
 /**
  * Cache storage interface.
  */
-@KtorExperimentalAPI
 public abstract class HttpCacheStorage {
 
     /**

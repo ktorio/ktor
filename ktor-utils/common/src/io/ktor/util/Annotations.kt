@@ -46,6 +46,9 @@ public annotation class InternalAPI
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR
 )
+@Deprecated(
+    "This annotation is no longer used and there is no need to opt-in into it."
+)
 public annotation class KtorExperimentalAPI
 
 /**

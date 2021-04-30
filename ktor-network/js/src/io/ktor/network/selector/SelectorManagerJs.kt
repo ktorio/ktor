@@ -14,7 +14,6 @@ public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager
     error("Selector manager is unsupported on JS platform")
 }
 
-@InternalAPI
 public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
@@ -40,7 +39,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
 
 /**
  * Select interest kind
- * @property [flag] to be set in NIO selector
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
 @InternalAPI

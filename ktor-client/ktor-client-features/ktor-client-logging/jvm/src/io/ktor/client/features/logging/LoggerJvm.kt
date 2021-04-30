@@ -20,7 +20,6 @@ public actual val Logger.Companion.DEFAULT: Logger
  * Android [Logger]: breaks up long log messages that would be truncated by Android's max log
  * length of 4068 characters
  */
-@KtorExperimentalAPI
 public val Logger.Companion.ANDROID: Logger
     get() = MessageLengthLimitingLogger()
 
@@ -30,7 +29,6 @@ public val Logger.Companion.ANDROID: Logger
  * @property minLength if log message is longer than [maxLength], attempt to break the log
  * message at a new line between [minLength] and [maxLength] if one exists
  */
-@KtorExperimentalAPI
 public class MessageLengthLimitingLogger(
     private val maxLength: Int = 4000,
     private val minLength: Int = 3000,
