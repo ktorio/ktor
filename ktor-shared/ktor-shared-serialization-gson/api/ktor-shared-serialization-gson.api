@@ -1,0 +1,13 @@
+public final class io/ktor/shared/serializaion/gson/GsonConverter : io/ktor/shared/serialization/ContentConverter {
+	public fun <init> ()V
+	public fun <init> (Lcom/google/gson/Gson;)V
+	public synthetic fun <init> (Lcom/google/gson/Gson;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun serialize (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/shared/serializaion/gson/GsonConverterKt {
+	public static final fun gson (Lio/ktor/shared/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun gson$default (Lio/ktor/shared/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+

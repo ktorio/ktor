@@ -12,66 +12,62 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.pipeline.*
+import io.ktor.shared.serialization.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import java.io.*
 import kotlin.test.*
+import kotlin.text.Charsets
 
 class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
-        override suspend fun convertForSend(
-            context: PipelineContext<Any, ApplicationCall>,
+        override suspend fun serialize(
             contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
             value: Any
-        ): Any? {
+        ): OutgoingContent? {
             if (value !is Wrapper) return null
-            return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
+            return TextContent("[${value.value}]", contentType.withCharset(charset))
         }
 
-        override suspend fun convertForReceive(
-            context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
-        ): Any? {
-            val type = context.subject.type
-            val channel = context.subject.value
-            if (type != Wrapper::class || channel !is ByteReadChannel) return null
-            return Wrapper(channel.readRemaining().readText().removeSurrounding("[", "]"))
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+            if (typeInfo.type != Wrapper::class) return null
+            return Wrapper(content.readRemaining().readText().removeSurrounding("[", "]"))
         }
     }
 
     private val textContentConverter = object : ContentConverter {
-        override suspend fun convertForSend(
-            context: PipelineContext<Any, ApplicationCall>,
+        override suspend fun serialize(
             contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
             value: Any
-        ): Any? {
+        ): OutgoingContent? {
             if (value !is Wrapper) return null
-            return TextContent(value.value, contentType.withCharset(context.call.suitableCharset()))
+            return TextContent(value.value, contentType.withCharset(charset))
         }
 
-        override suspend fun convertForReceive(
-            context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
-        ): Any? {
-            val type = context.subject.type
-            val incoming = context.subject.value
-            if (type != Wrapper::class || incoming !is ByteReadChannel) return null
-            return Wrapper(incoming.readRemaining().readText())
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+            if (typeInfo.type != Wrapper::class) return null
+            return Wrapper(content.readRemaining().readText())
         }
     }
 
     private val alwaysFailingConverter = object : ContentConverter {
-        override suspend fun convertForSend(
-            context: PipelineContext<Any, ApplicationCall>,
+        override suspend fun serialize(
             contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
             value: Any
-        ): Any? {
+        ): OutgoingContent? {
             fail("This converter should be never started for send")
         }
 
-        override suspend fun convertForReceive(
-            context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
-        ): Any? {
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             fail("This converter should be never started for receive")
         }
     }

@@ -5,11 +5,12 @@
 package io.ktor.client.tests.features
 
 import io.ktor.client.features.*
-import io.ktor.client.features.json.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.serialization.Serializable
+import io.ktor.shared.serialization.kotlinx.*
+import kotlinx.serialization.*
 import kotlin.test.*
 
 @Serializable
@@ -19,16 +20,16 @@ class SerializationTest : ClientLoader() {
     @Test
     fun testSendCustomObject() = clientTests(listOf("native:CIO")) {
         config {
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
-            assertFailsWith<ClientRequestException> {
-                client.post {
-                    url("https://google.com")
-                    header(HttpHeaders.ContentType, ContentType.Application.Json)
-                    setBody(MyCustomObject(message = "Hello World"))
-                }
+            client.post {
+                url("$TEST_SERVER/echo")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(MyCustomObject(message = "Hello World"))
+            }.let {
+                assertEquals("""{"message":"Hello World"}""", it.bodyAsText())
             }
         }
     }
@@ -36,16 +37,16 @@ class SerializationTest : ClientLoader() {
     @Test
     fun testSendStringWithSerialization() = clientTests(listOf("native:CIO")) {
         config {
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
-            assertFailsWith<ClientRequestException> {
-                client.post {
-                    url("https://google.com")
-                    header(HttpHeaders.ContentType, ContentType.Application.Json)
-                    setBody("Hello, world")
-                }
+            client.post {
+                url("$TEST_SERVER/echo")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody("Hello, world")
+            }.let {
+                assertEquals("\"Hello, world\"", it.bodyAsText())
             }
         }
     }
@@ -53,7 +54,7 @@ class SerializationTest : ClientLoader() {
     @Test
     fun testSendObjectWithoutContentType() = clientTests {
         config {
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
