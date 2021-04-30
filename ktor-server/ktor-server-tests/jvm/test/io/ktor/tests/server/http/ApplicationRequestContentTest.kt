@@ -117,7 +117,7 @@ class ApplicationRequestContentTest {
             val value = IntList(listOf(1, 2, 3, 4))
 
             application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
-                if (query.type != IntList::class) return@intercept
+                if (query.typeInfo.type != IntList::class) return@intercept
                 val message = query.value as? ByteReadChannel ?: return@intercept
 
                 val string = message.readRemaining().readText()
@@ -276,7 +276,7 @@ class ApplicationRequestContentTest {
         application.install(DoubleReceive)
 
         application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-            if (it.type == IntList::class) {
+            if (it.typeInfo.type == IntList::class) {
                 throw MySpecialException()
             }
         }

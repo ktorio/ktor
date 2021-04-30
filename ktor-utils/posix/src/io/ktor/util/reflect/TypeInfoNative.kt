@@ -17,7 +17,7 @@ public actual inline fun <reified T> typeInfo(): TypeInfo {
 
 @PublishedApi
 internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
-    TypeInfoImpl(kClass, reifiedType, kType)
+    TypeInfo(kClass, reifiedType, kType)
 
 /**
  * Check [this] is instance of [type].

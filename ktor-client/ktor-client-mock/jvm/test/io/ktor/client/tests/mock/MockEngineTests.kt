@@ -7,12 +7,12 @@ package io.ktor.client.tests.mock
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
@@ -74,14 +74,14 @@ class MockEngineTests {
     data class User(val name: String)
 
     @Test
-    fun testWithJsonFeature() = runBlocking {
+    fun testWithContentNegotationFeature() = runBlocking {
         val client = HttpClient(
             MockEngine { request ->
                 val bodyBytes = (request.body as OutgoingContent.ByteArrayContent).bytes()
                 respondOk(String(bodyBytes))
             }
         ) {
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         val response = client.get {

@@ -5,8 +5,8 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.coroutines.channels.*
 
 class JvmReadPacketWithExceptionByteChannelCloseTest : ByteChannelCloseTest(
     ClosedReceiveChannelException::class,
