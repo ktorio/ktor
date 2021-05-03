@@ -28,6 +28,25 @@ class ByteBufferChannelLookAheadTest : ByteChannelTestBase() {
     }
 
     @Test
+    fun testLookAheadSuspendOnFailedChannel() = runTest {
+        ch.close(RuntimeException("Closed"))
+        ch.lookAheadSuspend {
+            assertFailsWith<RuntimeException> { request(1, 1) }
+            assertFailsWith<RuntimeException> { awaitAtLeast(1) }
+            assertFailsWith<RuntimeException> { consumed(1) }
+        }
+    }
+
+    @Test
+    fun testLookAheadOnFailedChannel() = runTest {
+        ch.close(RuntimeException("Closed"))
+        ch.lookAhead {
+            assertFailsWith<RuntimeException> { request(1, 1) }
+            assertFailsWith<RuntimeException> { consumed(1) }
+        }
+    }
+
+    @Test
     fun testReadDuringWriting() = runTest {
         ch.writeSuspendSession {
             ch.lookAheadSuspend {
