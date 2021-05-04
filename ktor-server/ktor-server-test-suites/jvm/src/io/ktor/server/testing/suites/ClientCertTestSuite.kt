@@ -48,16 +48,18 @@ public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configurat
             }
         }
         runBlocking {
-            val server = embeddedServer(factory = engine, connectors = arrayOf(sslConnectorBuilder())) {
-                routing {
-                    get {
-                        call.respondText { "Hello World" }
+            launch {
+                val server = embeddedServer(factory = engine, connectors = arrayOf(sslConnectorBuilder())) {
+                    routing {
+                        get {
+                            call.respondText { "Hello World" }
+                        }
                     }
                 }
+                server.start()
+                assertEquals("Hello World", client.get("https://0.0.0.0:443"))
+                server.stop(1000, 1000)
             }
-            server.start()
-            assertEquals("Hello World", client.get("https://0.0.0.0:443"))
-            server.stop(1000, 1000)
         }
     }
 }
