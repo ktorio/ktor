@@ -17,7 +17,6 @@ pluginManagement {
     }
 }
 rootProject.name = 'ktor'
-enableFeaturePreview('GRADLE_METADATA')
 
 ext.native_targets_enabled = properties['disable_native_targets'] == null
 

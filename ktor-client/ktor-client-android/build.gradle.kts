@@ -12,13 +12,12 @@ kotlin.sourceSets {
         }
     }
 }
-
 // pass JVM option to enlarge built-in HttpUrlConnection pool
 // to avoid failures due to lack of local socket ports
-configure(listOf(tasks.jvmTest)) {
-    configure {
-        useJUnit()
+val jvmTest: org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest by tasks
 
-        jvmArgs("-Dhttp.maxConnections=32")
-    }
+jvmTest.apply {
+    useJUnit()
+
+    jvmArgs("-Dhttp.maxConnections=32")
 }

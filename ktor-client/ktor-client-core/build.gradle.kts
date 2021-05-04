@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.*
-
 description = "Ktor http client"
 
 val ideaActive: Boolean by project
@@ -10,14 +8,14 @@ val abort_controller_version: String by project
 val ws_version: String by project
 
 kotlin.sourceSets {
-    commonMain {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-http:ktor-http-cio"))
         }
     }
 
-    jsMain {
+    val jsMain by getting {
         dependencies {
             api(npm("node-fetch", node_fetch_version))
             api(npm("abort-controller", abort_controller_version))
@@ -25,23 +23,15 @@ kotlin.sourceSets {
         }
     }
 
-    commonTest {
+    val commonTest by getting {
         dependencies {
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-mock"))
-//            api(project(":ktor-client:ktor-client-tests"))
-//            api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
         }
     }
 
-    jvmTest {
+    val jvmTest by getting {
         dependencies {
-//            api(project(":ktor-client:ktor-client-mock"))
-//            api(project(":ktor-client:ktor-client-tests"))
-//            api(project(":ktor-client:ktor-client-cio"))
-//            api(project(":ktor-client:ktor-client-okhttp"))
-//            api(project(":ktor-features:ktor-websockets"))
-            
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
         }
     }

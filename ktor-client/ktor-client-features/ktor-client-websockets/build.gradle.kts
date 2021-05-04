@@ -3,7 +3,7 @@
 */
 
 kotlin.sourceSets {
-    commonTest {
+    val commonTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
         }
