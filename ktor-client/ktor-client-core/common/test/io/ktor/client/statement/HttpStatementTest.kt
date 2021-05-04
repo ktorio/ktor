@@ -4,6 +4,7 @@
 
 package io.ktor.client.statement
 
+import TestEngine
 import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlin.test.*
