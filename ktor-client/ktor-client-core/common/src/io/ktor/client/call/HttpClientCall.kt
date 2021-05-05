@@ -136,6 +136,14 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T
 public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInfo<T>()) as T
 
 /**
+ * Tries to receive the payload of the [response] as an specific type [T] described in [typeInfo].
+ *
+ * @throws NoTransformationFoundException If no transformation is found for the type info [typeInfo].
+ * @throws DoubleReceiveException If already called [body].
+ */
+public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.body(typeInfo) as T
+
+/**
  * Exception representing that the response payload has already been received.
  */
 @Suppress("KDocMissingDocumentation")
