@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections
 
@@ -124,6 +124,23 @@ class ConcurrentMapTest {
         repeat(10000) {
             assertEquals(it - 1, map[it])
         }
+    }
+
+    @Test
+    fun testRemoveWithOverlappingHashCodes() {
+        val map = ConcurrentMap<A, Any>()
+        map[A("x")] = "val"
+        map[A("y")] = true
+        assertEquals(true, map[A("y")])
+        map.remove(A("x"))
+        assertNull(map[A("x")])
+        assertEquals(true, map[A("y")])
+    }
+
+    class A(val x: String) {
+        override fun equals(other: Any?): Boolean = (other as A).x == x
+        override fun hashCode(): Int = 1
+        override fun toString(): String = "A($x)"
     }
 
     private fun create(): ConcurrentMap<Int, Int> = ConcurrentMap()

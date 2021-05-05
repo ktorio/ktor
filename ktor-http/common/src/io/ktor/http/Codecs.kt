@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 package io.ktor.http
 
 import io.ktor.util.*
@@ -133,16 +133,7 @@ public fun String.encodeURLParameter(
 /**
  * Encode [this] as query parameter value.
  */
-internal fun String.encodeURLParameterValue(): String = buildString {
-    val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameterValue)
-    content.forEach {
-        when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS || it == '='.toByte() -> append(it.toChar())
-            it == ' '.toByte() -> append('+')
-            else -> append(it.percentEncode())
-        }
-    }
-}
+internal fun String.encodeURLParameterValue(): String = encodeURLParameter(spaceToPlus = true)
 
 /**
  * Decode URL query component

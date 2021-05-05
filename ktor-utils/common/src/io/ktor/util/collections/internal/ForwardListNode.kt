@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections.internal
 
@@ -22,6 +22,7 @@ internal class ForwardListNode<T : Any>(
 
     fun insertAfter(value: T): ForwardListNode<T> {
         val result = ForwardListNode(list, next, value, this)
+        next?.previous = result
         next = result
         return result
     }

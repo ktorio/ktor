@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("unused")
 @file:OptIn(KtorExperimentalLocationsAPI::class)
@@ -247,14 +247,30 @@ public fun <T : Any> Route.handle(
 }
 
 /**
- * Retrieves the current call's location or `null` if it is not available (request is not handled by a location class),
+ * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),
+ * or not yet available (invoked too early before the locations feature takes place).
+ *
+ * Despite of the name, the function fails if no location found. This is why it's deprecated.
+ */
+@KtorExperimentalLocationsAPI
+@Deprecated("Use location function instead.", ReplaceWith("location()"))
+public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = location()
+
+/**
+ * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),
  * or not yet available (invoked too early before the locations feature takes place).
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = locationOrNull(T::class)
+public inline fun <reified T : Any> ApplicationCall.location(): T = locationOrThrow(T::class)
 
 @PublishedApi
 internal fun <T : Any> ApplicationCall.locationOrNull(type: KClass<T>): T =
+    attributes.getOrNull(LocationInstanceKey)?.let { instance ->
+        type.cast(instance)
+    } ?: error("Location instance is not available for this call.)")
+
+@PublishedApi
+internal fun <T : Any> ApplicationCall.locationOrThrow(type: KClass<T>): T =
     attributes.getOrNull(LocationInstanceKey)?.let { instance ->
         type.cast(instance)
     } ?: error("Location instance is not available for this call.)")

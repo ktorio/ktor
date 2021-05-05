@@ -32,6 +32,7 @@ kotlin {
                     } else {
                         includeDirs.headerFilterOnly(
                             listOf(
+                                "/opt/homebrew/opt/curl/include/curl",
                                 "/opt/local/include/curl",
                                 "/usr/local/include/curl",
                                 "/usr/include/curl",

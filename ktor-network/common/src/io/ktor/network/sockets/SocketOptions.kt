@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.sockets
 
@@ -76,8 +76,7 @@ public sealed class SocketOptions(
          * rejected by the underlying TCP implementation (usually with RST frame that
          * usually causes "connection reset by peer" error on the opposite side).
          */
-        @PublicAPICandidate("1.6.0")
-        internal var backlogSize: Int = 511
+        public var backlogSize: Int = 511
 
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
@@ -137,6 +136,19 @@ public sealed class SocketOptions(
     public class UDPSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
     ) : PeerSocketOptions(customOptions) {
+
+        /**
+         * SO_BROADCAST socket option
+         */
+        public var broadcast: Boolean = false
+
+        override fun copyCommon(from: SocketOptions) {
+            super.copyCommon(from)
+            if (from is UDPSocketOptions) {
+                broadcast = from.broadcast
+            }
+        }
+
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)

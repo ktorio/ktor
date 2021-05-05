@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.routing
 
@@ -34,7 +34,7 @@ public open class RoutingResolveTraceEntry(
      * Builds detailed text description for this trace entry, including children.
      */
     public open fun buildText(builder: StringBuilder, indent: Int) {
-        builder.appendln("  ".repeat(indent) + toString())
+        builder.appendLine("  ".repeat(indent) + toString())
         children?.forEach { it.buildText(builder, indent + 1) }
     }
 
@@ -89,7 +89,7 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
      * Builds detailed text description for this trace, including all entries.
      */
     public fun buildText(): String = buildString {
-        appendln(this@RoutingResolveTrace.toString())
+        appendLine(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
     }
 }

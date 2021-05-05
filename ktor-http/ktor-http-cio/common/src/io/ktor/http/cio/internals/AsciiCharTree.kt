@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio.internals
 
@@ -41,7 +41,7 @@ internal class AsciiCharTree<T : Any>(val root: Node<T>) {
         }
 
         public fun <T : Any> build(from: List<T>, length: (T) -> Int, charAt: (T, Int) -> Char): AsciiCharTree<T> {
-            val maxLen = from.maxBy(length)?.let(length)
+            val maxLen = from.maxByOrNull(length)?.let(length)
                 ?: throw NoSuchElementException("Unable to build char tree from an empty list")
 
             if (from.any { length(it) == 0 }) throw IllegalArgumentException("There should be no empty entries")

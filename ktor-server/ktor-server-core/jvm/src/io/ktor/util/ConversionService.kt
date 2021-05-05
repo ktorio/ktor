@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -10,6 +10,10 @@ import java.math.*
 /**
  * Data conversion service that does serialization and deserialization to/from list of strings
  */
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("ConversionService", "io.ktor.util.converters.ConversionService")
+)
 public interface ConversionService {
     /**
      * Deserialize [values] to an instance of [type]
@@ -25,6 +29,10 @@ public interface ConversionService {
 /**
  * The default conversion service that supports only basic types and enums
  */
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("DefaultConversionService", "io.ktor.util.converters.DefaultConversionService")
+)
 public object DefaultConversionService : ConversionService {
     override fun toValues(value: Any?): List<String> = when (value) {
         null -> listOf()
@@ -95,4 +103,5 @@ public object DefaultConversionService : ConversionService {
 /**
  * Thrown when failed to convert value
  */
-public class DataConversionException(message: String = "Invalid data format") : Exception(message)
+public class DataConversionException(message: String = "Invalid data format") :
+    io.ktor.util.converters.DataConversionException(message)

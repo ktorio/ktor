@@ -438,15 +438,17 @@ public abstract interface class io/ktor/features/ContentConverter {
 
 public final class io/ktor/features/ContentNegotiation {
 	public static final field Feature Lio/ktor/features/ContentNegotiation$Feature;
-	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;)V
 	public final fun getRegistrations ()Ljava/util/List;
 }
 
 public final class io/ktor/features/ContentNegotiation$Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
+	public final fun getCheckAcceptHeaderCompliance ()Z
 	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun register$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun setCheckAcceptHeaderCompliance (Z)V
 }
 
 public final class io/ktor/features/ContentNegotiation$ConverterRegistration {
@@ -1228,6 +1230,20 @@ public final class io/ktor/routing/HttpMethodRouteSelector : io/ktor/routing/Rou
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/routing/IgnoreTrailingSlash {
+	public static final field Feature Lio/ktor/routing/IgnoreTrailingSlash$Feature;
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Configuration {
+	public fun <init> ()V
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/IgnoreTrailingSlash;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
 public final class io/ktor/routing/LocalPortRouteSelector : io/ktor/routing/RouteSelector {
 	public static final field Companion Lio/ktor/routing/LocalPortRouteSelector$Companion;
 	public static final field LocalPortParameter Ljava/lang/String;
@@ -1604,6 +1620,12 @@ public class io/ktor/routing/RoutingResolveTraceEntry {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/routing/TrailingSlashRouteSelector : io/ktor/routing/RouteSelector {
+	public static final field INSTANCE Lio/ktor/routing/TrailingSlashRouteSelector;
+	public fun evaluate (Lio/ktor/routing/RoutingResolveContext;I)Lio/ktor/routing/RouteSelectorEvaluation;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/ktor/sessions/CookieConfiguration {
 	public fun <init> ()V
 	public final fun getDomain ()Ljava/lang/String;
@@ -1890,7 +1912,7 @@ public final class io/ktor/util/CopyOnWriteHashMap {
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
-public final class io/ktor/util/DataConversionException : java/lang/Exception {
+public final class io/ktor/util/DataConversionException : io/ktor/util/converters/DataConversionException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1918,6 +1940,7 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 
 public final class io/ktor/util/ParametersKt {
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
 }
 

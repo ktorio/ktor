@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.routing
 
@@ -254,9 +254,10 @@ public data class PathSegmentConstantRouteSelector(
 /**
  * Evaluates a route against a single trailing slash
  */
-internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
+        context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Constant
         context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Constant
         segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
@@ -265,7 +266,7 @@ internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluati
         else -> RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "/"
+    override fun toString(): String = "<slash>"
 }
 
 /**

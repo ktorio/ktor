@@ -29,4 +29,20 @@ class HeadersTest {
             assertEquals("OK", call.response.content)
         }
     }
+
+    @Test
+    fun returnConnectionHeaderSetByServer(): Unit = withTestApplication {
+        application.routing {
+            get("/") {
+                call.response.header(name = HttpHeaders.Connection, value = "close")
+                call.respondText("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(name = HttpHeaders.Connection, value = "keep-alive")
+        }.let {
+            assertEquals(listOf("close"), it.response.headers.values(HttpHeaders.Connection))
+        }
+    }
 }

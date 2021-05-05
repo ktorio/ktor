@@ -568,15 +568,25 @@ public abstract class AbstractInput(
         return discardAsMuchAsPossible(n - size, skipped + size)
     }
 
-    private tailrec fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
-        if (n == 0) return skipped
-        val current = prepareRead(1) ?: return skipped
-        val size = minOf(current.readRemaining, n)
-        current.discardExact(size)
-        headPosition += size
-        afterRead(current)
+    private fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
+        var currentCount = n
+        var currentSkipped = skipped
 
-        return discardAsMuchAsPossible(n - size, skipped + size)
+        while (true) {
+            if (currentCount == 0) {
+                return currentSkipped
+            }
+
+            val current = prepareRead(1) ?: return currentSkipped
+
+            val size = minOf(current.readRemaining, currentCount)
+            current.discardExact(size)
+            headPosition += size
+            afterRead(current)
+
+            currentCount -= size
+            currentSkipped += size
+        }
     }
 
     private tailrec fun readAsMuchAsPossible(array: ByteArray, offset: Int, length: Int, copied: Int): Int {

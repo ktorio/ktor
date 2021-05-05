@@ -1800,6 +1800,7 @@ internal open class ByteBufferChannel(
     }
 
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
+        closedCause?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
             return visitor(TerminatedLookAhead)
         }
@@ -1811,6 +1812,7 @@ internal open class ByteBufferChannel(
         }
 
         if (!continueReading) {
+            closedCause?.let { return visitor(FailedLookAhead(it)) }
             return visitor(TerminatedLookAhead)
         }
 
@@ -1818,6 +1820,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
+        closedCause?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
             return visitor(TerminatedLookAhead)
         }
@@ -1829,7 +1832,8 @@ internal open class ByteBufferChannel(
         }
 
         if (!rc) {
-            if (closed != null || state === ReadWriteBufferState.Terminated) {
+            closedCause?.let { return visitor(FailedLookAhead(it)) }
+            if (state === ReadWriteBufferState.Terminated) {
                 return visitor(TerminatedLookAhead)
             }
 
@@ -2122,7 +2126,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket = if (isClosedForWrite) {
-        closedCause?.let { throw it }
+        closedCause?.let { throw rethrowClosed(it) }
         remainingPacket(limit, headerSizeHint)
     } else {
         readRemainingSuspend(limit, headerSizeHint)
@@ -2153,8 +2157,7 @@ internal open class ByteBufferChannel(
 
             val rc = readAsMuchAsPossible(buffer)
             remaining -= rc
-            readSuspend(1)
-            remaining > 0L && !isClosedForRead
+            remaining > 0L && !isClosedForRead && readSuspend(1)
         }
 
         closedCause?.let { throw it }

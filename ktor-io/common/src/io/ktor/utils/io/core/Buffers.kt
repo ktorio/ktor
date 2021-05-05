@@ -1,6 +1,6 @@
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import kotlin.contracts.*
@@ -16,6 +16,8 @@ public expect class IoBuffer : Input, Output, ChunkBuffer {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     public constructor(memory: Memory, origin: ChunkBuffer?)
+
+    internal constructor(memory: Memory, origin: ChunkBuffer?, parentPool: ObjectPool<IoBuffer>?)
 
     @Deprecated(
         "Not supported anymore. All operations are big endian by default. " +
@@ -77,14 +79,29 @@ public fun Buffer.readBytes(count: Int = readRemaining): ByteArray {
 }
 
 @Suppress("DEPRECATION")
+internal fun IoBuffer.releaseImpl() {
+    releaseImpl(IoBuffer.Pool)
+}
+
+@Deprecated(
+    "IoBuffer now contains ObjectPool reference",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("releaseImpl()")
+)
+@Suppress("DEPRECATION")
 internal fun IoBuffer.releaseImpl(pool: ObjectPool<IoBuffer>) {
-    if (release()) {
-        val origin = origin
-        if (origin is IoBuffer) {
+    if (!release()) return
+
+    val origin = origin
+    val poolToUse = (parentPool ?: pool) as ObjectPool<IoBuffer>
+
+    when (origin) {
+        is IoBuffer -> {
             unlink()
             origin.release(pool)
-        } else {
-            pool.recycle(this)
+        }
+        else -> {
+            poolToUse.recycle(this)
         }
     }
 }
@@ -94,11 +111,13 @@ internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
     override fun borrow() = IoBuffer.Empty
 }
 
-internal tailrec fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
-    if (this == null) return
-    val next = cleanNext()
-    release(pool)
-    next.releaseAll(pool)
+internal fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
+    var current = this
+    while (current != null) {
+        val next = current.cleanNext()
+        current.release(pool)
+        current = next
+    }
 }
 
 internal inline fun ChunkBuffer.forEachChunk(block: (ChunkBuffer) -> Unit) {

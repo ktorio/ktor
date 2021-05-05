@@ -105,12 +105,16 @@ public external interface Uint8Array {
     public fun subarray(begin: Number? = definedExternally, end: Number? = definedExternally): Uint8Array
     public fun toLocaleString(): String
     override fun toString(): String
-    @nativeGetter
-    public operator fun get(index: Number): Number?
-    @nativeSetter
-    public operator fun set(index: Number, value: Number)
 
 //    companion object : Uint8ArrayConstructor by definedExternally
+}
+
+@Suppress("NOTHING_TO_INLINE")
+public inline operator fun Uint8Array.get(index: Number): Number? = asDynamic()[index]
+
+@Suppress("NOTHING_TO_INLINE")
+public inline operator fun Uint8Array.set(index: Number, value: Number) {
+    asDynamic()[index] = value
 }
 
 public external interface Uint8ArrayConstructor {
@@ -127,8 +131,12 @@ public external interface Uint8ArrayConstructor {
 
 public external interface ArrayLike<T> {
     public var length: Number
-    @nativeGetter
-    public operator fun get(n: Number): T?
-    @nativeSetter
-    public operator fun set(n: Number, value: T)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+public inline operator fun <T> ArrayLike<T>.get(n: Number): T? = asDynamic()[n]
+
+@Suppress("NOTHING_TO_INLINE")
+public inline operator fun <T> ArrayLike<T>.set(n: Number, value: T) {
+    asDynamic()[n] = value
 }

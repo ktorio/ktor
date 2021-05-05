@@ -152,6 +152,9 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
+        if (options is SocketOptions.UDPSocketOptions) {
+            socket.broadcast = options.broadcast
+        }
         if (options is SocketOptions.PeerSocketOptions) {
             options.receiveBufferSize.takeIf { it > 0 }?.let { socket.receiveBufferSize = it }
             options.sendBufferSize.takeIf { it > 0 }?.let { socket.sendBufferSize = it }

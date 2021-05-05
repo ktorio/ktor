@@ -541,4 +541,30 @@ class LocationsTest {
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun testLocationOrNull() {
+        withLocationsApplication {
+            application.routing {
+                get<index> { index ->
+                    assertSame(index, call.locationOrNull())
+                    assertSame(index, call.location())
+                    call.respondText("OK")
+                }
+                get("/no-location") {
+                    assertFails {
+                        assertNull(call.locationOrNull<index>())
+                    }
+                    assertFails {
+                        assertNull(call.location<index>())
+                    }
+                    call.respondText("OK")
+                }
+            }
+
+            urlShouldBeHandled("/", "OK")
+            urlShouldBeHandled("/no-location", "OK")
+        }
+    }
 }

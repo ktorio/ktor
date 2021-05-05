@@ -282,6 +282,31 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testRouteWithTypedBody(): Unit = withTestApplication {
+        application.routing {
+            post<String> { answer ->
+                assertEquals("42", answer)
+            }
+            put<String>("/put") { answer ->
+                assertEquals("42", answer)
+            }
+            patch<String>("/patching") { answer ->
+                assertEquals("42", answer)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            setBody("42")
+        }
+        handleRequest(HttpMethod.Put, "/put") {
+            setBody("42")
+        }
+        handleRequest(HttpMethod.Patch, "/patching") {
+            setBody("42")
+        }
+    }
+
+    @Test
     fun testInterceptionOrderWhenOuterShouldBeAfter() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -679,7 +704,7 @@ class RoutingProcessingTest {
   /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -701,7 +726,7 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -723,7 +748,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -745,7 +770,7 @@ class RoutingProcessingTest {
       /baz/{y}/value, segment:2 -> FAILURE "Selector didn't match" @ /baz/{y}/value)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -768,7 +793,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -791,7 +816,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -810,7 +835,7 @@ class RoutingProcessingTest {
     /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET))
     /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -831,7 +856,7 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -866,8 +891,6 @@ class RoutingProcessingTest {
             assertEquals(call.response.content, "bar")
         }
     }
-
-    private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
 
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(

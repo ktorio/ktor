@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -251,7 +251,10 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
 
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
         if (built) {
-            throw IllegalStateException("Cannot modify a builder when final structure has already been built")
+            throw IllegalStateException(
+                "Cannot modify a builder after build() function already invoked. " +
+                    "Make sure you call build() last."
+            )
         }
 
         return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }

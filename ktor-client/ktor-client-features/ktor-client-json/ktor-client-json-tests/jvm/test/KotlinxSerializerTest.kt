@@ -1,14 +1,13 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.json.tests
 
-import io.ktor.client.call.*
 import io.ktor.client.features.json.serializer.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.streams.*
 import kotlinx.serialization.*
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*

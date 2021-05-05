@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.call
 
@@ -8,12 +8,15 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
+import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
 
 @InternalAPI
 internal fun HttpClientCall(
@@ -72,6 +75,15 @@ public open class HttpClientCall internal constructor(
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [receive].
      */
+    public suspend fun receive(info: DeprecatedTypeInfo): Any = receive(info as TypeInfo)
+
+    /**
+     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
+     * Returns [response] if [info] corresponds to [HttpResponse].
+     *
+     * @throws NoTransformationFoundException If no transformation is found for the type [info].
+     * @throws DoubleReceiveException If already called [receive].
+     */
     public suspend fun receive(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
@@ -114,7 +126,7 @@ public open class HttpClientCall internal constructor(
             "This is going to be removed. " +
                 "Please file a ticket with clarification why and what for do you need it."
         )
-        public val CustomResponse: AttributeKey<Any> = AttributeKey<Any>("CustomResponse")
+        public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
 }
 
@@ -178,11 +190,20 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
  * [cause] contains origin pipeline exception
  */
 @Suppress("KDocMissingDocumentation", "unused")
-public class ReceivePipelineException(
+public class ReceivePipelineException
+@Deprecated("Please use overload with io.ktor.util.reflect.TypeInfo parameter")
+constructor(
     public val request: HttpClientCall,
-    public val info: TypeInfo,
+    public val info: DeprecatedTypeInfo,
     override val cause: Throwable
-) : IllegalStateException("Fail to run receive pipeline: $cause")
+) : IllegalStateException("Fail to run receive pipeline: $cause") {
+
+    public constructor(request: HttpClientCall, info: TypeInfo, cause: Throwable) : this(
+        request,
+        DeprecatedTypeInfo(info.type, info.reifiedType, info.kotlinType),
+        cause
+    )
+}
 
 /**
  * Exception representing the no transformation was found.

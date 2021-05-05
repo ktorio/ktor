@@ -6,6 +6,7 @@ package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
 import io.ktor.client.tests.utils.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
@@ -18,8 +19,14 @@ internal fun Application.redirectTest() {
             get("/get") {
                 call.respondText("OK")
             }
+            get("/getWithUri") {
+                call.respondText(call.request.uri)
+            }
             get("/infinity") {
                 call.respondRedirect("/redirect/infinity")
+            }
+            get("/encodedQuery") {
+                call.respondRedirect("/redirect/getWithUri?key=value1%3Bvalue2%3D%22some=thing")
             }
             get("/cookie") {
                 val token = call.request.cookies["Token"] ?: run {

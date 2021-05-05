@@ -17,13 +17,19 @@ internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-public actual class IoBuffer actual constructor(
+public actual class IoBuffer internal actual constructor(
     memory: Memory,
-    origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(memory, origin) {
+    origin: ChunkBuffer?,
+    parentPool: ObjectPool<IoBuffer>?
+) : Input, Output, ChunkBuffer(memory, origin, parentPool as? ObjectPool<ChunkBuffer>) {
     internal var refCount by shared(1)
 
     private val contentCapacity: Int get() = memory.size32
+
+    public actual constructor(
+        memory: Memory,
+        origin: ChunkBuffer?,
+    ) : this(memory, origin, null)
 
     public constructor(content: CPointer<ByteVar>, contentCapacity: Int) :
         this(Memory.of(content, contentCapacity), null)
@@ -336,7 +342,8 @@ public actual class IoBuffer actual constructor(
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        public actual val ReservedSize: Int get() = Buffer.ReservedSize
+        public actual val ReservedSize: Int
+            get() = Buffer.ReservedSize
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 

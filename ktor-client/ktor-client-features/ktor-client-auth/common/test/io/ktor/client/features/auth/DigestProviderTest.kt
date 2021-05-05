@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.auth
 
@@ -54,6 +54,32 @@ class DigestProviderTest {
         assertTrue(authHeader.contains("qop=qop"))
         assertTrue(authHeader.contains("opaque=opaque"))
         checkStandardFields(authHeader)
+    }
+
+    @Test
+    fun addRequestHeadersMissingRealm() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
+        val authHeader = parseAuthorizationHeader(authAllFields)!!
+        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
+
+        assertTrue(providerWithoutRealm.isApplicable(authHeader))
+        providerWithoutRealm.addRequestHeaders(requestBuilder)
+
+        val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
+        checkStandardFields(resultAuthHeader)
+    }
+
+    @Test
+    fun addRequestHeadersChangedRealm() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", "wrong!")
+        val authHeader = parseAuthorizationHeader(authAllFields)!!
+        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
+
+        assertFalse(providerWithoutRealm.isApplicable(authHeader))
     }
 
     @Test

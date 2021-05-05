@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 import org.jetbrains.kotlin.gradle.plugin.*
 import java.io.*
@@ -34,7 +34,10 @@ open class KtorTestServer : DefaultTask() {
             val mainClass = loader.loadClass(main)
             val main = mainClass.getMethod("startServer")
             server = main.invoke(null) as Closeable
+            println("[TestServer] started")
         } catch (cause: Throwable) {
+            println("[TestServer] failed: ${cause.message}")
+            cause.printStackTrace()
         }
     }
 }

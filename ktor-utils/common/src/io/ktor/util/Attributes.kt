@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -67,4 +67,14 @@ public interface Attributes {
      * Returns [List] of all [AttributeKey] instances in this map
      */
     public val allKeys: List<AttributeKey<*>>
+}
+
+/**
+ * Adds all attributes from another collection, replacing original values if any.
+ */
+public fun Attributes.putAll(other: Attributes) {
+    other.allKeys.forEach {
+        @Suppress("UNCHECKED_CAST")
+        put(it as AttributeKey<Any>, other[it])
+    }
 }

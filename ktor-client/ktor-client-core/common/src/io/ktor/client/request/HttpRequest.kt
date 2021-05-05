@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.request
 
@@ -139,10 +139,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         url.takeFrom(builder.url)
         url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
         headers.appendAll(builder.headers)
-        builder.attributes.allKeys.forEach {
-            @Suppress("UNCHECKED_CAST")
-            attributes.put(it as AttributeKey<Any>, builder.attributes[it])
-        }
+        attributes.putAll(builder.attributes)
 
         return this
     }
@@ -227,7 +224,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder
     body = request.content
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
-
+    attributes.putAll(request.attributes)
     return this
 }
 
@@ -244,6 +241,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
     body = request.body
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
+    attributes.putAll(request.attributes)
 
     return this
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features
 
@@ -120,7 +120,10 @@ public class HttpSend(
             currentCall?.cancel()
 
             if (sentCount >= maxSendCount) {
-                throw SendCountExceedException("Max send count $maxSendCount exceeded")
+                throw SendCountExceedException(
+                    "Max send count $maxSendCount exceeded. Consider increasing the property " +
+                        "maxSendCount if more is required."
+                )
             }
 
             sentCount++
@@ -130,7 +133,7 @@ public class HttpSend(
             )
 
             val call = sendResult as? HttpClientCall
-                ?: error("Failed to execute send pipeline. Expected to got [HttpClientCall], but received $sendResult")
+                ?: error("Failed to execute send pipeline. Expected [HttpClientCall], but received $sendResult")
 
             currentCall = call
             return call

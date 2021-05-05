@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.engine
 
@@ -90,7 +90,7 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
         }
 
         val connection = call.request.headers[HttpHeaders.Connection]
-        if (connection != null) {
+        if (connection != null && !call.response.headers.contains(HttpHeaders.Connection)) {
             when {
                 connection.equals("close", true) -> header("Connection", "close")
                 connection.equals("keep-alive", true) -> header("Connection", "keep-alive")

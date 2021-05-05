@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.auth
 
@@ -137,7 +137,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
         append(OAuth2RequestParameters.ClientId, clientId)
         append(OAuth2RequestParameters.RedirectUri, callbackRedirectUrl)
         if (scopes.isNotEmpty()) {
-            append(OAuth2RequestParameters.Scope, scopes.joinToString(" "))
+            append(OAuth2RequestParameters.Scope, scopes.joinToString("+"))
         }
         append(OAuth2RequestParameters.State, state)
         append(OAuth2RequestParameters.ResponseType, "code")

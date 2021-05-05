@@ -28,10 +28,10 @@ class CodecTest {
             }
 
             try {
-                String(sb).decodeURLQueryComponent()
+                sb.concatToString().decodeURLQueryComponent()
             } catch (ignore: URLDecodeException) {
             } catch (t: Throwable) {
-                fail("Failed at ${String(sb)} with: $t")
+                fail("Failed at ${sb.concatToString()} with: $t")
             }
         }
     }
@@ -58,6 +58,26 @@ class CodecTest {
         assertEquals("Test%20me!", test.encodeURLQueryComponent())
         assertEquals("Test%20me%21", test.encodeURLParameter())
         encodeAndDecodeTest(test)
+    }
+
+    @Test
+    fun testEncodeURLPathPreservesPercentEncoding() {
+        val test = "/a/path/with/a%20space/"
+        assertEquals(test, test.encodeURLPath())
+    }
+
+    @Test
+    fun testEncodeURLPathPreservesValidPartsAndSlashes() {
+        val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+        val VALID_PATH_PART = listOf(
+            ':', '@',
+            '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
+            '-', '.', '_', '~'
+        )
+        val preservedSymbols = listOf(URL_ALPHABET, VALID_PATH_PART, listOf("/")).flatten().joinToString("")
+        val test = "/a/path/$preservedSymbols/"
+
+        assertEquals(test, test.encodeURLPath())
     }
 
     @Test

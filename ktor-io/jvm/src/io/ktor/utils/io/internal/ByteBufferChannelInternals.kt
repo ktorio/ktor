@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.utils.io.internal
 
@@ -52,6 +52,13 @@ internal object TerminatedLookAhead : LookAheadSuspendSession {
 
         return false
     }
+}
+
+@Suppress("DEPRECATION")
+internal class FailedLookAhead(val cause: Throwable) : LookAheadSuspendSession {
+    override fun consumed(n: Int) = throw cause
+    override fun request(skip: Int, atLeast: Int): ByteBuffer = throw cause
+    override suspend fun awaitAtLeast(n: Int): Boolean = throw cause
 }
 
 internal class ClosedElement(val cause: Throwable?) {

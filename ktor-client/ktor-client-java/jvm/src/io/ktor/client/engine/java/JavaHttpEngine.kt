@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.java
 
@@ -103,7 +103,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
                 proxy(ProxySelector.of(address))
             }
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
-            else -> throw IllegalStateException("Proxy of type $type is unsupported by Java HTTP engine.")
+            else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }
     }
 }

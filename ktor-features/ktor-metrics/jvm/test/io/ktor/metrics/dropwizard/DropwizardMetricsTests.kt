@@ -57,4 +57,16 @@ class DropwizardMetricsTests {
 
         assertEquals(1, testRegistry.meter("/uri/(method:GET).200").count)
     }
+
+    @Test
+    fun `jvm metrics are not registered when disabled in config`(): Unit = withTestApplication {
+        val testRegistry = MetricRegistry()
+
+        application.install(DropwizardMetrics) {
+            registry = testRegistry
+            registerJvmMetricSets = false
+        }
+
+        assertEquals(setOf("ktor.calls.active", "ktor.calls.duration", "ktor.calls.exceptions"), testRegistry.names)
+    }
 }
