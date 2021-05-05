@@ -80,6 +80,10 @@ public final class io/ktor/client/call/HttpClientCall$Companion {
 	public final fun getCustomResponse ()Lio/ktor/util/AttributeKey;
 }
 
+public final class io/ktor/client/call/HttpClientCallKt {
+	public static final fun body (Lio/ktor/client/statement/HttpResponse;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/call/NoTransformationFoundException : java/lang/UnsupportedOperationException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;Lkotlin/reflect/KClass;Lkotlin/reflect/KClass;)V
 	public fun getMessage ()Ljava/lang/String;
