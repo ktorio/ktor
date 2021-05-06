@@ -11,14 +11,6 @@ import kotlin.test.*
 
 class DownloadTest : ClientLoader() {
     @Test
-    fun testDownloadGoogle() = clientTests {
-        test { client ->
-            val response = client.get<String>("http://www.google.com/")
-            assertTrue { response.isNotEmpty() }
-        }
-    }
-
-    @Test
     fun testLocalhostEcho() = clientTests {
         val text = "Hello, world"
         test { client ->
@@ -27,15 +19,6 @@ class DownloadTest : ClientLoader() {
             }
 
             assertEquals(text, response)
-        }
-    }
-
-    @Test
-    fun testEchoWithChannelBody() = clientTests {
-        test { client ->
-            val channel = client.get<ByteReadChannel>("http://www.google.com/")
-            val size = channel.readRemaining().remaining
-            assertTrue(size > 0)
         }
     }
 

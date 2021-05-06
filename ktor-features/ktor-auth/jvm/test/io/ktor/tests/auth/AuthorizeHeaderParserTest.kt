@@ -51,16 +51,6 @@ class AuthorizeHeaderParserTest {
         testParserParameterized("Basic", mapOf("a" to "1 \" 2", "b" to "2"), "Basic a=\"1 \\\" 2\", b= 2")
     }
 
-    @Test fun testGarbage() {
-        Random().let { rnd ->
-            repeat(10000) {
-                val random = rnd.nextString(3 + rnd.nextInt(7)) + " " +
-                    rnd.nextString(10, ('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf(',', ' ', '/'))
-                parseAuthorizationHeader(random)
-            }
-        }
-    }
-
     private fun testParserSingle(scheme: String, value: String, headerValue: String) {
         val actual = parseAuthorizationHeader(headerValue)!!
 

@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.auth
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
@@ -26,4 +27,12 @@ public interface AuthProvider {
      * Add authentication method headers and creds.
      */
     public suspend fun addRequestHeaders(request: HttpRequestBuilder)
+
+    /**
+     * Refresh token if required.
+     *
+     * @param call - response triggered token refresh.
+     * @return if the token was successfully refreshed.
+     */
+    public suspend fun refreshToken(call: HttpClientCall): Boolean = true
 }
