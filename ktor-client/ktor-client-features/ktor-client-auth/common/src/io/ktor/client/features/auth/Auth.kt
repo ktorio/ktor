@@ -51,7 +51,9 @@ public class Auth(
                     }
 
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
-                    val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    val provider = candidateProviders.find {
+                        it.isApplicable(authHeader)
+                    } ?: return@intercept call
                     if (!provider.refreshToken(call)) return@intercept call
 
                     candidateProviders.remove(provider)

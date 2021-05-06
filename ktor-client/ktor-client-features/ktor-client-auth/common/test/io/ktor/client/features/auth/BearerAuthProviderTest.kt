@@ -16,7 +16,8 @@ class BearerAuthProviderTest {
         val provider = BearerAuthProvider(
             { TODO() },
             { TODO() },
-            true, null
+            true,
+            null
         )
 
         val monitor = Job()

@@ -10,16 +10,13 @@ import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import kotlin.native.concurrent.*
 
-private const val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
+@ThreadLocal
+private val TOKEN_EXTRA = setOf('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~')
+
+private val TOKEN68_EXTRA = setOf('-', '.', '_', '~', '+', '/')
 
 @ThreadLocal
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
-
-@ThreadLocal
-private val authSchemePattern = "\\S+".toRegex()
-
-@ThreadLocal
-private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
 
 @ThreadLocal
 private val escapeRegex: Regex = "\\\\.".toRegex()
@@ -30,21 +27,118 @@ private val escapeRegex: Regex = "\\\\.".toRegex()
  * @throws [ParseException] on invalid header
  */
 public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
-    val schemeRegion = authSchemePattern.find(headerValue) ?: return null
-    val authScheme = schemeRegion.value
-    val remaining = headerValue.substringAfterMatch(schemeRegion).trimStart()
+    var index = 0
+    index = headerValue.skipSpaces(index)
 
-    val token68 = token68Pattern.find(remaining)
-    if (token68 != null && remaining.substringAfterMatch(token68).isBlank()) {
-        return HttpAuthHeader.Single(authScheme, token68.value)
+    var tokenStartIndex = index
+    while (index < headerValue.length && headerValue[index].isToken()) {
+        index++
     }
 
-    val parameters = parameterPattern.findAll(remaining).associateBy(
-        { it.groups[1]!!.value },
-        { it.groups[2]!!.value.unescapedIfQuoted() }
-    )
+    // Auth scheme
+    val authScheme = headerValue.substring(tokenStartIndex until index)
+    index = headerValue.skipSpaces(index)
+    tokenStartIndex = index
 
+    if (authScheme.isBlank()) {
+        return null
+    }
+
+    if (headerValue.length == index) {
+        return HttpAuthHeader.Parameterized(authScheme, emptyList())
+    }
+
+    val token68 = matchToken68(headerValue, index)
+    if (token68 != null) {
+        return HttpAuthHeader.Single(authScheme, token68)
+    }
+
+    val parameters = matchParameters(headerValue, tokenStartIndex)
     return HttpAuthHeader.Parameterized(authScheme, parameters)
+}
+
+private fun matchParameters(headerValue: String, startIndex: Int): Map<String, String> {
+    val result = mutableMapOf<String, String>()
+
+    var index = startIndex
+    while (index > 0 && index < headerValue.length) {
+        index = matchParameter(headerValue, index, result)
+        index = headerValue.skipDelimiter(index, ',')
+    }
+
+    return result
+}
+
+private fun matchParameter(headerValue: String, startIndex: Int, parameters: MutableMap<String, String>): Int {
+    val keyStart = headerValue.skipSpaces(startIndex)
+    var index = keyStart
+
+    // Take key
+    while (index < headerValue.length && headerValue[index].isToken()) {
+        index++
+    }
+
+    val key = headerValue.substring(keyStart until index)
+
+    // Take '='
+    index = headerValue.skipSpaces(index)
+    if (index >= headerValue.length || headerValue[index] != '=') {
+        throw ParseException("Expected `=` after parameter key '$key': $headerValue")
+    }
+
+    index++
+    index = headerValue.skipSpaces(index)
+
+    // Take value
+    var quoted = false
+    var valueStart = index
+
+    if (headerValue[index] == '"') {
+        quoted = true
+        index++
+        valueStart = index
+
+        var escaped = false
+        while (index < headerValue.length) {
+            if (headerValue[index] == '"' && !escaped) break
+            escaped = !escaped && headerValue[index] == '\\'
+
+            index++
+        }
+
+        if (index == headerValue.length) {
+            throw ParseException("Expected closing quote'\"' in parameter: $headerValue ")
+        }
+    } else {
+        while (index < headerValue.length && headerValue[index] != ' ' && headerValue[index] != ',') {
+            index++
+        }
+    }
+
+    val value = headerValue.substring(valueStart until index)
+    parameters[key] = if (quoted) value.unescaped() else value
+
+    if (quoted) index++
+    return index
+}
+
+private fun matchToken68(headerValue: String, startIndex: Int): String? {
+    var index = startIndex
+
+    while (index < headerValue.length && headerValue[index].isToken68()) {
+        index++
+    }
+
+    while (index < headerValue.length && headerValue[index] == '=') {
+        index++
+    }
+
+    val onlySpaceRemaining = (index until headerValue.length).all { headerValue[it] == ' ' }
+    if (onlySpaceRemaining) {
+        return headerValue.substring(startIndex until index)
+    }
+
+    return null
 }
 
 /**
@@ -251,13 +345,30 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
     }
 }
 
-private fun String.substringAfterMatch(result: MatchResult): String = drop(
-    result.range.last + if (result.range.isEmpty()) 0 else 1
-)
+private fun String.unescaped() = replace(escapeRegex) { it.value.takeLast(1) }
 
-private fun String.unescapedIfQuoted() = when {
-    startsWith('"') && endsWith('"') -> {
-        removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
+private fun String.skipDelimiter(startIndex: Int, delimiter: Char): Int {
+    var index = skipSpaces(startIndex)
+
+    while (index < length && this[index] != delimiter) {
+        index++
     }
-    else -> this
+
+    if (index == length) return -1
+    index++
+
+    return skipSpaces(index)
 }
+
+private fun String.skipSpaces(startIndex: Int): Int {
+    var index = startIndex
+    while (index < length && (this[index] == ' ')) {
+        index++
+    }
+
+    return index
+}
+
+private fun Char.isToken68(): Boolean = (this in 'a'..'z') || (this in 'A'..'Z') || isDigit() || this in TOKEN68_EXTRA
+
+private fun Char.isToken(): Boolean = (this in 'a'..'z') || (this in 'A'..'Z') || isDigit() || this in TOKEN_EXTRA
