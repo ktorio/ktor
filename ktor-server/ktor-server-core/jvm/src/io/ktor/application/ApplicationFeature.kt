@@ -89,6 +89,10 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
 /**
  * Uninstalls all features from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "Please file a ticket and clarify, why do you need it."
+)
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
     val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
     registry.allKeys.forEach {
@@ -100,6 +104,10 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
 /**
  * Uninstalls [feature] from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "Please file a ticket and clarify, why do you need it."
+)
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
     feature: ApplicationFeature<A, B, F>
 ): Unit = uninstallFeature(feature.key)
@@ -107,6 +115,10 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
 /**
  * Uninstalls feature specified by [key] from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "Please file a ticket and clarify, why do you need it."
+)
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
