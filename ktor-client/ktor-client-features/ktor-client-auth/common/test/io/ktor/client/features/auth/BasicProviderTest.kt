@@ -33,5 +33,5 @@ class BasicProviderTest {
     }
 
     private fun buildAuthString(username: String, password: String): String =
-        BasicAuthProvider(username, password).constructBasicAuthValue()
+        constructBasicAuthValue(BasicAuthCredentials(username, password))
 }

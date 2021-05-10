@@ -9,22 +9,17 @@ import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class BearerAuthProviderTest {
+class TokenHolderTest {
 
     @Test
     fun testSetTokenCalledOnce() = testSuspend {
-        val provider = BearerAuthProvider(
-            { TODO() },
-            { TODO() },
-            true,
-            null
-        )
+        val holder = AuthTokenHolder<BearerTokens> { TODO() }
 
         val monitor = Job()
         var firstExecuted = false
         var secondExecuted = false
         val first = GlobalScope.launch(Dispatchers.Unconfined) {
-            provider.setToken {
+            holder.setToken {
                 println(1)
                 firstExecuted = true
                 monitor.join()
@@ -33,7 +28,7 @@ class BearerAuthProviderTest {
         }
 
         val second = GlobalScope.launch(Dispatchers.Unconfined) {
-            provider.setToken {
+            holder.setToken {
                 println(2)
                 secondExecuted = true
                 BearerTokens("1", "2")
