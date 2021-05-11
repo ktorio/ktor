@@ -12,7 +12,7 @@ public abstract class Output internal constructor(
     private val headerSizeHint: Int = 0,
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Closeable {
-    public constructor(pool: ObjectPool<ChunkBuffer>): this(0, pool)
+    public constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
 
     public constructor() : this(ChunkBuffer.Pool)
 
@@ -428,7 +428,6 @@ public abstract class Output internal constructor(
         }
     }
 }
-
 
 public fun Output.append(csq: CharSequence, start: Int = 0, end: Int = csq.length): Appendable {
     return append(csq, start, end)

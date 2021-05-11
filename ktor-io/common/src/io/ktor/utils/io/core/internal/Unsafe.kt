@@ -60,7 +60,7 @@ public fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
-    
+
     return ensureNextHead(current)
 }
 
@@ -75,4 +75,3 @@ public fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkB
 @JvmField
 @SharedImmutable
 internal val EmptyByteArray = ByteArray(0)
-

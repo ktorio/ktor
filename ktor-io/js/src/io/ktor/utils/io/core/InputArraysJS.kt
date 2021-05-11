@@ -49,7 +49,6 @@ public fun Input.readAvailable(
     byteOffset: Int = 0,
     byteLength: Int = dst.byteLength - byteOffset
 ): Int {
-
     val remaining = remaining
     if (remaining == 0L) return -1
     val size = minOf(remaining, byteLength.toLong()).toInt()
