@@ -6,13 +6,10 @@ package io.ktor.client.features.auth.providers
 
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 
 internal class AuthTokenHolder<T>(
     private val loadTokens: suspend () -> T?
 ) {
-
-    private val lock = Mutex()
 
     private val cachedBearerTokens: AtomicRef<CompletableDeferred<T?>> = atomic(
         CompletableDeferred<T?>().apply {
@@ -21,12 +18,10 @@ internal class AuthTokenHolder<T>(
     )
 
     internal suspend fun clearToken() {
-        lock.withLock {
-            cachedBearerTokens.value = CompletableDeferred<T?>().apply { complete(null) }
-        }
+        cachedBearerTokens.value = CompletableDeferred<T?>().apply { complete(null) }
     }
 
-    internal suspend fun loadToken(): T? = lock.withLock {
+    internal suspend fun loadToken(): T? {
         val cachedToken = cachedBearerTokens.value.await()
         if (cachedToken != null) return cachedToken
 
