@@ -92,8 +92,11 @@ internal class ApacheRequestProducer(
         if (result == -1) {
             interestController.suspendOutput(ioctrl)
             launch(Dispatchers.Unconfined) {
-                channel.awaitContent()
-                interestController.resumeOutputIfPossible()
+                try {
+                    channel.awaitContent()
+                } finally {
+                    interestController.resumeOutputIfPossible()
+                }
             }
         }
     }
