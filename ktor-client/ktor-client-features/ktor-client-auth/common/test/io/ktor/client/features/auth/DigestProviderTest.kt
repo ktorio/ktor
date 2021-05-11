@@ -28,7 +28,9 @@ class DigestProviderTest {
         "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", snonce=\"server-nonce\", " +
             "cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\""
 
-    private val digestAuthProvider by lazy { DigestAuthProvider("username", "password", "realm") }
+    private val digestAuthProvider by lazy {
+        DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+    }
 
     lateinit var requestBuilder: HttpRequestBuilder
 

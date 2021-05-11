@@ -6,6 +6,7 @@ package io.ktor.client.features.auth.providers
 
 import io.ktor.client.features.auth.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
@@ -19,7 +20,7 @@ import kotlinx.atomicfu.*
 public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
-        providers += DigestAuthProvider(username, password, realm, algorithmName)
+        providers += DigestAuthProvider(_credentials, realm, algorithmName)
     }
 }
 
@@ -28,30 +29,90 @@ public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
  */
 @Suppress("KDocMissingDocumentation")
 public class DigestAuthConfig {
-    public var username: String = ""
-    public var password: String = ""
-    public var realm: String? = null
+
     public var algorithmName: String = "MD5"
+
+    /**
+     * Required: The username of the basic auth.
+     */
+    @Deprecated("Please use `credentials {}` function instead")
+    public var username: String = ""
+
+    /**
+     * Required: The password of the basic auth.
+     */
+    @Deprecated("Please use `credentials {}` function instead")
+    public var password: String = ""
+
+    /**
+     * Optional: current provider realm
+     */
+    public var realm: String? = null
+
+    internal var _credentials: suspend () -> DigestAuthCredentials? = {
+        DigestAuthCredentials(username = username, password = password)
+    }
+
+    /**
+     * Required: Credentials provider.
+     */
+    public fun credentials(block: suspend () -> DigestAuthCredentials?) {
+        _credentials = block
+    }
 }
+
+/**
+ * Credentials for [DigestAuthProvider].
+ */
+public class DigestAuthCredentials(
+    public val username: String,
+    public val password: String
+)
 
 /**
  * Client digest [AuthProvider].
  */
 @Suppress("KDocMissingDocumentation")
 public class DigestAuthProvider(
-    public val username: String,
-    public val password: String,
-    public val realm: String?,
-    public val algorithmName: String = "MD5"
+    private val credentials: suspend () -> DigestAuthCredentials?,
+    @Deprecated("This will become private") public val realm: String? = null,
+    @Deprecated("This will become private") public val algorithmName: String = "MD5",
 ) : AuthProvider {
-    override val sendWithoutRequest: Boolean = false
+
+    @Deprecated("Consider using constructor with credentials provider instead")
+    public constructor(
+        username: String,
+        password: String,
+        realm: String? = null,
+        algorithmName: String = "MD5"
+    ) : this(
+        credentials = { DigestAuthCredentials(username = username, password = password) },
+        realm = realm,
+        algorithmName = algorithmName
+    )
+
+    @Deprecated("This will be removed")
+    public val username: String
+        get() = error("Static username is not supported anymore")
+
+    @Deprecated("This will be removed")
+    public val password: String
+        get() = error("Static username is not supported anymore")
+
+    override val sendWithoutRequest: Boolean
+        get() = error("Deprecated")
 
     private val serverNonce = atomic<String?>(null)
+
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
     private val clientNonce = generateNonce()
 
     private val requestCounter = atomic(0)
+
+    private val tokenHolder = AuthTokenHolder(credentials)
+
+    override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = false
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth !is HttpAuthHeader.Parameterized ||
@@ -83,7 +144,8 @@ public class DigestAuthProvider(
         val serverOpaque = opaque.value
         val actualQop = qop.value
 
-        val credential = makeDigest("$username:$realm:$password")
+        val credentials = tokenHolder.loadToken() ?: return
+        val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         val start = hex(credential)
         val end = hex(makeDigest("$methodName:${url.fullPath}"))
@@ -103,7 +165,7 @@ public class DigestAuthProvider(
             linkedMapOf<String, String>().apply {
                 realm?.let { this["realm"] = it }
                 serverOpaque?.let { this["opaque"] = it }
-                this["username"] = username
+                this["username"] = credentials.username
                 this["nonce"] = nonce
                 this["cnonce"] = clientNonce
                 this["response"] = hex(token)
@@ -116,6 +178,11 @@ public class DigestAuthProvider(
         request.headers {
             append(HttpHeaders.Authorization, auth.render())
         }
+    }
+
+    override suspend fun refreshToken(response: HttpResponse): Boolean {
+        tokenHolder.setToken(credentials)
+        return true
     }
 
     private suspend fun makeDigest(data: String): ByteArray {

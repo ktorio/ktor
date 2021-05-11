@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.auth
 
+import io.ktor.client.features.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -13,8 +14,9 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
+
     @Test
-    fun testDigestAuth() = clientTests(listOf("Js")) {
+    fun testDigestAuthLegacy() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 digest {
@@ -32,7 +34,49 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuth() = clientTests(listOf("Js")) {
+    fun testDigestAuth() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                digest {
+                    credentials { DigestAuthCredentials("MyName", "Circle Of Life") }
+                    realm = "testrealm@host.com"
+                }
+            }
+        }
+        test { client ->
+            client.get<HttpResponse>("$TEST_SERVER/auth/digest").let {
+                assertTrue(it.status.isSuccess())
+            }
+        }
+    }
+
+    @Test
+    fun testDigestAuthPerRealm() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                digest {
+                    credentials { DigestAuthCredentials("MyName", "Circle Of Life") }
+                    realm = "testrealm@host.com"
+                }
+                digest {
+                    credentials { DigestAuthCredentials("MyName", "some password") }
+                    realm = "testrealm-2@host.com"
+                }
+            }
+        }
+        test { client ->
+            client.get<HttpResponse>("$TEST_SERVER/auth/digest").let {
+                assertTrue(it.status.isSuccess())
+            }
+            client.get<HttpResponse>("$TEST_SERVER/auth/digest-2").let {
+                assertTrue(it.status.isSuccess())
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -48,7 +92,23 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthWithoutNegotiation() = clientTests {
+    fun testBasicAuth() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("MyUser", "1234") }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testBasicAuthWithoutNegotiationLegacy() = clientTests {
         config {
             install(Auth) {
                 basic {
@@ -66,7 +126,24 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testUnauthorizedBasicAuth() = clientTests(listOf("Js")) {
+    fun testBasicAuthWithoutNegotiation() = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("MyUser", "1234") }
+                    sendWithoutRequest { true }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testUnauthorizedBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -85,6 +162,89 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testUnauthorizedBasicAuth() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("usr", "pw") }
+                }
+            }
+            expectSuccess = false
+        }
+
+        test { client ->
+            client.get<HttpResponse>("$TEST_SERVER/auth/unauthorized").let { response ->
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+            }
+        }
+    }
+
+    @Test
+    fun testBasicAuthMultiple() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("MyUser", "1234") }
+                    sendWithoutRequest { it.url.encodedPath.endsWith("basic-fixed") }
+                }
+                basic {
+                    credentials { BasicAuthCredentials("user1", "Password1") }
+                    sendWithoutRequest { it.url.encodedPath.endsWith("basic") }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.post<String>("$TEST_SERVER/auth/basic") {
+                body = "{\"test\":\"text\"}"
+            }
+        }
+    }
+
+    @Test
+    fun testBasicAuthMultipleNotSendWithoutRequest() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("MyUser", "1234") }
+                    realm = "Ktor Server"
+                }
+                basic {
+                    credentials { BasicAuthCredentials("user1", "Password1") }
+                    realm = "my-server"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.post<String>("$TEST_SERVER/auth/basic") {
+                body = "{\"test\":\"text\"}"
+            }
+        }
+    }
+
+    @Test
+    fun testBasicAuthPerRealm() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("MyUser", "1234") }
+                    realm = "Ktor Server"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.post<HttpResponse>("$TEST_SERVER/auth/basic") { expectSuccess = false }.let {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+        }
+    }
+
+    @Test
     fun testUnauthorizedBearerAuthWithInvalidAccessAndRefreshTokensAsNulls() = clientTests {
         config {
             install(Auth) {
@@ -98,7 +258,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+            client.get<HttpResponse>("$TEST_SERVER/auth/bearer/test-refresh").let {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }

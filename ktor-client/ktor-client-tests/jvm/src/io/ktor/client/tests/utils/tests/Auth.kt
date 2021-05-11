@@ -32,6 +32,16 @@ internal fun Application.authTestServer() {
             }
         }
 
+        digest("digest-2") {
+            val password = "some password"
+            algorithmName = "MD5"
+            realm = "testrealm-2@host.com"
+
+            digestProvider { userName, realm ->
+                digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
+            }
+        }
+
         basic("basic") {
             validate { credential ->
                 check("MyUser" == credential.name)
@@ -67,6 +77,11 @@ internal fun Application.authTestServer() {
 
             authenticate("digest") {
                 get("digest") {
+                    call.respondText("ok")
+                }
+            }
+            authenticate("digest-2") {
+                get("digest-2") {
                     call.respondText("ok")
                 }
             }

@@ -4,21 +4,18 @@
 
 package io.ktor.client.features.auth.providers
 
-import io.ktor.client.call.*
 import io.ktor.client.features.auth.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 
 /**
  * Add [BearerAuthProvider] to client [Auth] providers.
  */
 public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, true, realm))
+        providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
     }
 }
 
@@ -31,17 +28,25 @@ public class BearerTokens(
  * [BearerAuthProvider] configuration.
  */
 public class BearerAuthConfig {
-    internal var _refreshTokens: suspend (call: HttpClientCall) -> BearerTokens? = { null }
+    internal var _refreshTokens: suspend (response: HttpResponse) -> BearerTokens? = { null }
     internal var _loadTokens: suspend () -> BearerTokens? = { null }
+    internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
     public var realm: String? = null
 
-    public fun refreshTokens(block: suspend (call: HttpClientCall) -> BearerTokens?) {
+    public fun refreshTokens(block: suspend (response: HttpResponse) -> BearerTokens?) {
         _refreshTokens = block
     }
 
     public fun loadTokens(block: suspend () -> BearerTokens?) {
         _loadTokens = block
+    }
+
+    /**
+     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
+     */
+    public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
+        _sendWithoutRequest = block
     }
 }
 
@@ -49,18 +54,18 @@ public class BearerAuthConfig {
  * Client bearer [AuthProvider].
  */
 public class BearerAuthProvider(
-    public val refreshTokens: suspend (call: HttpClientCall) -> BearerTokens?,
-    public val loadTokens: suspend () -> BearerTokens?,
-    override val sendWithoutRequest: Boolean = true,
+    private val refreshTokens: suspend (response: HttpResponse) -> BearerTokens?,
+    loadTokens: suspend () -> BearerTokens?,
+    private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
     private val realm: String?
 ) : AuthProvider {
-    private val lock = Mutex()
 
-    private val cachedBearerTokens: AtomicRef<CompletableDeferred<BearerTokens?>> = atomic(
-        CompletableDeferred<BearerTokens?>().apply {
-            complete(null)
-        }
-    )
+    override val sendWithoutRequest: Boolean
+        get() = error("Deprecated")
+
+    private val tokensHolder = AuthTokenHolder(loadTokens)
+
+    override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
     /**
      * Check if current provider is applicable to the request.
@@ -77,54 +82,22 @@ public class BearerAuthProvider(
      * Add authentication method headers and creds.
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
-        lock.withLock {
-            val token = loadToken() ?: return@withLock
+        val token = tokensHolder.loadToken() ?: return
 
-            request.headers {
-                val tokenValue = "Bearer ${token.accessToken}"
-                if (contains(HttpHeaders.Authorization)) {
-                    remove(HttpHeaders.Authorization)
-                }
-                append(HttpHeaders.Authorization, tokenValue)
+        request.headers {
+            val tokenValue = "Bearer ${token.accessToken}"
+            if (contains(HttpHeaders.Authorization)) {
+                remove(HttpHeaders.Authorization)
             }
+            append(HttpHeaders.Authorization, tokenValue)
         }
     }
 
-    public override suspend fun refreshToken(call: HttpClientCall): Boolean = lock.withLock {
-        return@withLock setToken { refreshTokens(call) } != null
+    public override suspend fun refreshToken(response: HttpResponse): Boolean {
+        return tokensHolder.setToken { refreshTokens(response) } != null
     }
 
     public suspend fun clearToken() {
-        lock.withLock {
-            cachedBearerTokens.value = CompletableDeferred<BearerTokens?>().apply { complete(null) }
-        }
-    }
-
-    private suspend fun loadToken(): BearerTokens? {
-        val cachedToken = cachedBearerTokens.value.await()
-        if (cachedToken != null) return cachedToken
-
-        return setToken(loadTokens)
-    }
-
-    internal suspend fun setToken(block: suspend () -> BearerTokens?): BearerTokens? {
-        val old = cachedBearerTokens.value
-        if (!old.isCompleted) {
-            return old.await()
-        }
-
-        val deferred = CompletableDeferred<BearerTokens?>()
-        if (!cachedBearerTokens.compareAndSet(old, deferred)) {
-            return cachedBearerTokens.value.await()
-        }
-
-        try {
-            val token = block()
-            deferred.complete(token)
-            return token
-        } catch (cause: Throwable) {
-            deferred.completeExceptionally(cause)
-            throw cause
-        }
+        tokensHolder.clearToken()
     }
 }

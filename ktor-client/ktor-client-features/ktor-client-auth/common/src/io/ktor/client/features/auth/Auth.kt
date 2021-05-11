@@ -6,7 +6,6 @@ package io.ktor.client.features.auth
 
 import io.ktor.client.*
 import io.ktor.client.features.*
-import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
@@ -19,7 +18,6 @@ import io.ktor.util.*
 public class Auth(
     public val providers: MutableList<AuthProvider> = mutableListOf()
 ) {
-    private val alwaysSend by lazy { providers.filter { it.sendWithoutRequest } }
 
     public companion object Feature : HttpClientFeature<Auth, Auth> {
         override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
@@ -30,8 +28,8 @@ public class Auth(
 
         override fun install(feature: Auth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                for (provider in feature.alwaysSend) {
-                    provider.addRequestHeaders(context)
+                feature.providers.filter { it.sendWithoutRequest(context) }.forEach {
+                    it.addRequestHeaders(context)
                 }
             }
 
@@ -51,10 +49,8 @@ public class Auth(
                     }
 
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
-                    val provider = candidateProviders.find {
-                        it.isApplicable(authHeader)
-                    } ?: return@intercept call
-                    if (!provider.refreshToken(call)) return@intercept call
+                    val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    if (!provider.refreshToken(call.response)) return@intercept call
 
                     candidateProviders.remove(provider)
 
