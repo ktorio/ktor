@@ -87,7 +87,7 @@ public class BasicAuthProvider(
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false }
 ) : AuthProvider {
 
-    @Deprecated("Please use another constructor")
+    @Deprecated("Consider using constructor with credentials provider instead")
     public constructor(
         username: String,
         password: String,

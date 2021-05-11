@@ -36,13 +36,13 @@ public class DigestAuthConfig {
      * Required: The username of the basic auth.
      */
     @Deprecated("Please use `credentials {}` function instead")
-    public lateinit var username: String
+    public var username: String = ""
 
     /**
      * Required: The password of the basic auth.
      */
     @Deprecated("Please use `credentials {}` function instead")
-    public lateinit var password: String
+    public var password: String = ""
 
     /**
      * Optional: current provider realm
@@ -57,7 +57,7 @@ public class DigestAuthConfig {
      * Required: Credentials provider.
      */
     public fun credentials(block: suspend () -> DigestAuthCredentials?) {
-        this._credentials = block
+        _credentials = block
     }
 }
 
@@ -79,7 +79,7 @@ public class DigestAuthProvider(
     @Deprecated("This will become private") public val algorithmName: String = "MD5",
 ) : AuthProvider {
 
-    @Deprecated("Please use another constructor")
+    @Deprecated("Consider using constructor with credentials provider instead")
     public constructor(
         username: String,
         password: String,

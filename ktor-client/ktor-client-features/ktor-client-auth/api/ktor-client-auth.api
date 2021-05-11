@@ -100,8 +100,6 @@ public final class io/ktor/client/features/auth/providers/BearerTokens {
 }
 
 public final class io/ktor/client/features/auth/providers/DigestAuthConfig {
-	public field password Ljava/lang/String;
-	public field username Ljava/lang/String;
 	public fun <init> ()V
 	public final fun credentials (Lkotlin/jvm/functions/Function1;)V
 	public final fun getAlgorithmName ()Ljava/lang/String;
