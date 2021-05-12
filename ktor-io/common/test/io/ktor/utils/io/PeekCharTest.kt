@@ -139,11 +139,11 @@ class PeekCharTest {
     }
 
     @Test
-    fun testPeekUtf8EdgeFor3BytesCharacterFromAbstractInput() {
+    fun testPeekUtf8EdgeFor3BytesCharacterFromInput() {
         val bopomofoChar = '\u310f'
         var count = 0
 
-        val myInput = object : AbstractInput() {
+        val myInput = object : Input() {
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
                 destination[offset] = when (count++) {
                     0 -> 0xe3.toByte()
