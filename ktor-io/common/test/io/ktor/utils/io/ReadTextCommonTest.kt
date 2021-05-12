@@ -347,7 +347,7 @@ class ReadTextCommonTest {
             writeFully(ByteArray(8192))
         }.readBytes()
 
-        val input = object : AbstractInput() {
+        val input = object : Input() {
             private var sourceOffset = 0
 
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
