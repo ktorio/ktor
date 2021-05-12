@@ -15,8 +15,7 @@ public class ByteReadPacket internal constructor(
     head: ChunkBuffer,
     remaining: Long,
     pool: ObjectPool<ChunkBuffer>
-) : AbstractInput(head, remaining, pool),
-    Input {
+) : Input(head, remaining, pool) {
     public constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
 
     init {
@@ -44,10 +43,6 @@ public class ByteReadPacket internal constructor(
 
     public companion object {
         public val Empty: ByteReadPacket = ByteReadPacket(ChunkBuffer.Empty, 0L, ChunkBuffer.EmptyPool)
-
-        @DangerousInternalIoApi
-        public val ReservedSize: Int
-            get() = Buffer.ReservedSize
     }
 }
 
