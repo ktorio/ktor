@@ -131,23 +131,19 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
     }
 
     private fun tryReadAvailable(dst: ByteBuffer): Int {
-        val closed = closed
-        val closedCause = closedCause
+        closedCause?.let { throw it }
 
-        return when {
-            closedCause != null -> throw closedCause
-            closed -> {
-                val count = readable.readAvailable(dst)
-
-                if (count != 0) {
-                    afterRead(count)
-                    count
-                } else {
-                    -1
-                }
-            }
-            else -> readable.readAvailable(dst).also { afterRead(it) }
+        if (closed && availableForRead == 0) {
+            return -1
         }
+
+        if (!readable.canRead()) {
+            prepareFlushedBytes()
+        }
+
+        val count = readable.readAvailable(dst)
+        afterRead(count)
+        return count
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -171,12 +167,42 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         }
     }
 
-    override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
-    }
+    override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R =
+        visitor(Session(this))
 
-    override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R =
+        visitor(Session(this))
+
+    private class Session(private val channel: ByteChannelSequentialJVM) : LookAheadSuspendSession {
+        override suspend fun awaitAtLeast(n: Int): Boolean {
+            channel.closedCause?.let { throw it }
+
+            return channel.await(n)
+        }
+
+        override fun consumed(n: Int) {
+            channel.closedCause?.let { throw it }
+
+            channel.discard(n)
+        }
+
+        override fun request(skip: Int, atLeast: Int): ByteBuffer? {
+            channel.closedCause?.let { throw it }
+
+            if (channel.isClosedForRead) return null
+
+            if (channel.readable.isEmpty) {
+                channel.prepareFlushedBytes()
+            }
+
+            val head = channel.readable.head
+            if (head.readRemaining < skip + atLeast) return null
+
+            val buffer = head.memory.buffer.slice()
+            buffer.position(head.readPosition + skip)
+            buffer.limit(head.writePosition)
+            return buffer
+        }
     }
 
     override suspend fun read(min: Int, consumer: (ByteBuffer) -> Unit) {

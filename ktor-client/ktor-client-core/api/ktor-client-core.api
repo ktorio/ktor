@@ -168,6 +168,17 @@ public final class io/ktor/client/content/LocalFileContentKt {
 	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/client/content/LocalFileContent;
 }
 
+public final class io/ktor/client/content/ObservableContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+}
+
 public final class io/ktor/client/engine/ClientEngineClosedException : java/lang/IllegalStateException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
@@ -263,6 +274,18 @@ public final class io/ktor/client/engine/UtilsKt {
 	public static final fun callContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getKTOR_DEFAULT_USER_AGENT ()Ljava/lang/String;
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/client/features/BodyProgress {
+	public static final field Feature Lio/ktor/client/features/BodyProgress$Feature;
+}
+
+public final class io/ktor/client/features/BodyProgress$Feature : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/BodyProgress;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/BodyProgress;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
@@ -884,6 +907,13 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getReceive ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/client/request/ObservableBody {
+	public fun <init> (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function2;)V
+	public final fun getBody ()Ljava/lang/Object;
+	public final fun getBodyType ()Lio/ktor/util/reflect/TypeInfo;
+	public final fun getListener ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class io/ktor/client/request/UtilsKt {

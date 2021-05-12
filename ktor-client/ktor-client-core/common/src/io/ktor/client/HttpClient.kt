@@ -152,6 +152,7 @@ public class HttpClient(
 
         with(userConfig) {
             config.install(HttpRequestLifecycle)
+            config.install(BodyProgress)
 
             if (useDefaultTransformers) {
                 config.install(HttpPlainText)

@@ -57,7 +57,7 @@ public suspend fun decodeUTF8LineLoopSuspend(
                         }
 
                         if (decoded == limit) {
-                            throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
+                            throw TooLongLineException("Too many characters in line: limit $limit exceeded")
                         }
                         decoded++
                         out.append(ch)

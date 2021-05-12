@@ -79,8 +79,7 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, 
             }
 
             val chunkSize =
-                if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0
-                else chunkSizeBuffer.parseHexLong()
+                if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0 else chunkSizeBuffer.parseHexLong()
 
             if (chunkSize > 0) {
                 input.copyTo(out, chunkSize)

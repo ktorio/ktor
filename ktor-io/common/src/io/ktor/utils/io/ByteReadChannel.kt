@@ -25,6 +25,11 @@ public expect interface ByteReadChannel {
     public val isClosedForWrite: Boolean
 
     /**
+     * An closure cause exception or `null` if closed successfully or not yet closed
+     */
+    public val closedCause: Throwable?
+
+    /**
      * Byte order that is used for multi-byte read operations
      * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
      */
