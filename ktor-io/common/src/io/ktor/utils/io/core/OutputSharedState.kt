@@ -7,7 +7,7 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 
-internal expect class AbstractOutputSharedState() {
+internal expect class OutputSharedState() {
     var head: ChunkBuffer?
     var tail: ChunkBuffer?
 
