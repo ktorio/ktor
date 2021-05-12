@@ -8,7 +8,7 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.atomicfu.*
 
-internal actual class AbstractOutputSharedState {
+internal actual class OutputSharedState {
     private val _head: AtomicRef<ChunkBuffer?> = atomic(null)
     private val _tail: AtomicRef<ChunkBuffer?> = atomic(null)
     private val _tailMemory: AtomicRef<Memory> = atomic(Memory.Empty)
