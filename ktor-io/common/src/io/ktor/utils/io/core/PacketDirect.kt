@@ -3,7 +3,7 @@ package io.ktor.utils.io.core
 import kotlin.contracts.*
 
 @PublishedApi
-internal inline fun AbstractInput.read(n: Int = 1, block: (Buffer) -> Unit) {
+internal inline fun Input.read(n: Int = 1, block: (Buffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
