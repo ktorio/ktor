@@ -154,16 +154,6 @@ public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
 }
 
-@Suppress("unused", "DEPRECATION_ERROR")
-@Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
-public fun Input.readUTF8UntilDelimiterTo(
-    out: AbstractOutput,
-    delimiters: String,
-    limit: Int = Int.MAX_VALUE
-): Int {
-    return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
-}
-
 /**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified but up to [Int.MAX_VALUE] bytes).
  * Does fail if not enough bytes remaining.
