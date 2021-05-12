@@ -33,7 +33,7 @@ private fun CharsetEncoder.encodeToByteArraySlow(input: CharSequence, fromIndex:
     val result = encode(CharBuffer.wrap(input, fromIndex, toIndex))
 
     val existingArray = when {
-        result.hasArray() && result.arrayOffset() == 0 -> result.array()?.takeIf { it.size == result.remaining() }
+        result.hasArray() && result.arrayOffset() == 0 -> result.array().takeIf { it.size == result.remaining() }
         else -> null
     }
 
@@ -63,7 +63,7 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
 
     try {
         tmp.writeDirect(0) { tmpBb ->
-            val cb = tmpBb.asCharBuffer()!!
+            val cb = tmpBb.asCharBuffer()
 
             while (input.remaining > 0) {
                 cb.clear()
@@ -147,7 +147,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
     var charactersCopied = 0
     input.readDirect { bb ->
         val tmpBuffer = ChunkBuffer.Pool.borrow()
-        val cb = tmpBuffer.memory.buffer.asCharBuffer()!!
+        val cb = tmpBuffer.memory.buffer.asCharBuffer()
 
         try {
             while (bb.hasRemaining() && charactersCopied < max) {
@@ -228,7 +228,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
 
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
-    if (input is AbstractInput && input.headRemaining >= inputLength) {
+    if (input.headRemaining >= inputLength) {
         // if we have a packet or a buffered input with the first head containing enough bytes
         // then we can try fast-path
         if (input.headMemory.buffer.hasArray()) {
@@ -254,7 +254,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
     return decodeImplSlow(input, inputLength)
 }
 
-private fun CharsetDecoder.decodeImplByteBuffer(input: AbstractInput, inputLength: Int): String {
+private fun CharsetDecoder.decodeImplByteBuffer(input: Input, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
     val bb = input.headMemory.slice(input.head.readPosition, inputLength).buffer
 
@@ -339,5 +339,5 @@ actual constructor(message: String) : java.nio.charset.MalformedInputException(0
         get() = _message
 }
 
-private val EmptyCharBuffer = CharBuffer.allocate(0)!!
+private val EmptyCharBuffer = CharBuffer.allocate(0)
 private val EmptyByteBuffer = ByteBuffer.allocate(0)!!

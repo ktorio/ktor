@@ -21,7 +21,7 @@ public fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileD
 @ExperimentalIoApi
 public fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
 
-private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutput() {
+private class PosixFileDescriptorOutput(val fileDescriptor: Int) : Output() {
     private var closed = false
 
     init {
@@ -56,7 +56,7 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
     }
 }
 
-private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput() {
+private class PosixFileInstanceOutput(val file: CPointer<FILE>) : Output() {
     private var closed = false
 
     override fun flush(source: Memory, offset: Int, length: Int) {

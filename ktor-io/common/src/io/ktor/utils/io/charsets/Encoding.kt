@@ -167,8 +167,7 @@ internal fun CharsetEncoder.encodeToByteArrayImpl1(
 
 internal fun Input.sizeEstimate(): Long = when (this) {
     is ByteReadPacket -> remaining
-    is AbstractInput -> maxOf(remaining, 16)
-    else -> 16
+    else -> maxOf(remaining, 16)
 }
 
 private fun CharsetEncoder.encodeCompleteImpl(dst: Output): Int {
