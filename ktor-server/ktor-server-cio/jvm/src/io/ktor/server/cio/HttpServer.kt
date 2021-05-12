@@ -10,7 +10,6 @@ import io.ktor.server.cio.backend.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
 /**
  * Represents a server instance
@@ -36,33 +35,13 @@ public data class HttpServerSettings(
     val connectionIdleTimeoutSeconds: Long = 45
 )
 
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
-    val parent = parentJob ?: Dispatchers.Default
-    return CoroutineScope(parent).httpServer(settings, handler = handler)
-}
-
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun httpServer(
-    settings: HttpServerSettings,
-    parentJob: Job? = null,
-    callDispatcher: CoroutineContext?,
-    handler: HttpRequestHandler
-): HttpServer {
-    if (callDispatcher != null) {
-        throw UnsupportedOperationException()
-    }
-
-    val parent = parentJob ?: Dispatchers.Default
-    return CoroutineScope(parent).httpServer(settings, handler = handler)
-}
-
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
-@Deprecated("Use handler function with single request parameter from package io.ktor.server.cio.backend.")
+@Deprecated(
+    "Use handler function with single request parameter from package io.ktor.server.cio.backend.",
+    level = DeprecationLevel.ERROR
+)
 public fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: suspend CoroutineScope.(

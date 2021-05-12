@@ -78,7 +78,7 @@ class RoutingResolveTest {
     @Test
     fun testMatchingRoot() {
         val root = routing("context/path")
-        root.handle {  }
+        root.handle { }
 
         on("resolving /context/path") {
             val result = resolve(root, "/context/path")

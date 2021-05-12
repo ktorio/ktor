@@ -141,14 +141,3 @@ public fun Buffer.readFully(dst: Array<Byte>, offset: Int = 0, length: Int = dst
         length
     }
 }
-
-@Deprecated(
-    "This is no longer supported. All operations are big endian by default. Use readXXXLittleEndian " +
-        "to read primitives in little endian",
-    level = DeprecationLevel.ERROR
-)
-public var Buffer.byteOrder: ByteOrder
-    get() = ByteOrder.BIG_ENDIAN
-    set(newOrder) {
-        if (newOrder != ByteOrder.BIG_ENDIAN) throw UnsupportedOperationException("Only BIG_ENDIAN is supported")
-    }

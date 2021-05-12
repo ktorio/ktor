@@ -7,8 +7,10 @@ package io.ktor.sessions
 import java.time.*
 import java.time.temporal.*
 
-@Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
-@Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.")
+@Deprecated(
+    "Use maxAgeInSeconds or maxAgeDuration instead.",
+    level = DeprecationLevel.ERROR
+)
 public var CookieConfiguration.duration: TemporalAmount?
     get() = Duration.ofSeconds(maxAgeInSeconds)
     set(newMaxAge) {

@@ -92,12 +92,9 @@ public final class io/ktor/auth/AuthenticationProcedureChallenge {
 
 public class io/ktor/auth/AuthenticationProvider {
 	public fun <init> (Lio/ktor/auth/AuthenticationProvider$Configuration;)V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPipeline ()Lio/ktor/auth/AuthenticationPipeline;
 	public final fun getSkipWhen ()Ljava/util/List;
-	public final fun skipWhen (Lkotlin/jvm/functions/Function1;)V
 }
 
 public class io/ktor/auth/AuthenticationProvider$Configuration {
@@ -160,11 +157,9 @@ public final class io/ktor/auth/DigestAuthenticationProvider$Configuration : io/
 	public final fun getAlgorithmName ()Ljava/lang/String;
 	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
 	public final fun getRealm ()Ljava/lang/String;
-	public final fun getUserNameRealmPasswordDigestProvider ()Lkotlin/jvm/functions/Function3;
 	public final fun setAlgorithmName (Ljava/lang/String;)V
 	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
 	public final fun setRealm (Ljava/lang/String;)V
-	public final fun setUserNameRealmPasswordDigestProvider (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/auth/DigestCredential : io/ktor/auth/Credential {
@@ -228,10 +223,8 @@ public final class io/ktor/auth/FormAuthenticationProvider$Configuration : io/kt
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
-	public final fun getChallenge ()Lio/ktor/auth/FormAuthChallenge;
 	public final fun getPasswordParamName ()Ljava/lang/String;
 	public final fun getUserParamName ()Ljava/lang/String;
-	public final fun setChallenge (Lio/ktor/auth/FormAuthChallenge;)V
 	public final fun setPasswordParamName (Ljava/lang/String;)V
 	public final fun setUserParamName (Ljava/lang/String;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
@@ -256,8 +249,6 @@ public final class io/ktor/auth/OAuth1aException$UnknownException : io/ktor/auth
 public final class io/ktor/auth/OAuth1aKt {
 	public static final fun createObtainRequestTokenHeader (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static synthetic fun createObtainRequestTokenHeader$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
-	public static final fun createUpgradeRequestTokenHeader (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
-	public static synthetic fun createUpgradeRequestTokenHeader$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static final fun sign (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static final fun signatureBaseString (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
 }
@@ -431,7 +422,6 @@ public abstract class io/ktor/auth/OAuthServerSettings {
 }
 
 public final class io/ktor/auth/OAuthServerSettings$OAuth1aServerSettings : io/ktor/auth/OAuthServerSettings {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
@@ -443,8 +433,6 @@ public final class io/ktor/auth/OAuthServerSettings$OAuth1aServerSettings : io/k
 }
 
 public final class io/ktor/auth/OAuthServerSettings$OAuth2ServerSettings : io/ktor/auth/OAuthServerSettings {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;Z)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
@@ -510,8 +498,6 @@ public final class io/ktor/auth/SessionAuthenticationProvider$Configuration : io
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
-	public final fun getChallenge ()Lio/ktor/auth/SessionAuthChallenge;
-	public final fun setChallenge (Lio/ktor/auth/SessionAuthChallenge;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
@@ -523,8 +509,6 @@ public final class io/ktor/auth/UnauthorizedResponse : io/ktor/http/content/Outg
 }
 
 public final class io/ktor/auth/UserHashedTableAuth {
-	public synthetic fun <init> (Lio/ktor/config/ApplicationConfig;)V
-	public synthetic fun <init> (Ljava/util/Map;)V
 	public fun <init> (Lkotlin/jvm/functions/Function1;Ljava/util/Map;)V
 	public final fun authenticate (Lio/ktor/auth/UserPasswordCredential;)Lio/ktor/auth/UserIdPrincipal;
 	public final fun getDigester ()Lkotlin/jvm/functions/Function1;

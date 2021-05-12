@@ -9,7 +9,7 @@ import kotlinx.coroutines.sync.Semaphore
 @Deprecated(
     "Ktor Semaphore is deprecated and will be removed in ktor 2.0.0. " +
         "Consider using kotlinx.coroutines Semaphore instead.",
-    level = DeprecationLevel.WARNING,
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("Semaphore", "kotlinx.coroutines.sync.Semaphore")
 )
 public class Semaphore(public val limit: Int) {
@@ -18,7 +18,7 @@ public class Semaphore(public val limit: Int) {
     @Deprecated(
         "Ktor Semaphore is deprecated and will be removed in ktor 2.0.0. " +
             "Consider using kotlinx.coroutines Semaphore instead.",
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("acquire()", "kotlinx.coroutines.sync.Semaphore")
     )
     public suspend fun enter() {
@@ -32,7 +32,7 @@ public class Semaphore(public val limit: Int) {
     @Deprecated(
         "Ktor Semaphore is deprecated and will be removed in ktor 2.0.0. " +
             "Consider using kotlinx.coroutines Semaphore instead.",
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("release()", "kotlinx.coroutines.sync.Semaphore")
     )
     public fun leave() {

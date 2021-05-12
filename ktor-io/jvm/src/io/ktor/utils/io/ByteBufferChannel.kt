@@ -1746,17 +1746,6 @@ internal open class ByteBufferChannel(
         return copied
     }
 
-    /**
-     * Invokes [visitor] for every available batch until all bytes processed or visitor if visitor returns false.
-     * Never invokes [visitor] with empty buffer unless [last] = true. Invokes visitor with last = true at most once
-     * even if there are remaining bytes and visitor returned true.
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override suspend fun consumeEachBufferRange(visitor: (buffer: ByteBuffer, last: Boolean) -> Boolean) {
-        if (consumeEachBufferRangeFast(false, visitor)) return
-        return consumeEachBufferRangeSuspend(visitor)
-    }
-
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
         closedCause?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {

@@ -83,7 +83,7 @@ public class TestApplicationResponse(
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
-        if (@Suppress("DEPRECATION_ERROR") readResponse) {
+        if (readResponse) {
             launchResponseJob(result)
         }
 
@@ -117,15 +117,6 @@ public class TestApplicationResponse(
      */
     public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
-    /**
-     * Await for response job completion
-     */
-    @Suppress("DeprecatedCallableAddReplaceWith", "unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public suspend fun flush() {
-        awaitForResponseCompletion()
-    }
-
     internal suspend fun awaitForResponseCompletion() {
         responseJob?.join()
     }
@@ -156,10 +147,6 @@ public class TestApplicationResponse(
 
         Unit
     }
-
-    @Suppress("unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun awaitWebSocket(duration: java.time.Duration): Unit = awaitWebSocket(duration)
 
     /**
      * Websocket session's channel

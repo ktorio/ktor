@@ -35,6 +35,7 @@ public class DefaultWebSocketSessionImpl(
     private val outgoingToBeProcessed = Channel<Frame>(8)
     private val closed: AtomicBoolean = atomic(false)
     private val context = Job(raw.coroutineContext[Job])
+
     @ExperimentalWebSocketExtensionApi
     private val _extensions: MutableList<WebSocketExtension<*>> = mutableListOf()
     private val started = atomic(false)
@@ -44,7 +45,8 @@ public class DefaultWebSocketSessionImpl(
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
     @ExperimentalWebSocketExtensionApi
-    override val extensions: List<WebSocketExtension<*>> get() = _extensions
+    override val extensions: List<WebSocketExtension<*>>
+        get() = _extensions
 
     override val coroutineContext: CoroutineContext =
         raw.coroutineContext + context + CoroutineName("ws-default")
@@ -93,7 +95,8 @@ public class DefaultWebSocketSessionImpl(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        level = DeprecationLevel.ERROR
     )
     override fun terminate() {
         context.cancel()

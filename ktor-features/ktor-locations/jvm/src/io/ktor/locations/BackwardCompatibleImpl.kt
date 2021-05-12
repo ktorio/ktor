@@ -11,8 +11,6 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.lang.reflect.*
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
@@ -24,6 +22,7 @@ internal abstract class LocationsImpl(
 ) {
     protected val info: MutableMap<KClass<*>, LocationInfo> = HashMap()
 
+    @Suppress("DEPRECATION_ERROR")
     protected val conversionService: ConversionService
         get() = application.conversionService
 
