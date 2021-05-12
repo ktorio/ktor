@@ -6,11 +6,9 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import java.net.*
@@ -41,195 +39,184 @@ class UDPSocketTest : CoroutineScope {
             return@runBlocking
         }
 
-        retryIgnoringBindException {
-            lateinit var socket: BoundDatagramSocket
-            var denied = false
-            try {
-                socket = aSocket(selector)
-                    .udp()
-                    .bind()
+        lateinit var socket: BoundDatagramSocket
+        var denied = false
+        try {
+            socket = aSocket(selector)
+                .udp()
+                .bind()
 
-                socket.use {
-                    val datagram = Datagram(
-                        packet = buildPacket { writeText("0123456789") },
-                        address = NetworkAddress("255.255.255.255", 56700)
-                    )
+            socket.use {
+                val datagram = Datagram(
+                    packet = buildPacket { writeText("0123456789") },
+                    address = NetworkAddress("255.255.255.255", 56700)
+                )
 
-                    it.send(datagram)
-                }
-            } catch (cause: SocketException) {
-                if (!cause.message.equals("Permission denied", ignoreCase = true)) {
-                    throw cause
-                }
-
-                denied = true
+                it.send(datagram)
+            }
+        } catch (cause: SocketException) {
+            if (!cause.message.equals("Permission denied", ignoreCase = true)) {
+                throw cause
             }
 
-            assertTrue(denied)
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
+            denied = true
         }
+
+        assertTrue(denied)
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
     }
 
     @Test
     fun testBroadcastSuccessful() = runBlocking {
-        retryIgnoringBindException {
-            val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
-            val server = launch {
-                aSocket(selector)
-                    .udp()
-                    .bind(NetworkAddress("0.0.0.0", 0))
-                    .use { socket ->
-                        serverSocketCompletable.complete(socket)
-                        val received = socket.receive()
-                        assertEquals("0123456789", received.packet.readText())
-                    }
-            }
-
-            val serverSocket = serverSocketCompletable.await()
-
-            val clientSocket = aSocket(selector)
+        val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
+        val server = launch {
+            aSocket(selector)
                 .udp()
-                .bind {
-                    broadcast = true
+                .bind(NetworkAddress("0.0.0.0", 0))
+                .use { socket ->
+                    serverSocketCompletable.complete(socket)
+                    val received = socket.receive()
+                    assertEquals("0123456789", received.packet.readText())
                 }
-            clientSocket.use { socket ->
-                socket.send(
-                    Datagram(
-                        packet = buildPacket { writeText("0123456789") },
-                        address = NetworkAddress("255.255.255.255", serverSocket.localAddress.port)
-                    )
-                )
-            }
-
-            server.join()
-
-            serverSocket.socketContext.join()
-            assertTrue(serverSocket.isClosed)
-
-            clientSocket.socketContext.join()
-            assertTrue(clientSocket.isClosed)
         }
+
+        val serverSocket = serverSocketCompletable.await()
+
+        val clientSocket = aSocket(selector)
+            .udp()
+            .bind {
+                broadcast = true
+            }
+        clientSocket.use { socket ->
+            socket.send(
+                Datagram(
+                    packet = buildPacket { writeText("0123456789") },
+                    address = NetworkAddress("255.255.255.255", serverSocket.localAddress.port)
+                )
+            )
+        }
+
+        server.join()
+
+        serverSocket.socketContext.join()
+        assertTrue(serverSocket.isClosed)
+
+        clientSocket.socketContext.join()
+        assertTrue(clientSocket.isClosed)
     }
 
     @Test
     fun testClose(): Unit = runBlocking {
-        retryIgnoringBindException {
-            val socket = aSocket(selector)
-                .udp()
-                .bind()
+        val socket = aSocket(selector)
+            .udp()
+            .bind()
 
-            socket.close()
+        socket.close()
 
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
-        }
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
     }
 
     @Test
     fun testInvokeOnClose() = runBlocking {
-        retryIgnoringBindException {
-            val socket: BoundDatagramSocket = aSocket(selector)
-                .udp()
-                .bind()
+        val socket: BoundDatagramSocket = aSocket(selector)
+            .udp()
+            .bind()
 
-            var done = 0
-            socket.outgoing.invokeOnClose {
-                done += 1
-            }
-
-            assertFailsWith<IllegalStateException> {
-                socket.outgoing.invokeOnClose {
-                    done += 2
-                }
-            }
-
-            socket.close()
-            socket.close()
-
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
-            assertEquals(1, done)
+        var done = 0
+        socket.outgoing.invokeOnClose {
+            done += 1
         }
+
+        assertFailsWith<IllegalStateException> {
+            socket.outgoing.invokeOnClose {
+                done += 2
+            }
+        }
+
+        socket.close()
+        socket.close()
+
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
+        assertEquals(1, done)
     }
 
     @Test
     fun testOutgoingInvokeOnClose() = runBlocking {
-        retryIgnoringBindException {
-            val socket: BoundDatagramSocket = aSocket(selector)
-                .udp()
-                .bind()
+        val socket: BoundDatagramSocket = aSocket(selector)
+            .udp()
+            .bind()
 
-            var done = 0
-            socket.outgoing.invokeOnClose {
-                done += 1
-                assertTrue(it is AssertionError)
-            }
-
-            socket.outgoing.close(AssertionError())
-
-            assertEquals(1, done)
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
+        var done = 0
+        socket.outgoing.invokeOnClose {
+            done += 1
+            assertTrue(it is AssertionError)
         }
+
+        socket.outgoing.close(AssertionError())
+
+        assertEquals(1, done)
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
     }
 
     @Test
     fun testOutgoingInvokeOnCloseWithSocketClose() = runBlocking {
-        retryIgnoringBindException {
-            val socket: BoundDatagramSocket = aSocket(selector)
-                .udp()
-                .bind()
+        val socket: BoundDatagramSocket = aSocket(selector)
+            .udp()
+            .bind()
 
-            var done = 0
-            socket.outgoing.invokeOnClose {
-                done += 1
-            }
-
-            socket.close()
-
-            assertEquals(1, done)
-
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
+        var done = 0
+        socket.outgoing.invokeOnClose {
+            done += 1
         }
+
+        socket.close()
+
+        assertEquals(1, done)
+
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
     }
 
     @Test
     fun testOutgoingInvokeOnClosed() = runBlocking {
-        retryIgnoringBindException {
-            val socket: BoundDatagramSocket = aSocket(selector)
-                .udp()
-                .bind()
+        val socket: BoundDatagramSocket = aSocket(selector)
+            .udp()
+            .bind()
 
-            socket.outgoing.close(AssertionError())
+        socket.outgoing.close(AssertionError())
 
-            var done = 0
-            socket.outgoing.invokeOnClose {
-                done += 1
-                assertTrue(it is AssertionError)
-            }
-
-            assertEquals(1, done)
-
-            socket.socketContext.join()
-            assertTrue(socket.isClosed)
+        var done = 0
+        socket.outgoing.invokeOnClose {
+            done += 1
+            assertTrue(it is AssertionError)
         }
+
+        assertEquals(1, done)
+
+        socket.socketContext.join()
+        assertTrue(socket.isClosed)
     }
-}
 
-internal inline fun retryIgnoringBindException(block: () -> Unit) {
-    var done = false
-    while (!done) {
-        try {
-            block()
-        } catch (cause: SocketException) {
-            if (!cause.message.equals("Already bound", ignoreCase = true)) {
-                throw cause
+    @Test
+    fun testBind() {
+        val socketBuilder: UDPSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).udp()
+        val socket = socketBuilder.bind()
+        val port = socket.localAddress.port
+        socket.close()
+
+        repeat(1024) {
+            try {
+                socketBuilder
+                    .bind(InetSocketAddress("0.0.0.0", port))
+                    .close()
+            } catch (_: BindException) {
+                // Don't confuse with: Socket Exception: Already bound
             }
         }
-
-        done = true
     }
 }
 
