@@ -96,7 +96,7 @@ public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Un
 
 @Suppress("DEPRECATION")
 @Deprecated("Use read {} instead.")
-public inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -140,7 +140,7 @@ internal fun ByteReadPacket.nioBuffer(size: Int): ByteBuffer? {
 @PublishedApi
 @Suppress("unused", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
+internal fun Input.nioBuffer(size: Int): ByteBuffer? {
     return prepareRead(size)?.writeBuffer()
 }
 
@@ -148,12 +148,12 @@ internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
 @Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 internal fun ByteReadPacket.afterNioBufferUsed(read: Int) {
-    (this as AbstractInput).afterNioBufferUsed(read)
+    afterNioBufferUsed(read)
 }
 
 @PublishedApi
 @Suppress("DEPRECATION_ERROR")
-internal fun AbstractInput.afterNioBufferUsed(read: Int) {
+internal fun Input.afterNioBufferUsed(read: Int) {
     val headRemaining = headRemaining
     updateHeadRemaining(headRemaining - read)
 }
