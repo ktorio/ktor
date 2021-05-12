@@ -86,23 +86,22 @@ internal class ByteChannelNative(
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int {
         require(offset >= 0L)
         require(length >= 0L)
+        closedCause?.let { throw it }
+        if (closed && availableForRead == 0) return -1
 
-        return when {
-            closedCause != null -> throw closedCause!!
-            readable.canRead() -> {
-                val size = tryReadCPointer(dst, offset, length)
-                afterRead(size)
-                size
-            }
-            closed -> readAvailableClosed()
-            length == 0L -> 0
-            else -> readAvailableSuspend(dst, offset, length)
+        if (length == 0L) return 0
+
+        if (availableForRead == 0) {
+            awaitSuspend(1)
         }
-    }
 
-    private suspend fun readAvailableSuspend(dst: CPointer<ByteVar>, offset: Long, length: Long): Int {
-        awaitSuspend(1)
-        return readAvailable(dst, offset, length)
+        if (!readable.canRead()) {
+            prepareFlushedBytes()
+        }
+
+        val size = tryReadCPointer(dst, offset, length)
+        afterRead(size)
+        return size
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
