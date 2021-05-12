@@ -65,6 +65,19 @@ class ObservableBodyTest : ClientLoader() {
     }
 
     @Test
+    fun testByteArray() = clientTests {
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { count, total -> invokedCount++ }
+
+            val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
+                body = observableBodyOf(ByteArray(1025 * 16), listener)
+            }
+            assertTrue(invokedCount > 2)
+        }
+    }
+
+    @Test
     fun testFailedChannel() = clientTests {
         test { client ->
             val listener: ProgressListener = { _, _ -> }
