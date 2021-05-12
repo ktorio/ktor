@@ -1,5 +1,3 @@
-@file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
@@ -69,13 +67,11 @@ private inline fun Output.writePrimitiveTemplate(
     componentSize: Int,
     block: (Memory, index: Int) -> Unit
 ): Boolean {
-    if (this is AbstractOutput) {
-        val index = tailPosition
-        if (tailEndExclusive - index > componentSize) {
-            tailPosition = index + componentSize
-            block(tailMemory, index)
-            return true
-        }
+    val index = tailPosition
+    if (tailEndExclusive - index > componentSize) {
+        tailPosition = index + componentSize
+        block(tailMemory, index)
+        return true
     }
 
     return false
@@ -85,12 +81,8 @@ private inline fun Output.writePrimitiveFallbackTemplate(
     componentSize: Int,
     writeOperation: (Buffer) -> Unit
 ): Boolean {
-    if (this is AbstractOutput) {
-        val tail = prepareWriteHead(componentSize)
-        writeOperation(tail)
-        afterHeadWrite()
-        return true
-    }
-
-    return false
+    val tail = prepareWriteHead(componentSize)
+    writeOperation(tail)
+    afterHeadWrite()
+    return true
 }

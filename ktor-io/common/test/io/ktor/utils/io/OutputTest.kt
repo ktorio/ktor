@@ -5,12 +5,12 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
-class AbstractOutputTest {
+class OutputTest {
     @Test
     fun smokeTest() {
         val builder = BytePacketBuilder()
 
-        val output = object : AbstractOutput() {
+        val output = object : Output() {
             override fun closeDestination() {
             }
 
@@ -31,7 +31,7 @@ class AbstractOutputTest {
     fun testCopy() {
         val result = BytePacketBuilder()
 
-        val output = object : AbstractOutput() {
+        val output = object : Output() {
             override fun closeDestination() {
             }
 
