@@ -68,23 +68,23 @@ internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
     Protocol.QUIC -> HttpProtocolVersion.QUIC
 }
 
-private fun mapOkHttpException(requestData: HttpRequestData, origin: IOException) =
-    when (val cause = origin.unwrapOkHttpCancelledException()) {
-        is SocketTimeoutException ->
-            if (cause.isConnectException()) {
-                ConnectTimeoutException(requestData, cause)
-            } else {
-                SocketTimeoutException(requestData, cause)
-            }
-        else -> cause
-    }
+private fun mapOkHttpException(
+    requestData: HttpRequestData,
+    origin: IOException
+): Throwable = when (val cause = origin.unwrapSuppressed()) {
+    is SocketTimeoutException ->
+        if (cause.isConnectException()) {
+            ConnectTimeoutException(requestData, cause)
+        } else {
+            SocketTimeoutException(requestData, cause)
+        }
+    else -> cause
+}
 
 private fun IOException.isConnectException() =
     message?.contains("connect", ignoreCase = true) == true
 
-private fun IOException.unwrapOkHttpCancelledException() =
-    if (message?.contains("canceled due to ") == true && suppressed.isNotEmpty()) {
-        suppressed[0]
-    } else {
-        this
-    }
+private fun IOException.unwrapSuppressed(): Throwable {
+    if (suppressed.isNotEmpty()) return suppressed[0]
+    return this
+}

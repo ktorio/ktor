@@ -15,7 +15,8 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     internal var config: OkHttpClient.Builder.() -> Unit = {
         followRedirects(false)
         followSslRedirects(false)
-        retryOnConnectionFailure(false)
+
+        retryOnConnectionFailure(true)
     }
 
     /**
