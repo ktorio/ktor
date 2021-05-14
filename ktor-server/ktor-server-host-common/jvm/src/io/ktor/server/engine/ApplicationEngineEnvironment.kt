@@ -6,7 +6,7 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.config.*
-import io.ktor.util.PlatformUtils
+import io.ktor.util.*
 import org.slf4j.*
 import kotlin.coroutines.*
 
