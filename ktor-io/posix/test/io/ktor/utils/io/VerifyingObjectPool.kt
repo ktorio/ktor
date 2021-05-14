@@ -5,12 +5,10 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.pool.*
-
-@SymbolName("Kotlin_Any_hashCode")
-private external fun identityHashCodeImpl(any: Any?): Int
+import kotlin.native.*
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun identityHashCode(instance: Any): Int = identityHashCodeImpl(instance)
+internal actual inline fun identityHashCode(instance: Any): Int = instance.identityHashCode()
 
 actual class VerifyingObjectPool<T : Any> actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate) {
     override val allocated = HashSet<IdentityWrapper<T>>()
