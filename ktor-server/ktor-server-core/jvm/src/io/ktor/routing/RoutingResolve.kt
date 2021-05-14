@@ -120,13 +120,13 @@ public class RoutingResolveContext(
         val successResults = mutableListOf<List<RoutingResolveResult.Success>>()
 
         val rootResolveResult = RoutingResolveResult.Success(root, rootEvaluation.parameters, rootEvaluation.quality)
-        val rootResolveResults = listOf(rootResolveResult)
+        val rootTrait = listOf(rootResolveResult)
 
         trace?.begin(root, 0)
         resolveStep(
             root,
             successResults,
-            rootResolveResults,
+            rootTrait,
             rootEvaluation.segmentIncrement
         )
         trace?.finish(root, 0, rootResolveResult)
