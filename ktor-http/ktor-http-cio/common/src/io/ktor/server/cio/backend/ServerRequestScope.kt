@@ -4,10 +4,9 @@
 
 package io.ktor.server.cio.backend
 
-import io.ktor.util.*
+import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import java.net.*
 import kotlin.coroutines.*
 
 /**
@@ -18,12 +17,13 @@ import kotlin.coroutines.*
  * @property remoteAddress of the client (if known)
  * @property localAddress on which the client was accepted (if known)
  */
+//TODO this should be moved to ktor-server-cio + made internal
 public class ServerRequestScope internal constructor(
     override val coroutineContext: CoroutineContext,
     public val input: ByteReadChannel,
     public val output: ByteWriteChannel,
-    public val remoteAddress: SocketAddress?,
-    public val localAddress: SocketAddress?,
+    public val remoteAddress: NetworkAddress?,
+    public val localAddress: NetworkAddress?,
     public val upgraded: CompletableDeferred<Boolean>?
 ) : CoroutineScope {
     /**

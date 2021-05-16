@@ -5,6 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -26,9 +27,9 @@ import kotlin.coroutines.intrinsics.*
  */
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public class WeakTimeoutQueue(
-    public val timeoutMillis: Long,
-    private val clock: () -> Long = { System.currentTimeMillis() }
+public actual class WeakTimeoutQueue actual constructor(
+    public actual val timeoutMillis: Long,
+    private val clock: () -> Long
 ) {
     private val head = LockFreeLinkedListHead()
 
@@ -41,7 +42,7 @@ public class WeakTimeoutQueue(
     public fun register(job: Job): Registration {
         val now = clock()
         val head = head
-        if (cancelled) throw CancellationException()
+        if (cancelled) throw CancellationException(null)
 
         val cancellable = JobTask(now + timeoutMillis, job)
         head.addLast(cancellable)
@@ -49,7 +50,7 @@ public class WeakTimeoutQueue(
         process(now, head, cancelled)
         if (cancelled) {
             cancellable.cancel()
-            throw CancellationException()
+            throw CancellationException(null)
         }
 
         return cancellable
@@ -58,7 +59,7 @@ public class WeakTimeoutQueue(
     /**
      * Cancel all registered timeouts
      */
-    public fun cancel() {
+    public actual fun cancel() {
         cancelled = true
         process()
     }
@@ -66,14 +67,14 @@ public class WeakTimeoutQueue(
     /**
      * Process and cancel all jobs that are timed out
      */
-    public fun process() {
+    public actual fun process() {
         process(clock(), head, cancelled)
     }
 
     /**
      * Counts registered jobs, for testing purpose only
      */
-    internal fun count(): Int {
+    internal actual fun count(): Int {
         var count = 0
         head.forEach<Cancellable> { count++ }
         return count
@@ -84,7 +85,7 @@ public class WeakTimeoutQueue(
      * Unlike the regular kotlinx.coroutines withTimeout,
      * this also checks for cancellation first and fails immediately.
      */
-    public suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
+    public actual suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
             if (!rawContinuation.context.isActive) {
                 // fast-path for cancellation with no continuation wrapping

@@ -8,6 +8,7 @@ import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.native.concurrent.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
@@ -26,18 +27,21 @@ public typealias HttpRequestHandler = suspend ServerRequestScope.(
  * HTTP pipeline coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
+@SharedImmutable
 public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
 /**
  * HTTP pipeline writer coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
+@SharedImmutable
 public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
 
 /**
  * HTTP request handler coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
+@SharedImmutable
 public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
 /**

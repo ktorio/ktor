@@ -7,11 +7,12 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import java.util.*
+import kotlin.native.concurrent.*
 
 /**
  * Specifies a key for VersionList extension property for [OutgoingContent]
  */
+@SharedImmutable
 public val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**
@@ -74,7 +75,8 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
  *  @param lastModified of the current content, for example file's last modified date
  */
 public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
-    public constructor(lastModified: Date) : this(GMTDate(lastModified.time))
+// TODO
+//    public constructor(lastModified: Date) : this(GMTDate(lastModified.time))
 
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 

@@ -150,6 +150,8 @@ public fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
 }
 
 @ThreadLocal
-private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
+private val IntArrayPool: ObjectPool<IntArray> = if (PlatformUtils.IS_NATIVE) object : NoPoolImpl<IntArray>() {
+    override fun borrow(): IntArray = IntArray(EXPECTED_HEADERS_QTY * HEADER_SIZE)
+} else object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
     override fun produceInstance(): IntArray = IntArray(EXPECTED_HEADERS_QTY * HEADER_SIZE)
 }

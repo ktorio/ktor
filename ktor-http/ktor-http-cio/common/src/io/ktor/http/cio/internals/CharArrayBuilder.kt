@@ -5,6 +5,8 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.pool.*
 import kotlin.math.*
 
@@ -17,7 +19,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
     private var released: Boolean = false
     private var remaining: Int = 0
 
-    override var length: Int = 0
+    override var length: Int  = 0
         private set
 
     override fun get(index: Int): Char {
@@ -83,6 +85,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         return append(csq, 0, csq.length)
     }
 
+    //TODO release will fail now on K/N because of freezing
     public fun release() {
         val list = buffers
 
@@ -129,7 +132,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
 
     @Suppress("ConvertTwoComparisonsToRangeCheck")
     private inner class SubSequenceImpl(val start: Int, val end: Int) : CharSequence {
-        private var stringified: String? = null
+        private var stringified: String? by shared(null)
 
         override val length: Int
             get() = end - start

@@ -10,10 +10,19 @@ import io.ktor.http.cio.internals.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import java.io.*
+import kotlin.native.concurrent.*
+
+@ThreadLocal
+private val BadRequestPacket =
+    RequestResponseBuilder().apply {
+        responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
+        headerLine("Connection", "close")
+        emptyLine()
+    }.build()
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -26,20 +35,19 @@ import java.io.*
  * @return pipeline job
  */
 @Suppress("DEPRECATION")
-@InternalAPI
+@InternalAPI //TODO this should be moved to ktor-server-cio + made internal
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
-    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    val outputsActor = actor<ByteReadChannel>(
+    val outputsActor = Channel<ByteReadChannel>(3)
+    launch(
         context = HttpPipelineWriterCoroutine,
-        capacity = 3,
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            pipelineWriterLoop(channel, timeout, connection)
+            pipelineWriterLoop(outputsActor, timeout, connection)
         } catch (t: Throwable) {
             connection.output.close(t)
         } finally {
@@ -204,13 +212,6 @@ private suspend fun pipelineWriterLoop(
         }
     }
 }
-
-private val BadRequestPacket =
-    RequestResponseBuilder().apply {
-        responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
-        headerLine("Connection", "close")
-        emptyLine()
-    }.build()
 
 internal fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return when {
