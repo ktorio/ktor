@@ -2,8 +2,9 @@ package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
 
-public expect open class IOException(message: String, cause: Throwable?) : Exception {
-    public constructor(message: String)
+public expect open class IOException(message: String?, cause: Throwable?) : Exception {
+    public constructor(message: String?)
+    public constructor()
 }
 
 public expect open class EOFException(message: String) : IOException
@@ -31,3 +32,9 @@ internal fun incompatibleVersionError(): Nothing = throw Error(
     "This API is no longer supported. " +
         "Please downgrade kotlinx-io or recompile your project/dependencies with new kotlinx-io."
 )
+
+public expect open class TimeoutException(message: String?) : Exception {
+    public constructor()
+}
+
+public expect open class ClosedChannelException() : IOException
