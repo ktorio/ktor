@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.Test
@@ -17,7 +18,6 @@ class DefaultHeadersTest {
     private val app = Application(
         object : ApplicationEnvironment {
             override val parentCoroutineContext get() = EmptyCoroutineContext
-            override val classLoader get() = TODO()
             override val log get() = TODO()
             override val config get() = TODO()
             override val monitor get() = TODO()
@@ -28,25 +28,20 @@ class DefaultHeadersTest {
 
     private val call = TestApplicationCall(app, coroutineContext = EmptyCoroutineContext)
 
-    @Test
-    fun addsServerHeaderWithFallbackPackageNameAndVersion() {
+    @Test //TODO
+    fun addsServerHeaderWithFallbackPackageNameAndVersion() = testSuspend {
         DefaultHeaders.Feature.install(app) {}
-        executePipeline()
+        app.execute(call, Unit)
         assertEquals("Ktor/debug", call.response.headers["Server"])
     }
 
     @Test
-    fun serverHeaderIsNotModifiedIfPresent() {
+    fun serverHeaderIsNotModifiedIfPresent() = testSuspend {
         DefaultHeaders.Feature.install(app) {
             header(HttpHeaders.Server, "xserver/1.0")
         }
-        executePipeline()
+        app.execute(call, Unit)
         assertEquals("xserver/1.0", call.response.headers["Server"])
     }
 
-    private fun executePipeline() {
-        runBlocking {
-            app.execute(call, Unit)
-        }
-    }
 }

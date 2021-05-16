@@ -33,6 +33,7 @@ class ParametersTest {
 
     @Test
     fun testMultipleAsStringsVariance() {
+        if(!PlatformUtils.IS_JVM) return
         val multiple: MutableList<out String> by parameters
 
         assertEquals(listOf<Any?>("3", "4"), multiple.toList())

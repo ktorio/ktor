@@ -6,7 +6,6 @@ package io.ktor.tests.features
 
 import io.ktor.features.*
 import io.ktor.http.*
-import io.mockk.*
 import kotlin.test.*
 
 class CORSTest {
@@ -34,10 +33,21 @@ class CORSTest {
     }
 
     private fun getConnectionPoint(scheme: String, host: String, port: Int): RequestConnectionPoint {
-        val point = mockk<RequestConnectionPoint>()
-        every { point.scheme } returns scheme
-        every { point.host } returns host
-        every { point.port } returns port
-        return point
+        return object : RequestConnectionPoint {
+            override val scheme: String
+                get() = scheme
+            override val version: String
+                get() = TODO("Not yet implemented")
+            override val port: Int
+                get() = port
+            override val host: String
+                get() = host
+            override val uri: String
+                get() = TODO("Not yet implemented")
+            override val method: HttpMethod
+                get() = TODO("Not yet implemented")
+            override val remoteHost: String
+                get() = TODO("Not yet implemented")
+        }
     }
 }
