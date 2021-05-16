@@ -5,7 +5,11 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -22,16 +26,23 @@ public class TestApplicationCall(
     /**
      * Set to `true` when the request has been handled and a response has been produced
      */
-    @Volatile
-    var requestHandled: Boolean = false
+    private var _requestHandled: Boolean by atomic(false)
+    var requestHandled: Boolean by ::_requestHandled
         internal set
 
     override val request: TestApplicationRequest = TestApplicationRequest(this, closeRequest)
     override val response: TestApplicationResponse = TestApplicationResponse(this, readResponse)
 
-    override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
+    init {
+        //to overcome freeze on native
+        response.pipeline.intercept(ApplicationSendPipeline.Engine) {
+            requestHandled = response.status() != HttpStatusCode.NotFound
+        }
+    }
 
     init {
         putResponseAttribute()
     }
+
+    override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 }

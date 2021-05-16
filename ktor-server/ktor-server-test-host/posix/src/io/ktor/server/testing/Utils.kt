@@ -4,7 +4,6 @@
 
 package io.ktor.server.testing
 
-import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -13,4 +12,4 @@ internal actual fun <T> blockingCall(context: CoroutineContext, block: suspend C
 }
 
 internal actual val ioDispatcher: CoroutineDispatcher
-    get() = Dispatchers.IO
+    get() = Dispatchers.Unconfined

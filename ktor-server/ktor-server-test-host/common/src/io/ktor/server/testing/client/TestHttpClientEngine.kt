@@ -19,7 +19,7 @@ import kotlin.coroutines.*
 @Suppress("KDocMissingDocumentation")
 public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
-    override val dispatcher = Dispatchers.IO
+    override val dispatcher = ioDispatcher
 
     override val supportedCapabilities = emptySet<HttpClientEngineCapability<*>>()
 
@@ -57,7 +57,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private fun runRequest(
+    private suspend fun runRequest(
         method: HttpMethod,
         url: String,
         headers: Headers,
@@ -97,13 +97,11 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
+    private suspend fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
         is OutgoingContent.NoContent -> ByteReadChannel.Empty
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
         is OutgoingContent.ReadChannelContent -> readFrom()
-        is OutgoingContent.WriteChannelContent -> runBlocking {
-            writer(coroutineContext) { writeTo(channel) }.channel
-        }
+        is OutgoingContent.WriteChannelContent -> writer(coroutineContext) { writeTo(channel) }.channel
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 }

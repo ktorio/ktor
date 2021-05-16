@@ -4,12 +4,13 @@
 
 package io.ktor.server.testing
 
+import kotlinx.coroutines.*
 import java.time.*
 
 /**
  * Wait for websocket session completion
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-public fun TestApplicationResponse.awaitWebSocket(duration: Duration) {
+public fun TestApplicationResponse.awaitWebSocket(duration: Duration) = runBlocking {
     awaitWebSocket(duration.toMillis())
 }

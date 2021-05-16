@@ -6,7 +6,6 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
@@ -17,6 +16,8 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.Logger
+import io.ktor.util.LoggerFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
@@ -34,7 +35,8 @@ import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+actual constructor(
     public val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
@@ -48,18 +50,22 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
             .any { "-agentlib:jdwp" in it }
 
-    protected var port: Int = findFreePort()
-    protected var sslPort: Int = findFreePort()
-    protected var server: TEngine? = null
-    protected var callGroupSize: Int = -1
+    protected actual var port: Int = findFreePort()
+
+    @PublishedApi
+    internal val socketPort
+        get() = port
+    protected actual var sslPort: Int = findFreePort()
+    protected actual var server: TEngine? = null
+    protected actual var callGroupSize: Int = -1
         private set
-    protected val exceptions: ArrayList<Throwable> = ArrayList<Throwable>()
-    protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
-    protected var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
+    protected actual val exceptions: MutableList<Throwable> = ArrayList<Throwable>()
+    protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
+    protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    public val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    public actual val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -69,7 +75,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     @Retention
     protected annotation class NoHttp2
 
-    override val coroutineContext: CoroutineContext
+    override actual val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
 
     @get:Rule
@@ -125,9 +131,9 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
-    protected open fun createServer(
-        log: Logger? = null,
-        parent: CoroutineContext = EmptyCoroutineContext,
+    protected open actual fun createServer(
+        log: Logger?,
+        parent: CoroutineContext,
         module: Application.() -> Unit
     ): TEngine {
         val _port = this.port
@@ -164,18 +170,18 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
-    protected open fun configure(configuration: TConfiguration) {
+    protected open actual fun configure(configuration: TConfiguration) {
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected open fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected open actual fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(CallLogging)
         application.install(Routing, routingConfigurer)
     }
 
-    protected fun createAndStartServer(
-        log: Logger? = null,
-        parent: CoroutineContext = EmptyCoroutineContext,
+    protected actual fun createAndStartServer(
+        log: Logger?,
+        parent: CoroutineContext,
         routingConfigurer: Routing.() -> Unit
     ): TEngine {
         var lastFailures = emptyList<Throwable>()
@@ -206,7 +212,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         throw MultipleFailureException(lastFailures)
     }
 
-    protected fun startServer(server: TEngine): List<Throwable> {
+    protected actual fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -254,9 +260,9 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected fun findFreePort(): Int = FreePorts.select()
 
-    protected fun withUrl(
+    protected actual fun withUrl(
         path: String,
-        builder: suspend HttpRequestBuilder.() -> Unit = {},
+        builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
         withUrl("http://127.0.0.1:$port$path", port, builder, block)
@@ -267,16 +273,6 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
         if (enableHttp2 && enableSsl) {
             withHttp2("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
-        }
-    }
-
-    protected inline fun socket(block: Socket.() -> Unit) {
-        Socket().use { socket ->
-            socket.tcpNoDelay = true
-            socket.soTimeout = socketReadTimeout
-            socket.connect(InetSocketAddress("localhost", port))
-
-            block(socket)
         }
     }
 
@@ -328,6 +324,42 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
+    protected actual fun createServer(
+        module: Application.() -> Unit
+    ): TEngine = createServer(null, EmptyCoroutineContext, module)
+
+    protected actual fun createServer(
+        log: Logger?,
+        module: Application.() -> Unit
+    ): TEngine = createServer(log, EmptyCoroutineContext, module)
+
+    protected actual fun createServer(
+        parent: CoroutineContext,
+        module: Application.() -> Unit
+    ): TEngine = createServer(null, parent, module)
+
+
+    protected actual fun createAndStartServer(
+        routingConfigurer: Routing.() -> Unit
+    ): TEngine = createAndStartServer(null, EmptyCoroutineContext, routingConfigurer)
+
+    protected actual fun createAndStartServer(
+        parent: CoroutineContext,
+        routingConfigurer: Routing.() -> Unit
+    ): TEngine = createAndStartServer(null, parent, routingConfigurer)
+
+    protected actual fun createAndStartServer(
+        log: Logger?,
+        routingConfigurer: Routing.() -> Unit
+    ): TEngine = createAndStartServer(log, EmptyCoroutineContext, routingConfigurer)
+
+
+    protected actual fun withUrl(
+        path: String,
+        block: suspend HttpResponse.(Int) -> Unit
+    ) = withUrl(path, {}, block)
+
+
     public companion object {
         public val keyStoreFile: File = File("build/temp.jks")
         public lateinit var keyStore: KeyStore
@@ -355,5 +387,15 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
                 }
             } while (true)
         }
+    }
+}
+
+//TODO if to declare this function inside `actual` class it will be not accesible
+public inline fun EngineTestBase<*, *>.socket(block: Socket.() -> Unit) {
+    Socket().use { socket ->
+        socket.tcpNoDelay = true
+        socket.soTimeout = TimeUnit.SECONDS.toMillis(timeout).toInt()
+        socket.connect(InetSocketAddress("localhost", socketPort))
+        block(socket)
     }
 }

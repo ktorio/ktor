@@ -8,7 +8,7 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.server.engine.*
-import org.slf4j.*
+import io.ktor.util.*
 
 /**
  * Creates test application engine environment
@@ -25,10 +25,10 @@ public fun createTestEnvironment(
 /**
  * Make a test request
  */
-public fun TestApplicationEngine.handleRequest(
+public suspend fun TestApplicationEngine.handleRequest(
     method: HttpMethod,
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {}
+    setup: suspend TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall = handleRequest {
     this.uri = uri
     this.method = method
@@ -38,9 +38,9 @@ public fun TestApplicationEngine.handleRequest(
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-public fun <R> withApplication(
+public inline fun <R> withApplication(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
+    noinline configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
     val engine = TestApplicationEngine(environment, configure)
@@ -55,14 +55,14 @@ public fun <R> withApplication(
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
+public inline fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment(), test = test)
 }
 
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
+public inline fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
         test()
@@ -72,9 +72,9 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-public fun <R> withTestApplication(
+public inline fun <R> withTestApplication(
     moduleFunction: Application.() -> Unit,
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
+    noinline configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
     return withApplication(createTestEnvironment(), configure) {

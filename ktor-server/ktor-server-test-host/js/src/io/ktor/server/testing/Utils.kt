@@ -4,13 +4,12 @@
 
 package io.ktor.server.testing
 
-import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal actual fun <T> blockingCall(context: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
-    return runBlocking(context, block = block)
+    error("Not supported")
 }
 
 internal actual val ioDispatcher: CoroutineDispatcher
-    get() = Dispatchers.IO
+    get() = Dispatchers.Default
