@@ -1,13 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.application
 
+import io.ktor.*
 import io.ktor.config.*
 import io.ktor.util.*
-import io.ktor.util.Logger
-import org.slf4j.*
 import kotlin.coroutines.*
 
 /**
@@ -18,13 +17,6 @@ public actual interface ApplicationEnvironment {
      * Parent coroutine context for an application
      */
     public actual val parentCoroutineContext: CoroutineContext
-
-    /**
-     * [ClassLoader] used to load application.
-     *
-     * Useful for various reflection-based services, like dependency injection.
-     */
-    public val classLoader: ClassLoader get() = Application::class.java.classLoader
 
     /**
      * Instance of [Logger] to be used for logging.
@@ -50,4 +42,5 @@ public actual interface ApplicationEnvironment {
      * Indicates if development mode is enabled.
      */
     public actual val developmentMode: Boolean
+
 }

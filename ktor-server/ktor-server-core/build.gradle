@@ -1,18 +1,22 @@
 description = ''
 
 kotlin.sourceSets {
-    jvmMain.dependencies {
+    commonMain.dependencies {
         api project(':ktor-shared:ktor-shared-serialization')
         api project(':ktor-utils')
         api project(':ktor-http')
-
+    }
+    commonTest.dependencies {
+        api project(':ktor-http:ktor-http-cio')
+        api project(':ktor-network')
+        api project(':ktor-server:ktor-server-test-host')
+        api project(':ktor-test-dispatcher')
+    }
+    jvmMain.dependencies {
         api group: 'com.typesafe', name: 'config', version: typesafe_config_version
         api group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
     }
     jvmTest.dependencies {
-        api project(':ktor-http:ktor-http-cio')
-        api project(':ktor-network')
-        api project(':ktor-server:ktor-server-test-host')
         implementation("io.mockk:mockk:$mockk_version")
     }
 }

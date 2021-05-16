@@ -5,7 +5,6 @@
 package io.ktor.sessions
 
 import io.ktor.util.*
-import org.slf4j.*
 import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
@@ -39,7 +38,7 @@ public class SessionTransportTransformerEncrypt(
     public val signAlgorithm: String = signKeySpec.algorithm
 ) : SessionTransportTransformer {
     public companion object {
-        private val log = LoggerFactory.getLogger(SessionTransportTransformerEncrypt::class.qualifiedName)
+        private val log = LoggerFactory.getLogger(SessionTransportTransformerEncrypt::class.qualifiedName!!)
     }
 
     private val charset = Charsets.UTF_8

@@ -43,7 +43,7 @@ public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerialize
  * Creates the default [SessionSerializer] by [typeInfo]
  */
 @Suppress("DEPRECATION")
-public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
+public actual fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
 
 /**
