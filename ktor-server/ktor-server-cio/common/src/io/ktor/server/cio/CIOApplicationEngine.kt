@@ -10,14 +10,14 @@ import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.scheduling.*
 
 /**
  * Engine that based on CIO backend
  */
 public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
-    BaseApplicationEngine(environment) {
+    BaseApplicationEngine(environment, initEngine = false) {
 
     /**
      * CIO-based server configuration
@@ -32,83 +32,75 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
 
     private val configuration = Configuration().apply(configure)
 
-    private val corePoolSize: Int = maxOf(
-        configuration.connectionGroupSize + configuration.workerGroupSize,
-        environment.connectors.size + 1 // number of selectors + 1
-    )
+    private val dispatcher = CIODispatcher(configuration, environment.connectors.size)
 
-    @OptIn(InternalCoroutinesApi::class)
-    private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
+    private val engineDispatcher get() = dispatcher.engineDispatcher
 
-    @OptIn(InternalCoroutinesApi::class)
-    private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
+    private val userDispatcher get() = dispatcher.userDispatcher
 
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()
 
-    private val serverJob = CoroutineScope(
-        environment.parentCoroutineContext + engineDispatcher
-    ).launch(start = CoroutineStart.LAZY) {
-        val connectors = ArrayList<HttpServer>(environment.connectors.size)
-
-        try {
-            environment.connectors.forEach { connectorSpec ->
-                if (connectorSpec.type == ConnectorType.HTTPS) {
-                    throw UnsupportedOperationException(
-                        "CIO Engine does not currently support HTTPS. Please " +
-                            "consider using a different engine if you require HTTPS"
-                    )
-                }
-            }
-
-            withContext(userDispatcher) {
-                environment.start()
-            }
-
-            environment.connectors.forEach { connectorSpec ->
-                val connector = startConnector(connectorSpec.host, connectorSpec.port)
-                connectors.add(connector)
-            }
-
-            connectors.map { it.serverSocket }.awaitAll()
-        } catch (cause: Throwable) {
-            connectors.forEach { it.rootServerJob.cancel() }
-            stopRequest.completeExceptionally(cause)
-            startupJob.completeExceptionally(cause)
-            throw cause
-        }
-
-        startupJob.complete(Unit)
-        stopRequest.join()
-
-        // stopping
-        connectors.forEach { it.acceptJob.cancel() }
-
-        withContext(userDispatcher) {
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-        }
-    }
+    private var serverJob by atomic<Job?>(null)
 
     init {
-        serverJob.invokeOnCompletion { cause ->
-            cause?.let { stopRequest.completeExceptionally(cause) }
-            cause?.let { startupJob.completeExceptionally(cause) }
-            try {
-                environment.stop()
-            } finally {
-                userDispatcher.completeShutdown()
-            }
-        }
+        initEngine()
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        serverJob.start()
+        serverJob = CoroutineScope(environment.parentCoroutineContext + engineDispatcher).launch {
+            val connectors = ArrayList<HttpServer>(environment.connectors.size)
+            try {
+                environment.connectors.forEach { connectorSpec ->
+                    if (connectorSpec.type == ConnectorType.HTTPS) {
+                        throw UnsupportedOperationException(
+                            "CIO Engine does not currently support HTTPS. Please " +
+                                "consider using a different engine if you require HTTPS"
+                        )
+                    }
+                }
+                withContext(userDispatcher) {
+                    environment.start()
+                }
+                environment.connectors.forEach { connectorSpec ->
+                    val connector = startConnector(connectorSpec.host, connectorSpec.port)
+                    connectors.add(connector)
+                }
+
+                connectors.map { it.serverSocket }.awaitAll()
+            } catch (cause: Throwable) {
+                connectors.forEach { it.rootServerJob.cancel() }
+                stopRequest.completeExceptionally(cause)
+                startupJob.completeExceptionally(cause)
+                throw cause
+            }
+
+            startupJob.complete(Unit)
+            stopRequest.join()
+
+            // stopping
+            connectors.forEach { it.acceptJob.cancel() }
+
+            withContext(userDispatcher) {
+                environment.monitor.raise(ApplicationStopPreparing, environment)
+            }
+        }.apply {
+            invokeOnCompletion { cause ->
+                cause?.let { stopRequest.completeExceptionally(cause) }
+                cause?.let { startupJob.completeExceptionally(cause) }
+                try {
+                    environment.stop()
+                } finally {
+                    dispatcher.completeShutdown()
+                }
+            }
+        }
 
         runBlocking {
             startupJob.await()
 
             if (wait) {
-                serverJob.join()
+                serverJob!!.join()
             }
         }
 
@@ -119,9 +111,8 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
         try {
             shutdownServer(gracePeriodMillis, timeoutMillis)
         } finally {
-            @OptIn(InternalCoroutinesApi::class)
             GlobalScope.launch(engineDispatcher) {
-                engineDispatcher.close()
+                dispatcher.close()
             }
         }
     }
@@ -131,17 +122,17 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
 
         runBlocking {
             val result = withTimeoutOrNull(gracePeriodMillis) {
-                serverJob.join()
+                serverJob?.join()
                 true
             }
 
             if (result == null) {
                 // timeout
-                userDispatcher.prepareShutdown()
-                serverJob.cancel()
+                dispatcher.prepareShutdown()
+                serverJob?.cancel()
 
                 val forceShutdown = withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
-                    serverJob.join()
+                    serverJob?.join()
                     false
                 } ?: true
 

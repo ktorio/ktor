@@ -9,22 +9,22 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
+import io.ktor.util.network.*
 import io.ktor.utils.io.*
-import java.net.*
 
 internal class CIOApplicationRequest(
     call: ApplicationCall,
-    private val remoteAddress: InetSocketAddress?,
-    private val localAddress: InetSocketAddress?,
+    private val remoteAddress: NetworkAddress?,
+    private val localAddress: NetworkAddress?,
     private val input: ByteReadChannel,
     private val request: Request
 ) : BaseApplicationRequest(call) {
-    override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
+    override val cookies: RequestCookies by lazy { RequestCookies(this) }
 
     override fun receiveChannel() = input
     override val headers: Headers = CIOHeaders(request.headers)
 
-    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+    override val queryParameters: Parameters by lazy {
         val uri = request.uri
         val qIdx = uri.indexOf('?')
         if (qIdx == -1 || qIdx == uri.lastIndex) return@lazy Parameters.Empty
@@ -43,7 +43,7 @@ internal class CIOApplicationRequest(
             get() = request.uri.toString()
 
         override val host: String
-            get() = localAddress?.let { it.hostName ?: it.address.hostAddress }
+            get() = localAddress?.hostname
                 ?: request.headers["Host"]?.toString()?.substringBefore(":")
                 ?: "localhost"
 
@@ -57,9 +57,7 @@ internal class CIOApplicationRequest(
             get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
-            get() = remoteAddress?.let {
-                it.hostName ?: it.address.hostAddress
-            } ?: "unknown"
+            get() = remoteAddress?.hostname ?: "unknown"
     }
 
     internal fun release() {

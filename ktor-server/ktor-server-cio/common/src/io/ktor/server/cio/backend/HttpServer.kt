@@ -11,9 +11,9 @@ import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import java.nio.channels.*
 
 /**
  * Start an http server with [settings] invoking [handler] for every request
@@ -35,12 +35,12 @@ public fun CoroutineScope.httpServer(
         serverLatch.join()
     }
 
-    val selector = ActorSelectorManager(coroutineContext)
+    val selector = SelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(
         settings.connectionIdleTimeoutSeconds * 1000L
     )
 
-    val logger = LoggerFactory.getLogger(HttpServer::class.java)
+    val logger: Logger = LoggerFactory.getLogger("io.ktor.server.cio.HttpServer")
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(settings.host, settings.port).use { server ->
@@ -76,6 +76,7 @@ public fun CoroutineScope.httpServer(
                         client.close()
                     }
                 }
+                //TODO change error?
             } catch (closed: ClosedChannelException) {
                 coroutineContext.cancel()
             } finally {

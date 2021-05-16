@@ -33,10 +33,13 @@ def disableCompilation(targets) {
     }
 }
 
+//TODO
 def skipMingwProjects = [
     "ktor-network",
     "ktor-network-tls",
-    "ktor-client-cio"
+    "ktor-http-cio", // issue is here, as `ktor-client-curl` should work on Mingw but it depends on `ktor-http-cio` which now depends on `ktor-network`
+    "ktor-client-cio",
+    "ktor-server-cio"
 ]
 
 def host = getHostName()

@@ -1,12 +1,12 @@
 description = ''
 
 kotlin.sourceSets {
-    jvmMain.dependencies {
+    commonMain.dependencies {
         api project(':ktor-server:ktor-server-host-common')
         api project(':ktor-http:ktor-http-cio')
         api project(':ktor-network')
     }
-    jvmTest.dependencies {
+    commonTest.dependencies {
         api project(':ktor-server:ktor-server-test-host')
         api project(':ktor-server:ktor-server-test-suites')
         api project(':ktor-server:ktor-server-core')

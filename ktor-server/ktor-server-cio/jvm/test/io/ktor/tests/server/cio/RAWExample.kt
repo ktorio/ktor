@@ -4,10 +4,15 @@
 
 package io.ktor.tests.server.cio
 
+import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.cio.backend.*
+import io.ktor.server.engine.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -28,6 +33,31 @@ private val notFound404_11 = RequestResponseBuilder().apply {
  * This is just an example demonstrating how to create CIO low-level http server
  */
 fun main() {
+    embeddedServer(
+        CIO,
+        applicationEngineEnvironment {
+            watchPaths = emptyList()
+            developmentMode = true
+            connector {
+                port = 9001
+            }
+            module {
+                install(CallLogging)
+                routing {
+                    get("route1") {
+                        println("REQ1")
+                        call.respond("Route 1 hello")
+                    }
+                    get("route2") {
+                        println("REQ2")
+                        call.respond("Route 2 hello")
+                    }
+                }
+            }
+        }
+    ).start(wait = true)
+
+
     val settings = HttpServerSettings()
 
     GlobalScope.launch {

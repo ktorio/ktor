@@ -1,5 +1,6 @@
 def skipModules = [
-    "ktor-client-cio"
+    "ktor-client-cio",
+    "ktor-server-cio"
 ]
 
 if (skipModules.contains(project.name)) return
