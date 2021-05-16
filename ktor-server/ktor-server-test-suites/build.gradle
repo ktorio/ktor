@@ -1,12 +1,11 @@
 description = ''
 
 kotlin.sourceSets {
-    jvmMain {
-        dependencies {
-            implementation project(':ktor-server:ktor-server-test-host')
-
-            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
-        }
+    commonMain.dependencies {
+        implementation project(':ktor-server:ktor-server-test-host')
+    }
+    jvmMain.dependencies {
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
     }
     jvmTest {
         dependencies {
