@@ -10,11 +10,12 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
 class HttpsRedirectFeatureTest {
     @Test
-    fun testRedirect() {
+    fun testRedirect() = testSuspend {
         withTestApplication {
             application.install(HttpsRedirect)
             application.routing {
@@ -31,7 +32,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testRedirectHttps() {
+    fun testRedirectHttps() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.install(HttpsRedirect)
@@ -50,7 +51,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testDirectPathAndQuery() {
+    fun testDirectPathAndQuery() = testSuspend {
         withTestApplication {
             application.install(HttpsRedirect)
             application.intercept(ApplicationCallPipeline.Fallback) {
@@ -65,7 +66,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testDirectPathAndQueryWithCustomPort() {
+    fun testDirectPathAndQueryWithCustomPort() = testSuspend {
         withTestApplication {
             application.install(HttpsRedirect) {
                 sslPort = 8443
@@ -82,7 +83,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testRedirectHttpsPrefixExemption() {
+    fun testRedirectHttpsPrefixExemption() = testSuspend {
         withTestApplication {
             application.install(HttpsRedirect) {
                 excludePrefix("/exempted")
@@ -104,7 +105,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testRedirectHttpsSuffixExemption() {
+    fun testRedirectHttpsSuffixExemption() = testSuspend {
         withTestApplication {
             application.install(HttpsRedirect) {
                 excludeSuffix("exempted")

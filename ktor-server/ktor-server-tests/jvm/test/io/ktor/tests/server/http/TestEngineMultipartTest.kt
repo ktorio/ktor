@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
@@ -19,7 +20,7 @@ class TestEngineMultipartTest {
     private val contentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     @Test
-    fun testNonMultipart() {
+    fun testNonMultipart() = testSuspend {
         testMultiParts(
             {
                 assertNull(it, "it should be no multipart data")
@@ -29,7 +30,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultiPartsPlainItemBinary() {
+    fun testMultiPartsPlainItemBinary() = testSuspend {
         val bytes = ByteArray(256) { it.toByte() }
         testMultiPartsFileItemBase(
             filename = "file.bin",
@@ -39,7 +40,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultiPartsFileItemText() {
+    fun testMultiPartsFileItemText() = testSuspend {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         testMultiPartsFileItemBase(
             filename = "file.txt",
@@ -49,7 +50,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultiPartsFileItem() {
+    fun testMultiPartsFileItem() = testSuspend {
         val bytes = ByteArray(256) { it.toByte() }
 
         testMultiParts(
@@ -89,7 +90,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultiPartShouldFail() {
+    fun testMultiPartShouldFail() = testSuspend {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 try {
@@ -105,7 +106,10 @@ class TestEngineMultipartTest {
         }
     }
 
-    private fun testMultiParts(asserts: suspend (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
+    private suspend fun testMultiParts(
+        asserts: suspend (MultiPartData?) -> Unit,
+        setup: suspend TestApplicationRequest.() -> Unit
+    ) {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 if (call.request.isMultipart()) {
@@ -119,7 +123,7 @@ class TestEngineMultipartTest {
         }
     }
 
-    private fun testMultiPartsFileItemBase(
+    private suspend fun testMultiPartsFileItemBase(
         filename: String,
         provider: () -> Input,
         extraFileAssertions: (file: PartData.FileItem) -> Unit

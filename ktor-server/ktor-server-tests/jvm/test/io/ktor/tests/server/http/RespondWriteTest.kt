@@ -9,13 +9,14 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
 
 class RespondWriteTest {
     @Test
-    fun smoke() {
+    fun smoke() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/") {
@@ -30,7 +31,7 @@ class RespondWriteTest {
     }
 
     @Test
-    fun testFailureInside() {
+    fun testFailureInside() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/") {
@@ -47,7 +48,7 @@ class RespondWriteTest {
     }
 
     @Test
-    fun testSuspendInside() {
+    fun testSuspendInside() = testSuspend {
         withTestApplication {
             val executor = Executors.newSingleThreadExecutor()
             environment.monitor.subscribe(ApplicationStopped) { executor.shutdown() }
@@ -69,7 +70,7 @@ class RespondWriteTest {
 
     //    @Test
     @Suppress("UNUSED")
-    fun testFailureInsideUnresolvedCase() {
+    fun testFailureInsideUnresolvedCase() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/") {

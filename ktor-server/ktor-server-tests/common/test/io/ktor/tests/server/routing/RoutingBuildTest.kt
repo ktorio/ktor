@@ -10,7 +10,7 @@ import kotlin.test.*
 
 class RoutingBuildTest {
     @Test
-    fun `build routing`() {
+    fun buildRouting() {
         fun On.itShouldHaveSpecificStructure(entry: Route) {
             it("should have single child at root") {
                 assertEquals(1, entry.children.size)

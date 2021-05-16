@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
 class CachingHeadersTest {
@@ -63,21 +64,23 @@ class CachingHeadersTest {
     private fun test(
         configure: Application.() -> Unit,
         test: (ApplicationCall) -> Unit
-    ): Unit = withTestApplication {
-        configure(application)
+    ) = testSuspend {
+        withTestApplication {
+            configure(application)
 
-        application.routing {
-            get("/") {
-                call.respondText("test") {
-                    caching = CachingOptions(CacheControl.NoCache(null))
+            application.routing {
+                get("/") {
+                    call.respondText("test") {
+                        caching = CachingOptions(CacheControl.NoCache(null))
+                    }
                 }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue(call.requestHandled)
-            assertEquals("test", call.response.content?.trim())
-            test(call)
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals("test", call.response.content?.trim())
+                test(call)
+            }
         }
     }
 }

@@ -7,18 +7,18 @@ package io.ktor.tests.server.http
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class UrlEncodedTest {
-    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
-        return runBlocking {
-            call.receiveText().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
-        }
+    suspend fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
+        return call.receiveText().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
     }
 
     @Test
-    fun `should parse simple with no headers`() {
+    fun testParseSimpleWithNoHeaders() = testSuspend {
         withTestApplication {
             createCall {
                 setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
@@ -30,7 +30,7 @@ class UrlEncodedTest {
     }
 
     @Test
-    fun `should parse simple with no encoding`() {
+    fun testParseSimpleWithNoEncoding() = testSuspend {
         withTestApplication {
             createCall {
                 setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
@@ -43,7 +43,7 @@ class UrlEncodedTest {
     }
 
     @Test
-    fun `should parse simple with specified encoding utf8`() {
+    fun testParseSimpleWithSpecifiendEncodingUTF8() = testSuspend {
         withTestApplication {
             createCall {
                 setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
@@ -56,7 +56,7 @@ class UrlEncodedTest {
     }
 
     @Test
-    fun `should parse simple with specified encoding non utf`() {
+    fun testParseSimpleWithSpecifiendEncodingNonUTF() = testSuspend {
         withTestApplication {
             createCall {
                 setBody("field1=%D2%E5%F1%F2")
@@ -69,7 +69,7 @@ class UrlEncodedTest {
     }
 
     @Test
-    fun `should parse simple with specified encoding non utf in parameter`() {
+    fun testParseSimpleWithSpecifiendEncodingNonUTFInParameter() = testSuspend {
         withTestApplication {
             createCall {
                 setBody("field1=%D2%E5%F1%F2&_charset_=windows-1251")

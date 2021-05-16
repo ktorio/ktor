@@ -5,9 +5,7 @@
 package io.ktor.tests.server.testing
 
 import io.ktor.application.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -16,16 +14,19 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
-import kotlin.system.*
 import kotlin.test.*
+import kotlin.time.*
 
 class TestApplicationEngineTest {
+    @OptIn(ExperimentalTime::class)
     @Test
-    fun testCustomDispatcher() {
+    fun testCustomDispatcher() = testSuspend {
         @OptIn(
             ExperimentalCoroutinesApi::class,
             InternalCoroutinesApi::class
@@ -68,18 +69,18 @@ class TestApplicationEngineTest {
                 )
             }
         ) {
-            val elapsedTime = measureTimeMillis {
+            val elapsedTime = measureTime {
                 handleRequest(HttpMethod.Get, "/").let { call ->
                     assertTrue(call.requestHandled)
                 }
-            }
+            }.inMilliseconds
             assertEquals(listOf("Delay($delayTime)", "Delay($delayTime)"), delayLog)
             assertTrue { elapsedTime < (delayTime * 2) }
         }
     }
 
     @Test
-    fun testExceptionHandle() {
+    fun testExceptionHandle() = testSuspend {
         withTestApplication {
             application.install(CallLogging)
             application.routing {
@@ -96,7 +97,7 @@ class TestApplicationEngineTest {
     }
 
     @Test
-    fun testResponseAwait() {
+    fun testResponseAwait() = testSuspend {
         withTestApplication {
             application.install(Routing) {
                 get("/good") {
@@ -128,7 +129,7 @@ class TestApplicationEngineTest {
     }
 
     @Test
-    fun testHookRequests() {
+    fun testHookRequests() = testSuspend {
         val numberOfRequestsProcessed = AtomicInteger(0)
         val numberOfResponsesProcessed = AtomicInteger(0)
 
@@ -167,7 +168,7 @@ class TestApplicationEngineTest {
     }
 
     @Test
-    fun testCookiesSession() {
+    fun testCookiesSession() = testSuspend {
         data class CountSession(val count: Int)
 
         withTestApplication {
@@ -182,7 +183,7 @@ class TestApplicationEngineTest {
                 }
             }
 
-            fun doRequestAndCheckResponse(expected: String) {
+            suspend fun doRequestAndCheckResponse(expected: String) {
                 handleRequest(HttpMethod.Get, "/").apply { assertEquals(expected, response.content) }
             }
 
@@ -206,7 +207,7 @@ class TestApplicationEngineTest {
     }
 
     @Test
-    fun accessNotExistingRouteTest() {
+    fun accessNotExistingRouteTest() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/exist") {
@@ -215,18 +216,16 @@ class TestApplicationEngineTest {
             }
 
             val client = client.config { expectSuccess = false }
-            runBlocking {
-                val notExistingResponse = client.get("/notExist")
-                assertEquals(HttpStatusCode.NotFound, notExistingResponse.status)
+            val notExistingResponse = client.get("/notExist")
+            assertEquals(HttpStatusCode.NotFound, notExistingResponse.status)
 
-                val existingResponse = client.get("/exist")
-                assertEquals(HttpStatusCode.OK, existingResponse.status)
-            }
+            val existingResponse = client.get("/exist")
+            assertEquals(HttpStatusCode.OK, existingResponse.status)
         }
     }
 
     @Test
-    fun testMultipart() {
+    fun testMultipart() = testSuspend {
         withTestApplication {
             application.routing {
                 post("/multipart") {

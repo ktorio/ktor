@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.date.*
 import java.text.*
 import java.time.*
@@ -157,7 +158,7 @@ class CookiesTest {
     }
 
     @Test
-    fun testSecureCookieHttp() {
+    fun testSecureCookieHttp() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/*") {
@@ -173,7 +174,7 @@ class CookiesTest {
     }
 
     @Test
-    fun testSecureCookieHttps() {
+    fun testSecureCookieHttps() = testSuspend {
         withTestApplication {
             application.routing {
                 get("/*") {

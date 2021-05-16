@@ -6,13 +6,14 @@ package io.ktor.tests.server.application
 
 import io.ktor.application.*
 import io.ktor.server.testing.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class ApplicationEventTest {
-    @Test
-    fun `Checking the number of calls to ApplicationStopPreparing (use withTestApplication)`() {
-        var c = 0
+    var c by shared(0)
 
+    @Test
+    fun testApplicationStopPreparing() {
         withTestApplication {
             environment.monitor.subscribe(ApplicationStopPreparing) {
                 c += 1
@@ -29,9 +30,7 @@ class ApplicationEventTest {
     }
 
     @Test
-    fun `Checking the number of calls to ApplicationStopping (use withTestApplication)`() {
-        var c = 0
-
+    fun testApplicationStopping() {
         withTestApplication {
             environment.monitor.subscribe(ApplicationStopping) {
                 c += 1
@@ -47,10 +46,9 @@ class ApplicationEventTest {
         assertEquals(3, c)
     }
 
+    //TODO remove
     @Test
-    fun `Checking the number of calls to ApplicationStopPreparing (use withApplication)`() {
-        var c = 0
-
+    fun testApplicationStopPreparingWithApplication() {
         withApplication {
             environment.monitor.subscribe(ApplicationStopPreparing) {
                 c += 1

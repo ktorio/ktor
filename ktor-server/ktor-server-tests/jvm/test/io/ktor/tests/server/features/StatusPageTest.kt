@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -21,7 +22,7 @@ class StatusPageTest {
     private val textHtmlUtf8 = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
     @Test
-    fun testStatusMapping() {
+    fun testStatusMapping() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
@@ -38,7 +39,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatusMappingWithRoutes() {
+    fun testStatusMappingWithRoutes() = testSuspend {
         withTestApplication {
             application.routing {
                 route("/foo") {
@@ -69,7 +70,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatus404() {
+    fun testStatus404() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -106,7 +107,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatus404CustomObject() {
+    fun testStatus404CustomObject() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -132,7 +133,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatus404WithInterceptor() {
+    fun testStatus404WithInterceptor() = testSuspend {
         class O
 
         withTestApplication {
@@ -162,7 +163,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testFailPage() {
+    fun testFailPage() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 exception<Throwable> { cause ->
@@ -192,7 +193,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testFailPageDuringInterceptor() {
+    fun testFailPageDuringInterceptor() = testSuspend {
         class O
 
         withTestApplication {
@@ -224,7 +225,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testErrorDuringStatus() {
+    fun testErrorDuringStatus() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -243,7 +244,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testErrorShouldNotRecurse() {
+    fun testErrorShouldNotRecurse() = testSuspend {
         withTestApplication {
             application.install(StatusPages) {
                 exception<IllegalStateException> {
@@ -262,7 +263,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testErrorFromExceptionContent() {
+    fun testErrorFromExceptionContent() = testSuspend {
         class ValidationException(val code: String) : RuntimeException()
 
         withTestApplication {
@@ -288,143 +289,151 @@ class StatusPageTest {
 
     @Test
     @Suppress("RedundantAsync", "IMPLICIT_NOTHING_AS_TYPE_PARAMETER", "ReplaceSingleLineLet")
-    fun testErrorInAsync(): Unit = withTestApplication<Unit> {
-        class AsyncFailedException : Exception()
+    fun testErrorInAsync() = testSuspend {
+        withTestApplication {
+            class AsyncFailedException : Exception()
 
-        application.install(StatusPages) {
-            exception<AsyncFailedException> {
-                call.respondText("Async failed")
-            }
-            exception<CancellationException> {
-                call.respondText("Cancelled")
-            }
-        }
-
-        application.routing {
-            get("/fail") {
-                async { throw AsyncFailedException() }.await()
-            }
-            get("/cancel") {
-                val j = launch {
-                    delay(1000000L)
+            application.install(StatusPages) {
+                exception<AsyncFailedException> {
+                    call.respondText("Async failed")
                 }
-                j.cancel()
-                call.respondText("OK")
+                exception<CancellationException> {
+                    call.respondText("Cancelled")
+                }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/fail").let {
-            assertEquals("Async failed", it.response.content)
-        }
+            application.routing {
+                get("/fail") {
+                    async { throw AsyncFailedException() }.await()
+                }
+                get("/cancel") {
+                    val j = launch {
+                        delay(1000000L)
+                    }
+                    j.cancel()
+                    call.respondText("OK")
+                }
+            }
 
-        handleRequest(HttpMethod.Get, "/cancel").let {
-            assertEquals("OK", it.response.content)
+            handleRequest(HttpMethod.Get, "/fail").let {
+                assertEquals("Async failed", it.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/cancel").let {
+                assertEquals("OK", it.response.content)
+            }
         }
     }
 
     @Suppress("ReplaceSingleLineLet")
     @Test
-    fun testDefaultKtorExceptionWithoutFeature(): Unit = withTestApplication {
-        application.routing {
-            get("/bad-request") {
-                throw BadRequestException("Planned failure")
+    fun testDefaultKtorExceptionWithoutFeature() = testSuspend {
+        withTestApplication {
+            application.routing {
+                get("/bad-request") {
+                    throw BadRequestException("Planned failure")
+                }
+                get("/media-type-not-supported") {
+                    throw UnsupportedMediaTypeException(ContentType.Text.Plain)
+                }
+                get("/not-found") {
+                    throw NotFoundException()
+                }
             }
-            get("/media-type-not-supported") {
-                throw UnsupportedMediaTypeException(ContentType.Text.Plain)
-            }
-            get("/not-found") {
-                throw NotFoundException()
-            }
-        }
 
-        handleRequest(HttpMethod.Get, "/bad-request").let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
-            assertEquals(HttpStatusCode.UnsupportedMediaType, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/not-found").let { call ->
-            assertEquals(HttpStatusCode.NotFound, call.response.status())
+            handleRequest(HttpMethod.Get, "/bad-request").let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            }
+            handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
+                assertEquals(HttpStatusCode.UnsupportedMediaType, call.response.status())
+            }
+            handleRequest(HttpMethod.Get, "/not-found").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
+            }
         }
     }
 
     @Test
-    fun testDefaultKtorExceptionWithFeatureHandlingExceptions(): Unit = withTestApplication {
-        application.install(StatusPages) {
-            exception<BadRequestException> {
-                call.respondText("BadRequestException")
+    fun testDefaultKtorExceptionWithFeatureHandlingExceptions() = testSuspend {
+        withTestApplication {
+            application.install(StatusPages) {
+                exception<BadRequestException> {
+                    call.respondText("BadRequestException")
+                }
+                exception<UnsupportedMediaTypeException> {
+                    call.respondText("UnsupportedMediaTypeException")
+                }
+                exception<NotFoundException> {
+                    call.respondText("NotFoundException")
+                }
             }
-            exception<UnsupportedMediaTypeException> {
-                call.respondText("UnsupportedMediaTypeException")
-            }
-            exception<NotFoundException> {
-                call.respondText("NotFoundException")
-            }
-        }
 
-        application.routing {
-            get("/bad-request") {
-                throw BadRequestException("Planned failure")
+            application.routing {
+                get("/bad-request") {
+                    throw BadRequestException("Planned failure")
+                }
+                get("/media-type-not-supported") {
+                    throw UnsupportedMediaTypeException(ContentType.Text.Plain)
+                }
+                get("/not-found") {
+                    throw NotFoundException()
+                }
             }
-            get("/media-type-not-supported") {
-                throw UnsupportedMediaTypeException(ContentType.Text.Plain)
-            }
-            get("/not-found") {
-                throw NotFoundException()
-            }
-        }
 
-        handleRequest(HttpMethod.Get, "/bad-request").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("BadRequestException", call.response.content)
-        }
-        handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("UnsupportedMediaTypeException", call.response.content)
-        }
-        handleRequest(HttpMethod.Get, "/not-found").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("NotFoundException", call.response.content)
+            handleRequest(HttpMethod.Get, "/bad-request").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("BadRequestException", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("UnsupportedMediaTypeException", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/not-found").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("NotFoundException", call.response.content)
+            }
         }
     }
 
     @Test
-    fun testDefaultKtorExceptionWithFeatureCustomStatusPages(): Unit = withTestApplication {
-        application.install(StatusPages) {
-            status(HttpStatusCode.BadRequest) {
-                call.respondText("BadRequest")
+    fun testDefaultKtorExceptionWithFeatureCustomStatusPages() = testSuspend {
+        withTestApplication {
+            application.install(StatusPages) {
+                status(HttpStatusCode.BadRequest) {
+                    call.respondText("BadRequest")
+                }
+                status(HttpStatusCode.UnsupportedMediaType) {
+                    call.respondText("UnsupportedMediaType")
+                }
+                status(HttpStatusCode.NotFound) {
+                    call.respondText("NotFound")
+                }
             }
-            status(HttpStatusCode.UnsupportedMediaType) {
-                call.respondText("UnsupportedMediaType")
-            }
-            status(HttpStatusCode.NotFound) {
-                call.respondText("NotFound")
-            }
-        }
 
-        application.routing {
-            get("/bad-request") {
-                throw BadRequestException("Planned failure")
+            application.routing {
+                get("/bad-request") {
+                    throw BadRequestException("Planned failure")
+                }
+                get("/media-type-not-supported") {
+                    throw UnsupportedMediaTypeException(ContentType.Text.Plain)
+                }
+                get("/not-found") {
+                    throw NotFoundException()
+                }
             }
-            get("/media-type-not-supported") {
-                throw UnsupportedMediaTypeException(ContentType.Text.Plain)
-            }
-            get("/not-found") {
-                throw NotFoundException()
-            }
-        }
 
-        handleRequest(HttpMethod.Get, "/bad-request").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("BadRequest", call.response.content)
-        }
-        handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("UnsupportedMediaType", call.response.content)
-        }
-        handleRequest(HttpMethod.Get, "/not-found").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals("NotFound", call.response.content)
+            handleRequest(HttpMethod.Get, "/bad-request").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("BadRequest", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("UnsupportedMediaType", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/not-found").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("NotFound", call.response.content)
+            }
         }
     }
 }

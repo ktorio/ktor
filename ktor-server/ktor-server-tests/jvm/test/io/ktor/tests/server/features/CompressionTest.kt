@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.time.*
@@ -23,7 +24,7 @@ class CompressionTest {
     private val textToCompressAsBytes = textToCompress.encodeToByteArray()
 
     @Test
-    fun testCompressionNotSpecified() {
+    fun testCompressionNotSpecified() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -37,7 +38,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testCompressionUnknownAcceptedEncodings() {
+    fun testCompressionUnknownAcceptedEncodings() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -51,7 +52,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testCompressionDefaultDeflate() {
+    fun testCompressionDefaultDeflate() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -65,7 +66,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testCompressionDefaultGzip() {
+    fun testCompressionDefaultGzip() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -79,7 +80,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testAcceptStarContentEncodingGzip() {
+    fun testAcceptStarContentEncodingGzip() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip()
@@ -96,7 +97,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testShouldNotCompressVideoByDefault() {
+    fun testShouldNotCompressVideoByDefault() = testSuspend {
         withTestApplication {
             application.install(Compression)
 
@@ -111,7 +112,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testGzipShouldNotCompressVideoByDefault() {
+    fun testGzipShouldNotCompressVideoByDefault() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip()
@@ -128,7 +129,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testAcceptStarContentEncodingDeflate() {
+    fun testAcceptStarContentEncodingDeflate() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 deflate()
@@ -145,7 +146,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testUnknownEncodingListedEncoding() {
+    fun testUnknownEncodingListedEncoding() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -159,7 +160,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testCustomEncoding() {
+    fun testCustomEncoding() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 default()
@@ -195,7 +196,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testStatusCode() {
+    fun testStatusCode() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -214,7 +215,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testMinSize() {
+    fun testMinSize() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 minimumSize(10)
@@ -239,7 +240,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testMinSizeGzip() {
+    fun testMinSizeGzip() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip()
@@ -265,7 +266,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testMimeTypes() {
+    fun testMimeTypes() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 default()
@@ -286,7 +287,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testEncoderLevelCondition() {
+    fun testEncoderLevelCondition() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip {
@@ -310,7 +311,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testEncoderPriority1() {
+    fun testEncoderPriority1() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip {
@@ -334,7 +335,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testEncoderPriority2() {
+    fun testEncoderPriority2() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip {
@@ -358,7 +359,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testEncoderQuality() {
+    fun testEncoderQuality() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 gzip()
@@ -379,7 +380,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testCustomCondition() {
+    fun testCustomCondition() = testSuspend {
         withTestApplication {
             application.install(Compression) {
                 default()
@@ -400,7 +401,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testWithConditionalHeaders() {
+    fun testWithConditionalHeaders() = testSuspend {
         val dateTime = ZonedDateTime.now(ZoneId.of("GMT"))
 
         withTestApplication {
@@ -467,7 +468,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testLargeContent() {
+    fun testLargeContent() = testSuspend {
         val content = buildString {
             for (i in 1..16384) {
                 append("test$i\n".padStart(10, ' '))
@@ -488,7 +489,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testRespondWrite() {
+    fun testRespondWrite() = testSuspend {
         withTestApplication {
             application.install(Compression)
             application.routing {
@@ -505,135 +506,145 @@ class CompressionTest {
     }
 
     @Test
-    fun testCompressionRespondBytes(): Unit = withTestApplication {
-        application.install(Compression)
+    fun testCompressionRespondBytes() = testSuspend {
+        withTestApplication {
+            application.install(Compression)
 
-        application.routing {
-            get("/") {
-                call.respond(
-                    object : OutgoingContent.WriteChannelContent() {
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeStringUtf8("Hello!")
-                        }
-                    }
-                )
-            }
-        }
-
-        handleAndAssert("/", "gzip", "gzip", "Hello!")
-    }
-
-    @Test
-    fun testIdentityRequested(): Unit = withTestApplication {
-        application.install(Compression)
-
-        application.routing {
-            get("/text") {
-                call.respondText(textToCompress)
-            }
-            get("/bytes") {
-                call.respondBytes(textToCompressAsBytes, ContentType.Application.OctetStream)
-            }
-        }
-
-        handleAndAssert("/text", "identity", "identity", textToCompress)
-        handleAndAssert("/bytes", "identity", "identity", textToCompress)
-    }
-
-    @Test
-    fun testCompressionRespondObjectWithIdentity(): Unit = withTestApplication {
-        application.install(Compression)
-
-        application.routing {
-            get("/") {
-                call.respond(
-                    object : OutgoingContent.ByteArrayContent() {
-                        override val headers: Headers
-                            get() = Headers.build {
-                                appendAll(super.headers)
-                                append(HttpHeaders.ContentEncoding, "identity")
-                            }
-
-                        override fun bytes(): ByteArray = "Hello!".toByteArray()
-
-                        override val contentLength: Long?
-                            get() = 6
-                    }
-                )
-            }
-        }
-
-        handleAndAssert("/", "gzip", "identity", "Hello!")
-    }
-
-    @Test
-    fun testCompressionUpgradeShouldNotBeCompressed(): Unit = withTestApplication {
-        application.install(Compression)
-
-        application.routing {
-            get("/") {
-                call.respond(
-                    object : OutgoingContent.ProtocolUpgrade() {
-                        override suspend fun upgrade(
-                            input: ByteReadChannel,
-                            output: ByteWriteChannel,
-                            engineContext: CoroutineContext,
-                            userContext: CoroutineContext
-                        ): Job {
-                            return launch {
-                                output.close()
+            application.routing {
+                get("/") {
+                    call.respond(
+                        object : OutgoingContent.WriteChannelContent() {
+                            override suspend fun writeTo(channel: ByteWriteChannel) {
+                                channel.writeStringUtf8("Hello!")
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(101, call.response.status()?.value)
-            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            handleAndAssert("/", "gzip", "gzip", "Hello!")
         }
     }
 
     @Test
-    fun testCompressionContentTypesShouldNotBeCompressed(): Unit = withTestApplication {
-        application.install(Compression)
+    fun testIdentityRequested() = testSuspend {
+        withTestApplication {
+            application.install(Compression)
 
-        application.routing {
-            get("/event-stream") {
-                call.respondText("events", ContentType.Text.EventStream)
+            application.routing {
+                get("/text") {
+                    call.respondText(textToCompress)
+                }
+                get("/bytes") {
+                    call.respondBytes(textToCompressAsBytes, ContentType.Application.OctetStream)
+                }
             }
-            get("/video") {
-                call.respondBytes("video".toByteArray(), ContentType.Video.MPEG)
-            }
-            get("/multipart") {
-                call.respondBytes(
-                    ">>>\r\nContent-Disposition: form-data; name=\"title\"\r\n>>>--".toByteArray(),
-                    ContentType.MultiPart.FormData.withParameter("boundary", ">>>")
-                )
-            }
-        }
 
-        handleRequest(HttpMethod.Get, "/event-stream").let { call ->
-            assertEquals(200, call.response.status()?.value)
-            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
-            assertEquals("events", call.response.content)
-            assertEquals(ContentType.Text.EventStream, call.response.contentType().withoutParameters())
-        }
-        handleRequest(HttpMethod.Get, "/video").let { call ->
-            assertEquals(200, call.response.status()?.value)
-            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
-            assertEquals("video", call.response.content)
-            assertEquals(ContentType.Video.MPEG, call.response.contentType())
-        }
-        handleRequest(HttpMethod.Get, "/multipart").let { call ->
-            assertEquals(200, call.response.status()?.value)
-            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
-            assertEquals(ContentType.MultiPart.FormData, call.response.contentType().withoutParameters())
+            handleAndAssert("/text", "identity", "identity", textToCompress)
+            handleAndAssert("/bytes", "identity", "identity", textToCompress)
         }
     }
 
-    private fun TestApplicationEngine.handleAndAssert(
+    @Test
+    fun testCompressionRespondObjectWithIdentity() = testSuspend {
+        withTestApplication {
+            application.install(Compression)
+
+            application.routing {
+                get("/") {
+                    call.respond(
+                        object : OutgoingContent.ByteArrayContent() {
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    appendAll(super.headers)
+                                    append(HttpHeaders.ContentEncoding, "identity")
+                                }
+
+                            override fun bytes(): ByteArray = "Hello!".toByteArray()
+
+                            override val contentLength: Long?
+                                get() = 6
+                        }
+                    )
+                }
+            }
+
+            handleAndAssert("/", "gzip", "identity", "Hello!")
+        }
+    }
+
+    @Test
+    fun testCompressionUpgradeShouldNotBeCompressed() = testSuspend {
+        withTestApplication {
+            application.install(Compression)
+
+            application.routing {
+                get("/") {
+                    call.respond(
+                        object : OutgoingContent.ProtocolUpgrade() {
+                            override suspend fun upgrade(
+                                input: ByteReadChannel,
+                                output: ByteWriteChannel,
+                                engineContext: CoroutineContext,
+                                userContext: CoroutineContext
+                            ): Job {
+                                return launch {
+                                    output.close()
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(101, call.response.status()?.value)
+                assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            }
+        }
+    }
+
+    @Test
+    fun testCompressionContentTypesShouldNotBeCompressed() = testSuspend {
+        withTestApplication {
+            application.install(Compression)
+
+            application.routing {
+                get("/event-stream") {
+                    call.respondText("events", ContentType.Text.EventStream)
+                }
+                get("/video") {
+                    call.respondBytes("video".toByteArray(), ContentType.Video.MPEG)
+                }
+                get("/multipart") {
+                    call.respondBytes(
+                        ">>>\r\nContent-Disposition: form-data; name=\"title\"\r\n>>>--".toByteArray(),
+                        ContentType.MultiPart.FormData.withParameter("boundary", ">>>")
+                    )
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/event-stream").let { call ->
+                assertEquals(200, call.response.status()?.value)
+                assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+                assertEquals("events", call.response.content)
+                assertEquals(ContentType.Text.EventStream, call.response.contentType().withoutParameters())
+            }
+            handleRequest(HttpMethod.Get, "/video").let { call ->
+                assertEquals(200, call.response.status()?.value)
+                assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+                assertEquals("video", call.response.content)
+                assertEquals(ContentType.Video.MPEG, call.response.contentType())
+            }
+            handleRequest(HttpMethod.Get, "/multipart").let { call ->
+                assertEquals(200, call.response.status()?.value)
+                assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+                assertEquals(ContentType.MultiPart.FormData, call.response.contentType().withoutParameters())
+            }
+        }
+    }
+
+    private suspend fun TestApplicationEngine.handleAndAssert(
         url: String,
         acceptHeader: String?,
         expectedEncoding: String?,
@@ -676,5 +687,6 @@ class CompressionTest {
     private fun TestApplicationResponse.readIdentity() = byteContent!!.inputStream().reader().readText()
     private fun TestApplicationResponse.readDeflate() =
         InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
+
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }

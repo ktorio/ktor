@@ -7,11 +7,12 @@ package io.ktor.tests.server.http
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
 class DefaultPushTest {
     @Test
-    fun testDefaultPush() {
+    fun testDefaultPush()= testSuspend  {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 call.push {
@@ -26,7 +27,7 @@ class DefaultPushTest {
     }
 
     @Test
-    fun testMultiPush() {
+    fun testMultiPush() = testSuspend {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 call.push {

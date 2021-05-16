@@ -10,11 +10,12 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
 class OriginConnectionPointTest {
     @Test
-    fun testDirectRequest() {
+    fun testDirectRequest() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -44,7 +45,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedFor() {
+    fun testProxyXForwardedFor() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -68,7 +69,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedHostNoPort() {
+    fun testProxyXForwardedHostNoPort() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -92,7 +93,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedHostWithPort() {
+    fun testProxyXForwardedHostWithPort() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -116,7 +117,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedScheme() {
+    fun testProxyXForwardedScheme() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -140,7 +141,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedSchemeWithPort() {
+    fun testProxyXForwardedSchemeWithPort() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -165,7 +166,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedSchemeNoPort() {
+    fun testProxyXForwardedSchemeNoPort() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -190,7 +191,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyXForwardedHttpsFlagOn() {
+    fun testProxyXForwardedHttpsFlagOn() = testSuspend {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
             application.routing {
@@ -212,7 +213,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyForwardedPerRFCWithHost() {
+    fun testProxyForwardedPerRFCWithHost() = testSuspend {
         withTestApplication {
             application.install(ForwardedHeaderSupport)
             application.routing {
@@ -236,7 +237,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyForwardedPerRFCWithHostAndPort() {
+    fun testProxyForwardedPerRFCWithHostAndPort() = testSuspend {
         withTestApplication {
             application.install(ForwardedHeaderSupport)
             application.routing {
@@ -260,7 +261,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyForwardedPerRFCWithHostAndProto() {
+    fun testProxyForwardedPerRFCWithHostAndProto() = testSuspend {
         withTestApplication {
             application.install(ForwardedHeaderSupport)
             application.routing {
@@ -284,7 +285,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyForwardedPerRFCNoHost() {
+    fun testProxyForwardedPerRFCNoHost() = testSuspend {
         withTestApplication {
             application.install(ForwardedHeaderSupport)
             application.routing {
@@ -308,7 +309,7 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testProxyForwardedPerRFCWithHostMultiple() {
+    fun testProxyForwardedPerRFCWithHostMultiple() = testSuspend {
         withTestApplication {
             application.install(ForwardedHeaderSupport)
             application.routing {
@@ -332,47 +333,49 @@ class OriginConnectionPointTest {
     }
 
     @Test
-    fun testOriginWithNoFeatures(): Unit = withTestApplication {
-        application.routing {
-            get("/") {
-                with(call.request.origin) {
-                    assertEquals("host", host)
-                    assertEquals(80, port)
+    fun testOriginWithNoFeatures() = testSuspend {
+        withTestApplication {
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals("host", host)
+                        assertEquals(80, port)
+                    }
+
+                    call.respond("OK")
                 }
+                get("/90") {
+                    with(call.request.origin) {
+                        assertEquals("host", host)
+                        assertEquals(90, port)
+                    }
 
-                call.respond("OK")
-            }
-            get("/90") {
-                with(call.request.origin) {
-                    assertEquals("host", host)
-                    assertEquals(90, port)
+                    call.respond("OK")
                 }
+                get("/no-header") {
+                    with(call.request.origin) {
+                        assertEquals("localhost", host)
+                        assertEquals(80, port)
+                    }
 
-                call.respond("OK")
-            }
-            get("/no-header") {
-                with(call.request.origin) {
-                    assertEquals("localhost", host)
-                    assertEquals(80, port)
+                    call.respond("OK")
                 }
-
-                call.respond("OK")
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Host, "host")
-        }
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Host, "host")
+            }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Host, "host:80")
-        }
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Host, "host:80")
+            }
 
-        handleRequest(HttpMethod.Get, "/90") {
-            addHeader(HttpHeaders.Host, "host:90")
-        }
+            handleRequest(HttpMethod.Get, "/90") {
+                addHeader(HttpHeaders.Host, "host:90")
+            }
 
-        handleRequest(HttpMethod.Get, "/no-header") {
+            handleRequest(HttpMethod.Get, "/no-header") {
+            }
         }
     }
 }

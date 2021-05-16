@@ -11,6 +11,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
@@ -53,7 +54,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log application lifecycle events`() {
+    fun `can log application lifecycle events`() = testSuspend {
         var hash: String? = null
 
         withApplication(environment) {
@@ -79,7 +80,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log an unhandled get request`() {
+    fun `can log an unhandled get request`() = testSuspend {
         withApplication(environment) {
             handleRequest(HttpMethod.Get, "/")
         }
@@ -88,7 +89,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log a successful get request`() {
+    fun `can log a successful get request`() = testSuspend {
         withApplication(environment) {
             handleRequest(HttpMethod.Get, "/") {
                 call.response.status(HttpStatusCode.OK)
@@ -99,7 +100,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log a failed get request`() {
+    fun `can log a failed get request`() = testSuspend {
         withApplication(environment) {
             handleRequest(HttpMethod.Get, "/") {
                 call.response.status(HttpStatusCode.NotFound)
@@ -110,7 +111,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can customize message format`() {
+    fun `can customize message format`() = testSuspend {
         val environment = createTestEnvironment {
             module {
                 install(CallLogging) {
@@ -137,7 +138,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can filter calls to log`() {
+    fun `can filter calls to log`() = testSuspend {
         val environment = createTestEnvironment {
             module {
                 install(CallLogging) {
@@ -161,7 +162,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can change log level`() {
+    fun `can change log level`() = testSuspend {
         val environment = createTestEnvironment {
             module {
                 install(CallLogging) {
@@ -181,7 +182,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can fill MDC and survive context switch`() {
+    fun `can fill MDC and survive context switch`() = testSuspend {
         var counter = 0
 
         val environment = createTestEnvironment {
@@ -221,7 +222,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() {
+    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() = testSuspend {
         var counter = 0
 
         val environment = createTestEnvironment {
@@ -262,7 +263,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can configure custom logger`() {
+    fun `can configure custom logger`() = testSuspend {
         val customMessages = ArrayList<String>()
         val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
             override fun trace(message: String?) {

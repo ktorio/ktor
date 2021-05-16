@@ -13,6 +13,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.date.*
 import io.ktor.util.hex
 import io.ktor.utils.io.jvm.javaio.*
@@ -27,7 +28,7 @@ class SessionTest {
     private val cookieName = "_S" + Random.nextInt(100)
 
     @Test
-    fun testSessionCreateDelete() {
+    fun testSessionCreateDelete() = testSuspend {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName)
@@ -50,7 +51,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByValue() {
+    fun testSessionByValue() = testSuspend {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
@@ -113,7 +114,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByValueDigest() {
+    fun testSessionByValueDigest() = testSuspend {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
@@ -163,7 +164,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByValueMac() {
+    fun testSessionByValueMac() = testSuspend {
         val key = hex("03515606058610610561058")
         withTestApplication {
             application.install(Sessions) {
@@ -177,7 +178,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionEncrypted() {
+    fun testSessionEncrypted() = testSuspend {
         val encryptKey = hex("00112233445566778899aabbccddeeff")
         val signKey = hex("02030405060708090a0b0c")
         val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
@@ -225,7 +226,7 @@ class SessionTest {
         }
     }
 
-    private fun TestApplicationEngine.commonSignedChecks() {
+    private suspend fun TestApplicationEngine.commonSignedChecks() {
         application.routing {
             get("/1") {
                 call.sessions.set(TestUserSession("id2", emptyList()))
@@ -271,7 +272,7 @@ class SessionTest {
     }
 
     @Test
-    fun testRoutes() {
+    fun testRoutes() = testSuspend {
         withTestApplication {
             application.routing {
                 route("/") {
@@ -331,7 +332,7 @@ class SessionTest {
     }
 
     @Test
-    fun testRoutesIsolation() {
+    fun testRoutesIsolation() = testSuspend {
         withTestApplication {
             val sessionA = TestUserSession("id1", listOf("a"))
             val sessionB = TestUserSessionB("id2", listOf("b"))
@@ -398,7 +399,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionById() {
+    fun testSessionById() = testSuspend {
         val sessionStorage = SessionStorageMemory()
 
         withTestApplication {
@@ -437,9 +438,7 @@ class SessionTest {
                 sessionId = sessionCookie.value
                 assertTrue { sessionId.matches("[A-Za-z0-9]+".toRegex()) }
             }
-            val serializedSession = runBlocking {
-                sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
-            }
+            val serializedSession = sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
             assertNotNull(serializedSession)
             assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
 
@@ -456,7 +455,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByIdAccessors() {
+    fun testSessionByIdAccessors() = testSuspend {
         val sessionStorage = SessionStorageMemory()
 
         withTestApplication {
@@ -482,7 +481,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByIdServer() {
+    fun testSessionByIdServer() = testSuspend {
         val sessionStorage = SessionStorageMemory()
         withTestApplication {
             application.install(Sessions) {
@@ -514,16 +513,14 @@ class SessionTest {
                 assertEquals(serverSessionId, clientSessionId)
             }
 
-            val serializedSession = runBlocking {
-                sessionStorage.read(serverSessionId) { it.toInputStream().reader().readText() }
-            }
+            val serializedSession = sessionStorage.read(serverSessionId) { it.toInputStream().reader().readText() }
             assertNotNull(serializedSession)
             assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
         }
     }
 
     @Test
-    fun testSessionByIdCookie() {
+    fun testSessionByIdCookie() = testSuspend {
         val sessionStorage = SessionStorageMemory()
         var id = 777
         val durationSeconds = 5L
@@ -562,7 +559,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByIdDigest() {
+    fun testSessionByIdDigest() = testSuspend {
         val sessionStorage = SessionStorageMemory()
         var id = 666
         withTestApplication {
@@ -617,7 +614,7 @@ class SessionTest {
     }
 
     @Test
-    fun testMultipleSessions() {
+    fun testMultipleSessions() = testSuspend {
         val sessionStorage = SessionStorageMemory()
 
         withTestApplication {
@@ -694,7 +691,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByInvalidId() {
+    fun testSessionByInvalidId() = testSuspend {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, SessionStorageMemory())
@@ -739,46 +736,48 @@ class SessionTest {
     }
 
     @Test
-    fun testHttpSessionCookie(): Unit = withTestApplication {
-        // test session cookie in terms of HTTP
-        // that should be discarded on client exit
+    fun testHttpSessionCookie() = testSuspend {
+        withTestApplication {
+            // test session cookie in terms of HTTP
+            // that should be discarded on client exit
 
-        application.install(Sessions) {
-            cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
-                cookie.maxAge = null
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
+                    cookie.maxAge = null
+                }
             }
-        }
 
-        application.routing {
-            get("/set-cookie") {
-                call.sessions.set(TestUserSession("id2", listOf("item1")))
-                call.respondText("ok")
+            application.routing {
+                get("/set-cookie") {
+                    call.sessions.set(TestUserSession("id2", listOf("item1")))
+                    call.respondText("ok")
+                }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/set-cookie").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            val parsedCookies = call.response.cookies[cookieName]!!
-            assertNull(parsedCookies.expires)
-            assertEquals(0, parsedCookies.maxAge)
+            handleRequest(HttpMethod.Get, "/set-cookie").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                val parsedCookies = call.response.cookies[cookieName]!!
+                assertNull(parsedCookies.expires)
+                assertEquals(0, parsedCookies.maxAge)
+            }
         }
     }
 
     @Test
-    fun settingSessionAfterResponseTest(): Unit = withTestApplication {
-        application.install(Sessions) {
-            cookie<TestUserSession>(cookieName)
-        }
-
-        application.routing {
-            get("/after-response") {
-                call.respondText("OK")
-                call.sessions.set(TestUserSession("id", emptyList()))
+    fun settingSessionAfterResponseTest() = testSuspend {
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName)
             }
-        }
 
-        assertFailsWith<TooLateSessionSetException> {
-            runBlocking {
+            application.routing {
+                get("/after-response") {
+                    call.respondText("OK")
+                    call.sessions.set(TestUserSession("id", emptyList()))
+                }
+            }
+
+            assertFailsWith<TooLateSessionSetException> {
                 handleRequest(HttpMethod.Get, "/after-response").let { call ->
                     call.response.content
                 }
@@ -787,98 +786,108 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionLongDuration(): Unit = withTestApplication {
-        val transport = SessionTransportCookie(
-            "test",
-            CookieConfiguration().apply {
-                maxAge = (365 * 100).days
-            },
-            emptyList()
-        )
+    fun testSessionLongDuration() = testSuspend {
+        withTestApplication {
+            val transport = SessionTransportCookie(
+                "test",
+                CookieConfiguration().apply {
+                    maxAge = (365 * 100).days
+                },
+                emptyList()
+            )
 
-        val call = createCall {}
-        transport.send(call, "my-session")
+            val call = createCall {}
+            transport.send(call, "my-session")
 
-        val cookies = call.response.cookies["test"]
-        assertNotNull(cookies)
-        assertEquals(Int.MAX_VALUE, cookies.maxAge)
+            val cookies = call.response.cookies["test"]
+            assertNotNull(cookies)
+            assertEquals(Int.MAX_VALUE, cookies.maxAge)
+        }
     }
 
     @Test
-    fun testSessionOverflowDuration(): Unit = withTestApplication {
-        val transport = SessionTransportCookie(
-            "test",
-            CookieConfiguration().apply {
-                maxAge = Long.MAX_VALUE.seconds
-            },
-            emptyList()
-        )
+    fun testSessionOverflowDuration() = testSuspend {
+        withTestApplication {
+            val transport = SessionTransportCookie(
+                "test",
+                CookieConfiguration().apply {
+                    maxAge = Long.MAX_VALUE.seconds
+                },
+                emptyList()
+            )
 
-        val call = createCall {}
-        transport.send(call, "my-session")
+            val call = createCall {}
+            transport.send(call, "my-session")
 
-        val cookies = call.response.cookies["test"]
-        assertNotNull(cookies)
-        assertEquals(Int.MAX_VALUE, cookies.maxAge)
+            val cookies = call.response.cookies["test"]
+            assertNotNull(cookies)
+            assertEquals(Int.MAX_VALUE, cookies.maxAge)
+        }
     }
 
     @Test
-    fun testDuplicateProvidersDiagnostics(): Unit = withTestApplication {
-        application.install(Sessions) {
-            cookie<TestUserSession>("name1")
+    fun testDuplicateProvidersDiagnostics() = testSuspend {
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>("name1")
 
-            assertFails("Registering the same provider twice should be prohibited") {
+                assertFails("Registering the same provider twice should be prohibited") {
+                    cookie<TestUserSession>("name1")
+                }
+
+                assertFails("Registering provider with the same name should be prohibited") {
+                    cookie<TestUserSessionB>("name1")
+                }
+
+                assertFails("Registering provider with the same type should be prohibited") {
+                    cookie<TestUserSession>("name2")
+                }
+
+                on("Registering another provider should be allowed") {
+                    cookie<TestUserSessionB>("name2")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testMissingSessionsFeature() = testSuspend {
+        withTestApplication {
+            application.routing {
+                get("/") {
+                    val cause = assertFailsWith<MissingApplicationFeatureException> {
+                        call.sessions.get<EmptySession>()
+                    }
+                    call.respondText(cause.key.name)
+                }
+            }
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(Sessions.key.name, call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testMissingSession() = testSuspend {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Monitoring) {
+                assertFailsWith<SessionNotYetConfiguredException> {
+                    call.sessions.get<EmptySession>()
+                }
+                call.respondText("OK")
+                finish()
+            }
+            application.routing {
+                get("/") {
+                }
+            }
+            application.install(Sessions) {
                 cookie<TestUserSession>("name1")
             }
 
-            assertFails("Registering provider with the same name should be prohibited") {
-                cookie<TestUserSessionB>("name1")
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals("OK", call.response.content)
             }
-
-            assertFails("Registering provider with the same type should be prohibited") {
-                cookie<TestUserSession>("name2")
-            }
-
-            on("Registering another provider should be allowed") {
-                cookie<TestUserSessionB>("name2")
-            }
-        }
-    }
-
-    @Test
-    fun testMissingSessionsFeature(): Unit = withTestApplication {
-        application.routing {
-            get("/") {
-                val cause = assertFailsWith<MissingApplicationFeatureException> {
-                    call.sessions.get<EmptySession>()
-                }
-                call.respondText(cause.key.name)
-            }
-        }
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(Sessions.key.name, call.response.content)
-        }
-    }
-
-    @Test
-    fun testMissingSession(): Unit = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
-            assertFailsWith<SessionNotYetConfiguredException> {
-                call.sessions.get<EmptySession>()
-            }
-            call.respondText("OK")
-            finish()
-        }
-        application.routing {
-            get("/") {
-            }
-        }
-        application.install(Sessions) {
-            cookie<TestUserSession>("name1")
-        }
-
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals("OK", call.response.content)
         }
     }
 

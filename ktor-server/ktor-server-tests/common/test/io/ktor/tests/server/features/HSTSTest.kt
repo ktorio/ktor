@@ -10,11 +10,12 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
 class HSTSTest {
     @Test
-    fun testHttp() {
+    fun testHttp() = testSuspend {
         withTestApplication {
             application.testApp()
 
@@ -25,7 +26,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttps() {
+    fun testHttps() = testSuspend {
         withTestApplication {
             application.testApp()
 
@@ -51,7 +52,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testCustomPort() {
+    fun testCustomPort() = testSuspend {
         withTestApplication {
             application.testApp()
 
@@ -65,7 +66,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsCustomDirectiveNoValue() {
+    fun testHttpsCustomDirectiveNoValue() = testSuspend {
         withTestApplication {
             application.testApp {
                 customDirectives.clear()
@@ -84,7 +85,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsNoCustomDirectives() {
+    fun testHttpsNoCustomDirectives() = testSuspend {
         withTestApplication {
             application.testApp {
                 customDirectives.clear()
@@ -102,7 +103,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsMaxAgeOnly() {
+    fun testHttpsMaxAgeOnly() = testSuspend {
         withTestApplication {
             application.testApp {
                 customDirectives.clear()

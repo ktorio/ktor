@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -13,6 +13,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.shared.serialization.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -73,38 +74,40 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testEmpty(): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
-        }
-
-        application.routing {
-            get("/") {
-                call.respond("OK")
+    fun testEmpty() = testSuspend {
+        withTestApplication {
+            application.install(ContentNegotiation) {
             }
-            post("/") {
-                val text = call.receive<String>()
-                call.respond("OK: $text")
-            }
-        }
 
-        handleRequest(HttpMethod.Get, "/") { }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
-            assertEquals("OK", call.response.content)
-        }
-        handleRequest(HttpMethod.Post, "/") {
-            setBody("The Text")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
-            assertEquals("OK: The Text", call.response.content)
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+                post("/") {
+                    val text = call.receive<String>()
+                    call.respond("OK: $text")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") { }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+                assertEquals("OK", call.response.content)
+            }
+            handleRequest(HttpMethod.Post, "/") {
+                setBody("The Text")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+                assertEquals("OK: The Text", call.response.content)
+            }
         }
     }
 
     data class Wrapper(val value: String)
 
     @Test
-    fun testCustom() {
+    fun testCustom() = testSuspend {
         withTestApplication {
             application.install(ContentNegotiation) {
                 register(customContentType, customContentConverter)
@@ -241,7 +244,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testMultiple() {
+    fun testMultiple() = testSuspend {
         val textContentConverter: ContentConverter = textContentConverter
 
         withTestApplication {
@@ -305,307 +308,321 @@ class ContentNegotiationTest {
 
     @Suppress("ReplaceSingleLineLet", "MoveLambdaOutsideParentheses")
     @Test
-    fun testReceiveTransformedByDefault(): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
-            // Order here matters. The first registered content type matching the Accept header will be chosen.
-            register(ContentType.Any, alwaysFailingConverter)
-        }
-
-        application.routing {
-            post("/byte-channel") {
-                val count = call.receive<ByteReadChannel>().discard()
-                call.respondText("bytes: $count")
+    fun testReceiveTransformedByDefault() = testSuspend {
+        withTestApplication {
+            application.install(ContentNegotiation) {
+                // Order here matters. The first registered content type matching the Accept header will be chosen.
+                register(ContentType.Any, alwaysFailingConverter)
             }
-            post("/byte-array") {
-                val array = call.receive<ByteArray>()
-                call.respondText("array: ${array.size}")
+
+            application.routing {
+                post("/byte-channel") {
+                    val count = call.receive<ByteReadChannel>().discard()
+                    call.respondText("bytes: $count")
+                }
+                post("/byte-array") {
+                    val array = call.receive<ByteArray>()
+                    call.respondText("array: ${array.size}")
+                }
+                post("/string") {
+                    val text = call.receive<String>()
+                    call.respondText("text: $text")
+                }
+                post("/input-stream") {
+                    val size = call.receive<InputStream>().readBytes().size
+                    call.respondText("bytes from IS: $size")
+                }
+                post("/parameters") {
+                    val receivedParameters = call.receiveParameters()
+                    call.respondText(receivedParameters.toString())
+                }
+                post("/multipart") {
+                    val multipart = call.receiveMultipart()
+                    val parts = multipart.readAllParts()
+                    call.respondText("parts: ${parts.map { it.name }}")
+                }
             }
-            post("/string") {
-                val text = call.receive<String>()
-                call.respondText("text: $text")
+
+            handleRequest(HttpMethod.Post, "/byte-channel", { setBody("123") }).let { call ->
+                assertEquals("bytes: 3", call.response.content)
             }
-            post("/input-stream") {
-                val size = call.receive<InputStream>().readBytes().size
-                call.respondText("bytes from IS: $size")
+
+            handleRequest(HttpMethod.Post, "/byte-array", { setBody("123") }).let { call ->
+                assertEquals("array: 3", call.response.content)
             }
-            post("/parameters") {
-                val receivedParameters = call.receiveParameters()
-                call.respondText(receivedParameters.toString())
+
+            handleRequest(HttpMethod.Post, "/string", { setBody("123") }).let { call ->
+                assertEquals("text: 123", call.response.content)
             }
-            post("/multipart") {
-                val multipart = call.receiveMultipart()
-                val parts = multipart.readAllParts()
-                call.respondText("parts: ${parts.map { it.name }}")
+
+            handleRequest(HttpMethod.Post, "/input-stream", { setBody("123") }).let { call ->
+                assertEquals("bytes from IS: 3", call.response.content)
             }
-        }
 
-        handleRequest(HttpMethod.Post, "/byte-channel", { setBody("123") }).let { call ->
-            assertEquals("bytes: 3", call.response.content)
-        }
+            handleRequest(HttpMethod.Post, "/parameters") {
+                setBody("k=v")
+                addHeader(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.FormUrlEncoded.toString()
+                )
+            }.let { call ->
+                assertEquals("Parameters [k=[v]]", call.response.content)
+            }
 
-        handleRequest(HttpMethod.Post, "/byte-array", { setBody("123") }).let { call ->
-            assertEquals("array: 3", call.response.content)
-        }
-
-        handleRequest(HttpMethod.Post, "/string", { setBody("123") }).let { call ->
-            assertEquals("text: 123", call.response.content)
-        }
-
-        handleRequest(HttpMethod.Post, "/input-stream", { setBody("123") }).let { call ->
-            assertEquals("bytes from IS: 3", call.response.content)
-        }
-
-        handleRequest(HttpMethod.Post, "/parameters") {
-            setBody("k=v")
-            addHeader(
-                HttpHeaders.ContentType,
-                ContentType.Application.FormUrlEncoded.toString()
-            )
-        }.let { call ->
-            assertEquals("Parameters [k=[v]]", call.response.content)
-        }
-
-        handleRequest(HttpMethod.Post, "/multipart") {
-            setBody(
-                "my-boundary",
-                listOf(
-                    PartData.FormItem(
-                        "test",
-                        {},
-                        headersOf(
-                            HttpHeaders.ContentDisposition,
-                            ContentDisposition(
-                                "form-data",
-                                listOf(
-                                    HeaderValueParam("name", "field1")
-                                )
-                            ).toString()
+            handleRequest(HttpMethod.Post, "/multipart") {
+                setBody(
+                    "my-boundary",
+                    listOf(
+                        PartData.FormItem(
+                            "test",
+                            {},
+                            headersOf(
+                                HttpHeaders.ContentDisposition,
+                                ContentDisposition(
+                                    "form-data",
+                                    listOf(
+                                        HeaderValueParam("name", "field1")
+                                    )
+                                ).toString()
+                            )
                         )
                     )
                 )
-            )
-            addHeader(
-                HttpHeaders.ContentType,
-                ContentType.MultiPart.FormData.withParameter("boundary", "my-boundary").toString()
-            )
-        }.let { call ->
-            assertEquals("parts: [field1]", call.response.content)
+                addHeader(
+                    HttpHeaders.ContentType,
+                    ContentType.MultiPart.FormData.withParameter("boundary", "my-boundary").toString()
+                )
+            }.let { call ->
+                assertEquals("parts: [field1]", call.response.content)
+            }
         }
     }
 
     @Test
-    fun testCustomAcceptedContentTypesContributor(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                register(ContentType.Text.Plain, textContentConverter)
-                register(ContentType.Text.Html, textContentConverter)
+    fun testCustomAcceptedContentTypesContributor() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(ContentNegotiation) {
+                    register(ContentType.Text.Plain, textContentConverter)
+                    register(ContentType.Text.Html, textContentConverter)
 
-                accept { call, acceptedContentTypes ->
-                    call.request.queryParameters["format"]?.let { format ->
-                        when (format) {
-                            "text" -> listOf(ContentTypeWithQuality(ContentType.Text.Plain))
-                            "html" -> listOf(ContentTypeWithQuality(ContentType.Text.Html))
-                            else -> null
-                        }
-                    } ?: acceptedContentTypes
+                    accept { call, acceptedContentTypes ->
+                        call.request.queryParameters["format"]?.let { format ->
+                            when (format) {
+                                "text" -> listOf(ContentTypeWithQuality(ContentType.Text.Plain))
+                                "html" -> listOf(ContentTypeWithQuality(ContentType.Text.Html))
+                                else -> null
+                            }
+                        } ?: acceptedContentTypes
+                    }
+                }
+
+                routing {
+                    get("/") {
+                        call.respond(Wrapper("test content"))
+                    }
                 }
             }
 
-            routing {
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, "text/html")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, "text/plain, text/html")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, "text/plain; q=0.9, text/html")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+            }
+
+            handleRequest(HttpMethod.Get, "/?format=html") {
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+            }
+
+            handleRequest(HttpMethod.Get, "/?format=text") {
+                addHeader(HttpHeaders.Accept, "text/html")
+            }.let { call ->
+                assertEquals("test content", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            }
+        }
+    }
+
+    @Test
+    fun testDoubleReceive() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(DoubleReceive)
+                install(ContentNegotiation) {
+                    register(ContentType.Text.Plain, textContentConverter)
+                }
+            }
+
+            application.routing {
                 get("/") {
-                    call.respond(Wrapper("test content"))
+                    call.respondText(call.receive<Wrapper>().value + "-" + call.receive<Wrapper>().value)
                 }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/plain")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
-        }
-
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/html")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
-        }
-
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/plain, text/html")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
-        }
-
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/plain; q=0.9, text/html")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
-        }
-
-        handleRequest(HttpMethod.Get, "/?format=html") {
-            addHeader(HttpHeaders.Accept, "text/plain")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
-        }
-
-        handleRequest(HttpMethod.Get, "/?format=text") {
-            addHeader(HttpHeaders.Accept, "text/html")
-        }.let { call ->
-            assertEquals("test content", call.response.content)
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            handleRequest(HttpMethod.Get, "/?format=text") {
+                addHeader(HttpHeaders.Accept, "text/plain")
+                addHeader(HttpHeaders.ContentType, "text/plain")
+                setBody("[content]")
+            }.let { call ->
+                assertEquals("[content]-[content]", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            }
         }
     }
 
     @Test
-    fun testDoubleReceive(): Unit = withTestApplication {
-        with(application) {
-            install(DoubleReceive)
-            install(ContentNegotiation) {
-                register(ContentType.Text.Plain, textContentConverter)
-            }
-        }
+    fun testIllegalAcceptAndContentTypes() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(ContentNegotiation) {
+                    register(ContentType.Text.Plain, textContentConverter)
+                }
 
-        application.routing {
-            get("/") {
-                call.respondText(call.receive<Wrapper>().value + "-" + call.receive<Wrapper>().value)
+                routing {
+                    get("/receive") {
+                        assertFailsWith<BadRequestException> {
+                            call.receive<String>()
+                        }.let { throw it }
+                    }
+                    get("/send") {
+                        assertFailsWith<BadRequestException> {
+                            call.respond(Any())
+                        }.let { throw it }
+                    }
+                }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/?format=text") {
-            addHeader(HttpHeaders.Accept, "text/plain")
-            addHeader(HttpHeaders.ContentType, "text/plain")
-            setBody("[content]")
-        }.let { call ->
-            assertEquals("[content]-[content]", call.response.content)
-            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+            handleRequest(HttpMethod.Get, "/receive") {
+                addHeader("Content-Type", "...la..lla..la")
+                setBody("any")
+            }.let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "....aa..laa...laa")
+            }.let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            }
         }
     }
 
     @Test
-    fun testIllegalAcceptAndContentTypes(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                register(ContentType.Text.Plain, textContentConverter)
-            }
-
-            routing {
-                get("/receive") {
-                    assertFailsWith<BadRequestException> {
-                        call.receive<String>()
-                    }.let { throw it }
+    fun testIllegalAcceptAndCheckAcceptHeader() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(ContentNegotiation) {
+                    checkAcceptHeaderCompliance = true
+                    register(ContentType.Text.Plain, textContentConverter)
                 }
-                get("/send") {
-                    assertFailsWith<BadRequestException> {
-                        call.respond(Any())
-                    }.let { throw it }
+
+                routing {
+                    get("/send") {
+                        assertFailsWith<BadRequestException> {
+                            call.respond(Any())
+                        }.let { throw it }
+                    }
                 }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/receive") {
-            addHeader("Content-Type", "...la..lla..la")
-            setBody("any")
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "....aa..laa...laa")
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "....aa..laa...laa")
+            }.let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            }
         }
     }
 
     @Test
-    fun testIllegalAcceptAndCheckAcceptHeader(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                checkAcceptHeaderCompliance = true
-                register(ContentType.Text.Plain, textContentConverter)
-            }
+    fun testNotMatchingAcceptAndContentTypes() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(ContentNegotiation) {
+                    checkAcceptHeaderCompliance = true
+                }
 
-            routing {
-                get("/send") {
-                    assertFailsWith<BadRequestException> {
-                        call.respond(Any())
-                    }.let { throw it }
+                routing {
+                    get("/send") {
+                        call.respond("some text")
+                    }
                 }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "....aa..laa...laa")
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", ContentType.Application.Json.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+            }
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "text/plain1")
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+            }
         }
     }
 
     @Test
-    fun testNotMatchingAcceptAndContentTypes(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                checkAcceptHeaderCompliance = true
-            }
+    fun testMatchingAcceptAndContentTypes() = testSuspend {
+        withTestApplication {
+            with(application) {
+                install(ContentNegotiation) {
+                    checkAcceptHeaderCompliance = true
+                }
 
-            routing {
-                get("/send") {
-                    call.respond("some text")
+                routing {
+                    get("/send") {
+                        call.respond("some text")
+                    }
                 }
             }
-        }
 
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", ContentType.Application.Json.toString())
-        }.let { call ->
-            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "text/plain1")
-        }.let { call ->
-            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
-        }
-    }
-
-    @Test
-    fun testMatchingAcceptAndContentTypes(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                checkAcceptHeaderCompliance = true
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "text/plain")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
             }
 
-            routing {
-                get("/send") {
-                    call.respond("some text")
-                }
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "application/json, text/plain;q=0.1")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
             }
-        }
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "*/*")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
 
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "text/plain")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-        }
-
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "application/json, text/plain;q=0.1")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "*/*")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-        }
-
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "text/*")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
+            handleRequest(HttpMethod.Get, "/send") {
+                addHeader("Accept", "text/*")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
         }
     }
 }

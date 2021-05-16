@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -11,14 +11,15 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
-import java.lang.IllegalStateException
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class HeadTest {
 
     @Test
-    fun testSimple() {
+    fun testSimple() = testSuspend {
         withHeadApplication {
             application.routing {
                 get("/") {
@@ -42,7 +43,7 @@ class HeadTest {
     }
 
     @Test
-    fun testTextContent() {
+    fun testTextContent() = testSuspend {
         withHeadApplication {
             application.routing {
                 get("/") {
@@ -65,7 +66,7 @@ class HeadTest {
     }
 
     @Test
-    fun testTextRespond() {
+    fun testTextRespond() = testSuspend {
         withHeadApplication {
             application.routing {
                 get("/") {
@@ -88,7 +89,7 @@ class HeadTest {
     }
 
     @Test
-    fun testCustomOutgoingContent() {
+    fun testCustomOutgoingContent() = testSuspend {
         withHeadApplication {
             application.routing {
                 get("/") {
@@ -123,62 +124,64 @@ class HeadTest {
     }
 
     @Test
-    fun testWithStatusPages() = withHeadApplication {
-        application.install(StatusPages) {
-            exception<IllegalStateException> {
-                call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError)
+    fun testWithStatusPages() = testSuspend {
+        withHeadApplication {
+            application.install(StatusPages) {
+                exception<IllegalStateException> {
+                    call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError)
+                }
+                status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
             }
-            status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
-        }
 
-        application.routing {
-            get("/page1") {
-                call.respondText("page1 OK")
+            application.routing {
+                get("/page1") {
+                    call.respondText("page1 OK")
+                }
+                get("/page2") {
+                    throw IllegalStateException("page2 failed")
+                }
             }
-            get("/page2") {
-                throw IllegalStateException("page2 failed")
+
+            // ensure with GET
+            handleRequest(HttpMethod.Get, "/page1").let { call ->
+                assertTrue { call.requestHandled }
+                assertEquals("page1 OK", call.response.content)
             }
-        }
 
-        // ensure with GET
-        handleRequest(HttpMethod.Get, "/page1").let { call ->
-            assertTrue { call.requestHandled }
-            assertEquals("page1 OK", call.response.content)
-        }
+            handleRequest(HttpMethod.Get, "/page2").let { call ->
+                assertTrue { call.requestHandled }
+                assertEquals(500, call.response.status()?.value)
+                assertEquals("ISE: page2 failed", call.response.content)
+            }
 
-        handleRequest(HttpMethod.Get, "/page2").let { call ->
-            assertTrue { call.requestHandled }
-            assertEquals(500, call.response.status()?.value)
-            assertEquals("ISE: page2 failed", call.response.content)
-        }
+            handleRequest(HttpMethod.Get, "/page3").let { call ->
+                assertEquals(404, call.response.status()?.value)
+                assertEquals("Not found", call.response.content)
+            }
 
-        handleRequest(HttpMethod.Get, "/page3").let { call ->
-            assertEquals(404, call.response.status()?.value)
-            assertEquals("Not found", call.response.content)
-        }
+            // test HEAD itself
+            handleRequest(HttpMethod.Head, "/page1").let { call ->
+                assertTrue { call.requestHandled }
+                assertEquals("page1 OK".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+                assertNull(call.response.content)
+            }
 
-        // test HEAD itself
-        handleRequest(HttpMethod.Head, "/page1").let { call ->
-            assertTrue { call.requestHandled }
-            assertEquals("page1 OK".length.toString(), call.response.headers[HttpHeaders.ContentLength])
-            assertNull(call.response.content)
-        }
+            handleRequest(HttpMethod.Head, "/page2").let { call ->
+                assertTrue { call.requestHandled }
+                assertEquals(500, call.response.status()?.value)
+                assertEquals("ISE: page2 failed".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+                assertNull(call.response.content)
+            }
 
-        handleRequest(HttpMethod.Head, "/page2").let { call ->
-            assertTrue { call.requestHandled }
-            assertEquals(500, call.response.status()?.value)
-            assertEquals("ISE: page2 failed".length.toString(), call.response.headers[HttpHeaders.ContentLength])
-            assertNull(call.response.content)
-        }
-
-        handleRequest(HttpMethod.Head, "/page3").let { call ->
-            assertEquals(404, call.response.status()?.value)
-            assertEquals("Not found".length.toString(), call.response.headers[HttpHeaders.ContentLength])
-            assertNull(call.response.content)
+            handleRequest(HttpMethod.Head, "/page3").let { call ->
+                assertEquals(404, call.response.status()?.value)
+                assertEquals("Not found".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+                assertNull(call.response.content)
+            }
         }
     }
 
-    private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
+    private inline fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
         withTestApplication {
             application.install(AutoHeadResponse)
 
