@@ -48,7 +48,7 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
      * Gracefully shutdown dispatcher.
      */
     override fun close() {
-        if (tasks.prev is Poison) return
+        if (tasks.prevNode is Poison) return
         tasks.addLastIfPrev(Poison()) { prev -> prev !is Poison }
         resumeAllThreads()
     }
@@ -113,7 +113,7 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
 
         @Suppress("NOTHING_TO_INLINE")
         private suspend inline fun receiveOrNull(): Runnable? {
-            val r = tasks.removeFirstIfIsInstanceOf<Runnable>()
+            val r = tasks.removeFirstIfIsInstanceOfOrPeekIf<Runnable> { false }
             if (r != null) return r
             return receiveOrNullSuspend()
         }
@@ -121,7 +121,7 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
         @Suppress("NOTHING_TO_INLINE")
         private suspend inline fun receiveOrNullSuspend(): Runnable? {
             do {
-                val t = tasks.removeFirstIfIsInstanceOf<Runnable>()
+                val t = tasks.removeFirstIfIsInstanceOfOrPeekIf<Runnable> { false }
                 if (t != null) return t
                 if (tasks.next is Poison) return null
                 waitForTasks()
