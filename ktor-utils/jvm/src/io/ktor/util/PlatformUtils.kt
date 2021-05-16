@@ -12,9 +12,7 @@ public actual object PlatformUtils {
     public actual val IS_JVM: Boolean = true
     public actual val IS_NATIVE: Boolean = false
 
+    //TODO call inlined, as for some reason, calling function fails at my side
     public actual val IS_DEVELOPMENT_MODE: Boolean =
-        System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() ?: isAssertionEnabled()
+        System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() ?: PlatformUtils::class.java.desiredAssertionStatus()
 }
-
-private fun isAssertionEnabled(): Boolean =
-    PlatformUtils::class.java.desiredAssertionStatus()

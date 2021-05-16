@@ -4,8 +4,6 @@
 
 package io.ktor.util
 
-import org.slf4j.*
-
 /**
  * Logs an error from an [exception] using its message
  */

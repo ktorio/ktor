@@ -4,14 +4,13 @@
 
 package io.ktor.util.reflect
 
+import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
  * Information about type.
  */
 public expect interface Type
-
-internal expect val KType.platformType: Type
 
 /**
  * Ktor type information.

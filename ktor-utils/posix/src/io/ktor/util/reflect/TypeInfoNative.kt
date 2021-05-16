@@ -4,6 +4,7 @@
 
 package io.ktor.util.reflect
 
+import io.ktor.util.*
 import kotlin.reflect.*
 
 public actual typealias Type = KType
@@ -23,6 +24,3 @@ internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): T
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
-
-internal actual val KType.platformType: Type
-    get() = this

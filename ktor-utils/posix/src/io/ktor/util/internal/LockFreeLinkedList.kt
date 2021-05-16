@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlin.internal.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
+import kotlin.native.ref.*
 
 private typealias Node = LockFreeLinkedListNode
 
@@ -24,9 +25,11 @@ internal const val SUCCESS: Int = 1
 internal const val FAILURE: Int = 2
 
 @PublishedApi
+@SharedImmutable
 internal val CONDITION_FALSE: Any = Symbol("CONDITION_FALSE")
 
 @PublishedApi
+@SharedImmutable
 internal val LIST_EMPTY: Any = Symbol("LIST_EMPTY")
 
 /** @suppress **This is unstable API and it is subject to change.** */
@@ -79,7 +82,7 @@ public actual open class LockFreeLinkedListNode {
 
     @PublishedApi
     internal abstract class CondAddOp(
-        @JvmField val newNode: Node
+        val newNode: Node
     ) : AtomicOp<Node>() {
         private val _oldNext = atomic<Node?>(null)
 
@@ -338,8 +341,8 @@ public actual open class LockFreeLinkedListNode {
     // ------ multi-word atomic operations helpers ------
 
     public open class AddLastDesc<T : Node> constructor(
-        @JvmField val queue: Node,
-        @JvmField val node: T
+        val queue: Node,
+        val node: T
     ) : AbstractAtomicDesc() {
 //        init {
             // require freshly allocated node here
@@ -377,7 +380,7 @@ public actual open class LockFreeLinkedListNode {
     }
 
     public open class RemoveFirstDesc<T>(
-        @JvmField val queue: Node
+        val queue: Node
     ) : AbstractAtomicDesc() {
         private val _affectedNode = atomic<Node?>(null)
         private val _originalNext = atomic<Node?>(null)
@@ -431,9 +434,9 @@ public actual open class LockFreeLinkedListNode {
     // This is Harris's RDCSS (Restricted Double-Compare Single Swap) operation
     // It inserts "op" descriptor of when "op" status is still undecided (rolls back otherwise)
     public class PrepareOp(
-        @JvmField val affected: Node,
-        @JvmField val next: Node,
-        @JvmField val desc: AbstractAtomicDesc
+        val affected: Node,
+        val next: Node,
+        val desc: AbstractAtomicDesc
     ) : OpDescriptor() {
         override val atomicOp: AtomicOp<*> get() = desc.atomicOp
 
@@ -710,13 +713,11 @@ public actual open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
 //    }
 }
 
-@InlineOnly
-@Suppress("NOTHING_TO_INLINE") // Should be NOP
-internal actual inline fun Any.weakRef(): Any = this
-
-@InlineOnly
-@Suppress("NOTHING_TO_INLINE") // Should be NOP
-internal actual inline fun Any?.unweakRef(): Any? = this
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun storeCyclicRef(block: () -> Unit) = block()
+internal actual inline fun Any.weakRef(): Any = WeakReference(this)
+
+internal actual fun Any?.unweakRef(): Any? = (this as WeakReference<*>?)?.get()
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun storeCyclicRef(block: () -> Unit) {} // nop on native

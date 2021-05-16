@@ -7,6 +7,7 @@ package io.ktor.client.utils
 import io.ktor.util.*
 import io.ktor.util.collections.*
 
+//TODO remove and use instead sharedMap/List from util
 internal fun <K : Any, V : Any> sharedMap(): MutableMap<K, V> {
     if (PlatformUtils.IS_NATIVE) {
         return ConcurrentMap()

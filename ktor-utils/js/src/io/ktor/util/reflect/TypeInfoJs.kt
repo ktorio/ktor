@@ -4,6 +4,7 @@
 
 package io.ktor.util.reflect
 
+import io.ktor.util.*
 import kotlin.reflect.*
 
 public actual interface Type
@@ -20,6 +21,3 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): Ty
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
-
-internal actual val KType.platformType: Type
-    get() = JsType

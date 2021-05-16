@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import io.ktor.util.collections.*
+
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
  */
@@ -164,7 +166,7 @@ public open class StringValuesImpl(
 @Suppress("KDocMissingDocumentation")
 public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = false, size: Int = 8) {
     protected val values: MutableMap<String, MutableList<String>> =
-        if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
+        if (caseInsensitiveName) caseInsensitiveMap() else sharedMap(size)
 
     protected var built: Boolean = false
 
@@ -257,7 +259,7 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
             )
         }
 
-        return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }
+        return values[name] ?: sharedList<String>(size).also { validateName(name); values[name] = it }
     }
 }
 
@@ -297,7 +299,7 @@ public fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Bool
         return StringValuesSingleImpl(caseInsensitiveKey, entry.key, entry.value.toList())
     }
     val values: MutableMap<String, List<String>> =
-        if (caseInsensitiveKey) caseInsensitiveMap() else LinkedHashMap(size)
+        if (caseInsensitiveKey) caseInsensitiveMap() else sharedMap(size)
     map.entries.forEach { values.put(it.key, it.value.toList()) }
     return StringValuesImpl(caseInsensitiveKey, values)
 }
@@ -329,7 +331,7 @@ public fun StringValues.flattenForEach(block: (String, String) -> Unit): Unit = 
 public fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
     val entries = entries()
     val values: MutableMap<String, MutableList<String>> =
-        if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(entries.size)
+        if (caseInsensitiveName) caseInsensitiveMap() else sharedMap(entries.size)
 
     entries.forEach { entry ->
         val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }

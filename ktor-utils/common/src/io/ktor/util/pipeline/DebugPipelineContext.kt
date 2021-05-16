@@ -4,6 +4,7 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 /**
@@ -29,6 +30,10 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
         private set
 
     private var index = 0
+
+    init {
+        preventFreeze()
+    }
 
     /**
      * Finishes current pipeline execution

@@ -4,6 +4,7 @@
 
 package io.ktor.util.reflect
 
+import io.ktor.util.*
 import java.lang.reflect.*
 import java.lang.reflect.Type
 import kotlin.reflect.*
@@ -28,7 +29,3 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): Ty
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
-
-@OptIn(ExperimentalStdlibApi::class)
-public actual val KType.platformType: Type
-    get() = javaType
