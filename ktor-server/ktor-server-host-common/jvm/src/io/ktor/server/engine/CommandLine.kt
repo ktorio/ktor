@@ -8,7 +8,6 @@ import com.typesafe.config.*
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.util.*
-import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*

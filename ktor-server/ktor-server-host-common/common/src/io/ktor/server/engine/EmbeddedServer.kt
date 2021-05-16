@@ -6,7 +6,6 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.coroutines.*
 
 /**
@@ -31,7 +30,7 @@ embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    watchPaths: List<String> = defaultWatchPaths,
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
@@ -48,14 +47,13 @@ CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    watchPaths: List<String> = defaultWatchPaths,
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
-        this.log = LoggerFactory.getLogger("ktor.application")
         this.watchPaths = watchPaths
         this.module(module)
 

@@ -12,15 +12,14 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.pool.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
-import java.nio.*
 
 /**
  * Base class for implementing an [ApplicationResponse]
  */
 public abstract class BaseApplicationResponse(final override val call: ApplicationCall) : ApplicationResponse {
-    private var _status: HttpStatusCode? = null
+    private var _status: HttpStatusCode? by shared(null)
 
     override val cookies: ResponseCookies by lazy {
         ResponseCookies(this, call.request.origin.scheme == "https")
@@ -32,7 +31,7 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
         setStatus(value)
     }
 
-    private var responded = false
+    private var responded by shared(false)
 
     public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
         call.application.environment.developmentMode
@@ -162,7 +161,7 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
             // Call user code to send data
 //            val before = totalBytesWritten
             try {
-                withContext(Dispatchers.IO) {
+                withContext(ioDispatcher) {
                     content.writeTo(this@use)
                 }
             } catch (closed: ClosedWriteChannelException) {
@@ -223,17 +222,6 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
      * Get response output channel
      */
     protected abstract suspend fun responseChannel(): ByteWriteChannel
-
-    /**
-     * ByteBuffer pool
-     */
-    @Deprecated(
-        "Avoid specifying pools or use KtorDefaultPool instead.",
-        ReplaceWith("KtorDefaultPool", "io.ktor.util.cio.KtorDefaultPool"),
-        level = DeprecationLevel.ERROR
-    )
-    protected open val bufferPool: ObjectPool<ByteBuffer>
-        get() = KtorDefaultPool
 
     /**
      * Set underlying engine's response status
@@ -309,7 +297,7 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
                     throw IllegalArgumentException(
-                        "Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent"
+                        "Response pipeline couldn't transform '${response::class}' to the OutgoingContent"
                     )
                 }
 

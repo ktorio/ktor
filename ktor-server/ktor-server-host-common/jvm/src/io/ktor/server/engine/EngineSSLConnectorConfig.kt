@@ -8,47 +8,6 @@ import java.io.*
 import java.security.*
 
 /**
- * Represents a type of a connector, e.g HTTP or HTTPS.
- * @param name name of the connector.
- *
- * Some engines can support other connector types, hence not a enum.
- */
-public data class ConnectorType(val name: String) {
-    public companion object {
-        /**
-         * Non-secure HTTP connector.
-         * 1
-         */
-        public val HTTP: ConnectorType = ConnectorType("HTTP")
-
-        /**
-         * Secure HTTP connector.
-         */
-        public val HTTPS: ConnectorType = ConnectorType("HTTPS")
-    }
-}
-
-/**
- * Represents a connector configuration.
- */
-public interface EngineConnectorConfig {
-    /**
-     * Type of the connector, e.g HTTP or HTTPS.
-     */
-    public val type: ConnectorType
-
-    /**
-     * The network interface this host binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
-     */
-    public val host: String
-
-    /**
-     * The port this application should be bound to.
-     */
-    public val port: Int
-}
-
-/**
  * Represents an SSL connector configuration.
  */
 public interface EngineSSLConnectorConfig : EngineConnectorConfig {
@@ -79,13 +38,6 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
 }
 
 /**
- * Adds a non-secure connector to this engine environment
- */
-public inline fun ApplicationEngineEnvironmentBuilder.connector(builder: EngineConnectorBuilder.() -> Unit) {
-    connectors.add(EngineConnectorBuilder().apply(builder))
-}
-
-/**
  * Adds a secure connector to this engine environment
  */
 public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
@@ -96,20 +48,6 @@ public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
     builder: EngineSSLConnectorBuilder.() -> Unit
 ) {
     connectors.add(EngineSSLConnectorBuilder(keyStore, keyAlias, keyStorePassword, privateKeyPassword).apply(builder))
-}
-
-/**
- * Mutable implementation of EngineConnectorConfig for building connectors programmatically
- */
-public open class EngineConnectorBuilder(
-    override val type: ConnectorType = ConnectorType.HTTP
-) : EngineConnectorConfig {
-    override var host: String = "0.0.0.0"
-    override var port: Int = 80
-
-    override fun toString(): String {
-        return "${type.name} $host:$port"
-    }
 }
 
 /**

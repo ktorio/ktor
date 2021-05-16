@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -15,8 +16,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import java.nio.channels.*
-import java.util.concurrent.*
 
 /**
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
@@ -91,8 +90,10 @@ private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatu
     }
 }
 
+internal expect inline fun ApplicationEnvironment.catchOOM(cause: Throwable, block: () -> Unit)
+
 private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Throwable) {
-    try {
+    catchOOM(cause) {
         val status = call.response.status() ?: "Unhandled"
         val logString = try {
             call.request.toLogString()
@@ -109,13 +110,6 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is NotFoundException -> log.debug("$status: $logString", cause)
             is UnsupportedMediaTypeException -> log.debug("$status: $logString", cause)
             else -> log.error("$status: $logString", cause)
-        }
-    } catch (oom: OutOfMemoryError) {
-        try {
-            log.error(cause)
-        } catch (oomAttempt2: OutOfMemoryError) {
-            System.err.print("OutOfMemoryError: ")
-            System.err.println(cause.message)
         }
     }
 }

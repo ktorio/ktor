@@ -10,7 +10,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlin.system.*
 
 /**
  * Shutdown URL feature. It stops application when requested particular url

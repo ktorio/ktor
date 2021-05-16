@@ -19,7 +19,7 @@ public interface ApplicationEngine {
         /**
          * Provides currently available parallelism, e.g. number of available processors
          */
-        public val parallelism: Int = Runtime.getRuntime().availableProcessors()
+        public val parallelism: Int = availableProcessors()
 
         /**
          * Specifies size of the event group for accepting connections
@@ -54,18 +54,6 @@ public interface ApplicationEngine {
      * @return returns this instance
      */
     public fun start(wait: Boolean = false): ApplicationEngine
-
-    /**
-     * Stops this [ApplicationEngine]
-     *
-     * @param gracePeriod the maximum amount of time for activity to cool down
-     * @param timeout the maximum amount of time to wait until server stops gracefully
-     * @param timeUnit the [java.util.concurrent.TimeUnit] for [gracePeriod] and [timeout]
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun stop(gracePeriod: Long, timeout: Long, timeUnit: java.util.concurrent.TimeUnit) {
-        stop(gracePeriod, timeout, timeUnit)
-    }
 
     /**
      * Stops this [ApplicationEngine]

@@ -4,6 +4,9 @@
 
 package io.ktor.server.engine
 
+import kotlin.native.concurrent.*
+
+@ThreadLocal
 private val longStrings = Array(1024) {
     it.toString()
 }
