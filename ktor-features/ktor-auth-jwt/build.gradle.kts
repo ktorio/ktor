@@ -4,7 +4,7 @@ val jwks_rsa_version: String by project.extra
 val mokito_kotlin_version: String by project.extra
 
 kotlin.sourceSets {
-    jvmMain {
+    val jvmMain by getting {
         dependencies {
             api(project(":ktor-features:ktor-auth"))
             api("com.googlecode.json-simple:json-simple:$json_simple_version")
@@ -12,7 +12,7 @@ kotlin.sourceSets {
             api("com.auth0:jwks-rsa:$jwks_rsa_version")
         }
     }
-    jvmTest {
+    val jvmTest by getting {
         dependencies {
             api("com.nhaarman:mockito-kotlin:$mokito_kotlin_version")
         }

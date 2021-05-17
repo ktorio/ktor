@@ -20,8 +20,14 @@ plugins {
 }
 
 open class KtorTestServer : DefaultTask() {
+    @Internal
     var server: Closeable? = null
+        private set
+
+    @Internal
     lateinit var main: String
+
+    @Internal
     lateinit var classpath: FileCollection
 
     @TaskAction
@@ -45,21 +51,21 @@ open class KtorTestServer : DefaultTask() {
 val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
-    commonMain {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
     }
-    commonTest {
+    val commonTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
             api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
         }
     }
-    jvmMain {
+    val jvmMain by getting {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server:ktor-server-cio"))
@@ -75,7 +81,7 @@ kotlin.sourceSets {
         }
     }
 
-    jvmTest {
+    val jvmTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
@@ -84,10 +90,10 @@ kotlin.sourceSets {
             if (project.ext["currentJdk"] as Int >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
-//            runtimeOnly(project(":ktor-client:ktor-client-jetty"))
         }
     }
-    jsTest {
+
+    val jsTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-js"))
         }
@@ -130,7 +136,7 @@ kotlin.sourceSets {
 }
 
 val startTestServer = task<KtorTestServer>("startTestServer") {
-    dependsOn(tasks.jvmJar)
+    dependsOn(tasks["jvmJar"])
 
     main = "io.ktor.client.tests.utils.TestServerKt"
     val kotlinCompilation = kotlin.targets.getByName("jvm").compilations["test"]

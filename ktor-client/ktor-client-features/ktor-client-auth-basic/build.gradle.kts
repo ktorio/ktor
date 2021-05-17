@@ -7,7 +7,7 @@ description = "Ktor client Basic Auth support"
 project.ext.set("commonStructure", false)
 
 kotlin.sourceSets {
-    commonMain {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
         }

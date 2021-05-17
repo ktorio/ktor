@@ -17,12 +17,12 @@ kotlin {
             (this as ModuleDependency).exclude(module = project.name)
         }
 
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 api(excludingSelf(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization")))
             }
         }
-        jvmTest {
+        val jvmTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson"))
             }

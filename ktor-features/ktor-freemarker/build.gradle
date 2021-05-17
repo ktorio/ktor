@@ -1,5 +1,0 @@
-description = ''
-
-kotlin.sourceSets.jvmMain.dependencies {
-    api group: 'org.freemarker', name: 'freemarker', version: '[2.3.20, 2.4)'
-}
