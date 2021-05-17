@@ -22,9 +22,9 @@ public final class io/ktor/websocket/DefaultWebSocketServerSession$DefaultImpls 
 }
 
 public final class io/ktor/websocket/KotlinDurationsKt {
-	public static final fun WebSockets-v29k7_A (Lkotlin/time/Duration;DJZ)Lio/ktor/websocket/WebSockets;
-	public static final fun pinger-1WGW0hc (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;DDLio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
-	public static synthetic fun pinger-1WGW0hc$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;DDLio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+	public static final fun WebSockets-v29k7_A (Lkotlin/time/Duration;JJZ)Lio/ktor/websocket/WebSockets;
+	public static final fun pinger-1WGW0hc (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun pinger-1WGW0hc$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
 }
 
 public final class io/ktor/websocket/RoutingKt {

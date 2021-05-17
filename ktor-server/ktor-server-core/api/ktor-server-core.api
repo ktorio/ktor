@@ -669,11 +669,11 @@ public final class io/ktor/features/JavaTimeMigrationKt {
 
 public final class io/ktor/features/KotlinTimeJvmKt {
 	public static final fun getMaxAge (Lio/ktor/sessions/CookieConfiguration;)Lkotlin/time/Duration;
-	public static final fun getMaxAgeDuration (Lio/ktor/features/CORS$Configuration;)D
-	public static final fun getMaxAgeDuration (Lio/ktor/features/HSTS$Configuration;)D
+	public static final fun getMaxAgeDuration (Lio/ktor/features/CORS$Configuration;)J
+	public static final fun getMaxAgeDuration (Lio/ktor/features/HSTS$Configuration;)J
 	public static final fun setMaxAge-g7yk5mg (Lio/ktor/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
-	public static final fun setMaxAgeDuration-U-RQOxY (Lio/ktor/features/CORS$Configuration;D)V
-	public static final fun setMaxAgeDuration-mhQl6bo (Lio/ktor/features/HSTS$Configuration;D)V
+	public static final fun setMaxAgeDuration-U-RQOxY (Lio/ktor/features/CORS$Configuration;J)V
+	public static final fun setMaxAgeDuration-mhQl6bo (Lio/ktor/features/HSTS$Configuration;J)V
 }
 
 public final class io/ktor/features/MissingRequestParameterException : io/ktor/features/BadRequestException, kotlinx/coroutines/CopyableThrowable {
