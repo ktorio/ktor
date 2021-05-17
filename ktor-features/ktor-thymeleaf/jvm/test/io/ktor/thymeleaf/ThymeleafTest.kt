@@ -4,26 +4,14 @@
 
 package io.ktor.thymeleaf
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.Compression
-import io.ktor.features.ConditionalHeaders
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.withCharset
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
-import io.ktor.thymeleaf.Thymeleaf
-import io.ktor.thymeleaf.ThymeleafContent
-import io.ktor.thymeleaf.respondTemplate
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
-import org.thymeleaf.templateresolver.StringTemplateResolver
-import java.util.zip.GZIPInputStream
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.testing.*
+import org.thymeleaf.templateresolver.*
+import java.util.zip.*
 import kotlin.test.*
 
 class ThymeleafTest {
