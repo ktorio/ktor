@@ -481,6 +481,34 @@ class StaticContentTest {
             assertTrue(result.requestHandled)
         }
     }
+
+    @Test
+    fun testStaticContentPriority() = withTestApplication {
+        application.routing {
+            route("/before") {
+                get {
+                    call.respond("before")
+                }
+            }
+            static("/") {
+                defaultResource("index.html", "web-resource")
+                resources("web-resource")
+            }
+            route("/after") {
+                get {
+                    call.respond("after")
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/before").let { result ->
+            assertEquals("before", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/after").let { result ->
+            assertEquals("after", result.response.content)
+        }
+    }
 }
 
 private fun String.replaceSeparators() = replace("/", File.separator)
