@@ -62,12 +62,20 @@ public abstract class ByteChannelSequentialBase(
     override val availableForWrite: Int
         get() = maxOf(0, EXPECTED_CAPACITY.toInt() - totalPending())
 
+    @Deprecated(
+        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
+        level = DeprecationLevel.ERROR
+    )
     override var readByteOrder: ByteOrder
         get() = state.readByteOrder
         set(value) {
             state.readByteOrder = value
         }
 
+    @Deprecated(
+        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
+        level = DeprecationLevel.ERROR
+    )
     override var writeByteOrder: ByteOrder
         get() = state.writeByteOrder
         set(value) {
