@@ -9,7 +9,7 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                api("org.webjars:jquery:3.3.1")
+                api("org.webjars:jquery:3.6.0")
             }
         }
     }
