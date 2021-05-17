@@ -4,8 +4,13 @@
 
 package io.ktor.client.request
 
+import io.ktor.client.call.*
 import io.ktor.client.content.*
-import io.ktor.util.reflect.*
+import io.ktor.client.features.observer.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.typeInfo
 
 public class ObservableBody(
     public val body: Any,
@@ -13,6 +18,14 @@ public class ObservableBody(
     public val listener: ProgressListener
 )
 
+/**
+ * Wraps request body and adds listener to upload progress
+ */
 public inline fun <reified T : Any> observableBodyOf(body: T, noinline listener: ProgressListener): ObservableBody {
     return ObservableBody(body, typeInfo<T>(), listener)
+}
+
+internal fun HttpClientCall.withObservableDownload(listener: ProgressListener): HttpClientCall {
+    val observableByteChannel = response.content.observable(coroutineContext, response.contentLength(), listener)
+    return wrapWithContent(observableByteChannel)
 }

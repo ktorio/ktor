@@ -4,7 +4,9 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.content.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
@@ -20,12 +22,12 @@ import kotlin.test.*
 class ObservableBodyTest : ClientLoader() {
 
     @Serializable
-    data class User(val name: String)
+    data class User(val login: String, val id: Long)
 
     private var invokedCount: Long by shared(0)
 
     @Test
-    fun testDataClass() = clientTests {
+    fun testSendDataClass() = clientTests {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer()
@@ -38,14 +40,14 @@ class ObservableBodyTest : ClientLoader() {
 
             val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
                 contentType(ContentType.Application.Json)
-                body = observableBodyOf(User("123".repeat(5000)), listener)
+                body = observableBodyOf(User("123".repeat(5000), 1), listener)
             }
             assertTrue(invokedCount >= 2)
         }
     }
 
     @Test
-    fun testChannel() = clientTests {
+    fun testSendChannel() = clientTests {
         test { client ->
             invokedCount = 0
             val listener: ProgressListener = { count, total -> invokedCount++ }
@@ -65,7 +67,7 @@ class ObservableBodyTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArray() = clientTests {
+    fun testSendByteArray() = clientTests {
         test { client ->
             invokedCount = 0
             val listener: ProgressListener = { count, total -> invokedCount++ }
@@ -78,7 +80,7 @@ class ObservableBodyTest : ClientLoader() {
     }
 
     @Test
-    fun testFailedChannel() = clientTests {
+    fun testSendFailedChannel() = clientTests {
         test { client ->
             val listener: ProgressListener = { _, _ -> }
 
@@ -94,6 +96,116 @@ class ObservableBodyTest : ClientLoader() {
                     body = observableBodyOf(channel, listener)
                 }
             }
+        }
+    }
+
+    @Test
+    fun testReceiveDataClassWithExecute() = clientTests {
+        config {
+            install(JsonFeature) {
+                serializer = KotlinxSerializer()
+            }
+        }
+
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { _, _ -> invokedCount++ }
+
+            client.get<HttpStatement>("$TEST_SERVER/json/users-long") {
+                contentType(ContentType.Application.Json)
+                onDownload(listener)
+            }.execute { it.receive<List<User>>() }
+            assertTrue(invokedCount >= 2)
+        }
+    }
+
+    @Test
+    fun testReceiveDataClassWithReceive() = clientTests {
+        config {
+            install(JsonFeature) {
+                serializer = KotlinxSerializer()
+            }
+        }
+
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { sent, _ -> invokedCount++ }
+
+            client.get<HttpStatement>("$TEST_SERVER/json/users-long") {
+                contentType(ContentType.Application.Json)
+                onDownload(listener)
+            }.receive<List<User>, Unit> {}
+            assertTrue(invokedCount >= 2)
+        }
+    }
+
+    @Test
+    fun testReceiveChannelWithExecute() = clientTests {
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { count, total -> invokedCount++ }
+
+            val channel = ByteChannel()
+            GlobalScope.launch {
+                channel.writeFully(ByteArray(8 * 1025) { 1 })
+                channel.writeFully(ByteArray(8 * 1025) { 1 })
+                channel.close()
+            }
+
+            client.post<HttpStatement>("$TEST_SERVER/content/echo") {
+                body = channel
+                onDownload(listener)
+            }.execute { it.receive<ByteReadChannel>().readRemaining() }
+            assertTrue(invokedCount > 2)
+        }
+    }
+
+    @Test
+    fun testReceiveChannelWithReceive() = clientTests {
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { count, total -> invokedCount++ }
+
+            val channel = ByteChannel()
+            GlobalScope.launch {
+                channel.writeFully(ByteArray(8 * 1025) { 1 })
+                channel.writeFully(ByteArray(8 * 1025) { 1 })
+                channel.close()
+            }
+
+            client.post<HttpStatement>("$TEST_SERVER/content/echo") {
+                body = channel
+                onDownload(listener)
+            }.receive<ByteReadChannel, Unit> { it.readRemaining() }
+            assertTrue(invokedCount > 2)
+        }
+    }
+
+    @Test
+    fun testReceiveByteArrayWithExecute() = clientTests {
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { count, total -> invokedCount++ }
+
+            client.post<HttpStatement>("$TEST_SERVER/content/echo") {
+                body = ByteArray(1025 * 16)
+                onDownload(listener)
+            }.execute { it.receive<ByteArray>() }
+            assertTrue(invokedCount > 2)
+        }
+    }
+
+    @Test
+    fun testReceiveByteArrayWithReceive() = clientTests {
+        test { client ->
+            invokedCount = 0
+            val listener: ProgressListener = { _, _ -> invokedCount++ }
+
+            client.post<HttpStatement>("$TEST_SERVER/content/echo") {
+                body = ByteArray(1025 * 16)
+                onDownload(listener)
+            }.receive<ByteArray, Unit> { }
+            assertTrue(invokedCount > 2)
         }
     }
 }
