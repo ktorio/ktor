@@ -150,7 +150,8 @@ internal class OkHttpWebsocketSession(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        DeprecationLevel.ERROR
     )
     override fun terminate() {
         coroutineContext.cancel()

@@ -5,10 +5,8 @@
 package io.ktor.features
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.reflect.*
-import kotlin.reflect.full.*
 
 /**
  * Base exception to indicate that the request is not correct due to
@@ -71,11 +69,8 @@ internal class CannotTransformContentToTypeException(
     private val type: KType
 ) : ContentTransformationException("Cannot transform this request's content to $type"),
     CopyableThrowable<CannotTransformContentToTypeException> {
-    @Suppress("unused")
-    @Deprecated("Use KType instead", level = DeprecationLevel.HIDDEN)
-    constructor(type: KClass<*>) : this(type.starProjectedType)
 
-    override fun createCopy(): CannotTransformContentToTypeException? =
+    override fun createCopy(): CannotTransformContentToTypeException =
         CannotTransformContentToTypeException(type).also {
             it.initCause(this)
         }
@@ -91,7 +86,7 @@ public class UnsupportedMediaTypeException(
 ) : ContentTransformationException("Content type $contentType is not supported"),
     CopyableThrowable<UnsupportedMediaTypeException> {
 
-    override fun createCopy(): UnsupportedMediaTypeException? = UnsupportedMediaTypeException(contentType).also {
+    override fun createCopy(): UnsupportedMediaTypeException = UnsupportedMediaTypeException(contentType).also {
         it.initCause(this)
     }
 }
