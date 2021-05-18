@@ -79,6 +79,7 @@ public class EndpointConfig {
      */
     @Deprecated(
         "This is deprecated due to the misleading name. Use connectAttempts instead.",
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("connectAttempts")
     )
     public var connectRetryAttempts: Int

@@ -197,8 +197,8 @@ private suspend fun requestOAuth1aAccessToken(
  * Create an HTTP auth header for OAuth1a obtain token request
  */
 @Deprecated(
-    "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+    "This is going to become internal. Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun createObtainRequestTokenHeader(
@@ -233,10 +233,11 @@ private fun createObtainRequestTokenHeaderInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
-public fun createUpgradeRequestTokenHeader(
+internal fun createUpgradeRequestTokenHeader(
     consumerKey: String,
     token: String,
     nonce: String,
@@ -268,7 +269,8 @@ private fun createUpgradeRequestTokenHeaderInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun HttpAuthHeader.Parameterized.sign(
@@ -296,7 +298,8 @@ private fun HttpAuthHeader.Parameterized.signInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun signatureBaseString(
@@ -346,6 +349,6 @@ public sealed class OAuth1aException(message: String) : Exception(message) {
     /**
      * Represents any other OAuth1a error
      */
-    @Deprecated("This is no longer thrown.")
+    @Deprecated("This is no longer thrown.", level = DeprecationLevel.ERROR)
     public class UnknownException(message: String) : OAuth1aException(message)
 }

@@ -13,7 +13,7 @@ import io.ktor.util.reflect.*
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>"), level = DeprecationLevel.ERROR)
+@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>()"), level = DeprecationLevel.ERROR)
 public suspend inline fun <reified T> HttpClientCall.receive(): T = error("Use `body` method instead")
 
 /**
@@ -22,7 +22,7 @@ public suspend inline fun <reified T> HttpClientCall.receive(): T = error("Use `
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>"), level = DeprecationLevel.ERROR)
+@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>()"), level = DeprecationLevel.ERROR)
 public suspend inline fun <reified T> HttpResponse.receive(): T = error("Use `body` method instead")
 
 /**

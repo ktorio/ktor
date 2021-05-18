@@ -8,19 +8,6 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.locks.*
 import kotlin.math.*
 
-@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-public suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
-    return joinToImpl(dst, closeOnEnd)
-}
-
-@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-public suspend fun ByteChannelSequentialBase.copyTo(
-    dst: ByteChannelSequentialBase,
-    limit: Long = Long.MAX_VALUE
-): Long {
-    return copyToSequentialImpl(dst, limit)
-}
-
 private const val EXPECTED_CAPACITY: Long = 4088L
 
 /**
@@ -33,10 +20,6 @@ public abstract class ByteChannelSequentialBase(
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
-
-    @Suppress("unused", "DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(initial: ChunkBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
 
     private val state = ByteChannelSequentialBaseSharedState()
 
@@ -340,11 +323,6 @@ public abstract class ByteChannelSequentialBase(
 
     private suspend fun readShortSlow(): Short {
         readNSlow(2) { return readable.readShort().also { afterRead(2) } }
-    }
-
-    @Deprecated("Consider providing consumed count of bytes", level = DeprecationLevel.ERROR)
-    protected fun afterRead() {
-        afterRead(0)
     }
 
     protected fun afterRead(count: Int) {
@@ -803,11 +781,6 @@ public abstract class ByteChannelSequentialBase(
     private suspend fun writeAvailableSuspend(src: ByteArray, offset: Int, length: Int): Int {
         awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src, offset, length)
-    }
-
-    @Deprecated("Consider providing written count of bytes", level = DeprecationLevel.ERROR)
-    protected fun afterWrite() {
-        afterWrite(0)
     }
 
     protected fun afterWrite(count: Int) {

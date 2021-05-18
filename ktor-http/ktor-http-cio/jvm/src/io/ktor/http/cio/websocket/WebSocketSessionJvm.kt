@@ -65,7 +65,8 @@ public actual interface WebSocketSession : CoroutineScope {
      */
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        level = DeprecationLevel.ERROR
     )
     public actual fun terminate()
 }

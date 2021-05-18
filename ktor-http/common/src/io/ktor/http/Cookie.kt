@@ -36,11 +36,7 @@ public data class Cookie(
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
     val extensions: Map<String, String?> = emptyMap()
-) {
-    @Suppress("unused", "KDocMissingDocumentation")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun getMaxAge(): Int = maxAge
-}
+)
 
 /**
  * Cooke encoding strategy

@@ -11,22 +11,6 @@ import io.ktor.utils.io.pool.DirectByteBufferPool
 import kotlinx.coroutines.*
 import java.nio.*
 
-@Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")
-@Deprecated("This is going to be removed", level = DeprecationLevel.HIDDEN)
-public val ioThreadGroup: ThreadGroup = ThreadGroup("io-pool-group")
-
-/**
- * The default I/O coroutine dispatcher
- */
-@Suppress("DEPRECATION", "unused")
-@Deprecated(
-    "Use Dispatchers.IO instead for both blocking and non-blocking I/O",
-    replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers"),
-    level = DeprecationLevel.HIDDEN
-)
-public val ioCoroutineDispatcher: CoroutineDispatcher
-    get() = Dispatchers.IO
-
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
 internal val DEFAULT_BYTE_BUFFER_POOL_SIZE: Int = 4096
@@ -47,15 +31,15 @@ public val DefaultByteBufferPool: ObjectPool<ByteBuffer> =
  */
 @InternalAPI
 public val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> =
-    io.ktor.utils.io.pool.DirectByteBufferPool(2048, MAX_DATAGRAM_SIZE)
+    DirectByteBufferPool(2048, MAX_DATAGRAM_SIZE)
 
 @Deprecated(
-    level = DeprecationLevel.WARNING,
+    level = DeprecationLevel.ERROR,
     message = "ByteBufferPool is moved to `io` module",
     replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
 )
 internal class DirectByteBufferPool(private val bufferSize: Int, size: Int) : DefaultPool<ByteBuffer>(size) {
-    override fun produceInstance(): ByteBuffer = java.nio.ByteBuffer.allocateDirect(bufferSize)
+    override fun produceInstance(): ByteBuffer = ByteBuffer.allocateDirect(bufferSize)
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer {
         instance.clear()

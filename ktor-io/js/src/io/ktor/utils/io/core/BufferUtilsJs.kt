@@ -1,10 +1,8 @@
-@file:Suppress("ReplaceRangeToWithUntil", "RedundantModalityModifier", "DEPRECATION", "DEPRECATION_ERROR")
+@file:Suppress("ReplaceRangeToWithUntil", "RedundantModalityModifier")
 
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.*
 import org.khronos.webgl.*
 import kotlin.contracts.*
 

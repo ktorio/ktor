@@ -14,7 +14,7 @@ import io.ktor.utils.io.charsets.*
  *
  * Note if T is a streaming type, you should manage how to close it manually.
  */
-@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>"), level = DeprecationLevel.ERROR)
+@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>()"), level = DeprecationLevel.ERROR)
 public suspend inline fun <reified T> HttpStatement.receive(): T = error("Use `body` method instead")
 
 /**
@@ -22,7 +22,7 @@ public suspend inline fun <reified T> HttpStatement.receive(): T = error("Use `b
  *
  * Note that T can be a streamed type such as [ByteReadChannel].
  */
-@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>"), level = DeprecationLevel.ERROR)
+@Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body<T>()"), level = DeprecationLevel.ERROR)
 public suspend inline fun <reified T, R> HttpStatement.receive(crossinline block: suspend (response: T) -> R): R =
     error("Use `body` method instead")
 
