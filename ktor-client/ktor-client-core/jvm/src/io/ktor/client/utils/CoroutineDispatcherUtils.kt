@@ -20,18 +20,6 @@ public actual fun Dispatchers.clientDispatcher(
     dispatcherName: String
 ): CoroutineDispatcher = ClosableBlockingDispatcher(threadCount, dispatcherName)
 
-/**
- * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
- */
-@Suppress("unused")
-@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-public fun Dispatchers.fixedThreadPoolDispatcher(
-    threadCount: Int,
-    dispatcherName: String = "client-dispatcher"
-): CoroutineDispatcher {
-    return clientDispatcher(threadCount, dispatcherName)
-}
-
 internal actual fun checkCoroutinesVersion() {
 }
 

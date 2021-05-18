@@ -110,20 +110,6 @@ public open class Buffer(public val memory: Memory) {
         readPosition = newReadPosition
     }
 
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public fun discard(count: Int): Int {
-        val size = minOf(count, readRemaining)
-        discardExact(size)
-        return size
-    }
-
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public final fun discard(count: Long): Long {
-        val size = minOf(count, readRemaining.toLong()).toInt()
-        discardExact(size)
-        return size.toLong()
-    }
-
     @DangerousInternalIoApi
     public fun commitWritten(count: Int) {
         val newWritePosition = writePosition + count

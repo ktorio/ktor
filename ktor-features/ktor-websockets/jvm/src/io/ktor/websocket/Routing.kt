@@ -123,7 +123,8 @@ public fun Route.webSocketRaw(
  */
 @Deprecated(
     "Use webSocketRaw(protocol = protocol, handler = handler) instead.",
-    ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)")
+    ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)"),
+    DeprecationLevel.ERROR
 )
 public fun Route.webSocketRaw(
     webSocketProtocol: String,
@@ -165,7 +166,8 @@ public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWeb
  */
 @Deprecated(
     "Use webSocket(protocol = protocol, handler = handler) instead.",
-    ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)")
+    ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)"),
+    DeprecationLevel.ERROR
 )
 public fun Route.webSocket(
     webSocketProtocol: String,

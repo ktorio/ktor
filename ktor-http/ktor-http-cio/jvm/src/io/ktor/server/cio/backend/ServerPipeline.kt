@@ -25,7 +25,7 @@ import java.io.*
  *
  * @return pipeline job
  */
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,

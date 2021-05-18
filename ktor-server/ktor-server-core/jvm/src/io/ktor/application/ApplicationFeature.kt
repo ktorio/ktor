@@ -64,7 +64,6 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     when (installedFeature) {
         null -> {
             try {
-                @Suppress("DEPRECATION_ERROR")
                 val installed = feature.install(this, configure)
                 registry.put(feature.key, installed)
                 // environment.log.trace("`${feature.name}` feature was installed successfully.")

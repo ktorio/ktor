@@ -149,7 +149,6 @@ internal fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-@Deprecated("Rewrite to Memory.copyTo")
 private inline fun ByteBuffer.copyUntilDirect(
     predicate: (Byte) -> Boolean,
     dst: ByteArray,

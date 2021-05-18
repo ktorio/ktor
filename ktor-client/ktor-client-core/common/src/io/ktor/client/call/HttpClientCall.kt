@@ -26,7 +26,7 @@ internal fun HttpClientCall(
     response = DefaultHttpResponse(this, responseData)
 
     if (responseData.body !is ByteReadChannel) {
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         attributes.put(HttpClientCall.CustomResponse, responseData.body)
     }
 }
@@ -80,7 +80,7 @@ public open class HttpClientCall internal constructor(
                 throw DoubleReceiveException(this)
             }
 
-            @Suppress("DEPRECATION")
+            @Suppress("DEPRECATION_ERROR")
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
@@ -112,8 +112,8 @@ public open class HttpClientCall internal constructor(
          * Example: [WebSocketSession]
          */
         @Deprecated(
-            "This is going to be removed. " +
-                "Please file a ticket with clarification why and what for do you need it."
+            "This is going to be removed. Please file a ticket with clarification why and what for do you need it.",
+            level = DeprecationLevel.ERROR
         )
         public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
