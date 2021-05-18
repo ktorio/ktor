@@ -4,7 +4,6 @@ public final class io/ktor/client/features/json/DefaultJvmKt {
 
 public final class io/ktor/client/features/json/JsonFeature {
 	public static final field Feature Lio/ktor/client/features/json/JsonFeature$Feature;
-	public fun <init> (Lio/ktor/client/features/json/JsonSerializer;)V
 	public final fun getAcceptContentTypes ()Ljava/util/List;
 	public final fun getSerializer ()Lio/ktor/client/features/json/JsonSerializer;
 }

@@ -14,7 +14,8 @@ import java.nio.charset.*
  */
 @Deprecated(
     "This is going to be removed or renamed.",
-    ReplaceWith("writeFully(string.toByteArray(charset))", "io.ktor.utils.io.writeFully")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("writeFully(string.toByteArray(charset))", "io.ktor.utils.io.writeFully")
 )
 public suspend fun ByteWriteChannel.write(string: String, charset: Charset = Charsets.UTF_8) {
     writeFully(string.toByteArray(charset))

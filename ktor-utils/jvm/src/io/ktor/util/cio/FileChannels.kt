@@ -85,19 +85,6 @@ public fun File.readChannel(
 }
 
 /**
- * Open a write channel for file and launch a coroutine to read from it.
- * The coroutine is launched on [Dispatchers.IO].
- */
-@Deprecated(
-    "Pool is not required here anymore so use writeChannel without specifying a pool.",
-    ReplaceWith("writeChannel()"),
-    level = DeprecationLevel.ERROR
-)
-public fun File.writeChannel(
-    @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
-): ByteWriteChannel = writeChannel()
-
-/**
  * Open a write channel for the file and launch a coroutine to read from it.
  * Please note that file writing is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
