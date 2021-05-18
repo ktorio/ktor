@@ -63,7 +63,7 @@ public open class ResponseException(
     response: HttpResponse,
     cachedResponseText: String
 ) : IllegalStateException("Bad response: $response. Text: \"$cachedResponseText\"") {
-    @Deprecated(level = DeprecationLevel.WARNING, message = DEPRECATED_EXCEPTION_CTOR)
+    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     @delegate:Transient
@@ -78,7 +78,7 @@ public open class ResponseException(
 @Suppress("KDocMissingDocumentation")
 public class RedirectResponseException(response: HttpResponse, cachedResponseText: String) :
     ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.WARNING, message = DEPRECATED_EXCEPTION_CTOR)
+    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String? = "Unhandled redirect: ${response.call.request.url}. " +
@@ -93,7 +93,7 @@ public class ServerResponseException(
     response: HttpResponse,
     cachedResponseText: String
 ) : ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.WARNING, message = DEPRECATED_EXCEPTION_CTOR)
+    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String? = "Server error(${response.call.request.url}: " +
@@ -108,7 +108,7 @@ public class ClientRequestException(
     response: HttpResponse,
     cachedResponseText: String
 ) : ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.WARNING, message = DEPRECATED_EXCEPTION_CTOR)
+    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String = "Client request(${response.call.request.url}) " +

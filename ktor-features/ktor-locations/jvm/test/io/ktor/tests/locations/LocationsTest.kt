@@ -566,13 +566,13 @@ class LocationsTest {
         withLocationsApplication {
             application.routing {
                 get<index> { index ->
-                    assertSame(index, call.locationOrNull())
+                    assertSame(index, call.location())
                     assertSame(index, call.location())
                     call.respondText("OK")
                 }
                 get("/no-location") {
                     assertFails {
-                        assertNull(call.locationOrNull<index>())
+                        assertNull(call.location())
                     }
                     assertFails {
                         assertNull(call.location<index>())

@@ -9,12 +9,6 @@ import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
-@Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
-@Suppress("KDocMissingDocumentation", "unused")
-public fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
-    return isLastHttpRequest(http11, connectionOptions)
-}
-
 /**
  * HTTP request handler function
  */
@@ -25,19 +19,28 @@ public typealias HttpRequestHandler = suspend ServerRequestScope.(
 /**
  * HTTP pipeline coroutine name
  */
-@Deprecated("This is an implementation detail and will become internal in future releases.")
+@Deprecated(
+    "This is an implementation detail and will become internal in future releases.",
+    level = DeprecationLevel.ERROR
+)
 public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
 /**
  * HTTP pipeline writer coroutine name
  */
-@Deprecated("This is an implementation detail and will become internal in future releases.")
+@Deprecated(
+    "This is an implementation detail and will become internal in future releases.",
+    level = DeprecationLevel.ERROR
+)
 public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
 
 /**
  * HTTP request handler coroutine name
  */
-@Deprecated("This is an implementation detail and will become internal in future releases.")
+@Deprecated(
+    "This is an implementation detail and will become internal in future releases.",
+    level = DeprecationLevel.ERROR
+)
 public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
 /**
@@ -53,7 +56,8 @@ public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handl
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts."
+        "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts.",
+    level = DeprecationLevel.ERROR
 )
 public fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,

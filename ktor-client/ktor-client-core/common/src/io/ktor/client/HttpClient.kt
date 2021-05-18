@@ -114,17 +114,6 @@ public class HttpClient(
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
-     * Dispatcher handles io operations.
-     */
-    @Deprecated(
-        "[dispatcher] is deprecated. Use coroutineContext instead.",
-        replaceWith = ReplaceWith("coroutineContext"),
-        level = DeprecationLevel.ERROR
-    )
-    public val dispatcher: CoroutineDispatcher
-        get() = engine.dispatcher
-
-    /**
      * Client engine config.
      */
     public val engineConfig: HttpClientEngineConfig = engine.config
@@ -178,16 +167,7 @@ public class HttpClient(
     /**
      * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
-    @Deprecated(
-        "Unbound [HttpClientCall] is deprecated. Consider using [request(builder)] instead.",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith(
-            "this.request(builder)",
-            "io.ktor.client.statement.*"
-        )
-    )
-    @InternalAPI
-    public suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
+    internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
         requestPipeline.execute(builder, builder.body) as HttpClientCall
 
     /**
