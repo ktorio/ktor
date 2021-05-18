@@ -13,6 +13,7 @@ import kotlin.reflect.jvm.*
 /**
  * Data conversion feature to serialize and deserialize types using [converters] registry
  */
+@Suppress("DEPRECATION_ERROR")
 public class DataConversion(private val converters: Map<Type, ConversionService>) : ConversionService {
     override fun fromValues(values: List<String>, type: Type): Any? {
         val converter = converters[type] ?: DefaultConversionService
@@ -35,7 +36,7 @@ public class DataConversion(private val converters: Map<Type, ConversionService>
          * Register a [convertor] for [klass] type
          */
         public fun convert(klass: KClass<*>, convertor: ConversionService) {
-            converters.put(klass.java, convertor)
+            converters[klass.java] = convertor
         }
 
         /**
@@ -75,6 +76,7 @@ public class DataConversion(private val converters: Map<Type, ConversionService>
 /**
  * Custom convertor builder
  */
+@Suppress("DEPRECATION_ERROR")
 public class DelegatingConversionService internal constructor(private val klass: KClass<*>) : ConversionService {
     private var decoder: ((values: List<String>, type: Type) -> Any?)? = null
     private var encoder: ((value: Any?) -> List<String>)? = null
@@ -111,5 +113,6 @@ public class DelegatingConversionService internal constructor(private val klass:
 /**
  * Lookup for a conversion service. Returns the default one if the feature wasn't installed
  */
+@Suppress("DEPRECATION_ERROR")
 public val ApplicationCallPipeline.conversionService: ConversionService
     get() = featureOrNull(DataConversion) ?: DefaultConversionService

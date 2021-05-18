@@ -43,7 +43,7 @@ class ConnectErrorsTest {
             engine {
                 maxConnectionsCount = 1
                 endpoint.connectTimeout = SOCKET_CONNECT_TIMEOUT
-                endpoint.connectRetryAttempts = 3
+                endpoint.connectAttempts = 3
             }
         }
 
@@ -96,7 +96,7 @@ class ConnectErrorsTest {
 
                 endpoint {
                     connectTimeout = SOCKET_CONNECT_TIMEOUT
-                    connectRetryAttempts = 1
+                    connectAttempts = 1
                 }
 
                 https {

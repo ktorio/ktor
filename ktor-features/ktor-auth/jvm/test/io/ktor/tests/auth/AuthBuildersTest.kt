@@ -446,7 +446,7 @@ class AuthBuildersTest {
     fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
         class CustomErrorCause : AuthenticationFailedCause.Error("custom error")
 
-        @Suppress("DEPRECATION", "unused")
+        @Suppress("DEPRECATION_ERROR", "unused")
         class DeprecationTest : AuthenticationFailedCause.Error(cause = "deprecated") {
             fun f(): String = cause
         }
@@ -508,7 +508,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication<Unit> {
+    fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication {
         application.apply {
             authentication {
                 provider("custom") {
@@ -546,7 +546,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testAuthDoesntChangeRoutePriority(): Unit = withTestApplication<Unit> {
+    fun testAuthDoesntChangeRoutePriority(): Unit = withTestApplication {
         application.apply {
             application.install(Authentication) {
                 form { validate { c -> UserIdPrincipal(c.name) } }

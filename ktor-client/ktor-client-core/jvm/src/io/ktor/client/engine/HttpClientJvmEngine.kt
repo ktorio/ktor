@@ -13,7 +13,11 @@ import kotlin.coroutines.*
  * Base jvm implementation for [HttpClientEngine]
  */
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Use HttpClientEngineBase instead.", replaceWith = ReplaceWith("HttpClientEngineBase"))
+@Deprecated(
+    "Use HttpClientEngineBase instead.",
+    replaceWith = ReplaceWith("HttpClientEngineBase"),
+    level = DeprecationLevel.ERROR
+)
 public abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val clientContext = SilentSupervisor()
     private val _dispatcher by lazy {

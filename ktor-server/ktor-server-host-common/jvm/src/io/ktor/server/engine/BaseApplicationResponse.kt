@@ -225,17 +225,6 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
     protected abstract suspend fun responseChannel(): ByteWriteChannel
 
     /**
-     * ByteBuffer pool
-     */
-    @Deprecated(
-        "Avoid specifying pools or use KtorDefaultPool instead.",
-        ReplaceWith("KtorDefaultPool", "io.ktor.util.cio.KtorDefaultPool"),
-        level = DeprecationLevel.ERROR
-    )
-    protected open val bufferPool: ObjectPool<ByteBuffer>
-        get() = KtorDefaultPool
-
-    /**
      * Set underlying engine's response status
      */
     protected abstract fun setStatus(statusCode: HttpStatusCode)
