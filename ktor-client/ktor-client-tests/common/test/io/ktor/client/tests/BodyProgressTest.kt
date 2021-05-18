@@ -19,7 +19,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-class ObservableBodyTest : ClientLoader() {
+class BodyProgressTest : ClientLoader() {
 
     @Serializable
     data class User(val login: String, val id: Long)
@@ -40,7 +40,8 @@ class ObservableBodyTest : ClientLoader() {
 
             val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
                 contentType(ContentType.Application.Json)
-                body = observableBodyOf(User("123".repeat(5000), 1), listener)
+                body = User("123".repeat(5000), 1)
+                onUpload(listener)
             }
             assertTrue(invokedCount >= 2)
         }
@@ -60,7 +61,8 @@ class ObservableBodyTest : ClientLoader() {
             }
 
             val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
-                body = observableBodyOf(channel, listener)
+                body = channel
+                onUpload(listener)
             }
             assertTrue(invokedCount > 2)
         }
@@ -73,7 +75,8 @@ class ObservableBodyTest : ClientLoader() {
             val listener: ProgressListener = { count, total -> invokedCount++ }
 
             val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
-                body = observableBodyOf(ByteArray(1025 * 16), listener)
+                body = ByteArray(1025 * 16)
+                onUpload(listener)
             }
             assertTrue(invokedCount > 2)
         }
@@ -93,7 +96,8 @@ class ObservableBodyTest : ClientLoader() {
 
             assertFailsWith<RuntimeException> {
                 val response: HttpResponse = client.post("$TEST_SERVER/content/echo") {
-                    body = observableBodyOf(channel, listener)
+                    body = channel
+                    onUpload(listener)
                 }
             }
         }

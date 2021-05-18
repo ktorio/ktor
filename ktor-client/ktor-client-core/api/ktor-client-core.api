@@ -279,6 +279,7 @@ public final class io/ktor/client/features/BodyProgress$Feature : io/ktor/client
 
 public final class io/ktor/client/features/BodyProgressKt {
 	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function2;)V
+	public static final fun onUpload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
@@ -900,13 +901,6 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getReceive ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
-}
-
-public final class io/ktor/client/request/ObservableBody {
-	public fun <init> (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function2;)V
-	public final fun getBody ()Ljava/lang/Object;
-	public final fun getBodyType ()Lio/ktor/util/reflect/TypeInfo;
-	public final fun getListener ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class io/ktor/client/request/UtilsKt {
