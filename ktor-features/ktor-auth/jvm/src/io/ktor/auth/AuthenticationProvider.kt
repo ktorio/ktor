@@ -20,13 +20,6 @@ public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credential
  * Represents an authentication provider with the given name
  */
 public open class AuthenticationProvider(config: Configuration) {
-
-    @Deprecated(
-        "Provider should be built using configuration that need to be passed via constructor instead.",
-        level = DeprecationLevel.ERROR
-    )
-    public constructor(name: String? = null) : this(NamedConfiguration(name))
-
     private var filterPredicates: MutableList<ApplicationCallPredicate>? = config.filterPredicates
 
     /**
@@ -49,19 +42,6 @@ public open class AuthenticationProvider(config: Configuration) {
      * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
      */
     public val skipWhen: List<ApplicationCallPredicate> get() = filterPredicates ?: emptyList()
-
-    /**
-     * Adds an authentication filter to the list
-     */
-    @Deprecated(
-        "List of predicates should be built in configuration and then be passed via constructor instead.",
-        level = DeprecationLevel.ERROR
-    )
-    public fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
-        val list = filterPredicates ?: mutableListOf()
-        list.add(predicate)
-        filterPredicates = list
-    }
 
     /**
      * Authentication provider configuration base class

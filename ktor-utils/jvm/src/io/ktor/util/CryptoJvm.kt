@@ -12,14 +12,6 @@ import kotlinx.coroutines.*
 import java.security.*
 
 /**
- * Create a digest function with the specified [algorithm] and [salt]
- */
-@Suppress("DeprecatedCallableAddReplaceWith")
-@Deprecated("Use getDigestFunction with non-constant salt.", level = DeprecationLevel.ERROR)
-public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray =
-    getDigestFunction(algorithm) { salt }
-
-/**
  * Create a digest function with the specified [algorithm] and [salt] provider.
  * @param algorithm digest algorithm name
  * @param salt a function computing a salt for a particular hash input value

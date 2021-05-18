@@ -1,8 +1,3 @@
-public final class io/ktor/server/jetty/DevelopmentEngine {
-	public static final field INSTANCE Lio/ktor/server/jetty/DevelopmentEngine;
-	public static final fun main ([Ljava/lang/String;)V
-}
-
 public final class io/ktor/server/jetty/EngineMain {
 	public static final field INSTANCE Lio/ktor/server/jetty/EngineMain;
 	public static final fun main ([Ljava/lang/String;)V

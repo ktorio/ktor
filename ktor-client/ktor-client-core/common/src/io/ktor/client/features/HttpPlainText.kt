@@ -93,17 +93,6 @@ public class HttpPlainText internal constructor(
          * Use it if no charset specified.
          */
         public var responseCharsetFallback: Charset = Charsets.UTF_8
-
-        /**
-         * Default [Charset] to use.
-         */
-        @Suppress("unused")
-        @Deprecated(
-            "Use [register] method instead.",
-            replaceWith = ReplaceWith("register()"),
-            level = DeprecationLevel.ERROR
-        )
-        public var defaultCharset: Charset = Charsets.UTF_8
     }
 
     @Suppress("KDocMissingDocumentation")
@@ -164,19 +153,6 @@ public class HttpPlainText internal constructor(
         if (context.headers[HttpHeaders.AcceptCharset] != null) return
         context.headers[HttpHeaders.AcceptCharset] = acceptCharsetHeader
     }
-
-    /**
-     * Deprecated
-     */
-    @Suppress("unused", "UNUSED_PARAMETER")
-    @Deprecated(
-        "Use [Config.register] method instead.",
-        replaceWith = ReplaceWith("register()"),
-        level = DeprecationLevel.ERROR
-    )
-    public var defaultCharset: Charset
-        get() = error("defaultCharset is deprecated")
-        set(value) = error("defaultCharset is deprecated")
 }
 
 /**

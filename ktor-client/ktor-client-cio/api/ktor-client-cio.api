@@ -31,10 +31,6 @@ public final class io/ktor/client/engine/cio/ClientClosedException : java/lang/I
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
-	public fun <init> ()V
-}
-
 public final class io/ktor/client/engine/cio/EndpointConfig {
 	public fun <init> ()V
 	public final fun getAllowHalfClose ()Z

@@ -199,7 +199,8 @@ internal class JavaHttpWebSocket(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        DeprecationLevel.ERROR
     )
     override fun terminate() {
         socketJob.cancel()

@@ -28,34 +28,11 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
 }
 
 /**
- * Sends a [message] as a response
- */
-@Deprecated(
-    message = "This method doesn't save type of the response. This can lead to error in serialization",
-    level = DeprecationLevel.HIDDEN
-)
-public suspend inline fun ApplicationCall.respond(message: Any) {
-    response.pipeline.execute(this, message)
-}
-
-/**
  * Sets [status] and sends a [message] as a response
  */
 @OptIn(ExperimentalStdlibApi::class)
 @JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
-    response.status(status)
-    respond(message)
-}
-
-/**
- * Sets [status] and sends a [message] as a response
- */
-@Deprecated(
-    message = "This method doesn't save type of the response. This can lead to error in serialization",
-    level = DeprecationLevel.HIDDEN
-)
-public suspend inline fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
     response.status(status)
     respond(message)
 }

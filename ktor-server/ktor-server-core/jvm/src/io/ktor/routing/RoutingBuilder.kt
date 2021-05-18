@@ -322,7 +322,7 @@ public object PathSegmentSelectorBuilder {
      */
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("parseParameter(value)")
     )
     public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector = parseParameter(value)
@@ -340,7 +340,7 @@ public object PathSegmentSelectorBuilder {
      */
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("parseConstant(value)")
     )
     public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = parseConstant(value)
