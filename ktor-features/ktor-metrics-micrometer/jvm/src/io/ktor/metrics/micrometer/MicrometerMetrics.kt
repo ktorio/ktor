@@ -50,7 +50,8 @@ public class MicrometerMetrics private constructor(
 
     @Deprecated(
         "This is going to become internal. " +
-            "Please file a ticket and clarify, why do you need it."
+            "Please file a ticket and clarify, why do you need it.",
+        level = DeprecationLevel.ERROR
     )
     public constructor(
         registry: MeterRegistry,
@@ -179,7 +180,7 @@ public class MicrometerMetrics private constructor(
         @Deprecated(
             "static request time timer name is deprecated",
             ReplaceWith("requestTimeTimerName"),
-            DeprecationLevel.WARNING
+            DeprecationLevel.ERROR
         )
         public const val requestTimerName: String = "$defaultBaseName.requests"
 
@@ -195,7 +196,7 @@ public class MicrometerMetrics private constructor(
         @Deprecated(
             "static gauge name is deprecated",
             ReplaceWith("activeRequestsGaugeName"),
-            DeprecationLevel.WARNING
+            DeprecationLevel.ERROR
         )
         public const val activeGaugeName: String = "$defaultBaseName.requests.active"
 

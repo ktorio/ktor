@@ -171,9 +171,7 @@ public final class io/ktor/server/testing/TestApplicationResponse : io/ktor/serv
 	public fun <init> (Lio/ktor/server/testing/TestApplicationCall;Z)V
 	public synthetic fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun awaitWebSocket (J)V
-	public final synthetic fun awaitWebSocket (Ljava/time/Duration;)V
 	public final fun contentChannel ()Lio/ktor/utils/io/ByteReadChannel;
-	public final synthetic fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getByteContent ()[B
 	public final fun getContent ()Ljava/lang/String;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;

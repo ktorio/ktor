@@ -63,6 +63,8 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
             api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
             api(project(":ktor-client:ktor-client-features:ktor-client-content-negotiation"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-json"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
             api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
         }
     }

@@ -29,17 +29,6 @@ public class HSTS(config: Configuration) {
         public var includeSubDomains: Boolean = true
 
         /**
-         * Duration to tell the client to keep the host in a list of known HSTS hosts
-         */
-        @Suppress("unused", "DEPRECATION")
-        @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.HIDDEN)
-        public var maxAge: java.time.Duration
-            get() = maxAge
-            set(newDuration) {
-                maxAge = newDuration
-            }
-
-        /**
          * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
          */
         public var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE

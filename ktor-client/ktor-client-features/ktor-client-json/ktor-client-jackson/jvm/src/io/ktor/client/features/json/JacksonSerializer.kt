@@ -11,7 +11,9 @@ import io.ktor.http.content.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
 
-@Deprecated("Please use ContentNegotiation feature and its converters")
+@Deprecated(
+    "Please use ContentNegotiation feature and its converters"
+)
 public class JacksonSerializer(
     jackson: ObjectMapper = jacksonObjectMapper(),
     block: ObjectMapper.() -> Unit = {}
