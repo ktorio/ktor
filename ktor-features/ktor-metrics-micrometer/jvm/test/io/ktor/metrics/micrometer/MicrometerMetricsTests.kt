@@ -6,6 +6,8 @@ package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.metrics.micrometer.MicrometerMetrics.Feature.activeRequestsGaugeName
+import io.ktor.metrics.micrometer.MicrometerMetrics.Feature.requestTimeTimerName
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -49,7 +51,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
+        val timers = testRegistry.find(requestTimeTimerName).timers()
         assertEquals(1, timers.size)
         timers.first().run {
             assertTag("throwable", "n/a")
@@ -85,7 +87,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+        with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
                 assertTag("throwable", "java.lang.IllegalAccessException")
@@ -117,7 +119,7 @@ class MicrometerMetricsTests {
             uri = "/uri/someParameterValue"
         }
 
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+        with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
                 assertTag("throwable", "n/a")
@@ -150,7 +152,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+        with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
                 assertTag("customTag", "customValue")
@@ -160,8 +162,8 @@ class MicrometerMetricsTests {
     }
 
     private fun MeterRegistry.assertActive(expectedValue: Double) {
-        assertEquals(expectedValue, this[MicrometerMetrics.activeGaugeName].gauge().value())
-        assertEquals(expectedValue, this[MicrometerMetrics.activeRequestsGaugeName].gauge().value())
+        assertEquals(expectedValue, this[activeRequestsGaugeName].gauge().value())
+        assertEquals(expectedValue, this[activeRequestsGaugeName].gauge().value())
     }
 
     @Test
@@ -184,7 +186,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
+        val timers = testRegistry.find(requestTimeTimerName).timers()
         assertEquals(1, timers.size)
         val percentileValues = timers.first().takeSnapshot().percentileValues()
         assertEquals(
@@ -215,7 +217,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+        with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
                 assertTag("throwable", "n/a")
@@ -248,7 +250,7 @@ class MicrometerMetricsTests {
                 uri = "/uri"
             }
 
-            with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+            with(testRegistry.find(requestTimeTimerName).timers()) {
                 assertEquals(1, size)
                 this.first().run {
                     assertTag("throwable", "n/a")
@@ -341,8 +343,8 @@ class MicrometerMetricsTests {
             baseName = newBaseName
         }
 
-        assertEquals("$newBaseName.requests", MicrometerMetrics.requestTimeTimerName)
-        assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeRequestsGaugeName)
+        assertEquals("$newBaseName.requests", requestTimeTimerName)
+        assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
     }
 
     @Test
@@ -365,12 +367,12 @@ class MicrometerMetricsTests {
         }
 
         with(testRegistry) {
-            val timer = find(MicrometerMetrics.requestTimerName).timer()
-            val configurableTimer = find(MicrometerMetrics.requestTimeTimerName).timer()
+            val timer = find(requestTimeTimerName).timer()
+            val configurableTimer = find(requestTimeTimerName).timer()
             assertEquals(timer, configurableTimer)
 
-            val gauge = find(MicrometerMetrics.activeGaugeName).gauge()
-            val configurableGauge = find(MicrometerMetrics.activeRequestsGaugeName).gauge()
+            val gauge = find(activeRequestsGaugeName).gauge()
+            val configurableGauge = find(activeRequestsGaugeName).gauge()
             assertEquals(gauge, configurableGauge)
         }
     }

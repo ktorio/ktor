@@ -9,7 +9,6 @@ import io.ktor.auth.*
 import io.ktor.client.call.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -32,72 +31,6 @@ class SessionAuthTest {
                         call.respond(UnauthorizedResponse())
                     }
                 }
-            }
-
-            application.routing {
-                authenticate {
-                    get("/") { call.respondText("Secret info") }
-                    get("/logout") {
-                        call.sessions.clear<MySession>()
-                        call.respondRedirect("/")
-                    }
-                    get("/child/logout") {
-                        call.sessions.clear<MySession>()
-                        call.respondRedirect("/")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/").let { call ->
-                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
-            }
-
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader("Cookie", "S=${defaultSessionSerializer<MySession>().serialize(MySession(1))}")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
-
-            runBlocking {
-                val cookieStorage = AcceptAllCookiesStorage()
-
-                client.config {
-                    expectSuccess = false
-                    install(HttpCookies) {
-                        storage = cookieStorage
-                    }
-                }.use { client ->
-                    cookieStorage.addCookie(
-                        "/",
-                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
-                    )
-
-                    val first = client.get("/child/logout")
-                    first.body<String>()
-                    assertEquals(HttpStatusCode.Unauthorized, first.status)
-
-                    cookieStorage.addCookie(
-                        "/",
-                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
-                    )
-
-                    val second = client.get("logout")
-                    second.body<String>()
-                    assertEquals(HttpStatusCode.Unauthorized, second.status)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testSessionOnlyDeprecated() {
-        withTestApplication {
-            application.install(Sessions) {
-                cookie<MySession>("S")
-            }
-            @Suppress("DEPRECATION_ERROR")
-            application.install(Authentication) {
-                session<MySession>(challenge = SessionAuthChallenge.Unauthorized)
             }
 
             application.routing {

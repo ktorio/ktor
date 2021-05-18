@@ -48,13 +48,6 @@ public abstract class Output internal constructor(
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
 
-    @PublishedApi
-    @Deprecated("Will be removed in future releases.", level = DeprecationLevel.HIDDEN)
-    internal val tail: ChunkBuffer
-        get() {
-            return prepareWriteHead(1)
-        }
-
     internal var tailMemory: Memory
         get() = state.tailMemory
         set(value) {

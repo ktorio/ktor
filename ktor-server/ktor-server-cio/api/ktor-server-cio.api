@@ -16,11 +16,6 @@ public final class io/ktor/server/cio/CIOApplicationEngine$Configuration : io/kt
 	public final fun setConnectionIdleTimeoutSeconds (I)V
 }
 
-public final class io/ktor/server/cio/DevelopmentEngine {
-	public static final field INSTANCE Lio/ktor/server/cio/DevelopmentEngine;
-	public static final fun main ([Ljava/lang/String;)V
-}
-
 public final class io/ktor/server/cio/EngineMain {
 	public static final field INSTANCE Lio/ktor/server/cio/EngineMain;
 	public static final fun main ([Ljava/lang/String;)V
@@ -34,11 +29,7 @@ public final class io/ktor/server/cio/HttpServer {
 }
 
 public final class io/ktor/server/cio/HttpServerKt {
-	public static final synthetic fun httpServer (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
-	public static final synthetic fun httpServer (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
 	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function6;)Lio/ktor/server/cio/HttpServer;
-	public static synthetic fun httpServer$default (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/cio/HttpServer;
-	public static synthetic fun httpServer$default (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/cio/HttpServer;
 }
 
 public final class io/ktor/server/cio/HttpServerSettings {

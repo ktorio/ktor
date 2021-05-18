@@ -20,7 +20,6 @@ public interface Parameters : StringValues {
         /**
          * Empty [Parameters] instance
          */
-        @Suppress("DEPRECATION_ERROR")
         public val Empty: Parameters = EmptyParameters
 
         /**
@@ -38,31 +37,11 @@ public class ParametersBuilder(
     public var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
 ) : StringValuesBuilder(true, size) {
 
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    public constructor(size: Int = 8) : this(size, UrlEncodingOption.DEFAULT)
-
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
         return ParametersImpl(values, urlEncodingOption)
     }
-}
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Empty parameters is internal",
-    replaceWith = ReplaceWith("Parameters.Empty"),
-    level = DeprecationLevel.ERROR
-)
-public object EmptyParameters : Parameters {
-    override val caseInsensitiveName: Boolean get() = true
-    override fun getAll(name: String): List<String>? = null
-    override fun names(): Set<String> = emptySet()
-    override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
-    override fun isEmpty(): Boolean = true
-    override fun toString(): String = "Parameters ${entries()}"
-
-    override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }
 
 /**
@@ -92,9 +71,6 @@ public class ParametersImpl(
     override val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
 ) : Parameters, StringValuesImpl(true, values) {
 
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    public constructor(values: Map<String, List<String>> = emptyMap()) : this(values, UrlEncodingOption.DEFAULT)
-
     override fun toString(): String = "Parameters ${entries()}"
 }
 
@@ -119,4 +95,15 @@ public operator fun Parameters.plus(other: Parameters): Parameters = when {
             "Cannot concatenate Parameters with case-sensitive and case-insensitive names"
         )
     }
+}
+
+internal object EmptyParameters : Parameters {
+    override val caseInsensitiveName: Boolean get() = true
+    override fun getAll(name: String): List<String>? = null
+    override fun names(): Set<String> = emptySet()
+    override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
+    override fun isEmpty(): Boolean = true
+    override fun toString(): String = "Parameters ${entries()}"
+
+    override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }

@@ -26,7 +26,11 @@ public expect val CharsetEncoder.charset: Charset
 
 @Deprecated(
     "Use writeText on Output instead.",
-    ReplaceWith("dst.writeText(input, fromIndex, toIndex, charset)", "io.ktor.utils.io.core.writeText")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith(
+        "dst.writeText(input, fromIndex, toIndex, charset)",
+        "io.ktor.utils.io.core.writeText"
+    )
 )
 public fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Output) {
     encodeToImpl(dst, input, fromIndex, toIndex)
@@ -41,6 +45,7 @@ public expect fun CharsetEncoder.encodeToByteArray(
 
 @Deprecated(
     "Internal API. Will be hidden in future releases. Use encodeToByteArray instead.",
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("encodeToByteArray(input, fromIndex, toIndex)")
 )
 public fun CharsetEncoder.encodeToByteArrayImpl(

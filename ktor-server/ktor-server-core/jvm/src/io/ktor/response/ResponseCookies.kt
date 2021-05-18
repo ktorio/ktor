@@ -35,7 +35,7 @@ public class ResponseCookies(
     /**
      * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
      */
-    @Deprecated("Convert maxAge to Long")
+    @Deprecated("Convert maxAge to Long", level = DeprecationLevel.ERROR)
     public fun append(
         name: String,
         value: String,
