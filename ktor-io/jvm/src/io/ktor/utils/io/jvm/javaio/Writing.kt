@@ -1,6 +1,7 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import java.io.*
 
 /**
