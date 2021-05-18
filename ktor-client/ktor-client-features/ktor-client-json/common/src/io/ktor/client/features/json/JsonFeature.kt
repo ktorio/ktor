@@ -43,9 +43,6 @@ public class JsonFeature internal constructor(
     public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
     private val receiveContentTypeMatchers: List<ContentTypeMatcher> = listOf(JsonContentTypeMatcher()),
 ) {
-    @Deprecated("Install feature properly instead of direct instantiation.", level = DeprecationLevel.ERROR)
-    public constructor(serializer: JsonSerializer) : this(serializer, listOf(ContentType.Application.Json))
-
     internal constructor(config: Config) : this(
         config.serializer ?: defaultSerializer(),
         config.acceptContentTypes,

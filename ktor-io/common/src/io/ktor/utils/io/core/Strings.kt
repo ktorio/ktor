@@ -205,19 +205,6 @@ public fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray 
 }
 
 /**
- * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
- * @return number of characters copied to [out]
- */
-@Deprecated(
-    "Use CharsetDecoder.decode instead",
-    ReplaceWith("decoder.decode(this, out, max)", "io.ktor.utils.io.charsets.decode"),
-    level = DeprecationLevel.ERROR
-)
-public fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
-    return decoder.decode(this, out, max)
-}
-
-/**
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
@@ -289,26 +276,6 @@ public fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: In
  */
 public fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets.UTF_8): String {
     return charset.newDecoder().decodeExactBytes(this, inputLength = bytesCount)
-}
-
-/**
- * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
- */
-@Deprecated(
-    "Use the implementation with Charset instead",
-    ReplaceWith(
-        "writeText(text, fromIndex, toIndex, encoder.charset)",
-        "io.ktor.utils.io.charsets.charset"
-    ),
-    level = DeprecationLevel.ERROR
-)
-public fun Output.writeText(
-    text: CharSequence,
-    fromIndex: Int = 0,
-    toIndex: Int = text.length,
-    encoder: CharsetEncoder
-) {
-    encoder.encodeToImpl(this, text, fromIndex, toIndex)
 }
 
 /**

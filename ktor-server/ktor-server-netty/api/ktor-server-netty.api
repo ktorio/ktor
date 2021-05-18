@@ -4,11 +4,6 @@ public final class io/ktor/server/netty/CIOKt {
 	public static final fun suspendWriteAwait (Lio/netty/util/concurrent/Future;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/netty/DevelopmentEngine {
-	public static final field INSTANCE Lio/ktor/server/netty/DevelopmentEngine;
-	public static final fun main ([Ljava/lang/String;)V
-}
-
 public final class io/ktor/server/netty/EngineMain {
 	public static final field INSTANCE Lio/ktor/server/netty/EngineMain;
 	public static final fun main ([Ljava/lang/String;)V

@@ -152,10 +152,6 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
 public data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
-    @Suppress("unused", "CONFLICTING_OVERLOADS")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(etag: String) : this(etag.removePrefix("W/"), etag.startsWith("W/"))
-
     private val normalized: String = when {
         etag == "*" -> etag
         etag.startsWith("\"") -> etag

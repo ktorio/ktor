@@ -342,16 +342,8 @@ public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/so
 public final class io/ktor/network/sockets/UDPSocketBuilder$Companion {
 }
 
-public final class io/ktor/network/util/IOCoroutineDispatcher : kotlinx/coroutines/CoroutineDispatcher, java/io/Closeable {
-	public fun <init> (I)V
-	public fun close ()V
-	public fun dispatch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
-}
-
 public final class io/ktor/network/util/PoolsKt {
 	public static final fun getDefaultByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public static final fun getDefaultDatagramByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public static final synthetic fun getIoCoroutineDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
-	public static final synthetic fun getIoThreadGroup ()Ljava/lang/ThreadGroup;
 }
 

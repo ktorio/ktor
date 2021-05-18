@@ -23,7 +23,8 @@ public class ConditionalHeaders(private val versionProviders: List<suspend (Outg
         internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
 
         init {
-            versionProviders.add { content -> content.defaultVersions }
+            versionProviders.add { content -> content.versions }
+            versionProviders.add { content -> content.headers.parseVersions() }
         }
 
         /**
@@ -110,7 +111,10 @@ public class ConditionalHeaders(private val versionProviders: List<suspend (Outg
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-@Deprecated("Use configuration for ConditionalHeaders or configure block of call.respond function.")
+@Deprecated(
+    "Use configuration for ConditionalHeaders or configure block of call.respond function.",
+    level = DeprecationLevel.ERROR
+)
 public suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = EntityTagVersion(etag)
     val result = version.check(request.headers)
@@ -127,7 +131,10 @@ public suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = t
 /**
  * Retrieves LastModified and ETag versions from this [OutgoingContent] headers
  */
-@Deprecated("Use versions or headers.parseVersions()")
+@Deprecated(
+    "Use versions or headers.parseVersions()",
+    level = DeprecationLevel.ERROR
+)
 public val OutgoingContent.defaultVersions: List<Version>
     get() {
         val extensionVersions = versions

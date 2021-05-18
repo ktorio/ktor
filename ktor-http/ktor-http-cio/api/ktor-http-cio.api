@@ -111,12 +111,8 @@ public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/M
 
 public final class io/ktor/http/cio/MultipartKt {
 	public static final fun boundary (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final synthetic fun copyMultipart (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun expectMultipart (Lio/ktor/http/cio/HttpHeadersMap;)Z
 	public static final fun parseBoundary (Ljava/lang/CharSequence;)Ljava/nio/ByteBuffer;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
 	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
 	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
 	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
@@ -137,7 +133,6 @@ public final class io/ktor/http/cio/PipelineKt {
 	public static final fun getHttpPipelineCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
-	public static final synthetic fun lastHttpRequest (ZLio/ktor/http/cio/ConnectionOptions;)Z
 	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function6;)Lkotlinx/coroutines/Job;
 }
 
@@ -352,10 +347,6 @@ public final class io/ktor/http/cio/websocket/FrameCommonKt {
 	public static final fun readBytes (Lio/ktor/http/cio/websocket/Frame;)[B
 	public static final fun readReason (Lio/ktor/http/cio/websocket/Frame$Close;)Lio/ktor/http/cio/websocket/CloseReason;
 	public static final fun readText (Lio/ktor/http/cio/websocket/Frame$Text;)Ljava/lang/String;
-}
-
-public final class io/ktor/http/cio/websocket/FrameKt {
-	public static final synthetic fun readReason (Lio/ktor/http/cio/websocket/Frame$Close;)Lio/ktor/http/cio/websocket/CloseReason;
 }
 
 public final class io/ktor/http/cio/websocket/FrameParser {
@@ -574,7 +565,6 @@ public final class io/ktor/http/cio/websocket/WebSocketWriter : kotlinx/coroutin
 }
 
 public final class io/ktor/server/cio/backend/ServerIncomingConnection {
-	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;)V
 	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
 	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getLocalAddress ()Ljava/net/SocketAddress;

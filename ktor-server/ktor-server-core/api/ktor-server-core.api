@@ -180,7 +180,6 @@ public final class io/ktor/features/CORS$Configuration {
 	public final fun allowXHttpMethodOverride ()V
 	public final fun anyHost ()V
 	public final fun exposeHeader (Ljava/lang/String;)V
-	public final fun exposeXHttpMethodOverride ()V
 	public final fun getAllowCredentials ()Z
 	public final fun getAllowNonSimpleContentTypes ()Z
 	public final fun getAllowSameOrigin ()Z
@@ -188,7 +187,6 @@ public final class io/ktor/features/CORS$Configuration {
 	public final fun getHeaderPredicates ()Ljava/util/List;
 	public final fun getHeaders ()Ljava/util/Set;
 	public final fun getHosts ()Ljava/util/Set;
-	public final synthetic fun getMaxAge ()Ljava/time/Duration;
 	public final fun getMaxAgeInSeconds ()J
 	public final fun getMethods ()Ljava/util/Set;
 	public final fun header (Ljava/lang/String;)V
@@ -198,12 +196,10 @@ public final class io/ktor/features/CORS$Configuration {
 	public final fun setAllowCredentials (Z)V
 	public final fun setAllowNonSimpleContentTypes (Z)V
 	public final fun setAllowSameOrigin (Z)V
-	public final synthetic fun setMaxAge (Ljava/time/Duration;)V
 	public final fun setMaxAgeInSeconds (J)V
 }
 
 public final class io/ktor/features/CORS$Configuration$Companion {
-	public final fun getCorsDefaultHeaders ()Ljava/util/Set;
 	public final fun getCorsDefaultMethods ()Ljava/util/Set;
 	public final fun getCorsSimpleContentTypes ()Ljava/util/Set;
 	public final fun getCorsSimpleRequestHeaders ()Ljava/util/Set;
@@ -591,11 +587,9 @@ public final class io/ktor/features/HSTS$Configuration {
 	public fun <init> ()V
 	public final fun getCustomDirectives ()Ljava/util/Map;
 	public final fun getIncludeSubDomains ()Z
-	public final synthetic fun getMaxAge ()Ljava/time/Duration;
 	public final fun getMaxAgeInSeconds ()J
 	public final fun getPreload ()Z
 	public final fun setIncludeSubDomains (Z)V
-	public final synthetic fun setMaxAge (Ljava/time/Duration;)V
 	public final fun setMaxAgeInSeconds (J)V
 	public final fun setPreload (Z)V
 }
@@ -667,7 +661,6 @@ public final class io/ktor/features/MultipleRangeWriterKt {
 }
 
 public final class io/ktor/features/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
-	public fun <init> (Lio/ktor/http/RequestConnectionPoint;)V
 	public fun getHost ()Ljava/lang/String;
 	public fun getMethod ()Lio/ktor/http/HttpMethod;
 	public fun getPort ()I
@@ -787,10 +780,7 @@ public final class io/ktor/http/HttpDateJvmKt {
 }
 
 public final class io/ktor/http/HttpDateKt {
-	public static final synthetic fun fromHttpDateString (Ljava/lang/String;)Ljava/time/ZonedDateTime;
-	public static final synthetic fun getHttpDateFormat ()Ljava/time/format/DateTimeFormatter;
 	public static final fun toHttpDateString (J)Ljava/lang/String;
-	public static final synthetic fun toHttpDateString (Ljava/time/temporal/Temporal;)Ljava/lang/String;
 }
 
 public final class io/ktor/http/LinkHeaderKt {
@@ -989,8 +979,6 @@ public abstract interface class io/ktor/response/ApplicationResponse {
 
 public final class io/ktor/response/ApplicationResponseFunctionsKt {
 	public static final fun defaultTextContentType (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;)Lio/ktor/http/ContentType;
-	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;[BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondBytes$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -1610,7 +1598,6 @@ public final class io/ktor/routing/TrailingSlashRouteSelector : io/ktor/routing/
 public final class io/ktor/sessions/CookieConfiguration {
 	public fun <init> ()V
 	public final fun getDomain ()Ljava/lang/String;
-	public final synthetic fun getDuration ()Ljava/time/temporal/TemporalAmount;
 	public final fun getEncoding ()Lio/ktor/http/CookieEncoding;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
@@ -1618,7 +1605,6 @@ public final class io/ktor/sessions/CookieConfiguration {
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getSecure ()Z
 	public final fun setDomain (Ljava/lang/String;)V
-	public final synthetic fun setDuration (Ljava/time/temporal/TemporalAmount;)V
 	public final fun setEncoding (Lio/ktor/http/CookieEncoding;)V
 	public final fun setHttpOnly (Z)V
 	public final fun setMaxAgeInSeconds (J)V
@@ -1792,16 +1778,6 @@ public final class io/ktor/sessions/SessionTransportHeader : io/ktor/sessions/Se
 public abstract interface class io/ktor/sessions/SessionTransportTransformer {
 	public abstract fun transformRead (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
-}
-
-public final class io/ktor/sessions/SessionTransportTransformerDigest : io/ktor/sessions/SessionTransportTransformer {
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getAlgorithm ()Ljava/lang/String;
-	public final fun getSalt ()Ljava/lang/String;
-	public fun transformRead (Ljava/lang/String;)Ljava/lang/String;
-	public fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class io/ktor/sessions/SessionTransportTransformerEncrypt : io/ktor/sessions/SessionTransportTransformer {

@@ -98,15 +98,11 @@ public final class io/ktor/websocket/WebSockets$WebSocketOptions {
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
 	public final fun getMasking ()Z
 	public final fun getMaxFrameSize ()J
-	public final synthetic fun getPingPeriod ()Ljava/time/Duration;
 	public final fun getPingPeriodMillis ()J
-	public final synthetic fun getTimeout ()Ljava/time/Duration;
 	public final fun getTimeoutMillis ()J
 	public final fun setMasking (Z)V
 	public final fun setMaxFrameSize (J)V
-	public final synthetic fun setPingPeriod (Ljava/time/Duration;)V
 	public final fun setPingPeriodMillis (J)V
-	public final synthetic fun setTimeout (Ljava/time/Duration;)V
 	public final fun setTimeoutMillis (J)V
 }
 
