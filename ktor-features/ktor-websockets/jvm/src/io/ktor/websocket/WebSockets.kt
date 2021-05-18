@@ -69,31 +69,9 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
         internal val extensionsConfig = WebSocketExtensionsConfig()
 
         /**
-         * Duration between pings or `null` to disable pings
-         */
-        @Suppress("unused")
-        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        public var pingPeriod: Duration?
-            get() = pingPeriod
-            set(new) {
-                pingPeriod = new
-            }
-
-        /**
          * Duration between pings or `0` to disable pings
          */
         public var pingPeriodMillis: Long = 0
-
-        /**
-         * write/ping timeout after that a connection will be closed
-         */
-        @Suppress("unused")
-        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        public var timeout: Duration
-            get() = timeout
-            set(new) {
-                timeout = new
-            }
 
         /**
          * write/ping timeout after that a connection will be closed

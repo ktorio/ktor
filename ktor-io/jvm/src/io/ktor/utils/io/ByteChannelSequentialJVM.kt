@@ -149,27 +149,6 @@ public class ByteChannelSequentialJVM(
         return count
     }
 
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
-        val readable = readable
-        var invokedWithLast = false
-
-        while (true) {
-            readable.readDirect(1) { bb: ByteBuffer ->
-                val last = closed && bb.remaining() == availableForRead
-                visitor(bb, last)
-                if (last) {
-                    invokedWithLast = true
-                }
-            }
-            if (!await(1)) break
-        }
-
-        if (!invokedWithLast) {
-            visitor(ByteBuffer.allocate(0), true)
-        }
-    }
-
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R =
         visitor(Session(this))
 

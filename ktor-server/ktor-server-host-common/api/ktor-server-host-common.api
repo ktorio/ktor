@@ -3,7 +3,6 @@ public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
 	public abstract fun stop (JJ)V
-	public abstract synthetic fun stop (JJLjava/util/concurrent/TimeUnit;)V
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -20,7 +19,6 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 public final class io/ktor/server/engine/ApplicationEngine$DefaultImpls {
 	public static fun getApplication (Lio/ktor/server/engine/ApplicationEngine;)Lio/ktor/application/Application;
 	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
-	public static synthetic fun stop (Lio/ktor/server/engine/ApplicationEngine;JJLjava/util/concurrent/TimeUnit;)V
 }
 
 public abstract interface class io/ktor/server/engine/ApplicationEngineEnvironment : io/ktor/application/ApplicationEnvironment {
@@ -104,7 +102,6 @@ public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/serv
 	public fun getApplication ()Lio/ktor/application/Application;
 	public final fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public final fun getPipeline ()Lio/ktor/server/engine/EnginePipeline;
-	public synthetic fun stop (JJLjava/util/concurrent/TimeUnit;)V
 }
 
 public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -121,7 +118,6 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/re
 	public static final field Companion Lio/ktor/server/engine/BaseApplicationResponse$Companion;
 	public fun <init> (Lio/ktor/application/ApplicationCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
-	protected fun getBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public fun getCookies ()Lio/ktor/response/ResponseCookies;
 	public final fun getPipeline ()Lio/ktor/response/ApplicationSendPipeline;

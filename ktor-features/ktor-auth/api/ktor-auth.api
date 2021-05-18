@@ -92,12 +92,9 @@ public final class io/ktor/auth/AuthenticationProcedureChallenge {
 
 public class io/ktor/auth/AuthenticationProvider {
 	public fun <init> (Lio/ktor/auth/AuthenticationProvider$Configuration;)V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPipeline ()Lio/ktor/auth/AuthenticationPipeline;
 	public final fun getSkipWhen ()Ljava/util/List;
-	public final fun skipWhen (Lkotlin/jvm/functions/Function1;)V
 }
 
 public class io/ktor/auth/AuthenticationProvider$Configuration {
@@ -135,12 +132,6 @@ public final class io/ktor/auth/BasicAuthenticationProvider$Configuration : io/k
 public abstract interface class io/ktor/auth/Credential {
 }
 
-public final class io/ktor/auth/DefaultOAuth2StateProvider : io/ktor/auth/OAuth2StateProvider {
-	public static final field INSTANCE Lio/ktor/auth/DefaultOAuth2StateProvider;
-	public fun getState (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun verifyState (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/auth/DigestAuthKt {
 	public static final fun digest (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun digest$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
@@ -160,11 +151,9 @@ public final class io/ktor/auth/DigestAuthenticationProvider$Configuration : io/
 	public final fun getAlgorithmName ()Ljava/lang/String;
 	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
 	public final fun getRealm ()Ljava/lang/String;
-	public final fun getUserNameRealmPasswordDigestProvider ()Lkotlin/jvm/functions/Function3;
 	public final fun setAlgorithmName (Ljava/lang/String;)V
 	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
 	public final fun setRealm (Ljava/lang/String;)V
-	public final fun setUserNameRealmPasswordDigestProvider (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/auth/DigestCredential : io/ktor/auth/Credential {
@@ -204,18 +193,6 @@ public final class io/ktor/auth/ForbiddenResponse : io/ktor/http/content/Outgoin
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 }
 
-public abstract class io/ktor/auth/FormAuthChallenge {
-}
-
-public final class io/ktor/auth/FormAuthChallenge$Redirect : io/ktor/auth/FormAuthChallenge {
-	public fun <init> (Lkotlin/jvm/functions/Function2;)V
-	public final fun getUrl ()Lkotlin/jvm/functions/Function2;
-}
-
-public final class io/ktor/auth/FormAuthChallenge$Unauthorized : io/ktor/auth/FormAuthChallenge {
-	public static final field INSTANCE Lio/ktor/auth/FormAuthChallenge$Unauthorized;
-}
-
 public final class io/ktor/auth/FormAuthKt {
 	public static final fun form (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun form$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
@@ -228,10 +205,8 @@ public final class io/ktor/auth/FormAuthenticationProvider$Configuration : io/kt
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
-	public final fun getChallenge ()Lio/ktor/auth/FormAuthChallenge;
 	public final fun getPasswordParamName ()Ljava/lang/String;
 	public final fun getUserParamName ()Ljava/lang/String;
-	public final fun setChallenge (Lio/ktor/auth/FormAuthChallenge;)V
 	public final fun setPasswordParamName (Ljava/lang/String;)V
 	public final fun setUserParamName (Ljava/lang/String;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
@@ -256,8 +231,6 @@ public final class io/ktor/auth/OAuth1aException$UnknownException : io/ktor/auth
 public final class io/ktor/auth/OAuth1aKt {
 	public static final fun createObtainRequestTokenHeader (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static synthetic fun createObtainRequestTokenHeader$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
-	public static final fun createUpgradeRequestTokenHeader (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
-	public static synthetic fun createUpgradeRequestTokenHeader$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static final fun sign (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static final fun signatureBaseString (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
 }
@@ -314,11 +287,6 @@ public final class io/ktor/auth/OAuth2ResponseParameters {
 	public static final field INSTANCE Lio/ktor/auth/OAuth2ResponseParameters;
 	public static final field RefreshToken Ljava/lang/String;
 	public static final field TokenType Ljava/lang/String;
-}
-
-public abstract interface class io/ktor/auth/OAuth2StateProvider {
-	public abstract fun getState (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun verifyState (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/auth/OAuthAccessTokenResponse : io/ktor/auth/Principal {
@@ -431,7 +399,6 @@ public abstract class io/ktor/auth/OAuthServerSettings {
 }
 
 public final class io/ktor/auth/OAuthServerSettings$OAuth1aServerSettings : io/ktor/auth/OAuthServerSettings {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
@@ -443,8 +410,6 @@ public final class io/ktor/auth/OAuthServerSettings$OAuth1aServerSettings : io/k
 }
 
 public final class io/ktor/auth/OAuthServerSettings$OAuth2ServerSettings : io/ktor/auth/OAuthServerSettings {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;Z)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
@@ -470,27 +435,6 @@ public final class io/ktor/auth/OAuthVersion : java/lang/Enum {
 public abstract interface class io/ktor/auth/Principal {
 }
 
-public abstract class io/ktor/auth/SessionAuthChallenge {
-	public static final field Companion Lio/ktor/auth/SessionAuthChallenge$Companion;
-}
-
-public final class io/ktor/auth/SessionAuthChallenge$Companion {
-	public final fun getDefault ()Lio/ktor/auth/SessionAuthChallenge;
-}
-
-public final class io/ktor/auth/SessionAuthChallenge$Ignore : io/ktor/auth/SessionAuthChallenge {
-	public static final field INSTANCE Lio/ktor/auth/SessionAuthChallenge$Ignore;
-}
-
-public final class io/ktor/auth/SessionAuthChallenge$Redirect : io/ktor/auth/SessionAuthChallenge {
-	public fun <init> (Lkotlin/jvm/functions/Function2;)V
-	public final fun getUrl ()Lkotlin/jvm/functions/Function2;
-}
-
-public final class io/ktor/auth/SessionAuthChallenge$Unauthorized : io/ktor/auth/SessionAuthChallenge {
-	public static final field INSTANCE Lio/ktor/auth/SessionAuthChallenge$Unauthorized;
-}
-
 public final class io/ktor/auth/SessionAuthKt {
 	public static final field SessionAuthChallengeKey Ljava/lang/String;
 }
@@ -510,8 +454,6 @@ public final class io/ktor/auth/SessionAuthenticationProvider$Configuration : io
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
-	public final fun getChallenge ()Lio/ktor/auth/SessionAuthChallenge;
-	public final fun setChallenge (Lio/ktor/auth/SessionAuthChallenge;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
@@ -523,8 +465,6 @@ public final class io/ktor/auth/UnauthorizedResponse : io/ktor/http/content/Outg
 }
 
 public final class io/ktor/auth/UserHashedTableAuth {
-	public synthetic fun <init> (Lio/ktor/config/ApplicationConfig;)V
-	public synthetic fun <init> (Ljava/util/Map;)V
 	public fun <init> (Lkotlin/jvm/functions/Function1;Ljava/util/Map;)V
 	public final fun authenticate (Lio/ktor/auth/UserPasswordCredential;)Lio/ktor/auth/UserIdPrincipal;
 	public final fun getDigester ()Lkotlin/jvm/functions/Function1;
