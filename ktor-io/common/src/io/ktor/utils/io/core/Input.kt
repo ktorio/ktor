@@ -77,13 +77,8 @@ public abstract class Input(
         }
 
     @PublishedApi
-    @Suppress("DEPRECATION_ERROR")
-    internal var headRemaining: Int
+    internal val headRemaining: Int
         inline get() = headEndExclusive - headPosition
-        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        set(newRemaining) {
-            updateHeadRemaining(newRemaining)
-        }
 
     private var tailRemaining: Long
         get() = state.tailRemaining
@@ -563,19 +558,6 @@ public abstract class Input(
 
     private fun notEnoughBytesAvailable(n: Int): Nothing {
         throw EOFException("Not enough data in packet ($remaining) to read $n byte(s)")
-    }
-
-    @Deprecated("Not supported anymore.", level = DeprecationLevel.ERROR)
-    public fun updateHeadRemaining(remaining: Int) {
-        // the only external usages are from readDirect
-        // so after using head chunk directly we should fix positions instead
-        val newPosition = headEndExclusive - remaining
-
-        if (newPosition < 0) {
-            throw IllegalArgumentException("Unable to update position to negative. newRemaining is too big.")
-        }
-
-        headPosition = newPosition
     }
 
     @DangerousInternalIoApi

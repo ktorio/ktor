@@ -59,7 +59,10 @@ public class HttpSend(
     /**
      * Install send pipeline starter interceptor (backward compatible function).
      */
-    @Deprecated("Intercept with one parameter is deprecated, use both call and request builder as parameters.")
+    @Deprecated(
+        "Intercept with one parameter is deprecated, use both call and request builder as parameters.",
+        level = DeprecationLevel.ERROR
+    )
     public fun intercept(block: HttpSendInterceptorBackwardCompatible) {
         interceptors += { call, _ ->
             block(call)

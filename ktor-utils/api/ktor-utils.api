@@ -37,14 +37,7 @@ public final class io/ktor/util/AttributesKt {
 	public static final fun putAll (Lio/ktor/util/Attributes;Lio/ktor/util/Attributes;)V
 }
 
-public final class io/ktor/util/Base64JvmKt {
-	public static final fun decodeBase64 (Ljava/lang/String;)[B
-	public static final fun encodeBase64 ([B)Ljava/lang/String;
-}
-
 public final class io/ktor/util/Base64Kt {
-	public static final synthetic fun decodeBase64 (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/lang/String;
-	public static final synthetic fun decodeBase64 (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun decodeBase64Bytes (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/utils/io/core/Input;
 	public static final fun decodeBase64Bytes (Ljava/lang/String;)[B
 	public static final fun decodeBase64String (Ljava/lang/String;)Ljava/lang/String;
@@ -147,7 +140,6 @@ public final class io/ktor/util/CryptoKt {
 	public static synthetic fun build$default (Lio/ktor/util/Digest;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun generateNonce ()Ljava/lang/String;
 	public static final fun generateNonce (I)[B
-	public static final fun getDigestFunction (Ljava/lang/String;Ljava/lang/String;)Lkotlin/jvm/functions/Function1;
 	public static final fun getDigestFunction (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;
@@ -435,7 +427,6 @@ public final class io/ktor/util/cio/FileChannelsAtNioPathKt {
 public final class io/ktor/util/cio/FileChannelsKt {
 	public static final fun readChannel (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
 	public static synthetic fun readChannel$default (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
-	public static final fun writeChannel (Ljava/io/File;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/ByteWriteChannel;
 	public static final fun writeChannel (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
 	public static synthetic fun writeChannel$default (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }

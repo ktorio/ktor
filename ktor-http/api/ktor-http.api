@@ -264,7 +264,6 @@ public final class io/ktor/http/Cookie {
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
-	public final synthetic fun getMaxAge ()I
 	public final fun getMaxAgeInt ()I
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPath ()Ljava/lang/String;
@@ -310,22 +309,6 @@ public final class io/ktor/http/EmptyHeaders : io/ktor/http/Headers {
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	public fun getAll (Ljava/lang/String;)Ljava/util/List;
 	public fun getCaseInsensitiveName ()Z
-	public fun isEmpty ()Z
-	public fun names ()Ljava/util/Set;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/http/EmptyParameters : io/ktor/http/Parameters {
-	public static final field INSTANCE Lio/ktor/http/EmptyParameters;
-	public fun contains (Ljava/lang/String;)Z
-	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
-	public fun entries ()Ljava/util/Set;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun forEach (Lkotlin/jvm/functions/Function2;)V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun getAll (Ljava/lang/String;)Ljava/util/List;
-	public fun getCaseInsensitiveName ()Z
-	public fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 	public fun isEmpty ()Z
 	public fun names ()Ljava/util/Set;
 	public fun toString ()Ljava/lang/String;
@@ -717,11 +700,9 @@ public final class io/ktor/http/HttpStatusCodeKt {
 
 public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncode (Lio/ktor/http/Parameters;)Ljava/lang/String;
-	public static final synthetic fun formUrlEncode (Ljava/util/List;)Ljava/lang/String;
 	public static final fun formUrlEncode (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;)Ljava/lang/String;
 	public static synthetic fun formUrlEncode$default (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun formUrlEncodeTo (Lio/ktor/http/Parameters;Ljava/lang/Appendable;)V
-	public static final synthetic fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;)V
 	public static synthetic fun formUrlEncodeTo$default (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)V
 	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
@@ -794,8 +775,6 @@ public final class io/ktor/http/Parameters$DefaultImpls {
 
 public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBuilder {
 	public fun <init> ()V
-	public synthetic fun <init> (I)V
-	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (ILio/ktor/http/UrlEncodingOption;)V
 	public synthetic fun <init> (ILio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun build ()Lio/ktor/http/Parameters;
@@ -806,8 +785,6 @@ public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBui
 
 public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, io/ktor/http/Parameters {
 	public fun <init> ()V
-	public synthetic fun <init> (Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;)V
 	public synthetic fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
@@ -1034,9 +1011,6 @@ public final class io/ktor/http/auth/AuthScheme {
 	public static final field INSTANCE Lio/ktor/http/auth/AuthScheme;
 	public static final field Negotiate Ljava/lang/String;
 	public static final field OAuth Ljava/lang/String;
-	public final synthetic fun getBasic ()Ljava/lang/String;
-	public final synthetic fun getDigest ()Ljava/lang/String;
-	public final synthetic fun getNegotiate ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/auth/HeaderValueEncoding : java/lang/Enum {
@@ -1148,7 +1122,6 @@ public final class io/ktor/http/content/ChannelWriterContent : io/ktor/http/cont
 
 public final class io/ktor/http/content/EntityTagVersion : io/ktor/http/content/Version {
 	public static final field Companion Lio/ktor/http/content/EntityTagVersion$Companion;
-	public synthetic fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Z)V
 	public fun appendHeadersTo (Lio/ktor/http/HeadersBuilder;)V
 	public fun check (Lio/ktor/http/Headers;)Lio/ktor/http/content/VersionCheckResult;

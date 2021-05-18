@@ -84,10 +84,8 @@ public suspend fun ByteWriteChannel.writeDoubleLittleEndian(value: Double) {
 }
 
 @PublishedApi
-@Suppress("DEPRECATION_ERROR")
 internal inline fun <T> ByteReadChannel.toLittleEndian(value: T, reverseBlock: T.() -> T): T = value.reverseBlock()
 
-@Suppress("DEPRECATION_ERROR")
 private inline fun <T> ByteWriteChannel.toLittleEndian(value: T, reverseBlock: T.() -> T): T = value.reverseBlock()
 
 @PublishedApi
