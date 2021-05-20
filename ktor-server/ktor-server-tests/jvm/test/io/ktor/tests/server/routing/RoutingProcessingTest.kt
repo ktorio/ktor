@@ -30,9 +30,6 @@ class RoutingProcessingTest {
                 uri = "/foo/bar"
                 method = HttpMethod.Get
             }
-            it("should be handled") {
-                assertTrue(result.requestHandled)
-            }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK, result.response.status())
             }
@@ -44,7 +41,7 @@ class RoutingProcessingTest {
                 method = HttpMethod.Post
             }
             it("should not be handled") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
     }
@@ -483,27 +480,24 @@ class RoutingProcessingTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.Accept, "text/plain")
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("OK", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.Accept, "application/json")
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("{\"status\": \"OK\"}", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") {
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("OK", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.Accept, "text/html")
         }.let { call ->
-            assertFalse { call.requestHandled }
+            assertFalse(call.response.status()!!.isSuccess())
         }
 
         handleRequest(HttpMethod.Get, "/") {
@@ -524,7 +518,6 @@ class RoutingProcessingTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue(call.requestHandled)
             assertEquals("OK", call.response.content)
         }
     }
@@ -547,11 +540,9 @@ class RoutingProcessingTest {
         }
 
         handleRequest(HttpMethod.Get, "/root?param=123").let { call ->
-            assertTrue(call.requestHandled)
             assertEquals("param", call.response.content)
         }
         handleRequest(HttpMethod.Get, "/root").let { call ->
-            assertTrue(call.requestHandled)
             assertEquals("get", call.response.content)
         }
     }
@@ -991,17 +982,14 @@ Route resolve result:
         }
 
         handleRequest(HttpMethod.Get, "/foo:bar").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(call.response.content, "foo")
         }
 
         handleRequest(HttpMethod.Get, "/baz").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(call.response.content, "baz")
         }
 
         handleRequest(HttpMethod.Get, "/baz:bar").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(call.response.content, "bar")
         }
     }

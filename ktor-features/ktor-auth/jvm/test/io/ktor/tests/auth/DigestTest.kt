@@ -35,7 +35,6 @@ class DigestTest {
             val response = handleRequest {
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertEquals(
                 """Digest
@@ -167,7 +166,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("Secret info", response.response.content)
         }
@@ -195,7 +193,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -207,7 +204,6 @@ class DigestTest {
 
             val call = handleRequest { addHeader(HttpHeaders.Authorization, "D<gest code") }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
@@ -234,7 +230,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -261,7 +256,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -322,7 +316,6 @@ class DigestTest {
                     authHeader.withReplacedParameter("response", hex(expectedDigest)).render()
                 )
             }.let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }
 
@@ -337,7 +330,6 @@ class DigestTest {
                     ).render()
                 )
             }.let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             }
         }

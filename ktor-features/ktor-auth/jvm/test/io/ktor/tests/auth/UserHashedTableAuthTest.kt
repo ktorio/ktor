@@ -58,32 +58,26 @@ class UserHashedTableAuthTest {
             }
 
             handlePost("/deny").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/redirect").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Found, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny?user=test&pass=test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny", "test", "bad-pass").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny?bad-user=bad-pass", "test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny", "test", "test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("ok", result.response.content)
             }

@@ -75,7 +75,7 @@ class CachingHeadersTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue(call.requestHandled)
+            assertTrue(call.response.status()!!.isSuccess())
             assertEquals("test", call.response.content?.trim())
             test(call)
         }

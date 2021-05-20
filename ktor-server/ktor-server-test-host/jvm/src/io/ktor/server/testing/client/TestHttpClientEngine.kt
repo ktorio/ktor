@@ -32,26 +32,14 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 
-        return if (testServerCall.requestHandled) {
-            with(testServerCall.response) {
-                HttpResponseData(
-                    status()!!,
-                    GMTDate(),
-                    headers.allValues(),
-                    HttpProtocolVersion.HTTP_1_1,
-                    ByteReadChannel(byteContent ?: byteArrayOf()),
-                    callContext()
-                )
-            }
-        } else {
+        return with(testServerCall.response) {
             HttpResponseData(
-                HttpStatusCode.NotFound,
+                status() ?: HttpStatusCode.NotFound,
                 GMTDate(),
-                Headers.build {
-                    this[HttpHeaders.ContentLength] = "0"
-                },
+                headers.allValues().takeUnless { it.isEmpty() } ?: Headers
+                    .build { this[HttpHeaders.ContentLength] = "0" },
                 HttpProtocolVersion.HTTP_1_1,
-                ByteReadChannel(byteArrayOf()),
+                ByteReadChannel(byteContent ?: byteArrayOf()),
                 callContext()
             )
         }

@@ -208,7 +208,6 @@ class OAuth2Test {
             uri = "/login"
         }
 
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
         val url = URI(
@@ -231,7 +230,6 @@ class OAuth2Test {
             uri = "/login"
         }
 
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
         val url = URI(
@@ -255,7 +253,6 @@ class OAuth2Test {
             uri = "/login"
         }
 
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
         val url = URI(
@@ -284,7 +281,6 @@ class OAuth2Test {
 
         waitExecutor()
 
-        assertTrue(result.requestHandled, "request should be handled")
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
 
@@ -299,7 +295,6 @@ class OAuth2Test {
 
         waitExecutor()
 
-        assertTrue(result.requestHandled, "request should be handled")
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
 
@@ -314,7 +309,6 @@ class OAuth2Test {
 
         waitExecutor()
 
-        assertTrue(call.requestHandled, "request should be handled")
         assertEquals(HttpStatusCode.Found, call.response.status())
         assertNotNull(call.response.headers[HttpHeaders.Location])
         assertTrue { call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize") }
@@ -330,7 +324,6 @@ class OAuth2Test {
             }
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertTrue(result.requestHandled, "request should not be handled asynchronously")
 
             assertEquals(HttpStatusCode.Found, result.response.status())
             val redirectUrl = URI.create(
@@ -375,7 +368,6 @@ class OAuth2Test {
 
             waitExecutor()
 
-            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertTrue { result.response.content!!.contains("OAuth2") }
@@ -409,7 +401,6 @@ class OAuth2Test {
 
             waitExecutor()
 
-            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
         }
     }
@@ -432,7 +423,6 @@ class OAuth2Test {
             }
 
             val result = handleRequest(HttpMethod.Get, "/login?error=failed")
-            assertTrue(result.requestHandled, "request should not be handled asynchronously")
 
             assertEquals(HttpStatusCode.Found, result.response.status())
         }
@@ -467,7 +457,6 @@ class OAuth2Test {
 
             waitExecutor()
 
-            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertTrue { result.response.content!!.contains("OAuth2") }
@@ -503,7 +492,6 @@ class OAuth2Test {
 
             waitExecutor()
 
-            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
         }
     }
@@ -537,7 +525,6 @@ class OAuth2Test {
 
             waitExecutor()
 
-            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
         }
     }
@@ -594,7 +581,6 @@ class OAuth2Test {
         handleRequest {
             uri = "/login?code=mow&state=wow"
         }.also {
-            assertTrue(it.requestHandled)
             // Usually 401 here means, that tests above failed.
             assertEquals(it.response.status(), HttpStatusCode.OK)
             assertEquals(it.response.content, "We're in.")
