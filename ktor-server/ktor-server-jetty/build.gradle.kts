@@ -32,6 +32,6 @@ val jetty_alpn_boot_version: String? by extra
 
 dependencies {
     if (jetty_alpn_boot_version != null) {
-        boot("org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
+        add("boot", "org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
     }
 }

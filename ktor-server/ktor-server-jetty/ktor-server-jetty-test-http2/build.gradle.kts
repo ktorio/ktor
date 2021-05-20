@@ -16,7 +16,7 @@ kotlin.sourceSets {
 val jetty_alpn_boot_version: String? by extra
 dependencies {
     if (jetty_alpn_boot_version != null) {
-        boot("org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
+        add("boot", "org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
     }
 }
 
@@ -27,8 +27,8 @@ jvmTest.apply {
     systemProperty("enable.http2", "true")
     exclude("**/*StressTest*")
 
-    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-        val bootClasspath = configurations.boot.get().files
+    if (jetty_alpn_boot_version != null && JavaVersion.current() == JavaVersion.VERSION_1_8) {
+        val bootClasspath = configurations.named("boot").get().files
         jvmArgs(bootClasspath.map { "-Xbootclasspath/p:${it.absolutePath}" }.iterator())
     }
 }
