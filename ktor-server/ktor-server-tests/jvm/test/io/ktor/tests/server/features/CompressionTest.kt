@@ -187,7 +187,6 @@ class CompressionTest {
             val result = handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.AcceptEncoding, "special")
             }
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("special", result.response.headers[HttpHeaders.ContentEncoding])
             assertEquals(textToCompress, result.response.byteContent!!.toString(Charsets.UTF_8))
@@ -207,7 +206,6 @@ class CompressionTest {
             val result = handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.AcceptEncoding, "*")
             }
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.Found, result.response.status())
             assertEquals(textToCompress, result.response.byteContent!!.toString(Charsets.UTF_8))
         }
@@ -669,7 +667,6 @@ class CompressionTest {
             assertNotNull(result.response.headers[HttpHeaders.ContentLength])
         }
 
-        assertTrue(result.requestHandled)
         return result
     }
 

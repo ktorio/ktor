@@ -143,7 +143,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -160,7 +159,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -177,7 +175,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -235,7 +232,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -250,7 +246,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -265,7 +260,6 @@ class JWTAuthTest {
 
             val response = handleRequestWithToken(token)
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
         }
@@ -457,25 +451,21 @@ class JWTAuthTest {
             addHeader(HttpHeaders.Cookie, "JWT=${token.encodeURLParameter()}")
         }
 
-        assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.OK, response.response.status())
         assertNotNull(response.response.content)
     }
 
     private fun verifyResponseUnauthorized(response: TestApplicationCall) {
-        assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         assertNull(response.response.content)
     }
 
     private fun verifyResponseBadRequest(response: TestApplicationCall) {
-        assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.BadRequest, response.response.status())
         assertNull(response.response.content)
     }
 
     private fun verifyResponseForbidden(response: TestApplicationCall) {
-        assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.Forbidden, response.response.status())
         assertNull(response.response.content)
     }

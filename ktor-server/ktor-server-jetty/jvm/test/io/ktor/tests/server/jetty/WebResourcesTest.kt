@@ -63,7 +63,7 @@ class WebResourcesTest {
                 assertEquals(HtmlContent, response.content)
             }
             handleRequest(HttpMethod.Get, "/webapp/password.txt").apply {
-                assertFalse(requestHandled)
+                assertFalse(response.status()!!.isSuccess())
             }
         }
     }

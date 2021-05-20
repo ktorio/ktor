@@ -40,7 +40,6 @@ class ETagsTest {
     @Test
     fun testNoConditions(): Unit = withConditionalApplication {
         val result = handleRequest {}
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -51,7 +50,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -62,7 +60,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
 
@@ -71,7 +68,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
@@ -81,7 +77,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
@@ -90,7 +85,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -101,7 +95,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "*")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -112,7 +105,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "*")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         // note: star for if-none-match is a special case
         // that should be handled separately
@@ -124,7 +116,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
@@ -133,7 +124,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -144,7 +134,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -155,7 +144,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
 }

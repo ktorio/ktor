@@ -62,6 +62,7 @@ public class TestApplicationResponse(
         private val builder = HeadersBuilder()
 
         override fun engineAppendHeader(name: String, value: String) {
+            @Suppress("DEPRECATION")
             if (call.requestHandled) {
                 throw UnsupportedOperationException(
                     "Headers can no longer be set because response was already completed"
@@ -76,6 +77,7 @@ public class TestApplicationResponse(
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
+            @Suppress("DEPRECATION")
             call.requestHandled = call.response.status() != HttpStatusCode.NotFound
         }
     }

@@ -142,12 +142,10 @@ class HeadTest {
 
         // ensure with GET
         handleRequest(HttpMethod.Get, "/page1").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("page1 OK", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/page2").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(500, call.response.status()?.value)
             assertEquals("ISE: page2 failed", call.response.content)
         }
@@ -159,13 +157,11 @@ class HeadTest {
 
         // test HEAD itself
         handleRequest(HttpMethod.Head, "/page1").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("page1 OK".length.toString(), call.response.headers[HttpHeaders.ContentLength])
             assertNull(call.response.content)
         }
 
         handleRequest(HttpMethod.Head, "/page2").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(500, call.response.status()?.value)
             assertEquals("ISE: page2 failed".length.toString(), call.response.headers[HttpHeaders.ContentLength])
             assertNull(call.response.content)

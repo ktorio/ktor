@@ -18,7 +18,7 @@ class HandlerTest {
         on("making a request") {
             val call = handleRequest { }
             it("should not be handled") {
-                assertFalse(call.requestHandled)
+                assertFalse(call.response.status()!!.isSuccess())
             }
         }
     }
@@ -29,7 +29,7 @@ class HandlerTest {
         on("making a request") {
             val call = handleRequest { }
             it("should not be handled") {
-                assertFalse(call.requestHandled)
+                assertFalse(call.response.status()!!.isSuccess())
             }
         }
     }
@@ -40,7 +40,7 @@ class HandlerTest {
         on("making a request") {
             val call = handleRequest { }
             it("should be handled") {
-                assertTrue(call.requestHandled)
+                assertTrue(call.response.status()!!.isSuccess())
             }
         }
     }
@@ -57,7 +57,7 @@ class HandlerTest {
             method = HttpMethod.Post
             setBody("Body")
         }
-        assertTrue(call.requestHandled)
+        assertTrue(call.response.status()!!.isSuccess())
     }
 
     @Test
@@ -70,13 +70,13 @@ class HandlerTest {
         on("making a GET request") {
             val call = handleRequest { method = HttpMethod.Get }
             it("should not be handled") {
-                assertFalse(call.requestHandled)
+                assertFalse(call.response.status()!!.isSuccess())
             }
         }
         on("making a POST request") {
             val call = handleRequest { method = HttpMethod.Post }
             it("should be handled") {
-                assertTrue(call.requestHandled)
+                assertTrue(call.response.status()!!.isSuccess())
             }
         }
     }

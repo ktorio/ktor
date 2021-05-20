@@ -762,7 +762,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/foo/ should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
 
@@ -781,7 +781,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/bar should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
     }
@@ -907,7 +907,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/foo/ should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
     }
@@ -1066,7 +1066,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("bar should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
         on("making baz request") {
@@ -1075,7 +1075,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("baz/ should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
     }
@@ -1202,7 +1202,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/test should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
         on("making /test/ request") {
@@ -1211,7 +1211,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/test/ should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
         on("making /test/foo request") {
@@ -1238,7 +1238,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/test/*/foo should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
         on("making /test/bar/foo request") {
@@ -1265,7 +1265,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/test/ should not be called") {
-                assertFalse(result.requestHandled)
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
         on("making /test/foo request") {

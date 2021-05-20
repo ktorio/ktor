@@ -63,7 +63,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
@@ -75,7 +74,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2,4-4")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-4/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 4), result.response.content)
@@ -88,7 +86,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 0), result.response.content)
@@ -101,7 +98,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(1, 2), result.response.content)
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -114,7 +110,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=-0") // unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
             assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
         }
@@ -125,7 +120,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1000000-1000004") // unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
             assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
         }
@@ -137,7 +131,6 @@ class PartialContentTest {
             addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
         }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue(result.requestHandled)
         }
     }
 
@@ -146,7 +139,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,-0") // good + unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -159,7 +151,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,1000000-1000004") // good + unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -173,7 +164,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Head, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
@@ -187,7 +177,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Post, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(
                 HttpStatusCode.MethodNotAllowed.description("Method POST is not allowed with range request"),
                 result.response.status()
@@ -200,7 +189,6 @@ class PartialContentTest {
         // post request with no range
         handleRequest(HttpMethod.Post, localPath) {
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
@@ -234,7 +222,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,1-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 2), result.response.content)
@@ -315,7 +302,6 @@ class PartialContentTest {
     }
 
     private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PartialContent, result.response.status())
         assertNotNull(result.response.headers[HttpHeaders.LastModified])
         val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)

@@ -128,7 +128,6 @@ class CallLoggingTest {
         }
         withApplication(environment) {
             handleRequest(HttpMethod.Get, "/uri-123").let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals("OK", call.response.content)
 
                 assertTrue("TRACE: /uri-123 -> 200 OK" in messages)
@@ -209,8 +208,6 @@ class CallLoggingTest {
                 }
 
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
-                    assertTrue { call.requestHandled }
-
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
@@ -250,8 +247,6 @@ class CallLoggingTest {
                 }
 
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
-                    assertTrue { call.requestHandled }
-
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
