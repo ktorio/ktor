@@ -2,6 +2,7 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -31,7 +32,7 @@ buildscript {
         configurations.classpath {
             resolutionStrategy.eachDependency {
                 if (requested.group == "org.jetbrains.kotlin") {
-                    useVersion(kotlin_version)
+                    useVersion(kotlin_version!!)
                 }
             }
         }
@@ -50,7 +51,6 @@ buildscript {
     }
 
     val kotlin_version: String by extra
-    val dokka_version: String by extra
     val atomicfu_version: String by extra
     val validator_version: String by extra
     val android_gradle_version: String by extra
@@ -58,7 +58,6 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version")
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version")
         classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
         classpath("org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version")
@@ -77,10 +76,6 @@ extra["globalM2"] = "$buildDir/m2"
 extra["publishLocal"] = project.hasProperty("publishLocal")
 
 val configuredVersion: String by extra
-val build_snapshot_train: Boolean by extra
-val atomicfu_version: String by extra
-val coroutines_version: String by extra
-val serialization_version: String by extra
 
 apply(from = "gradle/experimental.gradle")
 apply(from = "gradle/verifier.gradle")
@@ -117,12 +112,6 @@ fun projectNeedsPlatform(project: Project, platform: String): Boolean {
     return files.any { it.name == "common" || it.name == platform }
 }
 
-fun check(version: Any, libVersion: String, libName: String) {
-    if (version != libVersion) {
-        error("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
-    }
-}
-
 val disabledExplicitApiModeProjects = listOf(
     "ktor-client-tests",
     "ktor-client-json-tests",
@@ -138,25 +127,7 @@ allprojects {
     version = configuredVersion
     extra["hostManager"] = HostManager()
 
-    if (build_snapshot_train) {
-        extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-        var kotlin_version: String by extra
-        println("Using Kotlin $kotlin_version for project $this")
-        val deployVersion = properties["DeployVersion"]
-        if (deployVersion != null) version = deployVersion
-
-        val skipSnapshotChecks = rootProject.properties["skip_snapshot_checks"] != null
-        if (!skipSnapshotChecks) {
-            check(version, atomicfu_version, "atomicfu")
-            check(version, coroutines_version, "coroutines")
-            check(version, serialization_version, "serialization")
-        }
-        kotlin_version = extra["kotlin_snapshot_version"] as String
-        repositories {
-            mavenLocal()
-            maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
-        }
-    }
+    setupTrainForSubproject()
 
     repositories {
         mavenLocal()
@@ -212,7 +183,6 @@ allprojects {
 
     val skipPublish: List<String> by rootProject.extra
     if (!skipPublish.contains(project.name)) {
-        apply(from = rootProject.file("gradle/dokka.gradle"))
         apply(from = rootProject.file("gradle/publish.gradle"))
     }
 }
@@ -222,74 +192,31 @@ if (project.hasProperty("enableCodeStyle")) {
 }
 
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
-if (build_snapshot_train) {
-    println("Hacking test tasks, removing stress and flaky tests")
-    allprojects {
-        tasks.withType<Test>().all {
-            exclude("**/*ServerSocketTest*")
-            exclude("**/*NettyStressTest*")
-            exclude("**/*CIOMultithreadedTest*")
-            exclude("**/*testBlockingConcurrency*")
-            exclude("**/*testBigFile*")
-            exclude("**/*numberTest*")
-            exclude("**/*testWithPause*")
-            exclude("**/*WebSocketTest*")
-            exclude("**/*PostTest*")
-            exclude("**/*testCustomUrls*")
-            exclude("**/*testStaticServeFromDir*")
-            exclude("**/*testRedirect*")
-            exclude("**/*CIOHttpsTest*")
-        }
-    }
-
-    println("Manifest of kotlin-compiler-embeddable.jar")
-
-    subprojects.filter { it.name == "ktor-client" }.forEach {
-        configurations.matching { it.name == "kotlinCompilerClasspath" }.all {
-            resolvedConfiguration.files.filter { it.name.contains("kotlin-compiler-embeddable") }.forEach {
-                val manifest = zipTree(it).matching {
-                    include("META-INF/MANIFEST.MF")
-                }.files.first()
-
-                manifest.readLines().forEach {
-                    println(it)
-                }
-            }
-        }
-    }
-}
-
-afterEvaluate {
-    val allCompileKotlinTasks = subprojects.mapNotNull {
-        if (it.hasProperty("compileKotlinJvm")) {
-            it.property("compileKotlinJvm")
-        } else null
-    }
-
-    tasks.create<org.jetbrains.dokka.gradle.DokkaTask>("dokkaWebsite") {
-        outputFormat = "kotlin-website"
-        outputDirectory = "${rootProject.projectDir}/apidoc"
-
-        kotlinTasks(closureOf<Any?> { allCompileKotlinTasks })
-
-        reportUndocumented = false
-    }
-}
+filterSnapshotTests()
 
 if (project.hasProperty("enable-coverage")) {
     apply(from = "gradle/jacoco.gradle")
 }
 
-// Disable binary compatibility check for JVM IR compiler output by default
-val jvm_ir_enabled: Boolean by extra
-val jvm_ir_api_check_enabled: Boolean by extra
+plugins {
+    id("org.jetbrains.dokka") version "1.4.32"
+}
 
-if (jvm_ir_enabled) {
-    subprojects {
-        afterEvaluate {
-            configure(tasks.matching { it.name == "apiCheck" }) {
-                enabled = enabled && jvm_ir_api_check_enabled
+subprojects {
+    plugins.apply("org.jetbrains.dokka")
+
+    tasks.withType<DokkaTaskPartial> {
+        dokkaSourceSets.configureEach {
+            if (platform.get().name == "js") {
+                suppress.set(true)
             }
         }
+    }
+}
+
+val docs: String? by extra
+if (docs != null) {
+    tasks.withType<DokkaMultiModuleTask> {
+        pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.versioning.VersioningPlugin" to """{ "version": "$configuredVersion", "olderVersionsDir":"${docs}" }"""))
     }
 }

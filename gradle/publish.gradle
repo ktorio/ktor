@@ -89,7 +89,6 @@ publishing {
                 publication.artifact(emptyJar) {
                     classifier 'javadoc'
                 }
-                publication.artifact dokkaJar
             } else {
                 publication.artifact(emptyJar) {
                     classifier 'javadoc'
