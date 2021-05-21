@@ -4,6 +4,7 @@
 
 package io.ktor.server.jetty
 
+import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.jetty.internal.*
 import io.ktor.server.servlet.*
