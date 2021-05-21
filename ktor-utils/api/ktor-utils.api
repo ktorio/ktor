@@ -297,31 +297,53 @@ public final class io/ktor/util/StringValues$DefaultImpls {
 	public static fun get (Lio/ktor/util/StringValues;Ljava/lang/String;)Ljava/lang/String;
 }
 
-public class io/ktor/util/StringValuesBuilder {
+public abstract interface class io/ktor/util/StringValuesBuilder {
+	public abstract fun append (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun appendAll (Lio/ktor/util/StringValues;)V
+	public abstract fun appendAll (Ljava/lang/String;Ljava/lang/Iterable;)V
+	public abstract fun appendMissing (Lio/ktor/util/StringValues;)V
+	public abstract fun appendMissing (Ljava/lang/String;Ljava/lang/Iterable;)V
+	public abstract fun build ()Lio/ktor/util/StringValues;
+	public abstract fun clear ()V
+	public abstract fun contains (Ljava/lang/String;)Z
+	public abstract fun contains (Ljava/lang/String;Ljava/lang/String;)Z
+	public abstract fun entries ()Ljava/util/Set;
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getAll (Ljava/lang/String;)Ljava/util/List;
+	public abstract fun getCaseInsensitiveName ()Z
+	public abstract fun isEmpty ()Z
+	public abstract fun names ()Ljava/util/Set;
+	public abstract fun remove (Ljava/lang/String;)V
+	public abstract fun remove (Ljava/lang/String;Ljava/lang/String;)Z
+	public abstract fun removeKeysWithNoEntries ()V
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public class io/ktor/util/StringValuesBuilderImpl : io/ktor/util/StringValuesBuilder {
 	public fun <init> ()V
 	public fun <init> (ZI)V
 	public synthetic fun <init> (ZIILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun append (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun appendAll (Lio/ktor/util/StringValues;)V
-	public final fun appendAll (Ljava/lang/String;Ljava/lang/Iterable;)V
-	public final fun appendMissing (Lio/ktor/util/StringValues;)V
-	public final fun appendMissing (Ljava/lang/String;Ljava/lang/Iterable;)V
+	public fun append (Ljava/lang/String;Ljava/lang/String;)V
+	public fun appendAll (Lio/ktor/util/StringValues;)V
+	public fun appendAll (Ljava/lang/String;Ljava/lang/Iterable;)V
+	public fun appendMissing (Lio/ktor/util/StringValues;)V
+	public fun appendMissing (Ljava/lang/String;Ljava/lang/Iterable;)V
 	public fun build ()Lio/ktor/util/StringValues;
-	public final fun clear ()V
-	public final fun contains (Ljava/lang/String;)Z
-	public final fun contains (Ljava/lang/String;Ljava/lang/String;)Z
-	public final fun entries ()Ljava/util/Set;
-	public final fun get (Ljava/lang/String;)Ljava/lang/String;
-	public final fun getAll (Ljava/lang/String;)Ljava/util/List;
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun entries ()Ljava/util/Set;
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public fun getAll (Ljava/lang/String;)Ljava/util/List;
 	protected final fun getBuilt ()Z
 	public final fun getCaseInsensitiveName ()Z
 	protected final fun getValues ()Ljava/util/Map;
-	public final fun isEmpty ()Z
-	public final fun names ()Ljava/util/Set;
-	public final fun remove (Ljava/lang/String;)V
-	public final fun remove (Ljava/lang/String;Ljava/lang/String;)Z
-	public final fun removeKeysWithNoEntries ()V
-	public final fun set (Ljava/lang/String;Ljava/lang/String;)V
+	public fun isEmpty ()Z
+	public fun names ()Ljava/util/Set;
+	public fun remove (Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun removeKeysWithNoEntries ()V
+	public fun set (Ljava/lang/String;Ljava/lang/String;)V
 	protected final fun setBuilt (Z)V
 	protected fun validateName (Ljava/lang/String;)V
 	protected fun validateValue (Ljava/lang/String;)V
