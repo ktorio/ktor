@@ -189,7 +189,7 @@ private suspend fun oauth2RequestAccessToken(
         extraParameters.forEach { (k, v) ->
             append(k, v)
         }
-    }
+    }.build()
 
     when (method) {
         HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
@@ -199,7 +199,7 @@ private suspend fun oauth2RequestAccessToken(
             } else {
                 request.setBody(
                     TextContent(
-                        urlParameters.build().formUrlEncode(),
+                        urlParameters.formUrlEncode(),
                         ContentType.Application.FormUrlEncoded
                     )
                 )
