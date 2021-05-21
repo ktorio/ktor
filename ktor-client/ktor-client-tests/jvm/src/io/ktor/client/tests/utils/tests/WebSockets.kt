@@ -26,6 +26,7 @@ internal fun Application.webSockets() {
 
             webSocket("headers") {
                 val headers = call.request.headers.toMap()
+                @OptIn(ExperimentalSerializationApi::class)
                 val headersJson = Json.encodeToString(headers)
                 send(Frame.Text(headersJson))
             }

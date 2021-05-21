@@ -5,16 +5,6 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
-import kotlin.Boolean
-import kotlin.Char
-import kotlin.CharSequence
-import kotlin.Deprecated
-import kotlin.DeprecationLevel
-import kotlin.Int
-import kotlin.PublishedApi
-import kotlin.String
-import kotlin.Suppress
-import kotlin.jvm.*
 
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.
