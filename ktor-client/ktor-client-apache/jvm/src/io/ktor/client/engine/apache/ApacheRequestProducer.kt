@@ -122,7 +122,7 @@ internal class ApacheRequestProducer(
             }
         }
 
-        if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
+        if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
             builder.entity = BasicHttpEntity().apply {
                 val lengthResult = length
                 if (lengthResult == null || lengthResult.isBlank()) {
