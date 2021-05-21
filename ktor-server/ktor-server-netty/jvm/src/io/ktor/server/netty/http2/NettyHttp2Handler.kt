@@ -104,13 +104,8 @@ internal class NettyHttp2Handler(
         val promisedStreamId = connection.local().incrementAndGetNextStreamId()
         val headers = DefaultHttp2Headers().apply {
             val url = builder.url
-            val parameters = url.parameters
 
-            val pathAndQuery = if (parameters.isEmpty()) url.encodedPath else buildString {
-                append(url.encodedPath)
-                append('?')
-                parameters.build().formUrlEncodeTo(this)
-            }
+            val pathAndQuery = buildString { appendUrlFullPath(url.encodedPath, url.encodedParameters, false) }
 
             method(builder.method.value)
             authority(builder.url.host + ":" + builder.url.port)
@@ -177,10 +172,14 @@ internal class NettyHttp2Handler(
         get() = javaClass.findIdField()
 
     private tailrec fun Class<*>.findIdField(): Field {
-        val f = try { getDeclaredField("id") } catch (t: NoSuchFieldException) { null }
-        if (f != null) {
-            f.isAccessible = true
-            return f
+        val idField = try {
+            getDeclaredField("id")
+        } catch (t: NoSuchFieldException) {
+            null
+        }
+        if (idField != null) {
+            idField.isAccessible = true
+            return idField
         }
 
         val superclass = superclass ?: throw NoSuchFieldException("id field not found")
