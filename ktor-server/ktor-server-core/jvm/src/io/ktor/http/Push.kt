@@ -16,7 +16,7 @@ import io.ktor.util.*
 @UseHttp2Push
 public fun ApplicationCall.push(pathAndQuery: String) {
     val (path, query) = pathAndQuery.chomp("?") { pathAndQuery to "" }
-    push(path, parseQueryString(query))
+    push(path, parseQueryString(query, decode = false))
 }
 
 /**
@@ -25,11 +25,11 @@ public fun ApplicationCall.push(pathAndQuery: String) {
  * Exact behaviour is up to engine implementation.
  */
 @UseHttp2Push
-public fun ApplicationCall.push(encodedPath: String, parameters: Parameters) {
+public fun ApplicationCall.push(encodedPath: String, encodedParameters: Parameters) {
     push {
         url.encodedPath = encodedPath
-        url.parameters.clear()
-        url.parameters.appendAll(parameters)
+        url.encodedParameters.clear()
+        url.encodedParameters.appendAll(encodedParameters)
     }
 }
 
