@@ -80,7 +80,9 @@ public abstract class BaseApplicationEngine(
             if (isResponded) {
                 return@intercept
             }
-            val status = call.response.status() ?: HttpStatusCode.NotFound
+            val status = call.response.status()
+                ?: call.attributes.getOrNull(RoutingFailureStatusCode)
+                ?: HttpStatusCode.NotFound
             call.respond(status)
         }
 

@@ -5,7 +5,6 @@
 package io.ktor.client.tests
 
 import io.ktor.client.plugins.websocket.*
-import io.ktor.client.tests.features.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import kotlin.test.*
@@ -16,7 +15,7 @@ private const val TEST_SIZE: Int = 100
 class WebSocketJvmTest : ClientLoader(100000) {
 
     @Test
-    fun testWebSocketDeflateBinary() = clientTests(ENGINES_WITHOUT_WS_EXTENSIONS) {
+    fun testWebSocketDeflateBinary() = clientTests(listOf("Android", "Apache")) {
         config {
             WebSockets {
                 extensions {
@@ -40,7 +39,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
     }
 
     @Test
-    fun testWebSocketDeflateNoContextTakeover() = clientTests(ENGINES_WITHOUT_WS_EXTENSIONS) {
+    fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache")) {
         config {
             WebSockets {
                 extensions {

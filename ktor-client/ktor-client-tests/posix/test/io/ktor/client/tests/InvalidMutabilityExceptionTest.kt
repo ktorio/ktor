@@ -17,9 +17,9 @@ class InvalidMutabilityExceptionTest : ClientLoader() {
         test { client ->
             val cause = assertFails {
                 val response = withContext(Dispatchers.Default) {
-                    client.get<HttpResponse>("$TEST_SERVER/content/hello")
+                    client.get("$TEST_SERVER/content/hello")
                 }
-                response.readText()
+                response.bodyAsText()
             }
 
             assertIs<IllegalStateException>(cause)

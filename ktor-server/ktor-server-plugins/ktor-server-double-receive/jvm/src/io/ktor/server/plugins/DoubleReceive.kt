@@ -114,7 +114,8 @@ private fun CachedTransformationResult<*>?.isByteArray(): Boolean {
 private fun ApplicationReceiveRequest.checkAlreadyConsumedOrWrongType(requestType: TypeInfo) {
     when {
         value is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
-        requestType.kotlinType?.jvmErasure?.isInstance(value) != true -> throw CannotTransformContentToTypeException(requestType.kotlinType!!)
+        requestType.kotlinType?.jvmErasure?.isInstance(value) != true ->
+            throw CannotTransformContentToTypeException(requestType.kotlinType!!)
     }
 }
 
