@@ -8,9 +8,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -20,7 +20,6 @@ internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteA
     /**
      * Returns a channel with [responseBody] data.
      */
-    @OptIn(InternalAPI::class)
     override suspend fun getResponseContent(): ByteReadChannel {
         return ByteReadChannel(responseBody)
     }

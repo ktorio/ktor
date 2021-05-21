@@ -265,7 +265,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             // ensure the server is running
-            assertEquals("OK", call.body())
+            assertEquals("OK", call.body<String>())
         }
 
         parent.cancel()
