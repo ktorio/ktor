@@ -95,7 +95,6 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     override var subject: TSubject = initial
-        private set
 
     private var rootContinuation: Any? = null
     private var index = 0
