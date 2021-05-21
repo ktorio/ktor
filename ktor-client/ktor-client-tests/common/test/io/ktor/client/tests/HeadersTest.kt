@@ -95,16 +95,16 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testRequestHasContentLength() = clientTests(listOf("Java", "Curl", "Js")) {
         test { client ->
-            val get = client.get<String>("$TEST_SERVER/headers")
+            val get = client.get("$TEST_SERVER/headers").bodyAsText()
             assertEquals("", get)
 
-            val head = client.head<String>("$TEST_SERVER/headers")
+            val head = client.head("$TEST_SERVER/headers").bodyAsText()
             assertEquals("", head)
 
-            val put = client.put<String>("$TEST_SERVER/headers")
+            val put = client.put("$TEST_SERVER/headers").bodyAsText()
             assertEquals("0", put)
 
-            val post = client.post<String>("$TEST_SERVER/headers")
+            val post = client.post("$TEST_SERVER/headers").bodyAsText()
             assertEquals("0", post)
         }
     }

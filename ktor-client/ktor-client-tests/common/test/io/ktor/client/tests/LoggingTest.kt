@@ -5,7 +5,6 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.compression.*
 import io.ktor.client.features.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
@@ -467,10 +466,10 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareGet {
                 method = HttpMethod.Get
                 url("$TEST_SERVER/compression/deflate")
-            }.receive<String>()
+            }.body<String>()
             assertEquals("Compressed response!", response)
         }
         after {
@@ -495,11 +494,11 @@ class LoggingTest : ClientLoader() {
                 body.close()
             }
 
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
                 url("$TEST_SERVER/content/echo")
                 this.body = body
-            }.receive<ByteReadChannel>()
+            }.body<ByteReadChannel>()
             response.discard()
         }
     }
