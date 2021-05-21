@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 /**
  * Construct [Url] from [urlString].
  */
@@ -43,12 +41,11 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     protocol = url.protocol
     host = url.host
     port = url.port
-    encodedPath = url.encodedPath
-    user = url.user
-    password = url.password
-    parameters.appendAll(url.parameters)
-    parameters.urlEncodingOption = url.parameters.urlEncodingOption
-    fragment = url.fragment
+    encodedPathSegments = url.encodedPathSegments
+    encodedUser = url.encodedUser
+    encodedPassword = url.encodedPassword
+    encodedParameters = url.encodedParameters
+    encodedFragment = url.encodedFragment
     trailingQuery = url.trailingQuery
 
     return this
@@ -60,13 +57,12 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
 public fun URLBuilder.takeFrom(url: Url): URLBuilder {
     protocol = url.protocol
     host = url.host
-    port = url.specifiedPort
+    port = url.port
     encodedPath = url.encodedPath
-    user = url.user
-    password = url.password
-    parameters.appendAll(url.parameters)
-    parameters.urlEncodingOption = url.parameters.urlEncodingOption
-    fragment = url.fragment
+    encodedUser = url.encodedUser
+    encodedPassword = url.encodedPassword
+    encodedParameters = ParametersBuilder().apply { appendAll(parseQueryString(url.encodedQuery, decode = false)) }
+    encodedFragment = url.encodedFragment
     trailingQuery = url.trailingQuery
 
     return this
@@ -76,7 +72,7 @@ public fun URLBuilder.takeFrom(url: Url): URLBuilder {
  * Full encoded path with query string but without domain, port and schema
  */
 public val Url.fullPath: String
-    get() = buildString { appendUrlFullPath(encodedPath, parameters, trailingQuery) }
+    get() = buildString { appendUrlFullPath(encodedPath, encodedQuery, trailingQuery) }
 
 /**
  * Host:port pair, not normalized so port is always specified even if the port is schema's default
@@ -85,7 +81,7 @@ public val Url.hostWithPort: String get() = "$host:$port"
 
 internal fun Appendable.appendUrlFullPath(
     encodedPath: String,
-    queryParameters: Parameters,
+    encodedQuery: String,
     trailingQuery: Boolean
 ) {
     if (encodedPath.isNotBlank() && !encodedPath.startsWith("/")) {
@@ -94,16 +90,16 @@ internal fun Appendable.appendUrlFullPath(
 
     append(encodedPath)
 
-    if (!queryParameters.isEmpty() || trailingQuery) {
+    if (encodedQuery.isNotEmpty() || trailingQuery) {
         append("?")
     }
 
-    queryParameters.formUrlEncodeTo(this)
+    append(encodedQuery)
 }
 
-internal fun Appendable.appendUrlFullPath(
+public fun Appendable.appendUrlFullPath(
     encodedPath: String,
-    queryParameters: ParametersBuilder,
+    encodedQueryParameters: ParametersBuilder,
     trailingQuery: Boolean
 ) {
     if (encodedPath.isNotBlank() && !encodedPath.startsWith("/")) {
@@ -112,9 +108,35 @@ internal fun Appendable.appendUrlFullPath(
 
     append(encodedPath)
 
-    if (!queryParameters.isEmpty() || trailingQuery) {
+    if (!encodedQueryParameters.isEmpty() || trailingQuery) {
         append("?")
     }
 
-    queryParameters.formUrlEncodeTo(this)
+    encodedQueryParameters.entries()
+        .flatMap { (key, value) ->
+            if (value.isEmpty()) listOf(key to null) else value.map { key to it }
+        }
+        .joinTo(this, "&") {
+            val key = it.first
+            if (it.second == null) {
+                key
+            } else {
+                val value = it.second.toString()
+                "$key=$value"
+            }
+        }
+}
+
+internal fun StringBuilder.appendUserAndPassword(encodedUser: String?, encodedPassword: String?) {
+    if (encodedUser == null) {
+        return
+    }
+    append(encodedUser)
+
+    if (encodedPassword != null) {
+        append(':')
+        append(encodedPassword)
+    }
+
+    append("@")
 }
