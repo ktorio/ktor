@@ -26,5 +26,5 @@ kotlin.sourceSets {
 
 artifacts {
     val jarTest by tasks
-    testOutput(jarTest)
+    add("testOutput", jarTest)
 }
