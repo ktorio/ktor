@@ -6,7 +6,7 @@ package io.ktor.client.engine.mock
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
@@ -21,7 +21,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     @OptIn(InternalAPI::class)
     override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
-        HttpTimeout,
+        HttpTimeout.Plugin,
         WebSocketCapability,
         WebSocketExtensionsCapability
     )

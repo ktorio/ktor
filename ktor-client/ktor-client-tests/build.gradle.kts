@@ -180,7 +180,7 @@ rootProject.allprojects {
             if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) {
                 return@sourceSets
             }
-            if (ideaActive) {
+            if (KtorBuildProperties.ideaActive) {
                 if (name == "posixTest") {
                     getByName(name) {
                         dependencies {

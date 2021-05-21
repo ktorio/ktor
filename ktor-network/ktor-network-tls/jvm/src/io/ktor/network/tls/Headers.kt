@@ -4,7 +4,6 @@
 
 package io.ktor.network.tls
 
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")

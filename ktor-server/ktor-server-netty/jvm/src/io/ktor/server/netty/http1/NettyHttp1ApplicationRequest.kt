@@ -14,7 +14,6 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
 internal class NettyHttp1ApplicationRequest(
     call: ApplicationCall,
     coroutineContext: CoroutineContext,

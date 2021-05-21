@@ -17,8 +17,6 @@ import kotlinx.coroutines.*
 import java.io.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-@InternalAPI
 public abstract class NettyApplicationRequest(
     call: ApplicationCall,
     override val coroutineContext: CoroutineContext,

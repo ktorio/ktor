@@ -801,8 +801,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
             "/",
             {
                 url {
-                    parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
-                    parameters.append("code", "01;21")
+                    encodedParameters.append("code", "01;21")
                 }
             }
         ) {
