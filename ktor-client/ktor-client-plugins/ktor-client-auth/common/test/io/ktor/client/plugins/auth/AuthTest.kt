@@ -9,7 +9,6 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
-import io.ktor.client.request.get
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -245,7 +244,7 @@ class AuthTest : ClientLoader() {
 
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed")
-            client.post("$TEST_SERVER/auth/basic").let {
+            client.post("$TEST_SERVER/auth/basic") { expectSuccess = false }.let {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
@@ -342,12 +341,12 @@ class AuthTest : ClientLoader() {
                 install(Auth) {
                     bearer {
                         loadTokens {
-                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/first")
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/first").bodyAsText()
                             BearerTokens(token, token)
                         }
 
                         refreshTokens {
-                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/second")
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
                             BearerTokens(token, token)
                         }
                     }
@@ -355,7 +354,7 @@ class AuthTest : ClientLoader() {
             }
 
             val first = clientWithAuth.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
-            val second = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/second")
+            val second = clientWithAuth.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
 
             assertEquals("OK", first)
             assertEquals("OK", second)

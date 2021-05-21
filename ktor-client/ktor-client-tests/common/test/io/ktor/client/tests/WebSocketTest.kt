@@ -105,17 +105,19 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            val session = client.webSocketSession {
-                url("$TEST_WEBSOCKET_SERVER/websockets/headers")
-                header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+            client.webSocket(
+                request = {
+                    url("$TEST_WEBSOCKET_SERVER/websockets/headers")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                }
+            ) {
+                val frame = incoming.receive()
+                assertTrue(frame is Frame.Text)
+                val headers =
+                    Json.decodeFromString<Map<String, List<String>>>(frame.readText())
+                val header = headers[CUSTOM_HEADER]?.first()
+                assertEquals(CUSTOM_HEADER_VALUE, header)
             }
-
-            val frame = session.incoming.receive()
-            assertTrue(frame is Frame.Text)
-            val headers =
-                Json.decodeFromString<Map<String, List<String>>>(frame.readText())
-            val header = headers[CUSTOM_HEADER]?.first()
-            assertEquals(CUSTOM_HEADER_VALUE, header)
         }
     }
 
@@ -128,18 +130,20 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            val session = client.webSocketSession {
-                url("$TEST_WEBSOCKET_SERVER/websockets/headers")
-                header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
-                header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+            client.webSocket(
+                request = {
+                    url("$TEST_WEBSOCKET_SERVER/websockets/headers")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                }
+            ) {
+                val frame = incoming.receive()
+                assertTrue(frame is Frame.Text)
+                val frameText = frame.readText()
+                val headers = Json.decodeFromString<Map<String, List<String>>>(frameText)
+                val header = headers[CUSTOM_HEADER]?.first()
+                assertEquals("$CUSTOM_HEADER_VALUE,$CUSTOM_HEADER_VALUE", header)
             }
-
-            val frame = session.incoming.receive()
-            assertTrue(frame is Frame.Text)
-            val frameText = frame.readText()
-            val headers = Json.decodeFromString<Map<String, List<String>>>(frameText)
-            val header = headers[CUSTOM_HEADER]?.first()
-            assertEquals("$CUSTOM_HEADER_VALUE,$CUSTOM_HEADER_VALUE", header)
         }
     }
 
