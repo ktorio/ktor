@@ -7,30 +7,15 @@ package io.ktor.http
 /**
  * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
  */
-public fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000): Parameters {
+public fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000, decode: Boolean = true): Parameters {
     return if (startIndex > query.lastIndex) {
         Parameters.Empty
     } else {
-        Parameters.build { parse(query, startIndex, limit) }
+        Parameters.build { parse(query, startIndex, limit, decode) }
     }
 }
 
-/**
- * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
- */
-public fun parseQueryStringTo(
-    parametersBuilder: ParametersBuilder,
-    query: String,
-    startIndex: Int = 0,
-    limit: Int = 1000
-) {
-    if (startIndex > query.lastIndex) {
-        return
-    }
-    parametersBuilder.parse(query, startIndex, limit)
-}
-
-private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) {
+private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int, decode: Boolean) {
     var count = 0
     var nameIndex = startIndex
     var equalIndex = -1
@@ -40,7 +25,7 @@ private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) 
         }
         when (query[index]) {
             '&' -> {
-                appendParam(query, nameIndex, equalIndex, index)
+                appendParam(query, nameIndex, equalIndex, index, decode)
                 nameIndex = index + 1
                 equalIndex = -1
                 count++
@@ -55,39 +40,44 @@ private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) 
     if (count == limit) {
         return
     }
-    appendParam(query, nameIndex, equalIndex, query.length)
+    appendParam(query, nameIndex, equalIndex, query.length, decode)
 }
 
-private fun ParametersBuilder.appendParam(query: String, nameIndex: Int, equalIndex: Int, endIndex: Int) {
+private fun ParametersBuilder.appendParam(
+    query: String,
+    nameIndex: Int,
+    equalIndex: Int,
+    endIndex: Int,
+    decode: Boolean
+) {
     if (equalIndex == -1) {
         val spaceNameIndex = trimStart(nameIndex, endIndex, query)
         val spaceEndIndex = trimEnd(spaceNameIndex, endIndex, query)
 
         if (spaceEndIndex > spaceNameIndex) {
             val name = when {
-                urlEncodingOption.encodeKey -> query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
+                decode -> query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
                 else -> query.substring(spaceNameIndex, spaceEndIndex)
             }
             appendAll(name, emptyList())
         }
-    } else {
-        val spaceNameIndex = trimStart(nameIndex, equalIndex, query)
-        val spaceEqualIndex = trimEnd(spaceNameIndex, equalIndex, query)
-        if (spaceEqualIndex > spaceNameIndex) {
-            val name = when {
-                urlEncodingOption.encodeKey -> query.decodeURLQueryComponent(spaceNameIndex, spaceEqualIndex)
-                else -> query.substring(spaceNameIndex, spaceEqualIndex)
-            }
-
-            val spaceValueIndex = trimStart(equalIndex + 1, endIndex, query)
-            val spaceEndIndex = trimEnd(spaceValueIndex, endIndex, query)
-            val value = when {
-                urlEncodingOption.encodeValue ->
-                    query.decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
-                else -> query.substring(spaceValueIndex, spaceEndIndex)
-            }
-            append(name, value)
+        return
+    }
+    val spaceNameIndex = trimStart(nameIndex, equalIndex, query)
+    val spaceEqualIndex = trimEnd(spaceNameIndex, equalIndex, query)
+    if (spaceEqualIndex > spaceNameIndex) {
+        val name = when {
+            decode -> query.decodeURLQueryComponent(spaceNameIndex, spaceEqualIndex)
+            else -> query.substring(spaceNameIndex, spaceEqualIndex)
         }
+
+        val spaceValueIndex = trimStart(equalIndex + 1, endIndex, query)
+        val spaceEndIndex = trimEnd(spaceValueIndex, endIndex, query)
+        val value = when {
+            decode -> query.decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
+            else -> query.substring(spaceValueIndex, spaceEndIndex)
+        }
+        append(name, value)
     }
 }
 
