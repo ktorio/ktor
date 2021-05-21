@@ -5,9 +5,9 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
-import io.ktor.client.request.get
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -240,7 +240,7 @@ class AuthTest : ClientLoader() {
 
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed")
-            client.post("$TEST_SERVER/auth/basic").let {
+            client.post("$TEST_SERVER/auth/basic") { expectSuccess = false }.let {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
