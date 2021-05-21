@@ -22,7 +22,7 @@ public interface StringValues {
         public inline fun build(
             caseInsensitiveName: Boolean = false,
             builder: StringValuesBuilder.() -> Unit
-        ): StringValues = StringValuesBuilder(caseInsensitiveName).apply(builder).build()
+        ): StringValues = StringValuesBuilderImpl(caseInsensitiveName).apply(builder).build()
     }
 
     /**
@@ -71,6 +71,33 @@ public interface StringValues {
      * Checks if this map is empty
      */
     public fun isEmpty(): Boolean
+}
+
+@Suppress("KDocMissingDocumentation")
+public interface StringValuesBuilder {
+    public val caseInsensitiveName: Boolean
+    public fun getAll(name: String): List<String>?
+
+    public operator fun contains(name: String): Boolean
+    public fun contains(name: String, value: String): Boolean
+    public fun names(): Set<String>
+    public fun isEmpty(): Boolean
+    public fun entries(): Set<Map.Entry<String, List<String>>>
+
+    public operator fun set(name: String, value: String)
+
+    public operator fun get(name: String): String?
+    public fun append(name: String, value: String)
+    public fun appendAll(stringValues: StringValues)
+    public fun appendMissing(stringValues: StringValues)
+    public fun appendAll(name: String, values: Iterable<String>)
+    public fun appendMissing(name: String, values: Iterable<String>)
+    public fun remove(name: String)
+    public fun removeKeysWithNoEntries()
+    public fun remove(name: String, value: String): Boolean
+    public fun clear()
+
+    public fun build(): StringValues
 }
 
 @InternalAPI
@@ -162,51 +189,55 @@ public open class StringValuesImpl(
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = false, size: Int = 8) {
+public open class StringValuesBuilderImpl(
+    final override val caseInsensitiveName: Boolean = false,
+    size: Int = 8
+) : StringValuesBuilder {
+
     protected val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
 
     protected var built: Boolean = false
 
-    public fun getAll(name: String): List<String>? = values[name]
+    override fun getAll(name: String): List<String>? = values[name]
 
-    public operator fun contains(name: String): Boolean = name in values
+    override operator fun contains(name: String): Boolean = name in values
 
-    public fun contains(name: String, value: String): Boolean = values[name]?.contains(value) ?: false
+    override fun contains(name: String, value: String): Boolean = values[name]?.contains(value) ?: false
 
-    public fun names(): Set<String> = values.keys
+    override fun names(): Set<String> = values.keys
 
-    public fun isEmpty(): Boolean = values.isEmpty()
+    override fun isEmpty(): Boolean = values.isEmpty()
 
-    public fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
+    override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
 
-    public operator fun set(name: String, value: String) {
+    override operator fun set(name: String, value: String) {
         validateValue(value)
         val list = ensureListForKey(name, 1)
         list.clear()
         list.add(value)
     }
 
-    public operator fun get(name: String): String? = getAll(name)?.firstOrNull()
+    override operator fun get(name: String): String? = getAll(name)?.firstOrNull()
 
-    public fun append(name: String, value: String) {
+    override fun append(name: String, value: String) {
         validateValue(value)
         ensureListForKey(name, 1).add(value)
     }
 
-    public fun appendAll(stringValues: StringValues) {
+    override fun appendAll(stringValues: StringValues) {
         stringValues.forEach { name, values ->
             appendAll(name, values)
         }
     }
 
-    public fun appendMissing(stringValues: StringValues) {
+    override fun appendMissing(stringValues: StringValues) {
         stringValues.forEach { name, values ->
             appendMissing(name, values)
         }
     }
 
-    public fun appendAll(name: String, values: Iterable<String>) {
+    override fun appendAll(name: String, values: Iterable<String>) {
         ensureListForKey(name, (values as? Collection)?.size ?: 2).let { list ->
             values.forEach { value ->
                 validateValue(value)
@@ -215,29 +246,29 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
         }
     }
 
-    public fun appendMissing(name: String, values: Iterable<String>) {
+    override fun appendMissing(name: String, values: Iterable<String>) {
         val existing = this.values[name]?.toSet() ?: emptySet()
 
         appendAll(name, values.filter { it !in existing })
     }
 
-    public fun remove(name: String) {
+    override fun remove(name: String) {
         values.remove(name)
     }
 
-    public fun removeKeysWithNoEntries() {
+    override fun removeKeysWithNoEntries() {
         for ((k, _) in values.filter { it.value.isEmpty() }) {
             remove(k)
         }
     }
 
-    public fun remove(name: String, value: String): Boolean = values[name]?.remove(value) ?: false
+    override fun remove(name: String, value: String): Boolean = values[name]?.remove(value) ?: false
 
-    public fun clear() {
+    override fun clear() {
         values.clear()
     }
 
-    public open fun build(): StringValues {
+    override fun build(): StringValues {
         require(!built) { "ValueMapBuilder can only build a single ValueMap" }
         built = true
         return StringValuesImpl(caseInsensitiveName, values)
