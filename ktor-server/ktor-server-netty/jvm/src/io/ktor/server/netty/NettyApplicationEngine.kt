@@ -77,6 +77,11 @@ public class NettyApplicationEngine(
          * User-provided function to configure Netty's [HttpServerCodec]
          */
         public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
+
+        /**
+         * User-provided function to configure Netty's [ChannelPipeline]
+         */
+        public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
     }
 
     private val configuration = Configuration().apply(configure)
@@ -153,7 +158,8 @@ public class NettyApplicationEngine(
                     configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds,
                     configuration.requestReadTimeoutSeconds,
-                    configuration.httpServerCodec
+                    configuration.httpServerCodec,
+                    configuration.channelPipelineConfig
                 )
             )
             if (configuration.tcpKeepAlive) {
