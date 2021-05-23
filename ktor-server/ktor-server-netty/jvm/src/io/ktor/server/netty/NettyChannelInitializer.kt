@@ -65,7 +65,9 @@ public class NettyChannelInitializer(
         responseWriteTimeout,
         requestReadTimeout,
         httpServerCodec,
-        {})
+        {}
+    )
+
     init {
         if (connector is EngineSSLConnectorConfig) {
 

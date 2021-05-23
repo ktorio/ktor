@@ -13,7 +13,6 @@ import io.ktor.server.testing.*
 import io.netty.channel.*
 import kotlin.test.*
 
-
 abstract class NettyCustomChannelTest<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
@@ -41,12 +40,15 @@ class NettyCustomChannelPipelineConfigurationTest :
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
         configuration.channelPipelineConfig = {
-            addLast("customHandler", object : ChannelInboundHandlerAdapter() {
-                override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-                    counter = counter.plus(1)
-                    super.channelRead(ctx, msg)
+            addLast(
+                "customHandler",
+                object : ChannelInboundHandlerAdapter() {
+                    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+                        counter = counter.plus(1)
+                        super.channelRead(ctx, msg)
+                    }
                 }
-            })
+            )
         }
     }
 }
