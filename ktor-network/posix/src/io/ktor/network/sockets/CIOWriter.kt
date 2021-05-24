@@ -60,7 +60,6 @@ internal fun CoroutineScope.attachForWritingImpl(
             source.closedCause?.let { throw it }
         }
     }
-
 }.apply {
     invokeOnCompletion {
         shutdown(descriptor, SHUT_WR)

@@ -113,7 +113,6 @@ class UDPSocketTest {
             .udp()
             .bind()
 
-
         socket.outgoing.invokeOnClose {
             done += 1
         }
@@ -138,7 +137,6 @@ class UDPSocketTest {
             .udp()
             .bind()
 
-
         socket.outgoing.invokeOnClose {
             done += 1
             assertTrue(it is AssertionError)
@@ -156,7 +154,6 @@ class UDPSocketTest {
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
-
 
         socket.outgoing.invokeOnClose {
             done += 1
@@ -177,7 +174,6 @@ class UDPSocketTest {
             .bind()
 
         socket.outgoing.close(AssertionError())
-
 
         socket.outgoing.invokeOnClose {
             done += 1
