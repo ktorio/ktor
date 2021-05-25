@@ -13,18 +13,48 @@ import io.ktor.util.*
  * Represents a result of a route evaluation against a call
  *
  * @param succeeded indicates if a route matches current [RoutingResolveContext]
- * @param quality indicates quality of this route as compared to other sibling routes
- * @param parameters is an instance of [Parameters] with parameters filled by [RouteSelector]
- * @param segmentIncrement is a value indicating how many path segments has been consumed by a selector
  */
 @Suppress("RemoveRedundantQualifierName", "PublicApiImplicitType")
-public data class RouteSelectorEvaluation(
-    val succeeded: Boolean,
-    val quality: Double,
-    val parameters: Parameters = Parameters.Empty,
-    val segmentIncrement: Int = 0
+public sealed class RouteSelectorEvaluation(
+    public val succeeded: Boolean
 ) {
+    /**
+     * Represents a success result of a route evaluation against a call
+     *
+     * @param quality indicates quality of this route as compared to other sibling routes
+     * @param parameters is an instance of [Parameters] with parameters filled by [RouteSelector]
+     * @param segmentIncrement is a value indicating how many path segments has been consumed by a selector
+     */
+    public data class Success(
+        public val quality: Double,
+        public val parameters: Parameters = Parameters.Empty,
+        public val segmentIncrement: Int = 0
+    ) : RouteSelectorEvaluation(true)
+
+    /**
+     * Represents a failed result of a route evaluation against a call
+     *
+     * @param quality indicates quality of this route as compared to other sibling routes
+     * @param failureStatusCode response status code in case of failure.
+     * Usually one of 400, 404, 405. Ignored on successful evaluation
+     */
+    public data class Failure(
+        public val quality: Double,
+        public val failureStatusCode: HttpStatusCode
+    ) : RouteSelectorEvaluation(false)
+
     public companion object {
+        @Deprecated("Please use RouteSelectorEvaluation.Failure() or RouteSelectorEvaluation.Success() constructors")
+        public operator fun invoke(
+            succeeded: Boolean,
+            quality: Double,
+            parameters: Parameters = Parameters.Empty,
+            segmentIncrement: Int = 0
+        ): RouteSelectorEvaluation = when (succeeded) {
+            true -> RouteSelectorEvaluation.Success(quality, parameters, segmentIncrement)
+            else -> RouteSelectorEvaluation.Failure(quality, HttpStatusCode.NotFound)
+        }
+
         /**
          * Quality of [RouteSelectorEvaluation] when a constant value has matched
          */
@@ -76,40 +106,69 @@ public data class RouteSelectorEvaluation(
         public const val qualityTransparent: Double = -1.0
 
         /**
+         * Quality of [RouteSelectorEvaluation] when an HTTP method didn't match
+         */
+        public const val qualityFailedMethod: Double = 0.02
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when parameter (query, header, etc) didn't match
+         */
+        public const val qualityFailedParameter: Double = 0.01
+
+        /**
          * Route evaluation failed to succeed, route doesn't match a context
          */
-        public val Failed: RouteSelectorEvaluation = RouteSelectorEvaluation(false, 0.0)
+        public val Failed: RouteSelectorEvaluation.Failure =
+            RouteSelectorEvaluation.Failure(0.0, HttpStatusCode.NotFound)
+
+        /**
+         * Route evaluation failed to succeed on path selector
+         */
+        public val FailedPath: RouteSelectorEvaluation.Failure =
+            RouteSelectorEvaluation.Failure(0.0, HttpStatusCode.NotFound)
+
+        /**
+         * Route evaluation failed to succeed on method selector
+         */
+        public val FailedMethod: RouteSelectorEvaluation.Failure =
+            RouteSelectorEvaluation.Failure(qualityFailedMethod, HttpStatusCode.MethodNotAllowed)
+
+        /**
+         * Route evaluation failed to succeed on query, header or other parameter selector
+         */
+        public val FailedParameter: RouteSelectorEvaluation.Failure =
+            RouteSelectorEvaluation.Failure(qualityFailedParameter, HttpStatusCode.BadRequest)
 
         /**
          * Route evaluation succeeded for a missing optional value
          */
         public val Missing: RouteSelectorEvaluation =
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing)
 
         /**
          * Route evaluation succeeded for a constant value
          */
         public val Constant: RouteSelectorEvaluation =
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant)
 
         /**
          * Route evaluation succeeded for a [qualityTransparent] value. Useful for helper DSL methods that may wrap
          * routes but should not change priority of routing
          */
         public val Transparent: RouteSelectorEvaluation =
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
 
         /**
          * Route evaluation succeeded for a single path segment with a constant value
          */
         public val ConstantPath: RouteSelectorEvaluation =
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
 
         /**
          * Route evaluation succeeded for a wildcard path segment
          */
         public val WildcardPath: RouteSelectorEvaluation =
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)
     }
 }
 
@@ -144,8 +203,7 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
         it.value
     }
 
-    private val successEvaluationResult = RouteSelectorEvaluation(
-        true,
+    private val successEvaluationResult = RouteSelectorEvaluation.Success(
         RouteSelectorEvaluation.qualityConstant,
         segmentIncrement = parts.size
     )
@@ -159,12 +217,12 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
         val parts = parts
         val segments = context.segments
         if (segments.size < parts.size) {
-            return RouteSelectorEvaluation.Failed
+            return RouteSelectorEvaluation.FailedPath
         }
 
         for (index in segmentIndex until segmentIndex + parts.size) {
             if (segments[index] != parts[index]) {
-                return RouteSelectorEvaluation.Failed
+                return RouteSelectorEvaluation.FailedPath
             }
         }
 
@@ -188,7 +246,7 @@ public data class ConstantParameterRouteSelector(
         if (context.call.parameters.contains(name, value)) {
             return RouteSelectorEvaluation.Constant
         }
-        return RouteSelectorEvaluation.Failed
+        return RouteSelectorEvaluation.FailedParameter
     }
 
     override fun toString(): String = "[$name = $value]"
@@ -205,13 +263,12 @@ public data class ParameterRouteSelector(
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
-            return RouteSelectorEvaluation(
-                true,
+            return RouteSelectorEvaluation.Success(
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
         }
-        return RouteSelectorEvaluation.Failed
+        return RouteSelectorEvaluation.FailedParameter
     }
 
     override fun toString(): String = "[$name]"
@@ -228,8 +285,7 @@ public data class OptionalParameterRouteSelector(
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
-            return RouteSelectorEvaluation(
-                true,
+            return RouteSelectorEvaluation.Success(
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
@@ -258,7 +314,7 @@ public data class PathSegmentConstantRouteSelector(
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
             RouteSelectorEvaluation.ConstantPath
-        else -> RouteSelectorEvaluation.Failed
+        else -> RouteSelectorEvaluation.FailedPath
     }
 
     override fun toString(): String = value
@@ -273,10 +329,10 @@ public object TrailingSlashRouteSelector : RouteSelector() {
         context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Transparent
         context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Transparent
-        segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
+        segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.FailedPath
         context.segments[segmentIndex].isNotEmpty() -> RouteSelectorEvaluation.Transparent
         context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
-        else -> RouteSelectorEvaluation.Failed
+        else -> RouteSelectorEvaluation.FailedPath
     }
 
     override fun toString(): String = "<slash>"
@@ -358,7 +414,7 @@ public object PathSegmentWildcardRouteSelector : RouteSelector() {
         if (segmentIndex < context.segments.size && context.segments[segmentIndex].isNotEmpty()) {
             return RouteSelectorEvaluation.WildcardPath
         }
-        return RouteSelectorEvaluation.Failed
+        return RouteSelectorEvaluation.FailedPath
     }
 
     override fun toString(): String = "*"
@@ -390,7 +446,7 @@ public data class PathSegmentTailcardRouteSelector(
         if (prefix.isNotEmpty()) {
             val segmentText = segments.getOrNull(segmentIndex)
             if (segmentText == null || !segmentText.startsWith(prefix)) {
-                return RouteSelectorEvaluation.Failed
+                return RouteSelectorEvaluation.FailedPath
             }
         }
 
@@ -408,8 +464,7 @@ public data class PathSegmentTailcardRouteSelector(
             segmentIndex < segments.size -> RouteSelectorEvaluation.qualityTailcard
             else -> RouteSelectorEvaluation.qualityMissing
         }
-        return RouteSelectorEvaluation(
-            true,
+        return RouteSelectorEvaluation.Success(
             quality,
             values,
             segmentIncrement = segments.size - segmentIndex
@@ -453,16 +508,15 @@ public data class AndRouteSelector(
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
-        if (!result1.succeeded) {
+        if (result1 !is RouteSelectorEvaluation.Success) {
             return result1
         }
         val result2 = second.evaluate(context, segmentIndex + result1.segmentIncrement)
-        if (!result2.succeeded) {
+        if (result2 !is RouteSelectorEvaluation.Success) {
             return result2
         }
         val resultValues = result1.parameters + result2.parameters
-        return RouteSelectorEvaluation(
-            true,
+        return RouteSelectorEvaluation.Success(
             result1.quality * result2.quality,
             resultValues,
             result1.segmentIncrement + result2.segmentIncrement
@@ -484,7 +538,7 @@ public data class HttpMethodRouteSelector(
         if (context.call.request.httpMethod == method) {
             return RouteSelectorEvaluation.Constant
         }
-        return RouteSelectorEvaluation.Failed
+        return RouteSelectorEvaluation.FailedMethod
     }
 
     override fun toString(): String = "(method:${method.value})"
@@ -504,9 +558,9 @@ public data class HttpHeaderRouteSelector(
         val headers = context.call.request.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
         val header = parsedHeaders.firstOrNull { it.value.equals(value, ignoreCase = true) }
-            ?: return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.FailedParameter
 
-        return RouteSelectorEvaluation(true, header.quality)
+        return RouteSelectorEvaluation.Success(header.quality)
     }
 
     override fun toString(): String = "(header:$name = $value)"
@@ -531,10 +585,10 @@ public data class HttpAcceptRouteSelector(
 
             val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
             if (header != null) {
-                return RouteSelectorEvaluation(true, header.quality)
+                return RouteSelectorEvaluation.Success(header.quality)
             }
 
-            return RouteSelectorEvaluation.Failed
+            return RouteSelectorEvaluation.FailedParameter
         } catch (failedToParse: BadContentTypeFormatException) {
             throw BadRequestException("Illegal Accept header format: $acceptHeaderContent", failedToParse)
         }
@@ -553,9 +607,10 @@ internal fun evaluatePathSegmentParameter(
 ): RouteSelectorEvaluation {
     fun failedEvaluation(failedPart: String?): RouteSelectorEvaluation {
         return when {
-            !isOptional -> RouteSelectorEvaluation.Failed
+            !isOptional -> RouteSelectorEvaluation.FailedPath
             failedPart == null -> RouteSelectorEvaluation.Missing
-            failedPart.isEmpty() -> RouteSelectorEvaluation.Missing.copy(segmentIncrement = 1) // trailing slash
+            failedPart.isEmpty() -> // trailing slash
+                RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
             else -> RouteSelectorEvaluation.Missing
         }
     }
@@ -580,10 +635,11 @@ internal fun evaluatePathSegmentParameter(
     }
 
     val values = parametersOf(name, suffixChecked)
-    return RouteSelectorEvaluation(
-        succeeded = true,
-        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityPathParameter
-        else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
+    return RouteSelectorEvaluation.Success(
+        quality = when {
+            prefix.isNullOrEmpty() && suffix.isNullOrEmpty() -> RouteSelectorEvaluation.qualityPathParameter
+            else -> RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix
+        },
         parameters = values,
         segmentIncrement = 1
     )
