@@ -131,7 +131,11 @@ internal class BackwardCompatibleImpl(
             parameter to value
         }.filterNot { it.first.isOptional && it.second == null }.toMap()
 
-        return constructor.callBy(arguments)
+        try {
+            return constructor.callBy(arguments)
+        } catch (cause: InvocationTargetException) {
+            throw cause.cause ?: cause
+        }
     }
 
     private fun createFromParameters(parameters: Parameters, name: String, type: Type, optional: Boolean): Any? {
