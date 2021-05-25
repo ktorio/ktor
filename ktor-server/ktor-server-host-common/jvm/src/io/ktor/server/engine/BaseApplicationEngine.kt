@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.pipeline.*
+import io.ktor.routing.*
 import java.util.*
 
 /**
@@ -51,7 +52,8 @@ public abstract class BaseApplicationEngine(
     private fun Application.installDefaultInterceptors() {
         intercept(ApplicationCallPipeline.Fallback) {
             if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
+                val errorStatusCode = call.attributes.getOrNull(RoutingFailureStatusCode) ?: HttpStatusCode.NotFound
+                call.respond(errorStatusCode)
             }
         }
 
