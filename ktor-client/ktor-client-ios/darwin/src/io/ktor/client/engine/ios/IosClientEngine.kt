@@ -50,7 +50,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
             responseReader.freeze(),
-            delegateQueue = NSOperationQueue.mainQueue()
+            delegateQueue = NSOperationQueue.currentQueue()
         )
 
         val task = session.dataTaskWithRequest(nativeRequest)
