@@ -405,6 +405,12 @@ public abstract interface class io/ktor/utils/io/WriterSuspendSession : io/ktor/
 	public abstract fun tryAwait (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class io/ktor/utils/io/bits/Allocator {
+	public abstract fun alloc-SK3TCg8 (I)Ljava/nio/ByteBuffer;
+	public abstract fun alloc-SK3TCg8 (J)Ljava/nio/ByteBuffer;
+	public abstract fun free-3GNKZMM (Ljava/nio/ByteBuffer;)V
+}
+
 public final class io/ktor/utils/io/bits/ByteOrderJVMKt {
 	public static final fun reverseByteOrder (D)D
 	public static final fun reverseByteOrder (F)F
@@ -1110,6 +1116,16 @@ public final class io/ktor/utils/io/core/CloseableKt {
 
 public final class io/ktor/utils/io/core/CopyKt {
 	public static final fun copyTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/Output;)J
+}
+
+public final class io/ktor/utils/io/core/DefaultBufferPool : io/ktor/utils/io/pool/DefaultPool {
+	public fun <init> ()V
+	public fun <init> (IILio/ktor/utils/io/bits/Allocator;)V
+	public synthetic fun <init> (IILio/ktor/utils/io/bits/Allocator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun disposeInstance (Ljava/lang/Object;)V
+	public synthetic fun produceInstance ()Ljava/lang/Object;
+	public synthetic fun validateInstance (Ljava/lang/Object;)V
 }
 
 public abstract interface annotation class io/ktor/utils/io/core/ExperimentalIoApi : java/lang/annotation/Annotation {
