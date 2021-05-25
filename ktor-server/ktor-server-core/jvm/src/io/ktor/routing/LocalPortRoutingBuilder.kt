@@ -38,7 +38,7 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         if (context.call.request.local.port == port) {
             val parameters = parametersOf(LocalPortParameter, port.toString())
-            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, parameters)
+            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, parameters)
         } else {
             RouteSelectorEvaluation.Failed
         }
