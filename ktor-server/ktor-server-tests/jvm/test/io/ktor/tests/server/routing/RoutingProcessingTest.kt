@@ -1046,13 +1046,84 @@ Route resolve result:
         }
     }
 
-    private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
+    @Test
+    fun testRoutingErrorStatusCodes() = withTestApplication {
+        application.routing {
+            route("header_param_method") {
+                param("param") {
+                    handle {
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+                header("header", "value") {
+                    handle {
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            route("method") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            route("header") {
+                header("header", "value") {
+                    handle {
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+            route("param") {
+                param("param") {
+                    handle {
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/method").let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+        handleRequest(HttpMethod.Post, "/method").let { call ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/param?param=123").let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+        handleRequest(HttpMethod.Get, "/param").let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/header") {
+            addHeader("header", "value")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+        handleRequest(HttpMethod.Get, "/header") {
+            addHeader("header", "value1")
+        }.let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Post, "/header_param_method").let { call ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/non_existing_path").let { call ->
+            assertEquals(HttpStatusCode.NotFound, call.response.status())
+        }
+    }
 
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-                    return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+                    return RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
                 }
             }
         )
