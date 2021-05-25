@@ -62,24 +62,11 @@ public class TestApplicationResponse(
         private val builder = HeadersBuilder()
 
         override fun engineAppendHeader(name: String, value: String) {
-            @Suppress("DEPRECATION")
-            if (call.requestHandled) {
-                throw UnsupportedOperationException(
-                    "Headers can no longer be set because response was already completed"
-                )
-            }
             builder.append(name, value)
         }
 
         override fun getEngineHeaderNames(): List<String> = builder.names().toList()
         override fun getEngineHeaderValues(name: String): List<String> = builder.getAll(name).orEmpty()
-    }
-
-    init {
-        pipeline.intercept(ApplicationSendPipeline.Engine) {
-            @Suppress("DEPRECATION")
-            call.requestHandled = call.response.status() != HttpStatusCode.NotFound
-        }
     }
 
     override suspend fun responseChannel(): ByteWriteChannel {
