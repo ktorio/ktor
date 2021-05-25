@@ -1720,6 +1720,7 @@ public final class io/ktor/utils/io/core/UseKt {
 
 public class io/ktor/utils/io/core/internal/ChunkBuffer : io/ktor/utils/io/core/Buffer {
 	public static final field Companion Lio/ktor/utils/io/core/internal/ChunkBuffer$Companion;
+	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun cleanNext ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public synthetic fun duplicate ()Lio/ktor/utils/io/core/Buffer;
 	public fun duplicate ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
