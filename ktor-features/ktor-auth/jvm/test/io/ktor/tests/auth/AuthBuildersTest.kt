@@ -277,7 +277,6 @@ class AuthBuildersTest {
 
             on("Index should be available for everyone") {
                 val call = handleRequest(HttpMethod.Get, "/")
-                assertTrue { call.requestHandled }
                 assertTrue { call.response.status()!!.isSuccess() }
                 assertEquals("Public index. Not logged in.", call.response.content)
             }
@@ -286,32 +285,27 @@ class AuthBuildersTest {
                     addCookie()
                 }
 
-                assertTrue { call.requestHandled }
                 assertTrue { call.response.status()!!.isSuccess() }
                 assertEquals("Public index. Logged in as tester.", call.response.content)
             }
             on("User profile page should redirect to login page") {
                 val call = handleRequest(HttpMethod.Get, "/user/profile")
-                assertTrue { call.requestHandled }
                 assertEquals("/login", call.response.headers[HttpHeaders.Location])
             }
             on("User profile page should be show for an authenticated user") {
                 val call = handleRequest(HttpMethod.Get, "/user/profile") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("Profile for tester.", call.response.content)
             }
             on("Login page shouldn't be shown for an authenticated user (with cookies)") {
                 val call = handleRequest(HttpMethod.Get, "/login") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals(HttpStatusCode.Found.value, call.response.status()?.value)
             }
             on("Login page should be shown for clean user") {
                 val call = handleRequest(HttpMethod.Get, "/login")
-                assertTrue { call.requestHandled }
                 assertEquals("Login form goes here.", call.response.content)
             }
             on("Login page should create session on form post") {
@@ -320,7 +314,6 @@ class AuthBuildersTest {
                 }
                 val cookies = call.response.headers[HttpHeaders.SetCookie]?.let { parseServerSetCookieHeader(it) }
 
-                assertTrue { call.requestHandled }
                 assertNotNull(cookies, "Set-Cookie should be sent")
                 assertEquals(serializedSession, cookies.value)
                 assertEquals("Logged in successfully as tester.", call.response.content)
@@ -329,12 +322,10 @@ class AuthBuildersTest {
                 val call = handleRequest(HttpMethod.Get, "/user/files/doc1.txt") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("File doc1.txt for user tester.", call.response.content)
             }
             on("A download manager or wget/curl tool could download file using basic auth") {
                 val firstAttempt = handleRequest(HttpMethod.Get, "/user/files/doc1.txt")
-                assertTrue { firstAttempt.requestHandled }
                 // with no auth header we should get basic auth challenge
                 assertEquals(
                     "Basic realm=test-app, charset=UTF-8",
@@ -346,7 +337,6 @@ class AuthBuildersTest {
                 val call = handleRequest(HttpMethod.Get, "/user/files/doc1.txt") {
                     addBasicAuth()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("File doc1.txt for user tester.", call.response.content)
             }
         }

@@ -13,6 +13,11 @@ import io.ktor.utils.io.pool.*
  * @see closeDestination
  */
 @ExperimentalIoApi
+@Deprecated(
+    "AbstractOutput is deprecated and will be merged with Input in 2.0.0",
+    ReplaceWith("Output"),
+    DeprecationLevel.WARNING
+)
 public abstract class AbstractOutput
 internal constructor(
     private val headerSizeHint: Int,

@@ -11,6 +11,11 @@ import io.ktor.utils.io.pool.*
  * The default abstract base class implementing [Input] interface.
  * @see [AbstractInput.fill] and [AbstractInput.closeSource].
  */
+@Deprecated(
+    "AbstractInput is deprecated and will be merged with Input in 2.0.0",
+    ReplaceWith("Input"),
+    DeprecationLevel.WARNING
+)
 public abstract class AbstractInput(
     head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),

@@ -21,7 +21,6 @@ internal data class CertificateInfo(val certificate: Certificate, val keys: KeyP
 /**
  * Builder for certificate
  */
-@KtorExperimentalAPI
 public class CertificateBuilder internal constructor() {
     /**
      * Certificate hash algorithm (required)
@@ -119,7 +118,6 @@ public fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStore
 /**
  * Save [KeyStore] to [output] file with the specified [password]
  */
-@KtorExperimentalAPI
 public fun KeyStore.saveToFile(output: File, password: String) {
     output.parentFile?.mkdirs()
 

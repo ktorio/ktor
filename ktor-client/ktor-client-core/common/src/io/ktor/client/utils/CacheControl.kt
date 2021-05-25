@@ -4,13 +4,10 @@
 
 package io.ktor.client.utils
 
-import io.ktor.util.*
-
 /**
  * List of [CacheControl] known values.
  */
 @Suppress("KDocMissingDocumentation", "MemberVisibilityCanBePrivate")
-@KtorExperimentalAPI
 public object CacheControl {
     public const val MAX_AGE: String = "max-age"
     public const val MIN_FRESH: String = "min-fresh"

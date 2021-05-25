@@ -1,4 +1,0 @@
-description = ''
-kotlin.sourceSets.jvmMain.dependencies {
-    api group: 'org.jetbrains.kotlinx', name: 'kotlinx-html-jvm', version: kotlinx_html_version
-}

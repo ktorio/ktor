@@ -8,7 +8,7 @@ plugins {
     `kotlin-dsl`
 }
 
-val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_DISABLED")?.toBoolean() != true
+val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_ENABLED")?.toBoolean() == true
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
 repositories {

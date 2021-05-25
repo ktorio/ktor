@@ -107,7 +107,6 @@ import platform.Security.*
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
-@KtorExperimentalAPI
 public data class CertificatePinner internal constructor(
     private val pinnedCertificates: Set<PinnedCertificate>,
     private val validateTrust: Boolean
@@ -321,7 +320,7 @@ public data class CertificatePinner internal constructor(
     /**
      * Checks that we support the key type and size
      */
-    internal fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
+    private fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
 
@@ -339,7 +338,7 @@ public data class CertificatePinner internal constructor(
      * Get the [IntArray] of Asn1 headers needed to prepend to the public key to create the
      * encoding [ASN1Header](https://docs.oracle.com/middleware/11119/opss/SCRPJ/oracle/security/crypto/asn1/ASN1Header.html)
      */
-    internal fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
+    private fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
 
@@ -385,7 +384,6 @@ public data class CertificatePinner internal constructor(
     /**
      * Builds a configured [CertificatePinner].
      */
-    @KtorExperimentalAPI
     public data class Builder(
         private val pinnedCertificates: MutableList<PinnedCertificate> = mutableListOf(),
         private var validateTrust: Boolean = true

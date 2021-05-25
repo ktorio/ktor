@@ -73,7 +73,6 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
 /**
  * Parse server's `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
@@ -102,7 +101,6 @@ private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+
 /**
  * Parse client's `Cookie` header value
  */
-@KtorExperimentalAPI
 public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
@@ -119,7 +117,6 @@ public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean 
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -138,7 +135,6 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -158,7 +154,6 @@ public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderSetCookieHeader(
     name: String,
     value: String,
@@ -189,7 +184,6 @@ public fun renderSetCookieHeader(
 /**
  * Encode cookie value using the specified [encoding]
  */
-@KtorExperimentalAPI
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } ->
@@ -214,7 +208,6 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
 /**
  * Decode cookie value using the specified [encoding]
  */
-@KtorExperimentalAPI
 public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->

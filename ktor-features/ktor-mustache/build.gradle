@@ -1,5 +1,0 @@
-description = ''
-
-kotlin.sourceSets.jvmMain.dependencies {
-    api group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.6'
-}

@@ -1,7 +1,0 @@
-description = ''
-
-kotlin {
-    sourceSets.jvmTest.dependencies {
-        implementation project(':ktor-server:ktor-server-netty')
-    }
-}

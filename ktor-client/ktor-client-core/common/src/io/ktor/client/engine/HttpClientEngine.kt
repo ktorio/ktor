@@ -36,7 +36,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Set of supported engine extensions.
      */
-    @KtorExperimentalAPI
     public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
 

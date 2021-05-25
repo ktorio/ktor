@@ -16,7 +16,7 @@ private val cacheRedirectorAvaialble: Boolean = isCacheRedirectorAvailable()
  * including buildSrc within TeamCity CI.
  */
 private val cacheRedirectorEnabled =
-    cacheRedirectorAvaialble && (System.getenv("CACHE_REDIRECTOR_DISABLED")?.toBoolean() != true)
+    cacheRedirectorAvaialble && (System.getenv("CACHE_REDIRECTOR_ENABLED")?.toBoolean() == true)
 
 /**
  *  The list of repositories supported by cache redirector should be synced with the list at https://cache-redirector.jetbrains.com/redirects_generated.html
@@ -123,15 +123,15 @@ object CacheRedirector {
      * Substitutes repositories in buildScript { } block.
      */
     @JvmStatic
-    fun ScriptHandler.configureBuildScript(rootProject: Project) {
-        rootProject.checkRedirect(repositories, "${rootProject.displayName} buildscript")
+    fun configureBuildScript(rootProject: Project, scriptHandler: ScriptHandler) {
+        rootProject.checkRedirect(scriptHandler.repositories, "${rootProject.displayName} buildscript")
     }
 
     /**
      * Substitutes repositories in a project.
      */
     @JvmStatic
-    fun Project.configure() {
-        checkRedirect(repositories, displayName)
+    fun configure(project: Project) {
+        project.checkRedirect(project.repositories, project.displayName)
     }
 }

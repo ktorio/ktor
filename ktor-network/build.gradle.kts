@@ -17,13 +17,13 @@ kotlin {
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(project(":ktor-utils"))
             }
         }
 
-        jvmTest {
+        val jvmTest by getting {
             dependencies {
                 implementation("io.mockk:mockk:$mockk_version")
             }
@@ -33,10 +33,8 @@ kotlin {
             val networkInterop by creating
             getByName("posixMain").dependsOn(networkInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
-            (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
-                "network",
-                networkInterop
-            )
+            val registerInteropAsSourceSetOutput = extra["registerInteropAsSourceSetOutput"] as groovy.lang.Closure<*>
+            registerInteropAsSourceSetOutput.invoke("network", networkInterop)
         }
     }
 }

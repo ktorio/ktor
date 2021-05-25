@@ -17,7 +17,6 @@ public expect fun SelectorManager(
 /**
  * SelectorManager interface allows [Selectable] wait for [SelectInterest].
  */
-@InternalAPI
 public expect interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
@@ -40,10 +39,8 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
 
 /**
  * Select interest kind
- * @property [flag] to be set in NIO selector
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@KtorExperimentalAPI
 @InternalAPI
 public expect enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;

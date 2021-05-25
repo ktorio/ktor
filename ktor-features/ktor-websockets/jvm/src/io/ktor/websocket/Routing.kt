@@ -260,7 +260,7 @@ private suspend fun DefaultWebSocketSessionImpl.handleServerSession(
 
 private class WebSocketProtocolsSelector(
     val requiredProtocol: String
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol]
             ?: return RouteSelectorEvaluation.Failed

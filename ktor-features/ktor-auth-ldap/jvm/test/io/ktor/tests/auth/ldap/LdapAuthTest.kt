@@ -58,7 +58,6 @@ class LdapAuthTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
-                assertTrue(result.requestHandled)
                 result.response.headers[HttpHeaders.WWWAuthenticate].let {
                     assertNotNull(it, "No auth challenge sent")
                     val challenge = parseAuthorizationHeader(it)
@@ -76,7 +75,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("admin", result.response.content)
             }
@@ -86,7 +84,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
@@ -96,7 +93,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
@@ -106,7 +102,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
@@ -157,7 +152,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("user-test", result.response.content)
             }
@@ -167,7 +161,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/") {
@@ -176,7 +169,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/") {
@@ -185,7 +177,6 @@ class LdapAuthTest {
                     "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())
                 )
             }.let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }

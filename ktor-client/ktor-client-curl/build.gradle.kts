@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.targets.native.tasks.*
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 val ideaActive: Boolean by project.extra
 val serialization_version: String by project.extra
@@ -10,10 +10,7 @@ plugins {
 }
 
 kotlin {
-    targets {
-        // Workaround: 1.3.60. Possible because of the new inference.
-        (this as NamedDomainObjectCollection<KotlinTarget>)
-
+    targets.apply {
         val current = mutableListOf<KotlinTarget>()
         if (ideaActive) {
             current.add(getByName("posix"))
@@ -21,7 +18,11 @@ kotlin {
             current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("mingwX64")))
         }
 
-        val paths = listOf("C:/msys64/mingw64/include/curl", "C:/Tools/msys64/mingw64/include/curl", "C:/Tools/msys2/mingw64/include/curl")
+        val paths = listOf(
+            "C:/msys64/mingw64/include/curl",
+            "C:/Tools/msys64/mingw64/include/curl",
+            "C:/Tools/msys2/mingw64/include/curl"
+        )
         current.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
             platform.compilations.getByName("main") {
                 val libcurl by cinterops.creating {
@@ -44,30 +45,30 @@ kotlin {
                                 "/usr/local/Cellar/curl/7.66.0/include/curl"
                             )
                         )
-
                     }
 
                     afterEvaluate {
                         if (platform.name == "mingwX64") {
                             val winTests = tasks.getByName("mingwX64Test") as KotlinNativeTest
-                            winTests.environment("PATH", "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin")
+                            winTests.environment(
+                                "PATH",
+                                "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
+                            )
                         }
                     }
                 }
-
             }
-
         }
     }
 
     sourceSets {
-        posixMain {
+        val posixMain by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-http:ktor-http-cio"))
             }
         }
-        posixTest {
+        val posixTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
                 api(project(":ktor-client:ktor-client-features:ktor-client-json"))

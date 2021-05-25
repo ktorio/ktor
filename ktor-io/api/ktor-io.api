@@ -1857,6 +1857,10 @@ public final class io/ktor/utils/io/nio/OutputKt {
 	public static synthetic fun asOutput$default (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/core/Output;
 }
 
+public final class io/ktor/utils/io/pool/ByteArrayPoolKt {
+	public static final fun getByteArrayPool ()Lio/ktor/utils/io/pool/ObjectPool;
+}
+
 public final class io/ktor/utils/io/pool/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
 	public fun <init> ()V
 	public fun <init> (II)V

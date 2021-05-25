@@ -69,7 +69,7 @@ class TestApplicationEngineTest {
         ) {
             val elapsedTime = measureTimeMillis {
                 handleRequest(HttpMethod.Get, "/").let { call ->
-                    assertTrue(call.requestHandled)
+                    assertTrue(call.response.status()!!.isSuccess())
                 }
             }
             assertEquals(listOf("Delay($delayTime)", "Delay($delayTime)"), delayLog)

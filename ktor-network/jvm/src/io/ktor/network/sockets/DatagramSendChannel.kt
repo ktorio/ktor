@@ -28,16 +28,11 @@ internal class DatagramSendChannel(
     private val onCloseHandler = atomic<((Throwable?) -> Unit)?>(null)
     private val closed = atomic(false)
     private val closedCause = atomic<Throwable?>(null)
+    private val lock = Mutex()
 
     @ExperimentalCoroutinesApi
     override val isClosedForSend: Boolean
         get() = socket.isClosed
-
-    @ExperimentalCoroutinesApi
-    override val isFull: Boolean
-        get() = if (isClosedForSend) false else lock.isLocked
-
-    private val lock = Mutex()
 
     override fun close(cause: Throwable?): Boolean {
         if (!closed.compareAndSet(false, true)) {
@@ -55,8 +50,9 @@ internal class DatagramSendChannel(
         return true
     }
 
-    override fun offer(element: Datagram): Boolean {
-        if (!lock.tryLock()) return false
+    @OptIn(InternalCoroutinesApi::class)
+    override fun trySend(element: Datagram): ChannelResult<Unit> {
+        if (!lock.tryLock()) return ChannelResult.failure()
 
         var result = false
 
@@ -73,7 +69,7 @@ internal class DatagramSendChannel(
             element.packet.release()
         }
 
-        return result
+        return ChannelResult.success(Unit)
     }
 
     override suspend fun send(element: Datagram) {
@@ -99,6 +95,8 @@ internal class DatagramSendChannel(
             socket.interestOp(SelectInterest.WRITE, true)
             socket.selector.select(socket, SelectInterest.WRITE)
 
+            @Suppress("BlockingMethodInNonBlockingContext")
+            // this is actually non-blocking invocation
             if (channel.send(buffer, address) != 0) {
                 socket.interestOp(SelectInterest.WRITE, false)
                 break

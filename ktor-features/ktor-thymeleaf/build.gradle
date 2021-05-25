@@ -1,5 +1,0 @@
-description = ''
-
-kotlin.sourceSets.jvmMain.dependencies {
-    api group: 'org.thymeleaf', name: 'thymeleaf', version: '[3.0.11.RELEASE, 3.1)'
-}

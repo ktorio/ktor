@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import java.lang.reflect.*
+import java.net.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
@@ -28,8 +29,7 @@ import kotlin.reflect.*
 public class NettyApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit = {}
-) :
-    BaseApplicationEngine(environment) {
+) : BaseApplicationEngine(environment) {
 
     /**
      * Configuration for the [NettyApplicationEngine]
@@ -127,7 +127,7 @@ public class NettyApplicationEngine(
     private var cancellationDeferred: CompletableJob? = null
 
     private var channels: List<Channel>? = null
-    private val bootstraps: List<ServerBootstrap> by lazy {
+    internal val bootstraps: List<ServerBootstrap> by lazy {
         environment.connectors.map(::createBootstrap)
     }
 
@@ -173,9 +173,14 @@ public class NettyApplicationEngine(
     override fun start(wait: Boolean): NettyApplicationEngine {
         environment.start()
 
-        channels = bootstraps.zip(environment.connectors)
-            .map { it.first.bind(it.second.host, it.second.port) }
-            .map { it.sync().channel() }
+        try {
+            channels = bootstraps.zip(environment.connectors)
+                .map { it.first.bind(it.second.host, it.second.port) }
+                .map { it.sync().channel() }
+        } catch (cause: BindException) {
+            terminate()
+            throw cause
+        }
 
         cancellationDeferred = stopServerOnCancellation()
 
@@ -184,6 +189,11 @@ public class NettyApplicationEngine(
             stop(1, 5, TimeUnit.SECONDS)
         }
         return this
+    }
+
+    private fun terminate() {
+        connectionEventGroup.shutdownGracefully().sync()
+        workerEventGroup.shutdownGracefully().sync()
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {

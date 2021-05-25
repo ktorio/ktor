@@ -26,7 +26,6 @@ class BasicAuthTest {
                 uri = "/"
             }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             assertNull(call.response.content)
 
@@ -85,7 +84,6 @@ class BasicAuthTest {
 
             val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("ok", call.response.content)
         }
@@ -100,7 +98,6 @@ class BasicAuthTest {
 
             val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("Secret info", call.response.content)
         }
@@ -113,7 +110,6 @@ class BasicAuthTest {
 
             val call = handleRequest { addHeader(HttpHeaders.Authorization, "B<sic code") }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
@@ -130,7 +126,6 @@ class BasicAuthTest {
 
             val call = handleRequestWithBasic("/", user, p, charset = Charsets.UTF_8)
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("Secret info", call.response.content)
         }
@@ -145,7 +140,6 @@ class BasicAuthTest {
 
             val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             assertNotEquals("Secret info", call.response.content)
 
@@ -163,7 +157,6 @@ class BasicAuthTest {
                 addHeader(HttpHeaders.Authorization, "Bearer some-token")
             }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             assertNotEquals("Secret info", call.response.content)
 
@@ -181,7 +174,6 @@ class BasicAuthTest {
                 addHeader(HttpHeaders.Authorization, "Basic +-test")
             }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             assertNotEquals("Secret info", call.response.content)
 
@@ -198,7 +190,6 @@ class BasicAuthTest {
 
             val call = handleRequestWithBasic("/?backdoor", user, p)
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("Secret info", call.response.content)
         }
@@ -221,7 +212,6 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "bad", "").let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, call.response.status())
                 assertNotEquals("Secret info", call.response.content)
 
@@ -229,7 +219,6 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "good", "").let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("Secret info", call.response.content)
             }

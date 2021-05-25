@@ -21,7 +21,6 @@ class CallIdTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
     }
@@ -50,12 +49,10 @@ class CallIdTest {
         }
 
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "test-id") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("test-id", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") { }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
     }
@@ -73,12 +70,10 @@ class CallIdTest {
         }
 
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "test-id") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("test-id", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") { }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("generated-id", call.response.content)
         }
     }
@@ -97,12 +92,10 @@ class CallIdTest {
         }
 
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "test-id") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("test-id", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") { }.let { call ->
-            assertTrue { call.requestHandled }
             val generatedId = call.response.content!!
             assertNotEquals("null", generatedId)
             assertNotEquals("test-id", generatedId)
@@ -131,12 +124,10 @@ class CallIdTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.XRequestId, "test-id")
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("test-id", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/") { }.let { call ->
-            assertTrue { call.requestHandled }
             val generatedId = call.response.content!!
             assertNotEquals("null", generatedId)
             assertNotEquals("test-id", generatedId)
@@ -160,14 +151,12 @@ class CallIdTest {
 
         // call id is provided by client
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "client-id") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("client-id", call.response.content)
             assertEquals("client-id", call.response.headers[HttpHeaders.XRequestId])
         }
 
         // call id is generated
         handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("generated-call-id", call.response.content)
             assertEquals("generated-call-id", call.response.headers[HttpHeaders.XRequestId])
         }
@@ -186,7 +175,6 @@ class CallIdTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.XRequestId, CALL_ID_DEFAULT_DICTIONARY)
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.content)
             assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.headers[HttpHeaders.XRequestId])
         }
@@ -195,7 +183,6 @@ class CallIdTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader(HttpHeaders.XRequestId, "\u1000")
         }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
     }
@@ -211,13 +198,11 @@ class CallIdTest {
 
         // valid call id
         handleRequest(HttpMethod.Get, "/valid").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.content)
         }
 
         // invalid call id
         handleRequest(HttpMethod.Get, "/invalid").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
     }
@@ -234,19 +219,16 @@ class CallIdTest {
 
         // valid call id
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "12345") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("12345", call.response.content)
         }
 
         // invalid call id that should be ignored
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "123") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
 
         // invalid call id that should be rejected with error
         handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "1") }.let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(HttpStatusCode.BadRequest.value, call.response.status()?.value)
         }
     }
