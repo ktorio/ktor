@@ -1380,9 +1380,11 @@ public abstract class io/ktor/routing/RouteSelector {
 	public final fun getQuality ()D
 }
 
-public final class io/ktor/routing/RouteSelectorEvaluation {
+public abstract class io/ktor/routing/RouteSelectorEvaluation {
 	public static final field Companion Lio/ktor/routing/RouteSelectorEvaluation$Companion;
 	public static final field qualityConstant D
+	public static final field qualityFailedMethod D
+	public static final field qualityFailedParameter D
 	public static final field qualityMethodParameter D
 	public static final field qualityMissing D
 	public static final field qualityParameter D
@@ -1392,30 +1394,51 @@ public final class io/ktor/routing/RouteSelectorEvaluation {
 	public static final field qualityTailcard D
 	public static final field qualityTransparent D
 	public static final field qualityWildcard D
-	public fun <init> (ZDLio/ktor/http/Parameters;I)V
-	public synthetic fun <init> (ZDLio/ktor/http/Parameters;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Z
-	public final fun component2 ()D
-	public final fun component3 ()Lio/ktor/http/Parameters;
-	public final fun component4 ()I
-	public final fun copy (ZDLio/ktor/http/Parameters;I)Lio/ktor/routing/RouteSelectorEvaluation;
-	public static synthetic fun copy$default (Lio/ktor/routing/RouteSelectorEvaluation;ZDLio/ktor/http/Parameters;IILjava/lang/Object;)Lio/ktor/routing/RouteSelectorEvaluation;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getParameters ()Lio/ktor/http/Parameters;
-	public final fun getQuality ()D
-	public final fun getSegmentIncrement ()I
+	public synthetic fun <init> (ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getSucceeded ()Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/routing/RouteSelectorEvaluation$Companion {
 	public final fun getConstant ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getConstantPath ()Lio/ktor/routing/RouteSelectorEvaluation;
-	public final fun getFailed ()Lio/ktor/routing/RouteSelectorEvaluation;
+	public final fun getFailed ()Lio/ktor/routing/RouteSelectorEvaluation$Failure;
+	public final fun getFailedMethod ()Lio/ktor/routing/RouteSelectorEvaluation$Failure;
+	public final fun getFailedParameter ()Lio/ktor/routing/RouteSelectorEvaluation$Failure;
+	public final fun getFailedPath ()Lio/ktor/routing/RouteSelectorEvaluation$Failure;
 	public final fun getMissing ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getTransparent ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getWildcardPath ()Lio/ktor/routing/RouteSelectorEvaluation;
+	public final fun invoke (ZDLio/ktor/http/Parameters;I)Lio/ktor/routing/RouteSelectorEvaluation;
+	public static synthetic fun invoke$default (Lio/ktor/routing/RouteSelectorEvaluation$Companion;ZDLio/ktor/http/Parameters;IILjava/lang/Object;)Lio/ktor/routing/RouteSelectorEvaluation;
+}
+
+public final class io/ktor/routing/RouteSelectorEvaluation$Failure : io/ktor/routing/RouteSelectorEvaluation {
+	public fun <init> (DLio/ktor/http/HttpStatusCode;)V
+	public final fun component1 ()D
+	public final fun component2 ()Lio/ktor/http/HttpStatusCode;
+	public final fun copy (DLio/ktor/http/HttpStatusCode;)Lio/ktor/routing/RouteSelectorEvaluation$Failure;
+	public static synthetic fun copy$default (Lio/ktor/routing/RouteSelectorEvaluation$Failure;DLio/ktor/http/HttpStatusCode;ILjava/lang/Object;)Lio/ktor/routing/RouteSelectorEvaluation$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFailureStatusCode ()Lio/ktor/http/HttpStatusCode;
+	public final fun getQuality ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/routing/RouteSelectorEvaluation$Success : io/ktor/routing/RouteSelectorEvaluation {
+	public fun <init> (DLio/ktor/http/Parameters;I)V
+	public synthetic fun <init> (DLio/ktor/http/Parameters;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()Lio/ktor/http/Parameters;
+	public final fun component3 ()I
+	public final fun copy (DLio/ktor/http/Parameters;I)Lio/ktor/routing/RouteSelectorEvaluation$Success;
+	public static synthetic fun copy$default (Lio/ktor/routing/RouteSelectorEvaluation$Success;DLio/ktor/http/Parameters;IILjava/lang/Object;)Lio/ktor/routing/RouteSelectorEvaluation$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getParameters ()Lio/ktor/http/Parameters;
+	public final fun getQuality ()D
+	public final fun getSegmentIncrement ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/routing/Routing : io/ktor/routing/Route {
@@ -1500,6 +1523,7 @@ public final class io/ktor/routing/RoutingBuilderKt {
 
 public final class io/ktor/routing/RoutingKt {
 	public static final fun getApplication (Lio/ktor/routing/Route;)Lio/ktor/application/Application;
+	public static final fun getRoutingFailureStatusCode ()Lio/ktor/util/AttributeKey;
 	public static final fun routing (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Routing;
 }
 
@@ -1552,6 +1576,7 @@ public abstract class io/ktor/routing/RoutingResolveResult {
 
 public final class io/ktor/routing/RoutingResolveResult$Failure : io/ktor/routing/RoutingResolveResult {
 	public fun <init> (Lio/ktor/routing/Route;Ljava/lang/String;)V
+	public final fun getErrorStatusCode ()Lio/ktor/http/HttpStatusCode;
 	public synthetic fun getParameters ()Lio/ktor/http/Parameters;
 	public fun getParameters ()Ljava/lang/Void;
 	public final fun getReason ()Ljava/lang/String;
