@@ -69,6 +69,24 @@ class LocationsTest {
         urlShouldBeUnhandled("/about/123")
     }
 
+    @Location("/error")
+    class Build(val build: String) {
+        init {
+            require(build.length > 0)
+        }
+    }
+
+    @Test fun testLocationWithException() = withLocationsApplication {
+        application.routing {
+            get<Build> {
+            }
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            urlShouldBeHandled("/error?build=")
+        }
+    }
+
     @Location("/user/{id}")
     class user(val id: Int)
 
