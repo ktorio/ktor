@@ -13,7 +13,7 @@ import kotlin.test.*
 class HeadersTest : ClientLoader() {
 
     @Test
-    fun testHeadersReturnNullWhenMissing() = clientTests(listOf("Java")) {
+    fun testHeadersReturnNullWhenMissing() = clientTests(listOf("Java", "Curl")) {
         test { client ->
             client.get<HttpResponse>("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
@@ -92,7 +92,7 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestHasContentLength() = clientTests(listOf("Java")) {
+    fun testRequestHasContentLength() = clientTests(listOf("Java", "Curl")) {
         test { client ->
             val get = client.get<String>("$TEST_SERVER/headers")
             assertEquals("", get)
