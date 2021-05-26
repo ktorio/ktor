@@ -82,11 +82,10 @@ class LocationsTest {
             }
         }
 
-        assertFailsWith<IllegalArgumentException>{
+        assertFailsWith<IllegalArgumentException> {
             urlShouldBeHandled("/error?build=")
         }
     }
-
 
     @Location("/user/{id}")
     class user(val id: Int)
