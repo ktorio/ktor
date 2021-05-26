@@ -61,9 +61,6 @@ public class ResponseObserver(
 
                 context.response = newClientCall.response
                 context.request = newClientCall.request
-
-                @Suppress("UNCHECKED_CAST")
-                (response.coroutineContext[Job] as CompletableJob).complete()
                 proceedWith(context.response)
             }
         }

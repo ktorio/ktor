@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
+import io.ktor.client.features.compression.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
@@ -428,6 +429,78 @@ class LoggingTest : ClientLoader() {
 
         after {
             testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testLoggingWithCompression() = clientTests {
+        val testLogger = TestLogger(
+            "REQUEST: http://127.0.0.1:8080/compression/deflate",
+            "METHOD: HttpMethod(value=GET)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "-> Content-Length: 0",
+            "BODY Content-Type: null",
+            "BODY START",
+            "",
+            "BODY END",
+            "RESPONSE: 200 OK",
+            "METHOD: HttpMethod(value=GET)",
+            "FROM: http://127.0.0.1:8080/compression/deflate",
+            "COMMON HEADERS",
+            "???-> Connection: keep-alive",
+            "???-> connection: close",
+            "-> Content-Length: 20",
+            "-> Content-Type: text/plain; charset=UTF-8",
+            "BODY Content-Type: text/plain; charset=UTF-8",
+            "BODY START",
+            "Compressed response!",
+            "BODY END"
+        )
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.request<HttpStatement> {
+                method = HttpMethod.Get
+                url("$TEST_SERVER/compression/deflate")
+            }.receive<String>()
+            assertEquals("Compressed response!", response)
+        }
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testLoggingWithStreaming() = clientTests {
+        val testLogger = TestLogger()
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val body = ByteChannel()
+            GlobalScope.launch {
+                body.writeFully(ByteArray(16 * 1024) { 1 })
+                body.close()
+            }
+
+            val response = client.request<HttpStatement> {
+                method = HttpMethod.Post
+                url("$TEST_SERVER/content/echo")
+                this.body = body
+            }.receive<ByteReadChannel>()
+            response.discard()
         }
     }
 
