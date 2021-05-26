@@ -4,7 +4,6 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*

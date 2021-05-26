@@ -6,6 +6,7 @@ package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlin.test.*
@@ -17,7 +18,20 @@ internal fun Application.headersTestServer() {
                 call.response.header("X-Header-Single-Value", "foo")
                 call.response.header("X-Header-Double-Value", "foo")
                 call.response.header("X-Header-Double-Value", "bar")
-                call.respond(HttpStatusCode.OK, "OK")
+                val message = call.request.header(HttpHeaders.ContentLength) ?: ""
+                call.respond(HttpStatusCode.OK, message)
+            }
+            post {
+                val message = call.request.header(HttpHeaders.ContentLength) ?: ""
+                call.respond(HttpStatusCode.OK, message)
+            }
+            put {
+                val message = call.request.header(HttpHeaders.ContentLength) ?: ""
+                call.respond(HttpStatusCode.OK, message)
+            }
+            head {
+                val message = call.request.header(HttpHeaders.ContentLength) ?: ""
+                call.respond(HttpStatusCode.OK, message)
             }
             get("host") {
                 val header = call.request.headers.getAll(HttpHeaders.Host)

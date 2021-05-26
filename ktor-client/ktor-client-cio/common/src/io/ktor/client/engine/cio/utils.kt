@@ -7,7 +7,6 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
@@ -51,7 +50,15 @@ internal suspend fun HttpRequestData.write(
                 builder.headerLine(HttpHeaders.Host, host)
             }
 
+            if (contentLength != null) {
+                if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
+                    builder.headerLine(HttpHeaders.ContentLength, contentLength)
+                }
+            }
+
             mergeHeaders(headers, body) { key, value ->
+                if (key == HttpHeaders.ContentLength) return@mergeHeaders
+
                 builder.headerLine(key, value)
             }
 
