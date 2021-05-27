@@ -16,8 +16,10 @@ import kotlinx.coroutines.scheduling.*
 /**
  * Engine that based on CIO backend
  */
-public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
-    BaseApplicationEngine(environment) {
+public class CIOApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit
+) : BaseApplicationEngine(environment) {
 
     /**
      * CIO-based server configuration
