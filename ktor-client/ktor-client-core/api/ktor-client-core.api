@@ -278,8 +278,8 @@ public final class io/ktor/client/features/BodyProgress$Feature : io/ktor/client
 }
 
 public final class io/ktor/client/features/BodyProgressKt {
-	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function2;)V
-	public static final fun onUpload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function2;)V
+	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function3;)V
+	public static final fun onUpload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
