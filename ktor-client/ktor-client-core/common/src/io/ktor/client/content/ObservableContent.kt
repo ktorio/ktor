@@ -18,10 +18,10 @@ import kotlin.coroutines.*
  * @param bytesSentTotal number of transmitted bytes
  * @param contentLength body size. Can be -1 if the size is unknown
  */
-public typealias ProgressListener = (bytesSentTotal: Long, contentLength: Long) -> Unit
+public typealias ProgressListener = suspend (bytesSentTotal: Long, contentLength: Long) -> Unit
 
 internal class ObservableContent(
-    private val delegate: OutgoingContent,
+    delegate: OutgoingContent,
     private val callContext: CoroutineContext,
     private val listener: ProgressListener
 ) : OutgoingContent.ReadChannelContent() {
@@ -35,6 +35,9 @@ internal class ObservableContent(
             delegate.writeTo(channel)
         }.channel
     }
+
+    @Suppress("CanBePrimaryConstructorProperty") // required to avoid InvalidMutabilityException on native
+    private val delegate = delegate
 
     override val contentType: ContentType?
         get() = delegate.contentType
