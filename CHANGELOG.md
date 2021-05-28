@@ -1,3 +1,38 @@
+# 1.6.0
+> Published 28 May 2021
+
+* Ktor fails to deliver response with error: failed with exception: kotlinx.coroutines.JobCancellationException: Parent job is Completed; ([KTOR-2711](https://youtrack.jetbrains.com/issue/KTOR-2711))
+* Wrong Tabs Name in Code Blocks ([KTOR-2726](https://youtrack.jetbrains.com/issue/KTOR-2726))
+* Apache HTTP Client does not send Content-Length header if body is empty content ([KTOR-556](https://youtrack.jetbrains.com/issue/KTOR-556))
+* Review Auth providers ([KTOR-2637](https://youtrack.jetbrains.com/issue/KTOR-2637))
+* When the main thread executes runBlocking, using the iOS engine will cause a deadlock ([KTOR-2683](https://youtrack.jetbrains.com/issue/KTOR-2683))
+* Deprecate TestApplicationCall.requestHandled ([KTOR-2712](https://youtrack.jetbrains.com/issue/KTOR-2712))
+* Update Dokka: Dokka tasks fails with old dokka version and Gradle 7 ([KTOR-2693](https://youtrack.jetbrains.com/issue/KTOR-2693))
+* Duplicate server `Features` Section on the Documentation Website ([KTOR-2702](https://youtrack.jetbrains.com/issue/KTOR-2702))
+* Duplicate entry "Features" in Server docs ([KTOR-1546](https://youtrack.jetbrains.com/issue/KTOR-1546))
+* Upgrading from 1.4.3 to 1.5.2 introduced a routing precedence ([KTOR-2278](https://youtrack.jetbrains.com/issue/KTOR-2278))
+* Sporadic OkHttp errors after upgrading to ktor 1.3.1 ([KTOR-449](https://youtrack.jetbrains.com/issue/KTOR-449))
+* Netty: server freezes after start error ([KTOR-803](https://youtrack.jetbrains.com/issue/KTOR-803))
+* aSocket().bind() sometimes throws Already bound SocketException ([KTOR-638](https://youtrack.jetbrains.com/issue/KTOR-638))
+* UDPSocketTest.testBroadcastSuccessful[jvm] is failing ([KTOR-2616](https://youtrack.jetbrains.com/issue/KTOR-2616))
+* Fix flaky CIOHttpsTest.customDomainsTest[jvm] ([KTOR-2065](https://youtrack.jetbrains.com/issue/KTOR-2065))
+* Occasionally empty response using Netty + Jackson ([KTOR-1973](https://youtrack.jetbrains.com/issue/KTOR-1973))
+* '%3D' inside query of redirect target location will be replaced to '=' ([KTOR-2057](https://youtrack.jetbrains.com/issue/KTOR-2057))
+* CIO: TLSConfigBuilder JVM allow null as password ([KTOR-940](https://youtrack.jetbrains.com/issue/KTOR-940))
+* route("{...}") stopped matching root ([KTOR-1965](https://youtrack.jetbrains.com/issue/KTOR-1965))
+* call.respond() will not check or apply ContentNegotiation for some types ([KTOR-2194](https://youtrack.jetbrains.com/issue/KTOR-2194))
+* Add support for Velocity Tools ([KTOR-2345](https://youtrack.jetbrains.com/issue/KTOR-2345))
+* Base name of micrometer metrics is not configurable ([KTOR-2210](https://youtrack.jetbrains.com/issue/KTOR-2210))
+* Support for Compression Extensions for WebSocket (RFC 7692) ([KTOR-688](https://youtrack.jetbrains.com/issue/KTOR-688))
+* Document usage of Bearer token in Http Client ([KTOR-2439](https://youtrack.jetbrains.com/issue/KTOR-2439))
+* How to track leaked buffers in ktor-io? ([KTOR-2442](https://youtrack.jetbrains.com/issue/KTOR-2442))
+* Routing: Add PutTyped and PatchTyped Overload ([KTOR-1344](https://youtrack.jetbrains.com/issue/KTOR-1344))
+* Migrate to Dokka 1.4.0 ([KTOR-1032](https://youtrack.jetbrains.com/issue/KTOR-1032))
+* Client upload/download progress observer/handler/interceptor ([KTOR-400](https://youtrack.jetbrains.com/issue/KTOR-400))
+* HTTP-client auth with Bearer token ([KTOR-331](https://youtrack.jetbrains.com/issue/KTOR-331))
+* Expose TrailingSlashRouteSelector ([KTOR-2511](https://youtrack.jetbrains.com/issue/KTOR-2511))
+* Add an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
+
 # 1.5.4
 > Published 30 Apr 2021
 
