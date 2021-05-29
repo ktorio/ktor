@@ -84,7 +84,7 @@ are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/i
 Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests):
 
 1. Fork the Ktor repository and work on your fork.
-2. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the **master** branch.
+2. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the **main** branch.
 3. Ensure that the description is clear and refers to an existing ticket/bug if applicable, prefixing the description with
    KTOR-{NUM}, where {NUM} refers to the YouTrack issue.
 4. When contributing a new feature, provide motivation and use-cases describing why
