@@ -38,5 +38,14 @@ public object EngineMain {
         deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
             responseWriteTimeoutSeconds = it
         }
+        deploymentConfig.propertyOrNull("maxInitialLineLength")?.getString()?.toInt()?.let {
+            maxInitialLineLength = it
+        }
+        deploymentConfig.propertyOrNull("maxHeaderLength")?.getString()?.toInt()?.let {
+            maxHeaderLength = it
+        }
+        deploymentConfig.propertyOrNull("maxChunkSize")?.getString()?.toInt()?.let {
+            maxChunkSize = it
+        }
     }
 }
