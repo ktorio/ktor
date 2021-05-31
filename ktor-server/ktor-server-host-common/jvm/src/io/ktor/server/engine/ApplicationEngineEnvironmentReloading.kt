@@ -5,7 +5,9 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.application.EventDefinition
 import io.ktor.config.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
@@ -70,7 +72,7 @@ public class ApplicationEngineEnvironmentReloading(
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
-    override val monitor: ApplicationEvents = ApplicationEvents()
+    override val monitor: Events = Events()
 
     override val application: Application
         get() = currentApplication()
