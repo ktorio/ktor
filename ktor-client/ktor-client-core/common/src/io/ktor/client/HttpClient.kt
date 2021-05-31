@@ -9,7 +9,9 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.*
 import io.ktor.client.utils.checkCoroutinesVersion
+import io.ktor.events.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
@@ -118,6 +120,11 @@ public class HttpClient(
      */
     public val engineConfig: HttpClientEngineConfig = engine.config
 
+    /**
+     * Provides events on client lifecycle
+     */
+    public val monitor: Events = Events()
+
     internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
@@ -167,8 +174,11 @@ public class HttpClient(
     /**
      * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
-    internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
-        requestPipeline.execute(builder, builder.body) as HttpClientCall
+    internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall {
+        monitor.raise(HttpRequestCreated, builder)
+
+        return requestPipeline.execute(builder, builder.body) as HttpClientCall
+    }
 
     /**
      * Check if the specified [capability] is supported by this client.
