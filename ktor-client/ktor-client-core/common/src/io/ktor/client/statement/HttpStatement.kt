@@ -87,9 +87,6 @@ public class HttpStatement(
         try {
             val result = response.body<T>()
             return block(result)
-        } catch (cause: Throwable) {
-            client.monitor.raise(HttpResponseReceiveFailed, HttpResponseReceiveFail(response, cause))
-            throw cause
         } finally {
             response.cleanup()
         }

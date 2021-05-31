@@ -168,6 +168,15 @@ public class HttpClient(
             config.install(this@HttpClient)
         }
 
+        responsePipeline.intercept(HttpResponsePipeline.Receive) {
+            try {
+                proceed()
+            } catch (cause: Throwable) {
+                monitor.raise(HttpResponseReceiveFailed, HttpResponseReceiveFail(context.response, cause))
+                throw cause
+            }
+        }
+
         makeShared()
     }
 

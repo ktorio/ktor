@@ -137,7 +137,7 @@ public class HttpCache(
 
         val varyKeysFrom304 = response.varyKeys()
         val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
-        val newVaryKeys = if (varyKeysFrom304.isNullOrEmpty()) cache.varyKeys else varyKeysFrom304
+        val newVaryKeys = varyKeysFrom304.ifEmpty { cache.varyKeys }
         storage.store(url, HttpCacheEntry(response.cacheExpires(), newVaryKeys, cache.response, cache.body))
         return cache.produceResponse()
     }
