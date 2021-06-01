@@ -4,10 +4,20 @@
 
 package io.ktor.thymeleaf
 
-import io.ktor.application.ApplicationCall
-import io.ktor.http.ContentType
-import io.ktor.http.withCharset
-import io.ktor.response.respond
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+
+/**
+ * Respond with [template] applying [model]
+ */
+public suspend fun RoutingCall.respondTemplate(
+    template: String,
+    model: Map<String, Any> = emptyMap(),
+    etag: String? = null,
+    contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+): Unit = call.respondTemplate(template, model, etag, contentType)
 
 /**
  * Respond with [template] applying [model]

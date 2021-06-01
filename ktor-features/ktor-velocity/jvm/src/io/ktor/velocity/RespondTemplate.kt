@@ -7,6 +7,17 @@ package io.ktor.velocity
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.routing.*
+
+/**
+ * Respond with [template] applying [model]
+ */
+public suspend fun RoutingCall.respondTemplate(
+    template: String,
+    model: Map<String, Any> = emptyMap(),
+    etag: String? = null,
+    contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+): Unit = call.respondTemplate(template, model, etag, contentType)
 
 /**
  * Respond with [template] applying [model]

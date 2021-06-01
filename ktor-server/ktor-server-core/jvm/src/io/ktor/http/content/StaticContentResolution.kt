@@ -6,9 +6,24 @@ package io.ktor.http.content
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.routing.*
 import io.ktor.util.*
 import java.io.*
 import java.net.*
+
+/**
+ * @param path is a relative path to the resource
+ * @param resourcePackage is a base package the path to be appended to
+ * @param mimeResolve is a function that resolves content type by file extension, optional
+ *
+ * @return [LocalFileContent] or [JarFileContent] or `null`
+ */
+public fun RoutingCall.resolveResource(
+    path: String,
+    resourcePackage: String? = null,
+    classLoader: ClassLoader = call.application.environment.classLoader,
+    mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
+): OutgoingContent? = call.resolveResource(path, resourcePackage, classLoader, mimeResolve)
 
 /**
  * @param path is a relative path to the resource

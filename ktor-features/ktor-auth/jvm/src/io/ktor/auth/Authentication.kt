@@ -268,8 +268,19 @@ public class Authentication(config: Configuration) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call
  */
+public val RoutingCall.authentication: AuthenticationContext
+    get() = call.authentication
+
+/**
+ * Retrieves an [AuthenticationContext] for `this` call
+ */
 public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
+
+/**
+ * Retrieves authenticated [Principal] for `this` call
+ */
+public inline fun <reified P : Principal> RoutingCall.principal(): P? = call.principal()
 
 /**
  * Retrieves authenticated [Principal] for `this` call
@@ -305,11 +316,13 @@ public inline fun <reified P : Principal> ApplicationCall.principal(): P? = auth
  * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
  */
-public fun Route.authenticate(
+public fun RoutingBuilder.authenticate(
     vararg configurations: String? = arrayOf<String?>(null),
     optional: Boolean = false,
-    build: Route.() -> Unit
-): Route {
+    build: RoutingBuilder.() -> Unit
+): RoutingBuilder {
+    check(this is Route)
+
     require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
     val configurationNames = configurations.distinct()
     val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))

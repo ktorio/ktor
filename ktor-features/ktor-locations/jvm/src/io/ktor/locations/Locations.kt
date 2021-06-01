@@ -70,6 +70,14 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
     }
 
     /**
+     * Resolves parameters in a [call] to an instance of specified [T].
+     */
+    @KtorExperimentalLocationsAPI
+    public inline fun <reified T : Any> resolve(call: RoutingCall): T {
+        return resolve(T::class, call.call)
+    }
+
+    /**
      * Constructs the url for [location].
      *
      * The class of [location] instance **must** be annotated with [Location].
@@ -81,7 +89,7 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
     }
 
     @OptIn(KtorExperimentalLocationsAPI::class)
-    private fun createEntry(parent: Route, info: LocationInfo): Route {
+    private fun createEntry(parent: Route, info: LocationInfo): RoutingBuilder {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         return hierarchyEntry.createRouteFromPath(info.path)
     }
@@ -89,7 +97,7 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Creates all necessary routing entries to match specified [locationClass].
      */
-    public fun createEntry(parent: Route, locationClass: KClass<*>): Route {
+    public fun createEntry(parent: Route, locationClass: KClass<*>): RoutingBuilder {
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 

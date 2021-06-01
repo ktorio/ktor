@@ -14,6 +14,7 @@ import io.ktor.util.*
  * Represents an application call being handled by [Routing]
  * @property route is the selected route
  */
+@Deprecated(message = "TODO")
 public class RoutingApplicationCall(
     private val call: ApplicationCall,
     public val route: Route,
@@ -43,6 +44,7 @@ public class RoutingApplicationCall(
 /**
  * Represents an application request being handled by [Routing]
  */
+@Deprecated(message = "TODO")
 public class RoutingApplicationRequest(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationReceivePipeline,
@@ -52,6 +54,7 @@ public class RoutingApplicationRequest(
 /**
  * Represents an application response being handled by [Routing]
  */
+@Deprecated(message = "TODO")
 public class RoutingApplicationResponse(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationSendPipeline,

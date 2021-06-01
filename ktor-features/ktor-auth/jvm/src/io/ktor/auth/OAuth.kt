@@ -5,15 +5,11 @@
 package io.ktor.auth
 
 import io.ktor.application.*
-import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
 import org.slf4j.*
-import java.io.*
 
 private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth2")
 
@@ -143,130 +139,6 @@ public sealed class OAuthAccessTokenResponse : Principal {
 public object OAuthGrantTypes {
     public const val AuthorizationCode: String = "authorization_code"
     public const val Password: String = "password"
-}
-
-/**
- * Install both OAuth1a and OAuth2 authentication helpers that do redirect to OAuth server authorization page
- * and handle corresponding callbacks
- */
-@Suppress("unused")
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
-) {
-    oauth1a(client, dispatcher, providerLookup, urlProvider)
-    oauth2(client, dispatcher, providerLookup, urlProvider)
-}
-
-/**
- * Respond OAuth redirect
- */
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String
-) {
-    when (provider) {
-        is OAuthServerSettings.OAuth1aServerSettings -> {
-            withContext(dispatcher) {
-                val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
-                call.redirectAuthenticateOAuth1a(provider, requestToken)
-            }
-        }
-        is OAuthServerSettings.OAuth2ServerSettings -> {
-            call.redirectAuthenticateOAuth2(
-                provider,
-                callbackUrl,
-                provider.nonceManager.newNonce(),
-                scopes = provider.defaultScopes,
-                interceptor = provider.authorizeUrlInterceptor
-            )
-        }
-    }
-}
-
-/**
- * Handle OAuth callback. Usually it leads to requesting an access token.
- */
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String,
-    loginPageUrl: String,
-    block: suspend (OAuthAccessTokenResponse) -> Unit
-) {
-    @Suppress("DEPRECATION_ERROR")
-    oauthHandleCallback(client, dispatcher, provider, callbackUrl, loginPageUrl, {}, block)
-}
-
-/**
- * Handle OAuth callback.
- */
-@Deprecated(
-    "Specifying an extra configuration function will be deprecated. " +
-        "Please provide it via OAuthServerSettings.",
-    level = DeprecationLevel.ERROR
-)
-public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String,
-    loginPageUrl: String,
-    configure: HttpRequestBuilder.() -> Unit = {},
-    block: suspend (OAuthAccessTokenResponse) -> Unit
-) {
-    when (provider) {
-        is OAuthServerSettings.OAuth1aServerSettings -> {
-            val tokens = call.oauth1aHandleCallback()
-            if (tokens == null) {
-                call.respondRedirect(loginPageUrl)
-            } else {
-                withContext(dispatcher) {
-                    try {
-                        val accessToken = requestOAuth1aAccessToken(client, provider, tokens)
-                        block(accessToken)
-                    } catch (ioe: IOException) {
-                        call.oauthHandleFail(loginPageUrl)
-                    }
-                }
-            }
-        }
-        is OAuthServerSettings.OAuth2ServerSettings -> {
-            val code = call.oauth2HandleCallback()
-            if (code == null) {
-                call.respondRedirect(loginPageUrl)
-            } else {
-                withContext(dispatcher) {
-                    try {
-                        val accessToken = oauth2RequestAccessToken(
-                            client,
-                            provider,
-                            callbackUrl,
-                            code,
-                            emptyMap(),
-                            configure
-                        )
-
-                        block(accessToken)
-                    } catch (cause: OAuth2Exception.InvalidGrant) {
-                        Logger.trace("Redirected to the login page due to invalid_grant error: {}", cause.message)
-                        call.oauthHandleFail(loginPageUrl)
-                    } catch (ioe: IOException) {
-                        Logger.trace("Redirected to the login page due to IO error", ioe)
-                        call.oauthHandleFail(loginPageUrl)
-                    }
-                }
-            }
-        }
-    }
 }
 
 internal suspend fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)

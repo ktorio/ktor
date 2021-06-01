@@ -6,7 +6,14 @@ package io.ktor.locations
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.routing.*
 import io.ktor.util.*
+
+/**
+ * Constructs a String with the url of a instance [location] whose class must be annotated with [Location].
+ */
+@KtorExperimentalLocationsAPI
+public fun RoutingCall.url(location: Any, block: URLBuilder.() -> Unit = {}): String = call.url(location, block)
 
 /**
  * Constructs a String with the url of a instance [location] whose class must be annotated with [Location].

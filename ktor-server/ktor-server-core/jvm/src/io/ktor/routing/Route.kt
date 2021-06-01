@@ -19,7 +19,7 @@ public open class Route(
     public val parent: Route?,
     public val selector: RouteSelector,
     developmentMode: Boolean,
-) : ApplicationCallPipeline(developmentMode) {
+) : ApplicationCallPipeline(developmentMode), RoutingBuilder {
 
     /**
      * Describes a node in a routing tree.
@@ -42,12 +42,12 @@ public open class Route(
     @Volatile
     private var cachedPipeline: ApplicationCallPipeline? = null
 
-    internal val handlers = ArrayList<PipelineInterceptor<Unit, ApplicationCall>>()
+    internal val handlers = ArrayList<RoutingHandler>()
 
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector
      */
-    public fun createChild(selector: RouteSelector): Route {
+    public override fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = Route(this, selector)
@@ -65,7 +65,7 @@ public open class Route(
     /**
      * Installs a handler into this route which will be called when the route is selected for a call
      */
-    public fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
+    public override fun handle(handler: RoutingHandler) {
         handlers.add(handler)
 
         // Adding a handler invalidates only pipeline for this entry
@@ -103,7 +103,10 @@ public open class Route(
 
             val handlers = handlers
             for (index in 0..handlers.lastIndex) {
-                pipeline.intercept(Call, handlers[index])
+                pipeline.intercept(Call) {
+                    val callContext = RoutingCallContext(RoutingCall(this@Route, call), coroutineContext)
+                    handlers[index].invoke(callContext)
+                }
             }
             cachedPipeline = pipeline
             pipeline

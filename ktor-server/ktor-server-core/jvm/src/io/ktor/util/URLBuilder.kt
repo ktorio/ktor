@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
+import io.ktor.routing.*
 
 /**
  * Creates an url using current call's schema, path and parameters as initial
@@ -29,6 +30,12 @@ public fun URLBuilder.Companion.createFromCall(call: ApplicationCall): URLBuilde
  * Construct a URL
  */
 public fun url(block: URLBuilder.() -> Unit): String = URLBuilder().apply(block).buildString()
+
+/**
+ * Creates an url using current call's schema, path and parameters as initial
+ * and then invokes [block] function on the url builder so amend parameters
+ */
+public inline fun RoutingCall.url(block: URLBuilder.() -> Unit = {}): String = call.url(block)
 
 /**
  * Creates an url using current call's schema, path and parameters as initial

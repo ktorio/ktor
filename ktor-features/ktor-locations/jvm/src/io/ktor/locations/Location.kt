@@ -37,8 +37,22 @@ public annotation class Location(val path: String)
  * Gets the [Application.locations] feature
  */
 @KtorExperimentalLocationsAPI
+public val RoutingCallContext.locations: Locations
+    get() = call.call.locations
+
+/**
+ * Gets the [Application.locations] feature
+ */
+@KtorExperimentalLocationsAPI
 public val PipelineContext<Unit, ApplicationCall>.locations: Locations
     get() = call.application.locations
+
+/**
+ * Gets the [Application.locations] feature
+ */
+@KtorExperimentalLocationsAPI
+public val RoutingCall.locations: Locations
+    get() = call.locations
 
 /**
  * Gets the [Application.locations] feature
@@ -59,8 +73,26 @@ public val Application.locations: Locations
  * @throws MissingApplicationFeatureException is no locations feature installed
  */
 @KtorExperimentalLocationsAPI
+public fun RoutingCallContext.href(location: Any): String {
+    return call.call.href(location)
+}
+
+/**
+ * Renders link to a [location] using current installed locations service
+ * @throws MissingApplicationFeatureException is no locations feature installed
+ */
+@KtorExperimentalLocationsAPI
 public fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
-    return call.application.locations.href(location)
+    return call.href(location)
+}
+
+/**
+ * Renders link to a [location] using current installed locations service
+ * @throws MissingApplicationFeatureException is no locations feature installed
+ */
+@KtorExperimentalLocationsAPI
+public fun ApplicationCall.href(location: Any): String {
+    return application.locations.href(location)
 }
 
 /**
@@ -69,7 +101,7 @@ public fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
  * Class [T] **must** be annotated with [Location].
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.location(noinline body: Route.() -> Unit): Route {
+public inline fun <reified T : Any> RoutingBuilder.location(noinline body: RoutingBuilder.() -> Unit): RoutingBuilder {
     return location(T::class, body)
 }
 
@@ -81,9 +113,9 @@ public inline fun <reified T : Any> Route.location(noinline body: Route.() -> Un
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.get(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.get(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Get) {
             handle(body)
@@ -99,9 +131,9 @@ public inline fun <reified T : Any> Route.get(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.options(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.options(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Options) {
             handle(body)
@@ -117,9 +149,9 @@ public inline fun <reified T : Any> Route.options(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.head(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.head(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Head) {
             handle(body)
@@ -135,9 +167,9 @@ public inline fun <reified T : Any> Route.head(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.post(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.post(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Post) {
             handle(body)
@@ -153,9 +185,9 @@ public inline fun <reified T : Any> Route.post(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.put(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.put(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Put) {
             handle(body)
@@ -171,9 +203,9 @@ public inline fun <reified T : Any> Route.put(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.delete(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.delete(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Delete) {
             handle(body)
@@ -189,9 +221,9 @@ public inline fun <reified T : Any> Route.delete(
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.patch(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-): Route {
+public inline fun <reified T : Any> RoutingBuilder.patch(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
+): RoutingBuilder {
     return location(T::class) {
         method(HttpMethod.Patch) {
             handle(body)
@@ -205,7 +237,8 @@ public inline fun <reified T : Any> Route.patch(
  * Class [data] **must** be annotated with [Location].
  */
 @KtorExperimentalLocationsAPI
-public fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Route {
+public fun <T : Any> RoutingBuilder.location(data: KClass<T>, body: RoutingBuilder.() -> Unit): RoutingBuilder {
+    check(this is Route)
     val entry = application.locations.createEntry(this, data)
     return entry.apply(body)
 }
@@ -216,8 +249,8 @@ public fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Ro
  * Class [T] **must** be annotated with [Location].
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.handle(
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+public inline fun <reified T : Any> RoutingBuilder.handle(
+    noinline body: suspend RoutingCallContext.(T) -> Unit
 ) {
     return handle(T::class, body)
 }
@@ -230,10 +263,11 @@ public inline fun <reified T : Any> Route.handle(
  * @param body receives an instance of typed location [dataClass] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public fun <T : Any> Route.handle(
+public fun <T : Any> RoutingBuilder.handle(
     dataClass: KClass<T>,
-    body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+    body: suspend RoutingCallContext.(T) -> Unit
 ) {
+    check(this is Route)
     intercept(ApplicationCallPipeline.Features) {
         call.attributes.put(LocationInstanceKey, locations.resolve<T>(dataClass, call))
     }
@@ -255,6 +289,13 @@ public fun <T : Any> Route.handle(
 @KtorExperimentalLocationsAPI
 @Deprecated("Use location function instead.", ReplaceWith("this.location<T>()"), level = DeprecationLevel.ERROR)
 public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = location()
+
+/**
+ * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),
+ * or not yet available (invoked too early before the locations feature takes place).
+ */
+@KtorExperimentalLocationsAPI
+public inline fun <reified T : Any> RoutingCall.location(): T = call.location()
 
 /**
  * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),

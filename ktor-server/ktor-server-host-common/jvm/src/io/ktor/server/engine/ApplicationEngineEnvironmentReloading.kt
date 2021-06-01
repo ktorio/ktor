@@ -302,7 +302,7 @@ public class ApplicationEngineEnvironmentReloading(
 
                 try {
                     launchModuleByName(name, currentClassLoader, newInstance)
-                } catch (_: Throwable) {
+                } catch (cause: Throwable) {
                     module(newInstance)
                 }
             }

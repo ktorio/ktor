@@ -62,10 +62,11 @@ public final class io/ktor/auth/AuthenticationFailedCause$NoCredentials : io/kto
 }
 
 public final class io/ktor/auth/AuthenticationKt {
-	public static final fun authenticate (Lio/ktor/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
-	public static synthetic fun authenticate$default (Lio/ktor/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/routing/Route;
+	public static final fun authenticate (Lio/ktor/routing/RoutingBuilder;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Lio/ktor/routing/RoutingBuilder;
+	public static synthetic fun authenticate$default (Lio/ktor/routing/RoutingBuilder;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/routing/RoutingBuilder;
 	public static final fun authentication (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getAuthentication (Lio/ktor/application/ApplicationCall;)Lio/ktor/auth/AuthenticationContext;
+	public static final fun getAuthentication (Lio/ktor/routing/RoutingCall;)Lio/ktor/auth/AuthenticationContext;
 }
 
 public final class io/ktor/auth/AuthenticationPipeline : io/ktor/util/pipeline/Pipeline {
@@ -214,6 +215,7 @@ public final class io/ktor/auth/FormAuthenticationProvider$Configuration : io/kt
 
 public final class io/ktor/auth/HeadersKt {
 	public static final fun parseAuthorizationHeader (Lio/ktor/request/ApplicationRequest;)Lio/ktor/http/auth/HttpAuthHeader;
+	public static final fun parseAuthorizationHeader (Lio/ktor/routing/RoutingRequest;)Lio/ktor/http/auth/HttpAuthHeader;
 }
 
 public abstract class io/ktor/auth/OAuth1aException : java/lang/Exception {
@@ -376,14 +378,6 @@ public final class io/ktor/auth/OAuthGrantTypes {
 	public static final field AuthorizationCode Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/auth/OAuthGrantTypes;
 	public static final field Password Ljava/lang/String;
-}
-
-public final class io/ktor/auth/OAuthKt {
-	public static final fun oauth (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/client/HttpClient;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun oauthHandleCallback (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/client/HttpClient;Lkotlinx/coroutines/CoroutineDispatcher;Lio/ktor/auth/OAuthServerSettings;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun oauthHandleCallback (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/client/HttpClient;Lkotlinx/coroutines/CoroutineDispatcher;Lio/ktor/auth/OAuthServerSettings;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun oauthHandleCallback$default (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/client/HttpClient;Lkotlinx/coroutines/CoroutineDispatcher;Lio/ktor/auth/OAuthServerSettings;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun oauthRespondRedirect (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/client/HttpClient;Lkotlinx/coroutines/CoroutineDispatcher;Lio/ktor/auth/OAuthServerSettings;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/auth/OAuthProcedureKt {

@@ -6,7 +6,16 @@ package io.ktor.http
 
 import io.ktor.application.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.*
+
+/**
+ * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+ * or does nothing.
+ * Exact behaviour is up to engine implementation.
+ */
+@UseHttp2Push
+public fun RoutingCall.push(pathAndQuery: String): Unit = call.push(pathAndQuery)
 
 /**
  * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
@@ -25,6 +34,15 @@ public fun ApplicationCall.push(pathAndQuery: String) {
  * Exact behaviour is up to engine implementation.
  */
 @UseHttp2Push
+public fun RoutingCall.push(encodedPath: String, encodedParameters: Parameters): Unit =
+    call.push(encodedPath, encodedParameters)
+
+/**
+ * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+ * or does nothing.
+ * Exact behaviour is up to engine implementation.
+ */
+@UseHttp2Push
 public fun ApplicationCall.push(encodedPath: String, encodedParameters: Parameters) {
     push {
         url.encodedPath = encodedPath
@@ -32,6 +50,14 @@ public fun ApplicationCall.push(encodedPath: String, encodedParameters: Paramete
         url.encodedParameters.appendAll(encodedParameters)
     }
 }
+
+/**
+ * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+ * or does nothing (may call or not call [block]).
+ * Exact behaviour is up to engine implementation.
+ */
+@UseHttp2Push
+public fun RoutingCall.push(block: ResponsePushBuilder.() -> Unit): Unit = call.push(block)
 
 /**
  * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header

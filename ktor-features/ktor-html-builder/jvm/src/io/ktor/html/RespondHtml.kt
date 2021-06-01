@@ -8,11 +8,18 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import java.io.*
+
+/**
+ * Responds to a client with a HTML response, using specified [block] to build an HTML page
+ */
+public suspend fun RoutingCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit): Unit =
+    call.respondHtml(status, block)
 
 /**
  * Responds to a client with a HTML response, using specified [block] to build an HTML page

@@ -8,6 +8,12 @@ import io.ktor.features.*
 import io.ktor.http.auth.*
 import io.ktor.http.parsing.*
 import io.ktor.request.*
+import io.ktor.routing.*
+
+/**
+ * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].
+ */
+public fun RoutingRequest.parseAuthorizationHeader(): HttpAuthHeader? = call.request.parseAuthorizationHeader()
 
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].

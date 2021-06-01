@@ -66,7 +66,9 @@ constructor() {
  * itself is not served by default.
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
-public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
+public fun RoutingBuilder.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
+    check(this is Route)
+
     @Suppress("DEPRECATION_ERROR")
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
