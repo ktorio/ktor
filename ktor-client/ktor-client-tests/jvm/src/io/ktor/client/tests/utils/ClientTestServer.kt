@@ -9,8 +9,6 @@ import io.ktor.client.tests.utils.tests.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 
@@ -73,7 +71,7 @@ internal fun Application.tlsTests() {
     }
 }
 
-internal suspend fun ApplicationCall.fail(text: String): Nothing {
+internal suspend fun RoutingCall.fail(text: String): Nothing {
     respondText(text, status = HttpStatusCode(400, text))
     error(text)
 }

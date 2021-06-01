@@ -7,7 +7,23 @@ package io.ktor.pebble
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import java.util.*
+
+/**
+ * Respond with the specified [template] passing [model]
+ *
+ * @see PebbleContent
+ */
+public suspend fun RoutingCall.respondTemplate(
+    template: String,
+    model: Map<String, Any>,
+    locale: Locale? = null,
+    etag: String? = null,
+    contentType: ContentType = ContentType.Text.Html.withCharset(
+        Charsets.UTF_8
+    )
+): Unit = call.respondTemplate(template, model, locale, etag, contentType)
 
 /**
  * Respond with the specified [template] passing [model]

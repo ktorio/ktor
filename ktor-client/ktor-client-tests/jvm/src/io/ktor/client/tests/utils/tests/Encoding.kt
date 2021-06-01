@@ -10,25 +10,27 @@ import io.ktor.response.*
 import io.ktor.routing.*
 
 internal fun Application.encodingTestServer() {
+    install(Compression) {
+        deflate()
+        gzip()
+        identity()
+    }
     routing {
         route("/compression") {
             route("/deflate") {
-                install(Compression) { deflate() }
                 setCompressionEndpoints()
             }
             route("/gzip") {
-                install(Compression) { gzip() }
                 setCompressionEndpoints()
             }
             route("/identity") {
-                install(Compression) { identity() }
                 setCompressionEndpoints()
             }
         }
     }
 }
 
-private fun Route.setCompressionEndpoints() {
+private fun RoutingBuilder.setCompressionEndpoints() {
     get {
         call.respondText("Compressed response!")
     }

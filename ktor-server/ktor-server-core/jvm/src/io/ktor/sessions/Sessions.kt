@@ -6,6 +6,7 @@ package io.ktor.sessions
 
 import io.ktor.application.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.*
 import kotlin.reflect.*
 
@@ -87,6 +88,12 @@ public class Sessions(public val providers: List<SessionProvider<*>>) {
         }
     }
 }
+
+/**
+ * Get current session or fail if no session feature installed
+ * @throws MissingApplicationFeatureException
+ */
+public val RoutingCall.sessions: CurrentSession get() = call.sessions
 
 /**
  * Get current session or fail if no session feature installed

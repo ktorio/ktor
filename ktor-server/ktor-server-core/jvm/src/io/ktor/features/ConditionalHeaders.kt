@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
@@ -102,6 +103,22 @@ public class ConditionalHeaders(private val versionProviders: List<suspend (Outg
         }
     }
 }
+
+/**
+ * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it
+ * produces 410 Precondition Failed or 304 Not modified responses when necessary.
+ * Otherwise sets ETag header and delegates to the [block] function
+ *
+ * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
+ * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
+ */
+@Deprecated(
+    "Use configuration for ConditionalHeaders or configure block of call.respond function.",
+    level = DeprecationLevel.ERROR
+)
+public suspend fun RoutingCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit): Unit =
+    @Suppress("DEPRECATION_ERROR")
+    call.withETag(etag, putHeader, block)
 
 /**
  * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it

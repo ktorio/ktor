@@ -5,9 +5,19 @@
 package io.ktor.sessions
 
 import io.ktor.application.*
+import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.reflect.*
+
+/**
+ * Returns the corresponding session ID for the type [SessionType] or `null` if no session provided.
+ * It will crash if no session provider for type [SessionType] installed or no [Sessions] feature installed.
+ *
+ * @param SessionType to search ID for
+ * @return session id or `null` if no session ID sent by the client
+ */
+public inline fun <reified SessionType : Any> RoutingCall.sessionId(): String? = call.sessionId<SessionType>()
 
 /**
  * Returns the corresponding session ID for the type [SessionType] or `null` if no session provided.
@@ -20,6 +30,17 @@ public inline fun <reified SessionType : Any> ApplicationCall.sessionId(): Strin
     val name = sessions.findName(SessionType::class)
     return sessionId(name)
 }
+
+/**
+ * Returns a sessionId for for a single session identified by ID.
+ * This will not work if there are multiple sessions by ID were registered or
+ * the [Sessions] feature is not installed.
+ * If you are using multiple sessions, please use [sessionId] function instead.
+ *
+ * @return session id or `null` if no session ID sent by the client
+ */
+public val RoutingCall.sessionId: String?
+    get() = call.sessionId
 
 /**
  * Returns a sessionId for for a single session identified by ID.

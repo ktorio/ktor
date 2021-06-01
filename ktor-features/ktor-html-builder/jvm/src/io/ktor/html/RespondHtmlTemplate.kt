@@ -6,7 +6,14 @@ package io.ktor.html
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.routing.*
 import kotlinx.html.*
+
+public suspend fun <TTemplate : Template<HTML>> RoutingCall.respondHtmlTemplate(
+    template: TTemplate,
+    status: HttpStatusCode = HttpStatusCode.OK,
+    body: TTemplate.() -> Unit
+): Unit = call.respondHtmlTemplate(template, status, body)
 
 public suspend fun <TTemplate : Template<HTML>> ApplicationCall.respondHtmlTemplate(
     template: TTemplate,

@@ -1119,7 +1119,7 @@ Route resolve result:
         }
     }
 
-    private fun Route.transparent(build: Route.() -> Unit): Route {
+    private fun RoutingBuilder.transparent(build: RoutingBuilder.() -> Unit): RoutingBuilder {
         val route = createChild(
             object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {

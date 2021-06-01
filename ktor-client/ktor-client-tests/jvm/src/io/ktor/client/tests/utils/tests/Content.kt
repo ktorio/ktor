@@ -40,7 +40,7 @@ internal fun Application.contentTestServer() {
                 )
             }
             post("/echo") {
-                val content = call.request.receiveChannel().toByteArray()
+                val content = call.receiveChannel().toByteArray()
                 call.respond(content)
             }
             get("/news") {

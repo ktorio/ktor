@@ -55,7 +55,7 @@ internal fun Application.timeoutTest() {
 
             post("/slow-read") {
                 val buffer = ByteArray(1024 * 1024)
-                val input = call.request.receiveChannel()
+                val input = call.receiveChannel()
                 var count = 0
                 while (true) {
                     val read = input.readAvailable(buffer)

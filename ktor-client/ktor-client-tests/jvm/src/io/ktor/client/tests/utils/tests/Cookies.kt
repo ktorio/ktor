@@ -6,10 +6,7 @@ package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.util.*
 import kotlin.test.*
 
 public fun Application.cookiesTest() {
@@ -17,49 +14,49 @@ public fun Application.cookiesTest() {
         route("cookies") {
             get {
                 val cookie = Cookie("hello-cookie", "my-awesome-value", domain = "127.0.0.1")
-                context.response.cookies.append(cookie)
+                call.response.cookies.append(cookie)
 
-                context.respond("Done")
+                call.respond("Done")
             }
             get("/update-user-id") {
-                val id = context.request.cookies["id"]?.toInt() ?: let {
-                    context.response.status(HttpStatusCode.Forbidden)
-                    context.respondText("Forbidden")
+                val id = call.request.cookies["id"]?.toInt() ?: let {
+                    call.response.status(HttpStatusCode.Forbidden)
+                    call.respondText("Forbidden")
                     return@get
                 }
 
-                with(context.response.cookies) {
+                with(call.response.cookies) {
                     append(Cookie("id", (id + 1).toString(), domain = "127.0.0.1", path = "/"))
                     append(Cookie("user", "ktor", domain = "127.0.0.1", path = "/"))
                 }
 
-                context.respond("Done")
+                call.respond("Done")
             }
             get("/multiple") {
-                val cookies = context.request.cookies
+                val cookies = call.request.cookies
                 val first = cookies["first"] ?: fail()
                 val second = cookies["second"] ?: fail()
 
                 assertEquals("first-cookie", first)
                 assertEquals("second-cookie", second)
-                context.respond("Multiple done")
+                call.respond("Multiple done")
             }
             get("/withPath") {
                 val cookie = Cookie("marker", "value", path = "cookies/withPath/")
-                context.response.cookies.append(cookie)
-                context.respond("OK")
+                call.response.cookies.append(cookie)
+                call.respond("OK")
             }
             get("/withPath/something") {
-                val cookies = context.request.cookies
+                val cookies = call.request.cookies
                 if (cookies["marker"] == "value") {
-                    context.respond("OK")
+                    call.respond("OK")
                 } else {
-                    context.respond(HttpStatusCode.BadRequest)
+                    call.respond(HttpStatusCode.BadRequest)
                 }
             }
             get("/foo") {
                 val cookie = Cookie("foo", "bar")
-                context.response.cookies.append(cookie)
+                call.response.cookies.append(cookie)
 
                 call.respond("OK")
             }
@@ -74,30 +71,30 @@ public fun Application.cookiesTest() {
                 call.respond("OK")
             }
             get("/multiple-comma") {
-                val cookies = context.request.cookies
+                val cookies = call.request.cookies
                 val first = cookies["fir,st"] ?: fail()
                 val second = cookies["sec,ond"] ?: fail()
 
                 assertEquals("first, cookie", first)
                 assertEquals("second, cookie", second)
 
-                with(context.response.cookies) {
+                with(call.response.cookies) {
                     append(Cookie("third", "third cookie", domain = "127.0.0.1", path = "/"))
                     append(Cookie("fourth", "fourth cookie", domain = "127.0.0.1", path = "/"))
                 }
-                context.respond("Multiple done")
+                call.respond("Multiple done")
             }
             get("/encoded") {
-                context.respond(context.request.header(HttpHeaders.Cookie) ?: fail())
+                call.respond(call.request.header(HttpHeaders.Cookie) ?: fail())
             }
             get("/respond-single-cookie") {
-                context.respond(context.request.cookies["single"] ?: fail())
+                call.respond(call.request.cookies["single"] ?: fail())
             }
             get("/respond-a-minus-b") {
-                val a = context.request.cookies["a"]?.toInt() ?: fail()
-                val b = context.request.cookies["b"]?.toInt() ?: fail()
+                val a = call.request.cookies["a"]?.toInt() ?: fail()
+                val b = call.request.cookies["b"]?.toInt() ?: fail()
 
-                context.respond((a - b).toString())
+                call.respond((a - b).toString())
             }
         }
     }

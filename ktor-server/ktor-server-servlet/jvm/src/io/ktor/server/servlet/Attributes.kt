@@ -6,9 +6,17 @@ package io.ktor.server.servlet
 
 import io.ktor.application.*
 import io.ktor.request.*
+import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import javax.servlet.*
+
+/**
+ * Provides javax.servlet request attributes or fail it the underlying engine is not
+ * servlet-backed.
+ */
+public val RoutingRequest.servletRequestAttributes: Map<String, Any>
+    get() = call.request.servletRequestAttributes
 
 /**
  * Provides javax.servlet request attributes or fail it the underlying engine is not
@@ -21,6 +29,9 @@ public val ApplicationRequest.servletRequestAttributes: Map<String, Any>
  * A key for call attribute containing java.servlet attributes.
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
+
+@EngineAPI
+public fun RoutingCall.putServletAttributes(request: ServletRequest): Unit = call.putServletAttributes(request)
 
 @EngineAPI
 public fun ApplicationCall.putServletAttributes(request: ServletRequest) {

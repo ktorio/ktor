@@ -4,11 +4,8 @@
 
 package io.ktor.http.content
 
-import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import java.io.*
@@ -46,10 +43,11 @@ public enum class CompressedFileType(public val extension: String, public val en
  *
  * * This can't be disabled in a child route if it was enabled in the root route
  */
-public fun Route.preCompressed(
+public fun RoutingBuilder.preCompressed(
     vararg types: CompressedFileType = CompressedFileType.values(),
-    configure: Route.() -> Unit
+    configure: RoutingBuilder.() -> Unit
 ) {
+    check(this is Route)
     val existing = staticContentEncodedTypes ?: emptyList()
     val mixedTypes = (existing + types.asList()).distinct()
     attributes.put(compressedKey, mixedTypes)
@@ -57,15 +55,22 @@ public fun Route.preCompressed(
     attributes.remove(compressedKey)
 }
 
-private val Route.staticContentEncodedTypes: List<CompressedFileType>?
-    get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
+private val RoutingBuilder.staticContentEncodedTypes: List<CompressedFileType>?
+    get() {
+        check(this is Route)
+        return attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
+    }
 
 /**
  * Base folder for relative files calculations for static content
  */
-public var Route.staticRootFolder: File?
-    get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
+public var RoutingBuilder.staticRootFolder: File?
+    get() {
+        check(this is Route)
+        return attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
+    }
     set(value) {
+        check(this is Route)
         if (value != null) {
             attributes.put(staticRootFolderKey, value)
         } else {
@@ -81,22 +86,23 @@ private fun File?.combine(file: File) = when {
 /**
  * Create a block for static content
  */
-public fun Route.static(configure: Route.() -> Unit): Route = apply(configure)
+public fun RoutingBuilder.static(configure: RoutingBuilder.() -> Unit): RoutingBuilder = apply(configure)
 
 /**
  * Create a block for static content at specified [remotePath]
  */
-public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route = route(remotePath, configure)
+public fun RoutingBuilder.static(remotePath: String, configure: RoutingBuilder.() -> Unit): RoutingBuilder =
+    route(remotePath, configure)
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
-public fun Route.default(localPath: String): Unit = default(File(localPath))
+public fun RoutingBuilder.default(localPath: String): Unit = default(File(localPath))
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
-public fun Route.default(localPath: File) {
+public fun RoutingBuilder.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
     get {
@@ -107,12 +113,13 @@ public fun Route.default(localPath: File) {
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
-public fun Route.file(remotePath: String, localPath: String = remotePath): Unit = file(remotePath, File(localPath))
+public fun RoutingBuilder.file(remotePath: String, localPath: String = remotePath): Unit =
+    file(remotePath, File(localPath))
 
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
-public fun Route.file(remotePath: String, localPath: File) {
+public fun RoutingBuilder.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
     get(remotePath) {
@@ -123,12 +130,12 @@ public fun Route.file(remotePath: String, localPath: File) {
 /**
  * Sets up routing to serve all files from [folder]
  */
-public fun Route.files(folder: String): Unit = files(File(folder))
+public fun RoutingBuilder.files(folder: String): Unit = files(File(folder))
 
 /**
  * Sets up routing to serve all files from [folder]
  */
-public fun Route.files(folder: File) {
+public fun RoutingBuilder.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes
     get("{$pathParameterName...}") {
@@ -138,7 +145,7 @@ public fun Route.files(folder: File) {
     }
 }
 
-private suspend inline fun ApplicationCall.respondStaticFile(
+private suspend inline fun RoutingCall.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?
 ) {
@@ -191,9 +198,13 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 /**
  * Base package for relative resources calculations for static content
  */
-public var Route.staticBasePackage: String?
-    get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
+public var RoutingBuilder.staticBasePackage: String?
+    get() {
+        check(this is Route)
+        return attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
+    }
     set(value) {
+        check(this is Route)
         if (value != null) {
             attributes.put(staticBasePackageName, value)
         } else {
@@ -210,7 +221,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 /**
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
  */
-public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
+public fun RoutingBuilder.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get(remotePath) {
         val content = call.resolveResource(resource, packageName)
@@ -223,7 +234,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 /**
  * Sets up routing to serve all resources in [resourcePackage]
  */
-public fun Route.resources(resourcePackage: String? = null) {
+public fun RoutingBuilder.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
@@ -237,7 +248,7 @@ public fun Route.resources(resourcePackage: String? = null) {
 /**
  * Specifies [resource] as a default resources to serve when folder is requested
  */
-public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
+public fun RoutingBuilder.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get {
         val content = call.resolveResource(resource, packageName)

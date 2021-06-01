@@ -13,8 +13,8 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.time.*
@@ -22,12 +22,13 @@ import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
+internal suspend fun RoutingCallContext.oauth1a(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
     urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
+    val call = call.call
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()

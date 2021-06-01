@@ -4,19 +4,12 @@
 
 package io.ktor.webjars
 
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.ConditionalHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.routing.*
+import io.ktor.server.testing.*
+import kotlin.test.*
 
 class WebjarsTest {
 
