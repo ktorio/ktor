@@ -10,7 +10,7 @@ internal fun encodeISO88591(input: CharSequence, fromIndex: Int, toIndex: Int, d
         val i8 = Int8Array(view.buffer, view.byteOffset, view.byteLength)
         var writeIndex = 0
         for (index in fromIndex until toIndex) {
-            val character = input[index].toInt()
+            val character = input[index].code
             if (character > 0xff) {
                 failedToMapError(character)
             }

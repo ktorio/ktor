@@ -14,6 +14,7 @@ import java.nio.*
  *
  * @return non-negative number of copied bytes, possibly 0
  */
+@Suppress("DEPRECATION")
 public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst: ByteBuffer): Int {
     require(delimiter.hasRemaining())
     require(delimiter !== dst)
@@ -38,6 +39,7 @@ public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst
     else readUntilDelimiterSuspend(delimiter, dst, copied)
 }
 
+@Suppress("DEPRECATION")
 public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteBuffer) {
     require(delimiter.hasRemaining())
 
@@ -52,6 +54,7 @@ public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteBuffer) {
     }
 }
 
+@Suppress("DEPRECATION")
 private suspend fun ByteReadChannel.skipDelimiterSuspend(delimiter: ByteBuffer) {
     lookAheadSuspend {
         awaitAtLeast(delimiter.remaining())
@@ -59,6 +62,7 @@ private suspend fun ByteReadChannel.skipDelimiterSuspend(delimiter: ByteBuffer) 
     }
 }
 
+@Suppress("DEPRECATION")
 private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
     delimiter: ByteBuffer,
     dst: ByteBuffer,
@@ -108,6 +112,7 @@ private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
  * @return a positive number of bytes copied if no [delimiter] found yet or a negated number of bytes copied if
  * the delimited has been found, or 0 if no buffer available (not yet ready or EOF)
  */
+@Suppress("DEPRECATION")
 private fun LookAheadSession.tryCopyUntilDelimiter(delimiter: ByteBuffer, dst: ByteBuffer): Int {
     var endFound = false
     val buffer = request(0, 1) ?: return 0
@@ -143,6 +148,7 @@ private fun LookAheadSession.tryCopyUntilDelimiter(delimiter: ByteBuffer, dst: B
     return if (endFound) -size else size
 }
 
+@Suppress("DEPRECATION")
 private fun LookAheadSession.tryEnsureDelimiter(delimiter: ByteBuffer): Int {
     val found = startsWithDelimiter(delimiter)
     if (found == -1) throw IOException("Failed to skip delimiter: actual bytes differ from delimiter bytes")
@@ -155,6 +161,7 @@ private fun LookAheadSession.tryEnsureDelimiter(delimiter: ByteBuffer): Int {
 /**
  * @return Number of bytes of the delimiter found (possibly 0 if no bytes available yet) or -1 if it doesn't start
  */
+@Suppress("DEPRECATION")
 private fun LookAheadSession.startsWithDelimiter(delimiter: ByteBuffer): Int {
     val buffer = request(0, 1) ?: return 0
     val index = buffer.indexOfPartial(delimiter)

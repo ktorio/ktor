@@ -37,7 +37,7 @@ open class BytePacketBuildTest {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 1 + 2 + 4 + 8 + 4 + 8 + 8 + 3 + 5, p.remaining)
+        assertEquals(45L, p.remaining)
         val ba = ByteArray(2)
         p.readFully(ba)
 
@@ -75,7 +75,7 @@ open class BytePacketBuildTest {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(9999 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals(10034L, p.remaining)
 
         p.readFully(ByteArray(9999))
         assertEquals(0x12, p.readByte())
@@ -299,7 +299,7 @@ open class BytePacketBuildTest {
         val result = ByteArray(length)
 
         for (i in 0 until length) {
-            val v = this[i].toInt() and 0xff
+            val v = this[i].code and 0xff
             if (v > 0x7f) fail()
             result[i] = v.toByte()
         }
@@ -308,6 +308,6 @@ open class BytePacketBuildTest {
     }
 
     companion object {
-        public const val PACKET_BUFFER_SIZE: Int = 4096
+        const val PACKET_BUFFER_SIZE: Int = 4096
     }
 }

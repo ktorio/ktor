@@ -1,11 +1,10 @@
-@file:Suppress("DEPRECATION")
-
 package io.ktor.utils.io.internal
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 
+@Suppress("DEPRECATION")
 internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSession {
     private var locked = 0
 

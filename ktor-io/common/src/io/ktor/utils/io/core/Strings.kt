@@ -98,6 +98,7 @@ public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
  * @throws BufferLimitExceededException
  * @returns a string of characters read before delimiter
  */
+@Suppress("unused")
 public fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX_VALUE): String {
     return buildString {
         readUTF8UntilDelimiterTo(this, delimiters, limit)
@@ -146,9 +147,9 @@ public fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, l
 public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     val delimitersCount = delimiters.length
     if (delimitersCount == 1 && delimiters[0].isAsciiChar()) {
-        return readUntilDelimiter(delimiters[0].toByte(), out).toInt()
+        return readUntilDelimiter(delimiters[0].code.toByte(), out).toInt()
     } else if (delimitersCount == 2 && delimiters[0].isAsciiChar() && delimiters[1].isAsciiChar()) {
-        return readUntilDelimiters(delimiters[0].toByte(), delimiters[1].toByte(), out).toInt()
+        return readUntilDelimiters(delimiters[0].code.toByte(), delimiters[1].code.toByte(), out).toInt()
     }
 
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
@@ -333,7 +334,7 @@ private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: In
 internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun Char.isAsciiChar() = toInt() <= 0x7f
+private inline fun Char.isAsciiChar() = code <= 0x7f
 
 private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
     var decoded = 0

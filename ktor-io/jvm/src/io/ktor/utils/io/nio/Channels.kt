@@ -30,7 +30,7 @@ public fun WritableByteChannel.writePacket(builder: BytePacketBuilder.() -> Unit
 public fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
     try {
         while (true) {
-            var rc = 0
+            var rc: Int
 
             p.read { node: Buffer ->
                 node.readDirect {

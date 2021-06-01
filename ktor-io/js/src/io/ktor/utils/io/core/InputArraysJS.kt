@@ -1,8 +1,8 @@
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
 
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 public fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset) {
     readFully(dst as ArrayBufferView, offset, length)
 }
@@ -28,6 +28,7 @@ public fun Input.readFully(dst: ArrayBufferView, byteOffset: Int = 0, byteLength
     return readFully(dst.buffer, dst.byteOffset + byteOffset, byteLength)
 }
 
+@Suppress("unused")
 public fun Input.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset): Int {
     val remaining = remaining
     if (remaining == 0L) return -1
@@ -44,6 +45,7 @@ public fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = 
     return size
 }
 
+@Suppress("unused")
 public fun Input.readAvailable(
     dst: ArrayBufferView,
     byteOffset: Int = 0,

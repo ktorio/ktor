@@ -34,6 +34,7 @@ public inline fun Memory.loadByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUByteArray(
     offset: Int,
     destination: UByteArray,
@@ -48,6 +49,7 @@ public inline fun Memory.loadUByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUByteArray(
     offset: Long,
     destination: UByteArray,
@@ -86,6 +88,7 @@ public expect fun Memory.loadShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUShortArray(
     offset: Int,
     destination: UShortArray,
@@ -100,6 +103,7 @@ public inline fun Memory.loadUShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUShortArray(
     offset: Long,
     destination: UShortArray,
@@ -138,6 +142,7 @@ public expect fun Memory.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUIntArray(
     offset: Int,
     destination: UIntArray,
@@ -152,6 +157,7 @@ public inline fun Memory.loadUIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadUIntArray(
     offset: Long,
     destination: UIntArray,
@@ -190,6 +196,7 @@ public expect fun Memory.loadLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadULongArray(
     offset: Int,
     destination: ULongArray,
@@ -204,6 +211,7 @@ public inline fun Memory.loadULongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.loadULongArray(
     offset: Long,
     destination: ULongArray,
@@ -295,6 +303,7 @@ public inline fun Memory.storeByteArray(
  * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUByteArray(
     offset: Int,
     source: UByteArray,
@@ -308,6 +317,7 @@ public inline fun Memory.storeUByteArray(
  * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUByteArray(
     offset: Long,
     source: UByteArray,
@@ -346,6 +356,7 @@ public expect fun Memory.storeShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUShortArray(
     offset: Int,
     source: UShortArray,
@@ -360,6 +371,7 @@ public inline fun Memory.storeUShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUShortArray(
     offset: Long,
     source: UShortArray,
@@ -398,6 +410,7 @@ public expect fun Memory.storeIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUIntArray(
     offset: Int,
     source: UIntArray,
@@ -412,6 +425,7 @@ public inline fun Memory.storeUIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeUIntArray(
     offset: Long,
     source: UIntArray,
@@ -450,6 +464,7 @@ public expect fun Memory.storeLongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeULongArray(
     offset: Int,
     source: ULongArray,
@@ -464,6 +479,7 @@ public inline fun Memory.storeULongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public inline fun Memory.storeULongArray(
     offset: Long,
     source: ULongArray,
