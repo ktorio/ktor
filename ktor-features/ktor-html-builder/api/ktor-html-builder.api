@@ -33,12 +33,16 @@ public class io/ktor/html/PlaceholderList {
 
 public final class io/ktor/html/RespondHtmlKt {
 	public static final fun respondHtml (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun respondHtml (Lio/ktor/routing/RoutingCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondHtml$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun respondHtml$default (Lio/ktor/routing/RoutingCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/html/RespondHtmlTemplateKt {
 	public static final fun respondHtmlTemplate (Lio/ktor/application/ApplicationCall;Lio/ktor/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun respondHtmlTemplate (Lio/ktor/routing/RoutingCall;Lio/ktor/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondHtmlTemplate$default (Lio/ktor/application/ApplicationCall;Lio/ktor/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun respondHtmlTemplate$default (Lio/ktor/routing/RoutingCall;Lio/ktor/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/html/Template {

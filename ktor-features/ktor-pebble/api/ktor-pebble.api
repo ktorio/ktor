@@ -21,6 +21,8 @@ public final class io/ktor/pebble/PebbleContent {
 
 public final class io/ktor/pebble/RespondTemplateKt {
 	public static final fun respondTemplate (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/routing/RoutingCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondTemplate$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/routing/RoutingCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
