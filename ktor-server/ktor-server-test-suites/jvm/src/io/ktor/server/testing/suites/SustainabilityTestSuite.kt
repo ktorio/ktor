@@ -800,4 +800,34 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(10000 * 13L, result.second)
         }
     }
+
+    @Test
+    fun testDoubleHost() {
+        createAndStartServer {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        socket {
+            val content = """
+                GET / HTTP/1.1
+                Host: www.example.com
+                Host: www.example2.com
+
+
+            """.trimIndent()
+
+            outputStream.bufferedWriter().apply {
+                write(content)
+                flush()
+            }
+
+            val response = inputStream.bufferedReader()
+            val status = response.readLine()
+
+            assertTrue(status.startsWith("HTTP/1.1 400"))
+            outputStream.close()
+        }
+    }
 }

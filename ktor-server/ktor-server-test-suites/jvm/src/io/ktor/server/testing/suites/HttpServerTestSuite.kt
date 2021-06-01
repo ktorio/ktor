@@ -29,12 +29,12 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.text.toByteArray
 
-public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) :
-    EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    public fun testRedirect() {
+    fun testRedirect() {
         createAndStartServer {
             handle {
                 call.respondRedirect("http://localhost:${call.request.port()}/page", true)
@@ -47,7 +47,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRedirectFromInterceptor() {
+    fun testRedirectFromInterceptor() {
         createAndStartServer {
             application.intercept(ApplicationCallPipeline.Features) {
                 call.respondRedirect("/2", true)
@@ -62,7 +62,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testHeader() {
+    fun testHeader() {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
@@ -79,7 +79,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public open fun testHeadRequest() {
+    open fun testHeadRequest() {
         createAndStartServer {
             install(AutoHeadResponse)
             handle {
@@ -95,7 +95,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testCookie() {
+    fun testCookie() {
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
@@ -110,7 +110,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testPathComponentsDecoding() {
+    fun testPathComponentsDecoding() {
         createAndStartServer {
             get("/a%20b") {
                 call.respondText("space")
@@ -131,7 +131,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testFormUrlEncoded() {
+    fun testFormUrlEncoded() {
         createAndStartServer {
             post("/") {
                 call.respondText("${call.parameters["urlp"]},${call.receiveParameters()["formp"]}")
@@ -151,7 +151,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRequestTwiceNoKeepAlive() {
+    fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -178,7 +178,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRequestTwiceWithKeepAlive() {
+    fun testRequestTwiceWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -207,7 +207,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRequestTwiceInOneBufferWithKeepAlive() {
+    fun testRequestTwiceInOneBufferWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 val d = call.request.queryParameters["d"]!!.toLong()
@@ -267,7 +267,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun test404() {
+    fun test404() {
         createAndStartServer {
         }
 
@@ -281,7 +281,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testStatusPages404() {
+    fun testStatusPages404() {
         createAndStartServer {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -299,7 +299,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRemoteHost() {
+    fun testRemoteHost() {
         createAndStartServer {
             handle {
                 call.respondText {
@@ -320,7 +320,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRequestParameters() {
+    fun testRequestParameters() {
         createAndStartServer {
             get("/*") {
                 call.respond(call.request.queryParameters.getAll(call.request.path().removePrefix("/")).toString())
@@ -339,7 +339,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testClosedConnection() {
+    fun testClosedConnection() {
         val completed = Job()
 
         createAndStartServer {
@@ -393,7 +393,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testStatusCodeDirect() {
+    fun testStatusCodeDirect() {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Found)
@@ -408,7 +408,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testStatusCodeViaResponseObject() {
+    fun testStatusCodeViaResponseObject() {
         var completed = false
         createAndStartServer {
             get("/") {
@@ -424,7 +424,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testProxyHeaders() {
+    fun testProxyHeaders() {
         createAndStartServer {
             install(XForwardedHeaderSupport)
             get("/") {
@@ -474,7 +474,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testRequestParts() {
+    fun testRequestParts() {
         createAndStartServer {
             get("/path/1") {
                 call.respond(call.request.path())
@@ -532,7 +532,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testConnectionReset() {
+    fun testConnectionReset() {
         val completed = Job()
 
         createAndStartServer {
@@ -590,7 +590,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
     @Test
     @Http2Only
-    public fun testServerPush() {
+    fun testServerPush() {
         createAndStartServer {
             get("/child") {
                 call.respondText("child")
@@ -614,7 +614,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public open fun testUpgrade() {
+    open fun testUpgrade() {
         val completed = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -724,7 +724,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testHeadersReturnCorrectly() {
+    fun testHeadersReturnCorrectly() {
         createAndStartServer {
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
@@ -753,7 +753,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testParentContextPropagates() {
+    fun testParentContextPropagates() {
         createAndStartServer(
             parent = TestData("parent")
         ) {
@@ -775,6 +775,6 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
         /**
          * Key for [CoroutineName] instance in the coroutine context.
          */
-        public companion object Key : CoroutineContext.Key<TestData>
+        companion object Key : CoroutineContext.Key<TestData>
     }
 }
