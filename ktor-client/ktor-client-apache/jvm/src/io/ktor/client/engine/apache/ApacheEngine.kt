@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.apache.http.*
 import org.apache.http.impl.nio.client.*
@@ -17,6 +18,7 @@ import java.net.*
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
 
+@OptIn(InternalAPI::class)
 internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientEngineBase("ktor-apache") {
 
     override val dispatcher by lazy {

@@ -10,16 +10,13 @@ import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-@InternalAPI
-public fun makeArray(size: Int): ByteArray = buildPacket { repeat(size) { writeByte(it.toByte()) } }.readBytes()
+fun makeArray(size: Int): ByteArray = buildPacket { repeat(size) { writeByte(it.toByte()) } }.readBytes()
 
-@InternalAPI
-public fun makeString(size: Int): String = buildString { repeat(size) { append(it.toChar()) } }
+fun makeString(size: Int): String = buildString { repeat(size) { append(it.toChar()) } }
     .encodeBase64()
     .take(size)
 
-@InternalAPI
-public fun List<PartData>.makeString(): String = buildString {
+fun List<PartData>.makeString(): String = buildString {
     val list = this@makeString
     list.forEach {
         append("${it.name!!}\n")

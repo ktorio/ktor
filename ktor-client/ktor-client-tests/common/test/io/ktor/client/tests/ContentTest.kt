@@ -272,6 +272,6 @@ class ContentTest : ClientLoader() {
     private suspend inline fun <reified Response : Any> HttpClient.echo(
         body: Any
     ): Response = post("$TEST_SERVER/content/echo") {
-        this.body = body
+        setBody(body)
     }.body()
 }

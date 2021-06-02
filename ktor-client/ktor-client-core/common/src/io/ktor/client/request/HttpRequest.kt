@@ -112,6 +112,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Create immutable [HttpRequestData]
      */
+    @OptIn(InternalAPI::class)
     public fun build(): HttpRequestData = HttpRequestData(
         url.build(),
         method,
@@ -140,6 +141,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Mutates [this] copying all the data but execution context from another [builder] using it as base.
      */
+    @OptIn(InternalAPI::class)
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
@@ -224,6 +226,7 @@ public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): Headers
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
  */
+@OptIn(InternalAPI::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
@@ -242,6 +245,7 @@ public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(ur
 /**
  * Sets the [HttpRequestBuilder] from [request].
  */
+@OptIn(InternalAPI::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
