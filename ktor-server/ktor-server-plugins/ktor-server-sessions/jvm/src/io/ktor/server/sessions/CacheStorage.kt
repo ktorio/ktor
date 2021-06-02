@@ -4,12 +4,10 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
         delegate.read(id) { input -> input.readRemaining().readBytes() }
