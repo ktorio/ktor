@@ -70,10 +70,6 @@ public final class io/ktor/http/cio/HttpHeadersMap {
 	public final fun valueAt (I)Ljava/lang/CharSequence;
 }
 
-public final class io/ktor/http/cio/HttpHeadersMapKt {
-	public static final fun dumpTo (Lio/ktor/http/cio/HttpHeadersMap;Ljava/lang/String;Ljava/lang/Appendable;)V
-}
-
 public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
 	public fun close ()V
 	public final fun getHeaders ()Lio/ktor/http/cio/HttpHeadersMap;
