@@ -148,9 +148,9 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 /**
  * Attribute that is added by ktor servlet to application attributes to hold [ServletContext] instance.
  */
-@InternalAPI
 public val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")
 
+@OptIn(InternalAPI::class)
 private class AsyncDispatchers {
     val engineExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
     val engineDispatcher = DispatcherWithShutdown(engineExecutor.asCoroutineDispatcher())
@@ -158,7 +158,7 @@ private class AsyncDispatchers {
     val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
 
-    public fun destroy() {
+    fun destroy() {
         engineDispatcher.prepareShutdown()
         dispatcher.prepareShutdown()
         try {
