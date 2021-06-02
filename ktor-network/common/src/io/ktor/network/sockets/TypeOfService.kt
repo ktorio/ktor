@@ -4,12 +4,14 @@
 
 package io.ktor.network.sockets
 
+import kotlin.jvm.*
+
 /**
  * An inline class to hold a IP ToS value
  * @property value an unsigned byte IP_TOS value
  */
-@OptIn(ExperimentalUnsignedTypes::class)
-public inline class TypeOfService(public val value: UByte) {
+@JvmInline
+public value class TypeOfService(public val value: UByte) {
     /**
      * Creates ToS by integer value discarding extra high bits
      */
