@@ -9,7 +9,6 @@ package io.ktor.util
 
 import java.util.concurrent.locks.*
 
-@InternalAPI
 public actual class Lock {
     private val lock = ReentrantLock()
 

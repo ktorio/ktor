@@ -42,7 +42,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     /**
      * @return `true` if there are no interceptors installed regardless number of phases
      */
-    @InternalAPI
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
