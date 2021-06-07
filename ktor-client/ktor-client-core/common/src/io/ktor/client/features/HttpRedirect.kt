@@ -12,7 +12,6 @@ import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
-import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
 @ThreadLocal
@@ -52,7 +51,7 @@ public class HttpRedirect {
         /**
          * Happens when received response with redirect message.
          */
-        public val Event: EventDefinition<HttpResponse> = EventDefinition()
+        public val HttpResponseFromCache: EventDefinition<HttpResponse> = EventDefinition()
 
         override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
 
@@ -80,7 +79,7 @@ public class HttpRedirect {
             val originAuthority = origin.request.url.authority
 
             while (true) {
-                client.monitor.raise(Event, call.response)
+                client.monitor.raise(HttpResponseFromCache, call.response)
 
                 val location = call.response.headers[HttpHeaders.Location]
 

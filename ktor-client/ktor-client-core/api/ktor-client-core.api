@@ -353,7 +353,7 @@ public final class io/ktor/client/features/HttpRedirect {
 }
 
 public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client/features/HttpClientFeature {
-	public final fun getEvent ()Lio/ktor/events/EventDefinition;
+	public final fun getHttpResponseFromCache ()Lio/ktor/events/EventDefinition;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/HttpRedirect;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V

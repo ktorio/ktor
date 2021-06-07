@@ -7,11 +7,21 @@ package io.ktor.application
 /**
  * Provides events for [Application] lifecycle
  */
+@Deprecated(
+    "ApplicationEvents is renamed to Events",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("Events", "io.ktor.events.Events")
+)
 public typealias ApplicationEvents = io.ktor.events.Events
 
 /**
  * Specifies signature for the event handler
  */
+@Deprecated(
+    "EventHandler<T> is moved to different package",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("EventHandler<T>", "io.ktor.events.EventHandler")
+)
 public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
 
 /**
@@ -22,4 +32,9 @@ public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
  *
  * @param T specifies what is a type of a value passed to the event
  */
+@Deprecated(
+    "EventDefinition<T> is moved to different package",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("Events", "io.ktor.events.EventDefinition")
+)
 public typealias EventDefinition<T> = io.ktor.events.EventDefinition<T>
