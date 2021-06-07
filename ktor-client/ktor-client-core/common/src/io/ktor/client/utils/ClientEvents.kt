@@ -10,35 +10,35 @@ import io.ktor.events.*
 import kotlin.native.concurrent.*
 
 /**
- * Happens after creating of the new request.
+ * Occurs after the creation of a new request
  */
 @SharedImmutable
 public val HttpRequestCreated: EventDefinition<HttpRequestBuilder> = EventDefinition()
 
 /**
- * Happens after execution of all interceptor before sending the request.
+ * Occurs before sending the request, and after execution of all interceptors.
  */
 @SharedImmutable
 public val HttpRequestIsReadyForSending: EventDefinition<HttpRequestBuilder> = EventDefinition()
 
 /**
- * Happens after response headers received.
+ * Occurs after responses headers have been received.
  */
 @SharedImmutable
 public val HttpResponseReceived: EventDefinition<HttpResponse> = EventDefinition()
 
 /**
- * Utility class containing response and fail reason for [HttpResponseReceiveFailed] event.
+ * Utility class containing response and fail reasons for an [HttpResponseReceiveFailed] event.
  */
 public class HttpResponseReceiveFail(public val response: HttpResponse, public val cause: Throwable)
 
 /**
- * Event happens when the body receiving is failed with exception.
+ * Occurs when an exception is thrown during receiving of body.
  */
 public val HttpResponseReceiveFailed: EventDefinition<HttpResponseReceiveFail> = EventDefinition()
 
 /**
- * Happens when response got cancelled with exception.
+ * Occurs when the response is cancelled due to an exception.
  */
 @SharedImmutable
 public val HttpResponseCancelled: EventDefinition<HttpResponse> = EventDefinition()

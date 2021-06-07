@@ -31,10 +31,10 @@ public class Events {
     }
 
     /**
-     * Rise an event specified by [definition] with the specified [value] and call all handlers
+     * Raises the event specified by [definition] with the [value] and calls all handlers.
      *
      * Handlers are called in order of subscriptions.
-     * If some handler throws an exception, all handlers will still run and then exception will be rethrown.
+     * If some handler throws an exception, all remaining handlers will still run. The exception will eventually be re-thrown.
      */
     public fun <T> raise(definition: EventDefinition<T>, value: T) {
         var exception: Throwable? = null

@@ -49,7 +49,7 @@ public class HttpRedirect {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
         /**
-         * Happens when received response with redirect message.
+         * Occurs when received response with redirect message.
          */
         public val HttpResponseFromCache: EventDefinition<HttpResponse> = EventDefinition()
 
