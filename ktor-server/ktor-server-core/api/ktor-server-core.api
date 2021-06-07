@@ -99,6 +99,7 @@ public final class io/ktor/application/MissingApplicationFeatureException : java
 public abstract interface class io/ktor/config/ApplicationConfig {
 	public abstract fun config (Ljava/lang/String;)Lio/ktor/config/ApplicationConfig;
 	public abstract fun configList (Ljava/lang/String;)Ljava/util/List;
+	public abstract fun keys ()Ljava/util/Set;
 	public abstract fun property (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 	public abstract fun propertyOrNull (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 }
@@ -116,6 +117,7 @@ public class io/ktor/config/HoconApplicationConfig : io/ktor/config/ApplicationC
 	public fun <init> (Lcom/typesafe/config/Config;)V
 	public fun config (Ljava/lang/String;)Lio/ktor/config/ApplicationConfig;
 	public fun configList (Ljava/lang/String;)Ljava/util/List;
+	public fun keys ()Ljava/util/Set;
 	public fun property (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 }
@@ -132,6 +134,7 @@ public class io/ktor/config/MapApplicationConfig : io/ktor/config/ApplicationCon
 	public fun configList (Ljava/lang/String;)Ljava/util/List;
 	protected final fun getMap ()Ljava/util/Map;
 	protected final fun getPath ()Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
 	public fun property (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/config/ApplicationConfigValue;
 	public final fun put (Ljava/lang/String;Ljava/lang/Iterable;)V
