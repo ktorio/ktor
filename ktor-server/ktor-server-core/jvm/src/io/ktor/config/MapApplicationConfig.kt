@@ -70,6 +70,25 @@ public open class MapApplicationConfig : ApplicationConfig {
 
     override fun config(path: String): ApplicationConfig = MapApplicationConfig(map, combine(this.path, path))
 
+    override fun keys(): Set<String> {
+        val isTopLevel = path.isEmpty()
+        val keys = if (isTopLevel) map.keys else map.keys.filter { it.startsWith("$path.") }
+        val listEntries = keys.filter { it.contains(".size") }.map { it.substringBefore(".size") }
+        val addedListKeys = mutableSetOf<String>()
+        return keys.mapNotNull { key ->
+            val listKey = listEntries.firstOrNull { key.startsWith(it) }
+            val key = when {
+                listKey != null && !addedListKeys.contains(listKey) -> {
+                    addedListKeys.add(listKey)
+                    listKey
+                }
+                listKey == null -> key
+                else -> null
+            }
+            if (isTopLevel) key else key?.substringAfter("$path.")
+        }.toSet()
+    }
+
     /**
      * A config value implementation backed by this config's map
      * @property map is usually owner's backing map
