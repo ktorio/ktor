@@ -39,6 +39,7 @@ internal fun HttpClientCall(
 public open class HttpClientCall internal constructor(
     client: HttpClient
 ) : CoroutineScope {
+    private val state = HttpClientCallState()
     private val received: AtomicBoolean = atomic(false)
 
     public val client: HttpClient? by threadLocal(client)
@@ -53,14 +54,20 @@ public open class HttpClientCall internal constructor(
     /**
      * Represents the [request] sent by the client
      */
-    public lateinit var request: HttpRequest
-        internal set
+    public var request: HttpRequest
+        get() = state.request ?: error("Internal error: HttpClientCall $this wasn't initialized")
+        internal set(value) {
+            state.request = value
+        }
 
     /**
      * Represents the [response] sent by the server.
      */
-    public lateinit var response: HttpResponse
-        internal set
+    public var response: HttpResponse
+        get() = state.response ?: error("Internal error: HttpClientCall $this wasn't initialized")
+        internal set(value) {
+            state.response = value
+        }
 
     protected open val allowDoubleReceive: Boolean = false
 
@@ -117,6 +124,11 @@ public open class HttpClientCall internal constructor(
         )
         public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
+}
+
+internal expect class HttpClientCallState() {
+    var request: HttpRequest?
+    var response: HttpResponse?
 }
 
 /**

@@ -23,6 +23,10 @@ class EventsTest : ClientLoader() {
     @Test
     fun testBasicEvents() = clientTests {
         test { client ->
+            created.value = 0
+            ready.value = 0
+            received.value = 0
+
             client.monitor.subscribe(HttpRequestCreated) {
                 created.incrementAndGet()
             }
@@ -47,6 +51,7 @@ class EventsTest : ClientLoader() {
     fun testFailed() = clientTests {
         test { client ->
             cause.value = null
+            counter.value = 0
 
             client.monitor.subscribe(HttpResponseReceiveFailed) {
                 cause.value = it.cause
