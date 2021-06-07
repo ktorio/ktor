@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.cio
 
@@ -77,7 +77,10 @@ public class EndpointConfig {
     /**
      * Maximum number of connection attempts.
      */
-    @Deprecated("This is deprecated due to the misleading name. Use connectAttempts instead.", replaceWith = ReplaceWith("connectAttempts"))
+    @Deprecated(
+        "This is deprecated due to the misleading name. Use connectAttempts instead.",
+        replaceWith = ReplaceWith("connectAttempts")
+    )
     public var connectRetryAttempts: Int
         get() = connectAttempts
         set(value) {

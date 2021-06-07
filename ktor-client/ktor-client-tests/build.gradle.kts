@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 import org.jetbrains.kotlin.gradle.plugin.*
 import java.io.*
@@ -20,8 +20,14 @@ plugins {
 }
 
 open class KtorTestServer : DefaultTask() {
+    @Internal
     var server: Closeable? = null
+        private set
+
+    @Internal
     lateinit var main: String
+
+    @Internal
     lateinit var classpath: FileCollection
 
     @TaskAction
@@ -34,7 +40,10 @@ open class KtorTestServer : DefaultTask() {
             val mainClass = loader.loadClass(main)
             val main = mainClass.getMethod("startServer")
             server = main.invoke(null) as Closeable
+            println("[TestServer] started")
         } catch (cause: Throwable) {
+            println("[TestServer] failed: ${cause.message}")
+            cause.printStackTrace()
         }
     }
 }
@@ -42,21 +51,21 @@ open class KtorTestServer : DefaultTask() {
 val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
-    commonMain {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
     }
-    commonTest {
+    val commonTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
             api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
         }
     }
-    jvmMain {
+    val jvmMain by getting {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server:ktor-server-cio"))
@@ -72,19 +81,19 @@ kotlin.sourceSets {
         }
     }
 
-    jvmTest {
+    val jvmTest by getting {
         dependencies {
-            runtimeOnly(project(":ktor-client:ktor-client-apache"))
+            api(project(":ktor-client:ktor-client-apache"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
             if (project.ext["currentJdk"] as Int >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
-//            runtimeOnly(project(":ktor-client:ktor-client-jetty"))
         }
     }
-    jsTest {
+
+    val jsTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-js"))
         }
@@ -127,7 +136,7 @@ kotlin.sourceSets {
 }
 
 val startTestServer = task<KtorTestServer>("startTestServer") {
-    dependsOn(tasks.jvmJar)
+    dependsOn(tasks["jvmJar"])
 
     main = "io.ktor.client.tests.utils.TestServerKt"
     val kotlinCompilation = kotlin.targets.getByName("jvm").compilations["test"]
@@ -136,7 +145,6 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 
 val testTasks = mutableListOf(
     "jvmTest",
-    "jvmBenchmark",
 
     // 1.4.x JS tasks
     "jsLegacyNodeTest",

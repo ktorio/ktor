@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio
 
@@ -61,7 +61,9 @@ public fun CoroutineScope.startConnectionPipeline(
     timeout: WeakTimeoutQueue,
     handler: suspend CoroutineScope.(
         request: Request,
-        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        upgraded: CompletableDeferred<Boolean>?
     ) -> Unit
 ): Job {
     val pipeline = ServerIncomingConnection(input, output, null, null)
@@ -69,4 +71,3 @@ public fun CoroutineScope.startConnectionPipeline(
         handler(this, request, input, output, upgraded)
     }
 }
-

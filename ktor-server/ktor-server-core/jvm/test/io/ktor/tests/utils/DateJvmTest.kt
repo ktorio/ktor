@@ -23,7 +23,16 @@ class DateJvmTest {
     @Test
     fun testJvmDateWithOffSetDateTime() {
         val dateRaw = GMTDate(20, 20, 20, 20, Month.FEBRUARY, 20)
-        val date: OffsetDateTime = OffsetDateTime.of(dateRaw.year, dateRaw.month.ordinal+1, dateRaw.dayOfMonth-2, dateRaw.hours, dateRaw.minutes, dateRaw.seconds, 0, ZoneOffset.UTC)
+        val date: OffsetDateTime = OffsetDateTime.of(
+            dateRaw.year,
+            dateRaw.month.ordinal + 1,
+            dateRaw.dayOfMonth - 2,
+            dateRaw.hours,
+            dateRaw.minutes,
+            dateRaw.seconds,
+            0,
+            ZoneOffset.UTC
+        )
 
         assertEquals(dateRaw.toJvmDate(), date.toInstant().toGMTDate().toJvmDate())
     }

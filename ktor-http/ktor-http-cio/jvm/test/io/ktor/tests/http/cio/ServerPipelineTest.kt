@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.http.cio
 
@@ -29,8 +29,9 @@ class ServerPipelineTest : CoroutineScope {
 
     private val job = SupervisorJob()
 
-    override val coroutineContext: CoroutineContext
-        by lazy { CoroutineName("PipelineTest.${testName.methodName}") + job + dispatcher }
+    override val coroutineContext: CoroutineContext by lazy {
+        CoroutineName("PipelineTest.${testName.methodName}") + job + dispatcher
+    }
 
     @get:Rule
     val timeout = CoroutinesTimeout(2000L, true)

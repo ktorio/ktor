@@ -19,11 +19,11 @@ public fun XMLHttpRequest.responsePacket(): ByteReadPacket = when (responseType)
     XMLHttpRequestResponseType.ARRAYBUFFER -> ByteReadPacket(
         IoBuffer(
             Memory.of(response.asDynamic() as DataView),
-            null
-        ), ChunkBuffer.NoPoolManuallyManaged
+            null,
+            IoBuffer.NoPool
+        ),
+        ChunkBuffer.NoPoolManuallyManaged
     )
     XMLHttpRequestResponseType.EMPTY -> ByteReadPacket.Empty
     else -> throw IllegalStateException("Incompatible type $responseType: only ARRAYBUFFER and EMPTY are supported")
 }
-
-

@@ -34,10 +34,12 @@ internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimite
     return idx - start
 }
 
-
 internal actual fun Buffer.readUntilDelimiterImpl(
     delimiter: Byte,
-    dst: ByteArray, offset: Int, length: Int): Int {
+    dst: ByteArray,
+    offset: Int,
+    length: Int
+): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -46,8 +48,12 @@ internal actual fun Buffer.readUntilDelimiterImpl(
 }
 
 internal actual fun Buffer.readUntilDelimitersImpl(
-    delimiter1: Byte, delimiter2: Byte,
-    dst: ByteArray, offset: Int, length: Int): Int {
+    delimiter1: Byte,
+    delimiter2: Byte,
+    dst: ByteArray,
+    offset: Int,
+    length: Int
+): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -68,8 +74,10 @@ internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2:
 
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
-    dst: ByteArray, offset: Int, length: Int): Int {
-
+    dst: ByteArray,
+    offset: Int,
+    length: Int
+): Int {
     if (length == 0) return 0
 
     val content = content
@@ -96,7 +104,8 @@ private inline fun Buffer.readUntilImpl(
 
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
-    dst: Output): Int {
+    dst: Output
+): Int {
     val content = content
     var i = readPosition
     var copiedTotal = 0

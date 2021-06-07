@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -54,7 +54,7 @@ public class URLBuilder(
      * Encode [components] to [encodedPath]
      */
     public fun path(components: List<String>): URLBuilder {
-        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
+        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLPath() }
 
         return this
     }
@@ -240,7 +240,6 @@ public val URLBuilder.authority: String
         }
     }
 
-
 /**
  * Adds [components] to current [encodedPath]
  */
@@ -252,13 +251,12 @@ public fun URLBuilder.pathComponents(components: List<String>): URLBuilder {
 
     // make sure that there's a slash separator at the end of current path
     if (!encodedPath.endsWith('/')) {
-        paths = "/${paths}"
+        paths = "/$paths"
     }
     encodedPath += paths
 
     return this
 }
-
 
 /**
  * Adds [components] to current [encodedPath]

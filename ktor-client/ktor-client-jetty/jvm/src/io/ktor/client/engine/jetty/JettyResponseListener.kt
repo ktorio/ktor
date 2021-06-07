@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.jetty
 
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import org.eclipse.jetty.http.*
@@ -79,6 +79,20 @@ internal class JettyResponseListener(
         }
     }
 
+    override fun onFailure(stream: Stream?, error: Int, reason: String?, failure: Throwable?, callback: Callback?) {
+        callback?.succeeded()
+
+        val messagePrefix = reason ?: "HTTP/2 failure"
+        val message = when (error) {
+            0 -> messagePrefix
+            else -> "$messagePrefix, code $error"
+        }
+
+        val cause = IOException(message, failure)
+        backendChannel.close(cause)
+        onHeadersReceived.completeExceptionally(cause)
+    }
+
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
         frame.metaData.fields.forEach { field ->
             headersBuilder.append(field.name, field.value)
@@ -88,13 +102,15 @@ internal class JettyResponseListener(
             backendChannel.close()
         }
 
-        onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
-            val (status, reason) = it.status to it.reason
-            reason?.let { HttpStatusCode(status, it) } ?: HttpStatusCode.fromValue(status)
-        })
+        onHeadersReceived.complete(
+            (frame.metaData as? MetaData.Response)?.let {
+                val (status, reason) = it.status to it.reason
+                reason?.let { text -> HttpStatusCode(status, text) } ?: HttpStatusCode.fromValue(status)
+            }
+        )
     }
 
-    public suspend fun awaitHeaders(): StatusWithHeaders {
+    suspend fun awaitHeaders(): StatusWithHeaders {
         val statusCode = onHeadersReceived.await() ?: throw IOException("Connection reset")
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
@@ -126,7 +142,7 @@ internal class JettyResponseListener(
         }
     }
 
-    public companion object {
+    companion object {
         private val Ignore = Stream.Listener.Adapter()
     }
 }

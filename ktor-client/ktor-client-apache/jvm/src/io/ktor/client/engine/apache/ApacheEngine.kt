@@ -53,16 +53,17 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
                     isDaemon = true
                     setUncaughtExceptionHandler { _, _ -> }
                 }
-
             }
             disableAuthCaching()
             disableConnectionState()
             disableCookieManagement()
             setMaxConnPerRoute(MAX_CONNECTIONS_COUNT)
             setMaxConnTotal(MAX_CONNECTIONS_COUNT)
-            setDefaultIOReactorConfig(IOReactorConfig.custom()
-                .setIoThreadCount(IO_THREAD_COUNT_DEFAULT)
-                .build())
+            setDefaultIOReactorConfig(
+                IOReactorConfig.custom()
+                    .setIoThreadCount(IO_THREAD_COUNT_DEFAULT)
+                    .build()
+            )
 
             setupProxy()
         }

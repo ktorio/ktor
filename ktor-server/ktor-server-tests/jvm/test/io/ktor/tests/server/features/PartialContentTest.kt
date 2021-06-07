@@ -5,9 +5,9 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -37,9 +37,11 @@ class PartialContentTest {
                     handle {
                         val file = basedir.resolve(localPath)
                         if (file.isFile) {
-                            call.respond(LocalFileContent(file).apply {
-                                versions += EntityTagVersion(fileEtag)
-                            })
+                            call.respond(
+                                LocalFileContent(file).apply {
+                                    versions += EntityTagVersion(fileEtag)
+                                }
+                            )
                         }
                     }
                 }
@@ -61,7 +63,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
@@ -73,7 +74,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2,4-4")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-4/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 4), result.response.content)
@@ -86,7 +86,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 0), result.response.content)
@@ -99,7 +98,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(1, 2), result.response.content)
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -112,7 +110,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=-0") // unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
             assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
         }
@@ -121,9 +118,8 @@ class PartialContentTest {
     @Test
     fun testUnsatisfiableRange(): Unit = withRangeApplication { file ->
         handleRequest(HttpMethod.Get, localPath) {
-            addHeader(HttpHeaders.Range, "bytes=1000000-1000004")  // unsatisfiable
+            addHeader(HttpHeaders.Range, "bytes=1000000-1000004") // unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
             assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
         }
@@ -135,7 +131,6 @@ class PartialContentTest {
             addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
         }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue(result.requestHandled)
         }
     }
 
@@ -144,7 +139,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,-0") // good + unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -157,7 +151,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,1000000-1000004") // good + unsatisfiable
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
@@ -171,7 +164,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Head, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
@@ -185,7 +177,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Post, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(
                 HttpStatusCode.MethodNotAllowed.description("Method POST is not allowed with range request"),
                 result.response.status()
@@ -198,7 +189,6 @@ class PartialContentTest {
         // post request with no range
         handleRequest(HttpMethod.Post, localPath) {
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
@@ -232,7 +222,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,1-2")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 2), result.response.content)
@@ -313,7 +302,6 @@ class PartialContentTest {
     }
 
     private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PartialContent, result.response.status())
         assertNotNull(result.response.headers[HttpHeaders.LastModified])
         val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
@@ -346,11 +334,13 @@ class PartialContentTest {
             val length = range.first.length.toInt()
             require(length > 0) { "range shouldn't be empty" }
 
-            parts.add(buildString {
-                repeat(length) {
-                    append(read().toChar())
+            parts.add(
+                buildString {
+                    repeat(length) {
+                        append(read().toChar())
+                    }
                 }
-            })
+            )
         } while (true)
 
         return parts
@@ -366,8 +356,7 @@ class PartialContentTest {
     private fun BufferedReader.scanHeaders() = Headers.build {
         do {
             val line = readLine()
-            if (line.isNullOrBlank())
-                break
+            if (line.isNullOrBlank()) break
 
             val (header, value) = line.chomp(":") { throw IOException("Illegal header line $line") }
             append(header.trimEnd(), value.trimStart())

@@ -16,7 +16,7 @@ class UrlConnectionUtilsTest {
     @Test
     fun testTimeoutAwareConnectionCatchesErrorInConnect(): Unit = runBlocking {
         val connection = TestConnection(true, false)
-        assertFailsWith<Throwable>("Connect timeout has been expired") {
+        assertFailsWith<Throwable>("Connect timeout has expired") {
             connection.timeoutAwareConnection(data) {
                 it.connect()
             }
@@ -26,7 +26,7 @@ class UrlConnectionUtilsTest {
     @Test
     fun testTimeoutAwareConnectionCatchesErrorInResponseStatusCode(): Unit = runBlocking {
         val connection = TestConnection(false, true)
-        assertFailsWith<Throwable>("Connect timeout has been expired") {
+        assertFailsWith<Throwable>("Connect timeout has expired") {
             connection.timeoutAwareConnection(data) {
                 it.responseCode
             }

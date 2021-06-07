@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.testing.suites
 
@@ -21,6 +21,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -116,8 +117,10 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 launch(CoroutineName("reader") + testDispatcher) {
                     use {
-                        val channel =
-                            getInputStream().toByteReadChannel(context = testDispatcher, pool = KtorDefaultPool)
+                        val channel = getInputStream().toByteReadChannel(
+                            context = testDispatcher,
+                            pool = KtorDefaultPool
+                        )
 
                         repeat(repeatCount) { requestNumber ->
                             parseResponse(channel)?.use { response ->
@@ -144,56 +147,64 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         createAndStartServer {
             get("/read-less") {
                 assertFailsSuspend {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append(HttpHeaders.ContentLength, doubleSize)
-                            }
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append(HttpHeaders.ContentLength, doubleSize)
+                                }
 
-                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                    })
+                            override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                        }
+                    )
                 }
             }
             get("/read-more") {
                 assertFailsSuspend {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append(HttpHeaders.ContentLength, halfSize)
-                            }
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append(HttpHeaders.ContentLength, halfSize)
+                                }
 
-                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                    })
+                            override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                        }
+                    )
                 }
             }
             get("/write-less") {
                 assertFailsSuspend {
-                    call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append(HttpHeaders.ContentLength, doubleSize)
-                            }
+                    call.respond(
+                        object : OutgoingContent.WriteChannelContent() {
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append(HttpHeaders.ContentLength, doubleSize)
+                                }
 
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeFully(data)
-                            channel.close()
+                            override suspend fun writeTo(channel: ByteWriteChannel) {
+                                channel.writeFully(data)
+                                channel.close()
+                            }
                         }
-                    })
+                    )
                 }
             }
             get("/write-more") {
                 assertFailsSuspend {
-                    call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append(HttpHeaders.ContentLength, halfSize)
-                            }
+                    call.respond(
+                        object : OutgoingContent.WriteChannelContent() {
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append(HttpHeaders.ContentLength, halfSize)
+                                }
 
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeFully(data)
-                            channel.close()
+                            override suspend fun writeTo(channel: ByteWriteChannel) {
+                                channel.writeFully(data)
+                                channel.close()
+                            }
                         }
-                    })
+                    )
                 }
             }
         }
@@ -254,8 +265,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         parent.cancel()
 
         runBlocking {
-            withTimeout(5000L) {
-                parent.join()
+            try {
+                withTimeout(5000L) {
+                    parent.join()
+                }
+            } catch (cause: TimeoutCancellationException) {
+                DebugProbes.printJob(parent)
+                throw cause
             }
         }
 
@@ -309,7 +325,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
                 call.respondTextWriter {
-                    //print("[$index] ")
                     try {
                         append("OK:$index\n")
                     } finally {
@@ -324,15 +339,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val errors = CopyOnWriteArrayList<Throwable>()
 
         val random = Random()
-        for (i in 1..latch.count) {
+        for (i in 1..count) {
             thread {
                 try {
                     withUrl("/$i") {
-                        //setRequestProperty("Connection", "close")
                         content.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                //println("Premature end of response stream at iteration $i")
                                 fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
@@ -442,17 +455,18 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             val q = LinkedBlockingQueue<String>()
 
             val conns = (0..callGroupSize * 10).map {
-                e.submit(Callable<String> {
-                    try {
-                        URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
-                            //println("$number says $this")
-                        } ?: "<empty>"
-                    } catch (t: Throwable) {
-                        "error: ${t.message}"
-                    }.apply {
-                        q.add(this)
+                e.submit(
+                    Callable<String> {
+                        try {
+                            URL("http://localhost:$port/").openConnection()
+                                .inputStream.bufferedReader().readLine().apply {} ?: "<empty>"
+                        } catch (t: Throwable) {
+                            "error: ${t.message}"
+                        }.apply {
+                            q.add(this)
+                        }
                     }
-                })
+                )
             }
 
             TimeUnit.SECONDS.sleep(5)
@@ -538,8 +552,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 call.respondText("Hello, world!", ContentType.Text.Html)
             }
             post("/") {
-                val post = call.receiveParameters()
-                call.respond("$post")
+                call.receiveParameters()
+                fail("We should NOT receive any content")
             }
         }
 
@@ -784,6 +798,36 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(ContentType.Text.Plain, contentType()?.withoutParameters())
             val result = content.toInputStream().crcWithSize()
             assertEquals(10000 * 13L, result.second)
+        }
+    }
+
+    @Test
+    fun testDoubleHost() {
+        createAndStartServer {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        socket {
+            val content = """
+                GET / HTTP/1.1
+                Host: www.example.com
+                Host: www.example2.com
+
+
+            """.trimIndent()
+
+            outputStream.bufferedWriter().apply {
+                write(content)
+                flush()
+            }
+
+            val response = inputStream.bufferedReader()
+            val status = response.readLine()
+
+            assertTrue(status.startsWith("HTTP/1.1 400"))
+            outputStream.close()
         }
     }
 }

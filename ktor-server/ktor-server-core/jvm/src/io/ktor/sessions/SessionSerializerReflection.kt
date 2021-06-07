@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.sessions
 
@@ -33,12 +33,15 @@ public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflect
     defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
 /**
- * Creates the the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for type [T]
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
     defaultSessionSerializer(typeOf<T>())
 
+/**
+ * Creates the default [SessionSerializer] by [typeInfo]
+ */
 @Suppress("DEPRECATION")
 public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
@@ -55,7 +58,7 @@ public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerialize
 )
 public class SessionSerializerReflection<T : Any> internal constructor(
     internal val typeInfo: KType
-    ): SessionSerializer<T> {
+) : SessionSerializer<T> {
 
     @Deprecated("Use defaultSessionSerializer() function instead")
     public constructor(type: KClass<T>) : this(type.starProjectedType)
@@ -91,14 +94,17 @@ public class SessionSerializerReflection<T : Any> internal constructor(
 
         val params = constructor
             .parameters
-            .associateBy({ it }, {
-                when (it.kind) {
-                    KParameter.Kind.INSTANCE,
-                    KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
-                    KParameter.Kind.VALUE ->
-                        coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+            .associateBy(
+                { it },
+                {
+                    when (it.kind) {
+                        KParameter.Kind.INSTANCE,
+                        KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
+                        KParameter.Kind.VALUE ->
+                            coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+                    }
                 }
-            })
+            )
 
         return constructor.callBy(params)
     }

@@ -10,4 +10,3 @@ public actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
     BytePacketBuilder(headerSizeHint, ChunkBuffer.Pool)
 
 public actual typealias EOFException = io.ktor.utils.io.errors.EOFException
-

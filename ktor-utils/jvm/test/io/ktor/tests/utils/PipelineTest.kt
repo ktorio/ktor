@@ -132,7 +132,8 @@ class PipelineTest {
                 "success-p2-1 p2",
                 "intercept-p1-2 p1",
                 "success-p1-1 p1"
-            ), events
+            ),
+            events
         )
     }
 
@@ -220,7 +221,6 @@ class PipelineTest {
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
     }
 
-
     @Test
     fun forkSuccess() {
         val events = mutableListOf<String>()
@@ -282,9 +282,13 @@ class PipelineTest {
         }
         assertEquals(
             listOf(
-                "intercept1 some", "intercept2 some", "intercept3 another",
-                "intercept4 some", "fail1 some"
-            ), events
+                "intercept1 some",
+                "intercept2 some",
+                "intercept3 another",
+                "intercept4 some",
+                "fail1 some"
+            ),
+            events
         )
     }
 
@@ -368,7 +372,6 @@ class PipelineTest {
             proceed()
         }
 
-
         pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 another", "success1 some"), events)
     }
@@ -429,40 +432,18 @@ class PipelineTest {
         checkBeforeAfterPipeline(after, before, pipeline)
     }
 
-    @Test
-    fun testStackTraceWithMultipleInterceptors() {
-        val pipeline = pipeline()
-
-        pipeline.intercept(::interceptor1)
-        pipeline.intercept(::interceptor2)
-        pipeline.intercept(::interceptor3)
-
-        try {
-            pipeline.executeBlocking("start")
-        } catch (cause: Throwable) {
-            val stackTrace = cause.stackTrace
-            assertEquals(6, stackTrace.size)
-
-            assertTrue("interceptor3" in stackTrace[0].toString())
-            assertTrue("interceptor3" in stackTrace[1].toString())
-            assertEquals("\b\b\b(Coroutine boundary.\b(\b)", stackTrace[2].toString())
-            assertTrue("interceptor2" in stackTrace[3].toString())
-            assertTrue("interceptor1" in stackTrace[4].toString())
-        }
+    private suspend fun interceptor1(context: PipelineContext<String, Unit>, content: String) {
+        yield()
+        context.proceedWith("$content first")
     }
-}
 
-private suspend fun interceptor1(context: PipelineContext<String, Unit>, content: String) {
-    yield()
-    context.proceedWith("$content first")
-}
+    private suspend fun interceptor2(context: PipelineContext<String, Unit>, content: String) {
+        yield()
+        context.proceedWith("$content second")
+    }
 
-private suspend fun interceptor2(context: PipelineContext<String, Unit>, content: String) {
-    yield()
-    context.proceedWith("$content second")
-}
-
-private suspend fun interceptor3(context: PipelineContext<String, Unit>, content: String) {
-    yield()
-    error(content)
+    private suspend fun interceptor3(context: PipelineContext<String, Unit>, content: String) {
+        yield()
+        error(content)
+    }
 }

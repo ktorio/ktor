@@ -39,6 +39,13 @@ public class DropwizardMetrics(
          * Dropwizard metric registry.
          */
         public var registry: MetricRegistry = MetricRegistry()
+
+        /**
+         * By default, this feature will register `MetricSet`s from
+         * [metrics-jvm](https://metrics.dropwizard.io/4.1.2/manual/jvm.html) in the configured [MetricRegistry].
+         * Set this to false to not register them.
+         */
+        public var registerJvmMetricSets: Boolean = true
     }
 
     /**
@@ -55,11 +62,19 @@ public class DropwizardMetrics(
             val configuration = Configuration().apply(configure)
             val feature = DropwizardMetrics(configuration.registry, configuration.baseName)
 
-            configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
-            configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
-            configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
-            configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
-            configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
+            if (configuration.registerJvmMetricSets) {
+                listOf<Pair<String, () -> Metric>>(
+                    "jvm.memory" to ::MemoryUsageGaugeSet,
+                    "jvm.garbage" to ::GarbageCollectorMetricSet,
+                    "jvm.threads" to ::ThreadStatesGaugeSet,
+                    "jvm.files" to ::FileDescriptorRatioGauge,
+                    "jvm.attributes" to ::JvmAttributeGaugeSet
+                )
+                    .filter { (name, _) ->
+                        !configuration.registry.names.any { existingName -> existingName.startsWith(name) }
+                    }
+                    .forEach { (name, metric) -> configuration.registry.register(name, metric()) }
+            }
 
             val phase = PipelinePhase("DropwizardMetrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
@@ -98,7 +113,6 @@ public class DropwizardMetrics(
             return feature
         }
     }
-
 
     private data class CallMeasure(val timer: Timer.Context)
 

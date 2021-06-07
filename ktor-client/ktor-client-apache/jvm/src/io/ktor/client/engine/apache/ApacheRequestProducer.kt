@@ -35,21 +35,21 @@ internal class ApacheRequestProducer(
     private val host = URIUtils.extractHost(request.uri)!!
 
     private val interestController = InterestControllerHolder()
-    private val channel: ByteReadChannel
 
-    private val producerJob = Job(callContext[Job])
+    private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    private val channel: ByteReadChannel = when (val body = requestData.body) {
+        is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
+        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
+        is OutgoingContent.NoContent -> ByteReadChannel.Empty
+        is OutgoingContent.ReadChannelContent -> body.readFrom()
+        is OutgoingContent.WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
+            body.writeTo(channel)
+        }.channel
+    }
+
     init {
-        channel = when (val body = requestData.body) {
-            is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
-            is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
-            is OutgoingContent.NoContent -> ByteReadChannel.Empty
-            is OutgoingContent.ReadChannelContent -> body.readFrom()
-            is OutgoingContent.WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
-                body.writeTo(channel)
-            }.channel
-        }
         producerJob.invokeOnCompletion { cause ->
             channel.cancel(cause)
         }
@@ -92,8 +92,11 @@ internal class ApacheRequestProducer(
         if (result == -1) {
             interestController.suspendOutput(ioctrl)
             launch(Dispatchers.Unconfined) {
-                channel.awaitContent()
-                interestController.resumeOutputIfPossible()
+                try {
+                    channel.awaitContent()
+                } finally {
+                    interestController.resumeOutputIfPossible()
+                }
             }
         }
     }
@@ -119,7 +122,7 @@ internal class ApacheRequestProducer(
             }
         }
 
-        if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
+        if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
             builder.entity = BasicHttpEntity().apply {
                 val lengthResult = length
                 if (lengthResult == null || lengthResult.isBlank()) {

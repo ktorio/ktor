@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.engine
 
@@ -15,10 +15,12 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
+import kotlin.reflect.jvm.*
 import kotlin.text.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
@@ -30,8 +32,7 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
 public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
-        if (transformed != null)
-            proceedWith(transformed)
+        if (transformed != null) proceedWith(transformed)
     }
 }
 
@@ -43,7 +44,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
 
-        val transformed: Any? = when (query.type) {
+        val transformed: Any? = when (query.typeInfo.jvmErasure) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
             InputStream::class -> receiveGuardedInputStream(channel)
@@ -77,8 +78,9 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             }
             else -> null
         }
-        if (transformed != null)
+        if (transformed != null) {
             proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.type in ReusableTypes))
+        }
     }
 }
 
@@ -120,9 +122,10 @@ private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChanne
 private suspend fun ByteReadChannel.readText(
     charset: Charset
 ): String {
-    if (isClosedForRead) return ""
-
     val content = readRemaining(Long.MAX_VALUE)
+    if (content.isEmpty) {
+        return ""
+    }
 
     return try {
         if (charset == Charsets.UTF_8) content.readText()
@@ -131,4 +134,3 @@ private suspend fun ByteReadChannel.readText(
         content.release()
     }
 }
-

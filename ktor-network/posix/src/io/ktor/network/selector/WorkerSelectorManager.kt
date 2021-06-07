@@ -1,9 +1,8 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 package io.ktor.network.selector
 
-import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -13,38 +12,31 @@ import kotlin.coroutines.*
 internal class WorkerSelectorManager : SelectorManager {
     private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
     override val coroutineContext: CoroutineContext = selectorContext
-    override fun notifyClosed(selectable: Selectable) {}
+    override fun notifyClosed(s: Selectable) {}
 
-    private val events: LockFreeMPSCQueue<EventInfo> = LockFreeMPSCQueue()
+    private val selector = SelectorHelper()
 
     init {
         makeShared()
-
-        launch {
-            selectHelper(events)
-        }
+        selector.start(this)
     }
 
     override suspend fun select(
         selectable: Selectable,
         interest: SelectInterest
     ) {
-        if (events.isClosed) {
-            throw CancellationException("Socket closed.")
-        }
+        require(selectable is SelectableNative)
 
         return suspendCancellableCoroutine { continuation ->
-            require(selectable is SelectableNative)
-
             val selectorState = EventInfo(selectable.descriptor, interest, continuation)
-            if (!events.addLast(selectorState)) {
-                continuation.resumeWithException(CancellationException("Socked closed."))
+            if (!selector.interest(selectorState)) {
+                continuation.resumeWithException(CancellationException("Selector closed."))
             }
         }
     }
 
     override fun close() {
-        events.close()
+        selector.requestTermination()
         selectorContext.close()
     }
 }

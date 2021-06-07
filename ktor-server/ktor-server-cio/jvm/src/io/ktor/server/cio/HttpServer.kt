@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.cio
 
@@ -30,7 +30,6 @@ public class HttpServer(
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
  */
-@KtorExperimentalAPI
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.cio
 
@@ -25,4 +25,3 @@ public class ChannelWriteException(message: String = "Cannot write to a channel"
  */
 public class ChannelReadException(message: String = "Cannot read from a channel", exception: Throwable) :
     ChannelIOException(message, exception)
-

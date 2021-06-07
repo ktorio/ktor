@@ -1,15 +1,14 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.gson
-
 
 import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.features.*
-import io.ktor.http.*
 import io.ktor.gson.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -50,10 +49,13 @@ class GsonBlockingTest {
         }
 
         runBlocking {
-            assertEquals("OK", client.post("/") {
-                body = "{\"i\": 77}"
-                contentType(ContentType.Application.Json)
-            })
+            assertEquals(
+                "OK",
+                client.post("/") {
+                    body = "{\"i\": 77}"
+                    contentType(ContentType.Application.Json)
+                }
+            )
         }
     }
 

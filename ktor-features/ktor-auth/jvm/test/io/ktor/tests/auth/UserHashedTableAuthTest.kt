@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.auth
 
@@ -30,7 +30,8 @@ class UserHashedTableAuthTest {
             UserHashedTableAuth(
                 table = mapOf(
                     "test" to digestFunction("test")
-                ), digester = digestFunction
+                ),
+                digester = digestFunction
             )
         )
     }
@@ -57,32 +58,26 @@ class UserHashedTableAuthTest {
             }
 
             handlePost("/deny").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/redirect").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Found, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny?user=test&pass=test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny", "test", "bad-pass").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny?bad-user=bad-pass", "test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertEquals(null, result.response.content)
             }
             handlePost("/deny", "test", "test").let { result ->
-                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("ok", result.response.content)
             }

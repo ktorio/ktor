@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features
 
@@ -56,9 +56,7 @@ public class HttpPlainText internal constructor(
         }
 
         requestCharset = sendCharset
-            ?: withoutQuality.firstOrNull()
-                ?: withQuality.firstOrNull()?.first
-                ?: Charsets.UTF_8
+            ?: withoutQuality.firstOrNull() ?: withQuality.firstOrNull()?.first ?: Charsets.UTF_8
     }
 
     /**
@@ -117,8 +115,10 @@ public class HttpPlainText internal constructor(
 
             with(config) {
                 return HttpPlainText(
-                    charsets, charsetQuality,
-                    sendCharset, responseCharsetFallback
+                    charsets,
+                    charsetQuality,
+                    sendCharset,
+                    responseCharsetFallback
                 )
             }
         }
@@ -132,7 +132,9 @@ public class HttpPlainText internal constructor(
                 }
 
                 val contentType = context.contentType()
-                if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) return@intercept
+                if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) {
+                    return@intercept
+                }
 
                 val contentCharset = contentType?.charset()
                 proceedWith(feature.wrapContent(content, contentCharset))

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.ios.certificates
 
@@ -107,7 +107,6 @@ import platform.Security.*
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
-@KtorExperimentalAPI
 public data class CertificatePinner internal constructor(
     private val pinnedCertificates: Set<PinnedCertificate>,
     private val validateTrust: Boolean
@@ -168,7 +167,7 @@ public data class CertificatePinner internal constructor(
             return
         }
 
-        val result = areCertificatesPinned(certificates)
+        val result = hasOnePinnedCertificate(certificates)
         if (result) {
             completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
         } else {
@@ -179,12 +178,12 @@ public data class CertificatePinner internal constructor(
     }
 
     /**
-     * Check each of the certificates to see if they pinned
+     * Confirms that at least one of the certificates is pinned
      */
-    private fun areCertificatesPinned(
+    private fun hasOnePinnedCertificate(
         certificates: List<SecCertificateRef>
-    ): Boolean = certificates.all { certificate ->
-        val publicKey = certificate.getPublicKeyBytes() ?: return@all false
+    ): Boolean = certificates.any { certificate ->
+        val publicKey = certificate.getPublicKeyBytes() ?: return@any false
         // Lazily compute the hashes for each public key.
         var sha1: String? = null
         var sha256: String? = null
@@ -321,7 +320,7 @@ public data class CertificatePinner internal constructor(
     /**
      * Checks that we support the key type and size
      */
-    internal fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
+    private fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
 
@@ -339,7 +338,7 @@ public data class CertificatePinner internal constructor(
      * Get the [IntArray] of Asn1 headers needed to prepend to the public key to create the
      * encoding [ASN1Header](https://docs.oracle.com/middleware/11119/opss/SCRPJ/oracle/security/crypto/asn1/ASN1Header.html)
      */
-    internal fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
+    private fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
 
@@ -385,7 +384,6 @@ public data class CertificatePinner internal constructor(
     /**
      * Builds a configured [CertificatePinner].
      */
-    @KtorExperimentalAPI
     public data class Builder(
         private val pinnedCertificates: MutableList<PinnedCertificate> = mutableListOf(),
         private var validateTrust: Boolean = true

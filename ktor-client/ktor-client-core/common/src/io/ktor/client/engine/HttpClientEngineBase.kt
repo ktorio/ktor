@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine
 
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -15,17 +16,20 @@ import kotlin.coroutines.*
  * custom [HttpClientEngine] implementations.
  */
 public abstract class HttpClientEngineBase(private val engineName: String) : HttpClientEngine {
+    private val closed = atomic(false)
 
     override val coroutineContext: CoroutineContext by lazy {
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
 
     override fun close() {
-        (coroutineContext[Job] as CompletableJob).apply {
-            complete()
-            invokeOnCompletion {
-                dispatcher.close()
-            }
+        if (!closed.compareAndSet(false, true)) return
+
+        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
+
+        requestJob.complete()
+        requestJob.invokeOnCompletion {
+            dispatcher.close()
         }
     }
 }

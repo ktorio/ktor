@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.tests
 
@@ -9,7 +9,6 @@ import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
-
 
 private const val TEST_SIZE = 100_000
 private const val DEFAULT_THREADS_COUNT = 32
@@ -39,9 +38,11 @@ private fun <T> withPool(
 ): List<T> {
     val pool = Executors.newFixedThreadPool(threads)
     val result = List(testSize) {
-        pool.submit(Callable<T> {
-            runBlocking { block() }
-        })
+        pool.submit(
+            Callable<T> {
+                runBlocking { block() }
+            }
+        )
     }.map { it.get() }
 
     pool.shutdown()

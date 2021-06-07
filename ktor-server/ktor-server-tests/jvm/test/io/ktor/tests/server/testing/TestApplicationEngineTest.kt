@@ -9,10 +9,13 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.*
@@ -23,7 +26,8 @@ class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
         @OptIn(
-            ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class
+            ExperimentalCoroutinesApi::class,
+            InternalCoroutinesApi::class
         )
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
             object : CoroutineDispatcher(), Delay by delay {
@@ -49,21 +53,23 @@ class TestApplicationEngineTest {
             },
             configure = {
                 @OptIn(InternalCoroutinesApi::class)
-                dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
-                    override fun scheduleResumeAfterDelay(
-                        timeMillis: Long,
-                        continuation: CancellableContinuation<Unit>
-                    ) {
-                        // Run immediately and log it
-                        delayLog += "Delay($timeMillis)"
-                        continuation.resume(Unit)
+                dispatcher = Dispatchers.Unconfined.withDelay(
+                    object : Delay {
+                        override fun scheduleResumeAfterDelay(
+                            timeMillis: Long,
+                            continuation: CancellableContinuation<Unit>
+                        ) {
+                            // Run immediately and log it
+                            delayLog += "Delay($timeMillis)"
+                            continuation.resume(Unit)
+                        }
                     }
-                })
+                )
             }
         ) {
             val elapsedTime = measureTimeMillis {
                 handleRequest(HttpMethod.Get, "/").let { call ->
-                    assertTrue(call.requestHandled)
+                    assertTrue(call.response.status()!!.isSuccess())
                 }
             }
             assertEquals(listOf("Delay($delayTime)", "Delay($delayTime)"), delayLog)
@@ -112,7 +118,6 @@ class TestApplicationEngineTest {
             with(handleRequest(HttpMethod.Get, "/broken")) {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("The Response", response.content)
-
             }
 
             assertFailsWith<IllegalStateException> {
@@ -216,6 +221,42 @@ class TestApplicationEngineTest {
                 val existingResponse = client.get<HttpResponse>("/exist")
                 assertEquals(HttpStatusCode.OK, existingResponse.status)
             }
+        }
+    }
+
+    @Test
+    fun testMultipart() {
+        withTestApplication {
+            application.routing {
+                post("/multipart") {
+                    call.receiveMultipart().readPart()
+                    call.respond(HttpStatusCode.OK, "OK")
+                }
+            }
+
+            val boundary = "***bbb***"
+            val multipart = listOf(
+                PartData.FileItem(
+                    { buildPacket { writeText("BODY") } },
+                    {},
+                    headersOf(
+                        HttpHeaders.ContentDisposition,
+                        ContentDisposition.File
+                            .withParameter(ContentDisposition.Parameters.Name, "file")
+                            .withParameter(ContentDisposition.Parameters.FileName, "test.jpg")
+                            .toString()
+                    )
+                )
+            )
+
+            val response = handleRequest(method = HttpMethod.Post, uri = "/multipart") {
+                addHeader(
+                    HttpHeaders.ContentType,
+                    ContentType.MultiPart.FormData.withParameter("boundary", boundary).toString()
+                )
+                setBody(boundary, multipart)
+            }
+            assertEquals(HttpStatusCode.OK, response.response.status())
         }
     }
 }

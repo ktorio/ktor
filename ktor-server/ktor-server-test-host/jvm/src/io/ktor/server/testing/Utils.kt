@@ -4,6 +4,7 @@
 
 package io.ktor.server.testing
 
+import io.ktor.application.*
 import io.ktor.http.*
 
 /**

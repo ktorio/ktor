@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 description = "Ktor client features"
 
 kotlin.sourceSets {
-    commonMain {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
         }
@@ -14,13 +14,13 @@ kotlin.sourceSets {
 
 subprojects {
     kotlin.sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
             }
         }
 
-        jvmTest {
+        val jvmTest by getting {
             dependencies {
                 runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
                 runtimeOnly(project(":ktor-client:ktor-client-apache"))
@@ -39,7 +39,7 @@ subprojects {
             api(project(":ktor-client:ktor-client-js"))
         }
 
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-tests"))
             }

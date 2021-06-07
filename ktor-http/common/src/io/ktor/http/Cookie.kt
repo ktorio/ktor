@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -73,7 +73,6 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
 /**
  * Parse server's `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
@@ -84,7 +83,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toInt() ?: 0,
+        maxAge = loweredMap["max-age"]?.toIntClamping() ?: 0,
         expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -102,7 +101,6 @@ private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+
 /**
  * Parse client's `Cookie` header value
  */
-@KtorExperimentalAPI
 public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
@@ -119,7 +117,6 @@ public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean 
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -138,7 +135,6 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -158,7 +154,6 @@ public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
 /**
  * Format `Set-Cookie` header value
  */
-@KtorExperimentalAPI
 public fun renderSetCookieHeader(
     name: String,
     value: String,
@@ -189,19 +184,18 @@ public fun renderSetCookieHeader(
 /**
  * Encode cookie value using the specified [encoding]
  */
-@KtorExperimentalAPI
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } ->
             throw IllegalArgumentException(
-                "The cookie value contains characters that couldn't be encoded in RAW format. " +
+                "The cookie value contains characters that cannot be encoded in RAW format. " +
                     " Consider URL_ENCODING mode"
             )
         else -> value
     }
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
-            "The cookie value contains characters that couldn't be encoded in DQUOTES format. " +
+            "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
                 "Consider URL_ENCODING mode"
         )
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
@@ -214,7 +208,6 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
 /**
  * Decode cookie value using the specified [encoding]
  */
-@KtorExperimentalAPI
 public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
@@ -250,3 +243,5 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
     if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
+
+private fun String.toIntClamping(): Int = toLong().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()

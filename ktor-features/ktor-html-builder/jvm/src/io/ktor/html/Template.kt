@@ -60,7 +60,6 @@ public class PlaceholderItem<TOuter>(public val index: Int, public val collectio
     public val last: Boolean get() = index == collection.lastIndex
 }
 
-
 /**
  * Inserts every element of placeholder list
  */

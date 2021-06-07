@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.java
 
@@ -43,24 +43,11 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeout, WebSocketCapability)
 
-    override val coroutineContext: CoroutineContext
-
-    private val requestsJob = SilentSupervisor(super.coroutineContext[Job])
-
     private var httpClient: HttpClient? = null
 
     init {
-        coroutineContext = super.coroutineContext + requestsJob + CoroutineName("java-engine")
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
-            try {
-                requestsJob[Job]!!.join()
-            } finally {
-                httpClient = null
-                (dispatcher as Closeable).close()
-                executor.shutdown()
-            }
+        coroutineContext.job.invokeOnCompletion {
+            httpClient = null
         }
     }
 
@@ -68,17 +55,16 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         val engine = getJavaHttpClient(data)
         val callContext = callContext()
 
-        return if (data.isUpgradeRequest()) {
-            engine.executeWebSocketRequest(callContext, data)
-        } else {
-            engine.executeHttpRequest(callContext, data)
+        return try {
+            if (data.isUpgradeRequest()) {
+                engine.executeWebSocketRequest(callContext, data)
+            } else {
+                engine.executeHttpRequest(callContext, data)
+            }
+        } catch (cause: Throwable) {
+            callContext.cancel(CancellationException("Failed to execute request", cause))
+            throw cause
         }
-    }
-
-    override fun close() {
-        super.close()
-
-        (requestsJob[Job] as CompletableJob).complete()
     }
 
     private fun getJavaHttpClient(data: HttpRequestData): HttpClient {
@@ -117,7 +103,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
                 proxy(ProxySelector.of(address))
             }
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
-            else -> throw IllegalStateException("Proxy of type $type is unsupported by Java HTTP engine.")
+            else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }
     }
 }

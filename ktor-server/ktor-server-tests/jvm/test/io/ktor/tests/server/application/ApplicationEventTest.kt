@@ -26,7 +26,6 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 
     @Test
@@ -46,7 +45,6 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 
     @Test
@@ -66,6 +64,5 @@ class ApplicationEventTest {
             }
         }
         assertEquals(3, c)
-
     }
 }

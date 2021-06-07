@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.java
 
@@ -10,6 +10,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.io.*
 import java.net.http.*
 import java.nio.*
@@ -26,7 +27,7 @@ internal class JavaHttpResponseBodyHandler(
     }
 
     private class JavaHttpResponseBodySubscriber(
-        callContext: CoroutineContext,
+        private val callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,
         requestTime: GMTDate
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
@@ -47,11 +48,37 @@ internal class JavaHttpResponseBodyHandler(
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
             responseChannel,
-            coroutineContext
+            callContext
         )
 
         private val closed = atomic(false)
         private val subscription = atomic<Flow.Subscription?>(null)
+
+        private val queue = Channel<ByteBuffer>(Channel.UNLIMITED)
+
+        init {
+            launch {
+                try {
+                    queue.consume {
+                        while (isActive) {
+                            var buffer = queue.poll()
+                            if (buffer == null) {
+                                subscription.value?.request(1)
+                                buffer = queue.receive()
+                            }
+
+                            responseChannel.writeFully(buffer)
+                        }
+                    }
+                } catch (_: ClosedReceiveChannelException) {
+                }
+            }.apply {
+                invokeOnCompletion {
+                    responseChannel.close(it)
+                    consumerJob.complete()
+                }
+            }
+        }
 
         override fun onSubscribe(s: Flow.Subscription) {
             try {
@@ -80,16 +107,10 @@ internal class JavaHttpResponseBodyHandler(
         }
 
         override fun onNext(items: List<ByteBuffer>) {
-            runBlocking {
-                try {
-                    items.forEach { buffer ->
-                        responseChannel.writeFully(buffer)
-                    }
-                } catch (cause: Throwable) {
-                    close(cause)
+            items.forEach {
+                if (it.hasRemaining()) {
+                    queue.offer(it)
                 }
-
-                subscription.value?.request(1)
             }
         }
 
@@ -99,7 +120,7 @@ internal class JavaHttpResponseBodyHandler(
 
         override fun onComplete() {
             subscription.getAndSet(null)
-            responseChannel.close()
+            queue.close()
         }
 
         override fun getBody(): CompletionStage<HttpResponseData> {
@@ -112,6 +133,7 @@ internal class JavaHttpResponseBodyHandler(
             }
 
             try {
+                queue.close(cause)
                 subscription.getAndSet(null)?.cancel()
             } finally {
                 consumerJob.completeExceptionally(cause)

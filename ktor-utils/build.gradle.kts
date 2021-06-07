@@ -13,12 +13,12 @@ kotlin {
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(project(":ktor-io"))
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }

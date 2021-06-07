@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.cio
 
@@ -43,7 +43,7 @@ internal class CIOEngine(
         ProxyType.SOCKS,
         null -> null
         ProxyType.HTTP -> config.proxy
-        else -> throw IllegalStateException("Proxy of type $type is unsupported by CIO engine.")
+        else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
 
     init {
@@ -121,9 +121,13 @@ internal class CIOEngine(
         return endpoints.computeIfAbsent(endpointId) {
             val secure = (protocol.isSecure())
             Endpoint(
-                host, port, proxy, secure,
+                host,
+                port,
+                proxy,
+                secure,
                 config,
-                connectionFactory, coroutineContext,
+                connectionFactory,
+                coroutineContext,
                 onDone = { endpoints.remove(endpointId) }
             )
         }

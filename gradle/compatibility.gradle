@@ -8,8 +8,6 @@ apiValidation {
         'ktor-client-json-tests',
         'ktor-client',
         'ktor-client-features',
-        'ktor-client-benchmarks',
-        'ktor-server-benchmarks',
         'ktor-server-test-suites',
     ].toSet()
 

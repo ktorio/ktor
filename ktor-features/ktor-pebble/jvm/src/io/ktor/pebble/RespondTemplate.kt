@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import java.util.*
 
-
 /**
  * Respond with the specified [template] passing [model]
  *

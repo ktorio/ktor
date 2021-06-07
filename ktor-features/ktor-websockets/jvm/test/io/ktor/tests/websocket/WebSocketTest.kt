@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.websocket
 
@@ -161,26 +161,31 @@ class WebSocketTest {
 
             application.routing {
                 webSocket("/{p}") {
-                    outgoing.send(Frame.Text(call.parameters["p"] ?: "null"))
-                    @Suppress("DEPRECATION")
-                    terminate() // We should terminate the socket to avoid waiting for response close.
+                    val frame = Frame.Text(call.parameters["p"] ?: "null")
+                    outgoing.send(frame)
                 }
             }
 
             handleWebSocket("/aaa") {
             }.let { call ->
-                call.response.awaitWebSocket(Duration.ofSeconds(10))
-                val p = FrameParser()
-                val bb = ByteBuffer.wrap(call.response.byteContent)
-                p.frame(bb)
+                runBlocking {
+                    val channel = call.response.websocketChannel()!!
 
-                assertEquals(FrameType.TEXT, p.frameType)
-                assertTrue { p.bodyReady }
+                    val parser = FrameParser()
+                    val content = channel.readRemaining().readBytes()
+                    check(content.isNotEmpty()) { "Content it empty." }
 
-                val bytes = ByteArray(p.length.toInt())
-                bb.get(bytes)
+                    val buffer = ByteBuffer.wrap(content)
+                    parser.frame(buffer)
 
-                assertEquals("aaa", bytes.toString(Charsets.ISO_8859_1))
+                    assertEquals(FrameType.TEXT, parser.frameType)
+                    assertTrue { parser.bodyReady }
+
+                    val bytes = ByteArray(parser.length.toInt())
+                    buffer.get(bytes)
+
+                    assertEquals("aaa", bytes.toString(Charsets.ISO_8859_1))
+                }
             }
         }
     }

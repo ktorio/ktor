@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -48,7 +48,11 @@ public actual fun Digest(name: String): Digest = object : Digest {
 
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
-private val _crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("(crypto ? crypto : msCrypto)")
+private val _crypto: Crypto = if (PlatformUtils.IS_NODE) {
+    js("eval('require')('crypto')")
+} else {
+    js("(crypto ? crypto : msCrypto)")
+}
 
 private external class Crypto {
     val subtle: SubtleCrypto

@@ -1,11 +1,12 @@
+// ktlint-disable filename
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
@@ -67,10 +68,12 @@ public actual sealed class Frame actual constructor(
     public actual class Close actual constructor(
         data: ByteArray
     ) : Frame(true, FrameType.CLOSE, data, NonDisposableHandle, false, false, false) {
-        public actual constructor(reason: CloseReason) : this(buildPacket {
-            writeShort(reason.code)
-            writeText(reason.message)
-        })
+        public actual constructor(reason: CloseReason) : this(
+            buildPacket {
+                writeShort(reason.code)
+                writeText(reason.message)
+            }
+        )
 
         public actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         public actual constructor() : this(Empty)
@@ -129,7 +132,9 @@ public actual sealed class Frame actual constructor(
             fin: Boolean,
             frameType: FrameType,
             data: ByteArray,
-            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+            rsv1: Boolean,
+            rsv2: Boolean,
+            rsv3: Boolean
         ): Frame = when (frameType) {
             FrameType.BINARY -> Binary(fin, data, rsv1, rsv2, rsv3)
             FrameType.TEXT -> Text(fin, data, rsv1, rsv2, rsv3)

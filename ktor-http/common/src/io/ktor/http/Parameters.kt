@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -10,6 +10,12 @@ import io.ktor.util.*
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
  */
 public interface Parameters : StringValues {
+    /**
+     * Returns a [UrlEncodingOption] instance
+     */
+    public val urlEncodingOption: UrlEncodingOption
+        get() = UrlEncodingOption.DEFAULT
+
     public companion object {
         /**
          * Empty [Parameters] instance
@@ -27,11 +33,18 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+public class ParametersBuilder(
+    size: Int = 8,
+    public var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : StringValuesBuilder(true, size) {
+
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(size: Int = 8) : this(size, UrlEncodingOption.DEFAULT)
+
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
-        return ParametersImpl(values)
+        return ParametersImpl(values, urlEncodingOption)
     }
 }
 
@@ -74,8 +87,14 @@ public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = 
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters,
-    StringValuesImpl(true, values) {
+public class ParametersImpl(
+    values: Map<String, List<String>> = emptyMap(),
+    override val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : Parameters, StringValuesImpl(true, values) {
+
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(values: Map<String, List<String>> = emptyMap()) : this(values, UrlEncodingOption.DEFAULT)
+
     override fun toString(): String = "Parameters ${entries()}"
 }
 

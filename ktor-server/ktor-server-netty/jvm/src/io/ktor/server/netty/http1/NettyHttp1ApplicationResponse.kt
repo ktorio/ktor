@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.netty.http1
 
@@ -39,7 +39,9 @@ internal class NettyHttp1ApplicationResponse(
         override fun engineAppendHeader(name: String, value: String) {
             if (responseMessageSent) {
                 if (responseMessage.isCancelled) throw CancellationException("Call execution has been cancelled")
-                throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
+                throw UnsupportedOperationException(
+                    "Headers can no longer be set because response was already completed"
+                )
             }
             responseHeaders.add(name, value)
         }

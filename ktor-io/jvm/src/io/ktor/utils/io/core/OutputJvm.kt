@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io.core
 
 import java.nio.*
@@ -101,4 +102,3 @@ public actual interface Output : Closeable, Appendable {
 
     actual override fun close()
 }
-

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.pipeline
 
@@ -16,7 +16,10 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     override val context: TContext,
     private val blocks: List<PipelineInterceptor<TSubject, TContext>>
-) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject>, CoroutineScope {
+) : PipelineContext<TSubject, TContext>,
+    @Suppress("DEPRECATION")
+    PipelineExecutor<TSubject>,
+    CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 
@@ -138,7 +141,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
      */
     private fun loop(direct: Boolean): Boolean {
         do {
-            val index = index  // it is important to read index every time
+            val index = index // it is important to read index every time
             if (index == blocks.size) {
                 if (!direct) {
                     resumeRootWith(Result.success(subject))
@@ -148,7 +151,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
                 return true
             }
 
-            this@SuspendFunctionGun.index = index + 1  // it is important to increase it before function invocation
+            this@SuspendFunctionGun.index = index + 1 // it is important to increase it before function invocation
             val next = blocks[index]
 
             try {

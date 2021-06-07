@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.auth
 
@@ -23,7 +23,8 @@ import java.net.*
 private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
-    client: HttpClient, dispatcher: CoroutineDispatcher,
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
     urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
@@ -33,7 +34,8 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
             call.redirectAuthenticateOAuth2(
-                provider, callbackRedirectUrl,
+                provider,
+                callbackRedirectUrl,
                 state = provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor
@@ -46,7 +48,8 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                 } catch (cause: OAuth2Exception.InvalidGrant) {
                     Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
                     call.redirectAuthenticateOAuth2(
-                        provider, callbackRedirectUrl,
+                        provider,
+                        callbackRedirectUrl,
                         state = provider.nonceManager.newNonce(),
                         scopes = provider.defaultScopes,
                         interceptor = provider.authorizeUrlInterceptor
@@ -128,14 +131,13 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     parameters: List<Pair<String, String>> = emptyList(),
     interceptor: URLBuilder.() -> Unit = {}
 ) {
-
     val url = URLBuilder()
     url.takeFrom(URI(authenticateUrl))
     url.parameters.apply {
         append(OAuth2RequestParameters.ClientId, clientId)
         append(OAuth2RequestParameters.RedirectUri, callbackRedirectUrl)
         if (scopes.isNotEmpty()) {
-            append(OAuth2RequestParameters.Scope, scopes.joinToString(" "))
+            append(OAuth2RequestParameters.Scope, scopes.joinToString("+"))
         }
         append(OAuth2RequestParameters.State, state)
         append(OAuth2RequestParameters.ResponseType, "code")
@@ -164,7 +166,6 @@ private suspend fun oauth2RequestAccessToken(
     passParamsInURL: Boolean = false,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
-
     if (state != null) {
         nonceManager.verifyNonce(state)
     }
@@ -193,11 +194,14 @@ private suspend fun oauth2RequestAccessToken(
     when (method) {
         HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
         HttpMethod.Post -> {
-            if (passParamsInURL)
+            if (passParamsInURL) {
                 request.url.parameters.appendAll(urlParameters)
-            else
-                request.body =
-                    TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+            } else {
+                request.body = TextContent(
+                    urlParameters.build().formUrlEncode(),
+                    ContentType.Application.FormUrlEncoded
+                )
+            }
         }
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
@@ -374,7 +378,8 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * decoded but the response doesn't contain error code nor access token
      */
     public class MissingAccessToken : OAuth2Exception(
-        "OAuth2 server response is OK neither error nor access token provided", null
+        "OAuth2 server response is OK neither error nor access token provided",
+        null
     )
 
     /**
@@ -382,9 +387,12 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * @param grantType that was passed to the server
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class UnsupportedGrantType(public val grantType: String) : OAuth2Exception(
-        "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
-    ), CopyableThrowable<UnsupportedGrantType> {
+    public class UnsupportedGrantType(public val grantType: String) :
+        OAuth2Exception(
+            "OAuth2 server doesn't support grant type $grantType",
+            "unsupported_grant_type"
+        ),
+        CopyableThrowable<UnsupportedGrantType> {
         override fun createCopy(): UnsupportedGrantType = UnsupportedGrantType(grantType).also {
             it.initCause(this)
         }
@@ -396,7 +404,8 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class UnknownException(
-        private val details: String, errorCode: String
+        private val details: String,
+        errorCode: String
     ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {
         override fun createCopy(): UnknownException = UnknownException(details, errorCode!!).also {
             it.initCause(this)

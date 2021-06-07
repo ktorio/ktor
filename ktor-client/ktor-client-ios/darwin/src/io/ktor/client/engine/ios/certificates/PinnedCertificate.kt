@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.ios.certificates
 
@@ -13,7 +13,6 @@ import io.ktor.util.*
  * Represents a pinned certificate. Recommended to use [Builder.add] to construct
  * [CertificatePinner]
  */
-@KtorExperimentalAPI
 public data class PinnedCertificate(
     /**
      * A hostname like `example.com` or a pattern like `*.example.com` (canonical form).
@@ -95,8 +94,7 @@ public data class PinnedCertificate(
                     )
                 }
                 else -> throw IllegalArgumentException(
-                    "Pins must start with '${HASH_ALGORITHM_SHA_256}' or " +
-                        "'${HASH_ALGORITHM_SHA_1}': $pin"
+                    "Pins must start with '$HASH_ALGORITHM_SHA_256' or '$HASH_ALGORITHM_SHA_1': $pin"
                 )
             }
         }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.request
 
@@ -208,9 +208,9 @@ private object DoubleReceivePreventionToken
 private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**
- * Thrown when a request body has been already received.
+ * Thrown when a request body has already been received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
-    "Request body has been already consumed (received)."
+    "Request body has already been consumed (received)."
 )

@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.cache
 
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -21,8 +20,6 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
 /**
  * Client single response cache with [expires] and [varyKeys].
  */
-@KtorExperimentalAPI
-@Suppress("KDocMissingDocumentation")
 public class HttpCacheEntry internal constructor(
     public val expires: GMTDate,
     public val varyKeys: Map<String, String>,
@@ -52,7 +49,6 @@ public class HttpCacheEntry internal constructor(
         return varyKeys.hashCode()
     }
 }
-
 
 internal fun HttpResponse.varyKeys(): Map<String, String> {
     val validationKeys = vary() ?: return emptyMap()

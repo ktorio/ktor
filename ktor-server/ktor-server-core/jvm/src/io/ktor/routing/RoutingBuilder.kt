@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("unused")
 
@@ -113,19 +113,26 @@ public fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationC
 }
 
 /**
- * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
+ * Builds a route to match `POST` requests receiving request body content of type [R]
  */
 @ContextDsl
 @JvmName("postTyped")
 public inline fun <reified R : Any> Route.post(
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = post {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("postTypedPath")
+public inline fun <reified R : Any> Route.post(
     path: String,
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route {
-    return route(path, HttpMethod.Post) {
-        handle {
-            body(call.receive())
-        }
-    }
+): Route = post(path) {
+    body(call.receive())
 }
 
 /**
@@ -169,6 +176,29 @@ public fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 }
 
 /**
+ * Builds a route to match `PUT` requests with receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("putTyped")
+public inline fun <reified R : Any> Route.put(
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = put {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `PUT` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("putTypedPath")
+public inline fun <reified R : Any> Route.put(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = put(path) {
+    body(call.receive())
+}
+
+/**
  * Builds a route to match `PATCH` requests with specified [path]
  */
 @ContextDsl
@@ -182,6 +212,29 @@ public fun Route.patch(path: String, body: PipelineInterceptor<Unit, Application
 @ContextDsl
 public fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Patch) { handle(body) }
+}
+
+/**
+ * Builds a route to match `PATCH` requests receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("patchTyped")
+public inline fun <reified R : Any> Route.patch(
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = patch {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `PATCH` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("patchTypedPath")
+public inline fun <reified R : Any> Route.patch(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = patch(path) {
+    body(call.receive())
 }
 
 /**
@@ -224,13 +277,15 @@ public fun Route.createRouteFromPath(path: String): Route {
     var current: Route = this
     for (index in parts.indices) {
         val (value, kind) = parts[index]
-        val hasTrailingSlash = index == parts.lastIndex && path.endsWith('/')
         val selector = when (kind) {
-            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value, hasTrailingSlash)
-            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value, hasTrailingSlash)
+            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value)
+            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value)
         }
         // there may already be entry with same selector, so join them
         current = current.createChild(selector)
+    }
+    if (path.endsWith("/")) {
+        current = current.createChild(TrailingSlashRouteSelector)
     }
     return current
 }
@@ -242,12 +297,7 @@ public object PathSegmentSelectorBuilder {
     /**
      * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix and a name
      */
-    public fun parseParameter(value: String): RouteSelector = parseParameter(value, false)
-
-    /**
-     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any
-     */
-    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector {
+    public fun parseParameter(value: String): RouteSelector {
         val prefixIndex = value.indexOf('{')
         val suffixIndex = value.lastIndexOf('}')
 
@@ -256,29 +306,44 @@ public object PathSegmentSelectorBuilder {
 
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
-            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix, hasTrailingSlash)
+            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
             signature.endsWith("...") -> {
                 if (suffix != null && suffix.isNotEmpty()) {
                     throw IllegalArgumentException("Suffix after tailcard is not supported")
                 }
-                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "", hasTrailingSlash)
+                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")
             }
-            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix, hasTrailingSlash)
+            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
         }
     }
 
     /**
+     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any
+     */
+    @Deprecated(
+        "hasTrailingSlash is not used anymore. This is going to be removed",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("parseParameter(value)")
+    )
+    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector = parseParameter(value)
+
+    /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter
      */
-    public fun parseConstant(value: String): RouteSelector = parseConstant(value, false)
+    public fun parseConstant(value: String): RouteSelector = when (value) {
+        "*" -> PathSegmentWildcardRouteSelector
+        else -> PathSegmentConstantRouteSelector(value)
+    }
 
     /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter and trailing slash if any
      */
-    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = when (value) {
-        "*" -> PathSegmentWildcardRouteSelector
-        else -> PathSegmentConstantRouteSelector(value, hasTrailingSlash)
-    }
+    @Deprecated(
+        "hasTrailingSlash is not used anymore. This is going to be removed",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("parseConstant(value)")
+    )
+    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = parseConstant(value)
 
     /**
      * Parses a name out of segment specification

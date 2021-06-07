@@ -16,10 +16,10 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     assignOptions(options)
     nonBlocking()
 
-    DatagramSocketImpl(this, selector).apply {
-        channel.socket().bind(localAddress)
-        channel.connect(remoteAddress)
-    }
+    socket().bind(localAddress)
+    connect(remoteAddress)
+
+    return DatagramSocketImpl(this, selector)
 }
 
 internal actual fun UDPSocketBuilder.Companion.bindUDP(
@@ -30,7 +30,6 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     assignOptions(options)
     nonBlocking()
 
-    DatagramSocketImpl(this, selector).apply {
-        channel.socket().bind(localAddress)
-    }
+    socket().bind(localAddress)
+    return DatagramSocketImpl(this, selector)
 }

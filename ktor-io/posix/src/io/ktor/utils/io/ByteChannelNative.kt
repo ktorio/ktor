@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.utils.io
 
@@ -11,7 +11,6 @@ import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
@@ -87,23 +86,22 @@ internal class ByteChannelNative(
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int {
         require(offset >= 0L)
         require(length >= 0L)
+        closedCause?.let { throw it }
+        if (closed && availableForRead == 0) return -1
 
-        return when {
-            closedCause != null -> throw closedCause!!
-            readable.canRead() -> {
-                val size = tryReadCPointer(dst, offset, length)
-                afterRead(size)
-                size
-            }
-            closed -> readAvailableClosed()
-            length == 0L -> 0
-            else -> readAvailableSuspend(dst, offset, length)
+        if (length == 0L) return 0
+
+        if (availableForRead == 0) {
+            awaitSuspend(1)
         }
-    }
 
-    private suspend fun readAvailableSuspend(dst: CPointer<ByteVar>, offset: Long, length: Long): Int {
-        awaitSuspend(1)
-        return readAvailable(dst, offset, length)
+        if (!readable.canRead()) {
+            prepareFlushedBytes()
+        }
+
+        val size = tryReadCPointer(dst, offset, length)
+        afterRead(size)
+        return size
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
@@ -120,7 +118,9 @@ internal class ByteChannelNative(
                 val size = tryReadCPointer(dst, offset, length)
                 afterRead(size)
             }
-            closed -> throw EOFException("Channel is closed and not enough bytes available: required $length but $availableForRead available")
+            closed -> throw EOFException(
+                "Channel is closed and not enough bytes available: required $length but $availableForRead available"
+            )
             else -> readFullySuspend(dst, offset, length)
         }
     }
@@ -137,7 +137,9 @@ internal class ByteChannelNative(
         }
 
         if (rem > 0) {
-            throw EOFException("Channel is closed and not enough bytes available: required $rem but $availableForRead available")
+            throw EOFException(
+                "Channel is closed and not enough bytes available: required $rem but $availableForRead available"
+            )
         }
     }
 
@@ -206,7 +208,7 @@ internal class ByteChannelNative(
 
     override fun toString(): String {
         val hashCode = hashCode().toString(16)
-        return "ByteChannel[0x$hashCode, job: $attachedJob, cause: ${closedCause}]"
+        return "ByteChannel[0x$hashCode, job: $attachedJob, cause: $closedCause]"
     }
 
     private suspend fun writeAvailableSuspend(src: CPointer<ByteVar>, offset: Long, length: Long): Int {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.okhttp
 
@@ -17,6 +17,8 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*
 import java.io.*
@@ -90,7 +92,12 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         callContext: CoroutineContext
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val session = OkHttpWebsocketSession(engine, engineRequest, callContext).apply { start() }
+        val session = OkHttpWebsocketSession(
+            engine,
+            config.webSocketFactory ?: engine,
+            engineRequest,
+            callContext
+        ).apply { start() }
 
         val originResponse = session.originResponse.await()
         return buildResponseData(originResponse, requestTime, session, callContext)
@@ -113,7 +120,10 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 
     private fun buildResponseData(
-        response: Response, requestTime: GMTDate, body: Any, callContext: CoroutineContext
+        response: Response,
+        requestTime: GMTDate,
+        body: Any,
+        callContext: CoroutineContext
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
@@ -174,6 +184,8 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
         url(url.toString())
 
         mergeHeaders(headers, body) { key, value ->
+            if (key == HttpHeaders.ContentLength) return@mergeHeaders
+
             addHeader(key, value)
         }
 
@@ -181,20 +193,21 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
             body.convertToOkHttpBody(callContext)
         } else null
 
-
         method(method.value, bodyBytes)
     }
 
     return builder.build()
 }
 
-internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody? = when (this) {
-    is OutgoingContent.ByteArrayContent -> RequestBody.create(null, bytes())
+internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody = when (this) {
+    is OutgoingContent.ByteArrayContent -> bytes().let {
+        it.toRequestBody(null, 0, it.size)
+    }
     is OutgoingContent.ReadChannelContent -> StreamRequestBody(contentLength) { readFrom() }
     is OutgoingContent.WriteChannelContent -> {
         StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
     }
-    is OutgoingContent.NoContent -> RequestBody.create(null, ByteArray(0))
+    is OutgoingContent.NoContent -> ByteArray(0).toRequestBody(null, 0, 0)
     else -> throw UnsupportedContentTypeException(this)
 }
 

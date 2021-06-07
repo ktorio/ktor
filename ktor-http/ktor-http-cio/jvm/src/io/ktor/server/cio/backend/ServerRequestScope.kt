@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.cio.backend
 
@@ -32,6 +32,10 @@ public class ServerRequestScope internal constructor(
     public fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(
             this.coroutineContext + coroutineContext,
-            input, output, remoteAddress, localAddress, upgraded
+            input,
+            output,
+            remoteAddress,
+            localAddress,
+            upgraded
         )
 }

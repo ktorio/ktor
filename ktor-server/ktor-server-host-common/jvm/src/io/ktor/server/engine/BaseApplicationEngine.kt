@@ -7,6 +7,8 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.util.pipeline.*
+import java.util.*
 
 /**
  * Base class for implementing [ApplicationEngine]
@@ -39,7 +41,9 @@ public abstract class BaseApplicationEngine(
         }
         environment.monitor.subscribe(ApplicationStarted) {
             environment.connectors.forEach {
-                environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
+                environment.log.info(
+                    "Responding at ${it.type.name.lowercase(Locale.getDefault())}://${it.host}:${it.port}"
+                )
             }
         }
     }
@@ -50,5 +54,17 @@ public abstract class BaseApplicationEngine(
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+
+        intercept(ApplicationCallPipeline.Call) {
+            verifyHostHeader()
+        }
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
+    val hostHeaders = call.request.headers.getAll(HttpHeaders.Host) ?: return
+    if (hostHeaders.size > 1) {
+        call.respond(HttpStatusCode.BadRequest)
+        finish()
     }
 }

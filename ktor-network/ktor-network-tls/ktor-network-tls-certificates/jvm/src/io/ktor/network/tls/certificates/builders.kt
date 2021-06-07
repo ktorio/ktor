@@ -21,7 +21,6 @@ internal data class CertificateInfo(val certificate: Certificate, val keys: KeyP
 /**
  * Builder for certificate
  */
-@KtorExperimentalAPI
 public class CertificateBuilder internal constructor() {
     /**
      * Certificate hash algorithm (required)
@@ -55,7 +54,10 @@ public class CertificateBuilder internal constructor() {
         }.genKeyPair()!!
 
         val id = Counterparty(
-            country = "RU", organization = "JetBrains", organizationUnit = "Kotlin", commonName = "localhost"
+            country = "RU",
+            organization = "JetBrains",
+            organizationUnit = "Kotlin",
+            commonName = "localhost"
         )
 
         val from = Date()
@@ -63,10 +65,12 @@ public class CertificateBuilder internal constructor() {
 
         val certificateBytes = buildPacket {
             writeCertificate(
-                issuer = id, subject = id,
+                issuer = id,
+                subject = id,
                 keyPair = keys,
                 algorithm = algorithm.name,
-                from = from, to = to,
+                from = from,
+                to = to,
                 domains = listOf("localhost"),
                 ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
             )
@@ -114,7 +118,6 @@ public fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStore
 /**
  * Save [KeyStore] to [output] file with the specified [password]
  */
-@KtorExperimentalAPI
 public fun KeyStore.saveToFile(output: File, password: String) {
     output.parentFile?.mkdirs()
 

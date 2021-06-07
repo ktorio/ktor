@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine
 
@@ -15,7 +15,6 @@ public open class HttpClientEngineConfig {
     /**
      * Network threads count advice.
      */
-    @KtorExperimentalAPI
     public var threadsCount: Int = 4
 
     /**
@@ -28,7 +27,6 @@ public open class HttpClientEngineConfig {
      *
      * See [ProxyBuilder] to create proxy.
      */
-    @KtorExperimentalAPI
     public var proxy: ProxyConfig? = null
 
     @Deprecated(

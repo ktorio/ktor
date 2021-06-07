@@ -148,7 +148,6 @@ public expect interface ByteWriteChannel {
     public fun flush()
 }
 
-
 public suspend fun ByteWriteChannel.writeAvailable(src: ByteArray): Int = writeAvailable(src, 0, src.size)
 public suspend fun ByteWriteChannel.writeFully(src: ByteArray): Unit = writeFully(src, 0, src.size)
 
@@ -228,4 +227,3 @@ public suspend fun ByteWriteChannel.writePacketSuspend(builder: suspend BytePack
  * exception on send attempts.
  */
 public class ClosedWriteChannelException(message: String?) : CancellationException(message)
-

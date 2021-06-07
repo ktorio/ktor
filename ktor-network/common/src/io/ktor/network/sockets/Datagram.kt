@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.sockets
 
-import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
@@ -32,7 +31,7 @@ public class Datagram(
  */
 public interface DatagramWriteChannel {
     /**
-     * Datagram outgoing channel
+     * Datagram outgoing channel.
      */
     public val outgoing: SendChannel<Datagram>
 
@@ -72,5 +71,5 @@ public interface BoundDatagramSocket : ASocket, ABoundSocket, AReadable, Datagra
 /**
  * Represents a connected datagram socket.
  */
-public interface ConnectedDatagramSocket
-    : ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel
+public interface ConnectedDatagramSocket :
+    ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel

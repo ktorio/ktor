@@ -1,8 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.sockets
+
+import io.ktor.util.*
 
 internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
 
@@ -37,8 +39,9 @@ public sealed class SocketOptions(
         }
     }
 
-    private class GeneralSocketOptions constructor(customOptions: MutableMap<Any, Any?>) :
-        SocketOptions(customOptions) {
+    private class GeneralSocketOptions constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
         override fun copy(): GeneralSocketOptions = GeneralSocketOptions(HashMap(customOptions)).apply {
             copyCommon(this@GeneralSocketOptions)
         }
@@ -62,7 +65,19 @@ public sealed class SocketOptions(
     /**
      * TCP server socket options
      */
-    public class AcceptorOptions internal constructor(customOptions: MutableMap<Any, Any?>) : SocketOptions(customOptions) {
+    public class AcceptorOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
+        /**
+         * Represents TCP server socket backlog size. When a client attempts to connect,
+         * the request is added to the so called backlog until it will be accepted.
+         * Once accept() is invoked, a client socket is removed from the backlog.
+         * If the backlog is too small, it may overflow and upcoming requests will be
+         * rejected by the underlying TCP implementation (usually with RST frame that
+         * usually causes "connection reset by peer" error on the opposite side).
+         */
+        public var backlogSize: Int = 511
+
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
                 copyCommon(this@AcceptorOptions)
@@ -73,8 +88,9 @@ public sealed class SocketOptions(
     /**
      * Represents TCP client or UDP socket options
      */
-    public open class PeerSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        SocketOptions(customOptions) {
+    public open class PeerSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
 
         /**
          * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
@@ -117,8 +133,22 @@ public sealed class SocketOptions(
     /**
      * Represents UDP socket options
      */
-    public class UDPSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        PeerSocketOptions(customOptions) {
+    public class UDPSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : PeerSocketOptions(customOptions) {
+
+        /**
+         * SO_BROADCAST socket option
+         */
+        public var broadcast: Boolean = false
+
+        override fun copyCommon(from: SocketOptions) {
+            super.copyCommon(from)
+            if (from is UDPSocketOptions) {
+                broadcast = from.broadcast
+            }
+        }
+
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)
@@ -129,8 +159,9 @@ public sealed class SocketOptions(
     /**
      * Represents TCP client socket options
      */
-    public class TCPClientSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        PeerSocketOptions(customOptions) {
+    public class TCPClientSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : PeerSocketOptions(customOptions) {
         /**
          * TCP_NODELAY socket option, useful to disable Nagle
          */

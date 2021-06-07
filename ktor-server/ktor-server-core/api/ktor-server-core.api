@@ -438,15 +438,17 @@ public abstract interface class io/ktor/features/ContentConverter {
 
 public final class io/ktor/features/ContentNegotiation {
 	public static final field Feature Lio/ktor/features/ContentNegotiation$Feature;
-	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;)V
 	public final fun getRegistrations ()Ljava/util/List;
 }
 
 public final class io/ktor/features/ContentNegotiation$Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
+	public final fun getCheckAcceptHeaderCompliance ()Z
 	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun register$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun setCheckAcceptHeaderCompliance (Z)V
 }
 
 public final class io/ktor/features/ContentNegotiation$ConverterRegistration {
@@ -667,11 +669,11 @@ public final class io/ktor/features/JavaTimeMigrationKt {
 
 public final class io/ktor/features/KotlinTimeJvmKt {
 	public static final fun getMaxAge (Lio/ktor/sessions/CookieConfiguration;)Lkotlin/time/Duration;
-	public static final fun getMaxAgeDuration (Lio/ktor/features/CORS$Configuration;)D
-	public static final fun getMaxAgeDuration (Lio/ktor/features/HSTS$Configuration;)D
+	public static final fun getMaxAgeDuration (Lio/ktor/features/CORS$Configuration;)J
+	public static final fun getMaxAgeDuration (Lio/ktor/features/HSTS$Configuration;)J
 	public static final fun setMaxAge-g7yk5mg (Lio/ktor/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
-	public static final fun setMaxAgeDuration-U-RQOxY (Lio/ktor/features/CORS$Configuration;D)V
-	public static final fun setMaxAgeDuration-mhQl6bo (Lio/ktor/features/HSTS$Configuration;D)V
+	public static final fun setMaxAgeDuration-U-RQOxY (Lio/ktor/features/CORS$Configuration;J)V
+	public static final fun setMaxAgeDuration-mhQl6bo (Lio/ktor/features/HSTS$Configuration;J)V
 }
 
 public final class io/ktor/features/MissingRequestParameterException : io/ktor/features/BadRequestException, kotlinx/coroutines/CopyableThrowable {
@@ -1228,6 +1230,20 @@ public final class io/ktor/routing/HttpMethodRouteSelector : io/ktor/routing/Rou
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/routing/IgnoreTrailingSlash {
+	public static final field Feature Lio/ktor/routing/IgnoreTrailingSlash$Feature;
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Configuration {
+	public fun <init> ()V
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/IgnoreTrailingSlash;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
 public final class io/ktor/routing/LocalPortRouteSelector : io/ktor/routing/RouteSelector {
 	public static final field Companion Lio/ktor/routing/LocalPortRouteSelector$Companion;
 	public static final field LocalPortParameter Ljava/lang/String;
@@ -1393,6 +1409,7 @@ public class io/ktor/routing/Route : io/ktor/application/ApplicationCallPipeline
 }
 
 public abstract class io/ktor/routing/RouteSelector {
+	public fun <init> ()V
 	public fun <init> (D)V
 	public abstract fun evaluate (Lio/ktor/routing/RoutingResolveContext;I)Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getQuality ()D
@@ -1432,6 +1449,7 @@ public final class io/ktor/routing/RouteSelectorEvaluation$Companion {
 	public final fun getConstantPath ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getFailed ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getMissing ()Lio/ktor/routing/RouteSelectorEvaluation;
+	public final fun getTransparent ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getWildcardPath ()Lio/ktor/routing/RouteSelectorEvaluation;
 }
 
@@ -1588,6 +1606,8 @@ public final class io/ktor/routing/RoutingResolveTrace {
 	public final fun finish (Lio/ktor/routing/Route;ILio/ktor/routing/RoutingResolveResult;)V
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public final fun getSegments ()Ljava/util/List;
+	public final fun registerFinalResult (Lio/ktor/routing/RoutingResolveResult;)V
+	public final fun registerSuccessResults (Ljava/util/List;)V
 	public final fun skip (Lio/ktor/routing/Route;ILio/ktor/routing/RoutingResolveResult;)V
 	public fun toString ()Ljava/lang/String;
 }
@@ -1601,6 +1621,12 @@ public class io/ktor/routing/RoutingResolveTraceEntry {
 	public final fun getRoute ()Lio/ktor/routing/Route;
 	public final fun getSegmentIndex ()I
 	public final fun setResult (Lio/ktor/routing/RoutingResolveResult;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/routing/TrailingSlashRouteSelector : io/ktor/routing/RouteSelector {
+	public static final field INSTANCE Lio/ktor/routing/TrailingSlashRouteSelector;
+	public fun evaluate (Lio/ktor/routing/RoutingResolveContext;I)Lio/ktor/routing/RouteSelectorEvaluation;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1737,6 +1763,11 @@ public final class io/ktor/sessions/SessionTrackerById : io/ktor/sessions/Sessio
 	public fun store (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
 	public fun validate (Ljava/lang/Object;)V
+}
+
+public final class io/ktor/sessions/SessionTrackerByIdKt {
+	public static final fun getSessionId (Lio/ktor/application/ApplicationCall;)Ljava/lang/String;
+	public static final fun sessionId (Lio/ktor/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class io/ktor/sessions/SessionTrackerByValue : io/ktor/sessions/SessionTracker {
@@ -1885,7 +1916,7 @@ public final class io/ktor/util/CopyOnWriteHashMap {
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
-public final class io/ktor/util/DataConversionException : java/lang/Exception {
+public final class io/ktor/util/DataConversionException : io/ktor/util/converters/DataConversionException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1913,6 +1944,7 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 
 public final class io/ktor/util/ParametersKt {
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
 }
 

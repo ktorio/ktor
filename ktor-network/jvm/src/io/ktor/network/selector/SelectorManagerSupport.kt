@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -15,6 +14,7 @@ import kotlin.coroutines.*
  */
 public abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     public final override val provider: SelectorProvider = SelectorProvider.provider()
+
     /**
      * Number of pending selectables
      */
@@ -34,11 +34,8 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         require(selectable.interestedOps and interest.flag != 0)
 
         suspendCancellableCoroutine<Unit> { c ->
-//            val c = base.tracked()  // useful for debugging
-
             c.invokeOnCancellation {
                 // TODO: We've got a race here (and exception erasure)!
-//                selectable.dispose()
             }
             selectable.suspensions.addSuspension(interest, c)
 

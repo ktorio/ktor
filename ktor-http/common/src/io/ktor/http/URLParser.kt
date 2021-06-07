@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -155,10 +155,7 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
 
     val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
 
-    val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart))
-    rawParameters.forEach { key, values ->
-        parameters.appendAll(key, values)
-    }
+    parseQueryStringTo(parameters, urlString.substring(startIndex + 1, fragmentStart))
 
     return fragmentStart
 }

@@ -325,6 +325,7 @@ public final class io/ktor/http/EmptyParameters : io/ktor/http/Parameters {
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	public fun getAll (Ljava/lang/String;)Ljava/util/List;
 	public fun getCaseInsensitiveName ()Z
+	public fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 	public fun isEmpty ()Z
 	public fun names ()Ljava/util/Set;
 	public fun toString ()Ljava/lang/String;
@@ -716,9 +717,13 @@ public final class io/ktor/http/HttpStatusCodeKt {
 
 public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncode (Lio/ktor/http/Parameters;)Ljava/lang/String;
-	public static final fun formUrlEncode (Ljava/util/List;)Ljava/lang/String;
+	public static final synthetic fun formUrlEncode (Ljava/util/List;)Ljava/lang/String;
+	public static final fun formUrlEncode (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;)Ljava/lang/String;
+	public static synthetic fun formUrlEncode$default (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun formUrlEncodeTo (Lio/ktor/http/Parameters;Ljava/lang/Appendable;)V
-	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
+	public static final synthetic fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
+	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;)V
+	public static synthetic fun formUrlEncodeTo$default (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)V
 	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
 	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
 }
@@ -771,6 +776,7 @@ public final class io/ktor/http/LinkHeader$Rel {
 
 public abstract interface class io/ktor/http/Parameters : io/ktor/util/StringValues {
 	public static final field Companion Lio/ktor/http/Parameters$Companion;
+	public abstract fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 }
 
 public final class io/ktor/http/Parameters$Companion {
@@ -783,20 +789,28 @@ public final class io/ktor/http/Parameters$DefaultImpls {
 	public static fun contains (Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;)Z
 	public static fun forEach (Lio/ktor/http/Parameters;Lkotlin/jvm/functions/Function2;)V
 	public static fun get (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
+	public static fun getUrlEncodingOption (Lio/ktor/http/Parameters;)Lio/ktor/http/UrlEncodingOption;
 }
 
 public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBuilder {
 	public fun <init> ()V
-	public fun <init> (I)V
+	public synthetic fun <init> (I)V
 	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ILio/ktor/http/UrlEncodingOption;)V
+	public synthetic fun <init> (ILio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun build ()Lio/ktor/http/Parameters;
 	public synthetic fun build ()Lio/ktor/util/StringValues;
+	public final fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
+	public final fun setUrlEncodingOption (Lio/ktor/http/UrlEncodingOption;)V
 }
 
 public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, io/ktor/http/Parameters {
 	public fun <init> ()V
-	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;)V
+	public synthetic fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -810,12 +824,15 @@ public final class io/ktor/http/ParametersKt {
 
 public final class io/ktor/http/ParametersSingleImpl : io/ktor/util/StringValuesSingleImpl, io/ktor/http/Parameters {
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/QueryKt {
 	public static final fun parseQueryString (Ljava/lang/String;II)Lio/ktor/http/Parameters;
 	public static synthetic fun parseQueryString$default (Ljava/lang/String;IIILjava/lang/Object;)Lio/ktor/http/Parameters;
+	public static final fun parseQueryStringTo (Lio/ktor/http/ParametersBuilder;Ljava/lang/String;II)V
+	public static synthetic fun parseQueryStringTo$default (Lio/ktor/http/ParametersBuilder;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
 public final class io/ktor/http/RangeUnits : java/lang/Enum {
@@ -1001,8 +1018,18 @@ public final class io/ktor/http/Url {
 public final class io/ktor/http/Url$Companion {
 }
 
+public final class io/ktor/http/UrlEncodingOption : java/lang/Enum {
+	public static final field DEFAULT Lio/ktor/http/UrlEncodingOption;
+	public static final field KEY_ONLY Lio/ktor/http/UrlEncodingOption;
+	public static final field NO_ENCODING Lio/ktor/http/UrlEncodingOption;
+	public static final field VALUE_ONLY Lio/ktor/http/UrlEncodingOption;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/UrlEncodingOption;
+	public static fun values ()[Lio/ktor/http/UrlEncodingOption;
+}
+
 public final class io/ktor/http/auth/AuthScheme {
 	public static final field Basic Ljava/lang/String;
+	public static final field Bearer Ljava/lang/String;
 	public static final field Digest Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/http/auth/AuthScheme;
 	public static final field Negotiate Ljava/lang/String;

@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.netty.http2
 
+import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 
 internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {
     try {

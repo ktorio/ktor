@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
@@ -47,6 +48,5 @@ internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R)
     }
 }
 
-@KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
-public class IosHttpRequestException(public val origin: NSError) : Exception("Exception in http request: $origin")
+public class IosHttpRequestException(public val origin: NSError) : IOException("Exception in http request: $origin")

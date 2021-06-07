@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.features
 
@@ -20,7 +20,7 @@ public val ApplicationRequest.origin: RequestConnectionPoint
 /**
  * A key to install a mutable [RequestConnectionPoint]
  */
-@KtorExperimentalAPI
+@Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 
@@ -50,7 +50,7 @@ internal class OriginConnectionPoint(
     private val local: RequestConnectionPoint,
     private val hostHeaderValue: String?
 ) : RequestConnectionPoint {
-    public constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
+    constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
 
     override val scheme: String
         get() = local.scheme
@@ -241,12 +241,12 @@ public object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipelin
 
     // do we need it public?
     private fun ApplicationRequest.forwarded() =
-        headers.getAll(HttpHeaders.Forwarded)?.flatMap { parseHeaderValue(";$it") }?.mapNotNull {
+        headers.getAll(HttpHeaders.Forwarded)?.flatMap { parseHeaderValue(";$it") }?.map {
             parseForwardedValue(it)
         }
 
-    private fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue? {
-        val map = value.params.associateByTo(HashMap<String, String>(), { it.name }, { it.value })
+    private fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue {
+        val map = value.params.associateByTo(HashMap(), { it.name }, { it.value })
 
         return ForwardedHeaderValue(map.remove("host"), map.remove("by"), map.remove("for"), map.remove("proto"), map)
     }

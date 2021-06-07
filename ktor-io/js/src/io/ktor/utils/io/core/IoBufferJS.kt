@@ -10,11 +10,17 @@ import kotlin.contracts.*
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-public actual class IoBuffer actual constructor(
+public actual class IoBuffer internal actual constructor(
     memory: Memory,
-    origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(memory, origin) {
+    origin: ChunkBuffer?,
+    parentPool: ObjectPool<IoBuffer>?
+) : Input, Output, ChunkBuffer(memory, origin, parentPool as? ObjectPool<ChunkBuffer>) {
     private val content: ArrayBuffer get() = memory.view.buffer
+
+    public actual constructor(
+        memory: Memory,
+        origin: ChunkBuffer?
+    ) : this(memory, origin, null)
 
     override val endOfInput: Boolean get() = writePosition == readPosition
 
@@ -57,8 +63,15 @@ public actual class IoBuffer actual constructor(
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     override fun readFully(dst: ArrayBufferView, offset: Int, length: Int) {
-        if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
-        if (length > dst.byteLength) throw IllegalArgumentException("Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}")
+        if (readRemaining < length) {
+            throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
+        }
+
+        if (length > dst.byteLength) {
+            throw IllegalArgumentException(
+                "Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}"
+            )
+        }
         require(offset >= 0) { "offset should be positive" }
         require(offset + length <= dst.byteLength) { throw IndexOutOfBoundsException("") }
 
@@ -370,14 +383,14 @@ public actual class IoBuffer actual constructor(
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
 
-        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null)
+        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null, EmptyBufferPoolImpl)
 
         /**
          * The default buffer pool
          */
         public actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
             override fun produceInstance(): IoBuffer {
-                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this)
             }
 
             override fun clearInstance(instance: IoBuffer): IoBuffer {
@@ -390,8 +403,12 @@ public actual class IoBuffer actual constructor(
             override fun validateInstance(instance: IoBuffer) {
                 super.validateInstance(instance)
 
-                require(instance.referenceCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})" }
-                require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
+                require(instance.referenceCount == 0) {
+                    "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})"
+                }
+                require(instance.origin == null) {
+                    "Unable to recycle buffer view: view copy shouldn't be recycled"
+                }
             }
 
             override fun disposeInstance(instance: IoBuffer) {
@@ -402,7 +419,7 @@ public actual class IoBuffer actual constructor(
 
         public actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
-                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this)
             }
 
             override fun recycle(instance: IoBuffer) {
@@ -491,7 +508,6 @@ public inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
         block(memory.slice(start, endExclusive - start).view)
     }
 }
-
 
 public inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {

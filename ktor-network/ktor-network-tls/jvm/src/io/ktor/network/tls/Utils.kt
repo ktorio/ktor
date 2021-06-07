@@ -41,14 +41,15 @@ internal inline class Digest(val state: BytePacketBuilder) : Closeable {
     override fun close() {
         state.release()
     }
-
 }
 
 internal operator fun Digest.plusAssign(record: TLSHandshake) {
     check(record.type != TLSHandshakeType.HelloRequest)
 
-    update(buildPacket {
-        writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
-        if (record.packet.remaining > 0) writePacket(record.packet.copy())
-    })
+    update(
+        buildPacket {
+            writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
+            if (record.packet.remaining > 0) writePacket(record.packet.copy())
+        }
+    )
 }

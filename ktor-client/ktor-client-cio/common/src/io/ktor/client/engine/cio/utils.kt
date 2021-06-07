@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
@@ -20,7 +19,8 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(
-    output: ByteWriteChannel, callContext: CoroutineContext,
+    output: ByteWriteChannel,
+    callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) {
@@ -50,7 +50,15 @@ internal suspend fun HttpRequestData.write(
                 builder.headerLine(HttpHeaders.Host, host)
             }
 
+            if (contentLength != null) {
+                if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
+                    builder.headerLine(HttpHeaders.ContentLength, contentLength)
+                }
+            }
+
             mergeHeaders(headers, body) { key, value ->
+                if (key == HttpHeaders.ContentLength) return@mergeHeaders
+
                 builder.headerLine(key, value)
             }
 
@@ -66,8 +74,9 @@ internal suspend fun HttpRequestData.write(
         }
 
         val content = body
-        if (content is OutgoingContent.NoContent)
+        if (content is OutgoingContent.NoContent) {
             return
+        }
 
         val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
         val channel = chunkedJob?.channel ?: output
@@ -146,9 +155,7 @@ internal suspend fun startTunnel(
     val builder = RequestResponseBuilder()
 
     try {
-        val urlString = request.url.toString()
-
-        builder.requestLine(HttpMethod("CONNECT"), urlString, HttpProtocolVersion.HTTP_1_1.toString())
+        builder.requestLine(HttpMethod("CONNECT"), request.url.hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
         // this will only add the port to the host header if the port is non-standard for the protocol
         val host = if (request.url.protocol.defaultPort == request.url.port) {
             request.url.host

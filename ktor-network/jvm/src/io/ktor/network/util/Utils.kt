@@ -6,6 +6,7 @@ package io.ktor.network.util
 
 import io.ktor.util.date.*
 import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.contracts.*
 
@@ -22,18 +23,18 @@ internal class Timeout(
     private val onTimeout: suspend () -> Unit
 ) {
 
-    private var lastActivityTime: Long by shared(0)
-    private var isStarted by shared(false)
+    private val lastActivityTime = atomic(0L)
+    private val isStarted = atomic(false)
 
     private var workerJob = initTimeoutJob()
 
     fun start() {
-        lastActivityTime = clock()
-        isStarted = true
+        lastActivityTime.value = clock()
+        isStarted.value = true
     }
 
     fun stop() {
-        isStarted = false
+        isStarted.value = false
     }
 
     fun finish() {
@@ -45,11 +46,11 @@ internal class Timeout(
         return scope.launch(scope.coroutineContext + CoroutineName("Timeout $name")) {
             try {
                 while (true) {
-                    if (!isStarted) {
-                        lastActivityTime = clock()
+                    if (!isStarted.value) {
+                        lastActivityTime.value = clock()
                     }
-                    val remaining = lastActivityTime + timeoutMs - clock()
-                    if (remaining <= 0 && isStarted) {
+                    val remaining = lastActivityTime.value + timeoutMs - clock()
+                    if (remaining <= 0 && isStarted.value) {
                         break
                     }
 

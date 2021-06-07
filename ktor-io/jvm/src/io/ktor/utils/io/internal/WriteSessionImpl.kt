@@ -36,7 +36,6 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
         if (locked < min) return null
         current.prepareWriteBuffer(byteBuffer, locked)
         if (byteBuffer.remaining() < min) return null
-        //if (current.joining != null) return null
         @Suppress("DEPRECATION")
         view.resetFromContentToWrite(byteBuffer)
 
@@ -48,7 +47,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
             writtenFailed(n)
         }
         locked -= n
-        current.bytesWrittenFromSesion(byteBuffer, ringBufferCapacity, n)
+        current.bytesWrittenFromSession(byteBuffer, ringBufferCapacity, n)
     }
 
     private fun writtenFailed(n: Int): Nothing {

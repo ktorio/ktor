@@ -23,8 +23,12 @@ public class JettyApplicationCall(
     userContext: CoroutineContext,
     coroutineContext: CoroutineContext
 ) : AsyncServletApplicationCall(
-    application, servletRequest, servletResponse,
-    engineContext, userContext, JettyUpgradeImpl,
+    application,
+    servletRequest,
+    servletResponse,
+    engineContext,
+    userContext,
+    JettyUpgradeImpl,
     coroutineContext
 ) {
 

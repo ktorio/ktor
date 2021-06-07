@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.content
 
@@ -32,6 +32,7 @@ public class LocalFileContent(
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
 public fun LocalFileContent(
-    baseDir: File, relativePath: String,
+    baseDir: File,
+    relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)

@@ -5,9 +5,9 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -92,14 +92,16 @@ class HeadTest {
         withHeadApplication {
             application.routing {
                 get("/") {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override fun readFrom() = ByteReadChannel("Hello".toByteArray())
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override fun readFrom() = ByteReadChannel("Hello".toByteArray())
 
-                        override val headers: Headers
-                            get() = Headers.build {
-                                append("M", "2")
-                            }
-                    })
+                            override val headers: Headers
+                                get() = Headers.build {
+                                    append("M", "2")
+                                }
+                        }
+                    )
                 }
             }
 
@@ -123,7 +125,9 @@ class HeadTest {
     @Test
     fun testWithStatusPages() = withHeadApplication {
         application.install(StatusPages) {
-            exception<IllegalStateException> { call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError) }
+            exception<IllegalStateException> {
+                call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError)
+            }
             status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
         }
 
@@ -138,12 +142,10 @@ class HeadTest {
 
         // ensure with GET
         handleRequest(HttpMethod.Get, "/page1").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("page1 OK", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/page2").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(500, call.response.status()?.value)
             assertEquals("ISE: page2 failed", call.response.content)
         }
@@ -155,13 +157,11 @@ class HeadTest {
 
         // test HEAD itself
         handleRequest(HttpMethod.Head, "/page1").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals("page1 OK".length.toString(), call.response.headers[HttpHeaders.ContentLength])
             assertNull(call.response.content)
         }
 
         handleRequest(HttpMethod.Head, "/page2").let { call ->
-            assertTrue { call.requestHandled }
             assertEquals(500, call.response.status()?.value)
             assertEquals("ISE: page2 failed".length.toString(), call.response.headers[HttpHeaders.ContentLength])
             assertNull(call.response.content)

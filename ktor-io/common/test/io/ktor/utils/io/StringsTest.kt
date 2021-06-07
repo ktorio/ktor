@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io
 
 import io.ktor.utils.io.charsets.*
@@ -83,9 +87,11 @@ open class StringsTest : ByteChannelTestBase(true) {
                 assertNotEquals(0, packet.remaining, "Unexpected EOF. Expected >= 0")
             }
 
-            assertEquals(expectedRemaining,
-                    Charsets.UTF_8.newDecoder().decode(packet),
-                    "Remaining bytes after readLine comparison failed.")
+            assertEquals(
+                expectedRemaining,
+                Charsets.UTF_8.newDecoder().decode(packet),
+                "Remaining bytes after readLine comparison failed."
+            )
         } finally {
             packet.release()
         }

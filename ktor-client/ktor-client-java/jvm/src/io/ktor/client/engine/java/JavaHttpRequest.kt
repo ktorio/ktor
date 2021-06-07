@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.java
 
@@ -9,6 +9,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -55,17 +56,18 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     return builder.build()
 }
 
-internal fun OutgoingContent.convertToHttpRequestBody(callContext: CoroutineContext): HttpRequest.BodyPublisher =
-    when (this) {
-        is OutgoingContent.ByteArrayContent -> HttpRequest.BodyPublishers.ofByteArray(bytes())
-        is OutgoingContent.ReadChannelContent -> JavaHttpRequestBodyPublisher(
-            coroutineContext = callContext,
-            contentLength = contentLength ?: -1
-        ) { readFrom() }
-        is OutgoingContent.WriteChannelContent -> JavaHttpRequestBodyPublisher(
-            coroutineContext = callContext,
-            contentLength = contentLength ?: -1
-        ) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
-        is OutgoingContent.NoContent -> HttpRequest.BodyPublishers.noBody()
-        else -> throw UnsupportedContentTypeException(this)
-    }
+internal fun OutgoingContent.convertToHttpRequestBody(
+    callContext: CoroutineContext
+): HttpRequest.BodyPublisher = when (this) {
+    is OutgoingContent.ByteArrayContent -> HttpRequest.BodyPublishers.ofByteArray(bytes())
+    is OutgoingContent.ReadChannelContent -> JavaHttpRequestBodyPublisher(
+        coroutineContext = callContext,
+        contentLength = contentLength ?: -1
+    ) { readFrom() }
+    is OutgoingContent.WriteChannelContent -> JavaHttpRequestBodyPublisher(
+        coroutineContext = callContext,
+        contentLength = contentLength ?: -1
+    ) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
+    is OutgoingContent.NoContent -> HttpRequest.BodyPublishers.noBody()
+    else -> throw UnsupportedContentTypeException(this)
+}

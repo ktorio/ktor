@@ -128,6 +128,7 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract synthetic fun consumeEachBufferRange (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun discard (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAvailableForRead ()I
+	public abstract fun getClosedCause ()Ljava/lang/Throwable;
 	public abstract fun getReadByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public abstract fun getTotalBytesRead ()J
 	public abstract fun isClosedForRead ()Z
@@ -1594,6 +1595,7 @@ public final class io/ktor/utils/io/core/OutputPrimitivesKt {
 
 public final class io/ktor/utils/io/core/PacketDirectKt {
 	public static final fun read (Lio/ktor/utils/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;)V
+	public static synthetic fun read$default (Lio/ktor/utils/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/utils/io/core/PacketJVMKt {
@@ -1718,6 +1720,7 @@ public final class io/ktor/utils/io/core/UseKt {
 
 public class io/ktor/utils/io/core/internal/ChunkBuffer : io/ktor/utils/io/core/Buffer {
 	public static final field Companion Lio/ktor/utils/io/core/internal/ChunkBuffer$Companion;
+	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun cleanNext ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public synthetic fun duplicate ()Lio/ktor/utils/io/core/Buffer;
 	public fun duplicate ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
@@ -1853,6 +1856,10 @@ public final class io/ktor/utils/io/nio/InputKt {
 public final class io/ktor/utils/io/nio/OutputKt {
 	public static final fun asOutput (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/core/Output;
 	public static synthetic fun asOutput$default (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/core/Output;
+}
+
+public final class io/ktor/utils/io/pool/ByteArrayPoolKt {
+	public static final fun getByteArrayPool ()Lio/ktor/utils/io/pool/ObjectPool;
 }
 
 public final class io/ktor/utils/io/pool/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {

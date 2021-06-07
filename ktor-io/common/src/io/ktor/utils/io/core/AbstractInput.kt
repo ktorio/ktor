@@ -11,6 +11,11 @@ import io.ktor.utils.io.pool.*
  * The default abstract base class implementing [Input] interface.
  * @see [AbstractInput.fill] and [AbstractInput.closeSource].
  */
+@Deprecated(
+    "AbstractInput is deprecated and will be merged with Input in 2.0.0",
+    ReplaceWith("Input"),
+    DeprecationLevel.WARNING
+)
 public abstract class AbstractInput(
     head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
@@ -20,9 +25,11 @@ public abstract class AbstractInput(
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(head: IoBuffer = IoBuffer.Empty,
-                remaining: Long = head.remainingAll(),
-                pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(head as ChunkBuffer, remaining, pool)
+    public constructor(
+        head: IoBuffer = IoBuffer.Empty,
+        remaining: Long = head.remainingAll(),
+        pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+    ) : this(head as ChunkBuffer, remaining, pool)
 
     /**
      * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
@@ -348,7 +355,9 @@ public abstract class AbstractInput(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         val rc = readAvailable(dst, offset, length)
-        if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        if (rc != length) {
+            throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        }
     }
 
     /**
@@ -447,7 +456,7 @@ public abstract class AbstractInput(
      */
     public fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         if (max.toLong() >= remaining) {
-            val s = readTextExactBytes(bytesCount = remaining.toInt() )
+            val s = readTextExactBytes(bytesCount = remaining.toInt())
             out.append(s)
             return s.length
         }
@@ -467,7 +476,7 @@ public abstract class AbstractInput(
     public fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || endOfInput)) return ""
         val remaining = remaining
-        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt() )
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
@@ -564,15 +573,25 @@ public abstract class AbstractInput(
         return discardAsMuchAsPossible(n - size, skipped + size)
     }
 
-    private tailrec fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
-        if (n == 0) return skipped
-        val current = prepareRead(1) ?: return skipped
-        val size = minOf(current.readRemaining, n)
-        current.discardExact(size)
-        headPosition += size
-        afterRead(current)
+    private fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
+        var currentCount = n
+        var currentSkipped = skipped
 
-        return discardAsMuchAsPossible(n - size, skipped + size)
+        while (true) {
+            if (currentCount == 0) {
+                return currentSkipped
+            }
+
+            val current = prepareRead(1) ?: return currentSkipped
+
+            val size = minOf(current.readRemaining, currentCount)
+            current.discardExact(size)
+            headPosition += size
+            afterRead(current)
+
+            currentCount -= size
+            currentSkipped += size
+        }
     }
 
     private tailrec fun readAsMuchAsPossible(array: ByteArray, offset: Int, length: Int, copied: Int): Int {

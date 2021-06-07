@@ -28,6 +28,11 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
+     * An closure cause exception or `null` if closed successfully or not yet closed
+     */
+    public actual val closedCause: Throwable?
+
+    /**
      * Byte order that is used for multi-byte read operations
      * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
      */
@@ -41,7 +46,6 @@ public actual interface ByteReadChannel {
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
-    @Deprecated("Don't use byte count")
     public actual val totalBytesRead: Long
 
     /**
@@ -140,7 +144,7 @@ public actual interface ByteReadChannel {
 
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
-     * event if there are no bytes available for read yet.
+     * even if there are no bytes available for read yet.
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")

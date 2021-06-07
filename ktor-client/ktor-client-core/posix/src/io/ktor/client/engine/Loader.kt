@@ -46,7 +46,8 @@ public object engines : Iterable<T> {
     }
 
     private class Node(
-        val item: T, val next: Node?
+        val item: T,
+        val next: Node?
     ) {
         init {
             freeze()

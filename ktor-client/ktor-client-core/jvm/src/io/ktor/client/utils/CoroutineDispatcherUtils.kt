@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.utils
 
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import java.io.*
@@ -35,10 +36,14 @@ internal actual fun checkCoroutinesVersion() {
 }
 
 @OptIn(InternalCoroutinesApi::class)
-private class ClosableBlockingDispatcher(
+internal class ClosableBlockingDispatcher(
     threadCount: Int,
     dispatcherName: String
 ) : CoroutineDispatcher(), Closeable {
+    private val _closed: AtomicBoolean = atomic(false)
+
+    val closed: Boolean get() = _closed.value
+
     private val dispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)
     private val blocking = dispatcher.blocking(threadCount)
 
@@ -55,6 +60,8 @@ private class ClosableBlockingDispatcher(
     }
 
     override fun close() {
+        if (!_closed.compareAndSet(false, true)) return
+
         dispatcher.close()
         // blocking dispatcher is a view and doesn't allow close
     }

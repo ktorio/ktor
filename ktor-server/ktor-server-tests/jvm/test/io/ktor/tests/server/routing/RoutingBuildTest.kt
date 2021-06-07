@@ -9,7 +9,8 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 class RoutingBuildTest {
-    @Test fun `build routing`() {
+    @Test
+    fun `build routing`() {
         fun On.itShouldHaveSpecificStructure(entry: Route) {
             it("should have single child at root") {
                 assertEquals(1, entry.children.size)
@@ -30,14 +31,17 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentOptionalParameterRouteSelector)
             }
             it("should have second level child with name 'new'") {
-                assertEquals("new", (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name)
+                assertEquals(
+                    "new",
+                    (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name
+                )
             }
         }
 
         on("adding routing rules manually") {
             val entry = routing()
-            entry.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
-                    .createChild(PathSegmentOptionalParameterRouteSelector("new", hasTrailingSlash = false))
+            entry.createChild(PathSegmentConstantRouteSelector("foo"))
+                .createChild(PathSegmentOptionalParameterRouteSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {
@@ -97,6 +101,5 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentTailcardRouteSelector)
             }
         }
-
     }
 }

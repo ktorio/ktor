@@ -14,7 +14,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
@@ -25,7 +24,6 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 }
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
@@ -57,6 +55,7 @@ public fun MockRequestHandleScope.respondOk(
 public fun MockRequestHandleScope.respondRedirect(
     location: String = ""
 ): HttpResponseData = respond("", HttpStatusCode.TemporaryRedirect, headersOf(HttpHeaders.Location, location))
+
 /**
  * Send [HttpStatusCode.BadRequest] response.
  */
@@ -90,5 +89,10 @@ public fun MockRequestHandleScope.respond(
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
 ): HttpResponseData = HttpResponseData(
-    status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, callContext
+    status,
+    GMTDate(),
+    headers,
+    HttpProtocolVersion.HTTP_1_1,
+    content,
+    callContext
 )

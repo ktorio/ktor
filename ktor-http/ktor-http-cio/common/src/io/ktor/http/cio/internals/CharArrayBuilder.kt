@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio.internals
 
@@ -162,7 +162,6 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
 
         override fun hashCode() = stringified?.hashCode() ?: hashCodeImpl(start, end)
     }
-
 
     private fun bufferForIndex(index: Int): CharArray {
         val list = buffers

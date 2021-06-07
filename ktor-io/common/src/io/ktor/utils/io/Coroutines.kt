@@ -60,7 +60,8 @@ public fun reader(
 @Deprecated("Use scope.reader instead")
 public fun reader(
     coroutineContext: CoroutineContext,
-    autoFlush: Boolean = false, parent: Job? = null,
+    autoFlush: Boolean = false,
+    parent: Job? = null,
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
     val channel = ByteChannel(autoFlush)
@@ -84,7 +85,8 @@ public fun CoroutineScope.writer(
 @Deprecated("Use scope.writer instead")
 public fun writer(
     coroutineContext: CoroutineContext,
-    channel: ByteChannel, parent: Job? = null,
+    channel: ByteChannel,
+    parent: Job? = null,
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
     val newContext = if (parent != null) GlobalScope.newCoroutineContext(coroutineContext + parent)
@@ -97,7 +99,8 @@ public fun writer(
 @Deprecated("Use scope.writer instead")
 public fun writer(
     coroutineContext: CoroutineContext,
-    autoFlush: Boolean = false, parent: Job? = null,
+    autoFlush: Boolean = false,
+    parent: Job? = null,
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
     val channel = ByteChannel(autoFlush)

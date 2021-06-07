@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.tests.utils
 
@@ -22,23 +22,27 @@ internal fun startServer(): Closeable {
     val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     logger.level = Level.WARN
 
-    val proxyServer = TestTcpServer(HTTP_PROXY_PORT, ::proxyHandler)
+    val scope = CloseableGroup()
+    try {
+        val tcpServer = TestTcpServer(HTTP_PROXY_PORT, ::tcpServerHandler)
+        scope.use(tcpServer)
 
-    val server = embeddedServer(CIO, DEFAULT_PORT) {
-        tests()
-        benchmarks()
-    }.start()
+        val server = embeddedServer(CIO, DEFAULT_PORT) {
+            tests()
+        }.start()
 
-    val tlsServer = setupTLSServer()
-    tlsServer.start()
+        scope.use(Closeable { server.stop(0L, 0L, TimeUnit.MILLISECONDS) })
 
-    Thread.sleep(1000)
+        val tlsServer = setupTLSServer()
+        tlsServer.start()
+        scope.use(Closeable { tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS) })
 
-    return Closeable {
-        proxyServer.close()
-        server.stop(0L, 0L, TimeUnit.MILLISECONDS)
-        tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        Thread.sleep(1000)
+    } catch (cause: Throwable) {
+        scope.close()
     }
+
+    return scope
 }
 
 /**
@@ -55,20 +59,27 @@ public fun main() {
 }
 
 private fun setupTLSServer(): ApplicationEngine {
-    val file = File("build/client-tls-test-server.jks")
+    val file = File.createTempFile("server", "certificate")
     val testKeyStore = generateCertificate(file)
-    val tlsServer = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(testKeyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }, {
-            this.port = DEFAULT_TLS_PORT
-            this.keyStorePath = file
-        })
+    val tlsServer = embeddedServer(
+        Jetty,
+        applicationEngineEnvironment {
+            sslConnector(
+                testKeyStore,
+                "mykey",
+                { "changeit".toCharArray() },
+                { "changeit".toCharArray() },
+                {
+                    this.port = DEFAULT_TLS_PORT
+                    this.keyStorePath = file
+                }
+            )
 
-        module {
-            tlsTests()
+            module {
+                tlsTests()
+            }
         }
-    })
+    )
 
     return tlsServer
 }
-
-

@@ -40,7 +40,8 @@ public class UserHashedTableAuth(public val digester: (String) -> ByteArray, pub
         getDigestFunction(
             config.property("hashAlgorithm").getString(),
             config.property("salt").getString()
-        ), config.parseUsers()
+        ),
+        config.parseUsers()
     )
 
     init {

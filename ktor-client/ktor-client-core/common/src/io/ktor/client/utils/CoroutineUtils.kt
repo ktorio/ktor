@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.utils
 
@@ -12,7 +12,8 @@ import kotlinx.coroutines.*
  */
 @InternalAPI
 public expect fun Dispatchers.clientDispatcher(
-    threadCount: Int, dispatcherName: String = "ktor-client-dispatcher"
+    threadCount: Int,
+    dispatcherName: String = "ktor-client-dispatcher"
 ): CoroutineDispatcher
 
 /**

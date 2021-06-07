@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.tomcat
 
@@ -13,10 +13,10 @@ import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
 import org.apache.catalina.core.*
 import org.apache.tomcat.util.descriptor.web.*
-import kotlin.test.*
 import java.util.logging.*
 import javax.servlet.*
 import javax.servlet.Filter
+import kotlin.test.*
 
 class TomcatCompressionTest :
     CompressionTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
@@ -66,8 +66,10 @@ class TomcatHttpServerTest :
     @Test
     fun testServletAttributes() {
         createAndStartServer {
-            get ("/tomcat/attributes") {
-                call.respondText(call.request.servletRequestAttributes["ktor.test.attribute"]?.toString() ?: "Not found")
+            get("/tomcat/attributes") {
+                call.respondText(
+                    call.request.servletRequestAttributes["ktor.test.attribute"]?.toString() ?: "Not found"
+                )
             }
         }
 
@@ -76,21 +78,24 @@ class TomcatHttpServerTest :
         }
     }
 
-
     private fun org.apache.catalina.startup.Tomcat.addAttributesFilter() {
         server.addLifecycleListener {
             host.findChildren().forEach {
                 if (it is StandardContext) {
                     if (it.findFilterConfig("AttributeFilter") == null) {
-                        it.addFilterDef(FilterDef().apply {
-                            filterName = "AttributeFilter"
-                            filterClass = AttributeFilter::class.java.name
-                            filter = AttributeFilter()
-                        })
-                        it.addFilterMap(FilterMap().apply {
-                            addURLPattern("/*")
-                            filterName = "AttributeFilter"
-                        })
+                        it.addFilterDef(
+                            FilterDef().apply {
+                                filterName = "AttributeFilter"
+                                filterClass = AttributeFilter::class.java.name
+                                filter = AttributeFilter()
+                            }
+                        )
+                        it.addFilterMap(
+                            FilterMap().apply {
+                                addURLPattern("/*")
+                                filterName = "AttributeFilter"
+                            }
+                        )
                     }
                 }
             }

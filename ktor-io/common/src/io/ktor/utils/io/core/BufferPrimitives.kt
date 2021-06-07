@@ -3,8 +3,8 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.core.internal.*
 import kotlin.contracts.*
-import io.ktor.utils.io.core.internal.require
 
 /**
  * For every byte from this buffer invokes [block] function giving it as parameter.
@@ -65,7 +65,6 @@ public fun Buffer.readUShort(): UShort = readExact(2, "short unsigned integer") 
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readUShort(): UShort = (this as Buffer).readUShort()
 
-
 /**
  * Read an integer or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -78,7 +77,6 @@ public fun Buffer.readInt(): Int = readExact(4, "regular integer") { memory, off
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readInt(): Int = (this as Buffer).readInt()
 
-
 /**
  * Read an unsigned integer or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -90,7 +88,6 @@ public fun Buffer.readUInt(): UInt = readExact(4, "regular unsigned integer") { 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readUInt(): UInt = (this as Buffer).readUInt()
-
 
 /**
  * Read a long integer or fail if not enough bytes available for reading.
@@ -116,7 +113,6 @@ public fun Buffer.readULong(): ULong = readExact(8, "long unsigned integer") { m
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readULong(): ULong = (this as Buffer).readULong()
 
-
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -129,7 +125,6 @@ public fun Buffer.readFloat(): Float = readExact(4, "floating point number") { m
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readFloat(): Float = (this as Buffer).readFloat()
 
-
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -141,7 +136,6 @@ public fun Buffer.readDouble(): Double = readExact(8, "long floating point numbe
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 public inline fun IoBuffer.readDouble(): Double = (this as Buffer).readDouble()
-
 
 /**
  * Write a short integer or fail if not enough space available for writing.
@@ -159,9 +153,10 @@ public inline fun IoBuffer.writeShort(value: Short): Unit = (this as Buffer).wri
  * Write an unsigned short integer or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
  */
-public fun Buffer.writeUShort(value: UShort): Unit = writeExact(2, "short unsigned integer") { memory, offset ->
-    memory.storeUShortAt(offset, value)
-}
+public fun Buffer.writeUShort(value: UShort): Unit =
+    writeExact(2, "short unsigned integer") { memory, offset ->
+        memory.storeUShortAt(offset, value)
+    }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
@@ -231,9 +226,10 @@ public inline fun IoBuffer.writeFloat(value: Float): Unit = (this as Buffer).wri
  * Write a floating point number or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
  */
-public fun Buffer.writeDouble(value: Double): Unit = writeExact(8, "long floating point number") { memory, offset ->
-    memory.storeDoubleAt(offset, value)
-}
+public fun Buffer.writeDouble(value: Double): Unit =
+    writeExact(8, "long floating point number") { memory, offset ->
+        memory.storeDoubleAt(offset, value)
+    }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
@@ -283,7 +279,11 @@ public fun Buffer.readAvailable(destination: ByteArray, offset: Int = 0, length:
 
 @Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-public inline fun IoBuffer.readAvailable(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public inline fun IoBuffer.readAvailable(
+    destination: ByteArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     return (this as Buffer).readAvailable(destination, offset, length)
 }
 
@@ -293,7 +293,11 @@ public inline fun IoBuffer.readAvailable(destination: ByteArray, offset: Int = 0
  * will be returned as result.
  * @return number of bytes copied to the [destination] or `-1` if the buffer is empty
  */
-public fun Buffer.readAvailable(destination: UByteArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: UByteArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     return readAvailable(destination.asByteArray(), offset, length)
 }
 
@@ -345,7 +349,11 @@ public fun Buffer.readFully(destination: UShortArray, offset: Int = 0, length: I
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
-public fun Buffer.readAvailable(destination: ShortArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: ShortArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     require(offset >= 0) { "offset shouldn't be negative: $offset" }
     require(length >= 0) { "length shouldn't be negative: $length" }
     require(offset + length <= destination.size) {
@@ -367,7 +375,11 @@ public fun Buffer.readAvailable(destination: ShortArray, offset: Int = 0, length
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
-public fun Buffer.readAvailable(destination: UShortArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: UShortArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     return readAvailable(destination.asShortArray(), offset, length)
 }
 
@@ -507,7 +519,11 @@ public fun Buffer.readAvailable(destination: LongArray, offset: Int = 0, length:
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
-public fun Buffer.readAvailable(destination: ULongArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: ULongArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     return readAvailable(destination.asLongArray(), offset, length)
 }
 
@@ -547,7 +563,11 @@ public fun Buffer.readFully(destination: FloatArray, offset: Int = 0, length: In
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
-public fun Buffer.readAvailable(destination: FloatArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: FloatArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     require(offset >= 0) { "offset shouldn't be negative: $offset" }
     require(length >= 0) { "length shouldn't be negative: $length" }
     require(offset + length <= destination.size) {
@@ -589,7 +609,11 @@ public fun Buffer.readFully(destination: DoubleArray, offset: Int = 0, length: I
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
-public fun Buffer.readAvailable(destination: DoubleArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+public fun Buffer.readAvailable(
+    destination: DoubleArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+): Int {
     require(offset >= 0) { "offset shouldn't be negative: $offset" }
     require(length >= 0) { "length shouldn't be negative: $length" }
     require(offset + length <= destination.size) {

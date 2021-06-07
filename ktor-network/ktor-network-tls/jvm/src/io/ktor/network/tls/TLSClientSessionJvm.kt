@@ -1,22 +1,23 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
 import io.ktor.network.util.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.nio.*
 import kotlin.coroutines.*
 
 internal actual suspend fun openTLSSession(
     socket: Socket,
-    input: ByteReadChannel, output: ByteWriteChannel,
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     config: TLSConfig,
     context: CoroutineContext
 ): Socket {

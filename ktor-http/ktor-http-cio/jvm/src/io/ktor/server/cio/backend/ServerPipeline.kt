@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.cio.backend
 
@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -49,7 +50,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
     try {
-        while (true) {  // parse requests loop
+        while (true) { // parse requests loop
             val request = try {
                 parseRequest(connection.input) ?: break
             } catch (io: IOException) {
@@ -99,14 +100,18 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     contentLength = -1
                 }
                 expectedHttpBody = expectHttpBody(
-                    request.method, contentLength, transferEncoding, connectionOptions, contentType
+                    request.method,
+                    contentLength,
+                    transferEncoding,
+                    connectionOptions,
+                    contentType
                 )
                 expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
             } catch (cause: Throwable) {
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
                 response.close()
-                throw cause
+                break
             }
 
             val requestBody = if (expectedHttpBody || expectedHttpUpgrade) {
@@ -121,7 +126,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 val handlerScope = ServerRequestScope(
                     coroutineContext,
-                    requestBody, response, connection.remoteAddress, connection.localAddress, upgraded
+                    requestBody,
+                    response,
+                    connection.remoteAddress,
+                    connection.localAddress,
+                    upgraded
                 )
 
                 try {
@@ -155,7 +164,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                         requestBody
                     )
                 } catch (cause: Throwable) {
-                    requestBody.close(cause)
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
                     response.writePacket(BadRequestPacket.copy())
                     response.close()
                     break

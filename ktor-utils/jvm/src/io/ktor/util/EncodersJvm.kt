@@ -5,9 +5,9 @@
 package io.ktor.util
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.nio.*
 import java.util.zip.*
 
@@ -15,11 +15,21 @@ private const val GZIP_HEADER_SIZE: Int = 10
 
 // GZIP header flags bits
 private object GzipHeaderFlags {
-    const val FTEXT = 1 shl 0 // Is ASCII
-    const val FHCRC = 1 shl 1 // Has header CRC16
-    const val EXTRA = 1 shl 2 // Extra fields present
-    const val FNAME = 1 shl 3 // File name present
-    const val FCOMMENT = 1 shl 4 // File comment present
+
+    // Is ASCII
+    const val FTEXT = 1 shl 0
+
+    // Has header CRC16
+    const val FHCRC = 1 shl 1
+
+    // Extra fields present
+    const val EXTRA = 1 shl 2
+
+    // File name present
+    const val FNAME = 1 shl 3
+
+    // File comment present
+    const val FCOMMENT = 1 shl 4
 }
 
 private infix fun Int.has(flag: Int) = this and flag != 0
@@ -33,7 +43,6 @@ public val Deflate: Encoder = object : Encoder {
 
     override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel =
         inflate(source, gzip = false)
-
 }
 
 /**
@@ -129,7 +138,6 @@ private fun CoroutineScope.inflate(
         } else {
             check(!readBuffer.hasRemaining())
         }
-
     } catch (cause: Throwable) {
         throw cause
     } finally {

@@ -31,6 +31,20 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
+    fun testRedirectWithEncodedUri() = clientTests {
+        config {
+            install(HttpRedirect)
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_URL_BASE/encodedQuery").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("/redirect/getWithUri?key=value1%3Bvalue2%3D%22some=thing", it.readText())
+            }
+        }
+    }
+
+    @Test
     fun testInfinityRedirect() = clientTests {
         config {
             install(HttpRedirect)

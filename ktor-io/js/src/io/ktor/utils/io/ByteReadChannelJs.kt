@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
@@ -26,6 +27,11 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
+     * An closure cause exception or `null` if closed successfully or not yet closed
+     */
+    public actual val closedCause: Throwable?
+
+    /**
      * Byte order that is used for multi-byte read operations
      * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
      */
@@ -39,7 +45,6 @@ public actual interface ByteReadChannel {
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
-    @Deprecated("Don't use byte count")
     public actual val totalBytesRead: Long
 
     /**
@@ -115,7 +120,6 @@ public actual interface ByteReadChannel {
      * and not enough bytes.
      */
     public actual suspend fun readFloat(): Float
-
 
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately

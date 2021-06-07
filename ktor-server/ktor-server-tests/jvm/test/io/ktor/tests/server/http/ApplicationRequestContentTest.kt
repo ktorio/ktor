@@ -138,8 +138,8 @@ class ApplicationRequestContentTest {
     @Test
     fun testFormUrlEncodedContent() {
         val values = parametersOf(
-                "one" to listOf("1"),
-                "two_space_three_and_four" to listOf("2 3 & 4")
+            "one" to listOf("1"),
+            "two_space_three_and_four" to listOf("2 3 & 4")
         )
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {

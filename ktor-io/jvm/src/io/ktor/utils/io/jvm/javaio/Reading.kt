@@ -1,10 +1,9 @@
 package io.ktor.utils.io.jvm.javaio
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import kotlin.coroutines.*
@@ -96,4 +95,3 @@ public fun InputStream.toByteReadChannel(
         close()
     }
 }.channel
-

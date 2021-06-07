@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.*
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -47,7 +47,11 @@ public class WebSocketWriter(
             loop@ for (message in queue) {
                 when (message) {
                     is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
-                    is FlushRequest -> message.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
+                    is FlushRequest -> {
+                        // we don't need writeChannel.flush() here as
+                        // we do flush at end of every drainQueueAndSerialize
+                        message.complete()
+                    }
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }

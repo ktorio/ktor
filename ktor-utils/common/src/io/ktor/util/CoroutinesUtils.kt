@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -23,8 +23,7 @@ public fun Job.printDebugTree(offset: Int = 0) {
 
 @InternalAPI
 @Suppress("NOTHING_TO_INLINE")
-internal expect inline fun <R, A>
-    (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
+internal expect inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
     arg: A,
     continuation: Continuation<Unit>

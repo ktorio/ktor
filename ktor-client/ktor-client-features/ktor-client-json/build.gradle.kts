@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 description = "Ktor client JSON support"
 
@@ -17,12 +17,12 @@ kotlin {
             (this as ModuleDependency).exclude(module = project.name)
         }
 
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 api(excludingSelf(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization")))
             }
         }
-        jvmTest {
+        val jvmTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson"))
             }

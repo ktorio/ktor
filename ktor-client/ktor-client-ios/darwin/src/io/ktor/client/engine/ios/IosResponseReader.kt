@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.ios
 
@@ -53,8 +53,12 @@ internal class IosResponseReader(
         val version = HttpProtocolVersion.HTTP_1_1
 
         return HttpResponseData(
-            status, requestTime, headers, version,
-            responseBody, callContext
+            status,
+            requestTime,
+            headers,
+            version,
+            responseBody,
+            callContext
         )
     }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.testing.client
 
@@ -32,31 +32,24 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 
-        return if (testServerCall.requestHandled) {
-            with(testServerCall.response) {
-                HttpResponseData(
-                    status()!!, GMTDate(),
-                    headers.allValues(),
-                    HttpProtocolVersion.HTTP_1_1,
-                    ByteReadChannel(byteContent ?: byteArrayOf()),
-                    callContext()
-                )
-            }
-        } else {
+        return with(testServerCall.response) {
             HttpResponseData(
-                HttpStatusCode.NotFound, GMTDate(),
-                Headers.build {
-                    this[HttpHeaders.ContentLength] = "0"
-                },
+                status() ?: HttpStatusCode.NotFound,
+                GMTDate(),
+                headers.allValues().takeUnless { it.isEmpty() } ?: Headers
+                    .build { this[HttpHeaders.ContentLength] = "0" },
                 HttpProtocolVersion.HTTP_1_1,
-                ByteReadChannel(byteArrayOf()),
+                ByteReadChannel(byteContent ?: byteArrayOf()),
                 callContext()
             )
         }
     }
 
     private fun runRequest(
-        method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
+        method: HttpMethod,
+        url: String,
+        headers: Headers,
+        content: OutgoingContent
     ): TestApplicationCall = app.handleRequest(method, url) {
         headers.flattenForEach { name, value ->
             if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
@@ -102,5 +95,3 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 }
-
-

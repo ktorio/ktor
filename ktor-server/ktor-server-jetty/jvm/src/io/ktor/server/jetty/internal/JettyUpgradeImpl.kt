@@ -7,8 +7,8 @@ package io.ktor.server.jetty.internal
 import io.ktor.http.content.*
 import io.ktor.server.servlet.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
 import java.util.concurrent.*
@@ -20,8 +20,10 @@ import kotlin.coroutines.*
 public object JettyUpgradeImpl : ServletUpgrade {
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
-        servletRequest: HttpServletRequest, servletResponse: HttpServletResponse,
-        engineContext: CoroutineContext, userContext: CoroutineContext
+        servletRequest: HttpServletRequest,
+        servletResponse: HttpServletResponse,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext
     ) {
         // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
 
@@ -44,7 +46,9 @@ public object JettyUpgradeImpl : ServletUpgrade {
                         endPoint.upgrade(reader)
                     }
                     val upgradeJob = upgrade.upgrade(
-                        inputChannel, outputChannel, coroutineContext,
+                        inputChannel,
+                        outputChannel,
+                        coroutineContext,
                         coroutineContext + userContext
                     )
 

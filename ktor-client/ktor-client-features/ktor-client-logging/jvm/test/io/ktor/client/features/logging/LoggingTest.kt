@@ -1,12 +1,13 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.logging
+
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlin.test.*
 import kotlinx.coroutines.*
+import kotlin.test.*
 
 class LoggingTest {
 
@@ -23,5 +24,4 @@ class LoggingTest {
         val result = channel.tryReadText(Charsets.UTF_8)
         assertEquals(result, "test")
     }
-
 }

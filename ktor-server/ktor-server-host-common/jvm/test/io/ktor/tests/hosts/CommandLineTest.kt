@@ -80,7 +80,8 @@ class CommandLineTest {
     @Test
     fun configFileWithEnvironmentVariables() {
         val configPath = CommandLineTest::class.java.classLoader.getResource("applicationWithEnv.conf").toURI().path
-        val port = commandLineEnvironment(arrayOf("-config=$configPath")).config.property("ktor.deployment.port").getString()
+        val port = commandLineEnvironment(arrayOf("-config=$configPath"))
+            .config.property("ktor.deployment.port").getString()
         assertEquals("8080", port)
     }
 
@@ -124,7 +125,9 @@ class CommandLineTest {
     private class IsolatedResourcesClassLoader(val dir: File, parent: ClassLoader) : ClassLoader(parent) {
         override fun getResources(name: String): Enumeration<URL> {
             val lookup = File(dir, name)
-            if (lookup.isFile) return listOf(lookup.absoluteFile.toURI().toURL()).let { Collections.enumeration<URL>(it) }
+            if (lookup.isFile) {
+                return listOf(lookup.absoluteFile.toURI().toURL()).let { Collections.enumeration<URL>(it) }
+            }
             return parent.getResources(name)
         }
 

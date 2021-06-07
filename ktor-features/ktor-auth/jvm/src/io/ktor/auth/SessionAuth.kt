@@ -92,7 +92,9 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
 
         private fun verifyConfiguration() {
-            check(validator !== UninitializedValidator) { "It should be a validator supplied to a session auth provider" }
+            check(validator !== UninitializedValidator) {
+                "It should be a validator supplied to a session auth provider"
+            }
         }
 
         @PublishedApi
@@ -109,14 +111,15 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     }
 }
 
-
 /**
  * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
  * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Configuration.validate] configuration
  */
 @Deprecated(
     "Use session(name) { } instead specifying validate as well.",
-    replaceWith = ReplaceWith("session<T>(name) { validate { session -> session }\nthis.challenge { TODO(\"Implement your challenge\") }}"),
+    replaceWith = ReplaceWith(
+        "session<T>(name) { validate { session -> session }\nthis.challenge { TODO(\"Implement your challenge\") }}"
+    ),
     level = DeprecationLevel.ERROR
 )
 @Suppress("DEPRECATION_ERROR")

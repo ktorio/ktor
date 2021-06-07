@@ -28,7 +28,9 @@ class WebSocketWithContentNegotiationTest {
                     value: Any
                 ): Any? = fail("convertForSend shouldn't be invoked")
 
-                override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+                override suspend fun convertForReceive(
+                    context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
+                ): Any? {
                     fail("convertForReceive shouldn't be invoked")
                 }
             }

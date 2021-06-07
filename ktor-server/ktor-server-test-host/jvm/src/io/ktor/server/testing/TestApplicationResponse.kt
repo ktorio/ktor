@@ -10,8 +10,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -19,7 +19,8 @@ import kotlin.coroutines.*
  * @property readResponse if response channel need to be consumed into byteContent
  */
 public class TestApplicationResponse(
-    call: TestApplicationCall, private val readResponse: Boolean = false
+    call: TestApplicationCall,
+    private val readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
     /**
@@ -61,8 +62,12 @@ public class TestApplicationResponse(
         private val builder = HeadersBuilder()
 
         override fun engineAppendHeader(name: String, value: String) {
-            if (call.requestHandled)
-                throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
+            @Suppress("DEPRECATION")
+            if (call.requestHandled) {
+                throw UnsupportedOperationException(
+                    "Headers can no longer be set because response was already completed"
+                )
+            }
             builder.append(name, value)
         }
 
@@ -72,6 +77,7 @@ public class TestApplicationResponse(
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
+            @Suppress("DEPRECATION")
             call.requestHandled = call.response.status() != HttpStatusCode.NotFound
         }
     }

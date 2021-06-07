@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.observer
 
@@ -41,7 +41,6 @@ public class ResponseObserver(
             ResponseObserver(Config().apply(block).responseHandler)
 
         override fun install(feature: ResponseObserver, scope: HttpClient) {
-
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
                 val (loggingContent, responseContent) = response.content.split(response)
 
@@ -62,9 +61,6 @@ public class ResponseObserver(
 
                 context.response = newClientCall.response
                 context.request = newClientCall.request
-
-                @Suppress("UNCHECKED_CAST")
-                (response.coroutineContext[Job] as CompletableJob).complete()
                 proceedWith(context.response)
             }
         }

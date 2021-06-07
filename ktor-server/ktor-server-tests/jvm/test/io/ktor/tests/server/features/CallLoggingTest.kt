@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.features
 
@@ -47,7 +47,6 @@ class CallLoggingTest {
         log = logger
     }
 
-
     @BeforeTest
     fun setup() {
         messages = ArrayList()
@@ -61,9 +60,22 @@ class CallLoggingTest {
             hash = application.toString()
         }
 
-        assertEquals("TRACE: Application started: $hash", messages[14])
-        assertEquals("TRACE: Application stopping: $hash", messages[15])
-        assertEquals("TRACE: Application stopped: $hash", messages[16])
+        assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
+        assertEquals(
+            "TRACE: Application started: $hash",
+            messages[messages.size - 3],
+            "No started message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopping: $hash",
+            messages[messages.size - 2],
+            "No stopping message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopped: $hash",
+            messages[messages.size - 1],
+            "No stopped message logged:\n$messages"
+        )
     }
 
     @Test
@@ -116,7 +128,6 @@ class CallLoggingTest {
         }
         withApplication(environment) {
             handleRequest(HttpMethod.Get, "/uri-123").let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals("OK", call.response.content)
 
                 assertTrue("TRACE: /uri-123 -> 200 OK" in messages)
@@ -197,10 +208,10 @@ class CallLoggingTest {
                 }
 
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
-                    assertTrue { call.requestHandled }
-
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }
@@ -236,10 +247,10 @@ class CallLoggingTest {
                 }
 
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
-                    assertTrue { call.requestHandled }
-
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }

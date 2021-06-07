@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("MemberVisibilityCanBePrivate")
 
@@ -88,15 +88,15 @@ public class CORS(configuration: Configuration) {
             call.corsVary()
         }
 
-        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-            ?.takeIf(this::isValidOrigin)
-            ?: return
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
-        if (allowSameOrigin && call.isSameOrigin(origin)) return
-
-        if (!corsCheckOrigins(origin)) {
-            context.respondCorsFailed()
-            return
+        when (checkOrigin(origin, call.request.origin)) {
+            OriginCheckResult.OK -> {}
+            OriginCheckResult.SkipCORS -> return
+            OriginCheckResult.Failed -> {
+                context.respondCorsFailed()
+                return
+            }
         }
 
         if (!allowNonSimpleContentTypes) {
@@ -130,8 +130,14 @@ public class CORS(configuration: Configuration) {
         }
     }
 
-    private suspend fun ApplicationCall.respondPreflight(origin: String) {
+    internal fun checkOrigin(origin: String, point: RequestConnectionPoint): OriginCheckResult = when {
+        !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
+        allowSameOrigin && isSameOrigin(origin, point) -> OriginCheckResult.SkipCORS
+        !corsCheckOrigins(origin) -> OriginCheckResult.Failed
+        else -> OriginCheckResult.OK
+    }
 
+    private suspend fun ApplicationCall.respondPreflight(origin: String) {
         val requestHeaders =
             request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
                 it.trim().toLowerCasePreservingASCIIRules()
@@ -187,8 +193,8 @@ public class CORS(configuration: Configuration) {
         }
     }
 
-    private fun ApplicationCall.isSameOrigin(origin: String): Boolean {
-        val requestOrigin = "${this.request.origin.scheme}://${this.request.origin.host}:${this.request.origin.port}"
+    private fun isSameOrigin(origin: String, point: RequestConnectionPoint): Boolean {
+        val requestOrigin = "${point.scheme}://${point.host}:${point.port}"
         return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
     }
 
@@ -196,16 +202,13 @@ public class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
-
-        requestHeaders.all { header ->
-            return header in allHeadersSet || headerMatchesAPredicate(header)
+    private fun corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+        return requestHeaders.all { header ->
+            header in allHeadersSet || headerMatchesAPredicate(header)
         }
-
-        return requestHeaders.none { it !in allHeadersSet }
     }
 
-    private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
+    private fun headerMatchesAPredicate(header: String): Boolean {
         return headerPredicates.any { it(header) }
     }
 
@@ -239,11 +242,12 @@ public class CORS(configuration: Configuration) {
             return false
         }
 
-        // check proto
-        for (index in 0 until protoDelimiter) {
-            if (!origin[index].isLetter()) {
-                return false
-            }
+        val protoValid = origin[0].isLetter() && origin.subSequence(0, protoDelimiter).all { ch ->
+            ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.'
+        }
+
+        if (!protoValid) {
+            return false
         }
 
         var portIndex = origin.length
@@ -526,4 +530,8 @@ public class CORS(configuration: Configuration) {
         private fun caseInsensitiveSet(vararg elements: String): Set<String> =
             CaseInsensitiveSet(elements.asList())
     }
+}
+
+internal enum class OriginCheckResult {
+    OK, SkipCORS, Failed
 }

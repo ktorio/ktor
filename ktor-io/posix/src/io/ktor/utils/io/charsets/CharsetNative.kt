@@ -41,15 +41,6 @@ private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEnc
 
 public actual val CharsetEncoder.charset: Charset get() = _charset
 
-@SymbolName("Kotlin_Arrays_getShortArrayAddressOfElement")
-private external fun getAddressOfElement(array: Any, index: Int): COpaquePointer
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun <P : CVariable> Pinned<*>.addressOfElement(index: Int): CPointer<P> =
-    getAddressOfElement(this.get(), index).reinterpret()
-
-private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.addressOfElement(index)
-
 private fun iconvCharsetName(name: String) = when (name) {
     "UTF-16" -> platformUtf16
     else -> name
@@ -87,7 +78,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                     val outbytesleft = alloc<size_tVar>()
                     val dstRemaining = dst.writeRemaining.convert<size_t>()
 
-                    inbuf.value = pinned.addressOf(0)
+                    inbuf.value = pinned.addressOf(0).reinterpret()
                     outbuf.value = buffer
                     inbytesleft.value = (length * 2).convert<size_t>()
                     outbytesleft.value = dstRemaining
@@ -178,7 +169,7 @@ private fun checkIconvResult(errno: Int) {
     if (errno == EINVAL) return // too few input bytes
     if (errno == E2BIG) return // too few output buffer bytes
 
-    throw IllegalStateException("Failed to call 'iconv' with error code ${errno}")
+    throw IllegalStateException("Failed to call 'iconv' with error code $errno")
 }
 
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
@@ -210,7 +201,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
                 val inbytesleft = alloc<size_tVar>()
                 val outbytesleft = alloc<size_tVar>()
 
-                val buffer = pinned.addressOf(0)
+                val buffer = pinned.addressOf(0).reinterpret<ByteVar>()
 
                 input.takeWhileSize { srcView ->
                     val rem = max - copied
@@ -259,7 +250,6 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
         iconv_close(cd)
     }
 }
-
 
 internal actual fun CharsetDecoder.decodeBuffer(
     input: Buffer,
@@ -348,7 +338,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
                         val dstRemaining = (rem * 2).convert<size_t>()
 
                         inbuf.value = src
-                        outbuf.value = pinned.addressOf(charsCopied)
+                        outbuf.value = pinned.addressOf(charsCopied).reinterpret()
                         inbytesleft.value = length
                         outbytesleft.value = dstRemaining
 
@@ -379,7 +369,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
         if (bytesConsumed < inputLength) {
             throw EOFException("Not enough bytes available: had only $bytesConsumed instead of $inputLength")
         }
-        return String(chars, 0, charsCopied)
+        return chars.concatToString(0, 0 + charsCopied)
     } finally {
         iconv_close(cd)
     }

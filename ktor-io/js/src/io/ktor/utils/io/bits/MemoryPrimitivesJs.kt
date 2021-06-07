@@ -4,7 +4,6 @@ package io.ktor.utils.io.bits
 
 import io.ktor.utils.io.core.internal.*
 
-
 public actual inline fun Memory.loadShortAt(offset: Int): Short = view.getInt16(offset, false)
 
 public actual inline fun Memory.loadShortAt(offset: Long): Short = loadShortAt(offset.toIntOrFail("offset"))

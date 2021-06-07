@@ -15,11 +15,9 @@ import io.ktor.util.*
  * Client authentication feature.
  * [providers] - list of auth providers to use.
  */
-@Suppress("KDocMissingDocumentation")
 public class Auth(
     public val providers: MutableList<AuthProvider> = mutableListOf()
 ) {
-    private val alwaysSend by lazy { providers.filter { it.sendWithoutRequest } }
 
     public companion object Feature : HttpClientFeature<Auth, Auth> {
         override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
@@ -30,8 +28,8 @@ public class Auth(
 
         override fun install(feature: Auth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                for (provider in feature.alwaysSend) {
-                    provider.addRequestHeaders(context)
+                feature.providers.filter { it.sendWithoutRequest(context) }.forEach {
+                    it.addRequestHeaders(context)
                 }
             }
 
@@ -41,15 +39,24 @@ public class Auth(
                 if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
 
                 var call = origin
-                val candidateProviders = HashSet(feature.providers).apply { removeAll(feature.alwaysSend) }
+
+                val candidateProviders = HashSet(feature.providers)
+
                 while (call.response.status == HttpStatusCode.Unauthorized) {
-                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
+                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
+                    if (headerValue.isNullOrEmpty()) {
+                        return@intercept call
+                    }
+
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
                     val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    if (!provider.refreshToken(call.response)) return@intercept call
+
                     candidateProviders.remove(provider)
 
                     val request = HttpRequestBuilder()
                     request.takeFromWithExecutionContext(context)
+                    request.attributes.put(AuthHeaderAttribute, authHeader)
                     provider.addRequestHeaders(request)
                     request.attributes.put(circuitBreaker, Unit)
 
@@ -67,3 +74,11 @@ public class Auth(
 public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
     install(Auth, block)
 }
+
+/**
+ * AuthHeader from the previous unsuccessful request. This actually should be passed as
+ * parameter to AuthProvider.addRequestHeaders instead in the future and the attribute will
+ * be removed after that.
+ */
+@PublicAPICandidate("1.6.0")
+internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")

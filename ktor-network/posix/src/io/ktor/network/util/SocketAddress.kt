@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.util
 
@@ -41,7 +41,6 @@ internal class IPv4Address(
 
     override val address: String
         get() = error("String address representation is unsupported on Native.")
-
 }
 
 internal class IPv6Address(
@@ -59,11 +58,6 @@ internal class IPv6Address(
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
         cValue<sockaddr_in6> {
             sin6_family = family
-
-            ip.forEachIndexed { index, byte ->
-//                sin6_addr.__u6_addr.__u6_addr8[index] = byte.convert()
-            }
-
             sin6_flowinfo = flowInfo
             sin6_port = port.convert()
             sin6_scope_id = scopeId

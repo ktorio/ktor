@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
@@ -28,6 +29,11 @@ public actual interface ByteReadChannel {
      * The [availableForRead] can be > 0.
      */
     public actual val isClosedForWrite: Boolean
+
+    /**
+     * An closure cause exception or `null` if closed successfully or not yet closed
+     */
+    public actual val closedCause: Throwable?
 
     /**
      * Byte order that is used for multi-byte read operations
@@ -234,7 +240,8 @@ public actual interface ByteReadChannel {
          * Empty closed [ByteReadChannel].
          */
         public actual val Empty: ByteReadChannel = ByteChannelNative(
-            IoBuffer.Empty, false,
+            IoBuffer.Empty,
+            false,
             io.ktor.utils.io.core.internal.ChunkBuffer.EmptyPool
         ).apply {
             close(null)

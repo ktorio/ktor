@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.jetty
 
@@ -63,7 +63,7 @@ class WebResourcesTest {
                 assertEquals(HtmlContent, response.content)
             }
             handleRequest(HttpMethod.Get, "/webapp/password.txt").apply {
-                assertFalse(requestHandled)
+                assertFalse(response.status()!!.isSuccess())
             }
         }
     }

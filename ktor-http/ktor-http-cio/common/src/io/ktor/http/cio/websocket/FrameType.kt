@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio.websocket
 
@@ -36,7 +36,7 @@ public enum class FrameType(public val controlFrame: Boolean, public val opcode:
     PONG(true, 0xa);
 
     public companion object {
-        private val maxOpcode = values().maxBy { it.opcode }!!.opcode
+        private val maxOpcode = values().maxByOrNull { it.opcode }!!.opcode
 
         private val byOpcodeArray = Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }
 

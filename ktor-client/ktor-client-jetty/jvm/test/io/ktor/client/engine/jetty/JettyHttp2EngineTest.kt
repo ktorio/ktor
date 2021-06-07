@@ -1,15 +1,27 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.jetty
 
+import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.tests.utils.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.errors.*
 import kotlin.test.*
 
 class JettyHttp2EngineTest {
+
+    @Test
+    fun testConnectingToNonHttp2Server() = testSuspend {
+        HttpClient(Jetty).use { client ->
+            assertFailsWith<IOException> {
+                client.get<String>("$TEST_SERVER/content/hello")
+            }
+        }
+    }
 
     @Test
     fun testReuseClientsInCache() = testSuspend {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.content
 
@@ -20,8 +20,10 @@ public class URIFileContent(
     override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)
 ) : OutgoingContent.ReadChannelContent() {
     public constructor(url: URL, contentType: ContentType = ContentType.defaultForFilePath(url.path)) : this(
-        url.toURI(), contentType
+        url.toURI(),
+        contentType
     )
 
-    override fun readFrom(): ByteReadChannel = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool) // TODO: use http client
+    // TODO: use http client
+    override fun readFrom(): ByteReadChannel = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool)
 }

@@ -29,7 +29,6 @@ class AuthBuildersTest {
             application.routing {
                 authenticate {
                     route("/") {
-
                         handle {
                             assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
                         }
@@ -228,7 +227,9 @@ class AuthBuildersTest {
             application.routing {
                 authenticate("S") {
                     get("/") {
-                        call.respondText("Public index. ${call.principal<UserIdPrincipal>()?.name?.let { "Logged in as $it." } ?: "Not logged in."}")
+                        val logText = call.principal<UserIdPrincipal>()?.name
+                            ?.let { "Logged in as $it." } ?: "Not logged in."
+                        call.respondText("Public index. $logText")
                     }
                     route("/user") {
                         authenticate("S_web") {
@@ -238,7 +239,10 @@ class AuthBuildersTest {
                         }
                         authenticate("B") {
                             get("files/{name...}") {
-                                call.respondText("File ${call.parameters["name"]} for user ${call.principal<UserIdPrincipal>()?.name}.")
+                                call.respondText(
+                                    "File ${call.parameters["name"]} for user " +
+                                        "${call.principal<UserIdPrincipal>()?.name}."
+                                )
                             }
                         }
                     }
@@ -273,7 +277,6 @@ class AuthBuildersTest {
 
             on("Index should be available for everyone") {
                 val call = handleRequest(HttpMethod.Get, "/")
-                assertTrue { call.requestHandled }
                 assertTrue { call.response.status()!!.isSuccess() }
                 assertEquals("Public index. Not logged in.", call.response.content)
             }
@@ -282,32 +285,27 @@ class AuthBuildersTest {
                     addCookie()
                 }
 
-                assertTrue { call.requestHandled }
                 assertTrue { call.response.status()!!.isSuccess() }
                 assertEquals("Public index. Logged in as tester.", call.response.content)
             }
             on("User profile page should redirect to login page") {
                 val call = handleRequest(HttpMethod.Get, "/user/profile")
-                assertTrue { call.requestHandled }
                 assertEquals("/login", call.response.headers[HttpHeaders.Location])
             }
             on("User profile page should be show for an authenticated user") {
                 val call = handleRequest(HttpMethod.Get, "/user/profile") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("Profile for tester.", call.response.content)
             }
             on("Login page shouldn't be shown for an authenticated user (with cookies)") {
                 val call = handleRequest(HttpMethod.Get, "/login") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals(HttpStatusCode.Found.value, call.response.status()?.value)
             }
             on("Login page should be shown for clean user") {
                 val call = handleRequest(HttpMethod.Get, "/login")
-                assertTrue { call.requestHandled }
                 assertEquals("Login form goes here.", call.response.content)
             }
             on("Login page should create session on form post") {
@@ -316,7 +314,6 @@ class AuthBuildersTest {
                 }
                 val cookies = call.response.headers[HttpHeaders.SetCookie]?.let { parseServerSetCookieHeader(it) }
 
-                assertTrue { call.requestHandled }
                 assertNotNull(cookies, "Set-Cookie should be sent")
                 assertEquals(serializedSession, cookies.value)
                 assertEquals("Logged in successfully as tester.", call.response.content)
@@ -325,21 +322,21 @@ class AuthBuildersTest {
                 val call = handleRequest(HttpMethod.Get, "/user/files/doc1.txt") {
                     addCookie()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("File doc1.txt for user tester.", call.response.content)
             }
             on("A download manager or wget/curl tool could download file using basic auth") {
                 val firstAttempt = handleRequest(HttpMethod.Get, "/user/files/doc1.txt")
-                assertTrue { firstAttempt.requestHandled }
                 // with no auth header we should get basic auth challenge
-                assertEquals("Basic realm=test-app, charset=UTF-8", firstAttempt.response.headers[HttpHeaders.WWWAuthenticate])
+                assertEquals(
+                    "Basic realm=test-app, charset=UTF-8",
+                    firstAttempt.response.headers[HttpHeaders.WWWAuthenticate]
+                )
 
                 // so a download tool should show a prompt so user can provide name and password
                 // and retry with basic auth credentials
                 val call = handleRequest(HttpMethod.Get, "/user/files/doc1.txt") {
                     addBasicAuth()
                 }
-                assertTrue { call.requestHandled }
                 assertEquals("File doc1.txt for user tester.", call.response.content)
             }
         }
@@ -570,13 +567,13 @@ class AuthBuildersTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/foo:asd"){
+        handleRequest(HttpMethod.Get, "/foo:asd") {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody("user=username&password=p")
         }.let { call ->
             assertEquals("foo", call.response.content)
         }
-        handleRequest(HttpMethod.Get, "/bar:asd"){
+        handleRequest(HttpMethod.Get, "/bar:asd") {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody("user=username&password=p")
         }.let { call ->

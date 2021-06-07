@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.request
 
@@ -84,7 +84,6 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * A deferred used to control the execution of this request.
      */
-    @KtorExperimentalAPI
     public var executionContext: Job = SupervisorJob()
         .also { it.makeShared() }
         internal set(value) {
@@ -106,9 +105,12 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * Create immutable [HttpRequestData]
      */
     public fun build(): HttpRequestData = HttpRequestData(
-        url.build(), method, headers.build(),
+        url.build(),
+        method,
+        headers.build(),
         body as? OutgoingContent ?: error("No request transformation found: $body"),
-        executionContext, attributes
+        executionContext,
+        attributes
     )
 
     /**
@@ -136,10 +138,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         url.takeFrom(builder.url)
         url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
         headers.appendAll(builder.headers)
-        builder.attributes.allKeys.forEach {
-            @Suppress("UNCHECKED_CAST")
-            attributes.put(it as AttributeKey<Any>, builder.attributes[it])
-        }
+        attributes.putAll(builder.attributes)
 
         return this
     }
@@ -147,7 +146,6 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Set capability configuration.
      */
-    @KtorExperimentalAPI
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
         val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
         capabilities[key] = capability
@@ -156,7 +154,6 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Retrieve capability by key.
      */
-    @KtorExperimentalAPI
     public fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
@@ -180,7 +177,6 @@ public class HttpRequestData @InternalAPI constructor(
     /**
      * Retrieve extension by it's key.
      */
-    @KtorExperimentalAPI
     public fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
@@ -194,7 +190,6 @@ public class HttpRequestData @InternalAPI constructor(
 
     override fun toString(): String = "HttpRequestData(url=$url, method=$method)"
 }
-
 
 /**
  * Data prepared for [HttpResponse].
@@ -217,7 +212,6 @@ public class HttpResponseData constructor(
  */
 public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
-
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
  */
@@ -226,7 +220,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder
     body = request.content
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
-
+    attributes.putAll(request.attributes)
     return this
 }
 
@@ -243,6 +237,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
     body = request.body
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
+    attributes.putAll(request.attributes)
 
     return this
 }
@@ -257,9 +252,12 @@ public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> 
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
  */
 public fun HttpRequestBuilder.url(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
+    path: String = "/",
     block: URLBuilder.() -> Unit = {}
-): Unit {
+): Unit { // ktlint-disable filename no-unit-return
     url.apply {
         protocol = URLProtocol.createOrDefault(scheme)
         this.host = host
@@ -274,14 +272,17 @@ public fun HttpRequestBuilder.url(
  * and optionally further configures it using [block].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
+    path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-public fun HttpRequestBuilder.url(urlString: String): Unit {
+public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable filename no-unit-return
     url.takeFrom(urlString)
 }
 
@@ -290,4 +291,3 @@ public fun HttpRequestBuilder.url(urlString: String): Unit {
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
-

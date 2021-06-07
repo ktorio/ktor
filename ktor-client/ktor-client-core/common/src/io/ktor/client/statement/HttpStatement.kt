@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.statement
 
@@ -147,10 +147,10 @@ public class HttpStatement(
 public fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
 }
 
-
 @Deprecated(
     "Unbound [HttpResponse] is deprecated. Consider using [execute()] instead.",
-    level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("this.execute()")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("this.execute()")
 )
 @Suppress("KDocMissingDocumentation", "unused")
 public val HttpStatement.response: HttpResponse

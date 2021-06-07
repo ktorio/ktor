@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio
 
@@ -9,8 +9,8 @@ import io.ktor.util.*
 import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
-
 private const val EXPECTED_HEADERS_QTY = 64
+
 /*
  * index array structure
  * [0] = name hash
@@ -58,7 +58,7 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
         array[base + 3] = nameEndIndex
         array[base + 4] = valueStartIndex
         array[base + 5] = valueEndIndex
-        array[base + 6] = -1  // TODO
+        array[base + 6] = -1 // TODO
         array[base + 7] = -1
 
         size++

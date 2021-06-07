@@ -5,15 +5,15 @@
 package io.ktor.server.servlet
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
 
-internal fun CoroutineScope.servletWriter(output: ServletOutputStream) : ReaderJob {
+internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
     return reader(Dispatchers.Unconfined, writer.channel) {
         writer.run()
@@ -23,7 +23,11 @@ internal fun CoroutineScope.servletWriter(output: ServletOutputStream) : ReaderJ
 internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
     override fun produceInstance() = ByteArray(4096)
     override fun validateInstance(instance: ByteArray) {
-        if (instance.size != 4096) throw IllegalArgumentException("Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool")
+        if (instance.size != 4096) {
+            throw IllegalArgumentException(
+                "Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool"
+            )
+        }
     }
 }
 

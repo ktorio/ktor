@@ -9,14 +9,12 @@ import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import java.nio.*
 
-
 internal const val DEFAULT_BUFFER_SIZE = 4098
 internal const val DEFAULT_KTOR_POOL_SIZE = 2048
 
 /**
  * The default ktor byte buffer pool
  */
-@KtorExperimentalAPI
 public val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR_POOL_SIZE, DEFAULT_BUFFER_SIZE)
 
 @InternalAPI

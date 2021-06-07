@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine
 
@@ -36,7 +36,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Set of supported engine extensions.
      */
-    @KtorExperimentalAPI
     public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
 
@@ -108,7 +107,9 @@ public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
  * Creates a new [HttpClientEngineFactory] based on this one
  * with further configurations from the [nested] block.
  */
-public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> {
+public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(
+    nested: T.() -> Unit
+): HttpClientEngineFactory<T> {
     val parent = this
 
     return object : HttpClientEngineFactory<T> {
@@ -131,9 +132,10 @@ internal expect suspend fun HttpClientEngine.createCallContext(parentJob: Job): 
  */
 private fun validateHeaders(request: HttpRequestData) {
     val requestHeaders = request.headers
-    for (header in HttpHeaders.UnsafeHeadersList) {
-        if (header in requestHeaders) {
-            throw UnsafeHeaderException(header)
-        }
+    val unsafeRequestHeaders = requestHeaders.names().filter {
+        it in HttpHeaders.UnsafeHeadersList
+    }
+    if (unsafeRequestHeaders.isNotEmpty()) {
+        throw UnsafeHeaderException(unsafeRequestHeaders.toString())
     }
 }

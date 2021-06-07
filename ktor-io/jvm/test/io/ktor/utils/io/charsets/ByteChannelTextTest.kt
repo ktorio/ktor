@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.utils.io.charsets
 
@@ -21,5 +21,4 @@ class ByteChannelTextTest {
             channel.readUTF8Line(50)
         }
     }
-
 }

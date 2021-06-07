@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
-
 /**
  * Only set in curl worker thread
  */
@@ -43,7 +42,6 @@ internal class CurlProcessor(
         }
 
         try {
-
             activeRequests.incrementAndGet()
 
             while (deferred.isActive) {
@@ -60,6 +58,7 @@ internal class CurlProcessor(
 
     public fun close() {
         worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
+        worker.requestTermination()
     }
 
     private fun poll(): Future<List<CurlResponseData>> =

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client
 
@@ -45,7 +45,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     public var useDefaultTransformers: Boolean by shared(true)
 
     /**
-     * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+     * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
      */
     public var expectSuccess: Boolean by shared(true)
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.testing.suites
 
@@ -29,12 +29,12 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.text.toByteArray
 
-public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    public fun testRedirect() {
+    fun testRedirect() {
         createAndStartServer {
             handle {
                 call.respondRedirect("http://localhost:${call.request.port()}/page", true)
@@ -47,7 +47,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testRedirectFromInterceptor() {
+    fun testRedirectFromInterceptor() {
         createAndStartServer {
             application.intercept(ApplicationCallPipeline.Features) {
                 call.respondRedirect("/2", true)
@@ -62,7 +62,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testHeader() {
+    fun testHeader() {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
@@ -79,7 +79,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public open fun testHeadRequest() {
+    open fun testHeadRequest() {
         createAndStartServer {
             install(AutoHeadResponse)
             handle {
@@ -95,7 +95,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testCookie() {
+    fun testCookie() {
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
@@ -110,7 +110,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testPathComponentsDecoding() {
+    fun testPathComponentsDecoding() {
         createAndStartServer {
             get("/a%20b") {
                 call.respondText("space")
@@ -131,69 +131,83 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testFormUrlEncoded() {
+    fun testFormUrlEncoded() {
         createAndStartServer {
             post("/") {
                 call.respondText("${call.parameters["urlp"]},${call.receiveParameters()["formp"]}")
             }
         }
 
-        withUrl("/?urlp=1", {
-            method = HttpMethod.Post
-            body = ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded)
-        }) {
+        withUrl(
+            "/?urlp=1",
+            {
+                method = HttpMethod.Post
+                body = ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded)
+            }
+        ) {
             assertEquals(HttpStatusCode.OK.value, status.value)
             assertEquals("1,2", readText())
         }
     }
 
     @Test
-    public fun testRequestTwiceNoKeepAlive() {
+    fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
             }
         }
 
-        withUrl("/", {
-            header(HttpHeaders.Connection, "close")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "close")
+            }
+        ) {
             assertEquals("Text", readText())
         }
 
-        withUrl("/", {
-            header(HttpHeaders.Connection, "close")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "close")
+            }
+        ) {
             assertEquals("Text", readText())
         }
     }
 
     @Test
-    public fun testRequestTwiceWithKeepAlive() {
+    fun testRequestTwiceWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
             }
         }
 
-
-        withUrl("/", {
-            header(HttpHeaders.Connection, "keep-alive")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "keep-alive")
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("Text", readText())
         }
 
-        withUrl("/", {
-            header(HttpHeaders.Connection, "keep-alive")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "keep-alive")
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("Text", readText())
         }
     }
 
     @Test
-    public fun testRequestTwiceInOneBufferWithKeepAlive() {
+    fun testRequestTwiceInOneBufferWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 val d = call.request.queryParameters["d"]!!.toLong()
@@ -228,12 +242,9 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
 
             val responses = s.getInputStream().bufferedReader(Charsets.ISO_8859_1).lineSequence()
                 .filterNot { line ->
-                    line.startsWith("Date") || line.startsWith("Server")
-                        || line.startsWith("Content-")
-                        || line.toIntOrNull() != null
-                        || line.isBlank()
-                        || line.startsWith("Connection")
-                        || line.startsWith("Keep-Alive")
+                    line.startsWith("Date") || line.startsWith("Server") ||
+                        line.startsWith("Content-") || line.toIntOrNull() != null ||
+                        line.isBlank() || line.startsWith("Connection") || line.startsWith("Keep-Alive")
                 }
                 .map { it.trim() }
                 .joinToString(separator = "\n").replace("200 OK", "200")
@@ -246,13 +257,17 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
                 HTTP/1.1 200
                 D: 1
                 Response for 1
-                """.trimIndent().replace("\r\n", "\n"), responses
+                """.trimIndent().replace(
+                    "\r\n",
+                    "\n"
+                ),
+                responses
             )
         }
     }
 
     @Test
-    public fun test404() {
+    fun test404() {
         createAndStartServer {
         }
 
@@ -266,7 +281,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testStatusPages404() {
+    fun testStatusPages404() {
         createAndStartServer {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -284,7 +299,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testRemoteHost() {
+    fun testRemoteHost() {
         createAndStartServer {
             handle {
                 call.respondText {
@@ -305,7 +320,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testRequestParameters() {
+    fun testRequestParameters() {
         createAndStartServer {
             get("/*") {
                 call.respond(call.request.queryParameters.getAll(call.request.path().removePrefix("/")).toString())
@@ -324,29 +339,31 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testClosedConnection() {
+    fun testClosedConnection() {
         val completed = Job()
 
         createAndStartServer {
             get("/file") {
                 try {
-                    call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            val bb = ByteBuffer.allocate(512)
-                            for (i in 1L..1000L) {
-                                delay(100)
-                                bb.clear()
-                                while (bb.hasRemaining()) {
-                                    bb.putLong(i)
+                    call.respond(
+                        object : OutgoingContent.WriteChannelContent() {
+                            override suspend fun writeTo(channel: ByteWriteChannel) {
+                                val bb = ByteBuffer.allocate(512)
+                                for (i in 1L..1000L) {
+                                    delay(100)
+                                    bb.clear()
+                                    while (bb.hasRemaining()) {
+                                        bb.putLong(i)
+                                    }
+                                    bb.flip()
+                                    channel.writeFully(bb)
+                                    channel.flush()
                                 }
-                                bb.flip()
-                                channel.writeFully(bb)
-                                channel.flush()
-                            }
 
-                            channel.close()
+                                channel.close()
+                            }
                         }
-                    })
+                    )
                 } finally {
                     completed.cancel()
                 }
@@ -354,12 +371,14 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
         }
 
         socket {
-            outputStream.writePacket(RequestResponseBuilder().apply {
-                requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
-                headerLine("Host", "localhost:$port")
-                headerLine("Connection", "keep-alive")
-                emptyLine()
-            }.build())
+            outputStream.writePacket(
+                RequestResponseBuilder().apply {
+                    requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
+                    headerLine("Host", "localhost:$port")
+                    headerLine("Connection", "keep-alive")
+                    emptyLine()
+                }.build()
+            )
 
             outputStream.flush()
 
@@ -374,7 +393,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testStatusCodeDirect() {
+    fun testStatusCodeDirect() {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Found)
@@ -389,7 +408,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testStatusCodeViaResponseObject() {
+    fun testStatusCodeViaResponseObject() {
         var completed = false
         createAndStartServer {
             get("/") {
@@ -405,7 +424,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testProxyHeaders() {
+    fun testProxyHeaders() {
         createAndStartServer {
             install(XForwardedHeaderSupport)
             get("/") {
@@ -413,37 +432,49 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
             }
         }
 
-        withUrl("/", {
-            header(HttpHeaders.XForwardedHost, "my-host:90")
-        }) { port ->
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.XForwardedHost, "my-host:90")
+            }
+        ) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
             assertEquals("$expectedProto://my-host:90/", readText())
         }
 
-        withUrl("/", {
-            header(HttpHeaders.XForwardedHost, "my-host")
-        }) { port ->
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.XForwardedHost, "my-host")
+            }
+        ) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
             assertEquals("$expectedProto://my-host/", readText())
         }
 
-        withUrl("/", {
-            header(HttpHeaders.XForwardedHost, "my-host:90")
-            header(HttpHeaders.XForwardedProto, "https")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.XForwardedHost, "my-host:90")
+                header(HttpHeaders.XForwardedProto, "https")
+            }
+        ) {
             assertEquals("https://my-host:90/", readText())
         }
 
-        withUrl("/", {
-            header(HttpHeaders.XForwardedHost, "my-host")
-            header(HttpHeaders.XForwardedProto, "https")
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.XForwardedHost, "my-host")
+                header(HttpHeaders.XForwardedProto, "https")
+            }
+        ) {
             assertEquals("https://my-host/", readText())
         }
     }
 
     @Test
-    public fun testRequestParts() {
+    fun testRequestParts() {
         createAndStartServer {
             get("/path/1") {
                 call.respond(call.request.path())
@@ -501,29 +532,31 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testConnectionReset() {
+    fun testConnectionReset() {
         val completed = Job()
 
         createAndStartServer {
             get("/file") {
                 try {
-                    call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            val bb = ByteBuffer.allocate(512)
-                            for (i in 1L..1000L) {
-                                delay(100)
-                                bb.clear()
-                                while (bb.hasRemaining()) {
-                                    bb.putLong(i)
+                    call.respond(
+                        object : OutgoingContent.WriteChannelContent() {
+                            override suspend fun writeTo(channel: ByteWriteChannel) {
+                                val bb = ByteBuffer.allocate(512)
+                                for (i in 1L..1000L) {
+                                    delay(100)
+                                    bb.clear()
+                                    while (bb.hasRemaining()) {
+                                        bb.putLong(i)
+                                    }
+                                    bb.flip()
+                                    channel.writeFully(bb)
+                                    channel.flush()
                                 }
-                                bb.flip()
-                                channel.writeFully(bb)
-                                channel.flush()
-                            }
 
-                            channel.close()
+                                channel.close()
+                            }
                         }
-                    })
+                    )
                 } finally {
                     completed.cancel()
                 }
@@ -534,17 +567,19 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
             // to ensure immediate RST at close it is very important to set SO_LINGER = 0
             setSoLinger(true, 0)
 
-            outputStream.writePacket(RequestResponseBuilder().apply {
-                requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
-                headerLine("Host", "localhost:$port")
-                headerLine("Connection", "keep-alive")
-                emptyLine()
-            }.build())
+            outputStream.writePacket(
+                RequestResponseBuilder().apply {
+                    requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
+                    headerLine("Host", "localhost:$port")
+                    headerLine("Connection", "keep-alive")
+                    emptyLine()
+                }.build()
+            )
 
             outputStream.flush()
 
             inputStream.read(ByteArray(100))
-        }  // send FIN + RST
+        } // send FIN + RST
 
         runBlocking {
             withTimeout(5000L) {
@@ -555,7 +590,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
 
     @Test
     @Http2Only
-    public fun testServerPush() {
+    fun testServerPush() {
         createAndStartServer {
             get("/child") {
                 call.respondText("child")
@@ -579,42 +614,44 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public open fun testUpgrade() {
+    open fun testUpgrade() {
         val completed = CompletableDeferred<Unit>()
 
         createAndStartServer {
             get("/up") {
-                call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override val headers: Headers
-                        get() = Headers.build {
-                            append(HttpHeaders.Upgrade, "up")
-                            append(HttpHeaders.Connection, "Upgrade")
-                        }
+                call.respond(
+                    object : OutgoingContent.ProtocolUpgrade() {
+                        override val headers: Headers
+                            get() = Headers.build {
+                                append(HttpHeaders.Upgrade, "up")
+                                append(HttpHeaders.Connection, "Upgrade")
+                            }
 
-                    override suspend fun upgrade(
-                        input: ByteReadChannel,
-                        output: ByteWriteChannel,
-                        engineContext: CoroutineContext,
-                        userContext: CoroutineContext
-                    ): Job {
-                        return launch(engineContext) {
-                            try {
-                                val bb = ByteBuffer.allocate(8)
-                                input.readFully(bb)
-                                bb.flip()
-                                output.writeFully(bb)
-                                output.close()
-                                input.readRemaining().use {
-                                    assertEquals(0, it.remaining)
+                        override suspend fun upgrade(
+                            input: ByteReadChannel,
+                            output: ByteWriteChannel,
+                            engineContext: CoroutineContext,
+                            userContext: CoroutineContext
+                        ): Job {
+                            return launch(engineContext) {
+                                try {
+                                    val bb = ByteBuffer.allocate(8)
+                                    input.readFully(bb)
+                                    bb.flip()
+                                    output.writeFully(bb)
+                                    output.close()
+                                    input.readRemaining().use {
+                                        assertEquals(0, it.remaining)
+                                    }
+                                    completed.complete(Unit)
+                                } catch (t: Throwable) {
+                                    completed.completeExceptionally(t)
+                                    throw t
                                 }
-                                completed.complete(Unit)
-                            } catch (t: Throwable) {
-                                completed.completeExceptionally(t)
-                                throw t
                             }
                         }
                     }
-                })
+                )
             }
         }
 
@@ -687,9 +724,8 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testHeadersReturnCorrectly() {
+    fun testHeadersReturnCorrectly() {
         createAndStartServer {
-
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
                 assertEquals("foo,bar", call.request.headers["X-Double-Value"])
@@ -701,24 +737,26 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
             }
         }
 
-        withUrl("/", {
-            headers {
-                append("X-Single-Value", "foo")
-                append("X-Double-Value", "foo")
-                append("X-Double-Value", "bar")
+        withUrl(
+            "/",
+            {
+                headers {
+                    append("X-Single-Value", "foo")
+                    append("X-Double-Value", "foo")
+                    append("X-Double-Value", "bar")
+                }
             }
-        }) {
+        ) {
             assertEquals(HttpStatusCode.OK, status)
             assertEquals("OK", readText())
         }
     }
 
     @Test
-    public fun testParentContextPropagates() {
+    fun testParentContextPropagates() {
         createAndStartServer(
             parent = TestData("parent")
         ) {
-
             get("/") {
                 val valueFromContext = coroutineContext[TestData]!!.name
                 call.respond(HttpStatusCode.OK, valueFromContext)
@@ -737,6 +775,6 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
         /**
          * Key for [CoroutineName] instance in the coroutine context.
          */
-        public companion object Key : CoroutineContext.Key<TestData>
+        companion object Key : CoroutineContext.Key<TestData>
     }
 }

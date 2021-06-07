@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.application
 
@@ -89,6 +89,10 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
 /**
  * Uninstalls all features from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+)
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
     val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
     registry.allKeys.forEach {
@@ -100,6 +104,10 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
 /**
  * Uninstalls [feature] from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+)
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
     feature: ApplicationFeature<A, B, F>
 ): Unit = uninstallFeature(feature.key)
@@ -107,6 +115,10 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
 /**
  * Uninstalls feature specified by [key] from the pipeline
  */
+@Deprecated(
+    "This method is misleading and will be removed. " +
+        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+)
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return

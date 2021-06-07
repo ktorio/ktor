@@ -45,4 +45,3 @@ internal constructor(pool: ObjectPool<ChunkBuffer>) : BytePacketBuilderBase(pool
 @Suppress("DEPRECATION_ERROR")
 public abstract class BytePacketBuilderBase
 internal constructor(pool: ObjectPool<ChunkBuffer>) : AbstractOutput(pool)
-

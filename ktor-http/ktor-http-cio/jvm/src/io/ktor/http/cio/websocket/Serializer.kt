@@ -78,7 +78,6 @@ public class Serializer {
         } + maskSize(mask)
     }
 
-
     private fun writeCurrentPayload(buffer: ByteBuffer): Boolean {
         val frame = frameBody ?: return true
         frame.moveTo(buffer)

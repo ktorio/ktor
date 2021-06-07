@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -47,49 +47,41 @@ class StaticContentTest {
 
         // get file from nested folder
         handleRequest(HttpMethod.Get, "/files/features/StaticContentTest.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // get file from a subfolder
         handleRequest(HttpMethod.Get, "/selected/StaticContentTest.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't get up to containing folder
         handleRequest(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
-            assertFalse(result.requestHandled)
+            assertFalse(result.response.status()!!.isSuccess())
         }
 
         // can serve select file from other dir
         handleRequest(HttpMethod.Get, "/selected/routing/RoutingBuildTest.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't serve file from other dir that was not published explicitly
         handleRequest(HttpMethod.Get, "/selected/routing/RoutingResolveTest.kt").let { result ->
-            assertFalse(result.requestHandled)
+            assertFalse(result.response.status()!!.isSuccess())
         }
         // can't serve dir itself
         handleRequest(HttpMethod.Get, "/selected/routing").let { result ->
-            assertFalse(result.requestHandled)
+            assertFalse(result.response.status()!!.isSuccess())
         }
         // can serve file from virtual folder with a renamed file
         handleRequest(HttpMethod.Get, "/selected/virtual/foobar.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can serve dir itself if default was given
         handleRequest(HttpMethod.Get, "/selected/virtual").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can serve mapped file from root folder
         handleRequest(HttpMethod.Get, "/foobar.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
-
-        Unit
     }
 
     @Test
@@ -114,7 +106,6 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/StaticContentTest.class").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
 
@@ -123,13 +114,12 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/ArrayList.class2")
 
         handleRequest(HttpMethod.Get, "/features/StaticContentTest.kt").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
         handleRequest(HttpMethod.Get, "/f/features/StaticContentTest.kt").let { result ->
-            assertTrue(result.requestHandled)
+            assertTrue(result.response.status()!!.isSuccess())
         }
     }
 
@@ -149,7 +139,7 @@ class StaticContentTest {
             "/./.././../build.gradle"
         ).forEach { path ->
             handleRequest(HttpMethod.Get, path).let { result ->
-                assertFalse(result.requestHandled, "Should be unhandled for path $path")
+                assertFalse(result.response.status()!!.isSuccess())
             }
         }
     }
@@ -172,7 +162,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
             addHeader(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(temp.readText(), result.response.content)
             assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
             assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
@@ -197,16 +186,14 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
             addHeader(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(temp.readText(), result.response.content)
             assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
             assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
     }
 
-
     @Test
-    //a.k.a testServeEncodedFileGzWithCompressionNoRecompress
+    // a.k.a testServeEncodedFileGzWithCompressionNoRecompress
     fun testSuppressCompressionIfAlreadyCompressed() = withTestApplication {
         application.install(Compression)
         val ext = "js"
@@ -225,7 +212,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(temp.readText(), result.response.content)
             assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
             assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
@@ -258,7 +244,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/firstgz/$publicFile") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(cType, result.response.contentType())
             assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -266,7 +251,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/firstbr/$publicFile") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(cType, result.response.contentType())
             assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -298,7 +282,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/assets/$publicFile.js") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(ContentType.defaultForFileExtension("js"), result.response.contentType())
             assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -306,7 +289,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/assets/$publicFile.css") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(ContentType.defaultForFileExtension("css"), result.response.contentType())
             assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -336,7 +318,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/assets/$publicFile.js") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(ContentType.defaultForFileExtension("js"), result.response.contentType())
             assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -344,7 +325,6 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/assets/$publicFile.css") {
             addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(ContentType.defaultForFileExtension("css"), result.response.contentType())
             assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -366,7 +346,6 @@ class StaticContentTest {
                 File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(),
                 result.response.content
             )
-            assertTrue(result.requestHandled)
         }
     }
 
@@ -420,7 +399,7 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertFalse(result.requestHandled)
+            assertFalse(result.response.status()!!.isSuccess())
         }
     }
 
@@ -455,7 +434,7 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertFalse(result.requestHandled)
+            assertFalse(result.response.status()!!.isSuccess())
         }
     }
 
@@ -479,10 +458,36 @@ class StaticContentTest {
                 result.response.content
             )
             assertEquals(listOf("max-age=300"), result.response.headers.values(HttpHeaders.CacheControl))
-            assertTrue(result.requestHandled)
         }
     }
 
+    @Test
+    fun testStaticContentPriority() = withTestApplication {
+        application.routing {
+            route("/before") {
+                get {
+                    call.respond("before")
+                }
+            }
+            static("/") {
+                defaultResource("index.html", "web-resource")
+                resources("web-resource")
+            }
+            route("/after") {
+                get {
+                    call.respond("after")
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/before").let { result ->
+            assertEquals("before", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/after").let { result ->
+            assertEquals("after", result.response.content)
+        }
+    }
 }
 
 private fun String.replaceSeparators() = replace("/", File.separator)

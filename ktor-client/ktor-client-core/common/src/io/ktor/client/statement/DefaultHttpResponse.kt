@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.statement
 
@@ -14,7 +14,8 @@ import kotlin.coroutines.*
 
 @InternalAPI
 public class DefaultHttpResponse(
-    override val call: HttpClientCall, responseData: HttpResponseData
+    override val call: HttpClientCall,
+    responseData: HttpResponseData
 ) : HttpResponse() {
     override val coroutineContext: CoroutineContext = responseData.callContext
 

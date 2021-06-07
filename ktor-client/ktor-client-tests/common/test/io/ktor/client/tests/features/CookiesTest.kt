@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.tests.features
 
@@ -208,8 +208,8 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<Unit>("$HTTP_PROXY_SERVER/wrong-value")
-            val cookies = client[HttpCookies].get(Url(HTTP_PROXY_SERVER))
+            client.get<Unit>("$TCP_SERVER/wrong-value")
+            val cookies = client[HttpCookies].get(Url(TCP_SERVER))
             val expected = Cookie(
                 "___utmvazauvysSB",
                 "kDu\u0001xSkE",
@@ -222,7 +222,6 @@ class CookiesTest : ClientLoader() {
             assertEquals(1, cookies.size)
             assertEquals(expected, cookies.first())
         }
-
     }
 
     private suspend fun HttpClient.getId() = cookies(hostname)["id"]!!.value.toInt()

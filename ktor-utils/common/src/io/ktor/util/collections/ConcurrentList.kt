@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections
 
@@ -12,7 +12,6 @@ import kotlinx.atomicfu.locks.*
 
 private const val INITIAL_CAPACITY = 32
 
-@KtorExperimentalAPI
 public class ConcurrentList<T> : MutableList<T> {
     private var data by shared(SharedList<T>(INITIAL_CAPACITY))
 
@@ -160,9 +159,8 @@ public class ConcurrentList<T> : MutableList<T> {
         }
     }
 
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = ConcurrentListSlice(
-        this, fromIndex, toIndex
-    )
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> =
+        ConcurrentListSlice(this, fromIndex, toIndex)
 
     override fun remove(element: T): Boolean = synchronized(lock) {
         val index = indexOf(element)
@@ -272,4 +270,3 @@ public class ConcurrentList<T> : MutableList<T> {
         size += gapSize
     }
 }
-

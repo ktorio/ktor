@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.tls
 
@@ -55,8 +55,10 @@ public actual class TLSConfigBuilder {
      */
     public actual fun build(): TLSConfig = TLSConfig(
         random ?: SecureRandom(),
-        certificates, trustManager as? X509TrustManager ?: findTrustManager(),
-        cipherSuites, serverName
+        certificates,
+        trustManager as? X509TrustManager ?: findTrustManager(),
+        cipherSuites,
+        serverName
     )
 }
 
@@ -81,17 +83,31 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 /**
  * Add client certificates from [store] by using all certificates
  */
-@Suppress("unused") // Keep for binary compatibility
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+@Suppress("unused") // Keep for binary compatibility
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
-    addKeyStore(store, password)
+    addKeyStore(store, password as CharArray?)
 }
 
 /**
  * Add client certificates from [store] by using the certificate with specific [alias]
  * or all certificates, if [alias] is null.
  */
+@Deprecated(
+    "Please use the nullable overload",
+    ReplaceWith("addKeyStore(store, password as CharArray?, alias)"),
+    level = DeprecationLevel.WARNING
+)
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
+    addKeyStore(store, password as CharArray?, alias)
+}
+
+/**
+ * Add client certificates from [store] by using the certificate with specific [alias]
+ * or all certificates, if [alias] is null.
+ */
+@JvmName("addKeyStoreNullablePassword")
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
@@ -122,7 +138,8 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, al
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public class NoPrivateKeyException(
-    private val alias: String, private val store: KeyStore
+    private val alias: String,
+    private val store: KeyStore
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {
 

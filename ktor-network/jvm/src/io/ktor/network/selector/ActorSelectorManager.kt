@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
@@ -148,7 +147,6 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         }
     }
 
-
     private suspend fun LockFreeMPSCQueue<Selectable>.receiveOrNull(): Selectable? {
         return removeFirstOrNull() ?: receiveOrNullSuspend()
     }
@@ -180,7 +178,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     private class ContinuationHolder<R, C : Continuation<R>> {
         private val ref = AtomicReference<C?>(null)
 
-        public fun resume(value: R): Boolean {
+        fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null)
             if (continuation != null) {
                 continuation.resume(value)

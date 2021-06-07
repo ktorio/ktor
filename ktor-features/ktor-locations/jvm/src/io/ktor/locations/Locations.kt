@@ -95,10 +95,11 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
 
         @OptIn(KtorExperimentalLocationsAPI::class)
         return info.queryParameters.fold(pathRoute) { entry, query ->
-            val selector = if (query.isOptional)
+            val selector = if (query.isOptional) {
                 OptionalParameterRouteSelector(query.name)
-            else
+            } else {
                 ParameterRouteSelector(query.name)
+            }
             entry.createChild(selector)
         }
     }

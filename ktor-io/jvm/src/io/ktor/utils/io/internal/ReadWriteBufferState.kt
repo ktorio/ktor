@@ -35,8 +35,11 @@ internal sealed class ReadWriteBufferState(
             require(backingBuffer.limit() == backingBuffer.capacity())
         }
 
-        override val writeBuffer: ByteBuffer = backingBuffer.duplicate() // defensive copy of buffer's state
-        override val readBuffer: ByteBuffer = backingBuffer.duplicate() // must have a separate buffer state here
+        // defensive copy of buffer's state
+        override val writeBuffer: ByteBuffer = backingBuffer.duplicate()
+
+        // must have a separate buffer state here
+        override val readBuffer: ByteBuffer = backingBuffer.duplicate()
 
         // all other possible states
         internal val idleState = IdleNonEmpty(this)

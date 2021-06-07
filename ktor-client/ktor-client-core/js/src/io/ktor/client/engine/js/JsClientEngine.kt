@@ -5,8 +5,8 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
 import io.ktor.client.engine.js.compatibility.*
+import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -48,7 +48,8 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         return HttpResponseData(
             status,
             requestTime,
-            headers, version,
+            headers,
+            version,
             body,
             callContext
         )
@@ -58,7 +59,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
     // so it can be accessed inside js("") function
     private fun createWebSocket(urlString_capturingHack: String): WebSocket {
         return if (PlatformUtils.IS_NODE) {
-            val ws_capturingHack = js("require('ws')")
+            val ws_capturingHack = js("eval('require')('ws')")
             js("new ws_capturingHack(urlString_capturingHack)")
         } else {
             js("new WebSocket(urlString_capturingHack)")

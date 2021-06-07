@@ -5,6 +5,7 @@ description = "Ktor network utilities"
 
 val ideaActive: Boolean by project.extra
 val nativeCompilations: List<KotlinNativeCompilation> by project.extra
+val mockk_version: String by project.extra
 
 kotlin {
     nativeCompilations.forEach {
@@ -16,9 +17,15 @@ kotlin {
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(project(":ktor-utils"))
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation("io.mockk:mockk:$mockk_version")
             }
         }
 
@@ -26,10 +33,8 @@ kotlin {
             val networkInterop by creating
             getByName("posixMain").dependsOn(networkInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
-            (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
-                "network",
-                networkInterop
-            )
+            val registerInteropAsSourceSetOutput = extra["registerInteropAsSourceSetOutput"] as groovy.lang.Closure<*>
+            registerInteropAsSourceSetOutput.invoke("network", networkInterop)
         }
     }
 }

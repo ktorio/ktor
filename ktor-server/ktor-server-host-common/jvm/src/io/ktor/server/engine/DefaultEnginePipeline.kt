@@ -5,15 +5,15 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -104,7 +104,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is CancellationException -> log.info("$status: $logString, cancelled")
             is ClosedChannelException -> log.info("$status: $logString, channel closed")
             is ChannelIOException -> log.info("$status: $logString, channel failed")
-            is IOException -> log.info("$status: $logString, io failed")
+            is IOException -> log.info("$status: $logString, io failed: ${cause.message ?: "unknown error"}")
             is BadRequestException -> log.debug("$status: $logString", cause)
             is NotFoundException -> log.debug("$status: $logString", cause)
             is UnsupportedMediaTypeException -> log.debug("$status: $logString", cause)

@@ -62,9 +62,12 @@ internal class ApacheResponseConsumer(
             interestController.suspendInput(ioctrl)
             launch(Dispatchers.Unconfined) {
                 check(!waiting.getAndSet(true))
-                channel.awaitFreeSpace()
-                check(waiting.getAndSet(false))
-                interestController.resumeInputIfPossible()
+                try {
+                    channel.awaitFreeSpace()
+                } finally {
+                    check(waiting.getAndSet(false))
+                    interestController.resumeInputIfPossible()
+                }
             }
         }
     }

@@ -15,7 +15,8 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     internal var config: OkHttpClient.Builder.() -> Unit = {
         followRedirects(false)
         followSslRedirects(false)
-        retryOnConnectionFailure(false)
+
+        retryOnConnectionFailure(true)
     }
 
     /**
@@ -29,6 +30,12 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     public var clientCacheSize: Int = 10
 
     /**
+     * If provided, this [WebSocket.Factory] will be used to create [WebSocket] instances.
+     * Otherwise, [OkHttpClient] is used directly.
+     */
+    public var webSocketFactory: WebSocket.Factory? = null
+
+    /**
      * Configure [OkHttpClient] using [OkHttpClient.Builder].
      */
     public fun config(block: OkHttpClient.Builder.() -> Unit) {
@@ -37,7 +44,6 @@ public class OkHttpConfig : HttpClientEngineConfig() {
             oldConfig()
             block()
         }
-
     }
 
     /**

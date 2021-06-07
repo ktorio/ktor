@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("KDocMissingDocumentation")
 
@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-
 
 @Deprecated(
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",

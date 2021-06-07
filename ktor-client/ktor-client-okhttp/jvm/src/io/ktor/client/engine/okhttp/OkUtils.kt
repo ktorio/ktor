@@ -9,51 +9,44 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import okhttp3.*
-import okhttp3.Headers
 import java.io.*
+import java.net.*
 import kotlin.coroutines.*
+import okhttp3.Headers as OkHttpHeaders
 
 internal suspend fun OkHttpClient.execute(
-    request: Request, requestData: HttpRequestData
-): Response = suspendCancellableCoroutine {
+    request: Request,
+    requestData: HttpRequestData
+): Response = suspendCancellableCoroutine { continuation ->
     val call = newCall(request)
-    val callback = object : Callback {
 
-        override fun onFailure(call: Call, cause: IOException) {
-            if (it.isCancelled) {
-                return
-            }
-            val cause = if (cause.message?.contains("canceled due to ") == true && cause.suppressed.isNotEmpty()) {
-                cause.suppressed[0]
-            } else {
-                cause
-            }
+    call.enqueue(OkHttpCallback(requestData, continuation))
 
-            val mappedException = when (cause) {
-                is java.net.SocketTimeoutException -> if (cause.message?.contains("connect") == true) {
-                    ConnectTimeoutException(requestData, cause)
-                } else {
-                    SocketTimeoutException(requestData, cause)
-                }
-                else -> cause
-            }
-
-            it.resumeWithException(mappedException)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            if (!call.isCanceled()) it.resume(response)
-        }
-    }
-
-    call.enqueue(callback)
-
-    it.invokeOnCancellation {
+    continuation.invokeOnCancellation {
         call.cancel()
     }
 }
 
-internal fun Headers.fromOkHttp(): io.ktor.http.Headers = object : io.ktor.http.Headers {
+private class OkHttpCallback(
+    private val requestData: HttpRequestData,
+    private val continuation: CancellableContinuation<Response>
+) : Callback {
+    override fun onFailure(call: Call, e: IOException) {
+        if (continuation.isCancelled) {
+            return
+        }
+
+        continuation.resumeWithException(mapOkHttpException(requestData, e))
+    }
+
+    override fun onResponse(call: Call, response: Response) {
+        if (!call.isCanceled()) {
+            continuation.resume(response)
+        }
+    }
+}
+
+internal fun OkHttpHeaders.fromOkHttp(): Headers = object : Headers {
     override val caseInsensitiveName: Boolean = true
 
     override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name).takeIf { it.isNotEmpty() }
@@ -73,4 +66,25 @@ internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
     Protocol.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
     Protocol.H2_PRIOR_KNOWLEDGE -> HttpProtocolVersion.HTTP_2_0
     Protocol.QUIC -> HttpProtocolVersion.QUIC
+}
+
+private fun mapOkHttpException(
+    requestData: HttpRequestData,
+    origin: IOException
+): Throwable = when (val cause = origin.unwrapSuppressed()) {
+    is SocketTimeoutException ->
+        if (cause.isConnectException()) {
+            ConnectTimeoutException(requestData, cause)
+        } else {
+            SocketTimeoutException(requestData, cause)
+        }
+    else -> cause
+}
+
+private fun IOException.isConnectException() =
+    message?.contains("connect", ignoreCase = true) == true
+
+private fun IOException.unwrapSuppressed(): Throwable {
+    if (suppressed.isNotEmpty()) return suppressed[0]
+    return this
 }

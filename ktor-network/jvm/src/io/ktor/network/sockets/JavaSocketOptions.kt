@@ -18,9 +18,7 @@ internal object SocketOptionsPlatformCapabilities {
             ?.fields
             ?.filter {
                 it.modifiers.let { modifiers ->
-                    Modifier.isStatic(modifiers)
-                        && Modifier.isFinal(modifiers)
-                        && Modifier.isPublic(modifiers)
+                    Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers)
                 }
             }
             ?.associateBy { it.name }
@@ -36,12 +34,11 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } && method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
@@ -54,12 +51,12 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } &&
+                method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
@@ -72,12 +69,12 @@ internal object SocketOptionsPlatformCapabilities {
         socketChannelClass.methods.firstOrNull { method ->
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            }
-                && method.name == "setOption"
-                && method.parameterTypes.size == 2
-                && method.returnType == socketChannelClass
-                && method.parameterTypes[0] == socketOptionType
-                && method.parameterTypes[1] == Object::class.java
+            } &&
+                method.name == "setOption" &&
+                method.parameterTypes.size == 2 &&
+                method.returnType == socketChannelClass &&
+                method.parameterTypes[0] == socketOptionType &&
+                method.parameterTypes[1] == Object::class.java
         }
     } catch (_: Throwable) {
         null
@@ -155,6 +152,9 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
+        if (options is SocketOptions.UDPSocketOptions) {
+            socket.broadcast = options.broadcast
+        }
         if (options is SocketOptions.PeerSocketOptions) {
             options.receiveBufferSize.takeIf { it > 0 }?.let { socket.receiveBufferSize = it }
             options.sendBufferSize.takeIf { it > 0 }?.let { socket.sendBufferSize = it }

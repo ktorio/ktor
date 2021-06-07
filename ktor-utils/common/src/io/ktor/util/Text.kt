@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -32,7 +32,8 @@ public fun String.escapeHTML(): String {
  * Useful together with destructuring declarations
  */
 public inline fun String.chomp(
-    separator: String, onMissingDelimiter: () -> Pair<String, String>
+    separator: String,
+    onMissingDelimiter: () -> Pair<String, String>
 ): Pair<String, String> {
     val idx = indexOf(separator)
     return when (idx) {
@@ -59,7 +60,7 @@ public fun String.toLowerCasePreservingASCIIRules(): String {
     return buildString(length) {
         append(original, 0, firstIndex)
 
-        for (index in firstIndex .. original.lastIndex) {
+        for (index in firstIndex..original.lastIndex) {
             append(toLowerCasePreservingASCII(original[index]))
         }
     }
@@ -83,21 +84,21 @@ public fun String.toUpperCasePreservingASCIIRules(): String {
     return buildString(length) {
         append(original, 0, firstIndex)
 
-        for (index in firstIndex .. original.lastIndex) {
+        for (index in firstIndex..original.lastIndex) {
             append(toUpperCasePreservingASCII(original[index]))
         }
     }
 }
 
 private fun toLowerCasePreservingASCII(ch: Char): Char = when (ch) {
-    in 'A' .. 'Z' -> ch + 32
-    in '\u0000' .. '\u007f' -> ch
+    in 'A'..'Z' -> ch + 32
+    in '\u0000'..'\u007f' -> ch
     else -> ch.toLowerCase()
 }
 
 private fun toUpperCasePreservingASCII(ch: Char): Char = when (ch) {
-    in 'a' .. 'z' -> ch - 32
-    in '\u0000' .. '\u007f' -> ch
+    in 'a'..'z' -> ch - 32
+    in '\u0000'..'\u007f' -> ch
     else -> ch.toLowerCase()
 }
 

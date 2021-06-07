@@ -6,7 +6,6 @@ import kotlinx.coroutines.*
 /**
  * A selectable entity with selectable NIO [channel], [interestedOps] subscriptions.
  */
-@KtorExperimentalAPI
 public expect interface Selectable
 
 @Suppress("KDocMissingDocumentation")

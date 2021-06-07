@@ -35,14 +35,14 @@ class DigestTest {
             val response = handleRequest {
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertEquals(
                 """Digest
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  opaque="5ccc069c403ebaf9f0171e9517f40e41",
-                 algorithm="MD5" """.normalize(), response.response.headers[HttpHeaders.WWWAuthenticate]
+                 algorithm="MD5" """.normalize(),
+                response.response.headers[HttpHeaders.WWWAuthenticate]
             )
         }
     }
@@ -70,7 +70,8 @@ class DigestTest {
                 uri = "/"
 
                 addHeader(
-                    HttpHeaders.Authorization, """Digest username="Mufasa",
+                    HttpHeaders.Authorization,
+                    """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -152,7 +153,8 @@ class DigestTest {
                 uri = "/"
 
                 addHeader(
-                    HttpHeaders.Authorization, """Digest username="Mufasa",
+                    HttpHeaders.Authorization,
+                    """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -164,7 +166,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("Secret info", response.response.content)
         }
@@ -179,7 +180,8 @@ class DigestTest {
                 uri = "/"
 
                 addHeader(
-                    HttpHeaders.Authorization, """Digest username="Mufasa",
+                    HttpHeaders.Authorization,
+                    """Digest username="Mufasa",
                  realm="testrealm@host.com1",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -191,7 +193,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -203,7 +204,6 @@ class DigestTest {
 
             val call = handleRequest { addHeader(HttpHeaders.Authorization, "D<gest code") }
 
-            assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
@@ -217,7 +217,8 @@ class DigestTest {
                 uri = "/"
 
                 addHeader(
-                    HttpHeaders.Authorization, """Digest username="Mufasa",
+                    HttpHeaders.Authorization,
+                    """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -229,7 +230,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -243,7 +243,8 @@ class DigestTest {
                 uri = "/"
 
                 addHeader(
-                    HttpHeaders.Authorization, """Digest username="missing",
+                    HttpHeaders.Authorization,
+                    """Digest username="missing",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -255,7 +256,6 @@ class DigestTest {
                 )
             }
 
-            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
@@ -269,7 +269,8 @@ class DigestTest {
             application.configureDigestServer(
                 nonceManager = StatelessHmacNonceManager(
                     key,
-                    nonceGenerator = { nonceValue })
+                    nonceGenerator = { nonceValue }
+                )
             )
 
             val challenge = handleRequest(HttpMethod.Get, "/").let { call ->
@@ -283,7 +284,8 @@ class DigestTest {
             assertNotNull(nonce, "Nonce is missing")
 
             val authHeader = HttpAuthHeader.Parameterized(
-                AuthScheme.Digest, linkedMapOf(
+                AuthScheme.Digest,
+                linkedMapOf(
                     "username" to "Mufasa",
                     "realm" to "testrealm@host.com",
                     "nonce" to nonce,
@@ -293,16 +295,17 @@ class DigestTest {
                     "cnonce" to "0a4f113b",
                     "response" to "unknown yet",
                     "opaque" to "5ccc069c403ebaf9f0171e9517f40e41"
-                ), HeaderValueEncoding.QUOTED_ALWAYS
+                ),
+                HeaderValueEncoding.QUOTED_ALWAYS
             )
-
 
             val userRealmPassDigest =
                 digest(MessageDigest.getInstance("MD5"), "Mufasa:testrealm@host.com:Circle Of Life")
 
             val expectedDigest = authHeader.toDigestCredential().expectedDigest(
                 HttpMethod.Get,
-                MessageDigest.getInstance("MD5"), userRealmPassDigest
+                MessageDigest.getInstance("MD5"),
+                userRealmPassDigest
             )
 
             handleRequest {
@@ -313,7 +316,6 @@ class DigestTest {
                     authHeader.withReplacedParameter("response", hex(expectedDigest)).render()
                 )
             }.let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }
 
@@ -328,7 +330,6 @@ class DigestTest {
                     ).render()
                 )
             }.let { call ->
-                assertTrue(call.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             }
         }

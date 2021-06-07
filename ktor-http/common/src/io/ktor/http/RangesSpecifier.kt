@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -59,8 +59,8 @@ public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken,
             return null
         }
 
-        val start = mapped.minBy { it.start }!!.start
-        val endInclusive = mapped.maxBy { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
+        val start = mapped.minByOrNull { it.start }!!.start
+        val endInclusive = mapped.maxByOrNull { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
 
         return start..endInclusive
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client
 
@@ -84,7 +84,7 @@ public class HttpClient(
 
     private val closed = atomic(false)
 
-    private val clientJob: CompletableJob = Job()
+    private val clientJob: CompletableJob = Job(engine.coroutineContext[Job])
 
     public override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
 
@@ -134,9 +134,13 @@ public class HttpClient(
     init {
         checkCoroutinesVersion()
 
-        val engineJob = engine.coroutineContext[Job]!!
-        @Suppress("DEPRECATION_ERROR")
-        clientJob.attachChild(engineJob as ChildJob)
+        if (manageEngine) {
+            clientJob.invokeOnCompletion {
+                if (it != null) {
+                    engine.cancel()
+                }
+            }
+        }
 
         engine.install(this)
 
@@ -148,6 +152,7 @@ public class HttpClient(
 
         with(userConfig) {
             config.install(HttpRequestLifecycle)
+            config.install(BodyProgress)
 
             if (useDefaultTransformers) {
                 config.install(HttpPlainText)
@@ -173,7 +178,6 @@ public class HttpClient(
     /**
      * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
-
     @Deprecated(
         "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
         level = DeprecationLevel.ERROR,
@@ -230,4 +234,3 @@ public class HttpClient(
 
     override fun toString(): String = "HttpClient[$engine]"
 }
-

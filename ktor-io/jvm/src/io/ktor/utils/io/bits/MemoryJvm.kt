@@ -60,8 +60,10 @@ public actual inline class Memory @DangerousInternalIoApi constructor(public val
             !buffer.isReadOnly && !destination.buffer.isReadOnly
         ) {
             System.arraycopy(
-                buffer.array(), buffer.arrayOffset() + offset,
-                destination.buffer.array(), destination.buffer.arrayOffset() + destinationOffset,
+                buffer.array(),
+                buffer.arrayOffset() + offset,
+                destination.buffer.array(),
+                destination.buffer.arrayOffset() + destinationOffset,
                 length
             )
             return
@@ -88,7 +90,8 @@ public actual inline class Memory @DangerousInternalIoApi constructor(public val
      */
     public actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
         copyTo(
-            destination, offset.toIntOrFail("offset"),
+            destination,
+            offset.toIntOrFail("offset"),
             length.toIntOrFail("length"),
             destinationOffset.toIntOrFail("destinationOffset")
         )
@@ -111,8 +114,11 @@ public actual fun Memory.copyTo(
 ) {
     if (buffer.hasArray() && !buffer.isReadOnly) {
         System.arraycopy(
-            buffer.array(), buffer.arrayOffset() + offset,
-            destination, destinationOffset, length
+            buffer.array(),
+            buffer.arrayOffset() + offset,
+            destination,
+            destinationOffset,
+            length
         )
         return
     }
@@ -145,12 +151,15 @@ public fun Memory.copyTo(
     val size = destination.remaining()
 
     if (buffer.hasArray() && !buffer.isReadOnly &&
-        destination.hasArray() && !destination.isReadOnly) {
+        destination.hasArray() && !destination.isReadOnly
+    ) {
         val dstPosition = destination.position()
 
         System.arraycopy(
-            buffer.array(), buffer.arrayOffset() + offset,
-            destination.array(), destination.arrayOffset() + dstPosition,
+            buffer.array(),
+            buffer.arrayOffset() + offset,
+            destination.array(),
+            destination.arrayOffset() + dstPosition,
             size
         )
         destination.position(dstPosition + size)

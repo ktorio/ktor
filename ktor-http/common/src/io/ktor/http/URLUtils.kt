@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -47,6 +47,7 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     user = url.user
     password = url.password
     parameters.appendAll(url.parameters)
+    parameters.urlEncodingOption = url.parameters.urlEncodingOption
     fragment = url.fragment
     trailingQuery = url.trailingQuery
 
@@ -64,6 +65,7 @@ public fun URLBuilder.takeFrom(url: Url): URLBuilder {
     user = url.user
     password = url.password
     parameters.appendAll(url.parameters)
+    parameters.urlEncodingOption = url.parameters.urlEncodingOption
     fragment = url.fragment
     trailingQuery = url.trailingQuery
 

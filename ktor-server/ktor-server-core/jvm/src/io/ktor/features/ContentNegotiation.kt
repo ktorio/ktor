@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.features
 
@@ -45,17 +45,43 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
  *
  * @param registrations is a list of registered converters for ContentTypes
  */
-public class ContentNegotiation(
+public class ContentNegotiation internal constructor(
     public val registrations: List<ConverterRegistration>,
-    private val acceptContributors: List<AcceptHeaderContributor>
+    private val acceptContributors: List<AcceptHeaderContributor>,
+    private val checkAcceptHeaderCompliance: Boolean = false
 ) {
+
+    @Deprecated("This will become internal", level = DeprecationLevel.HIDDEN)
+    public constructor(
+        registrations: List<ConverterRegistration>,
+        acceptContributors: List<AcceptHeaderContributor>
+    ) : this(registrations, acceptContributors, false)
+
+    internal fun checkAcceptHeader(
+        acceptItems: List<ContentTypeWithQuality>,
+        contentType: ContentType?
+    ): Boolean {
+        if (!checkAcceptHeaderCompliance) {
+            return true
+        }
+        if (acceptItems.isEmpty()) {
+            return true
+        }
+        if (contentType == null) {
+            return true
+        }
+        return acceptItems.any { contentType.match(it.contentType) }
+    }
 
     /**
      * Specifies which [converter] to use for a particular [contentType]
      * @param contentType is an instance of [ContentType] for this registration
      * @param converter is an instance of [ContentConverter] for this registration
      */
-    public data class ConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
+    public data class ConverterRegistration(
+        val contentType: ContentType,
+        val converter: ContentConverter
+    )
 
     /**
      * Configuration type for [ContentNegotiation] feature
@@ -63,6 +89,11 @@ public class ContentNegotiation(
     public class Configuration {
         internal val registrations = mutableListOf<ConverterRegistration>()
         internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
+
+        /**
+         * Checks that `ContentType` header value of the response suits `Accept` header value of the request
+         */
+        public var checkAcceptHeaderCompliance: Boolean = false
 
         /**
          * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
@@ -102,7 +133,11 @@ public class ContentNegotiation(
             configure: Configuration.() -> Unit
         ): ContentNegotiation {
             val configuration = Configuration().apply(configure)
-            val feature = ContentNegotiation(configuration.registrations, configuration.acceptContributors)
+            val feature = ContentNegotiation(
+                configuration.registrations,
+                configuration.acceptContributors,
+                configuration.checkAcceptHeaderCompliance
+            )
 
             // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
             pipeline.intercept(ApplicationCallPipeline.Features) {
@@ -114,7 +149,12 @@ public class ContentNegotiation(
             }
 
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
-                if (subject is OutgoingContent) return@intercept
+                if (subject is HttpStatusCodeContent) {
+                    return@intercept
+                }
+                if (subject is OutgoingContent && !feature.checkAcceptHeaderCompliance) {
+                    return@intercept
+                }
 
                 val acceptHeaderContent = call.request.header(HttpHeaders.Accept)
                 val acceptHeader = try {
@@ -140,6 +180,12 @@ public class ContentNegotiation(
                         feature.registrations.filter { it.contentType.match(contentType) }
                     }.distinct()
                 }
+                if (subject is OutgoingContent) {
+                    if (!feature.checkAcceptHeader(acceptItems, subject.contentType)) {
+                        proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
+                    }
+                    return@intercept
+                }
 
                 // Pick the first one that can convert the subject successfully
                 val converted = suitableConverters.mapFirstNotNull {
@@ -148,7 +194,13 @@ public class ContentNegotiation(
 
                 val rendered = converted?.let { transformDefaultContent(it) }
                     ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
-                proceedWith(rendered)
+
+                val contentType = rendered.contentType
+                if (feature.checkAcceptHeader(acceptItems, contentType)) {
+                    proceedWith(rendered)
+                } else {
+                    proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
+                }
             }
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { receive ->
@@ -182,7 +234,8 @@ public class ContentNegotiation(
 /**
  * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
  * Could provide bi-directional conversion implementation.
- * One of the most typical examples of content converter is a json content converter that provides both serialization and deserialization
+ * One of the most typical examples of content converter is a
+ * json content converter that provides both serialization and deserialization
  */
 public interface ContentConverter {
     /**

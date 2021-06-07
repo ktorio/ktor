@@ -13,7 +13,6 @@ public fun ByteReadChannel(content: ByteBuffer): ByteReadChannel = ByteBufferCha
  */
 public actual fun ByteChannel(autoFlush: Boolean): ByteChannel = ByteBufferChannel(autoFlush = autoFlush)
 
-
 /**
  * Creates channel for reading from the specified byte array.
  */

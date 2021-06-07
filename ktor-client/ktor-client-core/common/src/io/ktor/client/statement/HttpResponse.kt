@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.statement
 
@@ -74,7 +74,6 @@ public fun HttpResponse.use(block: () -> Unit) {
 @Deprecated("[response] is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
 public val HttpResponse.response: HttpResponse
     get() = this
-
 
 @InternalAPI
 @PublishedApi

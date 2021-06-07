@@ -40,19 +40,16 @@ class ETagsTest {
     @Test
     fun testNoConditions(): Unit = withConditionalApplication {
         val result = handleRequest {}
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
-
 
     @Test
     fun testIfMatchConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -63,7 +60,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
 
@@ -72,7 +68,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
@@ -82,7 +77,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
@@ -91,7 +85,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -102,7 +95,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "*")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -113,7 +105,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "*")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         // note: star for if-none-match is a special case
         // that should be handled separately
@@ -125,7 +116,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
@@ -134,7 +124,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -145,7 +134,6 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
@@ -156,10 +144,8 @@ class ETagsTest {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
-        assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
-
 }
 
 @RunWith(Parameterized::class)
@@ -509,7 +495,6 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 }
 
-
 class LastModifiedVersionTest {
     private fun temporaryDefaultTimezone(timeZone: TimeZone, block: () -> Unit) {
         val originalTimeZone: TimeZone = TimeZone.getDefault()
@@ -521,10 +506,11 @@ class LastModifiedVersionTest {
         }
     }
 
-    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion: (Date) -> LastModifiedVersion) {
+    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(
+        constructLastModifiedVersion: (Date) -> LastModifiedVersion
+    ) {
         // setup: any non-zero-offset-Timezone will do
         temporaryDefaultTimezone(TimeZone.getTimeZone("GMT+08:00")) {
-
             // guard: local default timezone needs to be different from GMT for the problem to manifest
             assertTrue(
                 TimeZone.getDefault().rawOffset != 0,

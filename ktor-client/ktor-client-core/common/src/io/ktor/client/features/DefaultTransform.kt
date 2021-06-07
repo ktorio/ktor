@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features
 
@@ -20,6 +20,8 @@ import kotlinx.coroutines.CancellationException
  * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
  */
 public fun HttpClient.defaultTransformers() {
+    val client = this
+
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
         if (context.headers[HttpHeaders.Accept] == null) {
             context.headers.append(HttpHeaders.Accept, "*/*")
@@ -79,7 +81,11 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
             }
             ByteReadChannel::class -> {
-                val channel: ByteReadChannel = writer(response.coroutineContext) {
+                // the response job could be already completed so the job holder
+                // could be cancelled immediately, but it doesn't matter
+                // since the copying job is running under the client job
+                val responseJobHolder = Job(response.coroutineContext[Job])
+                val channel: ByteReadChannel = writer(client.coroutineContext) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                     } catch (cause: CancellationException) {
@@ -90,6 +96,10 @@ public fun HttpClient.defaultTransformers() {
                         throw cause
                     } finally {
                         response.complete()
+                    }
+                }.also { writerJob ->
+                    writerJob.invokeOnCompletion {
+                        responseJobHolder.complete()
                     }
                 }.channel
 

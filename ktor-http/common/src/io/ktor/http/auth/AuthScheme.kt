@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.auth
 
@@ -45,6 +45,13 @@ public object AuthScheme {
      * see https://tools.ietf.org/html/rfc6749
      */
     public const val OAuth: String = "OAuth"
+
+    /**
+     * Bearer Authentication described in the RFC-6749:
+     *
+     * see https://tools.ietf.org/html/rfc6750
+     */
+    public const val Bearer: String = "Bearer"
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)

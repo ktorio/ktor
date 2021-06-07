@@ -9,8 +9,7 @@ import kotlin.coroutines.intrinsics.*
 
 @InternalAPI
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun <R, A>
-    (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
+internal actual inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
     arg: A,
     continuation: Continuation<Unit>
