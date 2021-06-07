@@ -1185,6 +1185,7 @@ public abstract class io/ktor/http/content/OutgoingContent {
 	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+	public fun trailers ()Lio/ktor/http/Headers;
 }
 
 public abstract class io/ktor/http/content/OutgoingContent$ByteArrayContent : io/ktor/http/content/OutgoingContent {
