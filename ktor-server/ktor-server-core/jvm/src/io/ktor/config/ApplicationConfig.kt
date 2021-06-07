@@ -30,6 +30,16 @@ public interface ApplicationConfig {
      * @throws ApplicationConfigurationException
      */
     public fun configList(path: String): List<ApplicationConfig>
+
+    /**
+     * Returns the set of keys, found by recursing the root object.
+     * All entries represent leaf nodes' keys, meaning that there would be no nested
+     * objects directly included as values for returned keys.
+     * It's still possible that entries may be a list and the lists may contain objects.
+     * @return set of paths with non-null values, built up by recursing the entire tree of
+     * config and creating an entry for each leaf value.
+     */
+    public fun keys(): Set<String>
 }
 
 /**
