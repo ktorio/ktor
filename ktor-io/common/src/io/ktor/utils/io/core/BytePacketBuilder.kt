@@ -4,7 +4,6 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.pool.*
 import kotlin.Boolean
 import kotlin.Char

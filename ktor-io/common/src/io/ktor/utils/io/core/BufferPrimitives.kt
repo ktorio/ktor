@@ -679,7 +679,7 @@ internal inline fun <R> Buffer.readExact(size: Int, name: String, block: (memory
     var value: R
 
     read { memory, start, endExclusive ->
-        io.ktor.utils.io.core.internal.require(endExclusive - start >= size) {
+        require(endExclusive - start >= size) {
             throw EOFException("Not enough bytes to read a $name of size $size.")
         }
         value = block(memory, start)
