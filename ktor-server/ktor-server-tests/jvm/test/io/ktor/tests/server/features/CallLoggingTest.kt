@@ -63,17 +63,17 @@ class CallLoggingTest {
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
         assertEquals(
-            "TRACE: Application started: $hash",
+            "INFO: Application started: $hash",
             messages[messages.size - 3],
             "No started message logged:\n$messages"
         )
         assertEquals(
-            "TRACE: Application stopping: $hash",
+            "INFO: Application stopping: $hash",
             messages[messages.size - 2],
             "No stopping message logged:\n$messages"
         )
         assertEquals(
-            "TRACE: Application stopped: $hash",
+            "INFO: Application stopped: $hash",
             messages[messages.size - 1],
             "No stopped message logged:\n$messages"
         )
@@ -85,7 +85,7 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/")
         }
 
-        assertTrue("TRACE: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
+        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
@@ -96,7 +96,7 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("TRACE: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
+        assertTrue("INFO: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
@@ -107,7 +107,7 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("TRACE: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
+        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
@@ -131,7 +131,7 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/uri-123").let { call ->
                 assertEquals("OK", call.response.content)
 
-                assertTrue("TRACE: /uri-123 -> 200 OK" in messages)
+                assertTrue("INFO: /uri-123 -> 200 OK" in messages)
             }
         }
     }
@@ -156,8 +156,8 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("TRACE: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
-        assertFalse("TRACE: ${red("404 Not Found")}: ${cyan("GET")} - /avoid" in messages)
+        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
+        assertFalse("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /avoid" in messages)
     }
 
     @Test
@@ -211,7 +211,7 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
-                        "TRACE: ${green("200 OK")}: ${cyan("GET")} - " +
+                        "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
                             "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
                     }
                 }
@@ -251,7 +251,7 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
-                        "TRACE: ${green("200 OK")}: ${cyan("GET")} - " +
+                        "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
                             "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
                     }
                 }
@@ -263,7 +263,7 @@ class CallLoggingTest {
     fun `can configure custom logger`() {
         val customMessages = ArrayList<String>()
         val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
-            override fun trace(message: String?) {
+            override fun info(message: String?) {
                 if (message != null) {
                     customMessages.add("CUSTOM TRACE: $message")
                 }
