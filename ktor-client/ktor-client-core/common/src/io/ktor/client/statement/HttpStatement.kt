@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -23,7 +24,8 @@ import kotlinx.coroutines.*
  */
 public class HttpStatement(
     private val builder: HttpRequestBuilder,
-    private val client: HttpClient
+    @PublishedApi
+    internal val client: HttpClient
 ) {
     init {
         checkCapabilities()

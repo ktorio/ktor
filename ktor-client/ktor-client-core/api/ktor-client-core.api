@@ -7,6 +7,7 @@ public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/corout
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getEngine ()Lio/ktor/client/engine/HttpClientEngine;
 	public final fun getEngineConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public final fun getMonitor ()Lio/ktor/events/Events;
 	public final fun getReceivePipeline ()Lio/ktor/client/statement/HttpReceivePipeline;
 	public final fun getRequestPipeline ()Lio/ktor/client/request/HttpRequestPipeline;
 	public final fun getResponsePipeline ()Lio/ktor/client/statement/HttpResponsePipeline;
@@ -352,6 +353,7 @@ public final class io/ktor/client/features/HttpRedirect {
 }
 
 public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client/features/HttpClientFeature {
+	public final fun getHttpResponseRedirect ()Lio/ktor/events/EventDefinition;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/HttpRedirect;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
@@ -487,6 +489,7 @@ public final class io/ktor/client/features/cache/HttpCache {
 }
 
 public final class io/ktor/client/features/cache/HttpCache$Companion : io/ktor/client/features/HttpClientFeature {
+	public final fun getHttpResponseFromCache ()Lio/ktor/events/EventDefinition;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/cache/HttpCache;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
@@ -1191,6 +1194,14 @@ public final class io/ktor/client/utils/CacheControl {
 	public static final field S_MAX_AGE Ljava/lang/String;
 }
 
+public final class io/ktor/client/utils/ClientEventsKt {
+	public static final fun getHttpRequestCreated ()Lio/ktor/events/EventDefinition;
+	public static final fun getHttpRequestIsReadyForSending ()Lio/ktor/events/EventDefinition;
+	public static final fun getHttpResponseCancelled ()Lio/ktor/events/EventDefinition;
+	public static final fun getHttpResponseReceiveFailed ()Lio/ktor/events/EventDefinition;
+	public static final fun getHttpResponseReceived ()Lio/ktor/events/EventDefinition;
+}
+
 public final class io/ktor/client/utils/ContentKt {
 	public static final fun wrapHeaders (Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent;
 }
@@ -1213,6 +1224,12 @@ public final class io/ktor/client/utils/ExceptionUtilsKt {
 public final class io/ktor/client/utils/HeadersKt {
 	public static final fun buildHeaders (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Headers;
 	public static synthetic fun buildHeaders$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/Headers;
+}
+
+public final class io/ktor/client/utils/HttpResponseReceiveFail {
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;)V
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
 }
 
 public final class io/ktor/network/sockets/ConnectTimeoutException : java/net/ConnectException {

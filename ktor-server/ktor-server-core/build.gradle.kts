@@ -10,6 +10,7 @@ kotlin.sourceSets {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
             api(project(":ktor-shared:ktor-shared-serialization"))
+            api(project(":ktor-shared:ktor-shared-events"))
 
             api("com.typesafe:config:$typesafe_config_version")
             api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")

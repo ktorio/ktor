@@ -7,6 +7,7 @@ package io.ktor.client.engine
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -54,16 +55,28 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     @InternalAPI
     public fun install(client: HttpClient) {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
-            val requestData = HttpRequestBuilder().apply {
+            val builder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
                 setBody(content)
-            }.build()
+            }
 
+            client.monitor.raise(HttpRequestIsReadyForSending, builder)
+
+            val requestData = builder.build()
             validateHeaders(requestData)
             checkExtensions(requestData)
 
             val responseData = executeWithinCallContext(requestData)
             val call = HttpClientCall(client, requestData, responseData)
+
+            val response = call.response
+            client.monitor.raise(HttpResponseReceived, response)
+
+            response.coroutineContext.job.invokeOnCompletion {
+                if (it != null) {
+                    client.monitor.raise(HttpResponseCancelled, response)
+                }
+            }
 
             proceedWith(call)
         }
