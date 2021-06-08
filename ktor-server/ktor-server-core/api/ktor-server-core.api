@@ -41,16 +41,9 @@ public abstract interface class io/ktor/application/ApplicationEnvironment {
 	public abstract fun getConfig ()Lio/ktor/config/ApplicationConfig;
 	public abstract fun getDevelopmentMode ()Z
 	public abstract fun getLog ()Lorg/slf4j/Logger;
-	public abstract fun getMonitor ()Lio/ktor/application/ApplicationEvents;
+	public abstract fun getMonitor ()Lio/ktor/events/Events;
 	public abstract fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public abstract fun getRootPath ()Ljava/lang/String;
-}
-
-public final class io/ktor/application/ApplicationEvents {
-	public fun <init> ()V
-	public final fun raise (Lio/ktor/application/EventDefinition;Ljava/lang/Object;)V
-	public final fun subscribe (Lio/ktor/application/EventDefinition;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
-	public final fun unsubscribe (Lio/ktor/application/EventDefinition;Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract interface class io/ktor/application/ApplicationFeature {
@@ -73,19 +66,15 @@ public final class io/ktor/application/ApplicationKt {
 }
 
 public final class io/ktor/application/DefaultApplicationEventsKt {
-	public static final fun getApplicationStarted ()Lio/ktor/application/EventDefinition;
-	public static final fun getApplicationStarting ()Lio/ktor/application/EventDefinition;
-	public static final fun getApplicationStopPreparing ()Lio/ktor/application/EventDefinition;
-	public static final fun getApplicationStopped ()Lio/ktor/application/EventDefinition;
-	public static final fun getApplicationStopping ()Lio/ktor/application/EventDefinition;
+	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationStopped ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationStopping ()Lio/ktor/events/EventDefinition;
 }
 
 public final class io/ktor/application/DuplicateApplicationFeatureException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
-}
-
-public class io/ktor/application/EventDefinition {
-	public fun <init> ()V
 }
 
 public final class io/ktor/application/MissingApplicationFeatureException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
@@ -283,7 +272,7 @@ public final class io/ktor/features/CallIdKt {
 
 public final class io/ktor/features/CallLogging {
 	public static final field Feature Lio/ktor/features/CallLogging$Feature;
-	public synthetic fun <init> (Lorg/slf4j/Logger;Lio/ktor/application/ApplicationEvents;Lorg/slf4j/event/Level;Ljava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lorg/slf4j/Logger;Lio/ktor/events/Events;Lorg/slf4j/event/Level;Ljava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/features/CallLogging$Configuration {
@@ -1454,8 +1443,8 @@ public final class io/ktor/routing/Routing : io/ktor/routing/Route {
 
 public final class io/ktor/routing/Routing$Feature : io/ktor/application/ApplicationFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public final fun getRoutingCallFinished ()Lio/ktor/application/EventDefinition;
-	public final fun getRoutingCallStarted ()Lio/ktor/application/EventDefinition;
+	public final fun getRoutingCallFinished ()Lio/ktor/events/EventDefinition;
+	public final fun getRoutingCallStarted ()Lio/ktor/events/EventDefinition;
 	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Routing;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
@@ -1886,15 +1875,6 @@ public final class io/ktor/sessions/TooLateSessionSetException : java/lang/Illeg
 public abstract interface class io/ktor/util/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
-}
-
-public final class io/ktor/util/CopyOnWriteHashMap {
-	public fun <init> ()V
-	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public final fun get (Ljava/lang/Object;)Ljava/lang/Object;
-	public final fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-	public final fun remove (Ljava/lang/Object;)Ljava/lang/Object;
-	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
 public final class io/ktor/util/DataConversionException : io/ktor/util/converters/DataConversionException {
