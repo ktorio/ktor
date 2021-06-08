@@ -40,9 +40,9 @@ public class CallLogging private constructor(
         internal var isColorsEnabled: Boolean = true
 
         /**
-         * Logging level for [CallLogging], default is [Level.TRACE]
+         * Logging level for [CallLogging], default is [Level.INFO]
          */
-        public var level: Level = Level.TRACE
+        public var level: Level = Level.INFO
 
         /**
          * Customize [Logger], will default to [ApplicationEnvironment.log]
