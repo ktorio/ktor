@@ -66,7 +66,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentReloading :
 	public fun getConnectors ()Ljava/util/List;
 	public fun getDevelopmentMode ()Z
 	public fun getLog ()Lorg/slf4j/Logger;
-	public fun getMonitor ()Lio/ktor/application/ApplicationEvents;
+	public fun getMonitor ()Lio/ktor/events/Events;
 	public fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getRootPath ()Ljava/lang/String;
 	public final fun reload ()V

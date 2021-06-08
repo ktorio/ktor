@@ -4,8 +4,8 @@
 
 package io.ktor.tests.server.netty
 
-import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.events.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.mockk.*
@@ -18,7 +18,7 @@ import java.util.concurrent.*
 class NettyConfigurationTest {
     private val environment: ApplicationEngineEnvironment get() {
         val config = MapApplicationConfig()
-        val events = ApplicationEvents()
+        val events = Events()
 
         val env = mockk<ApplicationEngineEnvironment>()
         every { env.developmentMode } returns false

@@ -7,10 +7,11 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
-import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
 @ThreadLocal
@@ -47,6 +48,11 @@ public class HttpRedirect {
     public companion object Feature : HttpClientFeature<HttpRedirect, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
+        /**
+         * Occurs when received response with redirect message.
+         */
+        public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
+
         override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
@@ -55,14 +61,15 @@ public class HttpRedirect {
                     return@intercept origin
                 }
 
-                handleCall(context, origin, feature.allowHttpsDowngrade)
+                handleCall(context, origin, feature.allowHttpsDowngrade, scope)
             }
         }
 
         private suspend fun Sender.handleCall(
             context: HttpRequestBuilder,
             origin: HttpClientCall,
-            allowHttpsDowngrade: Boolean
+            allowHttpsDowngrade: Boolean,
+            client: HttpClient
         ): HttpClientCall {
             if (!origin.response.status.isRedirect()) return origin
 
@@ -70,7 +77,10 @@ public class HttpRedirect {
             var requestBuilder = context
             val originProtocol = origin.request.url.protocol
             val originAuthority = origin.request.url.authority
+
             while (true) {
+                client.monitor.raise(HttpResponseRedirect, call.response)
+
                 val location = call.response.headers[HttpHeaders.Location]
 
                 requestBuilder = HttpRequestBuilder().apply {
