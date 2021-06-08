@@ -17,10 +17,10 @@ public fun <R> TODO_ERROR(value: R): Nothing = TODO("Not implemented. Value is $
 public fun TODO_ERROR(): Nothing = TODO("Not implemented.")
 
 internal fun checkPeekTo(destination: Buffer, offset: Int, min: Int, max: Int) {
-    io.ktor.utils.io.core.internal.require(offset >= 0) { "offset shouldn't be negative: $offset." }
-    io.ktor.utils.io.core.internal.require(min >= 0) { "min shouldn't be negative: $min." }
-    io.ktor.utils.io.core.internal.require(max >= min) { "max should't be less than min: max = $max, min = $min." }
-    io.ktor.utils.io.core.internal.require(min <= destination.writeRemaining) {
+    require(offset >= 0) { "offset shouldn't be negative: $offset." }
+    require(min >= 0) { "min shouldn't be negative: $min." }
+    require(max >= min) { "max should't be less than min: max = $max, min = $min." }
+    require(min <= destination.writeRemaining) {
         "Not enough free space in the destination buffer " +
             "to write the specified minimum number of bytes: min = $min, free = ${destination.writeRemaining}."
     }
