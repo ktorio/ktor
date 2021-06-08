@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -20,7 +21,7 @@ internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
      * Equals [HttpResponse.content] in case [body] was never called before or equals it's copy if [body] was
      * already called at least once.
      * */
-    private var responseContent: ByteReadChannel? = null
+    private var responseContent: ByteReadChannel? by shared(null)
 
     /**
      * Saves [responseContent] and returns it's copy that is safe to use without loosing [responseContent] data.
