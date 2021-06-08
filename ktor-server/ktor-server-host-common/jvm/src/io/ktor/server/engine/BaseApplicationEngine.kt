@@ -6,7 +6,9 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import java.util.*
 
@@ -49,10 +51,18 @@ public abstract class BaseApplicationEngine(
     }
 
     private fun Application.installDefaultInterceptors() {
-        intercept(ApplicationCallPipeline.Fallback) {
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
+        intercept(ApplicationCallPipeline.Setup) {
+            call.response.pipeline.intercept(ApplicationSendPipeline.Before) {
+                call.attributes.put(SendPipelineExecutedAttributeKey, Unit)
             }
+        }
+        intercept(ApplicationCallPipeline.Fallback) {
+            val isResponded = call.attributes.getOrNull(SendPipelineExecutedAttributeKey) != null
+            if (isResponded) {
+                return@intercept
+            }
+            val status = call.response.status() ?: HttpStatusCode.NotFound
+            call.respond(status)
         }
 
         intercept(ApplicationCallPipeline.Call) {
@@ -60,6 +70,8 @@ public abstract class BaseApplicationEngine(
         }
     }
 }
+
+private val SendPipelineExecutedAttributeKey = AttributeKey<Unit>("SendPipelineExecutedAttributeKey")
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
     val hostHeaders = call.request.headers.getAll(HttpHeaders.Host) ?: return
