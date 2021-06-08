@@ -79,15 +79,13 @@ public class StatusPages(config: Configuration) {
             is OutgoingContent -> message.status
             is HttpStatusCode -> message
             else -> null
-        }
-        if (status != null) {
-            val handler = statuses[status]
-            if (handler != null) {
-                call.attributes.put(key, this@StatusPages)
-                context.handler(status)
-                finishIfResponseSent(context)
-            }
-        }
+        } ?: return
+
+        val handler = statuses[status] ?: return
+
+        call.attributes.put(key, this@StatusPages)
+        context.handler(status)
+        finishIfResponseSent(context)
     }
 
     private fun finishIfResponseSent(context: PipelineContext<*, ApplicationCall>) {
