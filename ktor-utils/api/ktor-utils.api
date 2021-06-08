@@ -587,6 +587,15 @@ public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotli
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/util/collections/CopyOnWriteHashMap {
+	public fun <init> ()V
+	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public final fun get (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
+}
+
 public abstract interface class io/ktor/util/converters/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;

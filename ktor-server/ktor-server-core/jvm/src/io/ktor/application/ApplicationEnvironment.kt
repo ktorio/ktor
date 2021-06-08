@@ -5,6 +5,7 @@
 package io.ktor.application
 
 import io.ktor.config.*
+import io.ktor.events.*
 import io.ktor.util.*
 import org.slf4j.*
 import kotlin.coroutines.*
@@ -38,7 +39,7 @@ public interface ApplicationEnvironment {
     /**
      * Provides events on Application lifecycle
      */
-    public val monitor: ApplicationEvents
+    public val monitor: Events
 
     /**
      * Application's root path (prefix, context path in servlet container).
