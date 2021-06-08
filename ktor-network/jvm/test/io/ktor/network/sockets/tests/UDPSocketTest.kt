@@ -201,23 +201,23 @@ class UDPSocketTest : CoroutineScope {
         assertTrue(socket.isClosed)
     }
 
-    @Test
-    fun testBind() {
-        val socketBuilder: UDPSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).udp()
-        val socket = socketBuilder.bind()
-        val port = socket.localAddress.port
-        socket.close()
-
-        repeat(1024) {
-            try {
-                socketBuilder
-                    .bind(InetSocketAddress("0.0.0.0", port))
-                    .close()
-            } catch (_: BindException) {
-                // Don't confuse with: Socket Exception: Already bound
-            }
-        }
-    }
+//    @Test
+//    fun testBind() {
+//        val socketBuilder: UDPSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).udp()
+//        val socket = socketBuilder.bind()
+//        val port = socket.localAddress.port
+//        socket.close()
+//
+//        repeat(1024) {
+//            try {
+//                socketBuilder
+//                    .bind(InetSocketAddress("0.0.0.0", port))
+//                    .close()
+//            } catch (_: BindException) {
+//                // Don't confuse with: Socket Exception: Already bound
+//            }
+//        }
+//    }
 }
 
 private val OS_NAME: String
