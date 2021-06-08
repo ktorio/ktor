@@ -51,7 +51,7 @@ public class HttpRedirect {
         /**
          * Occurs when received response with redirect message.
          */
-        public val HttpResponseFromCache: EventDefinition<HttpResponse> = EventDefinition()
+        public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
 
         override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
 
@@ -79,7 +79,7 @@ public class HttpRedirect {
             val originAuthority = origin.request.url.authority
 
             while (true) {
-                client.monitor.raise(HttpResponseFromCache, call.response)
+                client.monitor.raise(HttpResponseRedirect, call.response)
 
                 val location = call.response.headers[HttpHeaders.Location]
 
