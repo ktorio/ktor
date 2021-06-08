@@ -37,9 +37,9 @@ public class CallLogging private constructor(
         internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
 
         /**
-         * Logging level for [CallLogging], default is [Level.TRACE]
+         * Logging level for [CallLogging], default is [Level.INFO]
          */
-        public var level: Level = Level.TRACE
+        public var level: Level = Level.INFO
 
         /**
          * Customize [Logger], will default to [ApplicationEnvironment.log]
