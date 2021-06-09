@@ -6,7 +6,6 @@ package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -61,3 +60,5 @@ class NettySustainabilityTest :
         configuration.shareWorkGroup = true
     }
 }
+
+class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
