@@ -34,3 +34,5 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
         enableSsl = false
     }
 }
+
+class CIOConfigTest : ConfigTestSuite(CIO)

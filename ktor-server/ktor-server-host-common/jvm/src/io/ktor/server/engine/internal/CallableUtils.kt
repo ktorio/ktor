@@ -41,8 +41,9 @@ internal fun ApplicationEnvironment.executeModuleFunction(
     if (Function1::class.java.isAssignableFrom(clazz)) {
         val constructor = clazz.declaredConstructors.single()
         if (constructor.parameterCount != 0) {
-            throw RuntimeException("Module function with captured variables cannot be instantiated '$fqName'")
+            throw ReloadingException("Module function with captured variables cannot be instantiated '$fqName'")
         }
+
         constructor.isAccessible = true
         @Suppress("UNCHECKED_CAST")
         val function = constructor.newInstance() as Function1<Application, Unit>
@@ -85,8 +86,8 @@ private fun <R> ApplicationEnvironment.callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
     application: Application
-): R = entryPoint.callBy(
-    entryPoint.parameters.filterNot { it.isOptional }.associateBy(
+): R {
+    val args = entryPoint.parameters.filterNot { it.isOptional }.associateBy(
         { it },
         { parameter ->
             when {
@@ -109,4 +110,12 @@ private fun <R> ApplicationEnvironment.callFunctionWithInjection(
             }
         }
     )
-)
+
+    try {
+        return entryPoint.callBy(args)
+    } catch (cause: InvocationTargetException) {
+        throw cause.cause ?: cause
+    }
+}
+
+internal class ReloadingException(message: String) : RuntimeException(message)

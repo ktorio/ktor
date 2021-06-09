@@ -50,9 +50,9 @@ class NettyHttp2ServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyAp
     }
 }
 
-class NettySustainabilityTest :
-    SustainabilityTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
-
+class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+    Netty
+) {
     init {
         enableSsl = true
     }
@@ -61,3 +61,5 @@ class NettySustainabilityTest :
         configuration.shareWorkGroup = true
     }
 }
+
+class NettyConfigTest : ConfigTestSuite(Netty)
