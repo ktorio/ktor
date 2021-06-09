@@ -27,14 +27,14 @@ public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    port: Int = 80,
-    host: String = "0.0.0.0",
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit
-): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
+embeddedServer(
+        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+        port: Int = 80,
+        host: String = "0.0.0.0",
+        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+        configure: TConfiguration.() -> Unit = {},
+        module: Application.() -> Unit
+    ): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
 
 /**
  * Creates an embedded server with the given [factory], listening on [host]:[port]
@@ -44,15 +44,15 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    port: Int = 80,
-    host: String = "0.0.0.0",
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit
-): TEngine {
+CoroutineScope.embeddedServer(
+        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+        port: Int = 80,
+        host: String = "0.0.0.0",
+        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        configure: TConfiguration.() -> Unit = {},
+        module: Application.() -> Unit
+    ): TEngine {
     val connectors: Array<EngineConnectorConfig> = arrayOf(
         EngineConnectorBuilder().apply {
             this.port = port
@@ -60,8 +60,12 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
         }
     )
     return embeddedServer(
-        factory = factory, connectors = connectors, watchPaths = watchPaths,
-        parentCoroutineContext = parentCoroutineContext, configure = configure, module = module
+        factory = factory,
+        connectors = connectors,
+        watchPaths = watchPaths,
+        parentCoroutineContext = parentCoroutineContext,
+        configure = configure,
+        module = module
     )
 }
 
@@ -74,14 +78,14 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit
-): TEngine {
+CoroutineScope.embeddedServer(
+        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+        vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
+        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        configure: TConfiguration.() -> Unit = {},
+        module: Application.() -> Unit
+    ): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.log = LoggerFactory.getLogger("ktor.application")
