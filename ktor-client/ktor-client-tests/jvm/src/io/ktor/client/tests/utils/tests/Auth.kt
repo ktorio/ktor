@@ -103,9 +103,39 @@ internal fun Application.authTestServer() {
                     if (token.isNullOrEmpty() || token.contains("invalid")) {
                         call.response.header(HttpHeaders.WWWAuthenticate, "Bearer realm=\"TestServer\"")
                         call.respond(HttpStatusCode.Unauthorized)
-                    } else {
-                        call.respond(HttpStatusCode.OK)
+                        return@get
                     }
+
+                    call.respond(HttpStatusCode.OK)
+                }
+                route("token") {
+                    get("first") {
+                        call.respond("first")
+                    }
+                    get("second") {
+                        call.respond("second")
+                    }
+                }
+                get("first") {
+                    val header = call.request.headers[HttpHeaders.Authorization]
+
+                    if (header != "Bearer first") {
+                        call.response.header(HttpHeaders.WWWAuthenticate, "Bearer")
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond("OK")
+                }
+                get("second") {
+                    val header = call.request.headers[HttpHeaders.Authorization]
+                    if (header != "Bearer second") {
+                        call.response.header(HttpHeaders.WWWAuthenticate, "Bearer")
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond("OK")
                 }
             }
         }
