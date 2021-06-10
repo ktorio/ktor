@@ -135,3 +135,5 @@ class TomcatSustainabilityTestSuite :
         super.testBlockingConcurrency()
     }
 }
+
+class TomcatConfigTest : ConfigTestSuite(Tomcat)

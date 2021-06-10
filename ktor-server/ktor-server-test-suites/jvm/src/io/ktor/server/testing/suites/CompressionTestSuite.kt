@@ -21,12 +21,11 @@ import java.io.*
 import java.util.zip.*
 import kotlin.test.*
 
-public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) :
-    EngineTestBase<TEngine, TConfiguration>(hostFactory) {
-
+abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @Test
-    public fun testLocalFileContentWithCompression() {
+    fun testLocalFileContentWithCompression() {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -45,7 +44,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testStreamingContentWithCompression() {
+    fun testStreamingContentWithCompression() {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -70,7 +69,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testLocalFileContentRangeWithCompression() {
+    fun testLocalFileContentRangeWithCompression() {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -103,7 +102,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
     }
 
     @Test
-    public fun testCompressionWriteToLarge() {
+    fun testCompressionWriteToLarge() {
         val count = 655350
         fun Appendable.produceText() {
             for (i in 1..count) {
