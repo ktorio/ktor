@@ -13,8 +13,5 @@ public actual object PlatformUtils {
     public actual val IS_NATIVE: Boolean = false
 
     public actual val IS_DEVELOPMENT_MODE: Boolean =
-        System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() ?: isAssertionEnabled()
+        System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() == true
 }
-
-private fun isAssertionEnabled(): Boolean =
-    PlatformUtils::class.java.desiredAssertionStatus()
