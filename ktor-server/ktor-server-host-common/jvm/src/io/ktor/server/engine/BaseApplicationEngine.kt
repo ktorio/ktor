@@ -31,8 +31,13 @@ public abstract class BaseApplicationEngine(
     public open class Configuration : ApplicationEngine.Configuration()
 
     init {
+        var isFirstLoading = true
+        var initializedStartAt = System.currentTimeMillis()
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
+            if (!isFirstLoading) {
+                initializedStartAt = System.currentTimeMillis()
+            }
             it.receivePipeline.merge(pipeline.receivePipeline)
             it.sendPipeline.merge(pipeline.sendPipeline)
             it.receivePipeline.installDefaultTransformations()
@@ -40,10 +45,19 @@ public abstract class BaseApplicationEngine(
             it.installDefaultInterceptors()
         }
         environment.monitor.subscribe(ApplicationStarted) {
+            val finishedAt = System.currentTimeMillis()
             environment.connectors.forEach {
                 environment.log.info(
                     "Responding at ${it.type.name.lowercase(Locale.getDefault())}://${it.host}:${it.port}"
                 )
+            }
+
+            val elapsedTimeInSeconds = (finishedAt - initializedStartAt) / 1_000.0
+            if (isFirstLoading) {
+                environment.log.info("Application started in $elapsedTimeInSeconds seconds.")
+                isFirstLoading = false
+            } else {
+                environment.log.info("Application auto-reloaded in $elapsedTimeInSeconds seconds.")
             }
         }
     }
