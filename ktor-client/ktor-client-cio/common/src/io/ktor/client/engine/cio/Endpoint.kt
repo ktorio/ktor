@@ -35,7 +35,6 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val address = NetworkAddress(host, port)
     private val lastActivity = atomic(GMTDate())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
@@ -179,6 +178,8 @@ internal class Endpoint(
 
         try {
             repeat(connectAttempts) {
+                val address = NetworkAddress(host, port)
+
                 val connect: suspend CoroutineScope.() -> Socket = {
                     connectionFactory.connect(address) {
                         this.socketTimeout = socketTimeout
