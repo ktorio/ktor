@@ -17,6 +17,7 @@ import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.config.*
 import io.micrometer.core.instrument.distribution.*
+import io.micrometer.core.instrument.logging.*
 import java.util.concurrent.atomic.*
 
 /**
@@ -89,14 +90,11 @@ public class MicrometerMetrics private constructor(
      * contain request path or fallback to common `n/a` value. `true` by default
      * */
     public class Configuration {
-
         public var baseName: String = Feature.defaultBaseName
 
-        public lateinit var registry: MeterRegistry
+        public var registry: MeterRegistry = LoggingMeterRegistry()
 
         public var distinctNotRegisteredRoutes: Boolean = true
-
-        internal fun isRegistryInitialized() = this::registry.isInitialized
 
         public var meterBinders: List<MeterBinder> = listOf(
             ClassLoaderMetrics(),
@@ -220,12 +218,6 @@ public class MicrometerMetrics private constructor(
             }
 
             baseName = configuration.baseName
-
-            if (!configuration.isRegistryInitialized()) {
-                throw IllegalArgumentException(
-                    "Meter registry is missing. Please initialize the field 'registry'"
-                )
-            }
 
             val feature = MicrometerMetrics(
                 configuration.registry,
