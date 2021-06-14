@@ -70,8 +70,9 @@ kotlin {
                 fromPreset(presets.watchosArm32, 'watchosArm32')
                 fromPreset(presets.watchosArm64, 'watchosArm64')
                 fromPreset(presets.watchosX86, 'watchosX86')
+                fromPreset(presets.watchosX64, 'watchosX64')
 
-                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
+                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86, watchosX64]
             }
 
             def crossCompileTargets = [linuxX64, macosX64]
