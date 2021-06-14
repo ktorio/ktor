@@ -8,7 +8,9 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 import java.util.*
 
 /**
@@ -30,6 +32,8 @@ public abstract class BaseApplicationEngine(
      * Configuration for the [BaseApplicationEngine]
      */
     public open class Configuration : ApplicationEngine.Configuration()
+
+    protected val networkAddresses: CompletableDeferred<List<NetworkAddress>> = CompletableDeferred()
 
     init {
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
@@ -60,6 +64,10 @@ public abstract class BaseApplicationEngine(
         intercept(ApplicationCallPipeline.Call) {
             verifyHostHeader()
         }
+    }
+
+    override suspend fun networkAddresses(): List<NetworkAddress> {
+        return networkAddresses.await()
     }
 }
 
