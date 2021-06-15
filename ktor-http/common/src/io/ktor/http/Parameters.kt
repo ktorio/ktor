@@ -85,6 +85,11 @@ public fun parametersOf(name: String, values: List<String>): Parameters = Parame
  */
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
+/**
+ * Creates a parameters instance from the specified map [parameters]
+ */
+public fun parametersOf(parameters: Map<String, List<String>>): Parameters = ParametersImpl(parameters.toMap())
+
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
 public class ParametersImpl(
