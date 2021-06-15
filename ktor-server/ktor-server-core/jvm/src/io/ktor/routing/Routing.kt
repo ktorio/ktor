@@ -5,6 +5,7 @@
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -96,14 +97,12 @@ public class Routing(
         /**
          * Event definition for when a routing-based call processing starts
          */
-        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> =
-            EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
         /**
          * Event definition for when a routing-based call processing finished
          */
-        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> =
-            EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 
