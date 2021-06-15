@@ -178,4 +178,60 @@ class CharsetTest {
             client.post<Unit>(body = "Hello, Test!")
         }
     }
+
+    @Test
+    fun testIllegalCharset() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                // get handler
+                addHandler { request ->
+                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(
+                                HttpHeaders.ContentType,
+                                ContentType.Text.Plain.withParameter("charset", "%s")
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get<String>()
+            assertEquals("Content", response)
+        }
+    }
+
+    @Test
+    fun testUnsupportedCharset() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                // get handler
+                addHandler { request ->
+                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(
+                                HttpHeaders.ContentType,
+                                ContentType.Text.Plain.withParameter("charset", "abracadabra-encoding")
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get<String>()
+            assertEquals("Content", response)
+        }
+    }
 }

@@ -21,10 +21,15 @@ class CharsetsTest {
 
     @Test
     fun testNonExisting() {
-        try {
+        assertFailsWith<IllegalArgumentException> {
             Charset.forName("abracadabra-encoding")
-            fail("abracadabra-encoding is not supported so should fail")
-        } catch (expected: IllegalArgumentException) {
+        }
+    }
+
+    @Test
+    fun testIllegal() {
+        assertFailsWith<IllegalArgumentException> {
+            Charset.forName("%s")
         }
     }
 }
