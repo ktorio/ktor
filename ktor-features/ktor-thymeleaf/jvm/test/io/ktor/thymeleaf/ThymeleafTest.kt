@@ -44,7 +44,9 @@ class ThymeleafTest {
     fun testCompression() {
         withTestApplication {
             application.setUpThymeleafStringTemplate()
-            application.install(Compression)
+            application.install(Compression) {
+                gzip { minimumSize(10) }
+            }
             application.install(ConditionalHeaders)
 
             application.routing {

@@ -14,6 +14,7 @@ import io.ktor.utils.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 import org.apache.velocity.context.*
+import java.io.*
 
 /**
  * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
@@ -30,23 +31,20 @@ public class VelocityContent(
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
-internal class VelocityOutgoingContent(
-    val template: Template,
-    val model: Context,
+internal fun velocityOutgoingContent(
+    template: Template,
+    model: Context,
     etag: String?,
-    override val contentType: ContentType
-) : OutgoingContent.WriteChannelContent() {
-    override suspend fun writeTo(channel: ByteWriteChannel) {
-        channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-            template.merge(model, it)
-        }
-    }
+    contentType: ContentType
+): OutgoingContent {
+    val writer = StringWriter()
+    template.merge(model, writer)
 
-    init {
-        if (etag != null) {
-            versions += EntityTagVersion(etag)
-        }
+    val result = TextContent(text = writer.toString(), contentType)
+    if (etag != null) {
+        result.versions += EntityTagVersion(etag)
     }
+    return result
 }
 
 /**
@@ -76,8 +74,8 @@ public class Velocity(private val engine: VelocityEngine) {
         }
     }
 
-    private fun process(content: VelocityContent): VelocityOutgoingContent {
-        return VelocityOutgoingContent(
+    private fun process(content: VelocityContent): OutgoingContent {
+        return velocityOutgoingContent(
             engine.getTemplate(content.template),
             VelocityContext(content.model),
             content.etag,

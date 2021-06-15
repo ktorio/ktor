@@ -100,7 +100,9 @@ class PebbleTest {
     fun `Render template compressed with GZIP`() {
         withTestApplication {
             application.setupPebble()
-            application.install(Compression)
+            application.install(Compression) {
+                gzip { minimumSize(10) }
+            }
             application.install(ConditionalHeaders)
 
             application.routing {

@@ -12,6 +12,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import java.io.*
 
 /**
  * Response content which could be used to respond [ApplicationCalls] like `call.respond(MustacheContent(...))
@@ -57,39 +58,14 @@ public class Mustache(configuration: Configuration) {
         }
     }
 
-    private fun process(content: MustacheContent): MustacheOutgoingContent {
-        return MustacheOutgoingContent(
-            mustacheFactory.compile(content.template),
-            content.model,
-            content.etag,
-            content.contentType
-        )
-    }
+    private fun process(content: MustacheContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        mustacheFactory.compile(content.template).execute(writer, model)
 
-    /**
-     * Content which is responded when Mustache templates are rendered.
-     *
-     * @param template the compiled [com.github.mustachejava.Mustache] template
-     * @param model the model provided into the template
-     * @param etag value for `E-Tag` header (optional)
-     * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
-     */
-    private class MustacheOutgoingContent(
-        val template: com.github.mustachejava.Mustache,
-        val model: Any?,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.execute(it, model)
-            }
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
+        return result
     }
 }
