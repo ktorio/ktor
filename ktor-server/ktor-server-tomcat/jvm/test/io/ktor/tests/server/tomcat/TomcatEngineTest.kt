@@ -137,3 +137,5 @@ class TomcatSustainabilityTestSuite :
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
+
+class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
