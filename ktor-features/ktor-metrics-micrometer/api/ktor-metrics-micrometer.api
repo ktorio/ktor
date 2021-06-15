@@ -7,7 +7,6 @@ public final class io/ktor/metrics/micrometer/MicrometerMetrics {
 }
 
 public final class io/ktor/metrics/micrometer/MicrometerMetrics$Configuration {
-	public field registry Lio/micrometer/core/instrument/MeterRegistry;
 	public fun <init> ()V
 	public final fun getBaseName ()Ljava/lang/String;
 	public final fun getDistinctNotRegisteredRoutes ()Z
