@@ -111,6 +111,6 @@ public class ClientRequestException(
     @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
-    override val message: String? = "Client request(${response.call.request.url}) " +
+    override val message: String = "Client request(${response.call.request.url}) " +
         "invalid: ${response.status}. Text: \"$cachedResponseText\""
 }

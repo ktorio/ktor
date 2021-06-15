@@ -5,47 +5,31 @@
 package io.ktor.client.features.auth.providers
 
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
 
 internal class AuthTokenHolder<T>(
     private val loadTokens: suspend () -> T?
 ) {
+    private val initialized = atomic(false)
 
-    private val cachedBearerTokens: AtomicRef<CompletableDeferred<T?>> = atomic(
-        CompletableDeferred<T?>().apply {
-            complete(null)
-        }
-    )
+    private val cachedBearerTokens: AtomicRef<T?> = atomic(null)
 
-    internal suspend fun clearToken() {
-        cachedBearerTokens.value = CompletableDeferred<T?>().apply { complete(null) }
+    internal fun clearToken() {
+        cachedBearerTokens.value = null
     }
 
     internal suspend fun loadToken(): T? {
-        val cachedToken = cachedBearerTokens.value.await()
-        if (cachedToken != null) return cachedToken
+        if (initialized.compareAndSet(false, true)) {
+            val token = loadTokens()
+            cachedBearerTokens.value = token
+            return token
+        }
 
-        return setToken(loadTokens)
+        return cachedBearerTokens.value
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
-        val old = cachedBearerTokens.value
-        if (!old.isCompleted) {
-            return old.await()
-        }
-
-        val deferred = CompletableDeferred<T?>()
-        if (!cachedBearerTokens.compareAndSet(old, deferred)) {
-            return cachedBearerTokens.value.await()
-        }
-
-        try {
-            val token = block()
-            deferred.complete(token)
-            return token
-        } catch (cause: Throwable) {
-            deferred.completeExceptionally(cause)
-            throw cause
-        }
+        val token = block()
+        cachedBearerTokens.value = token
+        return token
     }
 }

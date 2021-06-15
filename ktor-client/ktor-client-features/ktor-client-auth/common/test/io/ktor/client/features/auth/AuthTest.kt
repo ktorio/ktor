@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.auth
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.auth.providers.*
@@ -325,40 +326,34 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @Suppress("JoinDeclarationAndAssignment")
     @Test
-    fun testRequestDuringTokenUpdate() = clientTests {
-        var counter = 0
-        val monitor = Job()
-        config {
-            install(Auth) {
-                bearer {
-                    refreshTokens {
-                        counter++
-                        assertEquals(1, counter)
-                        monitor.join()
-                        counter = 0
-                        BearerTokens("valid", counter.toString())
+    fun testRefreshWithSameClient() = clientTests {
+        test { client ->
+            lateinit var clientWithAuth: HttpClient
+            clientWithAuth = client.config {
+                developmentMode = true
+
+                install(Auth) {
+                    bearer {
+                        loadTokens {
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/first").bodyAsText()
+                            BearerTokens(token, token)
+                        }
+
+                        refreshTokens {
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
+                            BearerTokens(token, token)
+                        }
                     }
                 }
             }
-        }
 
-        test { client ->
-            val firstRequest = GlobalScope.async(Dispatchers.Unconfined) {
-                client.get("$TEST_SERVER/auth/bearer/test-refresh").bodyAsText()
-            }
+            val first = clientWithAuth.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            val second = clientWithAuth.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
 
-            val secondRequest = GlobalScope.async(Dispatchers.Unconfined) {
-                client.get("$TEST_SERVER/auth/bearer/test-refresh").bodyAsText()
-            }
-
-            assertTrue { !firstRequest.isCompleted }
-            assertTrue { !secondRequest.isCompleted }
-
-            monitor.complete()
-
-            assertEquals("", firstRequest.await())
-            assertEquals("", secondRequest.await())
+            assertEquals("OK", first)
+            assertEquals("OK", second)
         }
     }
 }
