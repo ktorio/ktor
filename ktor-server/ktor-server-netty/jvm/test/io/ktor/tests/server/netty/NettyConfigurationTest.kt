@@ -105,6 +105,7 @@ class NettyConfigurationTest {
             }
             every { isRegistered } returns true
             every { eventLoop() } returns DefaultEventLoop()
+            every { localAddress() } returns mockk()
             every { isOpen } returns true
             every { bind(any(), any()) } returns mockk {
                 every { addListener(any()) } returns mockk()

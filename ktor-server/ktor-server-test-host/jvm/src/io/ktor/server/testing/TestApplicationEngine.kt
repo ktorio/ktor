@@ -14,6 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -83,6 +84,10 @@ public class TestApplicationEngine(
             }
         } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
+    }
+
+    override suspend fun networkAddresses(): List<NetworkAddress> {
+        throw IllegalStateException("TestApplicationEngine does not support network addresses")
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
