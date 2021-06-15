@@ -5,9 +5,9 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.application.EventDefinition
 import io.ktor.config.*
 import io.ktor.events.*
+import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
