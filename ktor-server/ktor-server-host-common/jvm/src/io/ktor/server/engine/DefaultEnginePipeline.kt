@@ -102,15 +102,15 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             "(request error: $cause)"
         }
 
+        val infoString = "$status: $logString. Exception ${cause::class}: ${cause.message}]"
         when (cause) {
-            is CancellationException -> log.debug("$status: $logString, cancelled")
-            is ClosedChannelException -> log.debug("$status: $logString, channel closed")
-            is ChannelIOException -> log.debug("$status: $logString, channel failed")
-            is ConnectException -> log.debug("$status: $logString, connection failed with: ${cause.message}")
-            is IOException -> log.debug("$status: $logString, io failed with ${cause.message ?: "unknown error"}")
-            is BadRequestException -> log.debug("$status: $logString", cause)
-            is NotFoundException -> log.debug("$status: $logString", cause)
-            is UnsupportedMediaTypeException -> log.debug("$status: $logString", cause)
+            is CancellationException,
+            is ClosedChannelException,
+            is ChannelIOException,
+            is IOException,
+            is BadRequestException,
+            is NotFoundException,
+            is UnsupportedMediaTypeException -> log.debug(infoString, cause)
             else -> log.error("$status: $logString", cause)
         }
     } catch (oom: OutOfMemoryError) {
