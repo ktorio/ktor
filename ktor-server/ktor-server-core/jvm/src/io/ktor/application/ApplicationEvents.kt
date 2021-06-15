@@ -37,6 +37,6 @@ public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
 @Deprecated(
     "EventDefinition<T> has been moved to io.ktor.events",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("Events", "io.ktor.events.EventDefinition")
+    replaceWith = ReplaceWith("EventDefinition<T>", "io.ktor.events.EventDefinition")
 )
 public typealias EventDefinition<T> = io.ktor.events.EventDefinition<T>
