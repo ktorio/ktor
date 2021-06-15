@@ -190,6 +190,47 @@ class OriginConnectionPointTest {
     }
 
     @Test
+    fun testProxyXForwardedPort() {
+        withTestApplication {
+            application.install(XForwardedHeaderSupport)
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals(91, port)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Port", "91")
+            }
+        }
+    }
+
+    @Test
+    fun testProxyXForwardedSchemeWithPortAndXForwardedPort() {
+        withTestApplication {
+            application.install(XForwardedHeaderSupport)
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals(91, port)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.XForwardedHost, "host:90")
+                addHeader("X-Forwarded-Port", "91")
+            }
+        }
+    }
+
+    @Test
     fun testProxyXForwardedHttpsFlagOn() {
         withTestApplication {
             application.install(XForwardedHeaderSupport)
