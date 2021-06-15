@@ -22,9 +22,8 @@ import kotlin.reflect.*
 import kotlin.test.*
 
 class MicrometerMetricsTests {
-
-    var noHandlerHandledRequest = false
-    var throwableCaughtInEngine: Throwable? = null
+    private var noHandlerHandledRequest = false
+    private var throwableCaughtInEngine: Throwable? = null
 
     @BeforeTest
     fun reset() {
