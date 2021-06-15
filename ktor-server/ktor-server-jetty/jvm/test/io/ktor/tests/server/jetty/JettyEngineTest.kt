@@ -74,3 +74,5 @@ class JettySustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
+
+class JettyConnectionTest : ConnectionTestSuite(Jetty)

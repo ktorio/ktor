@@ -7,6 +7,7 @@ package io.ktor.server.tomcat
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
+import io.ktor.util.network.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.catalina.connector.*
@@ -17,6 +18,7 @@ import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.slf4j.*
+import java.net.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
@@ -122,6 +124,12 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
     override fun start(wait: Boolean): TomcatApplicationEngine {
         environment.start()
         server.start()
+
+        val addresses = server.service.findConnectors().map {
+            InetSocketAddress(server.host.name, it.localPort)
+        }
+        networkAddresses.complete(addresses)
+
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.server.await()
