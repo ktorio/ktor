@@ -1,6 +1,7 @@
 public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getApplication ()Lio/ktor/application/Application;
 	public abstract fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public abstract fun networkAddresses (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
 	public abstract fun stop (JJ)V
 }
@@ -101,7 +102,9 @@ public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/serv
 	public synthetic fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/ktor/server/engine/EnginePipeline;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getApplication ()Lio/ktor/application/Application;
 	public final fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	protected final fun getNetworkAddresses ()Lkotlinx/coroutines/CompletableDeferred;
 	public final fun getPipeline ()Lio/ktor/server/engine/EnginePipeline;
+	public fun networkAddresses (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor/server/engine/ApplicationEngine$Configuration {

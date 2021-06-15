@@ -11,7 +11,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 import java.util.*
 
 /**
@@ -33,6 +35,8 @@ public abstract class BaseApplicationEngine(
      * Configuration for the [BaseApplicationEngine]
      */
     public open class Configuration : ApplicationEngine.Configuration()
+
+    protected val networkAddresses: CompletableDeferred<List<NetworkAddress>> = CompletableDeferred()
 
     init {
         var isFirstLoading = true
@@ -84,6 +88,10 @@ public abstract class BaseApplicationEngine(
         intercept(ApplicationCallPipeline.Call) {
             verifyHostHeader()
         }
+    }
+
+    override suspend fun networkAddresses(): List<NetworkAddress> {
+        return networkAddresses.await()
     }
 }
 

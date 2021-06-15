@@ -5,6 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.util.network.*
+import kotlinx.coroutines.*
 
 /**
  * Engine which runs an application
@@ -36,6 +38,14 @@ public interface ApplicationEngine {
          */
         public var callGroupSize: Int = parallelism
     }
+
+    /**
+     * Local addresses for application connectors.
+     * If [environment]'s [connector]s was configured to use port=0, you can use this function to get an actual port
+     * for these connectors.
+     * Available after server was started.
+     */
+    public suspend fun networkAddresses(): List<NetworkAddress>
 
     /**
      * Environment with which this engine is running
