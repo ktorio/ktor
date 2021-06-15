@@ -3,7 +3,10 @@ package io.ktor.client.tests.utils.tests
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
+import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 internal fun Application.webSockets() {
     routing {
@@ -19,6 +22,12 @@ internal fun Application.webSockets() {
                         else -> error("Unsupported frame type: ${frame.frameType}.")
                     }
                 }
+            }
+
+            webSocket("headers") {
+                val headers = call.request.headers.toMap()
+                val headersJson = Json.encodeToString(headers)
+                send(Frame.Text(headersJson))
             }
 
             webSocket("close") {

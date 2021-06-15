@@ -16,22 +16,22 @@ import kotlinx.coroutines.*
 /**
  * Web url for tests.
  */
-public const val TEST_SERVER: String = "http://127.0.0.1:8080"
+const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
  * Websocket server url for tests.
  */
-public const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
+const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 
 /**
  * Proxy server url for tests.
  */
-public const val TCP_SERVER: String = "http://127.0.0.1:8082"
+const val TCP_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].
  */
-public fun testWithEngine(
+fun testWithEngine(
     engine: HttpClientEngine,
     block: suspend TestClientBuilder<*>.() -> Unit
 ) = testWithClient(HttpClient(engine), block)
@@ -59,7 +59,7 @@ private fun testWithClient(
 /**
  * Perform test with selected client engine [factory].
  */
-public fun <T : HttpClientEngineConfig> testWithEngine(
+fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
     block: suspend TestClientBuilder<T>.() -> Unit
@@ -105,26 +105,26 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
 }
 
 @InternalAPI
-public class TestClientBuilder<T : HttpClientEngineConfig>(
-    public var config: HttpClientConfig<T>.() -> Unit = {},
-    public var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
-    public var after: suspend (client: HttpClient) -> Unit = {},
-    public var repeatCount: Int = 1,
-    public var dumpAfterDelay: Long = -1,
-    public var concurrency: Int = 1
+class TestClientBuilder<T : HttpClientEngineConfig>(
+    var config: HttpClientConfig<T>.() -> Unit = {},
+    var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
+    var after: suspend (client: HttpClient) -> Unit = {},
+    var repeatCount: Int = 1,
+    var dumpAfterDelay: Long = -1,
+    var concurrency: Int = 1
 )
 
 @InternalAPI
-public fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
+fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
     config = block
 }
 
 @InternalAPI
-public fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
+fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
     test = block
 }
 
 @InternalAPI
-public fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit { // ktlint-disable no-unit-return
+fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit { // ktlint-disable no-unit-return
     after = block
 }

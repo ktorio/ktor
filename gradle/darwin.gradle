@@ -16,6 +16,7 @@ kotlin {
             fromPreset(presets.watchosArm32, 'watchosArm32')
             fromPreset(presets.watchosArm64, 'watchosArm64')
             fromPreset(presets.watchosX86, 'watchosX86')
+            fromPreset(presets.watchosX64, 'watchosX64')
         }
     }
     sourceSets {
@@ -28,11 +29,11 @@ kotlin {
         darwinTest
 
         if (!project.ext.ideaActive) {
-            configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main, tvosArm64Main, tvosX64Main, watchosArm32Main, watchosArm64Main, watchosX86Main]) {
+            configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main, tvosArm64Main, tvosX64Main, watchosArm32Main, watchosArm64Main, watchosX86Main, watchosX64Main]) {
                 dependsOn darwinMain
             }
 
-            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, tvosArm64Test, tvosX64Test, watchosArm32Test, watchosArm64Test, watchosX86Test]) {
+            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, tvosArm64Test, tvosX64Test, watchosArm32Test, watchosArm64Test, watchosX86Test, watchosX64Test]) {
                 dependsOn darwinTest
             }
         }

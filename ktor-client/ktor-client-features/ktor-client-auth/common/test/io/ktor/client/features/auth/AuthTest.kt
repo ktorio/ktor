@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.auth
 
+import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
@@ -323,40 +324,34 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @Suppress("JoinDeclarationAndAssignment")
     @Test
-    fun testRequestDuringTokenUpdate() = clientTests {
-        var counter = 0
-        val monitor = Job()
-        config {
-            install(Auth) {
-                bearer {
-                    refreshTokens {
-                        counter++
-                        assertEquals(1, counter)
-                        monitor.join()
-                        counter = 0
-                        BearerTokens("valid", counter.toString())
+    fun testRefreshWithSameClient() = clientTests {
+        test { client ->
+            lateinit var clientWithAuth: HttpClient
+            clientWithAuth = client.config {
+                developmentMode = true
+
+                install(Auth) {
+                    bearer {
+                        loadTokens {
+                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/first")
+                            BearerTokens(token, token)
+                        }
+
+                        refreshTokens {
+                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/second")
+                            BearerTokens(token, token)
+                        }
                     }
                 }
             }
-        }
 
-        test { client ->
-            val firstRequest = GlobalScope.async(Dispatchers.Unconfined) {
-                client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
-            }
+            val first = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/first")
+            val second = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/second")
 
-            val secondRequest = GlobalScope.async(Dispatchers.Unconfined) {
-                client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
-            }
-
-            assertTrue { !firstRequest.isCompleted }
-            assertTrue { !secondRequest.isCompleted }
-
-            monitor.complete()
-
-            assertEquals("", firstRequest.await())
-            assertEquals("", secondRequest.await())
+            assertEquals("OK", first)
+            assertEquals("OK", second)
         }
     }
 }
