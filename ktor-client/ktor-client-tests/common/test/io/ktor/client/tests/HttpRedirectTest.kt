@@ -4,7 +4,6 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
@@ -32,104 +31,139 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectWithEncodedUri() = clientTests {
+    fun rewrittenRedirectTest(): Unit = clientTests {
         config {
-            install(HttpRedirect)
+            install(HttpRedirect) {
+                rewritePostAsGet = true
+            }
         }
 
         test { client ->
             client.prepareGet("$TEST_URL_BASE/encodedQuery").execute {
-                assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("/redirect/getWithUri?key=value1%3Bvalue2%3D%22some=thing", it.bodyAsText())
-            }
-        }
-    }
-
-    @Test
-    fun testInfinityRedirect() = clientTests {
-        config {
-            install(HttpRedirect)
-        }
-
-        test { client ->
-            assertFails {
-                client.get("$TEST_URL_BASE/infinity")
-            }
-        }
-    }
-
-    @Test
-    fun testRedirectWithCookies() = clientTests(listOf("Js")) {
-        config {
-            install(HttpCookies)
-            install(HttpRedirect)
-        }
-
-        test { client ->
-            client.prepareGet("$TEST_URL_BASE/cookie").execute {
-                assertEquals("OK", it.bodyAsText())
-                val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
-                assertEquals("Hello", token.value)
-            }
-        }
-    }
-
-    @Test
-    @Ignore
-    fun testCustomUrls() = clientTests(listOf("iOS")) {
-        val urls = listOf(
-            "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
-            "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
-            "https://files.forgecdn.net/files/2613/730/Toast Control-1.12.2-1.7.1.jar"
-        )
-
-        config {
-            install(HttpRedirect)
-        }
-
-        test { client ->
-            urls.forEach { url ->
-                client.prepareGet(url).execute {
-                    if (it.status.value >= 500) return@execute
-                    assertTrue(it.status.isSuccess(), url)
+                client.preparePost("$TEST_URL_BASE/post-expecting-get-301").execute {
+                    assertEquals(HttpStatusCode.OK, it.status)
+                    assertEquals("OK", it.bodyAsText())
+                    assertEquals(HttpMethod.Get, it.call.request.method)
+                }
+                client.preparePost("$TEST_URL_BASE/post-expecting-get-302").execute {
+                    assertEquals(HttpStatusCode.OK, it.status)
+                    assertEquals("OK", it.bodyAsText())
+                    assertEquals(HttpMethod.Get, it.call.request.method)
+                }
+                client.preparePost("$TEST_URL_BASE/post-expecting-post").execute {
+                    assertEquals(HttpStatusCode.OK, it.status)
+                    assertEquals("OK", it.bodyAsText())
+                    assertEquals(HttpMethod.Post, it.call.request.method)
                 }
             }
         }
-    }
 
-    @Test
-    fun testRedirectRelative() = clientTests {
-        test { client ->
-            client.prepareGet("$TEST_URL_BASE/directory/redirectFile").execute {
-                assertEquals("targetFile", it.bodyAsText())
+        @Test
+        fun testInfinityRedirect() = clientTests {
+            config {
+                install(HttpRedirect)
+            }
+
+            test { client ->
+                assertFails {
+                    client.get("$TEST_URL_BASE/infinity")
+                }
             }
         }
-    }
 
-    @Test
-    fun testMultipleRedirectRelative() = clientTests {
-        test { client ->
-            client.prepareGet("$TEST_URL_BASE/multipleRedirects/login").execute {
-                assertEquals("account details", it.bodyAsText())
+        @Test
+        fun limitedCountRedirectTest() = clientTests {
+            config {
+                install(HttpRedirect) {
+                    maximumRedirects = 9
+                }
+            }
+
+            test { client ->
+                assertFails {
+                    client.prepareGet("$TEST_URL_BASE/count/10")
+                }
+
+                client.prepareGet("$TEST_URL_BASE/count/9").execute {
+                    assertEquals(HttpStatusCode.OK, it.status)
+                    assertEquals("OK", it.bodyAsText())
+                }
             }
         }
-    }
 
-    @Test
-    fun testRedirectAbsolute() = clientTests {
-        test { client ->
-            client.prepareGet("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
-                assertEquals("absoluteTargetFile", it.bodyAsText())
+        @Test
+        fun testRedirectWithCookies() = clientTests(listOf("Js")) {
+            config {
+                install(HttpCookies)
+                install(HttpRedirect)
+            }
+
+            test { client ->
+                client.prepareGet("$TEST_URL_BASE/cookie").execute {
+                    assertEquals("OK", it.bodyAsText())
+                    val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
+                    assertEquals("Hello", token.value)
+                }
             }
         }
-    }
 
-    @Test
-    fun testRedirectHostAbsolute() = clientTests(listOf("Js")) {
-        test { client ->
-            client.prepareGet("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
-                assertEquals("OK", it.bodyAsText())
-                assertEquals("$TEST_URL_BASE/get", it.call.request.url.toString())
+        @Test
+        @Ignore
+        fun testCustomUrls() = clientTests(listOf("iOS")) {
+            val urls = listOf(
+                "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
+                "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
+                "https://files.forgecdn.net/files/2613/730/Toast Control-1.12.2-1.7.1.jar"
+            )
+
+            config {
+                install(HttpRedirect)
+            }
+
+            test { client ->
+                urls.forEach { url ->
+                    client.prepareGet(url).execute {
+                        if (it.status.value >= 500) return@execute
+                        assertTrue(it.status.isSuccess(), url)
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun testRedirectRelative() = clientTests {
+            test { client ->
+                client.prepareGet("$TEST_URL_BASE/directory/redirectFile").execute {
+                    assertEquals("targetFile", it.bodyAsText())
+                }
+            }
+        }
+
+        @Test
+        fun testMultipleRedirectRelative() = clientTests {
+            test { client ->
+                client.prepareGet("$TEST_URL_BASE/multipleRedirects/login").execute {
+                    assertEquals("account details", it.bodyAsText())
+                }
+            }
+        }
+
+        @Test
+        fun testRedirectAbsolute() = clientTests {
+            test { client ->
+                client.prepareGet("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
+                    assertEquals("absoluteTargetFile", it.bodyAsText())
+                }
+            }
+        }
+
+        @Test
+        fun testRedirectHostAbsolute() = clientTests(listOf("Js")) {
+            test { client ->
+                client.prepareGet("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
+                    assertEquals("OK", it.bodyAsText())
+                    assertEquals("$TEST_URL_BASE/get", it.call.request.url.toString())
+                }
             }
         }
     }
