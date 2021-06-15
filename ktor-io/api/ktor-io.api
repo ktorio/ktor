@@ -1393,15 +1393,6 @@ public final class io/ktor/utils/io/core/internal/NumbersKt {
 	public static final fun toIntOrFail (JLjava/lang/String;)I
 }
 
-public abstract class io/ktor/utils/io/core/internal/RequireFailureCapture {
-	public fun <init> ()V
-	public abstract fun doFail ()Ljava/lang/Void;
-}
-
-public final class io/ktor/utils/io/core/internal/RequireKt {
-	public static final fun require (ZLkotlin/jvm/functions/Function0;)V
-}
-
 public final class io/ktor/utils/io/core/internal/UTF8Kt {
 	public static final fun decodeUTF8 (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
 	public static final fun decodeUTF8LineLoopSuspend (Ljava/lang/Appendable;ILkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
