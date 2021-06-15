@@ -6,8 +6,10 @@ package io.ktor.server.jetty
 
 import io.ktor.application.*
 import io.ktor.server.engine.*
+import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
+import java.net.*
 import java.util.concurrent.*
 
 /**
@@ -49,6 +51,12 @@ public open class JettyApplicationEngineBase @EngineAPI constructor(
 
         server.start()
         cancellationDeferred = stopServerOnCancellation()
+
+        val addresses = server.connectors.map {
+            InetSocketAddress((it as ServerConnector).host, it.localPort)
+        }
+        networkAddresses.complete(addresses)
+
         if (wait) {
             server.join()
             stop(1, 5, TimeUnit.SECONDS)
