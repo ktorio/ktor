@@ -16,6 +16,11 @@ public final class io/ktor/server/cio/CIOApplicationEngine$Configuration : io/kt
 	public final fun setConnectionIdleTimeoutSeconds (I)V
 }
 
+public final class io/ktor/server/cio/DevelopmentEngine {
+	public static final field INSTANCE Lio/ktor/server/cio/DevelopmentEngine;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
 public final class io/ktor/server/cio/EngineMain {
 	public static final field INSTANCE Lio/ktor/server/cio/EngineMain;
 	public static final fun main ([Ljava/lang/String;)V

@@ -46,6 +46,13 @@ public abstract interface class io/ktor/application/ApplicationEnvironment {
 	public abstract fun getRootPath ()Ljava/lang/String;
 }
 
+public final class io/ktor/application/ApplicationEvents {
+	public fun <init> ()V
+	public final fun raise (Lio/ktor/application/EventDefinition;Ljava/lang/Object;)V
+	public final fun subscribe (Lio/ktor/application/EventDefinition;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
+	public final fun unsubscribe (Lio/ktor/application/EventDefinition;Lkotlin/jvm/functions/Function1;)V
+}
+
 public abstract interface class io/ktor/application/ApplicationFeature {
 	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
 	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -75,6 +82,10 @@ public final class io/ktor/application/DefaultApplicationEventsKt {
 
 public final class io/ktor/application/DuplicateApplicationFeatureException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public class io/ktor/application/EventDefinition {
+	public fun <init> ()V
 }
 
 public final class io/ktor/application/MissingApplicationFeatureException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
@@ -417,6 +428,11 @@ public final class io/ktor/features/ConditionalHeadersKt {
 
 public abstract interface class io/ktor/features/ConditionsHolderBuilder {
 	public abstract fun getConditions ()Ljava/util/List;
+}
+
+public abstract interface class io/ktor/features/ContentConverter {
+	public abstract fun convertForReceive (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun convertForSend (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/http/ContentType;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/features/ContentNegotiation {
@@ -1797,6 +1813,16 @@ public abstract interface class io/ktor/sessions/SessionTransportTransformer {
 	public abstract fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class io/ktor/sessions/SessionTransportTransformerDigest : io/ktor/sessions/SessionTransportTransformer {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAlgorithm ()Ljava/lang/String;
+	public final fun getSalt ()Ljava/lang/String;
+	public fun transformRead (Ljava/lang/String;)Ljava/lang/String;
+	public fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class io/ktor/sessions/SessionTransportTransformerEncrypt : io/ktor/sessions/SessionTransportTransformer {
 	public static final field Companion Lio/ktor/sessions/SessionTransportTransformerEncrypt$Companion;
 	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)V
@@ -1877,6 +1903,15 @@ public abstract interface class io/ktor/util/ConversionService {
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
 }
 
+public final class io/ktor/util/CopyOnWriteHashMap {
+	public fun <init> ()V
+	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public final fun get (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
+}
+
 public final class io/ktor/util/DataConversionException : io/ktor/util/converters/DataConversionException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
@@ -1911,6 +1946,10 @@ public final class io/ktor/util/ParametersKt {
 
 public final class io/ktor/util/PathsKt {
 	public static final fun normalizePathComponents (Ljava/util/List;)Ljava/util/List;
+}
+
+public final class io/ktor/util/ReflectionUtilsKt {
+	public static final fun toJavaType (Lkotlin/reflect/KType;)Ljava/lang/reflect/Type;
 }
 
 public final class io/ktor/util/URLBuilderKt {

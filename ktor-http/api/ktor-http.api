@@ -794,6 +794,7 @@ public final class io/ktor/http/ParametersKt {
 	public static final fun parametersOf ()Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/Parameters;
+	public static final fun parametersOf (Ljava/util/Map;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf ([Lkotlin/Pair;)Lio/ktor/http/Parameters;
 	public static final fun plus (Lio/ktor/http/Parameters;Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
@@ -995,6 +996,15 @@ public final class io/ktor/http/Url {
 }
 
 public final class io/ktor/http/Url$Companion {
+}
+
+public final class io/ktor/http/UrlEncodingOption : java/lang/Enum {
+	public static final field DEFAULT Lio/ktor/http/UrlEncodingOption;
+	public static final field KEY_ONLY Lio/ktor/http/UrlEncodingOption;
+	public static final field NO_ENCODING Lio/ktor/http/UrlEncodingOption;
+	public static final field VALUE_ONLY Lio/ktor/http/UrlEncodingOption;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/UrlEncodingOption;
+	public static fun values ()[Lio/ktor/http/UrlEncodingOption;
 }
 
 public final class io/ktor/http/UrlKt {

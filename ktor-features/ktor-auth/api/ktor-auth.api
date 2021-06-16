@@ -132,6 +132,12 @@ public final class io/ktor/auth/BasicAuthenticationProvider$Configuration : io/k
 public abstract interface class io/ktor/auth/Credential {
 }
 
+public final class io/ktor/auth/DefaultOAuth2StateProvider : io/ktor/auth/OAuth2StateProvider {
+	public static final field INSTANCE Lio/ktor/auth/DefaultOAuth2StateProvider;
+	public fun getState (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun verifyState (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/auth/DigestAuthKt {
 	public static final fun digest (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun digest$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
@@ -191,6 +197,18 @@ public final class io/ktor/auth/ForbiddenResponse : io/ktor/http/content/Outgoin
 	public final fun getChallenges ()[Lio/ktor/http/auth/HttpAuthHeader;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+}
+
+public abstract class io/ktor/auth/FormAuthChallenge {
+}
+
+public final class io/ktor/auth/FormAuthChallenge$Redirect : io/ktor/auth/FormAuthChallenge {
+	public fun <init> (Lkotlin/jvm/functions/Function2;)V
+	public final fun getUrl ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class io/ktor/auth/FormAuthChallenge$Unauthorized : io/ktor/auth/FormAuthChallenge {
+	public static final field INSTANCE Lio/ktor/auth/FormAuthChallenge$Unauthorized;
 }
 
 public final class io/ktor/auth/FormAuthKt {
@@ -287,6 +305,11 @@ public final class io/ktor/auth/OAuth2ResponseParameters {
 	public static final field INSTANCE Lio/ktor/auth/OAuth2ResponseParameters;
 	public static final field RefreshToken Ljava/lang/String;
 	public static final field TokenType Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/auth/OAuth2StateProvider {
+	public abstract fun getState (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun verifyState (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/auth/OAuthAccessTokenResponse : io/ktor/auth/Principal {
@@ -433,6 +456,27 @@ public final class io/ktor/auth/OAuthVersion : java/lang/Enum {
 }
 
 public abstract interface class io/ktor/auth/Principal {
+}
+
+public abstract class io/ktor/auth/SessionAuthChallenge {
+	public static final field Companion Lio/ktor/auth/SessionAuthChallenge$Companion;
+}
+
+public final class io/ktor/auth/SessionAuthChallenge$Companion {
+	public final fun getDefault ()Lio/ktor/auth/SessionAuthChallenge;
+}
+
+public final class io/ktor/auth/SessionAuthChallenge$Ignore : io/ktor/auth/SessionAuthChallenge {
+	public static final field INSTANCE Lio/ktor/auth/SessionAuthChallenge$Ignore;
+}
+
+public final class io/ktor/auth/SessionAuthChallenge$Redirect : io/ktor/auth/SessionAuthChallenge {
+	public fun <init> (Lkotlin/jvm/functions/Function2;)V
+	public final fun getUrl ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class io/ktor/auth/SessionAuthChallenge$Unauthorized : io/ktor/auth/SessionAuthChallenge {
+	public static final field INSTANCE Lio/ktor/auth/SessionAuthChallenge$Unauthorized;
 }
 
 public final class io/ktor/auth/SessionAuthKt {

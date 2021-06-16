@@ -37,6 +37,11 @@ public final class io/ktor/util/AttributesKt {
 	public static final fun putAll (Lio/ktor/util/Attributes;Lio/ktor/util/Attributes;)V
 }
 
+public final class io/ktor/util/Base64JvmKt {
+	public static final fun decodeBase64 (Ljava/lang/String;)[B
+	public static final fun encodeBase64 ([B)Ljava/lang/String;
+}
+
 public final class io/ktor/util/Base64Kt {
 	public static final fun decodeBase64Bytes (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/utils/io/core/Input;
 	public static final fun decodeBase64Bytes (Ljava/lang/String;)[B
