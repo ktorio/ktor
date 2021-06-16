@@ -13,7 +13,7 @@ public actual abstract class Charset(internal val _name: String) {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
             if (name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-').let {
                 it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
-            } || name == "latin1"
+            } || name == "latin1" || name == "Latin1"
             ) {
                 return Charsets.ISO_8859_1
             }
