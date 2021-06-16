@@ -268,4 +268,10 @@ public fun ContentType.withCharset(charset: Charset): ContentType = withParamete
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
  */
-public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let { Charset.forName(it) }
+public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
+    try {
+        Charset.forName(it)
+    } catch (exception: IllegalArgumentException) {
+        null
+    }
+}

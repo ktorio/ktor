@@ -15,7 +15,7 @@ public actual abstract class Charset(internal val _name: String) {
                 name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-')
                     .let {
                         it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
-                    } || name == "latin1" -> {
+                    } || name == "latin1" || name == "Latin1" -> {
                     Charsets.ISO_8859_1
                 }
                 else -> {
