@@ -4,20 +4,14 @@
 
 package io.ktor.thymeleaf
 
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.ApplicationFeature
-import io.ktor.http.ContentType
-import io.ktor.http.charset
-import io.ktor.http.content.EntityTagVersion
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.versions
-import io.ktor.http.withCharset
-import io.ktor.response.ApplicationSendPipeline
-import io.ktor.util.AttributeKey
-import io.ktor.util.cio.bufferedWriter
-import io.ktor.utils.io.ByteWriteChannel
-import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.response.*
+import io.ktor.util.*
+import org.thymeleaf.*
+import org.thymeleaf.context.*
+import java.io.*
 
 /**
  * Represents a content handled by [Thymeleaf] feature.
@@ -57,34 +51,15 @@ public class Thymeleaf(private val engine: TemplateEngine) {
         }
     }
 
-    private fun process(content: ThymeleafContent): ThymeleafOutgoingContent {
-        return ThymeleafOutgoingContent(
-            engine,
-            content.template,
-            content.model,
-            content.etag,
-            content.contentType
-        )
-    }
+    private fun process(content: ThymeleafContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        val context = Context().apply { setVariables(model) }
+        engine.process(template, context, writer)
 
-    private class ThymeleafOutgoingContent(
-        val engine: TemplateEngine,
-        val template: String,
-        val model: Map<String, Any>,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                val context = Context().apply { setVariables(model) }
-                engine.process(template, context, it)
-            }
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
+        return result
     }
 }

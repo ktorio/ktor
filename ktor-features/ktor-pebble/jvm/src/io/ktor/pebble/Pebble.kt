@@ -13,6 +13,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import java.io.*
 import java.util.*
 
 /**
@@ -57,42 +58,14 @@ public class Pebble(private val engine: PebbleEngine) {
         }
     }
 
-    private fun process(content: PebbleContent): PebbleOutgoingContent {
-        return PebbleOutgoingContent(
-            engine.getTemplate(content.template),
-            content.model,
-            content.locale,
-            content.etag,
-            content.contentType
-        )
-    }
+    private fun process(content: PebbleContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        engine.getTemplate(content.template).evaluate(writer, model, locale)
 
-    /**
-     * Content which is responded when Pebble templates are rendered.
-     *
-     * @param template the compiled [com.mitchellbosecke.pebble.template.PebbleTemplate] template
-     * @param model the model provided into the template
-     * @param locale which is used to resolve templates (optional)
-     * @param etag value for `E-Tag` header (optional)
-     * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
-     */
-    private class PebbleOutgoingContent(
-        val template: PebbleTemplate,
-        val model: Map<String, Any>,
-        val locale: Locale?,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.evaluate(it, model, locale)
-            }
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
+        return result
     }
 }

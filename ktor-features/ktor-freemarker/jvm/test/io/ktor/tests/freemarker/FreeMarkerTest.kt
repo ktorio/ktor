@@ -65,7 +65,9 @@ class FreeMarkerTest {
     fun testCompression() {
         withTestApplication {
             application.setUpTestTemplates()
-            application.install(Compression)
+            application.install(Compression) {
+                gzip { minimumSize(10) }
+            }
             application.install(ConditionalHeaders)
 
             application.routing {
@@ -135,6 +137,28 @@ class FreeMarkerTest {
 
                 assertEquals("<p>Hello, 1</p>", lines[0])
                 assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+            }
+        }
+    }
+
+    @Test
+    fun testErrorInContent() {
+        withTestApplication {
+            application.setUpTestTemplates()
+            application.install(StatusPages) {
+                exception<Throwable> {
+                    call.respond("Error: template exception")
+                }
+            }
+            application.install(ConditionalHeaders)
+            application.routing {
+                get("/") {
+                    call.respond(FreeMarkerContent("test.ftl", null))
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/").response.let { response ->
+                assertEquals("Error: template exception", response.content)
             }
         }
     }
