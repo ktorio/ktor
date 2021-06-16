@@ -10,8 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
-import io.ktor.utils.io.*
+import java.io.*
 
 /**
  * Represents a content handled by [FreeMarker] feature.
@@ -51,31 +50,14 @@ public class FreeMarker(private val config: Configuration) {
         }
     }
 
-    private fun process(content: FreeMarkerContent): FreeMarkerOutgoingContent {
-        return FreeMarkerOutgoingContent(
-            config.getTemplate(content.template),
-            content.model,
-            content.etag,
-            content.contentType
-        )
-    }
+    private fun process(content: FreeMarkerContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        config.getTemplate(content.template).process(model, writer)
 
-    private class FreeMarkerOutgoingContent(
-        val template: Template,
-        val model: Any?,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.process(model, it)
-            }
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
+        return result
     }
 }

@@ -5,6 +5,7 @@
 package io.ktor.velocity
 
 import io.ktor.application.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
 import org.apache.velocity.app.*
@@ -54,8 +55,8 @@ public class VelocityTools private constructor(private val toolManager: ToolMana
         }
     }
 
-    internal fun process(content: VelocityContent): VelocityOutgoingContent {
-        return VelocityOutgoingContent(
+    internal fun process(content: VelocityContent): OutgoingContent {
+        return velocityOutgoingContent(
             toolManager.velocityEngine.getTemplate(content.template),
             toolManager.createContext().also { it.putAll(content.model) },
             content.etag,

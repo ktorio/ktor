@@ -46,7 +46,9 @@ class VelocityTest {
     fun testCompression() {
         withTestApplication {
             application.setUpTestTemplates()
-            application.install(Compression)
+            application.install(Compression) {
+                gzip { minimumSize(10) }
+            }
             application.install(ConditionalHeaders)
 
             application.routing {
