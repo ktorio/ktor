@@ -6,6 +6,7 @@ package io.ktor.client.features.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
