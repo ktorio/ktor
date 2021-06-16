@@ -769,6 +769,21 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
         }
     }
 
+    @Test
+    fun testNoRespond() {
+        createAndStartServer {
+            get("/") {
+                call.response.status(HttpStatusCode.Accepted)
+                call.response.header("Custom-Header", "Custom value")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.Accepted, status)
+            assertEquals(headers["Custom-Header"], "Custom value")
+        }
+    }
+
     private data class TestData(
         val name: String
     ) : AbstractCoroutineContextElement(TestData) {
