@@ -23,10 +23,6 @@ repositories {
     }
 }
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-
 val props = Properties().apply {
     file("../gradle.properties").inputStream().use { load(it) }
 }
@@ -37,6 +33,7 @@ fun version(target: String): String {
         val snapshotVersion = properties["kotlin_snapshot_version"]
         if (snapshotVersion != null) return snapshotVersion.toString()
     }
+
     return props.getProperty("${target}_version")
 }
 
@@ -45,4 +42,5 @@ sourceSets.main {
 
 dependencies {
     implementation(kotlin("gradle-plugin", version("kotlin")))
+    implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
 }
