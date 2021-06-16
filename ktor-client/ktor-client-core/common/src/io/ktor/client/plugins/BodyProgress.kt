@@ -5,7 +5,6 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.content.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
@@ -42,14 +41,10 @@ public class BodyProgress internal constructor() {
         }
 
         scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
-            val listener = context.request.attributes
+            val listener = response.call.request.attributes
                 .getOrNull(DownloadProgressListenerAttributeKey) ?: return@intercept
-            val observableCall = context.withObservableDownload(listener)
-
-            context.response = observableCall.response
-            context.request = observableCall.request
-
-            proceedWith(context.response)
+            val observableResponse = response.withObservableDownload(listener)
+            proceedWith(observableResponse)
         }
     }
 
@@ -66,8 +61,8 @@ public class BodyProgress internal constructor() {
     }
 }
 
-internal fun HttpClientCall.withObservableDownload(listener: ProgressListener): HttpClientCall {
-    val observableByteChannel = response.content.observable(coroutineContext, response.contentLength(), listener)
+internal fun HttpResponse.withObservableDownload(listener: ProgressListener): HttpResponse {
+    val observableByteChannel = content.observable(coroutineContext, contentLength(), listener)
     return wrapWithContent(observableByteChannel)
 }
 
