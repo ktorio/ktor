@@ -129,6 +129,11 @@ public object XForwardedHeaderSupport :
                 }
             }
 
+            call.forEachHeader(config.portHeaders) { value ->
+                val port = value.toInt()
+                call.mutableOriginConnectionPoint.port = port
+            }
+
             call.forEachHeader(config.forHeaders) { xForwardedFor ->
                 val remoteHost = xForwardedFor.split(",").first().trim()
                 if (remoteHost.isNotBlank()) {
@@ -167,6 +172,12 @@ public object XForwardedHeaderSupport :
          * HTTPS/TLS flag header names. Default are `X-Forwarded-SSL` and `Front-End-Https`
          */
         public val httpsFlagHeaders: ArrayList<String> = arrayListOf("X-Forwarded-SSL", "Front-End-Https")
+
+        /**
+         * Port X-header names. Default is `X-Forwarded-Port`
+         */
+        @PublicAPICandidate("2.0.0")
+        internal val portHeaders: ArrayList<String> = arrayListOf("X-Forwarded-Port")
     }
 }
 

@@ -120,6 +120,9 @@ public object HttpHeaders {
     public val XForwardedProto: String = "X-Forwarded-Proto"
     public val XForwardedFor: String = "X-Forwarded-For"
 
+    @PublicAPICandidate("2.0.0")
+    internal val XForwardedPort: String = "X-Forwarded-Port"
+
     public val XRequestId: String = "X-Request-ID"
     public val XCorrelationId: String = "X-Correlation-ID"
     public val XTotalCount: String = "X-Total-Count"
