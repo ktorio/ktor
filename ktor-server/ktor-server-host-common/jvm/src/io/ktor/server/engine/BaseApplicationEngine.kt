@@ -7,6 +7,7 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
@@ -78,7 +79,9 @@ public abstract class BaseApplicationEngine(
             if (isResponded) {
                 return@intercept
             }
-            val status = call.response.status() ?: HttpStatusCode.NotFound
+            val status = call.response.status()
+                ?: call.attributes.getOrNull(RoutingFailureStatusCode)
+                ?: HttpStatusCode.NotFound
             call.respond(status)
         }
 
