@@ -204,7 +204,7 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get("").bodyAsText()
+            val response = client.get { }.bodyAsText()
             assertEquals("Content", response)
         }
     }
@@ -232,7 +232,7 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get("").bodyAsText()
+            val response = client.get { }.bodyAsText()
             assertEquals("Content", response)
         }
     }
