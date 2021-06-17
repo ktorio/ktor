@@ -130,11 +130,13 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            client.webSocket(request = {
-                url("$TEST_WEBSOCKET_SERVER/websockets/headers")
-                header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
-                header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
-            }) {
+            client.webSocket(
+                request = {
+                    url("$TEST_WEBSOCKET_SERVER/websockets/headers")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                }
+            ) {
                 val frame = incoming.receive()
                 assertTrue(frame is Frame.Text)
                 val frameText = frame.readText()
