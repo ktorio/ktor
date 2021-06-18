@@ -23,15 +23,15 @@ public const val DEFAULT_PORT: Int = 0
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
 public class URLBuilder(
-    public var protocol: URLProtocol = URLProtocol.HTTP,
-    public var host: String = "localhost",
-    public var port: Int = DEFAULT_PORT,
+    public var protocol: URLProtocol? = null,
+    public var host: String? = null,
+    public var port: Int? = null,
     user: String? = null,
     password: String? = null,
-    pathSegments: List<String> = mutableListOf(""),
-    parameters: Parameters = Parameters.Empty,
-    fragment: String = "",
-    public var trailingQuery: Boolean = false
+    pathSegments: List<String>? = null,
+    parameters: Parameters? = null,
+    fragment: String? = null,
+    public var trailingQuery: Boolean? = null
 ) {
 
     public var user: String?
@@ -95,16 +95,16 @@ public class URLBuilder(
     /**
      * Build a [Url] instance (everything is copied to a new instance)
      */
-    public fun build(): Url = Url(
-        protocol = protocol,
-        host = host,
-        specifiedPort = port,
-        pathSegments = pathSegments,
-        parameters = parameters.build(),
-        fragment = fragment,
+    public fun build(): URL = URL(
+        protocol = protocol ?: UrlProtocol.Htt,
+        host = host ?: "localhost",
+        specifiedPort = port ?: DEFAULT_PORT,
+        pathSegments = pathSegments ?: listOf(""),
+        parameters = parameters?.build() ?: Parameters.Empty,
+        fragment = fragment ?: "",
         user = user,
         password = password,
-        trailingQuery = trailingQuery,
+        trailingQuery = trailingQuery ?: false,
         urlString = buildString()
     )
 
