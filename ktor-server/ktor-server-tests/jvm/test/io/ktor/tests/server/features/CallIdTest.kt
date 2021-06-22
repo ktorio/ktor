@@ -5,10 +5,10 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import kotlin.test.*
