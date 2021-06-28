@@ -36,9 +36,37 @@ public class NettyChannelInitializer(
     private val runningLimit: Int,
     private val responseWriteTimeout: Int,
     private val requestReadTimeout: Int,
-    private val httpServerCodec: () -> HttpServerCodec
+    private val httpServerCodec: () -> HttpServerCodec,
+    private val channelPipelineConfig: ChannelPipeline.() -> Unit
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
+
+    internal constructor(
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEngineEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        requestQueueLimit: Int,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec
+    ) : this(
+        enginePipeline,
+        environment,
+        callEventGroup,
+        engineContext,
+        userContext,
+        connector,
+        requestQueueLimit,
+        runningLimit,
+        responseWriteTimeout,
+        requestReadTimeout,
+        httpServerCodec,
+        {}
+    )
 
     init {
         if (connector is EngineSSLConnectorConfig) {
@@ -99,6 +127,7 @@ public class NettyChannelInitializer(
                 pipeline.channel().closeFuture().addListener {
                     handler.cancel()
                 }
+                channelPipelineConfig(pipeline)
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val requestQueue = NettyRequestQueue(requestQueueLimit, runningLimit)
@@ -120,6 +149,7 @@ public class NettyChannelInitializer(
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
+                    channelPipelineConfig()
                 }
 
                 pipeline.context("codec").fireChannelActive()
