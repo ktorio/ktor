@@ -7,7 +7,6 @@ package io.ktor.server.netty
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
@@ -16,8 +15,8 @@ import io.netty.channel.kqueue.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
-import io.netty.handler.codec.http.*
 import io.netty.handler.codec.*
+import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import java.lang.reflect.*
