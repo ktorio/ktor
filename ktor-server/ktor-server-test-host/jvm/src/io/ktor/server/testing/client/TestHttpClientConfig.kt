@@ -7,6 +7,6 @@ package io.ktor.server.testing.client
 import io.ktor.client.engine.*
 import io.ktor.server.testing.*
 
-public class TestHttpClientConfig : HttpClientEngineConfig() {
+class TestHttpClientConfig : HttpClientEngineConfig() {
     lateinit var app: TestApplicationEngine
 }

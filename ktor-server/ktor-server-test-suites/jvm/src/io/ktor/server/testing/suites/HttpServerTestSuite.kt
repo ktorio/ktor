@@ -22,11 +22,12 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
+import org.junit.*
+import org.junit.Assert.*
 import java.net.*
 import java.nio.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
-import kotlin.test.*
 import kotlin.text.toByteArray
 
 abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -704,7 +705,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
                 (0 until response.headers.size)
                     .map { response.headers.nameAt(it).toString() }
                     .groupBy { it }.forEach { (name, values) ->
-                        assertEquals(1, values.size, "Duplicate header $name")
+                        assertEquals("Duplicate header $name", 1, values.size)
                     }
 
                 outputStream.apply {
