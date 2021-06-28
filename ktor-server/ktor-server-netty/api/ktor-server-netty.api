@@ -78,6 +78,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/
 
 public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
 	public fun <init> ()V
+	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
 	public final fun getHttpServerCodec ()Lkotlin/jvm/functions/Function0;
 	public final fun getRequestQueueLimit ()I
@@ -86,6 +87,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getRunningLimit ()I
 	public final fun getShareWorkGroup ()Z
 	public final fun getTcpKeepAlive ()Z
+	public final fun setChannelPipelineConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
 	public final fun setHttpServerCodec (Lkotlin/jvm/functions/Function0;)V
 	public final fun setRequestQueueLimit (I)V
@@ -145,7 +147,7 @@ public final class io/ktor/server/netty/NettyApplicationResponse$Companion {
 
 public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/channel/ChannelInitializer {
 	public static final field Companion Lio/ktor/server/netty/NettyChannelInitializer$Companion;
-	public fun <init> (Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIIILkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun initChannel (Lio/netty/channel/Channel;)V
 }
 
