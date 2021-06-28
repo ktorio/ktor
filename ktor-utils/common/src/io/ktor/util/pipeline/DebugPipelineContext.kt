@@ -26,7 +26,6 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
      * Subject of this pipeline execution
      */
     override var subject: TSubject = subject
-        private set
 
     private var index = 0
 

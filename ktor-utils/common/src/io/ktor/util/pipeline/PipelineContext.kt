@@ -20,7 +20,7 @@ public interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScop
     /**
      * Subject of this pipeline execution that goes along the pipeline
      */
-    public val subject: TSubject
+    public var subject: TSubject
 
     /**
      * Finishes current pipeline execution

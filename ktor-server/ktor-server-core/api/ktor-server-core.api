@@ -85,6 +85,184 @@ public final class io/ktor/application/MissingApplicationFeatureException : java
 	public fun getMessage ()Ljava/lang/String;
 }
 
+public abstract class io/ktor/application/newapi/DefaultInterceptionsHolder : io/ktor/application/newapi/InterceptionsHolder {
+	public fun <init> (Ljava/lang/String;)V
+	public fun defineInterceptions (Lkotlin/jvm/functions/Function1;)V
+	public fun getAfterResponseInterceptions ()Ljava/util/List;
+	public fun getBeforeReceiveInterceptions ()Ljava/util/List;
+	public fun getBeforeResponseInterceptions ()Ljava/util/List;
+	public fun getCallInterceptions ()Ljava/util/List;
+	public fun getFallbackInterceptions ()Ljava/util/List;
+	public fun getMonitoringInterceptions ()Ljava/util/List;
+	public fun getName ()Ljava/lang/String;
+	public fun getOnReceiveInterceptions ()Ljava/util/List;
+	public fun getOnResponseInterceptions ()Ljava/util/List;
+	public fun newPhase ()Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/application/newapi/Execution {
+	public static final synthetic fun box-impl (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/application/newapi/Execution;
+	public static fun constructor-impl (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/util/pipeline/PipelineContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Lio/ktor/util/pipeline/PipelineContext;Lio/ktor/util/pipeline/PipelineContext;)Z
+	public static final fun finish-impl (Lio/ktor/util/pipeline/PipelineContext;)V
+	public static final fun getCall-impl (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/application/ApplicationCall;
+	public static final fun getConfiguration-impl (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/config/ApplicationConfig;
+	public static final fun getEnvironment-impl (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/application/ApplicationEnvironment;
+	public static final fun getHost-impl (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/String;
+	public static final fun getPort-impl (Lio/ktor/util/pipeline/PipelineContext;)I
+	public static final fun getSubject-impl (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Lio/ktor/util/pipeline/PipelineContext;)I
+	public static final fun onShutdown-impl (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/jvm/functions/Function1;)V
+	public static final fun proceed-impl (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun proceedWith-impl (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Lio/ktor/util/pipeline/PipelineContext;
+}
+
+public final class io/ktor/application/newapi/Interception {
+	public fun <init> (Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function1;)V
+	public final fun component1 ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun component2 ()Lkotlin/jvm/functions/Function1;
+	public final fun copy (Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function1;)Lio/ktor/application/newapi/Interception;
+	public static synthetic fun copy$default (Lio/ktor/application/newapi/Interception;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/application/newapi/Interception;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Lkotlin/jvm/functions/Function1;
+	public final fun getPhase ()Lio/ktor/util/pipeline/PipelinePhase;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/application/newapi/InterceptionsHolder {
+	public abstract fun defineInterceptions (Lkotlin/jvm/functions/Function1;)V
+	public abstract fun getAfterResponseInterceptions ()Ljava/util/List;
+	public abstract fun getBeforeReceiveInterceptions ()Ljava/util/List;
+	public abstract fun getBeforeResponseInterceptions ()Ljava/util/List;
+	public abstract fun getCallInterceptions ()Ljava/util/List;
+	public abstract fun getFallbackInterceptions ()Ljava/util/List;
+	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
+	public abstract fun getMonitoringInterceptions ()Ljava/util/List;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getOnReceiveInterceptions ()Ljava/util/List;
+	public abstract fun getOnResponseInterceptions ()Ljava/util/List;
+	public abstract fun newPhase ()Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/application/newapi/InterceptionsHolder$DefaultImpls {
+	public static fun defineInterceptions (Lio/ktor/application/newapi/InterceptionsHolder;Lkotlin/jvm/functions/Function1;)V
+	public static fun getName (Lio/ktor/application/newapi/InterceptionsHolder;)Ljava/lang/String;
+	public static fun newPhase (Lio/ktor/application/newapi/InterceptionsHolder;)Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder {
+	public fun <init> (Lio/ktor/application/newapi/InterceptionsHolder;)V
+	public final fun afterResponse ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun afterResponse$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun beforeReceive ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun beforeReceive$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun beforeResponse ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun beforeResponse$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun call ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun call$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun fallback ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun fallback$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun monitoring ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun monitoring$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun onReceive ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun onReceive$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+	public final fun onResponse ([Lio/ktor/util/pipeline/PipelinePhase;)V
+	public static synthetic fun onResponse$default (Lio/ktor/application/newapi/InterceptionsHolder$InterceptionsBuilder;[Lio/ktor/util/pipeline/PipelinePhase;ILjava/lang/Object;)V
+}
+
+public abstract class io/ktor/application/newapi/KtorPlugin : io/ktor/application/ApplicationFeature, io/ktor/application/newapi/InterceptionsHolder, io/ktor/application/newapi/PluginContext {
+	public static final field Companion Lio/ktor/application/newapi/KtorPlugin$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun afterPlugin (Lio/ktor/application/newapi/InterceptionsHolder;Lkotlin/jvm/functions/Function1;)V
+	public final fun beforePlugin (Lio/ktor/application/newapi/InterceptionsHolder;Lkotlin/jvm/functions/Function1;)V
+	public fun defineInterceptions (Lkotlin/jvm/functions/Function1;)V
+	public fun getAfterResponseInterceptions ()Ljava/util/List;
+	public fun getBeforeReceiveInterceptions ()Ljava/util/List;
+	public fun getBeforeResponseInterceptions ()Ljava/util/List;
+	public fun getCallInterceptions ()Ljava/util/List;
+	protected final fun getConfigurationValue ()Ljava/lang/Object;
+	public fun getFallbackInterceptions ()Ljava/util/List;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getMonitoringInterceptions ()Ljava/util/List;
+	public fun getName ()Ljava/lang/String;
+	public fun getOnCall ()Lio/ktor/application/newapi/OnCall;
+	public fun getOnReceive ()Lio/ktor/application/newapi/OnReceive;
+	public fun getOnReceiveInterceptions ()Ljava/util/List;
+	public fun getOnResponse ()Lio/ktor/application/newapi/OnResponse;
+	public fun getOnResponseInterceptions ()Ljava/util/List;
+	protected final fun getPipeline ()Lio/ktor/application/ApplicationCallPipeline;
+	protected final fun getPipelineValue ()Lio/ktor/application/ApplicationCallPipeline;
+	public final fun getPlugin ()Ljava/lang/Object;
+	public fun newPhase ()Lio/ktor/util/pipeline/PipelinePhase;
+	protected final fun setConfigurationValue (Ljava/lang/Object;)V
+	protected final fun setPipelineValue (Lio/ktor/application/ApplicationCallPipeline;)V
+}
+
+public final class io/ktor/application/newapi/KtorPlugin$AfterPluginContext : io/ktor/application/newapi/KtorPlugin$RelativePluginContext {
+	public fun <init> (Lio/ktor/application/newapi/InterceptionsHolder;Lio/ktor/application/newapi/InterceptionsHolder;)V
+	public fun insertPhase (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
+	public fun selectPhase (Ljava/util/List;)Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/application/newapi/KtorPlugin$BeforePluginContext : io/ktor/application/newapi/KtorPlugin$RelativePluginContext {
+	public fun <init> (Lio/ktor/application/newapi/InterceptionsHolder;Lio/ktor/application/newapi/InterceptionsHolder;)V
+	public fun insertPhase (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
+	public fun selectPhase (Ljava/util/List;)Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/application/newapi/KtorPlugin$Companion {
+	public final fun createPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/application/newapi/KtorPlugin;
+}
+
+public abstract class io/ktor/application/newapi/KtorPlugin$RelativePluginContext : io/ktor/application/newapi/PluginContext {
+	public fun <init> (Lio/ktor/application/newapi/InterceptionsHolder;Lio/ktor/application/newapi/InterceptionsHolder;)V
+	public fun getOnCall ()Lio/ktor/application/newapi/OnCall;
+	public fun getOnReceive ()Lio/ktor/application/newapi/OnReceive;
+	public fun getOnResponse ()Lio/ktor/application/newapi/OnResponse;
+	public abstract fun insertPhase (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
+	public abstract fun selectPhase (Ljava/util/List;)Lio/ktor/util/pipeline/PipelinePhase;
+	protected final fun sortedPhases (Ljava/util/List;Lio/ktor/util/pipeline/Pipeline;)Ljava/util/List;
+}
+
+public final class io/ktor/application/newapi/KtorPluginKt {
+	public static final fun plugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/newapi/InterceptionsHolder;)Lio/ktor/application/newapi/InterceptionsHolder;
+}
+
+public abstract interface class io/ktor/application/newapi/OnCall {
+	public abstract fun fallback (Lkotlin/jvm/functions/Function3;)V
+	public abstract fun invoke (Lkotlin/jvm/functions/Function3;)V
+	public abstract fun monitoring (Lkotlin/jvm/functions/Function3;)V
+}
+
+public abstract interface class io/ktor/application/newapi/OnReceive {
+	public abstract fun before (Lkotlin/jvm/functions/Function3;)V
+	public abstract fun invoke (Lkotlin/jvm/functions/Function3;)V
+}
+
+public abstract interface class io/ktor/application/newapi/OnResponse {
+	public abstract fun after (Lkotlin/jvm/functions/Function3;)V
+	public abstract fun before (Lkotlin/jvm/functions/Function3;)V
+	public abstract fun invoke (Lkotlin/jvm/functions/Function3;)V
+}
+
+public abstract interface class io/ktor/application/newapi/PluginContext {
+	public abstract fun getOnCall ()Lio/ktor/application/newapi/OnCall;
+	public abstract fun getOnReceive ()Lio/ktor/application/newapi/OnReceive;
+	public abstract fun getOnResponse ()Lio/ktor/application/newapi/OnResponse;
+}
+
+public final class io/ktor/application/newapi/PluginNotInstalledException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getMessage ()Ljava/lang/String;
+}
+
 public abstract interface class io/ktor/config/ApplicationConfig {
 	public abstract fun config (Ljava/lang/String;)Lio/ktor/config/ApplicationConfig;
 	public abstract fun configList (Ljava/lang/String;)Ljava/util/List;

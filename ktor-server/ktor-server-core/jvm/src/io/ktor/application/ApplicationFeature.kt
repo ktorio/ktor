@@ -31,7 +31,7 @@ public interface ApplicationFeature<
     public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TFeature
 }
 
-private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
+internal val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
 
 /**
  * Gets feature instance for this pipeline, or fails with [MissingApplicationFeatureException] if the feature is not installed
