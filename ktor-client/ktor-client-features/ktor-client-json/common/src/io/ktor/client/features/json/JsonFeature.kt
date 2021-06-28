@@ -37,14 +37,12 @@ public expect fun defaultSerializer(): JsonSerializer
  * @property serializer that is used to serialize and deserialize request/response bodies
  * @property acceptContentTypes that are allowed when receiving content
  */
+@Deprecated("Please use ContentNegotiation feature")
 public class JsonFeature internal constructor(
     public val serializer: JsonSerializer,
     public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
     private val receiveContentTypeMatchers: List<ContentTypeMatcher> = listOf(JsonContentTypeMatcher()),
 ) {
-    @Deprecated("Install feature properly instead of direct instantiation.", level = DeprecationLevel.ERROR)
-    public constructor(serializer: JsonSerializer) : this(serializer, listOf(ContentType.Application.Json))
-
     internal constructor(config: Config) : this(
         config.serializer ?: defaultSerializer(),
         config.acceptContentTypes,
@@ -169,6 +167,7 @@ public class JsonFeature internal constructor(
 /**
  * Install [JsonFeature].
  */
+@Deprecated("Please use ContentNegotiation feature")
 public fun HttpClientConfig<*>.Json(block: JsonFeature.Config.() -> Unit) {
     install(JsonFeature, block)
 }

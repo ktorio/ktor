@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
 public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
-    return ByteChannelNative(IoBuffer.Empty, autoFlush)
+    return ByteChannelNative(ChunkBuffer.Empty, autoFlush)
 }
 
 /**
@@ -24,7 +24,7 @@ public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
  */
 public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
-    val head = IoBuffer.Pool.borrow()
+    val head = ChunkBuffer.Pool.borrow()
     var tail = head
 
     var start = offset
@@ -38,7 +38,7 @@ public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int):
         if (start == end) break
 
         val current = tail
-        tail = IoBuffer.Pool.borrow()
+        tail = ChunkBuffer.Pool.borrow()
         current.next = tail
     }
 
@@ -59,7 +59,7 @@ public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: L
 }
 
 internal class ByteChannelNative(
-    initial: IoBuffer,
+    initial: ChunkBuffer,
     autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannelSequentialBase(initial, autoFlush, pool) {

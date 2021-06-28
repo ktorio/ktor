@@ -251,7 +251,8 @@ public class Compression(compression: Configuration) {
          */
         @Deprecated(
             "This is going to become internal. " +
-                "Please stop building it manually or file a ticket with explanation why do you need it."
+                "Please stop building it manually or file a ticket with explanation why do you need it.",
+            level = DeprecationLevel.ERROR
         )
         public fun build(): CompressionOptions = buildOptions()
     }
@@ -359,7 +360,8 @@ public class CompressionEncoderBuilder internal constructor(
      */
     @Deprecated(
         "This is going to become internal. " +
-            "Please stop building it manually or file a ticket with explanation why do you need it."
+            "Please stop building it manually or file a ticket with explanation why do you need it.",
+        level = DeprecationLevel.ERROR
     )
     public fun build(): CompressionEncoderConfig = buildConfig()
 

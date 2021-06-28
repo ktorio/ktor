@@ -29,7 +29,7 @@ public class AuthenticationContext(public val call: ApplicationCall) {
      * Stores authentication failures for keys provided by authentication mechanisms
      */
     @Suppress("unused")
-    @Deprecated("Use allErrors, allFailures or error() function instead")
+    @Deprecated("Use allErrors, allFailures or error() function instead", level = DeprecationLevel.ERROR)
     public val errors: HashMap<Any, AuthenticationFailedCause> get() = _errors
 
     /**

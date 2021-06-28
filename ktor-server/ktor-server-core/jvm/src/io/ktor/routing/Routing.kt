@@ -5,11 +5,15 @@
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+
+@InternalAPI
+public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
 /**
  * Root routing node for an [Application]
@@ -34,9 +38,11 @@ public class Routing(
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
-        val resolveResult = resolveContext.resolve()
-        if (resolveResult is RoutingResolveResult.Success) {
-            executeResult(context, resolveResult.route, resolveResult.parameters)
+        when (val resolveResult = resolveContext.resolve()) {
+            is RoutingResolveResult.Success ->
+                executeResult(context, resolveResult.route, resolveResult.parameters)
+            is RoutingResolveResult.Failure ->
+                context.call.attributes.put(RoutingFailureStatusCode, resolveResult.errorStatusCode)
         }
     }
 
@@ -91,14 +97,12 @@ public class Routing(
         /**
          * Event definition for when a routing-based call processing starts
          */
-        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> =
-            EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
         /**
          * Event definition for when a routing-based call processing finished
          */
-        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> =
-            EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 

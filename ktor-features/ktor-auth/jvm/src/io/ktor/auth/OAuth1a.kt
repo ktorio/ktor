@@ -6,6 +6,7 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -90,12 +91,12 @@ private suspend fun simpleOAuth1aStep1(
 
     val url = baseUrl.appendUrlParameters(extraParameters.formUrlEncode())
 
-    val response = client.post<HttpResponse>(url) {
+    val response = client.post(url) {
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
 
-    val body = response.readText()
+    val body = response.bodyAsText()
     try {
         if (response.status != HttpStatusCode.OK) {
             throw IOException("Bad response: $response")
@@ -162,18 +163,21 @@ private suspend fun requestOAuth1aAccessToken(
     val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
         .signInternal(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val body = client.post<String>(baseUrl) {
+    // some of really existing OAuth servers don't support other accept header values so keep it
+    val body = client.post(baseUrl) {
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, "*/*")
         // some of really existing OAuth servers don't support other accept header values so keep it
 
-        body = WriterContent(
-            { params.formUrlEncodeTo(this) },
-            ContentType.Application.FormUrlEncoded
+        setBody(
+            WriterContent(
+                { params.formUrlEncodeTo(this) },
+                ContentType.Application.FormUrlEncoded
+            )
         )
 
         accessTokenInterceptor?.invoke(this)
-    }
+    }.body<String>()
 
     try {
         val parameters = body.parseUrlEncodedParameters()
@@ -193,8 +197,8 @@ private suspend fun requestOAuth1aAccessToken(
  * Create an HTTP auth header for OAuth1a obtain token request
  */
 @Deprecated(
-    "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+    "This is going to become internal. Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun createObtainRequestTokenHeader(
@@ -229,10 +233,11 @@ private fun createObtainRequestTokenHeaderInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
-public fun createUpgradeRequestTokenHeader(
+internal fun createUpgradeRequestTokenHeader(
     consumerKey: String,
     token: String,
     nonce: String,
@@ -264,7 +269,8 @@ private fun createUpgradeRequestTokenHeaderInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun HttpAuthHeader.Parameterized.sign(
@@ -292,7 +298,8 @@ private fun HttpAuthHeader.Parameterized.signInternal(
  */
 @Deprecated(
     "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it."
+        "Please file a ticket and clarify, why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun signatureBaseString(
@@ -342,6 +349,6 @@ public sealed class OAuth1aException(message: String) : Exception(message) {
     /**
      * Represents any other OAuth1a error
      */
-    @Deprecated("This is no longer thrown.")
+    @Deprecated("This is no longer thrown.", level = DeprecationLevel.ERROR)
     public class UnknownException(message: String) : OAuth1aException(message)
 }

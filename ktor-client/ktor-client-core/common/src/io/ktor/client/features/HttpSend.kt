@@ -59,7 +59,10 @@ public class HttpSend(
     /**
      * Install send pipeline starter interceptor (backward compatible function).
      */
-    @Deprecated("Intercept with one parameter is deprecated, use both call and request builder as parameters.")
+    @Deprecated(
+        "Intercept with one parameter is deprecated, use both call and request builder as parameters.",
+        level = DeprecationLevel.ERROR
+    )
     public fun intercept(block: HttpSendInterceptorBackwardCompatible) {
         interceptors += { call, _ ->
             block(call)
@@ -80,10 +83,10 @@ public class HttpSend(
                 check(content is OutgoingContent) {
                     """
 |Fail to serialize body. Content has type: ${content::class}, but OutgoingContent expected.
-|If you expect serialized body, please check that you have installed the corresponding feature(like `Json`) and set `Content-Type` header."""
+|If you expect serialized body, please check that you have installed the corresponding feature(like `ContentNegotiation`) and set `Content-Type` header."""
                         .trimMargin()
                 }
-                context.body = content
+                context.setBody(content)
 
                 val sender = DefaultSender(feature.maxSendCount, scope)
                 var currentCall = sender.execute(context)

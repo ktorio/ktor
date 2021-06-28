@@ -5,15 +5,15 @@
 package io.ktor.response
 
 import io.ktor.util.*
-import kotlin.reflect.*
+import io.ktor.util.reflect.*
 
-private val ResponseTypeAttributeKey: AttributeKey<KType> = AttributeKey("ResponseTypeAttributeKey")
+private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("ResponseTypeAttributeKey")
 
 /**
  * Type of the response object that was passed in [respond] function.
  * Can be useful for custom serializations.
  */
-public var ApplicationResponse.responseType: KType?
+public var ApplicationResponse.responseType: TypeInfo?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
     @InternalAPI set(value) {
         if (value != null) {

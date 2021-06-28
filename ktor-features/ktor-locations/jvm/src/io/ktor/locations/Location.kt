@@ -253,7 +253,7 @@ public fun <T : Any> Route.handle(
  * Despite of the name, the function fails if no location found. This is why it's deprecated.
  */
 @KtorExperimentalLocationsAPI
-@Deprecated("Use location function instead.", ReplaceWith("location()"))
+@Deprecated("Use location function instead.", ReplaceWith("this.location<T>()"), level = DeprecationLevel.ERROR)
 public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = location()
 
 /**

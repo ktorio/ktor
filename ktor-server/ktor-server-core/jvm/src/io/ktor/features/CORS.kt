@@ -297,24 +297,6 @@ public class CORS(configuration: Configuration) {
              */
             public val CorsDefaultMethods: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
 
-            // https://www.w3.org/TR/cors/#simple-header
-            /**
-             * Default HTTP headers that are always allowed by CORS
-             */
-            @Suppress("unused")
-            @Deprecated(
-                "Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead",
-                level = DeprecationLevel.ERROR
-            )
-            public val CorsDefaultHeaders: Set<String> = caseInsensitiveSet(
-                HttpHeaders.CacheControl,
-                HttpHeaders.ContentLanguage,
-                HttpHeaders.ContentType,
-                HttpHeaders.Expires,
-                HttpHeaders.LastModified,
-                HttpHeaders.Pragma
-            )
-
             /**
              * Default HTTP headers that are always allowed by CORS
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
@@ -383,17 +365,6 @@ public class CORS(configuration: Configuration) {
         public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
 
         /**
-         * Max-Age for cached CORS options
-         */
-        @Suppress("unused", "DEPRECATION")
-        @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.HIDDEN)
-        public var maxAge: java.time.Duration
-            get() = maxAge
-            set(newMaxAge) {
-                maxAge = newMaxAge
-            }
-
-        /**
          * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
          */
         public var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
@@ -448,18 +419,6 @@ public class CORS(configuration: Configuration) {
             if (header !in CorsSimpleResponseHeaders) {
                 exposedHeaders.add(header)
             }
-        }
-
-        /**
-         * Allow to expose `X-Http-Method-Override` header
-         */
-        @Deprecated(
-            "Allow it in request headers instead",
-            ReplaceWith("allowXHttpMethodOverride()"),
-            level = DeprecationLevel.ERROR
-        )
-        public fun exposeXHttpMethodOverride() {
-            exposedHeaders.add(HttpHeaders.XHttpMethodOverride)
         }
 
         /**

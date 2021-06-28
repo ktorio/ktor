@@ -10,7 +10,7 @@ import java.io.*
 private class OutputStreamAdapter(
     pool: ObjectPool<ChunkBuffer>,
     private val stream: OutputStream
-) : AbstractOutput(pool) {
+) : Output(pool) {
     override fun flush(source: Memory, offset: Int, length: Int) {
         val nioBuffer = source.buffer
         if (nioBuffer.hasArray() && !nioBuffer.isReadOnly) {

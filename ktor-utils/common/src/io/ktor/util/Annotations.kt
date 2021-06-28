@@ -24,6 +24,7 @@ package io.ktor.util
     AnnotationTarget.PROPERTY,
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.PROPERTY_SETTER,
     AnnotationTarget.PROPERTY_SETTER
 )
 public annotation class InternalAPI

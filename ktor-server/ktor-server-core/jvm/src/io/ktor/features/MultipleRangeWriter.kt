@@ -14,7 +14,7 @@ private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + 
 /**
  * Start multirange response writer coroutine
  */
-@Deprecated("This is going to be removed. Use PartialContent feature instead.")
+@Deprecated("This is going to be removed. Use PartialContent feature instead.", level = DeprecationLevel.ERROR)
 public fun CoroutineScope.writeMultipleRanges(
     channelProducer: (LongRange) -> ByteReadChannel,
     ranges: List<LongRange>,

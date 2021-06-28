@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 
 /**
  * Channel for asynchronous writing of sequences of bytes.
@@ -30,16 +31,6 @@ public actual interface ByteWriteChannel {
     public actual val autoFlush: Boolean
 
     /**
-     * Byte order that is used for multi-byte write operations
-     * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var writeByteOrder: ByteOrder
-
-    /**
      * Number of bytes written to the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of write operation.
      */
@@ -55,15 +46,13 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
-    public actual suspend fun writeAvailable(src: IoBuffer): Int
+    public actual suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
      * Crashes if channel get closed while writing.
      */
     public actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
-
-    public actual suspend fun writeFully(src: IoBuffer)
 
     public actual suspend fun writeFully(src: Buffer)
 

@@ -48,7 +48,7 @@ internal fun Application.cacheTestServer() {
              */
             get("/etag") {
                 val current = counter.incrementAndGet()
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 call.withETag("0") {
                     call.respondText(current.toString())
                 }

@@ -12,9 +12,11 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.reflect.*
 
 /**
  * A request for [HttpClient], first part of [HttpClientCall].
@@ -42,14 +44,6 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
      * Typed [Attributes] associated to this call serving as a lightweight container.
      */
     public val attributes: Attributes
-
-    @Deprecated(
-        "Binary compatibility.",
-        level = DeprecationLevel.HIDDEN
-    )
-    @Suppress("unused", "KDocMissingDocumentation")
-    public val executionContext: Job
-        get() = coroutineContext[Job]!!
 
     /**
      * An [OutgoingContent] representing the request body
@@ -80,6 +74,20 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * The [body] for this request. Initially [EmptyContent].
      */
     public var body: Any = EmptyContent
+        @InternalAPI public set
+
+    /**
+     * The [KType] of [body] for this request. Null for default types that don't need serialization.
+     */
+    public var bodyType: TypeInfo?
+        get() = attributes.getOrNull(BodyTypeAttributeKey)
+        @InternalAPI set(value) {
+            if (value != null) {
+                attributes.put(BodyTypeAttributeKey, value)
+            } else {
+                attributes.remove(BodyTypeAttributeKey)
+            }
+        }
 
     /**
      * A deferred used to control the execution of this request.
@@ -135,8 +143,9 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
+        bodyType = builder.bodyType
         url.takeFrom(builder.url)
-        url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
+        url.encodedPath = url.encodedPath.ifBlank { "/" }
         headers.appendAll(builder.headers)
         attributes.putAll(builder.attributes)
 
@@ -218,6 +227,7 @@ public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): Headers
 public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
     attributes.putAll(request.attributes)
@@ -235,6 +245,7 @@ public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(ur
 public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
     attributes.putAll(request.attributes)

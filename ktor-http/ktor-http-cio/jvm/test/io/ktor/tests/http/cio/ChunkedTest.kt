@@ -39,7 +39,7 @@ class ChunkedTest {
 
         val output = ByteChannel()
         launch {
-            decodeChunked(input, output, 1L)
+            decodeChunked(input, output)
             output.close()
         }
 

@@ -25,6 +25,8 @@ internal class NettyHttp2ApplicationResponse(
         status(HttpStatusCode.OK.value.toString())
     }
 
+    private val responseTrailers = DefaultHttp2Headers()
+
     override fun setStatus(statusCode: HttpStatusCode) {
         responseHeaders.status(statusCode.value.toString())
     }
@@ -41,25 +43,45 @@ internal class NettyHttp2ApplicationResponse(
         return DefaultHttp2HeadersFrame(responseHeaders, last)
     }
 
+    fun trailerMessage(): Any? {
+        return if (responseTrailers.isEmpty) null else DefaultHttp2HeadersFrame(responseTrailers, true)
+    }
+
+    override suspend fun respondOutgoingContent(content: OutgoingContent) {
+        super.respondOutgoingContent(content)
+
+        // write all trailers
+        content.trailers()?.let { it ->
+            it.forEach { name, values ->
+                for (value in values) {
+                    trailers.append(name, value)
+                }
+            }
+        }
+    }
+
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 
-    override val headers = object : ResponseHeaders() {
-        override fun engineAppendHeader(name: String, value: String) {
-            responseHeaders.add(name.toLowerCasePreservingASCIIRules(), value)
-        }
+    override val headers: ResponseHeaders = Http2ResponseHeaders(responseHeaders)
 
-        override fun get(name: String): String? = responseHeaders[name]?.toString()
-        override fun getEngineHeaderNames(): List<String> = responseHeaders.names().map { it.toString() }
-        override fun getEngineHeaderValues(name: String): List<String> =
-            responseHeaders.getAll(name).map { it.toString() }
-    }
+    private val trailers: ResponseHeaders = Http2ResponseHeaders(responseTrailers)
 
     @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         context.executor().execute {
             handler.startHttp2PushPromise(this@NettyHttp2ApplicationResponse.context, builder)
         }
+    }
+
+    private class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
+        override fun engineAppendHeader(name: String, value: String) {
+            underlying.add(name.toLowerCasePreservingASCIIRules(), value)
+        }
+
+        override fun get(name: String): String? = underlying[name]?.toString()
+        override fun getEngineHeaderNames(): List<String> = underlying.names().map { it.toString() }
+        override fun getEngineHeaderValues(name: String): List<String> = underlying.getAll(name).map { it.toString() }
     }
 }

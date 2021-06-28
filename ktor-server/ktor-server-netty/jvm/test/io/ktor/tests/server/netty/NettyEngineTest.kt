@@ -63,3 +63,5 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
 }
 
 class NettyConfigTest : ConfigTestSuite(Netty)
+
+class NettyConnectionTest : ConnectionTestSuite(Netty)

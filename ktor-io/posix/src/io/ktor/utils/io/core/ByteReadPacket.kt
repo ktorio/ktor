@@ -28,14 +28,11 @@ public actual fun ByteReadPacket(
             val base = content.addressOf(offset)
             pinned = content
 
-            @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(base, length), null, this as ObjectPool<IoBuffer>)
+            return ChunkBuffer(Memory.of(base, length), null, this)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {
             check(pinned != null) { "The array hasn't been pinned yet" }
-            @Suppress("DEPRECATION")
-            check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
             block(array)
             pinned?.unpin()
             pinned = null

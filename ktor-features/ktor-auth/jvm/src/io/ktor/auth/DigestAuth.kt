@@ -56,17 +56,6 @@ public class DigestAuthenticationProvider internal constructor(
         public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
-         * username and password digest function
-         */
-        @Suppress("unused")
-        @Deprecated("Use digestProvider { } function instead.", level = DeprecationLevel.ERROR)
-        public var userNameRealmPasswordDigestProvider: DigestProviderFunction
-            get() = digestProvider
-            set(newProvider) {
-                digestProvider = newProvider
-            }
-
-        /**
          * Configures digest provider function that should fetch or compute message digest for the specified
          * `userName` and `realm`. A message digest is usually computed based on user name (login), realm and password
          * concatenated with colon character ':'. For example `"$userName:$realm:$password"`.

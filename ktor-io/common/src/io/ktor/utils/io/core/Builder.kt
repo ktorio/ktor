@@ -1,7 +1,5 @@
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.*
 import kotlin.contracts.*
 
 public expect val PACKET_MAX_COPY_SIZE: Int
@@ -33,15 +31,3 @@ public expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
 public fun BytePacketBuilder.reset() {
     release()
 }
-
-@DangerousInternalIoApi
-@Deprecated("Will be removed in future releases.", level = DeprecationLevel.ERROR)
-@Suppress("DEPRECATION_ERROR")
-public abstract class BytePacketBuilderPlatformBase
-internal constructor(pool: ObjectPool<ChunkBuffer>) : BytePacketBuilderBase(pool)
-
-@DangerousInternalIoApi
-@Deprecated("Will be removed in future releases", level = DeprecationLevel.ERROR)
-@Suppress("DEPRECATION_ERROR")
-public abstract class BytePacketBuilderBase
-internal constructor(pool: ObjectPool<ChunkBuffer>) : AbstractOutput(pool)

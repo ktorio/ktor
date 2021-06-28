@@ -40,14 +40,3 @@ public object EngineMain {
         }
     }
 }
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Use EngineMain instead",
-    replaceWith = ReplaceWith("EngineMain"),
-    level = DeprecationLevel.HIDDEN
-)
-public object DevelopmentEngine {
-    @JvmStatic
-    public fun main(args: Array<String>): Unit = EngineMain.main(args)
-}

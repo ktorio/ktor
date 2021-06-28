@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -21,13 +22,13 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
             }
 
-            client.get<HttpResponse>("http://localhost/path/").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path/").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/path/child", response.request.url.fullPath)
             }
         }
@@ -40,13 +41,13 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
             }
 
-            client.get<HttpResponse>("http://localhost/path/").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path/").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
             }
         }
@@ -59,8 +60,8 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
                 assertEquals("localhost2", response.request.url.host)
             }
@@ -74,8 +75,8 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
                 assertEquals("localhost2", response.request.url.host)
                 assertEquals("https", response.request.url.protocol.name)
@@ -90,8 +91,8 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("https://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("https://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
                 assertEquals("localhost2", response.request.url.host)
                 assertEquals("https", response.request.url.protocol.name)
@@ -107,7 +108,7 @@ class HttpRedirectMockedTest {
 
         test { client ->
             assertFailsWith<RedirectResponseException> {
-                client.get<String>("https://localhost/path")
+                client.get("https://localhost/path").body<String>()
             }
         }
     }
@@ -122,8 +123,8 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("https://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("https://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
                 assertEquals("/child", response.request.url.fullPath)
                 assertEquals("localhost2", response.request.url.host)
                 assertEquals("http", response.request.url.protocol.name)
@@ -156,7 +157,7 @@ class HttpRedirectMockedTest {
             repeat(5) {
                 val number = it + 1
                 run("http://localhost/path?i=$number") { response ->
-                    assertEquals("OK", response.readText())
+                    assertEquals("OK", response.bodyAsText())
                     results[number.toString()] = response.headers["_auth"]!!
                 }
             }
@@ -178,10 +179,10 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            assertEquals("OK", client.get<HttpResponse>("http://localhost/path").readText())
+            assertEquals("OK", client.get("http://localhost/path").bodyAsText())
 
             assertFailsWith<RedirectResponseException> {
-                assertEquals("OK", client.post<HttpResponse>("http://localhost/path").readText())
+                assertEquals("OK", client.post("http://localhost/path").bodyAsText())
             }
         }
     }
@@ -198,12 +199,12 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.get("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
             }
 
-            client.post<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
+            client.post("http://localhost/path").let { response ->
+                assertEquals("OK", response.bodyAsText())
             }
         }
     }

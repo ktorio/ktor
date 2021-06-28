@@ -137,6 +137,7 @@ internal class CIOEngine(
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
     "Use ClientEngineClosedException instead",
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("ClientEngineClosedException")
 )
 public class ClientClosedException(cause: Throwable? = null) : IllegalStateException("Client already closed", cause)

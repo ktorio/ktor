@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
 
 /**
@@ -32,16 +33,6 @@ public actual interface ByteReadChannel {
     public actual val closedCause: Throwable?
 
     /**
-     * Byte order that is used for multi-byte read operations
-     * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var readByteOrder: ByteOrder
-
-    /**
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
@@ -53,7 +44,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
 
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     public suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
 
@@ -63,7 +54,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
 
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     public suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
 
@@ -205,7 +196,7 @@ public actual interface ByteReadChannel {
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy {
-            ByteChannelJS(IoBuffer.Empty, false).apply {
+            ByteChannelJS(ChunkBuffer.Empty, false).apply {
                 close(null)
             }
         }

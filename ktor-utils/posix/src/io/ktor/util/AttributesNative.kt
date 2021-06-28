@@ -29,10 +29,7 @@ private class AttributesNative : Attributes {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
-        map[key]?.let { return it as T }
-        return block().also { result ->
-            map[key] = result
-        }
+        return map.computeIfAbsent(key, block) as T
     }
 
     override val allKeys: List<AttributeKey<*>>

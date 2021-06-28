@@ -13,13 +13,11 @@ import java.net.*
 /**
  * Executes a [HttpClient] request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.request(
+public suspend fun HttpClient.request(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request {
+): HttpResponse = request {
     this.url.takeFrom(url)
     block()
 }
@@ -30,10 +28,10 @@ public suspend inline fun <reified T> HttpClient.request(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.get(
+public suspend fun HttpClient.get(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = get {
+): HttpResponse = get {
     this.url.takeFrom(url)
     block()
 }
@@ -41,13 +39,11 @@ public suspend inline fun <reified T> HttpClient.get(
 /**
  * Executes a [HttpClient] POST request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.post(
+public suspend fun HttpClient.post(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = post {
+): HttpResponse = post {
     this.url.takeFrom(url)
     block()
 }
@@ -55,13 +51,11 @@ public suspend inline fun <reified T> HttpClient.post(
 /**
  * Executes a [HttpClient] PUT request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.put(
+public suspend fun HttpClient.put(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = put {
+): HttpResponse = put {
     this.url.takeFrom(url)
     block()
 }
@@ -69,13 +63,11 @@ public suspend inline fun <reified T> HttpClient.put(
 /**
  * Executes a [HttpClient] PATCH request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.patch(
+public suspend fun HttpClient.patch(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = patch {
+): HttpResponse = patch {
     this.url.takeFrom(url)
     block()
 }
@@ -83,13 +75,11 @@ public suspend inline fun <reified T> HttpClient.patch(
 /**
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.options(
+public suspend fun HttpClient.options(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = options {
+): HttpResponse = options {
     this.url.takeFrom(url)
     block()
 }
@@ -97,13 +87,11 @@ public suspend inline fun <reified T> HttpClient.options(
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.head(
+public suspend fun HttpClient.head(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = head {
+): HttpResponse = head {
     this.url.takeFrom(url)
     block()
 }
@@ -111,13 +99,109 @@ public suspend inline fun <reified T> HttpClient.head(
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.delete(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = delete {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareRequest(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = prepareRequest {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] GET request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-public suspend inline fun <reified T> HttpClient.delete(
+public suspend fun HttpClient.prepareGet(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = delete {
+): HttpStatement = prepareGet {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] POST request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.preparePost(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = preparePost {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] PUT request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.preparePut(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = preparePut {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] PATCH request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.preparePatch(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = preparePatch {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] OPTIONS request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareOptions(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = prepareOptions {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] HEAD request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareHead(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = prepareHead {
+    this.url.takeFrom(url)
+    block()
+}
+
+/**
+ * Prepares a [HttpClient] HEAD request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareDelete(
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = prepareDelete {
     this.url.takeFrom(url)
     block()
 }

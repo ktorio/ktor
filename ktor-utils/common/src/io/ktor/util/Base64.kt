@@ -93,14 +93,6 @@ public fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
     }
 }
 
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun String.decodeBase64(): String = decodeBase64String()
-
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun ByteReadPacket.decodeBase64(): String = decodeBase64Bytes().readText()
-
 internal fun ByteArray.clearFrom(from: Int) {
     (from until size).forEach { this[it] = 0 }
 }

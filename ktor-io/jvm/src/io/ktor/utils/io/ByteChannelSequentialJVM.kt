@@ -1,14 +1,17 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.nio.*
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @ExperimentalIoApi
-public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
-    ByteChannelSequentialBase(initial, autoFlush) {
+public class ByteChannelSequentialJVM(
+    initial: ChunkBuffer,
+    autoFlush: Boolean
+) : ByteChannelSequentialBase(initial, autoFlush) {
 
     @Volatile
     private var attachedJob: Job? = null
@@ -144,27 +147,6 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         val count = readable.readAvailable(dst)
         afterRead(count)
         return count
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
-        val readable = readable
-        var invokedWithLast = false
-
-        while (true) {
-            readable.readDirect(1) { bb: ByteBuffer ->
-                val last = closed && bb.remaining() == availableForRead
-                visitor(bb, last)
-                if (last) {
-                    invokedWithLast = true
-                }
-            }
-            if (!await(1)) break
-        }
-
-        if (!invokedWithLast) {
-            visitor(ByteBuffer.allocate(0), true)
-        }
     }
 
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R =

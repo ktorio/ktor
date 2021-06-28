@@ -17,7 +17,6 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*

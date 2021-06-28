@@ -12,14 +12,6 @@ import io.ktor.util.*
 import kotlin.test.*
 
 class URLBuilderTest {
-    @Test
-    fun testPathNoFirstSlash() {
-        val s = url {
-            encodedPath = "a/b"
-        }
-
-        assertEquals("http://localhost/a/b", s)
-    }
 
     @Test
     fun testPathFirstSlash() {
@@ -42,7 +34,7 @@ class URLBuilderTest {
     @Test
     fun testPathFunctionList() {
         val s = url {
-            path(listOf("a", "b"))
+            path("a", "b")
         }
 
         assertEquals("http://localhost/a/b", s)
@@ -59,20 +51,9 @@ class URLBuilderTest {
     }
 
     @Test
-    fun testPathComponentsNoFirstSlash() {
+    fun testPathComponentsFirst() {
         val s = url {
-            encodedPath = ""
-            pathComponents("asd")
-        }
-
-        assertEquals("http://localhost/asd", s)
-    }
-
-    @Test
-    fun testPathComponentsFirstSlash() {
-        val s = url {
-            encodedPath = "/"
-            pathComponents("/asd")
+            appendPathSegments("asd")
         }
 
         assertEquals("http://localhost/asd", s)
@@ -81,7 +62,7 @@ class URLBuilderTest {
     @Test
     fun testPathComponentsFunctionVararg() {
         val s = url {
-            pathComponents("a", "b")
+            appendPathSegments("a", "b")
         }
 
         assertEquals("http://localhost/a/b", s)
@@ -90,7 +71,7 @@ class URLBuilderTest {
     @Test
     fun testPathComponentsFunctionList() {
         val s = url {
-            pathComponents(listOf("a", "b"))
+            appendPathSegments(listOf("a", "b"))
         }
 
         assertEquals("http://localhost/a/b", s)
@@ -98,22 +79,22 @@ class URLBuilderTest {
 
     @Test
     fun testPathComponentsWithSpace() {
-        assertEquals("http://localhost/a%20b/c", url { pathComponents("a b", "c") })
+        assertEquals("http://localhost/a%20b/c", url { appendPathSegments("a b", "c") })
     }
 
     @Test
     fun testPathComponentsWithPlus() {
-        assertEquals("http://localhost/a+b/c", url { pathComponents("a+b", "c") })
+        assertEquals("http://localhost/a+b/c", url { appendPathSegments("a+b", "c") })
     }
 
     @Test
     fun testPathComponentsWithTrailingSlashes() {
-        assertEquals("http://localhost/asd", url { pathComponents("asd///") })
+        assertEquals("http://localhost/asd", url { appendPathSegments("asd///") })
     }
 
     @Test
     fun testPathComponentsWithLeadingSlashes() {
-        assertEquals("http://localhost/asd", url { pathComponents("///asd") })
+        assertEquals("http://localhost/asd", url { appendPathSegments("///asd") })
     }
 
     @Test
@@ -156,7 +137,8 @@ class URLBuilderTest {
 
     @Test
     fun testParametersSpaceInParamName() {
-        assertEquals("http://localhost/?p1+space=v1", url { parameters.append("p1 space", "v1") })
+        assertEquals("http://localhost/?p1%20space=v1", url { parameters.append("p1 space", "v1") })
+        assertEquals("http://localhost/?p1%2Bspace=v1", url { parameters.append("p1+space", "v1") })
     }
 
     @Test

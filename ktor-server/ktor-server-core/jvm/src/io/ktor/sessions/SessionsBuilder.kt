@@ -4,16 +4,15 @@
 
 package io.ktor.sessions
 
-import io.ktor.util.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 /**
  * Configure sessions to get it from cookie using session [storage]
  */
-@Deprecated("Use reified types instead.")
+@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = CookieIdSessionBuilder(sessionType)
     cookie(name, builder, sessionType, storage)
 }
@@ -62,14 +61,14 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(
 /**
  * Configure sessions to get it from cookie using session [storage]
  */
-@Deprecated("Use reified types instead.")
+@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> Sessions.Configuration.cookie(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit
 ) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = CookieIdSessionBuilder(sessionType).apply(block)
     cookie(name, builder, sessionType, storage)
 }
@@ -78,9 +77,9 @@ public inline fun <S : Any> Sessions.Configuration.cookie(
 /**
  * Configure sessions to get it from HTTP header using session [storage]
  */
-@Deprecated("Use reified type instead.")
+@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = HeaderIdSessionBuilder(sessionType)
     header(name, sessionType, storage, builder)
 }
@@ -112,14 +111,14 @@ public inline fun <reified S : Any> Sessions.Configuration.header(
  * Configures a session using a header with the specified [name] using it as a session id.
  * The actual content of the session is stored at server side using the specified [storage].
  */
-@Deprecated("Use reified types instead.")
+@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 public inline fun <S : Any> Sessions.Configuration.header(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit
 ) {
-    @Suppress("DEPRECATION")
     val builder = HeaderIdSessionBuilder(sessionType).apply(block)
     header(name, sessionType, storage, builder)
 }
@@ -149,9 +148,9 @@ internal fun <S : Any> Sessions.Configuration.header(
 /**
  * Configure sessions to serialize to/from HTTP cookie
  */
-@Deprecated("Use reified type parameter instead.")
+@Deprecated("Use reified type parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = CookieSessionBuilder(sessionType)
     cookie(name, sessionType, builder)
 }
@@ -186,13 +185,13 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(
 /**
  * Configure sessions to serialize to/from HTTP cookie configuring it by [block]
  */
-@Deprecated("Use reified type instead.")
+@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> Sessions.Configuration.cookie(
     name: String,
     sessionType: KClass<S>,
     block: CookieSessionBuilder<S>.() -> Unit
 ) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = CookieSessionBuilder(sessionType).apply(block)
     cookie(name, sessionType, builder)
 }
@@ -213,9 +212,9 @@ internal fun <S : Any> Sessions.Configuration.cookie(
 /**
  * Configure sessions to serialize to/from HTTP header
  */
-@Deprecated("Use reified type instead.")
+@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = HeaderSessionBuilder(sessionType)
     header(name, sessionType, null, builder)
 }
@@ -246,13 +245,13 @@ public inline fun <reified S : Any> Sessions.Configuration.header(
  * Configures a session using a header with the specified [name] using it for the actual session content
  * and apply [block] function to configure serializataion and optional transformations
  */
-@Deprecated("Use reified type instead.")
+@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> Sessions.Configuration.header(
     name: String,
     sessionType: KClass<S>,
     block: HeaderSessionBuilder<S>.() -> Unit
 ) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val builder = HeaderSessionBuilder(sessionType).apply(block)
     val transport = SessionTransportHeader(name, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
@@ -270,7 +269,7 @@ internal constructor(
     typeInfo: KType
 ) : CookieSessionBuilder<S>(type, typeInfo) {
 
-    @Deprecated("Use builder functions instead.")
+    @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
@@ -297,7 +296,7 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
-    @Deprecated("Use builder functions instead.")
+    @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
@@ -336,7 +335,7 @@ internal constructor(
     public val typeInfo: KType
 ) {
 
-    @Deprecated("Use builder functions instead.")
+    @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
@@ -369,7 +368,7 @@ internal constructor(
     typeInfo: KType
 ) : HeaderSessionBuilder<S>(type, typeInfo) {
 
-    @Deprecated("Use builder functions instead.")
+    @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**

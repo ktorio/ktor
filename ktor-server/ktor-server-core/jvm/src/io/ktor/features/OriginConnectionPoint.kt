@@ -27,12 +27,9 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
 /**
  * Represents a [RequestConnectionPoint]. Every it's component is mutable so application features could provide them
  */
-public class MutableOriginConnectionPoint
-@Deprecated(
-    "Instantiating CP is no longer supported: this will become internal.",
-    level = DeprecationLevel.WARNING
-)
-constructor(delegate: RequestConnectionPoint) : RequestConnectionPoint {
+public class MutableOriginConnectionPoint internal constructor(
+    delegate: RequestConnectionPoint
+) : RequestConnectionPoint {
 
     @Suppress("DEPRECATION")
     internal constructor(delegate: OriginConnectionPoint) : this(delegate as RequestConnectionPoint)

@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.json.tests
 
 import com.fasterxml.jackson.annotation.*
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
@@ -38,16 +39,11 @@ class JacksonTest : JsonTest() {
         configClient()
 
         test { client ->
-            val response = client.post<Response<List<Jackson>>>(
-                port = serverPort,
-                path = "jackson",
-                body = Jackson(
-                    "request",
-                    "ignored"
-                )
-            ) {
+            val response = client.post {
+                url(port = serverPort, path = "jackson")
+                setBody(Jackson("request", "ignored"))
                 contentType(ContentType.Application.Json)
-            }
+            }.body<Response<List<Jackson>>>()
 
             assertTrue(response.ok)
             val list = response.result!!

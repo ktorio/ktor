@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.json
 
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
@@ -13,7 +14,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import kotlin.test.*
 
 @Serializable
@@ -74,7 +74,7 @@ class KotlinxSerializerTest : ClientLoader() {
         test { client ->
             var throwed = false
             try {
-                client.submitFormWithBinaryData<String>(url = "upload", formData = data())
+                client.submitFormWithBinaryData(url = "upload", formData = data()).body<String>()
             } catch (cause: Throwable) {
                 throwed = true
             }
@@ -95,17 +95,17 @@ class KotlinxSerializerTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.post<String>("$TEST_SERVER/echo-with-content-type") {
-                body = "Hello"
-            }
+            val response = client.post("$TEST_SERVER/echo-with-content-type") {
+                setBody("Hello")
+            }.body<String>()
             assertEquals("\"Hello\"", response)
 
-            val textResponse = client.post<String>("$TEST_SERVER/echo") {
-                body = "Hello"
-            }
+            val textResponse = client.post("$TEST_SERVER/echo") {
+                setBody("Hello")
+            }.body<String>()
             assertEquals("\"Hello\"", textResponse)
 
-            val emptyResponse = client.post<String>("$TEST_SERVER/echo")
+            val emptyResponse = client.post("$TEST_SERVER/echo").body<String>()
             assertEquals("", emptyResponse)
         }
     }
@@ -124,8 +124,8 @@ class KotlinxSerializerTest : ClientLoader() {
         }
 
         test { client ->
-            val users = client.get<List<User>>("$TEST_SERVER/json/users")
-            val photos = client.get<List<Photo>>("$TEST_SERVER/json/photos")
+            val users = client.get("$TEST_SERVER/json/users").body<List<User>>()
+            val photos = client.get("$TEST_SERVER/json/photos").body<List<Photo>>()
 
             assertEquals(listOf(User(42, "TestLogin")), users)
             assertEquals(listOf(Photo(4242, "cat.jpg")), photos)

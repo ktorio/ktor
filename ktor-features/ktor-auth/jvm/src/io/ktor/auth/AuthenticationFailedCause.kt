@@ -24,13 +24,13 @@ public sealed class AuthenticationFailedCause {
      */
     public open class Error(public val message: String) : AuthenticationFailedCause() {
         @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Use message instead of cause.")
+        @Deprecated("Use message instead of cause.", level = DeprecationLevel.ERROR)
         public constructor(vararg placeholder: Unit, cause: String) : this(message = cause)
 
         /**
          * Contains error message explaining the reason of auth failure.
          */
-        @Deprecated("Use message instead.", ReplaceWith("message"))
+        @Deprecated("Use message instead.", ReplaceWith("message"), level = DeprecationLevel.ERROR)
         public val cause: String get() = message
     }
 }

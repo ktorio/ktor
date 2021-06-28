@@ -20,14 +20,10 @@ public actual fun ByteReadPacket(
     }
 
     val pool = object : SingleInstancePool<ChunkBuffer>() {
-        override fun produceInstance(): ChunkBuffer {
-            @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(sub), null, this as ObjectPool<IoBuffer>)
-        }
+        override fun produceInstance(): ChunkBuffer =
+            ChunkBuffer(Memory.of(sub), null, this)
 
         override fun disposeInstance(instance: ChunkBuffer) {
-            @Suppress("DEPRECATION")
-            check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
             block(array)
         }
     }

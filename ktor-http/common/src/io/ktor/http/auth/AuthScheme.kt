@@ -52,16 +52,4 @@ public object AuthScheme {
      * see https://tools.ietf.org/html/rfc6750
      */
     public const val Bearer: String = "Bearer"
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    public fun getBasic(): String = Basic
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    public fun getDigest(): String = Digest
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    public fun getNegotiate(): String = Negotiate
 }

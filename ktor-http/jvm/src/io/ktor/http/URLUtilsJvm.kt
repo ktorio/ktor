@@ -24,21 +24,22 @@ public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
         }
     }
 
-    if (uri.userInfo != null && uri.userInfo.isNotEmpty()) {
-        val parts = uri.userInfo.split(":")
-        user = parts.first()
-        password = parts.getOrNull(1)
+    if (uri.rawUserInfo != null && uri.rawUserInfo.isNotEmpty()) {
+        val parts = uri.rawUserInfo.split(":")
+        encodedUser = parts.first()
+        encodedPassword = parts.getOrNull(1)
     }
 
     uri.host?.let { host = it }
     encodedPath = uri.rawPath
-    parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
-    uri.query?.let { parseQueryStringTo(parameters, it) }
+    uri.rawQuery?.let {
+        encodedParameters = ParametersBuilder().apply { appendAll(parseQueryString(it, decode = false)) }
+    }
     if (uri.query?.isEmpty() == true) {
         trailingQuery = true
     }
 
-    uri.fragment?.let { fragment = it }
+    uri.rawFragment?.let { encodedFragment = it }
     return this
 }
 

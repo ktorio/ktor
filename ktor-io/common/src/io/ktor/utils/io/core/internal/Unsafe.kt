@@ -42,81 +42,17 @@ internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
     return builderSize
 }
 
-@Suppress("DEPRECATION", "UNUSED")
-@JvmName("prepareReadFirstHead")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.prepareReadFirstHeadOld(minSize: Int): IoBuffer? {
-    return prepareReadFirstHead(minSize) as IoBuffer?
-}
-
 @DangerousInternalIoApi
-public fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
-    if (this is AbstractInput) {
-        return prepareReadHead(minSize)
-    }
-    if (this is ChunkBuffer) {
-        return if (canRead()) this else null
-    }
-
-    return prepareReadHeadFallback(minSize)
-}
-
-private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
-    if (endOfInput) return null
-
-    val buffer = ChunkBuffer.Pool.borrow()
-    val copied = peekTo(
-        buffer.memory,
-        buffer.writePosition.toLong(),
-        0L,
-        minSize.toLong(),
-        buffer.writeRemaining.toLong()
-    ).toInt()
-    buffer.commitWritten(copied)
-
-    if (copied < minSize) {
-        prematureEndOfStream(minSize)
-    }
-
-    return buffer
-}
-
-@Suppress("UNUSED", "DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.completeReadHead(current: IoBuffer) {
-    completeReadHead(current)
-}
+public fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? = prepareReadHead(minSize)
 
 @DangerousInternalIoApi
 public fun Input.completeReadHead(current: ChunkBuffer) {
-    if (current === this) {
-        return
+    when {
+        current === this -> return
+        !current.canRead() -> ensureNext(current)
+        current.endGap < Buffer.ReservedSize -> fixGapAfterRead(current)
+        else -> headPosition = current.readPosition
     }
-    if (this is AbstractInput) {
-        if (!current.canRead()) {
-            ensureNext(current)
-        } else if (current.endGap < Buffer.ReservedSize) {
-            fixGapAfterRead(current)
-        } else {
-            headPosition = current.readPosition
-        }
-        return
-    }
-
-    completeReadHeadFallback(current)
-}
-
-private fun Input.completeReadHeadFallback(current: ChunkBuffer) {
-    val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
-    discardExact(discardAmount)
-    current.release(ChunkBuffer.Pool)
-}
-
-@Suppress("DEPRECATION", "UNUSED")
-@JvmName("prepareReadNextHead")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.prepareReadNextHeadOld(current: IoBuffer): IoBuffer? {
-    return prepareReadNextHead(current) as IoBuffer?
 }
 
 @DangerousInternalIoApi
@@ -124,74 +60,18 @@ public fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
-    if (this is AbstractInput) {
-        return ensureNextHead(current)
-    }
 
-    return prepareNextReadHeadFallback(current)
-}
-
-private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer? {
-    val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
-    discardExact(discardAmount)
-    current.resetForWrite()
-
-    if (endOfInput || peekTo(current) <= 0) {
-        current.release(ChunkBuffer.Pool)
-        return null
-    }
-
-    return current
-}
-
-@Suppress("DEPRECATION", "UNUSED")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
-    return prepareWriteHead(capacity, current) as IoBuffer
+    return ensureNextHead(current)
 }
 
 @DangerousInternalIoApi
 public fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
-    if (this is AbstractOutput) {
-        if (current != null) {
-            afterHeadWrite()
-        }
-        return prepareWriteHead(capacity)
-    }
-
-    return prepareWriteHeadFallback(current)
-}
-
-private fun Output.prepareWriteHeadFallback(current: ChunkBuffer?): ChunkBuffer {
     if (current != null) {
-        writeFully(current)
-        current.resetForWrite()
-        return current
+        afterHeadWrite()
     }
-
-    return ChunkBuffer.Pool.borrow()
-}
-
-@Suppress("DEPRECATION", "UNUSED")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Output.afterHeadWrite(current: IoBuffer) {
-    return afterHeadWrite(current)
-}
-
-@DangerousInternalIoApi
-public fun Output.afterHeadWrite(current: ChunkBuffer) {
-    if (this is AbstractOutput) {
-        return afterHeadWrite()
-    }
-
-    afterWriteHeadFallback(current)
+    return prepareWriteHead(capacity)
 }
 
 @JvmField
 @SharedImmutable
 internal val EmptyByteArray = ByteArray(0)
-
-private fun Output.afterWriteHeadFallback(current: ChunkBuffer) {
-    writeFully(current)
-    current.release(ChunkBuffer.Pool)
-}

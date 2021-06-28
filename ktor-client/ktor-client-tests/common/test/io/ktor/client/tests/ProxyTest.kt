@@ -4,10 +4,12 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.json.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -25,7 +27,7 @@ class ProxyTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("http://google.com")
+            val response = client.get("http://google.com").body<String>()
             assertEquals("proxy", response)
         }
     }
@@ -37,11 +39,11 @@ class ProxyTest : ClientLoader() {
                 proxy = ProxyBuilder.http(TCP_SERVER)
             }
 
-            install(JsonFeature)
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
-            val response = client.get<ProxyResponse>("http://google.com/json")
+            val response = client.get("http://google.com/json").body<ProxyResponse>()
             val expected = ProxyResponse("ok")
 
             assertEquals(expected, response)

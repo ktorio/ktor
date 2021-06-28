@@ -11,8 +11,6 @@ import io.ktor.util.reflect.TypeInfo
 import io.ktor.util.reflect.typeInfo
 import java.lang.reflect.*
 import kotlin.reflect.*
-import kotlin.reflect.cast
-import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -57,14 +55,9 @@ public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
 }
 
 @PublishedApi
-@Deprecated("Please use overload with typeInfo parameter")
+@Deprecated("Please use overload with typeInfo parameter", level = DeprecationLevel.ERROR)
 internal fun <R : Any> Parameters.getOrFailImpl(name: String, type: KClass<R>, javaType: Type): R {
-    val values = getAll(name) ?: throw MissingRequestParameterException(name)
-    return try {
-        type.cast(io.ktor.util.DefaultConversionService.fromValues(values, javaType))
-    } catch (cause: Exception) {
-        throw ParameterConversionException(name, type.jvmName, cause)
-    }
+    error("Please use overload with typeInfo parameter")
 }
 
 @PublishedApi

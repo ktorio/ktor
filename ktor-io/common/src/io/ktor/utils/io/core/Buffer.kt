@@ -3,7 +3,6 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.EOFException
 import kotlin.contracts.*
@@ -109,20 +108,6 @@ public open class Buffer(public val memory: Memory) {
             discardFailed(count, readRemaining)
         }
         readPosition = newReadPosition
-    }
-
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public fun discard(count: Int): Int {
-        val size = minOf(count, readRemaining)
-        discardExact(size)
-        return size
-    }
-
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public final fun discard(count: Long): Long {
-        val size = minOf(count, readRemaining.toLong()).toInt()
-        discardExact(size)
-        return size.toLong()
     }
 
     @DangerousInternalIoApi
@@ -383,7 +368,7 @@ public open class Buffer(public val memory: Memory) {
          * The empty buffer singleton: it has zero capacity for read and write.
          */
         @Suppress("DEPRECATION")
-        public val Empty: Buffer get() = IoBuffer.Empty
+        public val Empty: Buffer get() = ChunkBuffer.Empty
     }
 }
 

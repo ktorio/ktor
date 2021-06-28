@@ -17,10 +17,10 @@ public fun XMLHttpRequest.sendPacket(packet: ByteReadPacket) {
 @Suppress("UnsafeCastFromDynamic", "DEPRECATION")
 public fun XMLHttpRequest.responsePacket(): ByteReadPacket = when (responseType) {
     XMLHttpRequestResponseType.ARRAYBUFFER -> ByteReadPacket(
-        IoBuffer(
+        ChunkBuffer(
             Memory.of(response.asDynamic() as DataView),
             null,
-            IoBuffer.NoPool
+            ChunkBuffer.NoPool
         ),
         ChunkBuffer.NoPoolManuallyManaged
     )

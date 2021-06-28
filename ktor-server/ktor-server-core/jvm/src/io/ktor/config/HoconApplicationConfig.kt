@@ -30,6 +30,10 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
 
     override fun config(path: String): ApplicationConfig = HoconApplicationConfig(config.getConfig(path))
 
+    override fun keys(): Set<String> {
+        return config.entrySet().map { it.key }.toSet()
+    }
+
     private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
         override fun getString(): String = config.getString(path)
         override fun getList(): List<String> = config.getStringList(path)

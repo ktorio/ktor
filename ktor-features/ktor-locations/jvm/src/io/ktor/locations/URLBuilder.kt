@@ -13,7 +13,7 @@ import io.ktor.util.*
  */
 @KtorExperimentalLocationsAPI
 public fun ApplicationCall.url(location: Any, block: URLBuilder.() -> Unit = {}): String = url {
-    parameters.clear()
+    encodedParameters.clear()
     application.locations.href(location, this)
     block()
 }

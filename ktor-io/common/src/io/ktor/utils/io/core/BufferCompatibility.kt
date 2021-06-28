@@ -5,7 +5,6 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.pool.*
 
 /**
@@ -121,17 +120,6 @@ public fun Buffer.readText(
 }
 
 /**
- * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-counting so
- * it is very fragile.
- */
-@Suppress("DEPRECATION")
-public fun IoBuffer.release(pool: ObjectPool<IoBuffer>) {
-    // TODO ???
-    @Suppress("UNCHECKED_CAST")
-    (this as ChunkBuffer).release(pool as ObjectPool<ChunkBuffer>)
-}
-
-/**
  * Peek the next unsigned byte or return `-1` if no more bytes available for reading. No bytes will be marked
  * as consumed in any case.
  * @see [Buffer.tryPeekByte]
@@ -152,14 +140,3 @@ public fun Buffer.readFully(dst: Array<Byte>, offset: Int = 0, length: Int = dst
         length
     }
 }
-
-@Deprecated(
-    "This is no longer supported. All operations are big endian by default. Use readXXXLittleEndian " +
-        "to read primitives in little endian",
-    level = DeprecationLevel.ERROR
-)
-public var Buffer.byteOrder: ByteOrder
-    get() = ByteOrder.BIG_ENDIAN
-    set(newOrder) {
-        if (newOrder != ByteOrder.BIG_ENDIAN) throw UnsupportedOperationException("Only BIG_ENDIAN is supported")
-    }

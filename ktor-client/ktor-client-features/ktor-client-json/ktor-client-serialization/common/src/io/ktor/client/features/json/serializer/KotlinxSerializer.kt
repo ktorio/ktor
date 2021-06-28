@@ -17,6 +17,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
+@Deprecated("Please use ContentNegotiation feature and its converters")
 public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {
@@ -38,22 +39,6 @@ public class KotlinxSerializer(
     }
 
     public companion object {
-        /**
-         * Default [Json] configuration for [KotlinxSerializer].
-         */
-        @Deprecated(
-            level = DeprecationLevel.ERROR,
-            message = "DefaultJsonConfiguration is deprecated. Consider using DefaultJson instead.",
-            replaceWith = ReplaceWith("DefaultJson")
-        )
-        @Suppress("unused")
-        public val DefaultJsonConfiguration: Json = Json {
-            isLenient = false
-            ignoreUnknownKeys = false
-            allowSpecialFloatingPointValues = true
-            useArrayPolymorphism = false
-        }
-
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */

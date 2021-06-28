@@ -64,7 +64,7 @@ class CookiesTest {
     @Test
     fun `add cookies with max age`() {
         testSetCookies("SESSION=123; Max-Age=7") {
-            cookies.append("SESSION", "123", maxAge = 7)
+            cookies.append("SESSION", "123", maxAge = 7L)
         }
     }
 

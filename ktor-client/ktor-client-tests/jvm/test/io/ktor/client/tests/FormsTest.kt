@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -32,20 +33,22 @@ class FormsTest {
             }.asInput()
 
             val builder = HttpRequestBuilder().apply {
-                body = MultiPartFormDataContent(
-                    formData {
-                        appendInput(
-                            "file",
-                            Headers.build {
-                                append(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-                                append(HttpHeaders.ContentDisposition, "filename=myfile.txt")
-                            }
-                        ) { input }
-                    }
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            appendInput(
+                                "file",
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+                                    append(HttpHeaders.ContentDisposition, "filename=myfile.txt")
+                                }
+                            ) { input }
+                        }
+                    )
                 )
             }
 
-            client.request<String>(builder)
+            client.request(builder).body<String>()
         }
     }
 }

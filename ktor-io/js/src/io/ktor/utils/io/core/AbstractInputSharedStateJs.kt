@@ -8,7 +8,7 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 
-internal actual class AbstractInputSharedState actual constructor(
+internal actual class InputSharedState actual constructor(
     actual var head: ChunkBuffer,
     remaining: Long
 ) {

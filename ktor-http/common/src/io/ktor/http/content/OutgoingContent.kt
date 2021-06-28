@@ -57,6 +57,11 @@ public sealed class OutgoingContent {
     }
 
     /**
+     * Trailers to set when sending this content, will be ignored if request is not in HTTP2 mode
+     */
+    public open fun trailers(): Headers? = null
+
+    /**
      * Variant of a [OutgoingContent] without a payload
      */
     public abstract class NoContent : OutgoingContent()

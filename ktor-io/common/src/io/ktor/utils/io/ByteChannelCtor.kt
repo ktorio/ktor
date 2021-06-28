@@ -59,14 +59,3 @@ public expect fun ByteReadChannel(content: ByteArray, offset: Int, length: Int):
 
 public fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
     ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
-
-/**
- * Byte channel that is always empty.
- */
-@Deprecated(
-    "Use ByteReadChannel.Empty instead",
-    ReplaceWith("ByteReadChannel.Empty"),
-    level = DeprecationLevel.ERROR
-)
-public val EmptyByteReadChannel: ByteReadChannel
-    get() = ByteReadChannel.Empty

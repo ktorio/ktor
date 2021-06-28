@@ -1,0 +1,18 @@
+public abstract interface class io/ktor/shared/serialization/Configuration {
+	public abstract fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/shared/serialization/Configuration$DefaultImpls {
+	public static synthetic fun register$default (Lio/ktor/shared/serialization/Configuration;Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public abstract interface class io/ktor/shared/serialization/ContentConverter {
+	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun serialize (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/shared/serialization/ContentConverterKt {
+	public static final fun suitableCharset (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
+	public static synthetic fun suitableCharset$default (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
+}
+

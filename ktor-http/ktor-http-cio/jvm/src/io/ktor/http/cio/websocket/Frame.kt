@@ -174,8 +174,3 @@ public actual sealed class Frame actual constructor(
             byType(fin, frameType, buffer.moveToByteArray())
     }
 }
-
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-@JvmName("readReason")
-public fun Frame.Close.readReason0(): CloseReason? = readReason()

@@ -21,7 +21,7 @@ public fun Input(fileDescriptor: Int): Input = PosixInputForFileDescriptor(fileD
 @ExperimentalIoApi
 public fun Input(file: CPointer<FILE>): Input = PosixInputForFile(file)
 
-private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInput() {
+private class PosixInputForFileDescriptor(val fileDescriptor: Int) : Input() {
     private var closed = false
     init {
         check(fileDescriptor >= 0) { "Illegal fileDescriptor: $fileDescriptor" }
@@ -50,7 +50,7 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
     }
 }
 
-private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
+private class PosixInputForFile(val file: CPointer<FILE>) : Input() {
     private var closed = false
 
     override fun fill(destination: Memory, offset: Int, length: Int): Int {

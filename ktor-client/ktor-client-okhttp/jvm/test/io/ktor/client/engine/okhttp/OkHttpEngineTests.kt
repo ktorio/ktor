@@ -5,6 +5,7 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.cio.websocket.*
@@ -31,7 +32,7 @@ class OkHttpEngineTests {
 
         repeat(25) {
             HttpClient(OkHttp).use { client ->
-                val response = client.get<String>("http://www.google.com")
+                val response = client.get("http://www.google.com").body<String>()
                 assertNotNull(response)
             }
         }
@@ -56,7 +57,7 @@ class OkHttpEngineTests {
         HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }
         }.use { client ->
-            runCatching { client.get<String>("http://localhost:1234") }
+            runCatching { client.get("http://localhost:1234").body<String>() }
             assertTrue(preconfiguredClientCalled)
         }
     }
@@ -68,7 +69,7 @@ class OkHttpEngineTests {
                 .close()
 
             HttpClient(OkHttp).use { client ->
-                val response = client.get<String>("http://www.google.com")
+                val response = client.get("http://www.google.com").body<String>()
                 assertNotNull(response)
             }
         }

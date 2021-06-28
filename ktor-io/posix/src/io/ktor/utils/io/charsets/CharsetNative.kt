@@ -18,6 +18,13 @@ public actual abstract class Charset(internal val _name: String) {
 
             return CharsetImpl(name)
         }
+
+        public actual fun isSupported(charset: String): Boolean = when (charset) {
+            "UTF-8", "utf-8", "UTF8", "utf8" -> true
+            "ISO-8859-1", "iso-8859-1" -> true
+            "UTF-16", "utf-16", "UTF16", "utf16" -> true
+            else -> false
+        }
     }
 }
 

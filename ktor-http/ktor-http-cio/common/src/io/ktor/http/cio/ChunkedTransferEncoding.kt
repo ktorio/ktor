@@ -45,7 +45,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
  */
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
     writer(coroutineContext) {
-        decodeChunked(input, channel, contentLength)
+        decodeChunked(input, channel)
     }
 
 /**
@@ -55,6 +55,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws ParserException if the format is invalid.
  */
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
+    @Suppress("DEPRECATION_ERROR")
     return decodeChunked(input, out, -1L)
 }
 
@@ -63,7 +64,8 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
  */
 @Deprecated(
     "The contentLength is ignored for chunked transfer encoding",
-    ReplaceWith("decodeChunked(input, out)")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("decodeChunked(input, out)")
 )
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()

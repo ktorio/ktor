@@ -5,19 +5,18 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.compression.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.shared.serialization.kotlinx.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlin.test.*
 
 class LoggingTest : ClientLoader() {
@@ -36,7 +35,7 @@ class LoggingTest : ClientLoader() {
 
         test { client ->
             val size = 4 * 1024 * 1024
-            client.get<HttpStatement>("$TEST_SERVER/bytes?size=$size").execute {
+            client.prepareGet("$TEST_SERVER/bytes?size=$size").execute {
                 assertEquals(size, it.readBytes().size)
             }
         }
@@ -173,7 +172,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -181,9 +180,9 @@ class LoggingTest : ClientLoader() {
                     port = serverPort
                 }
 
-                body = content
+                setBody(content)
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 
@@ -232,7 +231,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -240,7 +239,7 @@ class LoggingTest : ClientLoader() {
                     port = serverPort
                 }
 
-                body = byteArrayOf(-77, 111)
+                setBody(byteArrayOf(-77, 111))
             }.execute {
                 it.readBytes()
                 it
@@ -314,11 +313,11 @@ class LoggingTest : ClientLoader() {
         test { client ->
             testLogger.reset()
 
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Get
                 url.takeFrom("$TEST_SERVER/logging/301")
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 
@@ -366,11 +365,11 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = "test"
+                setBody("test")
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
             assertNotNull(response)
             assertEquals("test", response.readRemaining().readText())
         }
@@ -416,12 +415,12 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = "test"
+                setBody("test")
                 contentType(ContentType.Application.OctetStream)
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
 
             assertNotNull(response)
             response.discard()
@@ -467,10 +466,10 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareGet {
                 method = HttpMethod.Get
                 url("$TEST_SERVER/compression/deflate")
-            }.receive<String>()
+            }.body<String>()
             assertEquals("Compressed response!", response)
         }
         after {
@@ -495,11 +494,11 @@ class LoggingTest : ClientLoader() {
                 body.close()
             }
 
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
                 url("$TEST_SERVER/content/echo")
                 this.body = body
-            }.receive<ByteReadChannel>()
+            }.body<ByteReadChannel>()
             response.discard()
         }
     }
@@ -521,15 +520,11 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.post<HttpResponse>("$TEST_SERVER/content/echo") {
-                body = MultiPartFormDataContent(
-                    formData {
-                        append("file", "123")
-                    }
-                )
+            val response = client.post("$TEST_SERVER/content/echo") {
+                setBody(MultiPartFormDataContent(formData { append("file", "123") }))
             }
 
-            assertNotNull(response.receive<String>())
+            assertNotNull(response.body<String>())
             val request = response.request
             val contentLength = request.content.contentLength!!
             val contentType = request.content.contentType!!
@@ -557,7 +552,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            client.request<String> {
+            client.request {
                 method = requestMethod
 
                 url {
@@ -566,7 +561,7 @@ class LoggingTest : ClientLoader() {
                 }
 
                 body?.let { this@request.body = body }
-            }
+            }.body<String>()
         }
 
         after {
@@ -587,8 +582,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 15",
-            "-> Content-Type: application/json",
-            "BODY Content-Type: application/json",
+            "-> Content-Type: application/json; charset=utf-8",
+            "BODY Content-Type: application/json; charset=utf-8",
             "BODY START",
             "{\"name\":\"Ktor\"}",
             "BODY END",
@@ -606,9 +601,7 @@ class LoggingTest : ClientLoader() {
         )
 
         config {
-            Json {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
 
             Logging {
                 logger = testLogger
@@ -617,12 +610,12 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = User("Ktor")
+                setBody(User("Ktor"))
                 contentType(ContentType.Application.Json)
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
 
             assertNotNull(response)
         }

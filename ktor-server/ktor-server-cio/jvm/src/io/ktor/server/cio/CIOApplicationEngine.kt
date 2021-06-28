@@ -9,6 +9,7 @@ import io.ktor.http.cio.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
@@ -72,7 +73,8 @@ public class CIOApplicationEngine(
                 connectors.add(connector)
             }
 
-            connectors.map { it.serverSocket }.awaitAll()
+            val sockets = connectors.map { it.serverSocket }.awaitAll()
+            networkAddresses.complete(sockets.map { it.localAddress })
         } catch (cause: Throwable) {
             connectors.forEach { it.rootServerJob.cancel() }
             stopRequest.completeExceptionally(cause)

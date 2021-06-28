@@ -7,12 +7,12 @@ package io.ktor.tests.hosts
 import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import kotlin.concurrent.*
-import kotlin.reflect.*
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -73,7 +73,7 @@ class ReceiveBlockingPrimitiveTest {
         pipeline: ApplicationReceivePipeline,
         call: ApplicationCall
     ) {
-        val request = ApplicationReceiveRequest(typeOf<InputStream>(), ByteChannel())
+        val request = ApplicationReceiveRequest(typeInfo<InputStream>(), ByteChannel())
         val transformed = pipeline.execute(call, request)
         val stream = transformed.value as InputStream
         @Suppress("BlockingMethodInNonBlockingContext")

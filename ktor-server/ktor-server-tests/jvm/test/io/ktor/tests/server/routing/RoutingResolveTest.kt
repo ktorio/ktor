@@ -1315,7 +1315,7 @@ class RoutingResolveTest {
         val transparentEntryTop = root.createChild(
             object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-                    return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+                    return RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
                 }
 
                 override fun toString(): String = "transparent"

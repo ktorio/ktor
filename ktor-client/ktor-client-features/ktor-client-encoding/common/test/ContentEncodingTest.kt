@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.compression
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
@@ -20,7 +21,7 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/identity")
+            val response = client.get("$TEST_URL/identity").body<String>()
             assertEquals("Compressed response!", response)
         }
     }
@@ -34,7 +35,7 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/deflate")
+            val response = client.get("$TEST_URL/deflate").body<String>()
             assertEquals("Compressed response!", response)
         }
     }
@@ -48,7 +49,7 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/gzip")
+            val response = client.get("$TEST_URL/gzip").body<String>()
             assertEquals("Compressed response!", response)
         }
     }

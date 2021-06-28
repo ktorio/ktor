@@ -5,6 +5,7 @@
 package io.ktor.features
 
 import io.ktor.application.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
@@ -19,7 +20,7 @@ import kotlin.coroutines.*
  */
 public class CallLogging private constructor(
     private val log: Logger,
-    private val monitor: ApplicationEvents,
+    private val monitor: Events,
     private val level: Level,
     private val filters: List<(ApplicationCall) -> Boolean>,
     private val mdcEntries: List<MDCEntry>,
@@ -37,9 +38,9 @@ public class CallLogging private constructor(
         internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
 
         /**
-         * Logging level for [CallLogging], default is [Level.TRACE]
+         * Logging level for [CallLogging], default is [Level.INFO]
          */
-        public var level: Level = Level.TRACE
+        public var level: Level = Level.INFO
 
         /**
          * Customize [Logger], will default to [ApplicationEnvironment.log]

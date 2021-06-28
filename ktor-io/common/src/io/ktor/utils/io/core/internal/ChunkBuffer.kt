@@ -1,7 +1,6 @@
 package io.ktor.utils.io.core.internal
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.bits.DefaultAllocator
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
@@ -30,7 +29,8 @@ public open class ChunkBuffer(
      * @see appendNext
      * @see cleanNext
      */
-    public var next: ChunkBuffer? get() = nextRef.value
+    public var next: ChunkBuffer?
+        get() = nextRef.value
         set(newValue) {
             if (newValue == null) {
                 cleanNext()
@@ -135,12 +135,7 @@ public open class ChunkBuffer(
                 return DefaultChunkedBufferPool.borrow()
             }
 
-            @Suppress("DEPRECATION")
             override fun recycle(instance: ChunkBuffer) {
-                if (instance !is IoBuffer) {
-                    throw IllegalArgumentException("Only IoBuffer instances can be recycled.")
-                }
-
                 DefaultChunkedBufferPool.recycle(instance)
             }
 
@@ -148,9 +143,6 @@ public open class ChunkBuffer(
                 DefaultChunkedBufferPool.dispose()
             }
         }
-
-        @Suppress("DEPRECATION")
-        public val Empty: ChunkBuffer get() = IoBuffer.Empty
 
         /**
          * A pool that always returns [ChunkBuffer.Empty]
@@ -161,24 +153,21 @@ public open class ChunkBuffer(
             override fun borrow() = Empty
 
             override fun recycle(instance: ChunkBuffer) {
-                require(instance === ChunkBuffer.Empty) { "Only ChunkBuffer.Empty instance could be recycled." }
+                require(instance === Empty) { "Only ChunkBuffer.Empty instance could be recycled." }
             }
 
             override fun dispose() {
             }
         }
 
-        @Suppress("DEPRECATION")
+        public val Empty: ChunkBuffer = ChunkBuffer(Memory.Empty, null, EmptyPool)
+
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {
-                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this as ObjectPool<IoBuffer>)
+                return ChunkBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this)
             }
 
             override fun recycle(instance: ChunkBuffer) {
-                if (instance !is IoBuffer) {
-                    throw IllegalArgumentException("Only IoBuffer instances can be recycled.")
-                }
-
                 DefaultAllocator.free(instance.memory)
             }
         }

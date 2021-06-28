@@ -26,39 +26,6 @@ public enum class OAuthVersion {
 }
 
 /**
- * Provides states for OAuth2. State could be just a random number (nonce) or could contain additional form fields or
- * a signature. It is important that it should be a way to verify state. So all states need to be saved somehow or
- * a state need to be a signed set of parameters that could be verified later
- */
-@Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
-public interface OAuth2StateProvider {
-    /**
-     * Generates a new state for given [call]
-     */
-    public suspend fun getState(call: ApplicationCall): String
-
-    /**
-     * Verifies [state] and throws exceptions if it's not valid
-     */
-    public suspend fun verifyState(state: String)
-}
-
-/**
- * The default state provider that does generate random nonce and don't keep them
- */
-@Suppress("DEPRECATION_ERROR")
-@Deprecated("Use NonceManager instead", level = DeprecationLevel.HIDDEN)
-public object DefaultOAuth2StateProvider : OAuth2StateProvider {
-    override suspend fun getState(call: ApplicationCall): String {
-        TODO("This is no longer supported")
-    }
-
-    override suspend fun verifyState(state: String) {
-        TODO("This is no longer supported")
-    }
-}
-
-/**
  * Represents OAuth server settings
  * @property name configuration name
  * @property version OAuth version (1a or 2)
@@ -82,19 +49,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val consumerSecret: String,
 
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
-    ) : OAuthServerSettings(name, OAuthVersion.V10a) {
-        @Suppress("unused")
-        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-        public constructor(
-            name: String,
-            requestTokenUrl: String,
-            authorizeUrl: String,
-            accessTokenUrl: String,
-
-            consumerKey: String,
-            consumerSecret: String
-        ) : this(name, requestTokenUrl, authorizeUrl, accessTokenUrl, consumerKey, consumerSecret, {})
-    }
+    ) : OAuthServerSettings(name, OAuthVersion.V10a)
 
     /**
      * OAuth2 server settings
@@ -126,38 +81,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
         public val passParamsInURL: Boolean = false,
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
-    ) : OAuthServerSettings(name, OAuthVersion.V20) {
-        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-        public constructor(
-            name: String,
-            authorizeUrl: String,
-            accessTokenUrl: String,
-            requestMethod: HttpMethod = HttpMethod.Get,
-
-            clientId: String,
-            clientSecret: String,
-            defaultScopes: List<String> = emptyList(),
-            accessTokenRequiresBasicAuth: Boolean = false,
-
-            nonceManager: NonceManager = GenerateOnlyNonceManager,
-
-            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
-            passParamsInURL: Boolean = false,
-        ) : this(
-            name,
-            authorizeUrl,
-            accessTokenUrl,
-            requestMethod,
-            clientId,
-            clientSecret,
-            defaultScopes,
-            accessTokenRequiresBasicAuth,
-            nonceManager,
-            authorizeUrlInterceptor,
-            passParamsInURL,
-            {}
-        )
-    }
+    ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
 /**
@@ -226,7 +150,7 @@ public object OAuthGrantTypes {
  * and handle corresponding callbacks
  */
 @Suppress("unused")
-@Deprecated("Install and configure OAuth instead.")
+@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
@@ -240,7 +164,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
 /**
  * Respond OAuth redirect
  */
-@Deprecated("Install and configure OAuth instead.")
+@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
@@ -269,7 +193,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
 /**
  * Handle OAuth callback. Usually it leads to requesting an access token.
  */
-@Deprecated("Install and configure OAuth instead.")
+@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
@@ -278,7 +202,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     loginPageUrl: String,
     block: suspend (OAuthAccessTokenResponse) -> Unit
 ) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     oauthHandleCallback(client, dispatcher, provider, callbackUrl, loginPageUrl, {}, block)
 }
 
@@ -287,7 +211,8 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
  */
 @Deprecated(
     "Specifying an extra configuration function will be deprecated. " +
-        "Please provide it via OAuthServerSettings."
+        "Please provide it via OAuthServerSettings.",
+    level = DeprecationLevel.ERROR
 )
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     client: HttpClient,

@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.*
@@ -17,7 +18,7 @@ class HttpClientFreezingTest : ClientLoader() {
     fun testRequestWithFrozenClient() = clientTests {
         test { client ->
             client.makeShared()
-            val response = client.get<String>("$TEST_SERVER/content/hello")
+            val response = client.get("$TEST_SERVER/content/hello").body<String>()
             assertEquals("hello", response)
         }
     }
@@ -26,9 +27,9 @@ class HttpClientFreezingTest : ClientLoader() {
     fun testRequestWithDefaultDispatcher() = clientTests {
         test { client ->
             withContext(Dispatchers.Default) {
-                val response = client.post<String>("$TEST_SERVER/echo") {
-                    body = "hello"
-                }
+                val response = client.post("$TEST_SERVER/echo") {
+                    setBody("hello")
+                }.body<String>()
                 assertEquals("hello", response)
             }
         }

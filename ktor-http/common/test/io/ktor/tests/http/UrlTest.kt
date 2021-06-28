@@ -17,7 +17,7 @@ class UrlTest {
         assertEquals(443, url.port)
         assertEquals(443, url.protocol.defaultPort)
         assertEquals("ktor.io", url.host)
-        assertEquals("/quickstart/", url.encodedPath)
+        assertEquals(listOf("quickstart", ""), url.pathSegments)
         assertEquals(parametersOf("query" to listOf("string"), "param" to listOf("value", "value2")), url.parameters)
         assertEquals("fragment", url.fragment)
         assertEquals(null, url.user)
@@ -66,7 +66,7 @@ class UrlTest {
         assertEquals("https", url.protocol.name)
         assertEquals(8080, url.port)
         assertEquals("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]", url.host)
-        assertEquals("/hello", url.encodedPath)
+        assertEquals(listOf("hello"), url.pathSegments)
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
@@ -80,7 +80,7 @@ class UrlTest {
 
         assertEquals("http", url.protocol.name)
         assertEquals("127.0.0.1", url.host)
-        assertEquals("/hello", url.encodedPath)
+        assertEquals(listOf("hello"), url.pathSegments)
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
@@ -99,7 +99,7 @@ class UrlTest {
             assertEquals("http", url.protocol.name)
             assertNull(url.user)
             assertNull(url.password)
-            assertEquals("/foo${case}bar", url.encodedPath)
+            assertEquals(listOf("foo${case}bar"), url.pathSegments)
 
             assertEquals("http://localhost/foo${case}bar", url.toString())
         }
@@ -117,7 +117,7 @@ class UrlTest {
 
         assertEquals("http://httpbin.org/response-headers?message=foo%25bar", urlBuilder().buildString())
         assertEquals("http://httpbin.org/response-headers?message=foo%25bar", url.toString())
-        assertEquals("/response-headers", url.encodedPath)
+        assertEquals(listOf("response-headers"), url.pathSegments)
         assertEquals("/response-headers?message=foo%25bar", url.fullPath)
     }
 
@@ -127,10 +127,7 @@ class UrlTest {
             "https://akamai.removed.com/22/225b067044aa56f36590ef56d41e256cd1d0887b176bfdeec123ecccc6057790" +
                 "?__gda__=exp=1604350711~hmac=417cbd5a97b4c499e2cf7e9eae5dfb9ad95b42cb3ff76c5fb0fae70e2a42db9c&..."
 
-        val url = URLBuilder().apply {
-            parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
-            takeFrom(urlString)
-        }.build()
+        val url = URLBuilder().takeFrom(urlString).build()
 
         assertEquals(urlString, url.toString())
     }
@@ -140,10 +137,16 @@ class UrlTest {
         val urlString = "https://host.com/path?" +
             "response-content-disposition=attachment%3Bfilename%3D%22ForgeGradle-1.2-1.0.0-javadoc.jar%22"
 
-        val url = URLBuilder().apply {
-            parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
-            takeFrom(urlString)
-        }.build()
+        val url = URLBuilder().takeFrom(urlString).build()
+
+        assertEquals(urlString, url.toString())
+    }
+
+    @Test
+    fun testEncodedEqualsInQueryValue() {
+        val urlString = "https://test.net/path?param=attachment%3Bfilename%3D%22Forge"
+
+        val url = URLBuilder().takeFrom(urlString).build()
 
         assertEquals(urlString, url.toString())
     }
@@ -164,7 +167,7 @@ class UrlTest {
         with(url) {
             assertEquals(URLProtocol.HTTPS, protocol)
             assertEquals("www.test.com", host)
-            assertEquals("", encodedPath)
+            assertEquals(emptyList(), pathSegments)
             assertEquals("https://www.test.com?test=ok&authtoken=testToken", url.toString())
         }
     }
@@ -182,7 +185,11 @@ class UrlTest {
         fun testPort(n: Int) {
             assertEquals(
                 n,
-                Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort
+                URLBuilder().apply {
+                    protocol = URLProtocol.HTTP
+                    host = "localhost"
+                    port = n
+                }.build().specifiedPort
             )
         }
 
@@ -223,7 +230,7 @@ class UrlTest {
         val result = Url(expectedUrl)
         assertEquals("file", result.protocol.name)
         assertEquals("", result.host)
-        assertEquals("/var/www", result.encodedPath)
+        assertEquals(listOf("var", "www"), result.pathSegments)
         assertEquals(expectedUrl, result.toString())
     }
 
@@ -233,7 +240,7 @@ class UrlTest {
         val result = Url(expectedUrl)
         assertEquals("file", result.protocol.name)
         assertEquals("localhost", result.host)
-        assertEquals("/var/www", result.encodedPath)
+        assertEquals(listOf("var", "www"), result.pathSegments)
         assertEquals(expectedUrl, result.toString())
     }
 
@@ -257,5 +264,17 @@ class UrlTest {
         assertEquals("Abc Def", resultUrl.user)
         assertEquals("xyz.io", resultUrl.host)
         assertEquals("mailto", resultUrl.protocol.name)
+    }
+
+    @Test
+    fun testEncodedParts() {
+        val urlString = "https://user:password@ktor.io/quickstart/?query=string&param=value&param=value2#fragment"
+        val url = Url(urlString)
+        assertEquals("user", url.encodedUser)
+        assertEquals("password", url.encodedPassword)
+        assertEquals("/quickstart/", url.encodedPath)
+        assertEquals("query=string&param=value&param=value2", url.encodedQuery)
+        assertEquals("fragment", url.encodedFragment)
+        assertEquals(urlString, "$url")
     }
 }

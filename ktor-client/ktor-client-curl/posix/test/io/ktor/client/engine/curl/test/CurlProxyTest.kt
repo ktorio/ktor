@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl.test
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
@@ -42,7 +43,7 @@ class CurlProxyTest {
             runBlocking {
                 // replace with once moved to ktor-client-tests
 //                assertEquals("Hello", client.get<String>("$TEST_SERVER/content/hello"))
-                assertEquals("proxy", client.get("http://google.com/"))
+                assertEquals("proxy", client.get("http://google.com/").body())
             }
         }
     }
@@ -62,7 +63,7 @@ class CurlProxyTest {
             client.use {
                 @Suppress("DEPRECATION")
                 assertFailsWith<CurlIllegalStateException> {
-                    client.get<HttpResponse>("https://localhost:8089/")
+                    client.get("https://localhost:8089/")
                 }
             }
         }
@@ -81,9 +82,9 @@ class CurlProxyTest {
 
         runBlocking {
             client.use {
-                client.get<HttpResponse>("https://localhost:8089/").let { response ->
+                client.get("https://localhost:8089/").let { response ->
                     assertEquals(HttpStatusCode.OK, response.status)
-                    assertEquals("Hello, TLS!", response.readText())
+                    assertEquals("Hello, TLS!", response.bodyAsText())
                     assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])
                     assertEquals("TLS test server", response.headers["X-Comment"])
                 }

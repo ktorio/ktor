@@ -20,6 +20,7 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
+        assertTrue(evaluation is RouteSelectorEvaluation.Success)
         assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
         assertEquals(evaluation.succeeded, true)
         assertEquals(evaluation.parameters["param"], "PARAM")
@@ -36,7 +37,7 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
-        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
+        assertEquals(evaluation, RouteSelectorEvaluation.FailedPath)
     }
 
     @Test
@@ -50,7 +51,7 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
-        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
+        assertEquals(evaluation, RouteSelectorEvaluation.FailedPath)
     }
 
     @Test
@@ -62,6 +63,7 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
+        assertTrue(evaluation is RouteSelectorEvaluation.Success)
         assertEquals(evaluation.succeeded, true)
         assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameter)
     }
@@ -77,7 +79,7 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
-        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
+        assertEquals(evaluation, RouteSelectorEvaluation.FailedPath)
     }
 
     @Test
@@ -131,7 +133,11 @@ internal class RouteSelectorTest {
             isOptional = true
         )
 
-        assertEquals(evaluation, RouteSelectorEvaluation.Missing.copy(segmentIncrement = 1))
+        assertEquals(
+            evaluation,
+            RouteSelectorEvaluation
+                .Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
+        )
     }
 
     @Test
@@ -155,6 +161,6 @@ internal class RouteSelectorTest {
             isOptional = false
         )
 
-        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
+        assertEquals(evaluation, RouteSelectorEvaluation.FailedPath)
     }
 }

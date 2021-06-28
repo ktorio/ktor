@@ -36,3 +36,5 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
 }
 
 class CIOConfigTest : ConfigTestSuite(CIO)
+
+class CIOConnectionTest : ConnectionTestSuite(CIO)

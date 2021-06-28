@@ -19,8 +19,8 @@ public actual inline fun <reified T> typeInfo(): TypeInfo {
     return typeInfoImpl(reifiedType, T::class, kType)
 }
 
-public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
-    TypeInfoImpl(kClass, reifiedType, kType)
+public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
+    TypeInfo(kClass, reifiedType, kType)
 
 /**
  * Check [this] is instance of [type].
@@ -28,5 +28,5 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): Typ
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
 
 @OptIn(ExperimentalStdlibApi::class)
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = javaType

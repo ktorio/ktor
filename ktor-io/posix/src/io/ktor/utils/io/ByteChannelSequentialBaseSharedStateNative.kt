@@ -5,14 +5,11 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.atomicfu.*
 
 internal actual class ByteChannelSequentialBaseSharedState actual constructor() {
     private val _closed: AtomicBoolean = atomic(false)
-    private val _readByteOrder: AtomicRef<ByteOrder> = atomic(ByteOrder.BIG_ENDIAN)
-    private val _writeByteOrder: AtomicRef<ByteOrder> = atomic(ByteOrder.BIG_ENDIAN)
     private val _totalBytesRead: AtomicLong = atomic(0L)
     private val _totalBytesWritten: AtomicLong = atomic(0L)
     private val _closedCause: AtomicRef<Throwable?> = atomic(null)
@@ -23,18 +20,6 @@ internal actual class ByteChannelSequentialBaseSharedState actual constructor() 
         get() = _closed.value
         set(value) {
             _closed.value = value
-        }
-
-    actual var readByteOrder: ByteOrder
-        get() = _readByteOrder.value
-        set(value) {
-            _readByteOrder.value = value
-        }
-
-    actual var writeByteOrder: ByteOrder
-        get() = _writeByteOrder.value
-        set(value) {
-            _writeByteOrder.value = value
         }
 
     actual var totalBytesRead: Long

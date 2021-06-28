@@ -166,7 +166,7 @@ public class WebSocketWriter(
     /**
      * Closes the message queue
      */
-    @Deprecated("Will be removed")
+    @Deprecated("Will be removed", level = DeprecationLevel.ERROR)
     public fun close() {
         queue.close()
     }

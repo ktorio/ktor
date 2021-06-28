@@ -123,7 +123,8 @@ public fun Route.webSocketRaw(
  */
 @Deprecated(
     "Use webSocketRaw(protocol = protocol, handler = handler) instead.",
-    ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)")
+    ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)"),
+    DeprecationLevel.ERROR
 )
 public fun Route.webSocketRaw(
     webSocketProtocol: String,
@@ -165,7 +166,8 @@ public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWeb
  */
 @Deprecated(
     "Use webSocket(protocol = protocol, handler = handler) instead.",
-    ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)")
+    ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)"),
+    DeprecationLevel.ERROR
 )
 public fun Route.webSocket(
     webSocketProtocol: String,
@@ -263,12 +265,12 @@ private class WebSocketProtocolsSelector(
 ) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol]
-            ?: return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.FailedParameter
 
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
             return RouteSelectorEvaluation.Constant
         }
 
-        return RouteSelectorEvaluation.Failed
+        return RouteSelectorEvaluation.FailedParameter
     }
 }

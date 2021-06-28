@@ -24,7 +24,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
 public suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
-    nextChunk: suspend (Int) -> AbstractInput?
+    nextChunk: suspend (Int) -> Input?
 ): Boolean {
     var decoded = 0
     var size = 1
@@ -104,12 +104,6 @@ internal fun byteCountUtf8(firstByte: Int): Int {
     }
 
     return byteCount
-}
-
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-public inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
-    return (this as Buffer).decodeUTF8(consumer)
 }
 
 /**

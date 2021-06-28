@@ -12,6 +12,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-shared:ktor-shared-events"))
         }
     }
 

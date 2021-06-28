@@ -11,6 +11,8 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
@@ -48,8 +50,9 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
      * Unmodified [ByteReadChannel] with the raw payload of the response.
      *
      * **Note:** this content doesn't go through any interceptors from [HttpResponsePipeline].
-     * If you need modified content, use [HttpResponse::receive<ByteReadChannel>] function.
+     * If you need modified content, use [bodyChannel] function.
      */
+    @InternalAPI
     public abstract val content: ByteReadChannel
 
     override fun toString(): String = "HttpResponse[${request.url}, $status]"
@@ -60,24 +63,31 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
  */
 public val HttpResponse.request: HttpRequest get() = call.request
 
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("Close is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
-public fun HttpResponse.close() {
-}
-
-@Suppress("UNUSED_PARAMETER", "KDocMissingDocumentation", "unused")
-@Deprecated("Use is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this.also(block)"))
-public fun HttpResponse.use(block: () -> Unit) {
-}
-
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("[response] is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
-public val HttpResponse.response: HttpResponse
-    get() = this
-
 @InternalAPI
 @PublishedApi
 internal fun HttpResponse.complete() {
     val job = coroutineContext[Job]!! as CompletableJob
     job.complete()
 }
+
+/**
+ * Read the [HttpResponse.content] as a String. You can pass an optional [charset]
+ * to specify a charset in the case no one is specified as part of the Content-Type response.
+ * If no charset specified either as parameter or as part of the response,
+ * [io.ktor.client.features.HttpPlainText] settings will be used.
+ *
+ * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
+ *      So it just acts as a fallback, honoring the server preference.
+ */
+public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.UTF_8): String {
+    val originCharset = charset() ?: fallbackCharset
+    val decoder = originCharset.newDecoder()
+    val input = body<Input>()
+
+    return decoder.decode(input)
+}
+
+/**
+ * Read the [HttpResponse.content] as a [ByteReadChannel].
+ */
+public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body()

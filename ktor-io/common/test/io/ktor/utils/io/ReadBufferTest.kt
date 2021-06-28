@@ -86,7 +86,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readAvailableIoBufferFromBuffer() {
+    fun readAvailableChunkBufferFromBuffer() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -112,7 +112,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readFullyIoBufferFromBuffer() {
+    fun readFullyChunkBufferFromBuffer() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -186,7 +186,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readAvailableIoBufferFromPacket() {
+    fun readAvailableChunkBufferFromPacket() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -212,7 +212,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readFullyIoBufferFromPacket() {
+    fun readFullyChunkBufferFromPacket() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {

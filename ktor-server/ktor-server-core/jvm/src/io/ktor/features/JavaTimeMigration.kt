@@ -4,11 +4,10 @@
 
 package io.ktor.features
 
-import io.ktor.sessions.*
 import java.time.*
 
 @Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
-@Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.")
+@Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.ERROR)
 public var CORS.Configuration.maxAge: Duration
     get() = Duration.ofSeconds(maxAgeInSeconds)
     set(newMaxAge) {
@@ -16,7 +15,7 @@ public var CORS.Configuration.maxAge: Duration
     }
 
 @Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
-@Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.")
+@Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.ERROR)
 public var HSTS.Configuration.maxAge: Duration
     get() = Duration.ofSeconds(maxAgeInSeconds)
     set(newMaxAge) {

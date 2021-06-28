@@ -19,7 +19,8 @@ public class WebResourcesConfig
 @Deprecated(
     "Direct instantiation will be impossible in 2.0.0. " +
         "Use Route.webResources {} function instead " +
-        "or file an issue describing why do you need it."
+        "or file an issue describing why do you need it.",
+    level = DeprecationLevel.ERROR
 )
 constructor() {
     /**
@@ -66,7 +67,7 @@ constructor() {
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
 public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
     val prefix = subPath.split('/', '\\').filter { it.isNotEmpty() }

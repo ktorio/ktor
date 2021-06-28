@@ -12,6 +12,7 @@ public expect abstract class Charset {
 
     public companion object {
         public fun forName(name: String): Charset
+        public fun isSupported(charset: String): Boolean
     }
 }
 
@@ -25,7 +26,11 @@ public expect val CharsetEncoder.charset: Charset
 
 @Deprecated(
     "Use writeText on Output instead.",
-    ReplaceWith("dst.writeText(input, fromIndex, toIndex, charset)", "io.ktor.utils.io.core.writeText")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith(
+        "dst.writeText(input, fromIndex, toIndex, charset)",
+        "io.ktor.utils.io.core.writeText"
+    )
 )
 public fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Output) {
     encodeToImpl(dst, input, fromIndex, toIndex)
@@ -40,6 +45,7 @@ public expect fun CharsetEncoder.encodeToByteArray(
 
 @Deprecated(
     "Internal API. Will be hidden in future releases. Use encodeToByteArray instead.",
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("encodeToByteArray(input, fromIndex, toIndex)")
 )
 public fun CharsetEncoder.encodeToByteArrayImpl(
@@ -166,8 +172,7 @@ internal fun CharsetEncoder.encodeToByteArrayImpl1(
 
 internal fun Input.sizeEstimate(): Long = when (this) {
     is ByteReadPacket -> remaining
-    is AbstractInput -> maxOf(remaining, 16)
-    else -> 16
+    else -> maxOf(remaining, 16)
 }
 
 private fun CharsetEncoder.encodeCompleteImpl(dst: Output): Int {

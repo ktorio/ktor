@@ -293,7 +293,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     oauthRespondRedirect(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true")
                 }
             }
@@ -316,7 +316,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     oauthHandleCallback(
                         testClient!!,
                         dispatcher,
@@ -347,7 +347,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     oauthHandleCallback(
                         testClient!!,
                         dispatcher,

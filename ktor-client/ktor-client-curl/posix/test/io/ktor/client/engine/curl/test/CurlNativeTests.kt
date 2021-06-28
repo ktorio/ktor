@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl.test
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
@@ -21,7 +22,7 @@ class CurlNativeTests {
         backgroundWorker.execute(TransferMode.SAFE, { Unit }) {
             runBlocking {
                 val client = HttpClient()
-                client.get<String>("http://google.com")
+                client.get("http://google.com").body<String>()
             }
         }.consume { assert(it.isNotEmpty()) }
     }
@@ -30,7 +31,7 @@ class CurlNativeTests {
     fun testDownload() {
         runBlocking {
             val client = HttpClient()
-            val res = client.get<String>("http://google.com")
+            val res = client.get("http://google.com").body<String>()
             assert(res.isNotEmpty())
         }
     }

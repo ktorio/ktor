@@ -66,19 +66,6 @@ public class SessionTransportCookie(
  */
 public class CookieConfiguration {
     /**
-     * Cookie time to live duration or `null` for session cookies.
-     * Session cookies are client-driven. For example, a web browser usually removes session
-     * cookies at browser or window close unless the session is restored.
-     */
-    @Suppress("DEPRECATION", "unused")
-    @Deprecated("Use maxAge or maxAgeInSeconds instead.", level = DeprecationLevel.HIDDEN)
-    public var duration: java.time.temporal.TemporalAmount?
-        get() = duration
-        set(newDuration) {
-            duration = newDuration
-        }
-
-    /**
      * Cookie time to live duration or 0 for session cookies.
      * Session cookies are client-driven. For example, a web browser usually removes session
      * cookies at browser or window close unless the session is restored.

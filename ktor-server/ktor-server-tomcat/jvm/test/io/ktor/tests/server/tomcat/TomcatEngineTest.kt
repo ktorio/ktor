@@ -74,7 +74,7 @@ class TomcatHttpServerTest :
         }
 
         withUrl("/tomcat/attributes") {
-            assertEquals("135", call.response.readText())
+            assertEquals("135", call.response.bodyAsText())
         }
     }
 
@@ -137,3 +137,5 @@ class TomcatSustainabilityTestSuite :
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
+
+class TomcatConnectionTest : ConnectionTestSuite(Tomcat)

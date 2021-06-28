@@ -30,13 +30,10 @@ private class SingleByteBufferPool(
     val release: (ByteBuffer) -> Unit
 ) : SingleInstancePool<ChunkBuffer>() {
     override fun produceInstance(): ChunkBuffer {
-        @Suppress("DEPRECATION")
-        return IoBuffer(instance, this as ObjectPool<IoBuffer>)
+        return ChunkBuffer(instance, this)
     }
 
     override fun disposeInstance(instance: ChunkBuffer) {
-        @Suppress("DEPRECATION")
-        check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
         release(this.instance)
     }
 }

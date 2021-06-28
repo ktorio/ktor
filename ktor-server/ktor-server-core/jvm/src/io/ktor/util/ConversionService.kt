@@ -12,6 +12,7 @@ import java.math.*
  */
 @Deprecated(
     "This was moved to another package.",
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("ConversionService", "io.ktor.util.converters.ConversionService")
 )
 public interface ConversionService {
@@ -31,8 +32,10 @@ public interface ConversionService {
  */
 @Deprecated(
     "This was moved to another package.",
+    level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("DefaultConversionService", "io.ktor.util.converters.DefaultConversionService")
 )
+@Suppress("DEPRECATION_ERROR")
 public object DefaultConversionService : ConversionService {
     override fun toValues(value: Any?): List<String> = when (value) {
         null -> listOf()

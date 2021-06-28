@@ -10,7 +10,7 @@ import java.nio.channels.*
 private class ChannelAsOutput(
     pool: ObjectPool<ChunkBuffer>,
     val channel: WritableByteChannel
-) : AbstractOutput(pool) {
+) : Output(pool) {
     override fun flush(source: Memory, offset: Int, length: Int) {
         val slice = source.buffer.sliceSafe(offset, length)
         while (slice.hasRemaining()) {

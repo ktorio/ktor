@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
@@ -293,7 +294,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
                 followRedirects = false
                 expectSuccess = false
             }.use { client ->
-                client.request<HttpStatement> {
+                client.prepareRequest {
                     url.takeFrom(urlString)
                     builder()
                 }.execute { response ->
@@ -318,7 +319,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
                     sslContextFactory = SslContextFactory.Client(true)
                 }
             }.use { client ->
-                client.request<HttpStatement>(url) {
+                client.prepareRequest(url) {
                     builder()
                 }.execute { response ->
                     block(response, port)

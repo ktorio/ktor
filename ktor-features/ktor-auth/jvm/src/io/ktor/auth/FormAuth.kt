@@ -33,9 +33,6 @@ public class FormAuthenticationProvider internal constructor(config: Configurati
             call.respond(UnauthorizedResponse())
         }
 
-        @Suppress("DEPRECATION_ERROR")
-        private var _challenge: FormAuthChallenge? = FormAuthChallenge.Unauthorized
-
         /**
          * POST parameter to fetch for a user name
          */
@@ -47,24 +44,9 @@ public class FormAuthenticationProvider internal constructor(config: Configurati
         public var passwordParamName: String = "password"
 
         /**
-         * A response to send back if authentication failed
-         */
-        @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-        @Suppress("DEPRECATION_ERROR")
-        public var challenge: FormAuthChallenge
-            get() = _challenge ?: error("Challenge is already configured via challenge() function")
-            set(value) {
-                _challenge = value
-                challengeFunction = { credentials ->
-                    challengeCompatibility(value, credentials)
-                }
-            }
-
-        /**
          * Configure challenge (response to send back) if authentication failed.
          */
         public fun challenge(function: FormAuthChallengeFunction) {
-            _challenge = null
             challengeFunction = function
         }
 
@@ -138,35 +120,4 @@ public fun Authentication.Configuration.form(
 public typealias FormAuthChallengeFunction =
     suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
 
-/**
- * Specifies what to send back if form authentication fails.
- */
-@Suppress("DEPRECATION_ERROR")
-@Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-public sealed class FormAuthChallenge {
-    /**
-     * Redirect to an URL provided by the given function.
-     * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
-     */
-    @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    public class Redirect(public val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge()
-
-    /**
-     * Respond with [HttpStatusCode.Unauthorized].
-     */
-    @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    public object Unauthorized : FormAuthChallenge()
-}
-
 private val formAuthenticationChallengeKey: Any = "FormAuth"
-
-@Suppress("DEPRECATION_ERROR")
-private suspend fun PipelineContext<*, ApplicationCall>.challengeCompatibility(
-    challenge: FormAuthChallenge,
-    credentials: UserPasswordCredential?
-) {
-    when (challenge) {
-        FormAuthChallenge.Unauthorized -> call.respond(UnauthorizedResponse())
-        is FormAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, credentials))
-    }
-}

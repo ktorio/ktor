@@ -5,6 +5,7 @@
 package io.ktor.client.engine.android
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -38,9 +39,9 @@ class AndroidProxyTest : TestWithKtor() {
             }
         }
         test { client ->
-            val text = client.post<String>("http://somewhere.else") {
-                body = "Hello, server"
-            }
+            val text = client.post("http://somewhere.else") {
+                setBody("Hello, server")
+            }.body<String>()
             assertEquals("Hello, client", text)
         }
     }

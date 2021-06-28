@@ -5,6 +5,7 @@
 package io.ktor.tests.server.testing
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.features.*
@@ -215,10 +216,10 @@ class TestApplicationEngineTest {
 
             val client = client.config { expectSuccess = false }
             runBlocking {
-                val notExistingResponse = client.get<HttpResponse>("/notExist")
+                val notExistingResponse = client.get("/notExist")
                 assertEquals(HttpStatusCode.NotFound, notExistingResponse.status)
 
-                val existingResponse = client.get<HttpResponse>("/exist")
+                val existingResponse = client.get("/exist")
                 assertEquals(HttpStatusCode.OK, existingResponse.status)
             }
         }

@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -135,7 +136,7 @@ class CIOHttpsTest : TestWithKtor() {
                 test { client ->
                     try {
                         println("Starting: ${suite.name}")
-                        val actual = client.get<String>("https://127.0.0.1:$serverPort/")
+                        val actual = client.get("https://127.0.0.1:$serverPort/").body<String>()
                         assertEquals("Hello, world", actual)
                     } catch (cause: Throwable) {
                         println("${suite.name}: $cause")
@@ -151,7 +152,7 @@ class CIOHttpsTest : TestWithKtor() {
     @Ignore
     fun testExternal() = testWithEngine(CIO) {
         test { client ->
-            client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
+            client.prepareGet("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
             }
         }
@@ -173,7 +174,7 @@ class CIOHttpsTest : TestWithKtor() {
 
         test { client ->
             domains.forEach { url ->
-                client.get<String>(url)
+                client.get(url).body<String>()
             }
         }
     }
@@ -198,7 +199,7 @@ class CIOHttpsTest : TestWithKtor() {
             var received = 0
             client.async {
                 repeat(testSize) {
-                    client.get<HttpStatement>("https://www.facebook.com").execute { response ->
+                    client.prepareGet("https://www.facebook.com").execute { response ->
                         assertTrue(response.status.isSuccess())
                         received++
                     }

@@ -62,12 +62,6 @@ public class TestApplicationResponse(
         private val builder = HeadersBuilder()
 
         override fun engineAppendHeader(name: String, value: String) {
-            @Suppress("DEPRECATION")
-            if (call.requestHandled) {
-                throw UnsupportedOperationException(
-                    "Headers can no longer be set because response was already completed"
-                )
-            }
             builder.append(name, value)
         }
 
@@ -75,17 +69,10 @@ public class TestApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = builder.getAll(name).orEmpty()
     }
 
-    init {
-        pipeline.intercept(ApplicationSendPipeline.Engine) {
-            @Suppress("DEPRECATION")
-            call.requestHandled = call.response.status() != HttpStatusCode.NotFound
-        }
-    }
-
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
-        if (@Suppress("DEPRECATION_ERROR") readResponse) {
+        if (readResponse) {
             launchResponseJob(result)
         }
 
@@ -119,15 +106,6 @@ public class TestApplicationResponse(
      */
     public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
-    /**
-     * Await for response job completion
-     */
-    @Suppress("DeprecatedCallableAddReplaceWith", "unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public suspend fun flush() {
-        awaitForResponseCompletion()
-    }
-
     internal suspend fun awaitForResponseCompletion() {
         responseJob?.join()
     }
@@ -158,10 +136,6 @@ public class TestApplicationResponse(
 
         Unit
     }
-
-    @Suppress("unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun awaitWebSocket(duration: java.time.Duration): Unit = awaitWebSocket(duration)
 
     /**
      * Websocket session's channel

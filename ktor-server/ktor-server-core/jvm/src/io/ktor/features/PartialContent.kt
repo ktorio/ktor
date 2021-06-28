@@ -119,7 +119,7 @@ public class PartialContent(private val maxRangeCount: Int) {
             return false
         }
 
-        val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
+        val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.headers.parseVersions()
 
         return versions.all { version ->
             when (version) {

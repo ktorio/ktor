@@ -8,7 +8,7 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 
-internal actual class AbstractOutputSharedState {
+internal actual class OutputSharedState {
     actual var head: ChunkBuffer? = null
 
     actual var tail: ChunkBuffer? = null

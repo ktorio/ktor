@@ -27,23 +27,6 @@ public data class UserPasswordCredential(val name: String, val password: String)
  * @property table of user names and hashed passwords
  */
 public class UserHashedTableAuth(public val digester: (String) -> ByteArray, public val table: Map<String, ByteArray>) {
-    @Suppress("unused")
-    @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.HIDDEN)
-    public constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
-
-    @Suppress("DEPRECATION_ERROR")
-    @Deprecated(
-        "Configuring from an application config is no longer supported.",
-        level = DeprecationLevel.HIDDEN
-    )
-    public constructor(config: ApplicationConfig) : this(
-        getDigestFunction(
-            config.property("hashAlgorithm").getString(),
-            config.property("salt").getString()
-        ),
-        config.parseUsers()
-    )
-
     init {
         if (table.isEmpty()) {
             // TODO log no users configured

@@ -1,0 +1,11 @@
+public class io/ktor/events/EventDefinition {
+	public fun <init> ()V
+}
+
+public final class io/ktor/events/Events {
+	public fun <init> ()V
+	public final fun raise (Lio/ktor/events/EventDefinition;Ljava/lang/Object;)V
+	public final fun subscribe (Lio/ktor/events/EventDefinition;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
+	public final fun unsubscribe (Lio/ktor/events/EventDefinition;Lkotlin/jvm/functions/Function1;)V
+}
+

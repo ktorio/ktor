@@ -29,7 +29,7 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
         require(webjarsPrefix.endsWith("/"))
     }
 
-    @Deprecated("Use install(Webjars), there is no need to instantiate it directly.")
+    @Deprecated("Use install(Webjars), there is no need to instantiate it directly.", level = DeprecationLevel.ERROR)
     public constructor(configuration: Configuration) : this(configuration.path)
 
     private val locator = WebJarAssetLocator()
@@ -71,7 +71,7 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
          * Makes no effect. Will be dropped in future releases.
          */
         @Suppress("unused")
-        @Deprecated("This is no longer used and will be dropped in future releases.")
+        @Deprecated("This is no longer used and will be dropped in future releases.", level = DeprecationLevel.ERROR)
         public var zone: ZoneId = ZoneId.systemDefault()
     }
 

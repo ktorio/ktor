@@ -19,7 +19,8 @@ public fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
  */
 @Deprecated(
     "This will be removed in future releases. Using it in 2.0.0 will be an error.",
-    ReplaceWith("ZonedDateTime.parse(this, httpDateFormat)", "java.time.ZonedDateTime")
+    ReplaceWith("ZonedDateTime.parse(this, httpDateFormat)", "java.time.ZonedDateTime"),
+    DeprecationLevel.ERROR
 )
 @Suppress("unused")
 public fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)

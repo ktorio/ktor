@@ -39,9 +39,9 @@ class JvmContentTest : ClientLoader() {
     private suspend inline fun <reified Response : Any, T> HttpClient.echo(
         body: Any,
         crossinline block: (Response) -> T
-    ): T = post<HttpStatement>("$TEST_SERVER/content/echo") {
+    ): T = preparePost("$TEST_SERVER/content/echo") {
         this.body = body
-    }.receive<Response, T> {
+    }.body<Response, T> {
         block(it)
     }
 }

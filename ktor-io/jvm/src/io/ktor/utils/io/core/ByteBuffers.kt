@@ -94,9 +94,8 @@ public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Un
     }
 }
 
-@Suppress("DEPRECATION")
 @Deprecated("Use read {} instead.")
-public inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -106,81 +105,6 @@ public inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Uni
             block(it)
         }
     }
-}
-
-@Suppress("unused", "DEPRECATION")
-@Deprecated("Removed", level = DeprecationLevel.HIDDEN)
-public inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    read(size) { view ->
-        view.readDirect {
-            block(it)
-        }
-    }
-}
-
-/**
- * Write all [src] buffer remaining bytes and change it's position accordingly
- */
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-@Deprecated("Should be resolved to member function instead", level = DeprecationLevel.HIDDEN)
-public fun BytePacketBuilder.writeFully(src: ByteBuffer) {
-    writeFully(src)
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun BytePacketBuilder.nioBuffer(size: Int): ByteBuffer = prepareWriteHead(size).writeBuffer()
-
-@PublishedApi
-@Suppress("unused")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun BytePacketBuilder.afterNioBufferUsed(written: Int) {
-    head.commitWritten(written)
-    afterHeadWrite()
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun ByteReadPacket.nioBuffer(size: Int): ByteBuffer? {
-    return prepareRead(size)?.writeBuffer()
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
-    return prepareRead(size)?.writeBuffer()
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun ByteReadPacketBase.nioBuffer(size: Int): ByteBuffer? {
-    return prepareRead(size)?.writeBuffer()
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun ByteReadPacket.afterNioBufferUsed(read: Int) {
-    (this as ByteReadPacketBase).afterNioBufferUsed(read)
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun AbstractInput.afterNioBufferUsed(read: Int) {
-    (this as ByteReadPacketBase).afterNioBufferUsed(read)
-}
-
-@PublishedApi
-@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.ERROR)
-internal fun ByteReadPacketBase.afterNioBufferUsed(read: Int) {
-    val headRemaining = headRemaining
-    updateHeadRemaining(headRemaining - read)
 }
 
 internal fun Buffer.writeBuffer(): ByteBuffer {

@@ -83,6 +83,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     encodedPath = if (slashCount == 0) {
         // Relative path
+        val encodedPath = encodedPath
         val lastSlashIndex = encodedPath.lastIndexOf('/')
 
         if (lastSlashIndex != encodedPath.length - 1) {
@@ -104,7 +105,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     val rawPath = urlString.substring(startIndex, pathEnd)
 
-    encodedPath += rawPath.encodeURLPath()
+    encodedPath += rawPath
     startIndex = pathEnd
 
     // Query
@@ -155,7 +156,10 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
 
     val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
 
-    parseQueryStringTo(parameters, urlString.substring(startIndex + 1, fragmentStart))
+    val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart), decode = false)
+    rawParameters.forEach { key, values ->
+        encodedParameters.appendAll(key, values)
+    }
 
     return fragmentStart
 }

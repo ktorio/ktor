@@ -2,6 +2,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 
 /**
  * Channel for asynchronous reading of sequences of bytes.
@@ -30,16 +31,6 @@ public expect interface ByteReadChannel {
     public val closedCause: Throwable?
 
     /**
-     * Byte order that is used for multi-byte read operations
-     * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public var readByteOrder: ByteOrder
-
-    /**
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
@@ -50,14 +41,14 @@ public expect interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    public suspend fun readAvailable(dst: IoBuffer): Int
+    public suspend fun readAvailable(dst: ChunkBuffer): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
     public suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    public suspend fun readFully(dst: IoBuffer, n: Int)
+    public suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
@@ -216,7 +207,7 @@ public suspend fun ByteReadChannel.readRemaining(limit: Long): ByteReadPacket = 
  */
 public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE, 0)
 
-public suspend fun ByteReadChannel.readFully(dst: IoBuffer) {
+public suspend fun ByteReadChannel.readFully(dst: ChunkBuffer) {
     readFully(dst, dst.writeRemaining)
 }
 

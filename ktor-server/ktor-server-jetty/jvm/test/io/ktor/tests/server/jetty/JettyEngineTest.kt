@@ -43,7 +43,7 @@ class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApp
         }
 
         withUrl("/tomcat/attributes") {
-            assertEquals("135", call.response.readText())
+            assertEquals("135", call.response.bodyAsText())
         }
     }
 
@@ -74,3 +74,5 @@ class JettySustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
+
+class JettyConnectionTest : ConnectionTestSuite(Jetty)

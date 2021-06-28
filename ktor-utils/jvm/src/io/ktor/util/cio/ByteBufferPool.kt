@@ -20,7 +20,7 @@ public val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
-    level = DeprecationLevel.WARNING,
+    level = DeprecationLevel.ERROR,
     message = "ByteBufferPool is moved to `io` module",
     replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
 )

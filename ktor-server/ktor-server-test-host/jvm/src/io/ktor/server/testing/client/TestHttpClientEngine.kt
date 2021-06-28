@@ -37,7 +37,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
                 status() ?: HttpStatusCode.NotFound,
                 GMTDate(),
                 headers.allValues().takeUnless { it.isEmpty() } ?: Headers
-                    .build { this[HttpHeaders.ContentLength] = "0" },
+                    .build { append(HttpHeaders.ContentLength, "0") },
                 HttpProtocolVersion.HTTP_1_1,
                 ByteReadChannel(byteContent ?: byteArrayOf()),
                 callContext()

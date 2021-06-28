@@ -33,7 +33,7 @@ public suspend inline fun ByteWriteChannel.write(
 @Suppress("DEPRECATION")
 @Deprecated("Use writeMemory instead.")
 public interface WriterSession {
-    public fun request(min: Int): IoBuffer?
+    public fun request(min: Int): ChunkBuffer?
     public fun written(n: Int)
     public fun flush()
 }
@@ -77,13 +77,13 @@ internal suspend fun ByteWriteChannel.completeWriting(buffer: Buffer, written: I
 
 @Suppress("DEPRECATION")
 private suspend fun ByteWriteChannel.completeWritingFallback(buffer: Buffer) {
-    if (buffer is IoBuffer) {
+    if (buffer is ChunkBuffer) {
         writeFully(buffer)
-        buffer.release(IoBuffer.Pool)
+        buffer.release(ChunkBuffer.Pool)
         return
     }
 
-    throw UnsupportedOperationException("Only IoBuffer instance is supported.")
+    throw UnsupportedOperationException("Only ChunkBuffer instance is supported.")
 }
 
 @Suppress("DEPRECATION")

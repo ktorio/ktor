@@ -19,16 +19,24 @@ private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
-@Suppress("DEPRECATION", "UNUSED")
-@Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
+@Suppress("DEPRECATION_ERROR", "UNUSED")
+@Deprecated(
+    "Use defaultSessionSerializer instead.",
+    ReplaceWith("defaultSessionSerializer<T>()"),
+    level = DeprecationLevel.ERROR
+)
 public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> =
     defaultSessionSerializer<T>() as SessionSerializerReflection<T>
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
-@Suppress("DEPRECATION")
-@Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
+@Suppress("DEPRECATION_ERROR")
+@Deprecated(
+    "Use defaultSessionSerializer<T> instead.",
+    replaceWith = ReplaceWith("defaultSessionSerializer<T>()"),
+    level = DeprecationLevel.ERROR
+)
 public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> =
     defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
@@ -42,7 +50,7 @@ public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerialize
 /**
  * Creates the default [SessionSerializer] by [typeInfo]
  */
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
 
@@ -54,13 +62,14 @@ public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerialize
  */
 @Deprecated(
     "Don't refer to the implementation class directly. " +
-        "Use interface type if possible or use defaultSessionSerializer function to create."
+        "Use interface type if possible or use defaultSessionSerializer function to create.",
+    level = DeprecationLevel.ERROR
 )
 public class SessionSerializerReflection<T : Any> internal constructor(
     internal val typeInfo: KType
 ) : SessionSerializer<T> {
 
-    @Deprecated("Use defaultSessionSerializer() function instead")
+    @Deprecated("Use defaultSessionSerializer() function instead", level = DeprecationLevel.ERROR)
     public constructor(type: KClass<T>) : this(type.starProjectedType)
 
     @Suppress("UNCHECKED_CAST")

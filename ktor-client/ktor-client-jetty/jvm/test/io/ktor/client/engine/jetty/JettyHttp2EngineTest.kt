@@ -5,6 +5,7 @@
 package io.ktor.client.engine.jetty
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -18,7 +19,7 @@ class JettyHttp2EngineTest {
     fun testConnectingToNonHttp2Server() = testSuspend {
         HttpClient(Jetty).use { client ->
             assertFailsWith<IOException> {
-                client.get<String>("$TEST_SERVER/content/hello")
+                client.get("$TEST_SERVER/content/hello").body<String>()
             }
         }
     }
