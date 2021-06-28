@@ -122,6 +122,10 @@ val disabledExplicitApiModeProjects = listOf(
 
 apply(from = "gradle/compatibility.gradle")
 
+plugins {
+    id("org.jetbrains.dokka") version "1.4.32"
+}
+
 allprojects {
     group = "io.ktor"
     version = configuredVersion
@@ -149,7 +153,11 @@ allprojects {
 
     platforms.forEach { platform ->
         if (projectNeedsPlatform(this, platform)) {
-            apply(from = rootProject.file("gradle/$platform.gradle"))
+            if (platform == "js") {
+                configureJsModules()
+            } else {
+                apply(from = rootProject.file("gradle/$platform.gradle"))
+            }
         }
     }
 
@@ -198,10 +206,6 @@ if (project.hasProperty("enable-coverage")) {
     apply(from = "gradle/jacoco.gradle")
 }
 
-plugins {
-    id("org.jetbrains.dokka") version "1.4.32"
-}
-
 subprojects {
     plugins.apply("org.jetbrains.dokka")
 
@@ -217,6 +221,6 @@ subprojects {
 val docs: String? by extra
 if (docs != null) {
     tasks.withType<DokkaMultiModuleTask> {
-        pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.versioning.VersioningPlugin" to """{ "version": "$configuredVersion", "olderVersionsDir":"${docs}" }"""))
+        pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.versioning.VersioningPlugin" to """{ "version": "$configuredVersion", "olderVersionsDir":"$docs" }"""))
     }
 }
