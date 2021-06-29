@@ -4,6 +4,7 @@
 
 package io.ktor.tests.utils
 
+import io.ktor.server.util.date.*
 import io.ktor.util.date.*
 import java.text.SimpleDateFormat
 import java.time.OffsetDateTime

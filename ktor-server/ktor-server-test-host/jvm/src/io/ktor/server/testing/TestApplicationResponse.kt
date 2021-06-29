@@ -6,9 +6,9 @@ package io.ktor.server.testing
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*

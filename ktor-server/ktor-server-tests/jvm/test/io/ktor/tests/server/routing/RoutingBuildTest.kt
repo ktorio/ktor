@@ -4,7 +4,7 @@
 
 package io.ktor.tests.server.routing
 
-import io.ktor.routing.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 

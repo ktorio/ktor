@@ -16,9 +16,9 @@ public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Configura
 	public final fun setRegistry (Lcom/codahale/metrics/MetricRegistry;)V
 }
 
-public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Feature : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Feature : io/ktor/server/application/ApplicationFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/metrics/dropwizard/DropwizardMetrics;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/metrics/dropwizard/DropwizardMetrics;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

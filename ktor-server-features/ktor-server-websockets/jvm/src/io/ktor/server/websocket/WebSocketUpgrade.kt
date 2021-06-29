@@ -4,12 +4,12 @@
 
 package io.ktor.server.websocket
 
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.http.websocket.*
-import io.ktor.request.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*

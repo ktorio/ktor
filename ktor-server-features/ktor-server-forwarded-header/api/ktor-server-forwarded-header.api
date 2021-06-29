@@ -1,8 +1,8 @@
-public final class io/ktor/server/features/ForwardedHeaderSupport : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/features/ForwardedHeaderSupport : io/ktor/server/application/ApplicationFeature {
 	public static final field INSTANCE Lio/ktor/server/features/ForwardedHeaderSupport;
 	public final fun getForwardedParsedKey ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -25,10 +25,10 @@ public final class io/ktor/server/features/ForwardedHeaderSupport$ForwardedHeade
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/features/XForwardedHeaderSupport : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/features/XForwardedHeaderSupport : io/ktor/server/application/ApplicationFeature {
 	public static final field INSTANCE Lio/ktor/server/features/XForwardedHeaderSupport;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/XForwardedHeaderSupport$Config;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/XForwardedHeaderSupport$Config;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

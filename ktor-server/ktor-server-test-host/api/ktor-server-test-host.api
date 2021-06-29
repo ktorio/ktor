@@ -9,7 +9,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	public static synthetic fun createAndStartServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	protected fun createServer (Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun createServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
-	protected fun features (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)V
+	protected fun features (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
 	protected final fun findFreePort ()I
 	public final fun getApplicationEngineFactory ()Lio/ktor/server/engine/ApplicationEngineFactory;
 	protected final fun getCallGroupSize ()I
@@ -95,15 +95,15 @@ public final class io/ktor/server/testing/StressSuiteRunner : org/junit/runner/R
 }
 
 public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/application/Application;ZZLkotlin/coroutines/CoroutineContext;)V
-	public synthetic fun <init> (Lio/ktor/application/Application;ZZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public synthetic fun getRequest ()Lio/ktor/request/ApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 	public fun getRequest ()Lio/ktor/server/testing/TestApplicationRequest;
 	public final fun getRequestHandled ()Z
-	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/testing/TestApplicationResponse;
 	public fun toString ()Ljava/lang/String;
 }
@@ -145,7 +145,7 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public synthetic fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZLio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun addHeader (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getBodyChannel ()Lio/ktor/utils/io/ByteReadChannel;
-	public fun getCookies ()Lio/ktor/request/RequestCookies;
+	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
@@ -176,7 +176,7 @@ public final class io/ktor/server/testing/TestApplicationResponse : io/ktor/serv
 	public final fun getByteContent ()[B
 	public final fun getContent ()Ljava/lang/String;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getHeaders ()Lio/ktor/response/ResponseHeaders;
+	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
 	public final fun websocketChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 

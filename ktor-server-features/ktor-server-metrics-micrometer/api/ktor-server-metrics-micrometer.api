@@ -21,11 +21,11 @@ public final class io/ktor/server/metrics/micrometer/MicrometerMetrics$Configura
 	public final fun timers (Lkotlin/jvm/functions/Function3;)V
 }
 
-public final class io/ktor/server/metrics/micrometer/MicrometerMetrics$Feature : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/metrics/micrometer/MicrometerMetrics$Feature : io/ktor/server/application/ApplicationFeature {
 	public final fun getActiveRequestsGaugeName ()Ljava/lang/String;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public final fun getRequestTimeTimerName ()Ljava/lang/String;
-	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/metrics/micrometer/MicrometerMetrics;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/metrics/micrometer/MicrometerMetrics;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

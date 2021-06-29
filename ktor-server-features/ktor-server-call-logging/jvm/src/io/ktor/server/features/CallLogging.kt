@@ -4,10 +4,10 @@
 
 package io.ktor.server.features
 
-import io.ktor.application.*
 import io.ktor.events.*
 import io.ktor.http.*
-import io.ktor.logging.*
+import io.ktor.server.application.*
+import io.ktor.server.logging.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*

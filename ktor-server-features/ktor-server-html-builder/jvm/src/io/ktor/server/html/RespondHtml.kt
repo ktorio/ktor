@@ -4,11 +4,10 @@
 
 package io.ktor.server.html
 
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.response.*
-import io.ktor.util.cio.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import kotlinx.html.*
 import kotlinx.html.stream.*

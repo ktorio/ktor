@@ -6,8 +6,8 @@ package io.ktor.server.metrics.dropwizard
 
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
-import io.ktor.application.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import java.util.concurrent.*
