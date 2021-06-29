@@ -27,7 +27,7 @@ apiValidation {
         project(":ktor-utils"),
         project(":ktor-io"),
         project(":ktor-server"),
-        project(":ktor-features"),
+        project(":ktor-server-features"),
         project(":ktor-shared"),
     ]
 

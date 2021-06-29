@@ -17,12 +17,12 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                api(project(":ktor-server:ktor-server-core"))
+                api(project(":ktor-server:ktor-server"))
                 api(project(":ktor-server:ktor-server-test-host"))
                 api(project(":ktor-server:ktor-server-test-suites"))
                 api("org.eclipse.jetty:jetty-servlet:$jetty_version")
 
-                api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+                api(project(":ktor-server:ktor-server", configuration = "testOutput"))
             }
         }
     }

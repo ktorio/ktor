@@ -20,7 +20,6 @@ import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
-import kotlin.reflect.jvm.*
 import kotlin.text.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)

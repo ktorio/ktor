@@ -35,12 +35,12 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-test-suites"))
-            api(project(":ktor-server:ktor-server-core"))
+            api(project(":ktor-server:ktor-server"))
 
             api("io.netty:netty-tcnative:$netty_tcnative_version")
             api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
             implementation("io.mockk:mockk:$mockk_version")
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            api(project(":ktor-server:ktor-server", configuration = "testOutput"))
         }
     }
 }

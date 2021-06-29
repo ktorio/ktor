@@ -1,7 +1,0 @@
-public final class io/ktor/auth/ldap/LdapKt {
-	public static final fun ldapAuthenticate (Lio/ktor/auth/Credential;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
-	public static final fun ldapAuthenticate (Lio/ktor/auth/UserPasswordCredential;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/auth/UserIdPrincipal;
-	public static final fun ldapAuthenticate (Lio/ktor/auth/UserPasswordCredential;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)Lio/ktor/auth/UserIdPrincipal;
-	public static synthetic fun ldapAuthenticate$default (Lio/ktor/auth/Credential;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Ljava/lang/Object;
-}
-

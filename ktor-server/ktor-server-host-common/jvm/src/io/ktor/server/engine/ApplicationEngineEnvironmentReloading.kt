@@ -161,10 +161,10 @@ public class ApplicationEngineEnvironmentReloading(
         log.debug("Java Home: $jre")
         log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
 
-        // we shouldn't watch URL for ktor-server-core classes, even if they match patterns,
+        // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
-            ApplicationEnvironment::class.java, // ktor-server-core
+            ApplicationEnvironment::class.java, // ktor-server
             ApplicationEngineEnvironment::class.java, // ktor-server-host-common
             Pipeline::class.java, // ktor-parsing
             HttpStatusCode::class.java, // ktor-http

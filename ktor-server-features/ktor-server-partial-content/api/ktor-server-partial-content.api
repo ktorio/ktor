@@ -1,0 +1,17 @@
+public final class io/ktor/server/features/PartialContent {
+	public static final field Feature Lio/ktor/server/features/PartialContent$Feature;
+	public fun <init> (I)V
+}
+
+public final class io/ktor/server/features/PartialContent$Configuration {
+	public fun <init> ()V
+	public final fun getMaxRangeCount ()I
+	public final fun setMaxRangeCount (I)V
+}
+
+public final class io/ktor/server/features/PartialContent$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/PartialContent;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+

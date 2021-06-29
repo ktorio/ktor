@@ -7,7 +7,7 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.network.sockets.*
+import io.ktor.logging.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
@@ -16,7 +16,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
 
@@ -37,10 +36,8 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
         try {
             call.application.execute(call)
         } catch (error: ChannelIOException) {
-            with(CallLogging.Internals) {
-                withMDCBlock(call) {
-                    call.application.environment.logFailure(call, error)
-                }
+            call.application.mdcProvider.withMDCBlock(call) {
+                call.application.environment.logFailure(call, error)
             }
         } catch (error: Throwable) {
             handleFailure(call, error)
@@ -63,10 +60,8 @@ public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
 
 @EngineAPI
 public suspend fun logError(call: ApplicationCall, error: Throwable) {
-    with(CallLogging.Internals) {
-        withMDCBlock(call) {
-            call.application.environment.logFailure(call, error)
-        }
+    call.application.mdcProvider.withMDCBlock(call) {
+        call.application.environment.logFailure(call, error)
     }
 }
 

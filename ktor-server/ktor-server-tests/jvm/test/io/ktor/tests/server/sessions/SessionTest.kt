@@ -5,16 +5,13 @@
 package io.ktor.tests.server.sessions
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.route
-import io.ktor.routing.routing
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import io.ktor.sessions.*
+import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.util.hex
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.random.*

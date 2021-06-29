@@ -12,9 +12,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
-import java.nio.*
 
 /**
  * Base class for implementing an [ApplicationResponse]

@@ -1,0 +1,25 @@
+public final class io/ktor/server/freemarker/FreeMarker {
+	public static final field Feature Lio/ktor/server/freemarker/FreeMarker$Feature;
+	public fun <init> (Lfreemarker/template/Configuration;)V
+}
+
+public final class io/ktor/server/freemarker/FreeMarker$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/freemarker/FreeMarker;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/freemarker/FreeMarkerContent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/Object;
+	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/freemarker/RespondTemplateKt {
+	public static final fun respondTemplate (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

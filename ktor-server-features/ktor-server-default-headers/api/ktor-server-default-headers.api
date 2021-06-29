@@ -1,0 +1,18 @@
+public final class io/ktor/server/features/DefaultHeaders {
+	public static final field Feature Lio/ktor/server/features/DefaultHeaders$Feature;
+	public fun <init> (Lio/ktor/server/features/DefaultHeaders$Configuration;)V
+}
+
+public final class io/ktor/server/features/DefaultHeaders$Configuration {
+	public fun <init> ()V
+	public final fun getClock ()Lkotlin/jvm/functions/Function0;
+	public final fun header (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun setClock (Lkotlin/jvm/functions/Function0;)V
+}
+
+public final class io/ktor/server/features/DefaultHeaders$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/DefaultHeaders;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+

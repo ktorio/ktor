@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*

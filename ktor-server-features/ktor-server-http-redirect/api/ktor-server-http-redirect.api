@@ -1,0 +1,26 @@
+public final class io/ktor/server/features/HttpsRedirect {
+	public static final field Feature Lio/ktor/server/features/HttpsRedirect$Feature;
+	public fun <init> (Lio/ktor/server/features/HttpsRedirect$Configuration;)V
+	public final fun getExcludePredicates ()Ljava/util/List;
+	public final fun getPermanent ()Z
+	public final fun getRedirectPort ()I
+}
+
+public final class io/ktor/server/features/HttpsRedirect$Configuration {
+	public fun <init> ()V
+	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
+	public final fun excludePrefix (Ljava/lang/String;)V
+	public final fun excludeSuffix (Ljava/lang/String;)V
+	public final fun getExcludePredicates ()Ljava/util/List;
+	public final fun getPermanentRedirect ()Z
+	public final fun getSslPort ()I
+	public final fun setPermanentRedirect (Z)V
+	public final fun setSslPort (I)V
+}
+
+public final class io/ktor/server/features/HttpsRedirect$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/HttpsRedirect;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+

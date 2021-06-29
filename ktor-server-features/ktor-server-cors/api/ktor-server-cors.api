@@ -1,0 +1,59 @@
+public final class io/ktor/server/features/CORS {
+	public static final field CORS_DEFAULT_MAX_AGE J
+	public static final field Feature Lio/ktor/server/features/CORS$Feature;
+	public fun <init> (Lio/ktor/server/features/CORS$Configuration;)V
+	public final fun getAllHeaders ()Ljava/util/Set;
+	public final fun getAllHeadersSet ()Ljava/util/Set;
+	public final fun getAllowCredentials ()Z
+	public final fun getAllowSameOrigin ()Z
+	public final fun getAllowsAnyHost ()Z
+	public final fun getHeaderPredicates ()Ljava/util/List;
+	public final fun getMethods ()Ljava/util/Set;
+	public final fun intercept (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/CORS$Configuration {
+	public static final field Companion Lio/ktor/server/features/CORS$Configuration$Companion;
+	public fun <init> ()V
+	public final fun allowHeaders (Lkotlin/jvm/functions/Function1;)V
+	public final fun allowHeadersPrefixed (Ljava/lang/String;)V
+	public final fun allowXHttpMethodOverride ()V
+	public final fun anyHost ()V
+	public final fun exposeHeader (Ljava/lang/String;)V
+	public final fun getAllowCredentials ()Z
+	public final fun getAllowNonSimpleContentTypes ()Z
+	public final fun getAllowSameOrigin ()Z
+	public final fun getExposedHeaders ()Ljava/util/Set;
+	public final fun getHeaderPredicates ()Ljava/util/List;
+	public final fun getHeaders ()Ljava/util/Set;
+	public final fun getHosts ()Ljava/util/Set;
+	public final fun getMaxAgeInSeconds ()J
+	public final fun getMethods ()Ljava/util/Set;
+	public final fun header (Ljava/lang/String;)V
+	public final fun host (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public static synthetic fun host$default (Lio/ktor/server/features/CORS$Configuration;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)V
+	public final fun method (Lio/ktor/http/HttpMethod;)V
+	public final fun setAllowCredentials (Z)V
+	public final fun setAllowNonSimpleContentTypes (Z)V
+	public final fun setAllowSameOrigin (Z)V
+	public final fun setMaxAgeInSeconds (J)V
+}
+
+public final class io/ktor/server/features/CORS$Configuration$Companion {
+	public final fun getCorsDefaultMethods ()Ljava/util/Set;
+	public final fun getCorsSimpleContentTypes ()Ljava/util/Set;
+	public final fun getCorsSimpleRequestHeaders ()Ljava/util/Set;
+	public final fun getCorsSimpleResponseHeaders ()Ljava/util/Set;
+}
+
+public final class io/ktor/server/features/CORS$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/CORS;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/KotlinTimeJvmKt {
+	public static final fun getMaxAgeDuration (Lio/ktor/server/features/CORS$Configuration;)J
+	public static final fun setMaxAgeDuration-diQgC3o (Lio/ktor/server/features/CORS$Configuration;J)V
+}
+

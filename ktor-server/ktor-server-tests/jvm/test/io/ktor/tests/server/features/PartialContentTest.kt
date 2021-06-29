@@ -5,15 +5,14 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.date.*
 import java.io.*
-import java.util.*
 import kotlin.test.*
 
 class PartialContentTest {
@@ -31,7 +30,7 @@ class PartialContentTest {
             application.install(PartialContent) {
                 maxRangeCount?.let { this.maxRangeCount = it }
             }
-            application.install(AutoHeadResponse)
+            application.install(io.ktor.server.features.AutoHeadResponse)
             application.routing {
                 route(localPath) {
                     handle {

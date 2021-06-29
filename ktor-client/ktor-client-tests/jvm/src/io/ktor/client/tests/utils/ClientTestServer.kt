@@ -6,17 +6,16 @@ package io.ktor.client.tests.utils
 
 import io.ktor.application.*
 import io.ktor.client.tests.utils.tests.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.websocket.*
+import io.ktor.server.features.*
 
 @OptIn(ExperimentalWebSocketExtensionApi::class)
 internal fun Application.tests() {
-    install(WebSockets) {
+    install(io.ktor.server.websocket.WebSockets) {
         maxFrameSize = 4 * 1024
 
         extensions {

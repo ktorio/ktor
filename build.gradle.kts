@@ -183,7 +183,10 @@ allprojects {
                 progressiveMode = true
                 experimentalAnnotations.forEach { useExperimentalAnnotation(it) }
 
-                if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
+                if (project.path.startsWith(":ktor-server:ktor-server")
+                    && project.name != "ktor-server-core"
+                    && project.name != "ktor-server"
+                ) {
                     useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
                 }
             }

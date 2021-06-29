@@ -1,0 +1,60 @@
+public final class io/ktor/server/html/HtmlContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
+	public fun <init> (Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class io/ktor/server/html/Placeholder {
+	public fun <init> ()V
+	public final fun apply (Ljava/lang/Object;)V
+	public final fun getMeta ()Ljava/lang/String;
+	public final fun invoke (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun invoke$default (Lio/ktor/server/html/Placeholder;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun setMeta (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/html/PlaceholderItem : io/ktor/server/html/Placeholder {
+	public fun <init> (ILjava/util/List;)V
+	public final fun getCollection ()Ljava/util/List;
+	public final fun getFirst ()Z
+	public final fun getIndex ()I
+	public final fun getLast ()Z
+}
+
+public class io/ktor/server/html/PlaceholderList {
+	public fun <init> ()V
+	public final fun apply (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V
+	public final fun invoke (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun invoke$default (Lio/ktor/server/html/PlaceholderList;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun isEmpty ()Z
+}
+
+public final class io/ktor/server/html/RespondHtmlKt {
+	public static final fun respondHtml (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondHtml$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/html/RespondHtmlTemplateKt {
+	public static final fun respondHtmlTemplate (Lio/ktor/application/ApplicationCall;Lio/ktor/server/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondHtmlTemplate$default (Lio/ktor/application/ApplicationCall;Lio/ktor/server/html/Template;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/server/html/Template {
+	public abstract fun apply (Ljava/lang/Object;)V
+}
+
+public final class io/ktor/server/html/TemplateKt {
+	public static final fun each (Ljava/lang/Object;Lio/ktor/server/html/PlaceholderList;Lkotlin/jvm/functions/Function2;)V
+	public static final fun insert (Ljava/lang/Object;Lio/ktor/server/html/Placeholder;)V
+	public static final fun insert (Ljava/lang/Object;Lio/ktor/server/html/Template;Lio/ktor/server/html/TemplatePlaceholder;)V
+	public static final fun insert (Ljava/lang/Object;Lio/ktor/server/html/Template;Lkotlin/jvm/functions/Function1;)V
+}
+
+public class io/ktor/server/html/TemplatePlaceholder {
+	public fun <init> ()V
+	public final fun apply (Ljava/lang/Object;)V
+	public final fun invoke (Lkotlin/jvm/functions/Function1;)V
+}
+

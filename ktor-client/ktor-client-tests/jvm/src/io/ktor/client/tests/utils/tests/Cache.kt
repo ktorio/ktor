@@ -5,11 +5,11 @@
 package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.util.date.*
 import java.util.concurrent.atomic.*
 
