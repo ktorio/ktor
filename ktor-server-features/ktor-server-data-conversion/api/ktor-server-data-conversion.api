@@ -1,0 +1,11 @@
+public final class io/ktor/server/features/DataConversion : io/ktor/application/ApplicationFeature {
+	public static final field INSTANCE Lio/ktor/server/features/DataConversion;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/util/converters/DataConversion;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/DataConversionKt {
+	public static final fun getConversionService (Lio/ktor/application/ApplicationCallPipeline;)Lio/ktor/util/converters/ConversionService;
+}
+
