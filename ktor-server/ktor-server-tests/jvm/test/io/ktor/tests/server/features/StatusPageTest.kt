@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*

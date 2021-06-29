@@ -5,9 +5,9 @@
 package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 
 internal fun Application.encodingTestServer() {
     routing {

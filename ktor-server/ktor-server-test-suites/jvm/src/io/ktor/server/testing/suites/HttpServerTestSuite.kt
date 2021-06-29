@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
@@ -16,6 +15,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -82,7 +82,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
     @Test
     open fun testHeadRequest() {
         createAndStartServer {
-            install(AutoHeadResponse)
+            install(io.ktor.server.features.AutoHeadResponse)
             handle {
                 call.respondText("Hello")
             }

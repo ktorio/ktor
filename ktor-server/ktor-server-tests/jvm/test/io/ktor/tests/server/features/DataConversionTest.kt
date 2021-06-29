@@ -5,17 +5,16 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.features.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
+import io.ktor.util.reflect.*
 import java.math.*
-import kotlin.reflect.jvm.*
 import kotlin.test.*
 
 class DataConversionTest {
     @Test
     fun testDefaultConversion() = withTestApplication {
-        val id = application.conversionService.fromValues(listOf("1"), Int::class.java)
+        val id = application.conversionService.fromValues(listOf("1"), typeInfo<Int>())
         assertEquals(1, id)
     }
 
@@ -23,7 +22,7 @@ class DataConversionTest {
 
     @Test
     fun testDefaultConversionList() = withTestApplication {
-        val type = this@DataConversionTest::expectedList.returnType.javaType
+        val type = typeInfo<List<Int>>()
         val id = application.conversionService.fromValues(listOf("1", "2"), type)
         assertEquals(expectedList, id)
     }
@@ -33,11 +32,11 @@ class DataConversionTest {
         val expected = "12345678901234567890"
         val v = application.conversionService.toValues(BigDecimal(expected))
         assertEquals(expected, v.single())
-        assertEquals(BigDecimal(expected), application.conversionService.fromValues(v, BigDecimal::class.java))
+        assertEquals(BigDecimal(expected), application.conversionService.fromValues(v, typeInfo<BigDecimal>()))
 
         val v2 = application.conversionService.toValues(BigInteger(expected))
         assertEquals(expected, v2.single())
-        assertEquals(BigInteger(expected), application.conversionService.fromValues(v2, BigInteger::class.java))
+        assertEquals(BigInteger(expected), application.conversionService.fromValues(v2, typeInfo<BigInteger>()))
     }
 
     data class EntityID(val typeId: Int, val entityId: Int)
@@ -46,22 +45,16 @@ class DataConversionTest {
     fun testInstalledConversion() = withTestApplication {
         application.install(DataConversion) {
             convert<EntityID> {
-                decode { values, _ ->
+                decode { values ->
                     val (typeId, entityId) = values.single().split('-').map { it.toInt() }
                     EntityID(typeId, entityId)
                 }
 
-                encode { value ->
-                    when (value) {
-                        null -> listOf()
-                        is EntityID -> listOf("${value.typeId}-${value.entityId}")
-                        else -> throw DataConversionException("Cannot convert $value as EntityID")
-                    }
-                }
+                encode { value -> listOf("${value.typeId}-${value.entityId}") }
             }
         }
 
-        val id = application.conversionService.fromValues(listOf("42-999"), EntityID::class.java)
+        val id = application.conversionService.fromValues(listOf("42-999"), typeInfo<EntityID>())
         assertEquals(EntityID(42, 999), id)
     }
 }
