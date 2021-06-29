@@ -4,9 +4,9 @@
 
 package io.ktor.tests.hosts
 
-import io.ktor.application.*
-import io.ktor.request.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*

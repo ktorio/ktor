@@ -5,7 +5,7 @@
 package io.ktor.tests.config
 
 import com.typesafe.config.*
-import io.ktor.config.*
+import io.ktor.server.config.*
 import kotlin.test.*
 
 class ConfigTest {

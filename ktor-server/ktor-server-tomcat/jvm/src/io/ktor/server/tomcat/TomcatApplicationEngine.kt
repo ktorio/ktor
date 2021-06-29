@@ -4,10 +4,9 @@
 
 package io.ktor.server.tomcat
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
-import io.ktor.util.network.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.catalina.connector.*

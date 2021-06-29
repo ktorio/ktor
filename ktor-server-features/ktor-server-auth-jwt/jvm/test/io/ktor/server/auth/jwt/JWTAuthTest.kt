@@ -8,13 +8,13 @@ import com.auth0.jwk.*
 import com.auth0.jwt.*
 import com.auth0.jwt.algorithms.*
 import com.nhaarman.mockito_kotlin.*
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.Principal
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.security.*
 import java.security.interfaces.*

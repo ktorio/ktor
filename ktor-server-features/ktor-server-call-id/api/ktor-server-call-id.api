@@ -16,10 +16,10 @@ public final class io/ktor/server/features/CallId$Configuration {
 	public static synthetic fun verify$default (Lio/ktor/server/features/CallId$Configuration;Ljava/lang/String;ZILjava/lang/Object;)V
 }
 
-public final class io/ktor/server/features/CallId$Feature : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/features/CallId$Feature : io/ktor/server/application/ApplicationFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public final fun getPhase ()Lio/ktor/util/pipeline/PipelinePhase;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/CallId;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/CallId;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -29,7 +29,7 @@ public final class io/ktor/server/features/CallIdKt {
 	public static synthetic fun callIdMdc$default (Lio/ktor/server/features/CallLogging$Configuration;Ljava/lang/String;ILjava/lang/Object;)V
 	public static final fun generate (Lio/ktor/server/features/CallId$Configuration;ILjava/lang/String;)V
 	public static synthetic fun generate$default (Lio/ktor/server/features/CallId$Configuration;ILjava/lang/String;ILjava/lang/Object;)V
-	public static final fun getCallId (Lio/ktor/application/ApplicationCall;)Ljava/lang/String;
+	public static final fun getCallId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/features/RejectedCallIdException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {

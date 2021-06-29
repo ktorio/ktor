@@ -5,7 +5,7 @@
 package io.ktor.tests.server.http
 
 import io.ktor.http.*
-import io.ktor.request.*
+import io.ktor.server.request.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlin.test.*

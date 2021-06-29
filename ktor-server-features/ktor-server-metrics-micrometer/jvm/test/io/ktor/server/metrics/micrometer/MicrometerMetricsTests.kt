@@ -4,12 +4,12 @@
 
 package io.ktor.server.metrics.micrometer
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.metrics.micrometer.MicrometerMetrics.Feature.activeRequestsGaugeName
 import io.ktor.server.metrics.micrometer.MicrometerMetrics.Feature.requestTimeTimerName
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import io.micrometer.core.instrument.*

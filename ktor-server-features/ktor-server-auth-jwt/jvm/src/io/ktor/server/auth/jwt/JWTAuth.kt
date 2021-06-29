@@ -11,11 +11,11 @@ import com.auth0.jwt.exceptions.*
 import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import com.auth0.jwt.interfaces.JWTVerifier
-import io.ktor.application.*
 import io.ktor.http.auth.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.util.*

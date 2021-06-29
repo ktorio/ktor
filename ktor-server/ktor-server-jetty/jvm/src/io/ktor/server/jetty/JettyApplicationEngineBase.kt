@@ -4,9 +4,8 @@
 
 package io.ktor.server.jetty
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
 import java.net.*
