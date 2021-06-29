@@ -5,9 +5,8 @@
 package io.ktor.client.engine.android
 
 import io.ktor.client.features.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.network.sockets.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*

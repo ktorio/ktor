@@ -4,8 +4,8 @@
 
 package io.ktor.tests.server.netty
 
-import io.ktor.config.*
 import io.ktor.events.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.mockk.*

@@ -6,6 +6,7 @@ package io.ktor.tests.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.net.*

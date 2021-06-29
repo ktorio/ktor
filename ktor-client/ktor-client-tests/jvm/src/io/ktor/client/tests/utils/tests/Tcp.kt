@@ -11,7 +11,6 @@ import io.ktor.network.sockets.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.time.*
 
 internal suspend fun tcpServerHandler(socket: Socket) {
     val input = socket.openReadChannel()

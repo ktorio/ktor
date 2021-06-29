@@ -10,10 +10,10 @@ public final class io/ktor/server/jetty/Jetty : io/ktor/server/engine/Applicatio
 }
 
 public final class io/ktor/server/jetty/JettyApplicationCall : io/ktor/server/servlet/AsyncServletApplicationCall {
-	public fun <init> (Lio/ktor/application/Application;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
-	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
+	public fun <init> (Lio/ktor/server/application/Application;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/jetty/JettyApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/servlet/ServletApplicationResponse;
 }
 
@@ -43,7 +43,7 @@ public final class io/ktor/server/jetty/JettyApplicationEngineBase$Configuration
 
 public final class io/ktor/server/jetty/JettyApplicationResponse : io/ktor/server/servlet/AsyncServletApplicationResponse {
 	public fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lorg/eclipse/jetty/server/Request;Lkotlin/coroutines/CoroutineContext;)V
-	public fun push (Lio/ktor/response/ResponsePushBuilder;)V
+	public fun push (Lio/ktor/server/response/ResponsePushBuilder;)V
 }
 
 public final class io/ktor/server/jetty/internal/JettyUpgradeImpl : io/ktor/server/servlet/ServletUpgrade {

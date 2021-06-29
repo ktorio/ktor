@@ -4,10 +4,10 @@
 
 package io.ktor.server.metrics.micrometer
 
-import io.ktor.application.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.micrometer.core.instrument.*
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.*
  *           found for this request or 500 if an exception was thrown</li>
  *           <li><code>throwable</code>: The class name of the throwable that was eventually thrown while processing
  *           the request (or 'n/a' if no throwable had been thrown). Please note, that if an exception is thrown after
- *           calling [io.ktor.response.ApplicationResponseFunctionsKt.respond(io.ktor.application.ApplicationCall, java.lang.Object, kotlin.coroutines.Continuation<? super kotlin.Unit>)]
+ *           calling [io.ktor.server.response.ApplicationResponseFunctionsKt.respond(io.ktor.server.application.ApplicationCall, java.lang.Object, kotlin.coroutines.Continuation<? super kotlin.Unit>)]
  *           , the tag is still "n/a"</li>
  *        <ul>
  *     <li>

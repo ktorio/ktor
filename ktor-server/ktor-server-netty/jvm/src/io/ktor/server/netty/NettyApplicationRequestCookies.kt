@@ -4,7 +4,7 @@
 
 package io.ktor.server.netty
 
-import io.ktor.request.*
+import io.ktor.server.request.*
 import io.netty.handler.codec.http.cookie.*
 import java.util.*
 

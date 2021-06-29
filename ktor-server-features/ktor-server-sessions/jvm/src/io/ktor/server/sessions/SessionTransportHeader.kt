@@ -4,9 +4,9 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 
 /**
  * SessionTransport that sets or gets the specific header [name],
