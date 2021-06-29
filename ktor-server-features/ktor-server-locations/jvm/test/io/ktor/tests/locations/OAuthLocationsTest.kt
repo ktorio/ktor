@@ -4,11 +4,11 @@
 
 package io.ktor.tests.locations
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.locations.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.net.*
 import kotlin.test.*

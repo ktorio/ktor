@@ -4,10 +4,10 @@
 
 package io.ktor.tests.server.tomcat
 
-import io.ktor.application.*
 import io.ktor.client.statement.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*

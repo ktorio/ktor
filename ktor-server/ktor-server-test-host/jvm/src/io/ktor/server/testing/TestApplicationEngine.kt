@@ -4,13 +4,13 @@
 
 package io.ktor.server.testing
 
-import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.cio.*

@@ -4,14 +4,14 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
-import org.slf4j.event.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import javax.servlet.*

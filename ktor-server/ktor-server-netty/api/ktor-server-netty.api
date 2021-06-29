@@ -60,7 +60,7 @@ public final class io/ktor/server/netty/Netty : io/ktor/server/engine/Applicatio
 }
 
 public abstract class io/ktor/server/netty/NettyApplicationCall : io/ktor/server/engine/BaseApplicationCall {
-	public fun <init> (Lio/ktor/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public fun <init> (Lio/ktor/server/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	public abstract fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
 	public abstract fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
@@ -99,10 +99,10 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 }
 
 public abstract class io/ktor/server/netty/NettyApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/String;Z)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/String;Z)V
 	public final fun close ()V
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
-	public fun getCookies ()Lio/ktor/request/RequestCookies;
+	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getQueryParameters ()Lio/ktor/http/Parameters;
 	protected final fun getUri ()Ljava/lang/String;
