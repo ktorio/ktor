@@ -5,7 +5,7 @@
 package io.ktor.tests.server.sessions
 
 import io.ktor.http.*
-import io.ktor.sessions.*
+import io.ktor.server.sessions.*
 import java.math.*
 import java.util.*
 import kotlin.test.*
