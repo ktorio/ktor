@@ -4,10 +4,11 @@
 
 package io.ktor.server.features
 
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.http.content.*
+import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 

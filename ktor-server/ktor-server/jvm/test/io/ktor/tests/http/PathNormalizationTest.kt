@@ -4,7 +4,7 @@
 
 package io.ktor.tests.http
 
-import io.ktor.util.*
+import io.ktor.server.util.*
 import kotlin.test.*
 
 class PathNormalizationTest {

@@ -4,7 +4,6 @@
 
 package io.ktor.server.testing
 
-import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
@@ -12,9 +11,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.features.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
