@@ -5,8 +5,8 @@
 package io.ktor.server.servlet
 
 import com.typesafe.config.*
-import io.ktor.application.*
-import io.ktor.config.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import org.slf4j.*

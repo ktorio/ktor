@@ -4,7 +4,7 @@
 
 package io.ktor.server.features
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.converters.*
 import io.ktor.util.converters.DataConversion

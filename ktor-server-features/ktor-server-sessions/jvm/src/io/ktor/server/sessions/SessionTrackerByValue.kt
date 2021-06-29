@@ -4,7 +4,7 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import kotlin.reflect.*
 
 /**

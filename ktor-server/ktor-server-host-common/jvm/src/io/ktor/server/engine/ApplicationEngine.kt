@@ -4,9 +4,8 @@
 
 package io.ktor.server.engine
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.util.network.*
-import kotlinx.coroutines.*
 
 /**
  * Engine which runs an application

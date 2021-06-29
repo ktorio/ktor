@@ -6,12 +6,12 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.network.sockets.*
-import io.ktor.network.sockets.Connection
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*

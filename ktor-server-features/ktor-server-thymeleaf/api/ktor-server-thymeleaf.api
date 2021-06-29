@@ -1,6 +1,6 @@
 public final class io/ktor/server/thymeleaf/RespondTemplateKt {
-	public static final fun respondTemplate (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun respondTemplate$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/thymeleaf/Thymeleaf {
@@ -8,9 +8,9 @@ public final class io/ktor/server/thymeleaf/Thymeleaf {
 	public fun <init> (Lorg/thymeleaf/TemplateEngine;)V
 }
 
-public final class io/ktor/server/thymeleaf/Thymeleaf$Feature : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/thymeleaf/Thymeleaf$Feature : io/ktor/server/application/ApplicationFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/thymeleaf/Thymeleaf;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/thymeleaf/Thymeleaf;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

@@ -4,11 +4,11 @@
 
 package io.ktor.tests.html
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.features.*
 import io.ktor.server.html.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.html.*
 import kotlin.test.*

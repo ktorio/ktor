@@ -4,9 +4,9 @@
 
 package io.ktor.server.testing
 
-import io.ktor.application.*
-import io.ktor.config.*
 import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import org.slf4j.*
 
