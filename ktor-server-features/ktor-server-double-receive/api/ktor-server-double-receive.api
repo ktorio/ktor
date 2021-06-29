@@ -1,0 +1,34 @@
+public abstract class io/ktor/server/features/CachedTransformationResult {
+	public synthetic fun <init> (Lkotlin/reflect/KType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getType ()Lkotlin/reflect/KType;
+}
+
+public class io/ktor/server/features/CachedTransformationResult$Failure : io/ktor/server/features/CachedTransformationResult {
+	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Throwable;)V
+	public final fun getCause ()Ljava/lang/Throwable;
+}
+
+public final class io/ktor/server/features/CachedTransformationResult$Success : io/ktor/server/features/CachedTransformationResult {
+	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;)V
+	public final fun getValue ()Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/DoubleReceive {
+	public static final field Feature Lio/ktor/server/features/DoubleReceive$Feature;
+}
+
+public final class io/ktor/server/features/DoubleReceive$Configuration {
+	public fun <init> ()V
+	public final fun getReceiveEntireContent ()Z
+	public final fun setReceiveEntireContent (Z)V
+}
+
+public final class io/ktor/server/features/DoubleReceive$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/DoubleReceive;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/RequestReceiveAlreadyFailedException : java/lang/Exception {
+}
+

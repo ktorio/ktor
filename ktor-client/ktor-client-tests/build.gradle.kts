@@ -71,11 +71,12 @@ kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
+            api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
             api(project(":ktor-server:ktor-server-jetty"))
-            api(project(":ktor-features:ktor-auth"))
-            api(project(":ktor-features:ktor-websockets"))
+            api(project(":ktor-server-features:ktor-server-auth"))
+            api(project(":ktor-server-features:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
             api("ch.qos.logback:logback-classic:$logback_version")
             api("junit:junit:$junit_version")

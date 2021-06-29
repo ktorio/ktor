@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.cio.*
@@ -17,6 +16,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*

@@ -12,7 +12,7 @@ import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.*
-import io.ktor.websocket.*
+import io.ktor.server.websocket.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
