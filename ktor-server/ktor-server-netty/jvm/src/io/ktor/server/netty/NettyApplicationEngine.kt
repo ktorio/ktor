@@ -7,7 +7,6 @@ package io.ktor.server.netty
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
@@ -16,6 +15,7 @@ import io.netty.channel.kqueue.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
+import io.netty.handler.codec.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
@@ -75,9 +75,35 @@ public class NettyApplicationEngine(
         public var tcpKeepAlive: Boolean = false
 
         /**
+         * The maximum length of the initial line (e.g. "GET / HTTP/1.0" or "HTTP/1.0 200
+         * OK") If the length of the initial line exceeds this value, a Netty's [TooLongFrameException] will
+         * be raised.
+         */
+        public var maxInitialLineLength: Int = HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH
+
+        /**
+         * The maximum length of all headers. If the sum of the length of each header exceeds this
+         * value, a Netty's [TooLongFrameException] will be raised.
+         */
+        public var maxHeaderLength: Int = HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE
+
+        /**
+         * The maximum length of the content or each chunk. If the content length (or the length
+         * of each chunk) exceeds this value, the content or chunk will be split into multiple
+         * Netty's [HttpContent]s whose length is maxChunkSize at maximum.
+         */
+        public var maxChunkSize: Int = HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
-        public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
+        public var httpServerCodec: () -> HttpServerCodec = {
+            HttpServerCodec(
+                maxInitialLineLength,
+                maxHeaderLength,
+                maxChunkSize
+            )
+        }
 
         /**
          * User-provided function to configure Netty's [ChannelPipeline]
