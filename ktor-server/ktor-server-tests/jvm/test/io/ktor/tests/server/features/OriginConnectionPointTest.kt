@@ -9,6 +9,7 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 

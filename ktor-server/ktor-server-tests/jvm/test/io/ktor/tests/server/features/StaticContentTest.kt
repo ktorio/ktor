@@ -5,12 +5,12 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import java.io.*
 import java.nio.file.*
@@ -88,7 +88,7 @@ class StaticContentTest {
     fun testStaticContent() = withTestApplication {
         application.install(ConditionalHeaders)
         application.install(PartialContent)
-        application.install(AutoHeadResponse)
+        application.install(io.ktor.server.features.AutoHeadResponse)
 
         application.routing {
             static {
