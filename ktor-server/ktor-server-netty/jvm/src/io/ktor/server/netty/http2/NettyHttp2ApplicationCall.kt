@@ -4,7 +4,7 @@
 
 package io.ktor.server.netty.http2
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*

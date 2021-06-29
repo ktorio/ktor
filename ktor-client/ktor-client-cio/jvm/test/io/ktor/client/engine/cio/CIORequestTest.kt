@@ -4,18 +4,17 @@
 
 package io.ktor.client.engine.cio
 
-import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*

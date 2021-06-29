@@ -4,7 +4,7 @@
 
 package io.ktor.server.jetty
 
-import io.ktor.config.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
 

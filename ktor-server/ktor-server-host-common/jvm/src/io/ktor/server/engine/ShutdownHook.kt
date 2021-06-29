@@ -4,7 +4,7 @@
 
 package io.ktor.server.engine
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import java.util.concurrent.atomic.*
 
 /**

@@ -4,10 +4,10 @@
 
 package io.ktor.server.auth
 
-import io.ktor.features.*
 import io.ktor.http.auth.*
 import io.ktor.http.parsing.*
-import io.ktor.request.*
+import io.ktor.server.features.*
+import io.ktor.server.request.*
 
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].

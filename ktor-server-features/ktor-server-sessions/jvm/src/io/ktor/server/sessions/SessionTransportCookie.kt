@@ -3,8 +3,8 @@
  */
 package io.ktor.server.sessions
 
-import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.util.date.*
 
 public const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days

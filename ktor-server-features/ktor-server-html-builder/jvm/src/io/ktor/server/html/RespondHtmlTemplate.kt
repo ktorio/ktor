@@ -4,8 +4,8 @@
 
 package io.ktor.server.html
 
-import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import kotlinx.html.*
 
 public suspend fun <TTemplate : Template<HTML>> ApplicationCall.respondHtmlTemplate(

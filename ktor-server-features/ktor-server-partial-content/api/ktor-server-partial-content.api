@@ -9,9 +9,9 @@ public final class io/ktor/server/features/PartialContent$Configuration {
 	public final fun setMaxRangeCount (I)V
 }
 
-public final class io/ktor/server/features/PartialContent$Feature : io/ktor/application/ApplicationFeature {
+public final class io/ktor/server/features/PartialContent$Feature : io/ktor/server/application/ApplicationFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/PartialContent;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/PartialContent;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

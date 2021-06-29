@@ -4,8 +4,8 @@
 
 package io.ktor.server.auth
 
-import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.server.application.*
 import org.slf4j.*
 import java.io.*
 

@@ -4,7 +4,7 @@
 
 package io.ktor.tests.routing
 
-import io.ktor.routing.*
+import io.ktor.server.routing.*
 import kotlin.test.*
 
 internal class RouteSelectorTest {
