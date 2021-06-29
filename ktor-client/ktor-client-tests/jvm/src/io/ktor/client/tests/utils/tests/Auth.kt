@@ -5,12 +5,12 @@
 package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
-import io.ktor.auth.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.websocket.*
+import io.ktor.server.auth.*
+import io.ktor.server.websocket.*
 import java.security.*
 
 internal fun Application.authTestServer() {

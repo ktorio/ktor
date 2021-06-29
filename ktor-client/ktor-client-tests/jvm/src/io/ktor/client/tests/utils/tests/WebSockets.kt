@@ -3,8 +3,8 @@ package io.ktor.client.tests.utils.tests
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.util.*
-import io.ktor.websocket.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 

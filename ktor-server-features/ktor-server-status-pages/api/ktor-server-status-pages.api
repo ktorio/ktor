@@ -1,0 +1,23 @@
+public final class io/ktor/server/features/StatusPages {
+	public static final field Feature Lio/ktor/server/features/StatusPages$Feature;
+	public fun <init> (Lio/ktor/server/features/StatusPages$Configuration;)V
+}
+
+public final class io/ktor/server/features/StatusPages$Configuration {
+	public fun <init> ()V
+	public final fun exception (Ljava/lang/Class;Lkotlin/jvm/functions/Function3;)V
+	public final fun getExceptions ()Ljava/util/Map;
+	public final fun getStatuses ()Ljava/util/Map;
+	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/features/StatusPages$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/features/StatusPages;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/features/StatusPagesKt {
+	public static final fun statusFile (Lio/ktor/server/features/StatusPages$Configuration;[Lio/ktor/http/HttpStatusCode;Ljava/lang/String;)V
+}
+
