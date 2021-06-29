@@ -4,10 +4,9 @@
 
 package io.ktor.server.thymeleaf
 
-import io.ktor.application.ApplicationCall
-import io.ktor.http.ContentType
-import io.ktor.http.withCharset
-import io.ktor.response.respond
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 
 /**
  * Respond with [template] applying [model]

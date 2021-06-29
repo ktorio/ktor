@@ -4,9 +4,9 @@
 
 package io.ktor.server.freemarker
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 
 /**
  * Respond with the specified [template] passing [model]

@@ -5,8 +5,8 @@
 package io.ktor.tests.server.jetty
 
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.routing.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.*
 import org.eclipse.jetty.server.handler.*

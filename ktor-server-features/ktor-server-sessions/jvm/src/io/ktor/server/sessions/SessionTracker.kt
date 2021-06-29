@@ -4,7 +4,7 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 
 /**
  * SessionTracker provides ability to track and extract session from the call context.

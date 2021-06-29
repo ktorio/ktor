@@ -4,7 +4,7 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.request.*
+import io.ktor.server.request.*
 import java.security.*
 
 /**

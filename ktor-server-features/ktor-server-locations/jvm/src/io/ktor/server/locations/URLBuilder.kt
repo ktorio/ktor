@@ -4,9 +4,9 @@
 
 package io.ktor.server.locations
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.server.application.*
+import io.ktor.server.util.*
 
 /**
  * Constructs a String with the url of a instance [location] whose class must be annotated with [Location].

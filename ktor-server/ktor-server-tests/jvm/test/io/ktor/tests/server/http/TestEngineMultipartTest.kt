@@ -4,10 +4,10 @@
 
 package io.ktor.tests.server.http
 
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.request.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*

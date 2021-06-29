@@ -4,7 +4,7 @@
 
 package io.ktor.tests.http
 
-import io.ktor.http.content.*
+import io.ktor.server.http.content.*
 import kotlin.test.*
 
 class FindContainingJarFileTest {

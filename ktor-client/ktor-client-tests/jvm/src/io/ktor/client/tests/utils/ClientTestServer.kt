@@ -4,14 +4,14 @@
 
 package io.ktor.client.tests.utils
 
-import io.ktor.application.*
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.features.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 @OptIn(ExperimentalWebSocketExtensionApi::class)
 internal fun Application.tests() {
