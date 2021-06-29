@@ -5,8 +5,8 @@
 package io.ktor.tests.server.http
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.server.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlin.test.*
