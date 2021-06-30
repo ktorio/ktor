@@ -7,6 +7,7 @@ pluginManagement {
         mavenCentral()
         google()
         gradlePluginPortal()
+        maven { url= "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev"}
     }
     resolutionStrategy {
         eachPlugin {
@@ -16,6 +17,13 @@ pluginManagement {
         }
     }
 }
+
+pluginManagement.resolutionStrategy.eachPlugin {
+    if (requested.id.id.startsWith("org.jetbrains.kotlin.")) {
+        useVersion(requested.version)
+    }
+}
+
 rootProject.name = 'ktor'
 
 ext.native_targets_enabled = properties['disable_native_targets'] == null
