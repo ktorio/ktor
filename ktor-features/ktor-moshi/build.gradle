@@ -1,0 +1,10 @@
+description = ''
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api group: 'com.squareup.moshi', name: 'moshi', version: moshi_version
+            }
+        }
+    }
+}
