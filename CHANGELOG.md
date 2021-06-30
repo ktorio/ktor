@@ -1,3 +1,37 @@
+# 1.6.1
+> Published 1 July 2021
+
+* Linked back to site from Docs ([KTOR-2843](https://youtrack.jetbrains.com/issue/KTOR-2843))
+* Fixed unbound public symbol for public io.ktor.network.sockets/SocketTimeoutException when iosArm64 framework ([KTOR-2276](https://youtrack.jetbrains.com/issue/KTOR-2276))
+* Fixed configureBootstrap hook overwritten by Ktor settings ([KTOR-356](https://youtrack.jetbrains.com/issue/KTOR-356))
+* Fixed crypto is undefined in IE11 ([KTOR-409](https://youtrack.jetbrains.com/issue/KTOR-409))
+* Added support for X-Forwarded-Port header in XForwardedHeaderSupport plugin ([KTOR-2788](https://youtrack.jetbrains.com/issue/KTOR-2788))
+* Fixed StatusPages doesn't catch FreeMarker exceptions ([KTOR-343](https://youtrack.jetbrains.com/issue/KTOR-343))
+* Fixed java.nio.charset.IllegalCharsetNameException: %s ([KTOR-2645](https://youtrack.jetbrains.com/issue/KTOR-2645))
+* Added application startup and hot-reloading time log ([KTOR-2816](https://youtrack.jetbrains.com/issue/KTOR-2816))
+* Added watchosX64 as an architecture ([KTOR-2678](https://youtrack.jetbrains.com/issue/KTOR-2678))
+* Fixed postpone (and don't cache) name resolution in cio client ([KTOR-2513](https://youtrack.jetbrains.com/issue/KTOR-2513))
+* Improved diagnostics for exceptions inherited from IOException ([KTOR-2691](https://youtrack.jetbrains.com/issue/KTOR-2691))
+* Fixed refresh token gets stuck ([KTOR-2797](https://youtrack.jetbrains.com/issue/KTOR-2797))
+* Fixed developmentMode is on by default in tests ([KTOR-2727](https://youtrack.jetbrains.com/issue/KTOR-2727))
+* Fixed unable to run new Ktor project ([KTOR-2586](https://youtrack.jetbrains.com/issue/KTOR-2586))
+* Fixed unhandled get freezes with `CIO` server ([KTOR-333](https://youtrack.jetbrains.com/issue/KTOR-333))
+* Fixed double host header ([KTOR-379](https://youtrack.jetbrains.com/issue/KTOR-379))
+* Fixed use kotlin.reflect.jvm.javaType instead of the type token pattern in io.ktor.util.reflect.typeInfo ([KTOR-2709](https://youtrack.jetbrains.com/issue/KTOR-2709))
+* Fixed "JWK Public Key of type ""EC""" ([KTOR-2387](https://youtrack.jetbrains.com/issue/KTOR-2387))
+* Fixed lots of Run Configurations Created for Ktor Project with the Similar Names ([KTOR-2803](https://youtrack.jetbrains.com/issue/KTOR-2803))
+* Fixed ApplicationEngineEnvironmentBuilder.module { … } is executed twice on Exception ([KTOR-2734](https://youtrack.jetbrains.com/issue/KTOR-2734))
+* Researched shared indexes for Ktor ([KTOR-2774](https://youtrack.jetbrains.com/issue/KTOR-2774))
+* Fixed selecting custom package name in Ktor wizard still results in example.com import in ApplicationTest.kt ([KTOR-2707](https://youtrack.jetbrains.com/issue/KTOR-2707))
+* Fixed generated project with specific security and session features selected fails to compile / run ([KTOR-2636](https://youtrack.jetbrains.com/issue/KTOR-2636))
+* Fixed Wizard: Misleading comment in Static Feature ([KTOR-2560](https://youtrack.jetbrains.com/issue/KTOR-2560))
+* Fixed "Update ktor 1.5.0 docs. Deprecated ""challenge"" function for form auth in docs." ([KTOR-1974](https://youtrack.jetbrains.com/issue/KTOR-1974))
+* Fixed Auth Feature Code Snippet: form authentication the doesn't work ([KTOR-821](https://youtrack.jetbrains.com/issue/KTOR-821))
+* Fixed the '-ea' flag works differently when running a server using Application.module and embeddedServer ([KTOR-1758](https://youtrack.jetbrains.com/issue/KTOR-1758))
+* Fixed enabled-by-default development mode breaks reflection by overriding classloader ([KTOR-2306](https://youtrack.jetbrains.com/issue/KTOR-2306))
+* Reviewed documentation for the onUpload/onDownload client callbacks ([KTOR-2710](https://youtrack.jetbrains.com/issue/KTOR-2710))
+* Fixed Ktor fails to deliver response with error: failed with exception: kotlinx.coroutines.JobCancellationException: Parent job is Completed; ([KTOR-2711](https://youtrack.jetbrains.com/issue/KTOR-2711))
+
 # 1.6.0
 > Published 28 May 2021
 
