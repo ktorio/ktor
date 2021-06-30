@@ -31,7 +31,6 @@ kotlin.sourceSets {
                 api("org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
             }
 
-            api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
             api("junit:junit:$junit_version")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
         }
@@ -40,6 +39,7 @@ kotlin.sourceSets {
     val jvmTest by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
         }
     }
 }

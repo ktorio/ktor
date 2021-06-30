@@ -5,8 +5,10 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.server.engine.*
+import io.ktor.server.testing.*
+import org.junit.*
+import org.junit.Assert.*
 import java.util.concurrent.*
-import kotlin.test.*
 
 var count = 0
 

@@ -17,13 +17,15 @@ import io.ktor.server.engine.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import org.junit.*
+import org.junit.Assert.*
 import java.io.*
 import java.util.zip.*
-import kotlin.test.*
 
 abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+
     @Test
     fun testLocalFileContentWithCompression() {
         val file = loadTestFile()
@@ -94,9 +96,9 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(
+                "It should be no compression if range requested",
                 file.reader().use { it.read().toChar().toString() },
-                readText(),
-                "It should be no compression if range requested"
+                readText()
             )
         }
     }
@@ -125,7 +127,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
             val expected = buildString {
                 produceText()
             }
-            assertTrue { HttpHeaders.ContentEncoding in headers }
+            assertTrue(HttpHeaders.ContentEncoding in headers)
             val array = receive<ByteArray>()
             val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
             assertEquals(expected, text)

@@ -30,7 +30,6 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -85,9 +84,10 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
-    @BeforeTest
+    @Before
     public fun setUpBase() {
-        val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
+        val method = this.javaClass.getMethod(test.methodName)
+            ?: throw AssertionError("Method ${test.methodName} not found")
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
             Assume.assumeTrue("http2 is not enabled", enableHttp2)
@@ -100,14 +100,14 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         exceptions.clear()
     }
 
-    @AfterTest
+    @After
     public fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
             (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
             if (exceptions.isNotEmpty()) {
-                fail("Server exceptions logged, consult log output for more information")
+                throw AssertionError("Server exceptions logged, consult log output for more information")
             }
         } finally {
             testJob.cancel()

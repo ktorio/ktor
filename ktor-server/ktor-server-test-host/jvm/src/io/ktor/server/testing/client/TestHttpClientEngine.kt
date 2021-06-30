@@ -78,7 +78,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         clientJob.complete()
     }
 
-    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)

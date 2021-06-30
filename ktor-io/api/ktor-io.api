@@ -1713,11 +1713,6 @@ public final class io/ktor/utils/io/core/UnsignedTypesKt {
 	public static final fun writeUShort-SLr1GAc (Lio/ktor/utils/io/core/Output;S)V
 }
 
-public final class io/ktor/utils/io/core/UseKt {
-	public static final fun use (Lio/ktor/utils/io/core/Input;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static final fun use (Lio/ktor/utils/io/core/Output;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
 public class io/ktor/utils/io/core/internal/ChunkBuffer : io/ktor/utils/io/core/Buffer {
 	public static final field Companion Lio/ktor/utils/io/core/internal/ChunkBuffer$Companion;
 	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
