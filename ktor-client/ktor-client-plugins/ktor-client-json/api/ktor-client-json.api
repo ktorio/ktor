@@ -1,0 +1,44 @@
+public final class io/ktor/client/plugins/json/DefaultJvmKt {
+	public static final fun defaultSerializer ()Lio/ktor/client/plugins/json/JsonSerializer;
+}
+
+public final class io/ktor/client/plugins/json/JsonPlugin {
+	public static final field Plugin Lio/ktor/client/plugins/json/JsonPlugin$Plugin;
+	public final fun getAcceptContentTypes ()Ljava/util/List;
+	public final fun getSerializer ()Lio/ktor/client/plugins/json/JsonSerializer;
+}
+
+public final class io/ktor/client/plugins/json/JsonPlugin$Config {
+	public fun <init> ()V
+	public final fun accept ([Lio/ktor/http/ContentType;)V
+	public final fun getAcceptContentTypes ()Ljava/util/List;
+	public final fun getReceiveContentTypeMatchers ()Ljava/util/List;
+	public final fun getSerializer ()Lio/ktor/client/plugins/json/JsonSerializer;
+	public final fun receive (Lio/ktor/http/ContentTypeMatcher;)V
+	public final fun setAcceptContentTypes (Ljava/util/List;)V
+	public final fun setReceiveContentTypeMatchers (Ljava/util/List;)V
+	public final fun setSerializer (Lio/ktor/client/plugins/json/JsonSerializer;)V
+}
+
+public final class io/ktor/client/plugins/json/JsonPlugin$Plugin : io/ktor/client/plugins/HttpClientPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/plugins/json/JsonPlugin;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/json/JsonPlugin;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/json/JsonPluginKt {
+	public static final fun Json (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+}
+
+public abstract interface class io/ktor/client/plugins/json/JsonSerializer {
+	public abstract fun read (Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/core/Input;)Ljava/lang/Object;
+	public abstract fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+	public abstract fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public final class io/ktor/client/plugins/json/JsonSerializer$DefaultImpls {
+	public static fun write (Lio/ktor/client/plugins/json/JsonSerializer;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+}
+

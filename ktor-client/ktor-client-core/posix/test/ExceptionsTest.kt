@@ -2,7 +2,7 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 import io.ktor.client.call.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.date.*
