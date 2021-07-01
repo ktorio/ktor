@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.cio
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -27,7 +27,7 @@ internal data class ConnectionResponseTask(
 )
 
 /**
- * Return true if request task contains timeout attributes specified using [HttpTimeout] feature.
+ * Return true if request task contains timeout attributes specified using [HttpTimeout] plugin.
  */
 private fun HttpRequestData.containsCustomTimeouts() = getCapabilityOrNull(HttpTimeout)?.let {
     it.connectTimeoutMillis != null || it.socketTimeoutMillis != null
