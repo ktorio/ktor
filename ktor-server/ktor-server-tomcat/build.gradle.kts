@@ -1,12 +1,14 @@
 description = ""
 
+val tomcat_version: String by extra
+
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-server:ktor-server-servlet"))
-            api("org.apache.tomcat:tomcat-catalina:9.0.37")
-            api("org.apache.tomcat.embed:tomcat-embed-core:9.0.37")
+            api("org.apache.tomcat:tomcat-catalina:$tomcat_version")
+            api("org.apache.tomcat.embed:tomcat-embed-core:$tomcat_version")
         }
         val jvmTest by getting {
             dependencies {
