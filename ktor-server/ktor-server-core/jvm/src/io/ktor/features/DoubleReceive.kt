@@ -10,6 +10,7 @@ import io.ktor.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 /**
  * This feature provides ability to invoke [ApplicationCall.receive] several times.
@@ -50,65 +51,92 @@ public class DoubleReceive internal constructor(private val config: Configuratio
             val feature = DoubleReceive(Configuration().apply(configure))
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
-                val type = request.typeInfo
-                require(request.type != CachedTransformationResult::class) {
+                require(request.typeInfo.jvmErasure != CachedTransformationResult::class) {
                     "CachedTransformationResult can't be received"
                 }
 
-                val cachedResult = call.attributes.getOrNull(LastReceiveCachedResult)
-                when {
-                    cachedResult == null -> call.attributes.put(LastReceiveCachedResult, RequestAlreadyConsumedResult)
-                    cachedResult === RequestAlreadyConsumedResult -> throw RequestAlreadyConsumedException()
-                    cachedResult is CachedTransformationResult.Failure -> throw RequestReceiveAlreadyFailedException(
-                        cachedResult.cause
-                    )
-                    cachedResult is CachedTransformationResult.Success<*> && cachedResult.type == type -> {
-                        proceedWith(ApplicationReceiveRequest(request.typeInfo, cachedResult.value))
-                        return@intercept
-                    }
+                val cache = call.attributes.getCache()
+                if (cache is CachedTransformationResult.Success<*> && cache.type == request.typeInfo) {
+                    proceedWith(ApplicationReceiveRequest(cache.type, cache.value))
+                    return@intercept
                 }
 
-                var byteArray = (cachedResult as? CachedTransformationResult.Success<*>)?.value as? ByteArray
-                val requestValue = request.value
+                if (cache == null) {
+                    call.attributes.putCache(RequestAlreadyConsumedResult)
+                }
 
-                if (byteArray == null && feature.config.receiveEntireContent && requestValue is ByteReadChannel) {
-                    byteArray = requestValue.toByteArray()
+                cache.checkAlreadyConsumedOrFailure()
+
+                val shouldReceiveEntirely = feature.config.receiveEntireContent && request.value is ByteReadChannel &&
+                    !cache.isByteArray()
+
+                val bodyBytes = if (shouldReceiveEntirely) {
+                    (request.value as ByteReadChannel).toByteArray()
+                } else {
+                    (cache as? CachedTransformationResult.Success<*>)?.value as? ByteArray
+                }
+
+                if (shouldReceiveEntirely) {
                     @OptIn(ExperimentalStdlibApi::class)
-                    call.attributes.put(
-                        LastReceiveCachedResult,
-                        CachedTransformationResult.Success(typeOf<ByteArray>(), byteArray)
-                    )
+                    call.attributes.putSuccessfulCache(typeOf<ByteArray>(), bodyBytes as ByteArray)
                 }
 
-                val incomingContent = byteArray?.let { ByteReadChannel(it) } ?: cachedResult ?: request.value
-                val finishedRequest = try {
-                    proceedWith(ApplicationReceiveRequest(type, incomingContent))
+                val result = try {
+                    val value = bodyBytes?.let { ByteReadChannel(it) } ?: cache ?: request.value
+                    proceedWith(ApplicationReceiveRequest(request.typeInfo, value))
                 } catch (cause: Throwable) {
-                    call.attributes.put(LastReceiveCachedResult, CachedTransformationResult.Failure(type, cause))
+                    call.attributes.putFailureCache(request.typeInfo, cause)
                     throw cause
                 }
 
-                val transformed = finishedRequest.value
+                result.checkAlreadyConsumedOrWrongType(request.typeInfo)
 
-                when {
-                    transformed is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
-                    !request.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
-                }
-
-                if (finishedRequest.reusableValue &&
-                    (cachedResult == null || cachedResult !is CachedTransformationResult.Success)
-                ) {
-                    @Suppress("UNCHECKED_CAST")
-                    call.attributes.put(
-                        LastReceiveCachedResult,
-                        CachedTransformationResult.Success(type, finishedRequest.value)
-                    )
+                if (result.reusableValue && cache.isNothingOrFailure()) {
+                    call.attributes.putSuccessfulCache(request.typeInfo, result.value)
                 }
             }
 
             return feature
         }
     }
+}
+
+private fun CachedTransformationResult<*>?.checkAlreadyConsumedOrFailure() {
+    when {
+        this === RequestAlreadyConsumedResult -> throw RequestAlreadyConsumedException()
+        this is CachedTransformationResult.Failure -> throw RequestReceiveAlreadyFailedException(this.cause)
+    }
+}
+
+private fun CachedTransformationResult<*>?.isByteArray(): Boolean {
+    return (this is CachedTransformationResult.Success<*> && this.value is ByteArray)
+}
+
+private fun ApplicationReceiveRequest.checkAlreadyConsumedOrWrongType(requestType: KType) {
+    when {
+        value is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
+        !requestType.jvmErasure.isInstance(value) -> throw CannotTransformContentToTypeException(requestType)
+    }
+}
+
+private fun CachedTransformationResult<*>?.isNothingOrFailure(): Boolean {
+    return this == null || this !is CachedTransformationResult.Success
+}
+
+private fun <T : Any> Attributes.putSuccessfulCache(type: KType, value: T) {
+    putCache(CachedTransformationResult.Success(type, value))
+}
+
+private fun Attributes.putFailureCache(type: KType, cause: Throwable) {
+    putCache(CachedTransformationResult.Failure(type, cause))
+}
+
+private fun Attributes.putCache(value: CachedTransformationResult<*>) {
+    put(LastReceiveCachedResult, value)
+}
+
+private fun Attributes.getCache(): CachedTransformationResult<*>? {
+    return getOrNull(LastReceiveCachedResult)
 }
 
 /**
