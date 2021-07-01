@@ -35,7 +35,7 @@ internal class ApacheRequestProducer(
     private val request: HttpUriRequest = setupRequest()
 
     private val host = URIUtils.extractHost(request.uri)
-        ?: throw IllegalStateException("Cannot extract host from URL ${request.uri}")
+        ?: throw IllegalArgumentException("Cannot extract host from URL ${request.uri}")
 
     private val interestController = InterestControllerHolder()
 
