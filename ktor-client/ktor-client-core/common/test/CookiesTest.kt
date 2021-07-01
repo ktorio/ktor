@@ -1,4 +1,4 @@
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
@@ -18,10 +18,10 @@ class CookiesTest {
         )
         storage.addCookie("http://localhost/", cookie)
 
-        val feature = HttpCookies(storage, emptyList())
+        val plugin = HttpCookies(storage, emptyList())
         val builder = HttpRequestBuilder()
 
-        feature.sendCookiesWith(builder)
+        plugin.sendCookiesWith(builder)
 
         assertEquals(
             "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10;",

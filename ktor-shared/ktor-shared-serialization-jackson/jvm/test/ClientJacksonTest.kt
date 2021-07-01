@@ -5,7 +5,7 @@
 import com.fasterxml.jackson.annotation.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.contentnegotiation.tests.*
+import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*

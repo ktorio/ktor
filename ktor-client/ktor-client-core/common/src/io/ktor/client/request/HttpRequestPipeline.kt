@@ -40,7 +40,7 @@ public class HttpRequestPipeline(
         public val Render: PipelinePhase = PipelinePhase("Render")
 
         /**
-         * Phase for [HttpSend] feature
+         * Phase for [HttpSend] plugin
          */
         public val Send: PipelinePhase = PipelinePhase("Send")
     }

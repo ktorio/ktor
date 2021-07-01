@@ -5,7 +5,7 @@
 package io.ktor.client
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.utils.sharedMap
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
@@ -16,8 +16,8 @@ import kotlin.collections.set
  */
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
-    private val features: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
-    private val featureConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
+    private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
+    private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
 
     private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = sharedMap()
 
@@ -35,7 +35,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Use [HttpRedirect] feature to automatically follow redirects.
+     * Use [HttpRedirect] plugin to automatically follow redirects.
      */
     public var followRedirects: Boolean by shared(true)
 
@@ -55,29 +55,29 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     public var developmentMode: Boolean by shared(PlatformUtils.IS_DEVELOPMENT_MODE)
 
     /**
-     * Installs a specific [feature] and optionally [configure] it.
+     * Installs a specific [plugin] and optionally [configure] it.
      */
-    public fun <TBuilder : Any, TFeature : Any> install(
-        feature: HttpClientFeature<TBuilder, TFeature>,
+    public fun <TBuilder : Any, TPlugin : Any> install(
+        plugin: HttpClientPlugin<TBuilder, TPlugin>,
         configure: TBuilder.() -> Unit = {}
     ) {
-        val previousConfigBlock = featureConfigurations[feature.key]
-        featureConfigurations[feature.key] = {
+        val previousConfigBlock = pluginConfigurations[plugin.key]
+        pluginConfigurations[plugin.key] = {
             previousConfigBlock?.invoke(this)
 
             @Suppress("UNCHECKED_CAST")
             (this as TBuilder).configure()
         }
 
-        if (features.containsKey(feature.key)) return
+        if (plugins.containsKey(plugin.key)) return
 
-        features[feature.key] = { scope ->
-            val attributes = scope.attributes.computeIfAbsent(FEATURE_INSTALLED_LIST) { Attributes(concurrent = true) }
-            val config = scope.config.featureConfigurations[feature.key]!!
-            val featureData = feature.prepare(config)
+        plugins[plugin.key] = { scope ->
+            val attributes = scope.attributes.computeIfAbsent(PLUGIN_INSTALLED_LIST) { Attributes(concurrent = true) }
+            val config = scope.config.pluginConfigurations[plugin.key]!!
+            val pluginData = plugin.prepare(config)
 
-            feature.install(featureData, scope)
-            attributes.put(feature.key, featureData)
+            plugin.install(pluginData, scope)
+            attributes.put(plugin.key, pluginData)
         }
     }
 
@@ -90,16 +90,16 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Applies all the installed [features] and [customInterceptors] from this configuration
+     * Applies all the installed [plugins] and [customInterceptors] from this configuration
      * into the specified [client].
      */
     public fun install(client: HttpClient) {
-        features.values.forEach { client.apply(it) }
+        plugins.values.forEach { client.apply(it) }
         customInterceptors.values.forEach { client.apply(it) }
     }
 
     /**
-     * Clones this [HttpClientConfig] duplicating all the [features] and [customInterceptors].
+     * Clones this [HttpClientConfig] duplicating all the [plugins] and [customInterceptors].
      */
     public fun clone(): HttpClientConfig<T> {
         val result = HttpClientConfig<T>()
@@ -108,15 +108,15 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Install features from [other] client config.
+     * Install plugin from [other] client config.
      */
     public operator fun plusAssign(other: HttpClientConfig<out T>) {
         followRedirects = other.followRedirects
         useDefaultTransformers = other.useDefaultTransformers
         expectSuccess = other.expectSuccess
 
-        features += other.features
-        featureConfigurations += other.featureConfigurations
+        plugins += other.plugins
+        pluginConfigurations += other.pluginConfigurations
         customInterceptors += other.customInterceptors
     }
 }
