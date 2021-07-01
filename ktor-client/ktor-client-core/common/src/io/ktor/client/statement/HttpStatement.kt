@@ -7,7 +7,7 @@ package io.ktor.client.statement
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -121,14 +121,14 @@ public class HttpStatement(
     }
 
     /**
-     * Check that all request configuration related to client capabilities have correspondent features installed.
+     * Check that all request configuration related to client capabilities have correspondent plugin installed.
      */
     private fun checkCapabilities() {
         builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys
-            ?.filterIsInstance<HttpClientFeature<*, *>>()
+            ?.filterIsInstance<HttpClientPlugin<*, *>>()
             ?.forEach {
-                requireNotNull(client.feature(it)) {
-                    "Consider installing $it feature because the request requires it to be installed"
+                requireNotNull(client.plugin(it)) {
+                    "Consider installing $it plugin because the request requires it to be installed"
                 }
             }
     }

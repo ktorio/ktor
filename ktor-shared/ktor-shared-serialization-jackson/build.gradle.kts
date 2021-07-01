@@ -16,7 +16,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-server:ktor-server-test-host"))
                 api(project(":ktor-client:ktor-client-tests"))
-                api(project(":ktor-client:ktor-client-features:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
+                api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
             }
         }
     }
