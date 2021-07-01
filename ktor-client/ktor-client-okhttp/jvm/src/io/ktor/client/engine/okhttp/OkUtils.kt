@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.okhttp
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*

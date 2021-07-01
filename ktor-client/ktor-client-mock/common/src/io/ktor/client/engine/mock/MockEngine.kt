@@ -5,7 +5,7 @@
 package io.ktor.client.engine.mock
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
  */
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
-    override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpTimeout.Plugin> = setOf(HttpTimeout)
     private val mutex = Lock()
     private val contextState: CompletableJob = Job()
 

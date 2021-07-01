@@ -41,7 +41,7 @@ class RequestTests : TestWithKtor() {
     }
 
     @Test
-    fun testFeatures() = testWithEngine(OkHttp) {
+    fun testPlugins() = testWithEngine(OkHttp) {
         config {
             engine {
                 addInterceptor(LoggingInterceptor())

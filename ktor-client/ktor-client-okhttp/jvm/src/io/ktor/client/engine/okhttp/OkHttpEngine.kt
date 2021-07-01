@@ -6,8 +6,8 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -71,7 +71,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
         val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeout)]
-            ?: error("OkHttpClient can't be constructed because HttpTimeout feature is not installed")
+            ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
 
         return if (data.isUpgradeRequest()) {
             executeWebSocketRequest(requestEngine, engineRequest, callContext)

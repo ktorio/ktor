@@ -4,7 +4,7 @@
 
 package io.ktor.client.network.sockets
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*

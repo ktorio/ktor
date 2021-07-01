@@ -5,7 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.network.tls.*
 
 /**
