@@ -6,9 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
-import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import java.util.concurrent.*

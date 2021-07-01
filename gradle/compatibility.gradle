@@ -8,7 +8,7 @@ apiValidation {
         'ktor-client-json-tests',
         'ktor-client-content-negotiation-tests',
         'ktor-client',
-        'ktor-client-features',
+        'ktor-client-plugins',
         'ktor-server-test-suites',
     ].toSet()
 

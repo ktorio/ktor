@@ -5,7 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 

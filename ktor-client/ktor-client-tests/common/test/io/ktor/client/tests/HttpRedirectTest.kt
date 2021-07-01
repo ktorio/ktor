@@ -4,9 +4,8 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.*
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -68,7 +67,7 @@ class HttpRedirectTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/cookie").execute {
                 assertEquals("OK", it.bodyAsText())
-                val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
+                val token = client.plugin(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
             }
         }

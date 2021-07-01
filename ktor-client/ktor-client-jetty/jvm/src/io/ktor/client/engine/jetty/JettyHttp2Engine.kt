@@ -5,7 +5,7 @@
 package io.ktor.client.engine.jetty
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
@@ -41,7 +41,7 @@ internal class JettyHttp2Engine(
     /** Only for tests */
     internal fun getOrCreateClient(data: HttpRequestData): HTTP2Client {
         return clientCache[data.getCapabilityOrNull(HttpTimeout)]
-            ?: error("Http2Client can't be constructed because HttpTimeout feature is not installed")
+            ?: error("Http2Client can't be constructed because HttpTimeout plugin is not installed")
     }
 
     override fun close() {
@@ -68,7 +68,7 @@ internal class JettyHttp2Engine(
 }
 
 /**
- * Update [HTTP2Client] to use connect and socket timeouts specified by [HttpTimeout] feature.
+ * Update [HTTP2Client] to use connect and socket timeouts specified by [HttpTimeout] plugin.
  */
 private fun HTTP2Client.setupTimeoutAttributes(timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration?) {
     timeoutAttributes?.connectTimeoutMillis?.let { connectTimeout = it }

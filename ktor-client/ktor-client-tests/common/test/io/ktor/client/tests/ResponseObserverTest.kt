@@ -4,7 +4,7 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.features.observer.*
+import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*

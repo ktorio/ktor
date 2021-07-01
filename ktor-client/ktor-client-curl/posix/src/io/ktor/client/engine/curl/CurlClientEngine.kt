@@ -6,9 +6,8 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*

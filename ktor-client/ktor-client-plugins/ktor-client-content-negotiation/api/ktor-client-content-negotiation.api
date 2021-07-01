@@ -1,0 +1,27 @@
+public final class io/ktor/client/plugins/ContentConverterException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/client/plugins/ContentNegotiation {
+	public static final field Plugin Lio/ktor/client/plugins/ContentNegotiation$Plugin;
+}
+
+public final class io/ktor/client/plugins/ContentNegotiation$Config : io/ktor/shared/serialization/Configuration {
+	public fun <init> ()V
+	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lio/ktor/http/ContentTypeMatcher;Lkotlin/jvm/functions/Function1;)V
+	public fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/client/plugins/ContentNegotiation$Plugin : io/ktor/client/plugins/HttpClientPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/plugins/ContentNegotiation;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/ContentNegotiation;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/JsonContentTypeMatcher : io/ktor/http/ContentTypeMatcher {
+	public static final field INSTANCE Lio/ktor/client/plugins/JsonContentTypeMatcher;
+	public fun contains (Lio/ktor/http/ContentType;)Z
+}
+
