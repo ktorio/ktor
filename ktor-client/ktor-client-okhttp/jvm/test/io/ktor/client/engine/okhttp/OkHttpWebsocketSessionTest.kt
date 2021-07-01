@@ -5,7 +5,7 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import okhttp3.*

@@ -4,7 +4,7 @@
 
 package io.ktor.client.tests.utils
 
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.util.collections.*
 import kotlin.test.*
 

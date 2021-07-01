@@ -5,7 +5,7 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.call.*
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*

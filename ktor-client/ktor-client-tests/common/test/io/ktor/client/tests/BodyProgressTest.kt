@@ -6,9 +6,9 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.content.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.json.*
+import io.ktor.client.plugins.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -31,7 +31,7 @@ class BodyProgressTest : ClientLoader() {
     @Test
     fun testSendDataClass() = clientTests {
         config {
-            install(JsonFeature) {
+            install(JsonPlugin) {
                 serializer = KotlinxSerializer()
             }
         }
@@ -134,7 +134,7 @@ class BodyProgressTest : ClientLoader() {
     @Test
     fun testReceiveDataClassWithExecute() = clientTests {
         config {
-            install(JsonFeature) {
+            install(JsonPlugin) {
                 serializer = KotlinxSerializer()
             }
         }
@@ -159,7 +159,7 @@ class BodyProgressTest : ClientLoader() {
     @Test
     fun testReceiveDataClassWithReceive() = clientTests {
         config {
-            install(JsonFeature) {
+            install(JsonPlugin) {
                 serializer = KotlinxSerializer()
             }
         }

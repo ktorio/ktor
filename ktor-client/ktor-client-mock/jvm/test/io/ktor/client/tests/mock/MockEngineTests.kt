@@ -7,7 +7,7 @@ package io.ktor.client.tests.mock
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -74,7 +74,7 @@ class MockEngineTests {
     data class User(val name: String)
 
     @Test
-    fun testWithContentNegotationFeature() = runBlocking {
+    fun testWithContentNegotationPlugin() = runBlocking {
         val client = HttpClient(
             MockEngine { request ->
                 val bodyBytes = (request.body as OutgoingContent.ByteArrayContent).bytes()

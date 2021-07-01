@@ -7,7 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import kotlin.reflect.*
 import kotlin.test.*
 

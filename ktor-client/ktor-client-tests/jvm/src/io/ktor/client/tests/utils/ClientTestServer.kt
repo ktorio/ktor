@@ -31,7 +31,7 @@ internal fun Application.tests() {
     contentTestServer()
     fullFormTest()
     redirectTest()
-    featuresTest()
+    pluginsTest()
     webSockets()
     multiPartFormDataTest()
     headersTestServer()
