@@ -6,7 +6,6 @@ subprojects {
     apply plugin: "org.jmailen.kotlinter"
 
     kotlinter {
-        ignoreFailures = true
         reporters = ['checkstyle', 'plain']
         experimentalRules = true
         disabledRules = [
