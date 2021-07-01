@@ -31,6 +31,7 @@
 * Fixed enabled-by-default development mode breaks reflection by overriding classloader ([KTOR-2306](https://youtrack.jetbrains.com/issue/KTOR-2306))
 * Reviewed documentation for the onUpload/onDownload client callbacks ([KTOR-2710](https://youtrack.jetbrains.com/issue/KTOR-2710))
 * Fixed Ktor fails to deliver response with error: failed with exception: kotlinx.coroutines.JobCancellationException: Parent job is Completed; ([KTOR-2711](https://youtrack.jetbrains.com/issue/KTOR-2711))
+* Replaced kotlin-test dependency with junit in ktor-server-test-host ([KTOR-2555](https://youtrack.jetbrains.com/issue/KTOR-2555))
 
 # 1.6.0
 > Published 28 May 2021
