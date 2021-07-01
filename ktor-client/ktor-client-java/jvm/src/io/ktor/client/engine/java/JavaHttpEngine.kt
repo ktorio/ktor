@@ -5,18 +5,16 @@
 package io.ktor.client.engine.java
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import java.io.*
 import java.net.*
 import java.net.http.*
 import java.time.*
 import java.util.concurrent.*
-import kotlin.coroutines.*
 
 @InternalAPI
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {

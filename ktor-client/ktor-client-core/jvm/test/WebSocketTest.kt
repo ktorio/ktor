@@ -2,7 +2,7 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
@@ -13,7 +13,7 @@ class WebSocketTest {
     @ExperimentalWebSocketExtensionApi
     @Test
     fun testAsDefault() {
-        val feature = WebSockets(42, 16)
+        val plugin = WebSockets(42, 16)
         val session = object : WebSocketSession {
             override var masking: Boolean = false
             override var maxFrameSize: Long = 0
@@ -38,7 +38,7 @@ class WebSocketTest {
             override val coroutineContext: CoroutineContext = EmptyCoroutineContext
         }
 
-        val defaultSession = feature.convertSessionToDefault(session)
+        val defaultSession = plugin.convertSessionToDefault(session)
         assertEquals(16, defaultSession.maxFrameSize)
     }
 }

@@ -5,10 +5,9 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.*
 import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.tests.utils.assertFailsWith
 import io.ktor.http.*
@@ -546,7 +545,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testNotInstalledFeatures() = clientTests {
+    fun testNotInstalledPlugins() = clientTests {
         test { client ->
             assertFailsWith<IllegalArgumentException> {
                 client.get("https://www.google.com") {

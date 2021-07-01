@@ -7,7 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -68,9 +68,9 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     }
 
     @Test
-    public fun configCopiesOldFeaturesAndInterceptors() {
-        val customFeatureKey = AttributeKey<Boolean>("customFeature")
-        val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
+    public fun configCopiesOldPluginsAndInterceptors() {
+        val customPluginKey = AttributeKey<Boolean>("customPlugin")
+        val anotherCustomPluginKey = AttributeKey<Boolean>("anotherCustomPlugin")
 
         val originalClient = HttpClient(factory) {
             useDefaultTransformers = false
@@ -79,8 +79,8 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
                 port = serverPort
                 url.path("empty")
             }
-            install("customFeature") {
-                attributes.put(customFeatureKey, true)
+            install("customPlugin") {
+                attributes.put(customPluginKey, true)
             }
         }
 
@@ -90,32 +90,32 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         }.request
         assertEquals("/empty", originalRequest.url.fullPath)
 
-        assertTrue(originalClient.attributes.contains(customFeatureKey), "no custom feature installed")
+        assertTrue(originalClient.attributes.contains(customPluginKey), "no custom plugin installed")
 
         // create a new client, copying the original, with:
         // - a reconfigured DefaultRequest
-        // - a new custom feature
+        // - a new custom plugin
         val newClient = originalClient.config {
             install(DefaultRequest) {
                 port = serverPort
                 url.path("hello")
             }
-            install("anotherCustomFeature") {
-                attributes.put(anotherCustomFeatureKey, true)
+            install("anotherCustomPlugin") {
+                attributes.put(anotherCustomPluginKey, true)
             }
         }
 
-        // check the custom feature remained installed
+        // check the custom plugin remained installed
         // and that we override the DefaultRequest
         val newRequest = runBlocking {
             newClient.request(HttpRequestBuilder())
         }.request
         assertEquals("/hello", newRequest.url.fullPath)
 
-        assertTrue(newClient.attributes.contains(customFeatureKey), "no custom feature installed")
+        assertTrue(newClient.attributes.contains(customPluginKey), "no custom plugin installed")
 
-        // check the new custom feature is there too
-        assertTrue(newClient.attributes.contains(anotherCustomFeatureKey), "no other custom feature installed")
+        // check the new custom plugin is there too
+        assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
     }
 
     @Test

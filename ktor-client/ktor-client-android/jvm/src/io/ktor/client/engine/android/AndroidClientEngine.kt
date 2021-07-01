@@ -6,7 +6,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
