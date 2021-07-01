@@ -22,6 +22,7 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
+import java.lang.IllegalStateException
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -32,7 +33,9 @@ internal class ApacheRequestProducer(
 ) : HttpAsyncRequestProducer, CoroutineScope {
 
     private val request: HttpUriRequest = setupRequest()
-    private val host = URIUtils.extractHost(request.uri)!!
+
+    private val host = URIUtils.extractHost(request.uri)
+        ?: throw IllegalStateException("Cannot extract host from URL ${request.uri}")
 
     private val interestController = InterestControllerHolder()
 
