@@ -307,4 +307,13 @@ open class StringsTest : ByteChannelTestBase(true) {
             channel.close()
         }
     }
+
+    @Test
+    fun testCarriageReturnIsTreatedLikeEndOfLine() = runTest {
+        val channel = ByteChannel()
+        channel.writeStringUtf8("start\rend")
+        channel.close()
+        assertEquals("start", channel.readUTF8Line())
+        assertEquals("end", channel.readUTF8Line())
+    }
 }
