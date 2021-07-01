@@ -189,7 +189,7 @@ class JacksonTest {
     fun testCustomKotlinModule() = withTestApplication {
         application.install(ContentNegotiation) {
             jackson {
-                registerModule(KotlinModule(nullisSameAsDefault = true))
+                registerModule(KotlinModule(nullIsSameAsDefault = true))
             }
         }
 
