@@ -9,6 +9,7 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import org.slf4j.helpers.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
@@ -458,6 +459,21 @@ class ApplicationEngineEnvironmentReloadingTests {
         fun Application.functionWithDefaultArg(test: Boolean = false) {
             attributes.put(TestKey, "functionWithDefaultArg")
         }
+    }
+
+    @Test
+    fun `expect application to be available before environment start`() {
+        val env = ApplicationEngineEnvironmentReloading(
+            classLoader = this::class.java.classLoader,
+            log = NOPLogger.NOP_LOGGER,
+            config = MapApplicationConfig(),
+            connectors = emptyList(),
+            modules = emptyList()
+        )
+
+        val app = env.application
+        env.start()
+        assertEquals(app, env.application)
     }
 }
 

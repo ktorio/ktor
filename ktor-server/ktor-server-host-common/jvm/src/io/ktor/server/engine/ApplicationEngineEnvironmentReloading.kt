@@ -54,7 +54,8 @@ public class ApplicationEngineEnvironmentReloading(
         parentCoroutineContext, rootPath, developmentMode = true
     )
 
-    private var _applicationInstance: Application? = null
+    private var _applicationInstance: Application? = Application(this)
+    private var recreateInstance: Boolean = false
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
@@ -289,7 +290,13 @@ public class ApplicationEngineEnvironmentReloading(
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
-        val newInstance = Application(this)
+        val newInstance = if (recreateInstance || _applicationInstance == null) {
+            Application(this)
+        } else {
+            recreateInstance = true
+            _applicationInstance!!
+        }
+
         safeRiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
