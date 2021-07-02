@@ -30,7 +30,7 @@ public class Routing(
 
     /**
      * Register a route resolution trace function.
-     * See https://ktor.io/servers/features/routing.html#tracing for details
+     * See https://ktor.io/servers/plugins/routing.html#tracing for details
      */
     public fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)
@@ -89,10 +89,10 @@ public class Routing(
     }
 
     /**
-     * Installable feature for [Routing]
+     * Installable plugin for [Routing]
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Feature : ApplicationFeature<Application, Routing, Routing> {
+    public companion object Plugin : ApplicationPlugin<Application, Routing, Routing> {
 
         /**
          * Event definition for when a routing-based call processing starts
@@ -126,8 +126,8 @@ public val Route.application: Application
     }
 
 /**
- * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
+ * Gets or installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it
  */
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
-    featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
+    pluginOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)

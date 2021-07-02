@@ -38,7 +38,7 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
     /**
      * First extension bit used by current extension.
      *
-     * This flag is used to detect extension conflicts: only one feature with enabled flag is allowed.
+     * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
      * To set the flag value please consult with specification of the extension you're using.
      */
     public val rsv1: Boolean
@@ -46,7 +46,7 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
     /**
      * Second extension bit used by current extension.
      *
-     * This flag is used to detect extension conflicts: only one feature with enabled flag is allowed.
+     * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
      * To set the flag value please consult with specification of the extension you're using.
      */
     public val rsv2: Boolean
@@ -54,7 +54,7 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
     /**
      * Third extension bit used by current extension.
      *
-     * This flag is used to detect extension conflicts: only one feature with enabled flag is allowed.
+     * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
      * To set the flag value please consult with specification of the extension you're using.
      */
     public val rsv3: Boolean
@@ -116,7 +116,7 @@ public interface WebSocketExtension<ConfigType : Any> {
 }
 
 /**
- * Extensions configuration for WebSocket client and server features.
+ * Extensions configuration for WebSocket client and server plugins.
  */
 @ExperimentalWebSocketExtensionApi
 public class WebSocketExtensionsConfig {

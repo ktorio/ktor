@@ -1,0 +1,26 @@
+public final class io/ktor/server/pebble/Pebble {
+	public static final field Plugin Lio/ktor/server/pebble/Pebble$Plugin;
+	public fun <init> (Lcom/mitchellbosecke/pebble/PebbleEngine;)V
+}
+
+public final class io/ktor/server/pebble/Pebble$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/pebble/Pebble;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/pebble/PebbleContent {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getLocale ()Ljava/util/Locale;
+	public final fun getModel ()Ljava/util/Map;
+	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/pebble/RespondTemplateKt {
+	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

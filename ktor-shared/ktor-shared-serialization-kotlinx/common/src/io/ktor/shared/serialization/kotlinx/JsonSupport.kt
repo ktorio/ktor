@@ -31,7 +31,7 @@ public val DefaultJson: Json = Json {
 
 /**
  * Register `application/json` (or another specified [contentType]) content type
- * to [ContentNegotiation] feature using kotlinx.serialization.
+ * to [ContentNegotiation] plugin using kotlinx.serialization.
  *
  * @param json format instance (optional)
  * @param contentType to register with, application/json by default
@@ -45,7 +45,7 @@ public fun Configuration.json(
 }
 
 /**
- * Register kotlinx.serialization converter into [ContentNegotiation] feature
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
  * with the specified [contentType] and binary [format] (such as CBOR, ProtoBuf)
  */
 @OptIn(ExperimentalSerializationApi::class)
@@ -60,7 +60,7 @@ public fun Configuration.serialization(
 }
 
 /**
- * Register kotlinx.serialization converter into [ContentNegotiation] feature
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
  * with the specified [contentType] and string [format] (such as Json)
  */
 @OptIn(ExperimentalSerializationApi::class)

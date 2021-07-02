@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlin.system.*
 
 /**
- * Shutdown URL feature. It stops application when requested particular url
+ * Shutdown URL plugin. It stops application when requested particular url
  *
  * @property url to handle
  * @property exitCode is a function to compute process exit code
@@ -50,44 +50,44 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     }
 
     /**
-     * A feature to install into engine pipeline
+     * A plugin to install into engine pipeline
      */
-    public object EngineFeature : ApplicationFeature<EnginePipeline, Configuration, ShutDownUrl> {
+    public object EnginePlugin : ApplicationPlugin<EnginePipeline, Configuration, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
         override fun install(pipeline: EnginePipeline, configure: Configuration.() -> Unit): ShutDownUrl {
             val config = Configuration()
             configure(config)
 
-            val feature = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
+            val plugin = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
             pipeline.intercept(EnginePipeline.Before) {
-                if (call.request.uri == feature.url) {
-                    feature.doShutdown(call)
+                if (call.request.uri == plugin.url) {
+                    plugin.doShutdown(call)
                 }
             }
 
-            return feature
+            return plugin
         }
     }
 
     /**
-     * A feature to install into application call pipeline
+     * A plugin to install into application call pipeline
      */
-    public object ApplicationCallFeature : ApplicationFeature<ApplicationCallPipeline, Configuration, ShutDownUrl> {
+    public object ApplicationCallPlugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ShutDownUrl {
             val config = Configuration()
             configure(config)
 
-            val feature = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
-            pipeline.intercept(ApplicationCallPipeline.Features) {
-                if (call.request.uri == feature.url) {
-                    feature.doShutdown(call)
+            val plugin = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
+            pipeline.intercept(ApplicationCallPipeline.Plugins) {
+                if (call.request.uri == plugin.url) {
+                    plugin.doShutdown(call)
                 }
             }
 
-            return feature
+            return plugin
         }
     }
 

@@ -6,10 +6,9 @@ package io.ktor.tests.server.http
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
-import io.ktor.util.*
 import kotlin.test.*
 
 class URLBuilderTest {
