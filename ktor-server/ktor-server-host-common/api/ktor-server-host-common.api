@@ -292,8 +292,8 @@ public final class io/ktor/server/engine/ShutDownUrl {
 	public final fun getUrl ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/engine/ShutDownUrl$ApplicationCallFeature : io/ktor/server/application/ApplicationFeature {
-	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$ApplicationCallFeature;
+public final class io/ktor/server/engine/ShutDownUrl$ApplicationCallPlugin : io/ktor/server/application/ApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$ApplicationCallPlugin;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ShutDownUrl;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -307,8 +307,8 @@ public final class io/ktor/server/engine/ShutDownUrl$Configuration {
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/engine/ShutDownUrl$EngineFeature : io/ktor/server/application/ApplicationFeature {
-	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$EngineFeature;
+public final class io/ktor/server/engine/ShutDownUrl$EnginePlugin : io/ktor/server/application/ApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$EnginePlugin;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/engine/EnginePipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ShutDownUrl;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;

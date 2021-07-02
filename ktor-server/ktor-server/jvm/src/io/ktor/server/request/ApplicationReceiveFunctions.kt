@@ -7,7 +7,7 @@ package io.ktor.server.request
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
@@ -185,12 +185,12 @@ public suspend inline fun ApplicationCall.receiveParameters(): Parameters = rece
 /**
  * Thrown when content cannot be transformed to the desired type.
  */
-public typealias ContentTransformationException = io.ktor.server.features.ContentTransformationException
+public typealias ContentTransformationException = io.ktor.server.plugins.ContentTransformationException
 
 /**
  * This object is attached to an [ApplicationCall] with [DoubleReceivePreventionTokenKey] when
  * the receive function is invoked. It is used to detect double receive invocation
- * that causes [RequestAlreadyConsumedException] to be thrown unless [DoubleReceive] feature installed.
+ * that causes [RequestAlreadyConsumedException] to be thrown unless [DoubleReceive] plugin installed.
  */
 private object DoubleReceivePreventionToken
 

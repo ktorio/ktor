@@ -1,0 +1,108 @@
+public final class io/ktor/http/cio/websocket/DurationsKt {
+	public static final fun WebSockets (Ljava/time/Duration;Ljava/time/Duration;JZ)Lio/ktor/server/websocket/WebSockets;
+	public static final fun getPingInterval (Lio/ktor/server/websocket/DefaultWebSocketServerSession;)Ljava/time/Duration;
+	public static final fun getPingInterval (Lio/ktor/server/websocket/WebSockets;)Ljava/time/Duration;
+	public static final fun getPingPeriod (Lio/ktor/server/websocket/WebSockets$WebSocketOptions;)Ljava/time/Duration;
+	public static final fun getTimeout (Lio/ktor/server/websocket/DefaultWebSocketServerSession;)Ljava/time/Duration;
+	public static final fun getTimeout (Lio/ktor/server/websocket/WebSockets$WebSocketOptions;)Ljava/time/Duration;
+	public static final fun getTimeout (Lio/ktor/server/websocket/WebSockets;)Ljava/time/Duration;
+	public static final fun pinger (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Ljava/time/Duration;Ljava/time/Duration;Lio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun pinger$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Ljava/time/Duration;Ljava/time/Duration;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+	public static final fun setPingInterval (Lio/ktor/server/websocket/DefaultWebSocketServerSession;Ljava/time/Duration;)V
+	public static final fun setPingPeriod (Lio/ktor/server/websocket/WebSockets$WebSocketOptions;Ljava/time/Duration;)V
+	public static final fun setTimeout (Lio/ktor/server/websocket/DefaultWebSocketServerSession;Ljava/time/Duration;)V
+	public static final fun setTimeout (Lio/ktor/server/websocket/WebSockets$WebSocketOptions;Ljava/time/Duration;)V
+}
+
+public abstract interface class io/ktor/server/websocket/DefaultWebSocketServerSession : io/ktor/http/cio/websocket/DefaultWebSocketSession, io/ktor/server/websocket/WebSocketServerSession {
+}
+
+public final class io/ktor/server/websocket/DefaultWebSocketServerSession$DefaultImpls {
+	public static fun send (Lio/ktor/server/websocket/DefaultWebSocketServerSession;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/websocket/KotlinDurationsKt {
+	public static final fun WebSockets-v29k7_A (Lkotlin/time/Duration;JJZ)Lio/ktor/server/websocket/WebSockets;
+	public static final fun pinger-1WGW0hc (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun pinger-1WGW0hc$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+}
+
+public final class io/ktor/server/websocket/RoutingKt {
+	public static final fun webSocket (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun webSocket (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun webSocket (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;)V
+	public static synthetic fun webSocket$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocket$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocket$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;ILjava/lang/Object;)V
+	public static final fun webSocketRaw (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun webSocketRaw (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
+	public static final fun webSocketRaw (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun webSocketRaw (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;)V
+	public static final fun webSocketRaw (Lio/ktor/server/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
+public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/http/cio/websocket/WebSocketSession {
+	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
+}
+
+public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls {
+	public static fun send (Lio/ktor/server/websocket/WebSocketServerSession;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/websocket/WebSocketServerSessionKt {
+	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/Application;
+}
+
+public final class io/ktor/server/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {
+	public static final field Companion Lio/ktor/server/websocket/WebSocketUpgrade$Companion;
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public final fun getHandle ()Lkotlin/jvm/functions/Function2;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public final fun getProtocol ()Ljava/lang/String;
+	public fun upgrade (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/websocket/WebSocketUpgrade$Companion {
+}
+
+public final class io/ktor/server/websocket/WebSockets : kotlinx/coroutines/CoroutineScope {
+	public static final field Plugin Lio/ktor/server/websocket/WebSockets$Plugin;
+	public fun <init> (JJJZ)V
+	public fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getExtensionsConfig ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
+	public final fun getMasking ()Z
+	public final fun getMaxFrameSize ()J
+	public final fun getPingIntervalMillis ()J
+	public final fun getTimeoutMillis ()J
+}
+
+public final class io/ktor/server/websocket/WebSockets$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public final fun getEXTENSIONS_KEY ()Lio/ktor/util/AttributeKey;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/websocket/WebSockets;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/websocket/WebSockets$WebSocketOptions {
+	public fun <init> ()V
+	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getMasking ()Z
+	public final fun getMaxFrameSize ()J
+	public final fun getPingPeriodMillis ()J
+	public final fun getTimeoutMillis ()J
+	public final fun setMasking (Z)V
+	public final fun setMaxFrameSize (J)V
+	public final fun setPingPeriodMillis (J)V
+	public final fun setTimeoutMillis (J)V
+}
+

@@ -6,7 +6,7 @@ package io.ktor.tests.server.http
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -186,7 +186,7 @@ class ApplicationRequestContentTest {
     }
 
     @Test
-    fun testDoubleReceiveWithNoFeature(): Unit = withTestApplication {
+    fun testDoubleReceiveWithNoPlugin(): Unit = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
             assertEquals("bodyContent", call.receiveText())
             assertFailsWith<RequestAlreadyConsumedException> {

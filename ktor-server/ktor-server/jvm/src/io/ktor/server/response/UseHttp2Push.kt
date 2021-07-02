@@ -8,8 +8,8 @@ package io.ktor.server.response
  * HTTP/2 push is no longer supported by Chrome web browser.
  * Other browsers may discard it at some point.
  * With such browsers, HTTP/2 push will be disabled, therefore
- * using this feature is safe but it will have no effect.
- * On the other hand, this feature is not deprecated and generally it is still allowed
+ * using this plugin is safe but it will have no effect.
+ * On the other hand, this plugin is not deprecated and generally it is still allowed
  * to use it, so feel free to opt-in this annotation to eliminate this warning, if
  * you are sure that you need it. For example, it makes sense to use with
  * a non-browser client that for sure supports HTTP/2 push.

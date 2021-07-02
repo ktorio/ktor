@@ -13,7 +13,7 @@ import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -167,7 +167,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected open fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(CallLogging)
         application.install(Routing, routingConfigurer)
     }
@@ -180,7 +180,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
             val server = createServer(log, parent) {
-                features(this, routingConfigurer)
+                plugins(this, routingConfigurer)
             }
 
             val failures = startServer(server)
