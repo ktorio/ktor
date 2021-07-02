@@ -17,7 +17,7 @@ public open class ApplicationCallPipeline(
 ) : Pipeline<Unit, ApplicationCall>(
     Setup,
     Monitoring,
-    Features,
+    Plugins,
     Call,
     Fallback
 ) {
@@ -46,9 +46,9 @@ public open class ApplicationCallPipeline(
         public val Monitoring: PipelinePhase = PipelinePhase("Monitoring")
 
         /**
-         * Phase for features. Most features should intercept this phase.
+         * Phase for plugins. Most plugins should intercept this phase.
          */
-        public val Features: PipelinePhase = PipelinePhase("Features")
+        public val Plugins: PipelinePhase = PipelinePhase("Plugins")
 
         /**
          * Phase for processing a call and sending a response

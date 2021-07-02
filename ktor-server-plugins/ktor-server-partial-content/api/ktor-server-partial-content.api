@@ -1,0 +1,17 @@
+public final class io/ktor/server/plugins/PartialContent {
+	public static final field Plugin Lio/ktor/server/plugins/PartialContent$Plugin;
+	public fun <init> (I)V
+}
+
+public final class io/ktor/server/plugins/PartialContent$Configuration {
+	public fun <init> ()V
+	public final fun getMaxRangeCount ()I
+	public final fun setMaxRangeCount (I)V
+}
+
+public final class io/ktor/server/plugins/PartialContent$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/PartialContent;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
