@@ -1,15 +1,15 @@
 public abstract class io/ktor/server/features/CachedTransformationResult {
-	public synthetic fun <init> (Lkotlin/reflect/KType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getType ()Lkotlin/reflect/KType;
+	public synthetic fun <init> (Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getType ()Lio/ktor/util/reflect/TypeInfo;
 }
 
 public class io/ktor/server/features/CachedTransformationResult$Failure : io/ktor/server/features/CachedTransformationResult {
-	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Throwable;)V
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Throwable;)V
 	public final fun getCause ()Ljava/lang/Throwable;
 }
 
 public final class io/ktor/server/features/CachedTransformationResult$Success : io/ktor/server/features/CachedTransformationResult {
-	public fun <init> (Lkotlin/reflect/KType;Ljava/lang/Object;)V
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;)V
 	public final fun getValue ()Ljava/lang/Object;
 }
 

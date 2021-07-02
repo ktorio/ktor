@@ -7,9 +7,9 @@ package io.ktor.server.testing.suites
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
 import kotlinx.coroutines.*
-import java.net.*
 import org.junit.*
 import org.junit.Assert.*
+import java.net.*
 
 abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
