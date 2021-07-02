@@ -5,7 +5,7 @@
 package io.ktor.server.routing
 
 import io.ktor.http.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 
 /**
  * Create a route to match request host and port.

@@ -661,10 +661,10 @@ class SessionTest {
     }
 
     @Test
-    fun testMissingSessionsFeature(): Unit = withTestApplication {
+    fun testMissingSessionsPlugin(): Unit = withTestApplication {
         application.routing {
             get("/") {
-                val cause = assertFailsWith<MissingApplicationFeatureException> {
+                val cause = assertFailsWith<MissingApplicationPluginException> {
                     call.sessions.get<EmptySession>()
                 }
                 call.respondText(cause.key.name)

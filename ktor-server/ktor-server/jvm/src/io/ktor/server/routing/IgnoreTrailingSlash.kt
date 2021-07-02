@@ -18,27 +18,27 @@ internal var ApplicationCall.ignoreTrailingSlash: Boolean
     }
 
 /**
- * Feature that ignores trailing slashes while resolving urls
+ * Plugin that ignores trailing slashes while resolving urls
  */
 public class IgnoreTrailingSlash private constructor() {
 
     /**
-     * Configuration for this feature
+     * Configuration for this plugin
      */
     public class Configuration
 
-    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, IgnoreTrailingSlash> {
+    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, IgnoreTrailingSlash> {
         override val key: AttributeKey<IgnoreTrailingSlash> = AttributeKey("IgnoreTrailingSlash")
 
         override fun install(
             pipeline: ApplicationCallPipeline,
             configure: Configuration.() -> Unit
         ): IgnoreTrailingSlash {
-            val feature = IgnoreTrailingSlash()
-            pipeline.intercept(ApplicationCallPipeline.Features) {
+            val plugin = IgnoreTrailingSlash()
+            pipeline.intercept(ApplicationCallPipeline.Plugins) {
                 call.ignoreTrailingSlash = true
             }
-            return feature
+            return plugin
         }
     }
 }

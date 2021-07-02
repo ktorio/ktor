@@ -5,7 +5,7 @@
 package io.ktor.server.util
 
 import io.ktor.http.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
 import java.lang.reflect.Type

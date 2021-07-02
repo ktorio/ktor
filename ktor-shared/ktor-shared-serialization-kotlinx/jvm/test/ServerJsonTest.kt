@@ -3,7 +3,7 @@
 */
 
 import io.ktor.http.*
-import io.ktor.server.features.*
+import io.ktor.server.plugins.*
 import io.ktor.shared.serialization.kotlinx.*
 
 class ServerJsonTest : AbstractServerSerializationTest() {
