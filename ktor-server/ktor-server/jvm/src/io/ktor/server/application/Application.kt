@@ -28,7 +28,7 @@ public class Application(
      */
     public fun dispose() {
         applicationJob.cancel()
-        uninstallAllFeatures()
+        uninstallAllPlugins()
     }
 }
 

@@ -27,7 +27,7 @@ public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
 /**
  * Definition of an event.
  * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
- * Inheriting of this class is an experimental feature.
+ * Inheriting of this class is an experimental plugin.
  * Instantiate directly if inheritance not necessary.
  *
  * @param T specifies what is a type of a value passed to the event

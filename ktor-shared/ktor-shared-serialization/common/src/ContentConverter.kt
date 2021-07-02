@@ -14,7 +14,7 @@ import io.ktor.utils.io.core.*
 import kotlin.reflect.*
 
 /**
- * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
+ * A custom content converted that could be registered in [ContentNegotiation] plugin for any particular content type
  * Could provide bi-directional conversion implementation.
  * One of the most typical examples of content converter is a json content converter that provides both
  * serialization and deserialization
@@ -61,7 +61,7 @@ public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Ch
 }
 
 /**
- * Configuration for client and server `ContentNegotiation` feature
+ * Configuration for client and server `ContentNegotiation` plugin
  */
 public interface Configuration {
 
