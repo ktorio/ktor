@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import io.mockk.*
 import kotlinx.coroutines.*
+import java.util.ArrayDeque
 import kotlin.coroutines.*
 import kotlin.test.*
 
@@ -49,15 +50,31 @@ class CORSTest {
     }
 
     @Test
-    fun expectRequestHeadersCheckPassIfHeaderHasEmptyValue(): Unit = runBlocking {
-        val pipeline = ApplicationCallPipeline()
-        CORS.install(pipeline) {
-            allowCredentials = true
-            anyHost()
-            allowSameOrigin = false
-            method(HttpMethod.Options)
+    fun expectRequestHeadersCheckPassIfControlRequestHeadersHeaderHasEmptyValue(): Unit = runBlocking {
+        val call = createTestCall()
+        call.request.method = HttpMethod.Options
+        call.request.addHeader("Origin", "http://localhost")
+        call.request.addHeader("Access-Control-Request-Headers", "")
+        call.request.addHeader("Access-Control-Request-Method", "OPTIONS")
+
+        val messages = ArrayDeque<HttpStatusCode>()
+        call.response.pipeline.intercept(ApplicationSendPipeline.Before) { message: HttpStatusCode ->
+            messages.push(message)
         }
 
+        val pipeline = ApplicationCallPipeline()
+        CORS.install(pipeline) {
+            anyHost()
+            method(HttpMethod.Options)
+            allowCredentials = true
+            allowSameOrigin = false
+        }
+
+        pipeline.execute(call)
+        assertEquals(HttpStatusCode.OK, messages.pop())
+    }
+
+    private fun createTestCall(): TestApplicationCall {
         val app = mockk<Application> {
             every { environment } returns mockk {
                 every { developmentMode } returns false
@@ -68,19 +85,6 @@ class CORSTest {
             every { sendPipeline } returns ApplicationSendPipeline()
         }
 
-        val call = TestApplicationCall(app, coroutineContext = EmptyCoroutineContext)
-        call.request.method = HttpMethod.Options
-        call.request.addHeader("Origin", "http://localhost")
-        call.request.addHeader("Access-Control-Request-Headers", "")
-        call.request.addHeader("Access-Control-Request-Method", "OPTIONS")
-
-        var called = false
-        call.response.pipeline.intercept(ApplicationSendPipeline.Before) { message ->
-            assertEquals(HttpStatusCode.OK, message)
-            called = true
-        }
-
-        pipeline.execute(call)
-        assertTrue(called)
+        return TestApplicationCall(app, coroutineContext = EmptyCoroutineContext)
     }
 }
