@@ -138,10 +138,7 @@ public class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-        val requestHeaders =
-            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+        val requestHeaders = controlRequestHeaders()
 
         if (!corsCheckRequestMethod() || (!corsCheckRequestHeaders(requestHeaders))) {
             respond(HttpStatusCode.Forbidden)
@@ -162,6 +159,15 @@ public class CORS(configuration: Configuration) {
         accessControlMaxAge()
 
         respond(HttpStatusCode.OK)
+    }
+
+    private fun ApplicationCall.controlRequestHeaders(): List<String> {
+        val rawValue = request.headers[HttpHeaders.AccessControlRequestHeaders]
+        if (rawValue == null || rawValue.isBlank()) return emptyList()
+
+        return request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)!!
+            .flatMap { it.split(",") }
+            .map { it.trim().toLowerCasePreservingASCIIRules() }
     }
 
     private fun ApplicationCall.accessControlAllowOrigin(origin: String) {
