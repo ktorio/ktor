@@ -1,0 +1,30 @@
+public final class io/ktor/server/plugins/HSTS {
+	public static final field DEFAULT_HSTS_MAX_AGE J
+	public static final field Plugin Lio/ktor/server/plugins/HSTS$Plugin;
+	public fun <init> (Lio/ktor/server/plugins/HSTS$Configuration;)V
+	public final fun getHeaderValue ()Ljava/lang/String;
+	public final fun intercept (Lio/ktor/server/application/ApplicationCall;)V
+}
+
+public final class io/ktor/server/plugins/HSTS$Configuration {
+	public fun <init> ()V
+	public final fun getCustomDirectives ()Ljava/util/Map;
+	public final fun getIncludeSubDomains ()Z
+	public final fun getMaxAgeInSeconds ()J
+	public final fun getPreload ()Z
+	public final fun setIncludeSubDomains (Z)V
+	public final fun setMaxAgeInSeconds (J)V
+	public final fun setPreload (Z)V
+}
+
+public final class io/ktor/server/plugins/HSTS$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/HSTS;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/KotlinTimeJvmKt {
+	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/HSTS$Configuration;)J
+	public static final fun setMaxAgeDuration-x3IzF7w (Lio/ktor/server/plugins/HSTS$Configuration;J)V
+}
+

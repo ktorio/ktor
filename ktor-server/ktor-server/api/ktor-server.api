@@ -26,8 +26,8 @@ public class io/ktor/server/application/ApplicationCallPipeline : io/ktor/util/p
 public final class io/ktor/server/application/ApplicationCallPipeline$ApplicationPhase {
 	public final fun getCall ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getFallback ()Lio/ktor/util/pipeline/PipelinePhase;
-	public final fun getFeatures ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getPlugins ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getSetup ()Lio/ktor/util/pipeline/PipelinePhase;
 }
 
@@ -46,23 +46,23 @@ public abstract interface class io/ktor/server/application/ApplicationEnvironmen
 	public abstract fun getRootPath ()Ljava/lang/String;
 }
 
-public abstract interface class io/ktor/server/application/ApplicationFeature {
+public final class io/ktor/server/application/ApplicationKt {
+	public static final fun getLog (Lio/ktor/server/application/Application;)Lorg/slf4j/Logger;
+}
+
+public abstract interface class io/ktor/server/application/ApplicationPlugin {
 	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
 	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/application/ApplicationFeatureKt {
-	public static final fun feature (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationFeature;)Ljava/lang/Object;
-	public static final fun featureOrNull (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationFeature;)Ljava/lang/Object;
-	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationFeature;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationFeature;)V
-	public static final fun uninstallAllFeatures (Lio/ktor/util/pipeline/Pipeline;)V
-	public static final fun uninstallFeature (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
-}
-
-public final class io/ktor/server/application/ApplicationKt {
-	public static final fun getLog (Lio/ktor/server/application/Application;)Lorg/slf4j/Logger;
+public final class io/ktor/server/application/ApplicationPluginKt {
+	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun plugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;)Ljava/lang/Object;
+	public static final fun pluginOrNull (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;)Ljava/lang/Object;
+	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;)V
+	public static final fun uninstallAllPlugins (Lio/ktor/util/pipeline/Pipeline;)V
+	public static final fun uninstallPlugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
 }
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
@@ -73,13 +73,13 @@ public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationStopping ()Lio/ktor/events/EventDefinition;
 }
 
-public final class io/ktor/server/application/DuplicateApplicationFeatureException : java/lang/Exception {
+public final class io/ktor/server/application/DuplicateApplicationPluginException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/application/MissingApplicationFeatureException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
+public final class io/ktor/server/application/MissingApplicationPluginException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/util/AttributeKey;)V
-	public fun createCopy ()Lio/ktor/server/application/MissingApplicationFeatureException;
+	public fun createCopy ()Lio/ktor/server/application/MissingApplicationPluginException;
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun getMessage ()Ljava/lang/String;
@@ -136,72 +136,6 @@ protected final class io/ktor/server/config/MapApplicationConfig$MapApplicationC
 	public final fun getMap ()Ljava/util/Map;
 	public final fun getPath ()Ljava/lang/String;
 	public fun getString ()Ljava/lang/String;
-}
-
-public class io/ktor/server/features/BadRequestException : java/lang/Exception {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/features/CannotTransformContentToTypeException : io/ktor/server/features/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (Lkotlin/reflect/KType;)V
-	public fun createCopy ()Lio/ktor/server/features/CannotTransformContentToTypeException;
-	public synthetic fun createCopy ()Ljava/lang/Throwable;
-}
-
-public abstract class io/ktor/server/features/ContentTransformationException : java/lang/Exception {
-	public fun <init> (Ljava/lang/String;)V
-}
-
-public final class io/ktor/server/features/MissingRequestParameterException : io/ktor/server/features/BadRequestException, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (Ljava/lang/String;)V
-	public fun createCopy ()Lio/ktor/server/features/MissingRequestParameterException;
-	public synthetic fun createCopy ()Ljava/lang/Throwable;
-	public final fun getParameterName ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/features/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
-	public fun getHost ()Ljava/lang/String;
-	public fun getMethod ()Lio/ktor/http/HttpMethod;
-	public fun getPort ()I
-	public fun getRemoteHost ()Ljava/lang/String;
-	public fun getScheme ()Ljava/lang/String;
-	public fun getUri ()Ljava/lang/String;
-	public fun getVersion ()Ljava/lang/String;
-	public fun setHost (Ljava/lang/String;)V
-	public fun setMethod (Lio/ktor/http/HttpMethod;)V
-	public fun setPort (I)V
-	public fun setRemoteHost (Ljava/lang/String;)V
-	public fun setScheme (Ljava/lang/String;)V
-	public fun setUri (Ljava/lang/String;)V
-	public fun setVersion (Ljava/lang/String;)V
-}
-
-public final class io/ktor/server/features/NotFoundException : java/lang/Exception {
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/features/OriginConnectionPointKt {
-	public static final fun getMutableOriginConnectionPoint (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/features/MutableOriginConnectionPoint;
-	public static final fun getMutableOriginConnectionPointKey ()Lio/ktor/util/AttributeKey;
-	public static final fun getOrigin (Lio/ktor/server/request/ApplicationRequest;)Lio/ktor/http/RequestConnectionPoint;
-}
-
-public final class io/ktor/server/features/ParameterConversionException : io/ktor/server/features/BadRequestException, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun createCopy ()Lio/ktor/server/features/ParameterConversionException;
-	public synthetic fun createCopy ()Ljava/lang/Throwable;
-	public final fun getParameterName ()Ljava/lang/String;
-	public final fun getType ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/features/UnsupportedMediaTypeException : io/ktor/server/features/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (Lio/ktor/http/ContentType;)V
-	public fun createCopy ()Lio/ktor/server/features/UnsupportedMediaTypeException;
-	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
 public final class io/ktor/server/http/ApplicationResponsePropertiesJvmKt {
@@ -325,6 +259,72 @@ public final class io/ktor/server/logging/LoggingKt {
 
 public abstract interface class io/ktor/server/logging/MDCProvider {
 	public abstract fun withMDCBlock (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class io/ktor/server/plugins/BadRequestException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/server/plugins/CannotTransformContentToTypeException : io/ktor/server/plugins/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Lkotlin/reflect/KType;)V
+	public fun createCopy ()Lio/ktor/server/plugins/CannotTransformContentToTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+}
+
+public abstract class io/ktor/server/plugins/ContentTransformationException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/plugins/MissingRequestParameterException : io/ktor/server/plugins/BadRequestException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Ljava/lang/String;)V
+	public fun createCopy ()Lio/ktor/server/plugins/MissingRequestParameterException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+	public final fun getParameterName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun getHost ()Ljava/lang/String;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getPort ()I
+	public fun getRemoteHost ()Ljava/lang/String;
+	public fun getScheme ()Ljava/lang/String;
+	public fun getUri ()Ljava/lang/String;
+	public fun getVersion ()Ljava/lang/String;
+	public fun setHost (Ljava/lang/String;)V
+	public fun setMethod (Lio/ktor/http/HttpMethod;)V
+	public fun setPort (I)V
+	public fun setRemoteHost (Ljava/lang/String;)V
+	public fun setScheme (Ljava/lang/String;)V
+	public fun setUri (Ljava/lang/String;)V
+	public fun setVersion (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/plugins/NotFoundException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/server/plugins/OriginConnectionPointKt {
+	public static final fun getMutableOriginConnectionPoint (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/plugins/MutableOriginConnectionPoint;
+	public static final fun getMutableOriginConnectionPointKey ()Lio/ktor/util/AttributeKey;
+	public static final fun getOrigin (Lio/ktor/server/request/ApplicationRequest;)Lio/ktor/http/RequestConnectionPoint;
+}
+
+public final class io/ktor/server/plugins/ParameterConversionException : io/ktor/server/plugins/BadRequestException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun createCopy ()Lio/ktor/server/plugins/ParameterConversionException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+	public final fun getParameterName ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/UnsupportedMediaTypeException : io/ktor/server/plugins/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Lio/ktor/http/ContentType;)V
+	public fun createCopy ()Lio/ktor/server/plugins/UnsupportedMediaTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsKt {
@@ -642,14 +642,14 @@ public final class io/ktor/server/routing/HttpMethodRouteSelector : io/ktor/serv
 }
 
 public final class io/ktor/server/routing/IgnoreTrailingSlash {
-	public static final field Feature Lio/ktor/server/routing/IgnoreTrailingSlash$Feature;
+	public static final field Plugin Lio/ktor/server/routing/IgnoreTrailingSlash$Plugin;
 }
 
 public final class io/ktor/server/routing/IgnoreTrailingSlash$Configuration {
 	public fun <init> ()V
 }
 
-public final class io/ktor/server/routing/IgnoreTrailingSlash$Feature : io/ktor/server/application/ApplicationFeature {
+public final class io/ktor/server/routing/IgnoreTrailingSlash$Plugin : io/ktor/server/application/ApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/IgnoreTrailingSlash;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -888,14 +888,14 @@ public final class io/ktor/server/routing/RouteSelectorEvaluation$Success : io/k
 }
 
 public final class io/ktor/server/routing/Routing : io/ktor/server/routing/Route {
-	public static final field Feature Lio/ktor/server/routing/Routing$Feature;
+	public static final field Plugin Lio/ktor/server/routing/Routing$Plugin;
 	public fun <init> (Lio/ktor/server/application/Application;)V
 	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun interceptor (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun trace (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/routing/Routing$Feature : io/ktor/server/application/ApplicationFeature {
+public final class io/ktor/server/routing/Routing$Plugin : io/ktor/server/application/ApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public final fun getRoutingCallFinished ()Lio/ktor/events/EventDefinition;
 	public final fun getRoutingCallStarted ()Lio/ktor/events/EventDefinition;

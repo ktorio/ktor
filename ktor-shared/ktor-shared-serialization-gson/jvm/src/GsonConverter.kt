@@ -19,7 +19,7 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 /**
- * GSON converter for [ContentNegotiation] feature
+ * GSON converter for [ContentNegotiation] plugin
  */
 public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
@@ -59,7 +59,7 @@ internal class ExcludedTypeGsonException(
 }
 
 /**
- * Register Gson to [ContentNegotiation] feature
+ * Register Gson to [ContentNegotiation] plugin
  */
 public fun Configuration.gson(
     contentType: ContentType = ContentType.Application.Json,

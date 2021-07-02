@@ -1,0 +1,7 @@
+public final class io/ktor/server/plugins/AutoHeadResponse : io/ktor/server/application/ApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/plugins/AutoHeadResponse;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
