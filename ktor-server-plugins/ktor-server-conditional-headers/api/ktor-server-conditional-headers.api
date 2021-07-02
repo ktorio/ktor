@@ -1,0 +1,24 @@
+public final class io/ktor/server/plugins/ConditionalHeaders {
+	public static final field Plugin Lio/ktor/server/plugins/ConditionalHeaders$Plugin;
+	public fun <init> (Ljava/util/List;)V
+	public final fun versionsFor (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/ConditionalHeaders$Configuration {
+	public fun <init> ()V
+	public final fun version (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/plugins/ConditionalHeaders$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/ConditionalHeaders;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/ConditionalHeadersKt {
+	public static final fun getDefaultVersions (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
+	public static final fun parseVersions (Lio/ktor/http/Headers;)Ljava/util/List;
+	public static final fun withETag (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun withETag$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

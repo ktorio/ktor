@@ -1,0 +1,17 @@
+public final class io/ktor/server/plugins/CachingHeaders {
+	public static final field Plugin Lio/ktor/server/plugins/CachingHeaders$Plugin;
+	public fun <init> (Ljava/util/List;)V
+	public final fun optionsFor (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
+}
+
+public final class io/ktor/server/plugins/CachingHeaders$Configuration {
+	public fun <init> ()V
+	public final fun options (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/plugins/CachingHeaders$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/CachingHeaders;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
