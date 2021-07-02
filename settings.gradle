@@ -30,6 +30,22 @@ def versionComponents = System.getProperty('java.version')?.
 
 ext.currentJdk = versionComponents[0] == 1 ? versionComponents[1] : versionComponents[0]
 
+def CACHE_USER = System.getenv("GRADLE_CACHE_USER")
+
+if (CACHE_USER != null) {
+    def CACHE_PASSWORD = System.getenv("GRADLE_CACHE_PASSWORD")
+    buildCache {
+        remote(HttpBuildCache) {
+            push = true
+            setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
+            credentials {
+                username = CACHE_USER
+                password = CACHE_PASSWORD
+            }
+        }
+    }
+}
+
 include ':ktor-server:ktor-server-core'
 include ':ktor-server:ktor-server-tests'
 include ':ktor-server:ktor-server-host-common'
