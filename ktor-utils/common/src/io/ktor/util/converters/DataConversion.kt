@@ -9,7 +9,7 @@ import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
 /**
- * Data conversion feature to serialize and deserialize types using [converters] registry
+ * Data conversion plugin to serialize and deserialize types using [converters] registry
  */
 public class DataConversion(configuration: Configuration) : ConversionService {
     private val converters: Map<KClass<*>, ConversionService> = configuration.converters.toMap()

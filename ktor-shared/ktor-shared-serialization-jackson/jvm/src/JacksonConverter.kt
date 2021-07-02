@@ -52,7 +52,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
 }
 
 /**
- * Register Jackson converter into [ContentNegotiation] feature
+ * Register Jackson converter into [ContentNegotiation] plugin
  */
 public fun Configuration.jackson(
     contentType: ContentType = ContentType.Application.Json,

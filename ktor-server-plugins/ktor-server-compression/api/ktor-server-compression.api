@@ -1,0 +1,113 @@
+public final class io/ktor/server/plugins/Compression {
+	public static final field Plugin Lio/ktor/server/plugins/Compression$Plugin;
+	public fun <init> (Lio/ktor/server/plugins/Compression$Configuration;)V
+}
+
+public final class io/ktor/server/plugins/Compression$Configuration : io/ktor/server/plugins/ConditionsHolderBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/server/plugins/CompressionOptions;
+	public final fun default ()V
+	public final fun encoder (Ljava/lang/String;Lio/ktor/server/plugins/CompressionEncoder;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun encoder$default (Lio/ktor/server/plugins/Compression$Configuration;Ljava/lang/String;Lio/ktor/server/plugins/CompressionEncoder;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public fun getConditions ()Ljava/util/List;
+	public final fun getEncoders ()Ljava/util/Map;
+}
+
+public final class io/ktor/server/plugins/Compression$Plugin : io/ktor/server/application/ApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/Compression;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/server/plugins/CompressionEncoder {
+	public abstract fun compress (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun compress (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public abstract fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/server/plugins/CompressionEncoder$DefaultImpls {
+	public static synthetic fun compress$default (Lio/ktor/server/plugins/CompressionEncoder;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun compress$default (Lio/ktor/server/plugins/CompressionEncoder;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static fun predictCompressedLength (Lio/ktor/server/plugins/CompressionEncoder;J)Ljava/lang/Long;
+}
+
+public final class io/ktor/server/plugins/CompressionEncoderBuilder : io/ktor/server/plugins/ConditionsHolderBuilder {
+	public final fun build ()Lio/ktor/server/plugins/CompressionEncoderConfig;
+	public fun getConditions ()Ljava/util/ArrayList;
+	public synthetic fun getConditions ()Ljava/util/List;
+	public final fun getEncoder ()Lio/ktor/server/plugins/CompressionEncoder;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPriority ()D
+	public final fun setPriority (D)V
+}
+
+public final class io/ktor/server/plugins/CompressionEncoderConfig {
+	public fun <init> (Ljava/lang/String;Lio/ktor/server/plugins/CompressionEncoder;Ljava/util/List;D)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/ktor/server/plugins/CompressionEncoder;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()D
+	public final fun copy (Ljava/lang/String;Lio/ktor/server/plugins/CompressionEncoder;Ljava/util/List;D)Lio/ktor/server/plugins/CompressionEncoderConfig;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/CompressionEncoderConfig;Ljava/lang/String;Lio/ktor/server/plugins/CompressionEncoder;Ljava/util/List;DILjava/lang/Object;)Lio/ktor/server/plugins/CompressionEncoderConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConditions ()Ljava/util/List;
+	public final fun getEncoder ()Lio/ktor/server/plugins/CompressionEncoder;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPriority ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/CompressionKt {
+	public static final fun condition (Lio/ktor/server/plugins/ConditionsHolderBuilder;Lkotlin/jvm/functions/Function2;)V
+	public static final fun deflate (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun deflate$default (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun excludeContentType (Lio/ktor/server/plugins/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
+	public static final fun gzip (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun gzip$default (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun identity (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun identity$default (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun matchContentType (Lio/ktor/server/plugins/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
+	public static final fun minimumSize (Lio/ktor/server/plugins/ConditionsHolderBuilder;J)V
+}
+
+public final class io/ktor/server/plugins/CompressionOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/Map;Ljava/util/List;)Lio/ktor/server/plugins/CompressionOptions;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/CompressionOptions;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/server/plugins/CompressionOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConditions ()Ljava/util/List;
+	public final fun getEncoders ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/plugins/ConditionsHolderBuilder {
+	public abstract fun getConditions ()Ljava/util/List;
+}
+
+public final class io/ktor/server/plugins/DeflateEncoder : io/ktor/server/plugins/CompressionEncoder {
+	public static final field INSTANCE Lio/ktor/server/plugins/DeflateEncoder;
+	public fun compress (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun compress (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/server/plugins/GzipEncoder : io/ktor/server/plugins/CompressionEncoder {
+	public static final field INSTANCE Lio/ktor/server/plugins/GzipEncoder;
+	public fun compress (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun compress (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/server/plugins/IdentityEncoder : io/ktor/server/plugins/CompressionEncoder {
+	public static final field INSTANCE Lio/ktor/server/plugins/IdentityEncoder;
+	public fun compress (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun compress (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+

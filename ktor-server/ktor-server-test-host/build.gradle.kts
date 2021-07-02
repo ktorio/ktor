@@ -17,11 +17,11 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-client:ktor-client-jetty"))
             api(project(":ktor-client:ktor-client-cio"))
-            api(project(":ktor-server-features:ktor-server-call-logging"))
+            api(project(":ktor-server-plugins:ktor-server-call-logging"))
 
             // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
             // so shouldn"t increase the size of the final artifact.
-            api(project(":ktor-server-features:ktor-server-websockets"))
+            api(project(":ktor-server-plugins:ktor-server-websockets"))
 
             api("ch.qos.logback:logback-classic:$logback_version")
             api("org.eclipse.jetty.http2:http2-client:$jetty_version")
