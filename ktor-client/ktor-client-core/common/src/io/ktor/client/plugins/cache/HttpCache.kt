@@ -95,7 +95,7 @@ public class HttpCache(
             }
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                if (context.request.method != HttpMethod.Get) return@intercept
+                if (response.call.request.method != HttpMethod.Get) return@intercept
 
                 if (response.status.isSuccess()) {
                     val reusableResponse = plugin.cacheResponse(response)
@@ -105,8 +105,8 @@ public class HttpCache(
 
                 if (response.status == HttpStatusCode.NotModified) {
                     response.complete()
-                    val responseFromCache = plugin.findAndRefresh(context.request, response)
-                        ?: throw InvalidCacheStateException(context.request.url)
+                    val responseFromCache = plugin.findAndRefresh(response.call.request, response)
+                        ?: throw InvalidCacheStateException(response.call.request.url)
 
                     scope.monitor.raise(HttpResponseFromCache, responseFromCache)
                     proceedWith(responseFromCache)

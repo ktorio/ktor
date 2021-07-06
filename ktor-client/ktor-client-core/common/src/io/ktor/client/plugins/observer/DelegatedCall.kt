@@ -35,6 +35,13 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
     return DelegatedCall(currentClient, content, this)
 }
 
+/**
+ * Wrap existing [HttpResponse] with new [content].
+ */
+internal fun HttpResponse.wrapWithContent(content: ByteReadChannel): HttpResponse {
+    return DelegatedResponse(call, content, this)
+}
+
 internal class DelegatedCall(
     client: HttpClient,
     content: ByteReadChannel,
