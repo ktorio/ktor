@@ -7,8 +7,13 @@ package io.ktor.tests.hosts
 import com.typesafe.config.*
 import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import org.slf4j.helpers.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
@@ -462,19 +467,60 @@ class ApplicationEngineEnvironmentReloadingTests {
     }
 
     @Test
-    fun `expect application to be available before environment start`() {
-        val env = ApplicationEngineEnvironmentReloading(
-            classLoader = this::class.java.classLoader,
-            log = NOPLogger.NOP_LOGGER,
-            config = MapApplicationConfig(),
-            connectors = emptyList(),
-            modules = emptyList()
-        )
-
+    fun `application is available before environment start`() {
+        val env = dummyEnv()
         val app = env.application
         env.start()
         assertEquals(app, env.application)
     }
+
+    @Test
+    fun `completion handler is invoked when attached before environment start`() {
+        val env = dummyEnv()
+
+        var invoked = false
+        env.application.coroutineContext[Job]?.invokeOnCompletion {
+            invoked = true
+        }
+
+        env.start()
+        env.stop()
+
+        assertTrue(invoked, "On completion handler wasn't invoked")
+    }
+
+    @Test
+    fun `interceptor is invoked when added before environment start`() {
+        val engine = TestApplicationEngine(createTestEnvironment())
+        engine.application.intercept(ApplicationCallPipeline.Features) {
+            call.response.header("Custom", "Value")
+        }
+        engine.start()
+
+        try {
+            engine.apply {
+                application.routing {
+                    get("/") {
+                        call.respondText { "Hello" }
+                    }
+                }
+
+                assertEquals("Value", handleRequest(HttpMethod.Get, "/").response.headers["Custom"])
+            }
+        } catch (cause: Throwable) {
+            fail("Failed with an exception: ${cause.message}")
+        } finally {
+            engine.stop(0L, 0L)
+        }
+    }
+
+    private fun dummyEnv() = ApplicationEngineEnvironmentReloading(
+        classLoader = this::class.java.classLoader,
+        log = NOPLogger.NOP_LOGGER,
+        config = MapApplicationConfig(),
+        connectors = emptyList(),
+        modules = emptyList()
+    )
 }
 
 fun Application.topLevelExtensionFunction() {
