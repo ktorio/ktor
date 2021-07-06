@@ -1034,14 +1034,17 @@ public abstract class io/ktor/client/statement/HttpResponse : io/ktor/http/HttpM
 }
 
 public final class io/ktor/client/statement/HttpResponseContainer {
-	public fun <init> (Lio/ktor/client/call/TypeInfo;Ljava/lang/Object;)V
+	public synthetic fun <init> (Lio/ktor/client/call/TypeInfo;Ljava/lang/Object;)V
 	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;)V
-	public final fun component1 ()Lio/ktor/client/call/TypeInfo;
+	public final fun component1 ()Lio/ktor/util/reflect/TypeInfo;
 	public final fun component2 ()Ljava/lang/Object;
-	public final fun copy (Lio/ktor/client/call/TypeInfo;Ljava/lang/Object;)Lio/ktor/client/statement/HttpResponseContainer;
+	public final synthetic fun copy (Lio/ktor/client/call/TypeInfo;Ljava/lang/Object;)Lio/ktor/client/statement/HttpResponseContainer;
+	public final fun copy (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;)Lio/ktor/client/statement/HttpResponseContainer;
 	public static synthetic fun copy$default (Lio/ktor/client/statement/HttpResponseContainer;Lio/ktor/client/call/TypeInfo;Ljava/lang/Object;ILjava/lang/Object;)Lio/ktor/client/statement/HttpResponseContainer;
+	public static synthetic fun copy$default (Lio/ktor/client/statement/HttpResponseContainer;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;ILjava/lang/Object;)Lio/ktor/client/statement/HttpResponseContainer;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getExpectedType ()Lio/ktor/client/call/TypeInfo;
+	public final fun getExpectedTypeInfo ()Lio/ktor/util/reflect/TypeInfo;
 	public final fun getResponse ()Ljava/lang/Object;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

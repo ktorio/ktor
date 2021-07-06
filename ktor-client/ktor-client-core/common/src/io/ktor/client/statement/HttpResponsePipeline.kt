@@ -75,13 +75,22 @@ public class HttpReceivePipeline(
 }
 
 /**
- * Class representing a typed [response] with an attached [expectedType].
- * @param expectedType: information about expected type.
+ * Class representing a typed [response] with an attached [expectedTypeInfo].
+ * @param expectedTypeInfo: information about expected type.
  * @param response: current response state.
  */
-public data class HttpResponseContainer(val expectedType: DeprecatedTypeInfo, val response: Any) {
-    public constructor(expectedType: TypeInfo, response: Any) : this(
-        DeprecatedTypeInfo(expectedType.type, expectedType.reifiedType, expectedType.kotlinType),
-        response
-    )
+public data class HttpResponseContainer(val expectedTypeInfo: TypeInfo, val response: Any) {
+    @Deprecated("Please use expectedTypeInfo with io.ktor.util.reflect.TypeInfo type", replaceWith = ReplaceWith("expectedTypeInfo"))
+    public val expectedType: DeprecatedTypeInfo get() = when(expectedTypeInfo) {
+        is DeprecatedTypeInfo -> expectedTypeInfo
+        else -> DeprecatedTypeInfo(expectedTypeInfo.type, expectedTypeInfo.reifiedType, expectedTypeInfo.kotlinType)
+    }
+
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(expectedType: DeprecatedTypeInfo, response: Any) : this(expectedType as TypeInfo, response)
+
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    public fun copy(expectedType: DeprecatedTypeInfo = this.expectedType, response: Any = this.response): HttpResponseContainer {
+        return copy(expectedTypeInfo = expectedType, response = response)
+    }
 }
