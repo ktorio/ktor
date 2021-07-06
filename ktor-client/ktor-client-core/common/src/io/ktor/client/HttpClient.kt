@@ -142,8 +142,9 @@ public class HttpClient(
 
         sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
             check(call is HttpClientCall) { "Error: HttpClientCall expected, but found $call(${call::class})." }
-            val receivedCall = receivePipeline.execute(call, call.response).call
-            proceedWith(receivedCall)
+            val response = receivePipeline.execute(Unit, call.response)
+            call.response = response
+            proceedWith(call)
         }
 
         with(userConfig) {
