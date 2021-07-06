@@ -44,24 +44,22 @@ public class ResponseObserver(
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
                 val (loggingContent, responseContent) = response.content.split(response)
 
-                val newClientCall = context.wrapWithContent(responseContent)
-                val sideCall = newClientCall.wrapWithContent(loggingContent)
+                val newResponse = response.wrapWithContent(responseContent)
+                val sideResponse = response.call.wrapWithContent(loggingContent).response
 
                 scope.launch {
                     try {
-                        plugin.responseHandler(sideCall.response)
+                        plugin.responseHandler(sideResponse)
                     } catch (_: Throwable) {
                     }
 
-                    val content = sideCall.response.content
+                    val content = sideResponse.content
                     if (!content.isClosedForRead) {
                         content.discard()
                     }
                 }
 
-                context.response = newClientCall.response
-                context.request = newClientCall.request
-                proceedWith(context.response)
+                proceedWith(newResponse)
             }
         }
     }

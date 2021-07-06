@@ -117,9 +117,9 @@ public class Logging(
         }
     }
 
-    private fun logResponseException(context: HttpClientCall, cause: Throwable) {
+    private fun logResponseException(request: HttpRequest, cause: Throwable) {
         if (level.info) {
-            logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
+            logger.log("RESPONSE ${request.url} failed with exception: $cause")
         }
     }
 
@@ -181,13 +181,13 @@ public class Logging(
                 }
             }
 
-            scope.receivePipeline.intercept(HttpReceivePipeline.State) {
+            scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
                 try {
                     plugin.beginLogging()
-                    plugin.logResponse(context.response)
+                    plugin.logResponse(response.call.response)
                     proceedWith(subject)
                 } catch (cause: Throwable) {
-                    plugin.logResponseException(context, cause)
+                    plugin.logResponseException(response.call.request, cause)
                     throw cause
                 } finally {
                     if (!plugin.level.body) {
@@ -200,7 +200,7 @@ public class Logging(
                 try {
                     proceed()
                 } catch (cause: Throwable) {
-                    plugin.logResponseException(context, cause)
+                    plugin.logResponseException(context.request, cause)
                     throw cause
                 }
             }

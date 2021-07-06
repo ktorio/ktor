@@ -54,7 +54,7 @@ public class HttpResponsePipeline(
  */
 public class HttpReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<HttpResponse, HttpClientCall>(Before, State, After) {
+) : Pipeline<HttpResponse, Unit>(Before, State, After) {
     public companion object Phases {
         /**
          * The earliest phase that happens before any other
