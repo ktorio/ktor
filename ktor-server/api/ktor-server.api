@@ -26,6 +26,7 @@ public class io/ktor/server/application/ApplicationCallPipeline : io/ktor/util/p
 public final class io/ktor/server/application/ApplicationCallPipeline$ApplicationPhase {
 	public final fun getCall ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getFallback ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getFeatures ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getPlugins ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getSetup ()Lio/ktor/util/pipeline/PipelinePhase;
