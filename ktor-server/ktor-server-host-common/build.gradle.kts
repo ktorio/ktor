@@ -7,4 +7,10 @@ kotlin.sourceSets {
             api(project(":ktor-http:ktor-http-cio"))
         }
     }
+
+    val jvmTest by getting {
+        dependencies {
+            implementation(project(":ktor-server:ktor-server-test-host"))
+        }
+    }
 }
