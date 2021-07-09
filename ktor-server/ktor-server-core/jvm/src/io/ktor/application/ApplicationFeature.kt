@@ -31,7 +31,13 @@ public interface ApplicationFeature<
     public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TFeature
 }
 
-private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
+internal val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
+
+/**
+ * Returns existing feature registry or register and returns a new one
+ */
+public val <A : Pipeline<*, ApplicationCall>> A.featureRegistry: Attributes
+    get() = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
 
 /**
  * Gets feature instance for this pipeline, or fails with [MissingApplicationFeatureException] if the feature is not installed
@@ -40,15 +46,16 @@ private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureReg
  * @return an instance of feature
  */
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
-    return attributes[featureRegistryKey].getOrNull(feature.key)
+    return featureRegistry.getOrNull(feature.key)
         ?: throw MissingApplicationFeatureException(feature.key)
 }
 
 /**
  * Returns feature instance for this pipeline, or null if feature is not installed
  */
-public fun <A : Pipeline<*, ApplicationCall>,
-    B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(
+    feature: ApplicationFeature<A, B, F>
+): F? {
     return attributes.getOrNull(featureRegistryKey)?.getOrNull(feature.key)
 }
 
@@ -59,7 +66,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     feature: ApplicationFeature<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
+    val registry = featureRegistry
     val installedFeature = registry.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
@@ -94,8 +101,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
         "If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
-    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
-    registry.allKeys.forEach {
+    featureRegistry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST")
         uninstallFeature(it as AttributeKey<Any>)
     }

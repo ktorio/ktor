@@ -61,6 +61,7 @@ public abstract interface class io/ktor/application/ApplicationFeature {
 public final class io/ktor/application/ApplicationFeatureKt {
 	public static final fun feature (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/ApplicationFeature;)Ljava/lang/Object;
 	public static final fun featureOrNull (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/ApplicationFeature;)Ljava/lang/Object;
+	public static final fun getFeatureRegistry (Lio/ktor/util/pipeline/Pipeline;)Lio/ktor/util/Attributes;
 	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/ApplicationFeature;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/ApplicationFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/ApplicationFeature;)V
@@ -94,6 +95,25 @@ public final class io/ktor/application/MissingApplicationFeatureException : java
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun getMessage ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/application/RoutingScopedFeature : io/ktor/application/ApplicationFeature {
+	public abstract fun getConfigKey ()Lio/ktor/util/AttributeKey;
+	public abstract fun getConfigurationBlock (Lio/ktor/util/pipeline/PipelineContext;)Lkotlin/jvm/functions/Function1;
+	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;)Ljava/lang/Object;
+	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/application/RoutingScopedFeature$DefaultImpls {
+	public static fun getConfigKey (Lio/ktor/application/RoutingScopedFeature;)Lio/ktor/util/AttributeKey;
+	public static fun getConfigurationBlock (Lio/ktor/application/RoutingScopedFeature;Lio/ktor/util/pipeline/PipelineContext;)Lkotlin/jvm/functions/Function1;
+	public static fun install (Lio/ktor/application/RoutingScopedFeature;Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/application/RoutingScopedFeatureKt {
+	public static final fun feature (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/RoutingScopedFeature;)Ljava/lang/Object;
+	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/RoutingScopedFeature;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/application/RoutingScopedFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/config/ApplicationConfig {

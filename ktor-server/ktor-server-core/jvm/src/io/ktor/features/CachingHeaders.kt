@@ -68,7 +68,7 @@ public class CachingHeaders(private val optionsProviders: List<(OutgoingContent)
      * `ApplicationFeature` implementation for [ConditionalHeaders]
      */
     public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CachingHeaders> {
-        override val key: AttributeKey<CachingHeaders> = AttributeKey("Conditional Headers")
+        override val key: AttributeKey<CachingHeaders> = AttributeKey("Caching Headers")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CachingHeaders {
             val configuration = Configuration().apply(configure)
             val feature = CachingHeaders(configuration.optionsProviders)
