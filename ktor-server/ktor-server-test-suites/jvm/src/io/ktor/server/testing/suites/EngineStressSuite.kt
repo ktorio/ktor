@@ -19,6 +19,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
+import org.junit.Assert.*
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
@@ -27,10 +29,9 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.test.*
 
 @RunWith(StressSuiteRunner::class)
-public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
@@ -48,13 +49,13 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    public override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
+    override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
 
     @get:org.junit.Rule
     val timout1 = CoroutinesTimeout(200000L, true)
 
     @Test
-    public fun singleConnectionSingleThreadNoPipelining() {
+    fun singleConnectionSingleThreadNoPipelining() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -83,7 +84,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
                 out.flush()
 
                 while (true) {
-                    val line = input.readLine() ?: fail("Unexpected EOF")
+                    val line = input.readLine() ?: throw AssertionError("Unexpected EOF")
                     if (endMarker in line) {
                         break
                     }
@@ -93,7 +94,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun singleConnectionSingleThreadWithPipelining() {
+    fun singleConnectionSingleThreadWithPipelining() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -138,7 +139,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
                     val now = System.currentTimeMillis()
                     if (now - start >= timeMillis) break
 
-                    val line = input.readLine() ?: fail("Unexpected EOF")
+                    val line = input.readLine() ?: throw AssertionError("Unexpected EOF")
                     if (endMarker in line) {
                         sem.release()
                     }
@@ -159,7 +160,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun singleConnectionHighPressure() {
+    fun singleConnectionHighPressure() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -176,7 +177,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun multipleConnectionsHighPressure() {
+    fun multipleConnectionsHighPressure() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -193,7 +194,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun highLoadStressTest() {
+    fun highLoadStressTest() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -210,7 +211,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun testHttpUpgrade() {
+    fun testHttpUpgrade() {
         createAndStartServer {
             handle {
                 call.respond(
@@ -263,7 +264,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun testRespondWrite() {
+    fun testRespondWrite() {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter {
@@ -282,7 +283,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun test404() {
+    fun test404() {
         createAndStartServer {
             get("/") {
                 call.respondText("OK")
@@ -297,7 +298,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
-    public fun testLongResponse() {
+    fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
                 call.respond(

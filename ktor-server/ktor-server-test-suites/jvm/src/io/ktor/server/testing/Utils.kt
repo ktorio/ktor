@@ -4,9 +4,9 @@
 
 package io.ktor.server.testing
 
+import org.junit.Assert.*
 import java.io.*
 import java.util.zip.*
-import kotlin.test.*
 
 internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     var exception: Throwable? = null
@@ -17,7 +17,7 @@ internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     }
 
     assertNotNull(exception)
-    return exception
+    return exception!!
 }
 
 internal fun InputStream.crcWithSize(): Pair<Long, Long> {
@@ -81,9 +81,9 @@ internal fun BufferedReader.skipHttpResponseContent(contentLength: Int) {
     while (current < contentLength) {
         val ch = read()
         assertNotEquals(
+            "Server promised $contentLength bytes but we only got $current bytes",
             -1,
-            ch,
-            "Server promised $contentLength bytes but we only got $current bytes"
+            ch
         )
         when (ch.toChar()) {
             in '\u0000'..'\u007f' -> current++
@@ -92,4 +92,16 @@ internal fun BufferedReader.skipHttpResponseContent(contentLength: Int) {
             else -> current += 4
         }
     }
+}
+
+internal inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
+    var failed = false
+    try {
+        block()
+    } catch (cause: Throwable) {
+        failed = true
+        assertTrue(cause is T)
+    }
+
+    assertTrue(failed)
 }

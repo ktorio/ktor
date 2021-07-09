@@ -45,7 +45,6 @@ fun Project.filterSnapshotTests() {
     }
 }
 
-
 fun Project.setupTrainForSubproject() {
     val build_snapshot_train: Boolean? by extra
     if (build_snapshot_train != true) return

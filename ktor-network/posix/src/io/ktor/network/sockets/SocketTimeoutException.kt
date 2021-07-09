@@ -7,4 +7,9 @@ package io.ktor.network.sockets
 import io.ktor.utils.io.errors.*
 
 @Suppress("EXPECT_WITHOUT_ACTUAL")
-public actual class SocketTimeoutException actual constructor(message: String) : IOException(message)
+public actual class SocketTimeoutException(
+    message: String,
+    cause: Throwable?
+) : IOException(message, cause) {
+    public actual constructor(message: String) : this(message, null)
+}

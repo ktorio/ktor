@@ -86,7 +86,6 @@ private fun ByteBuffer.decodeASCIILine_buffer(out: CharArray, offset: Int, lengt
         val decoded = (rc shr 32).toInt()
         // found EOL
         if (cr) {
-            position(position() - 1) // push back a character after CR
             return decodeUtf8Result(decoded - 1, -1) // don't return CR
         }
 

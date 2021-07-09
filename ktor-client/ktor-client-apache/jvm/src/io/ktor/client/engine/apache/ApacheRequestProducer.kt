@@ -32,7 +32,9 @@ internal class ApacheRequestProducer(
 ) : HttpAsyncRequestProducer, CoroutineScope {
 
     private val request: HttpUriRequest = setupRequest()
-    private val host = URIUtils.extractHost(request.uri)!!
+
+    private val host = URIUtils.extractHost(request.uri)
+        ?: throw IllegalArgumentException("Cannot extract host from URL ${request.uri}")
 
     private val interestController = InterestControllerHolder()
 
