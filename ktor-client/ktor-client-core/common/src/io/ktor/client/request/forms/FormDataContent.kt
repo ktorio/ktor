@@ -37,9 +37,10 @@ public class FormDataContent(
  * @param parts: form part data
  */
 public class MultiPartFormDataContent(
-    parts: List<PartData>
+    parts: List<PartData>,
+    val boundary: String = generateBoundary(),
+    override val contentType: ContentType = ContentType.MultiPart.Mixed.withParameter("boundary", boundary)
 ) : OutgoingContent.WriteChannelContent() {
-    private val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
     private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n".toByteArray()
 
@@ -81,8 +82,6 @@ public class MultiPartFormDataContent(
     }
 
     override val contentLength: Long?
-
-    override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     init {
         var rawLength: Long? = 0
