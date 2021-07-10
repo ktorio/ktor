@@ -12,6 +12,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 /**
  * Platform default serializer.
@@ -143,10 +144,12 @@ public class JsonFeature internal constructor(
 
                 context.headers.remove(HttpHeaders.ContentType)
 
-                val serializedContent = when (payload) {
-                    Unit -> EmptyContent
-                    is EmptyContent -> EmptyContent
-                    else -> feature.serializer.write(payload, contentType)
+                val serializedContent = withContext(scope.engine.dispatcher) {
+                    when (payload) {
+                        Unit -> EmptyContent
+                        is EmptyContent -> EmptyContent
+                        else -> feature.serializer.write(payload, contentType)
+                    }
                 }
 
                 proceedWith(serializedContent)
@@ -158,7 +161,9 @@ public class JsonFeature internal constructor(
                 val contentType = context.response.contentType() ?: return@intercept
                 if (!feature.canHandle(contentType)) return@intercept
 
-                val parsedBody = feature.serializer.read(info, body.readRemaining())
+                val parsedBody = withContext(scope.engine.dispatcher) {
+                    feature.serializer.read(info, body.readRemaining())
+                }
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }
