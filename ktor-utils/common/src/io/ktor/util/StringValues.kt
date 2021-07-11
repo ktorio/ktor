@@ -259,6 +259,26 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
 
         return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as StringValuesBuilder
+
+        if (caseInsensitiveName != other.caseInsensitiveName) return false
+        if (values != other.values) return false
+        if (built != other.built) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = caseInsensitiveName.hashCode()
+        result = 31 * result + values.hashCode()
+        result = 31 * result + built.hashCode()
+        return result
+    }
 }
 
 /**

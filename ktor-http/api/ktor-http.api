@@ -885,6 +885,7 @@ public final class io/ktor/http/URLBuilder {
 	public synthetic fun <init> (Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/ParametersBuilder;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun build ()Lio/ktor/http/Url;
 	public final fun buildString ()Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEncodedPath ()Ljava/lang/String;
 	public final fun getFragment ()Ljava/lang/String;
 	public final fun getHost ()Ljava/lang/String;
@@ -894,6 +895,7 @@ public final class io/ktor/http/URLBuilder {
 	public final fun getProtocol ()Lio/ktor/http/URLProtocol;
 	public final fun getTrailingQuery ()Z
 	public final fun getUser ()Ljava/lang/String;
+	public fun hashCode ()I
 	public final fun path (Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public final fun path ([Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 	public final fun setEncodedPath (Ljava/lang/String;)V

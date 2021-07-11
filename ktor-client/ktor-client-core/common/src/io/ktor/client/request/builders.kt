@@ -270,7 +270,8 @@ public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = H
 public suspend inline fun <reified T> HttpClient.get(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = get {
+): T = request {
+    method = HttpMethod.Get
     url.takeFrom(urlString)
     block()
 }
@@ -284,7 +285,8 @@ public suspend inline fun <reified T> HttpClient.get(
 public suspend inline fun <reified T> HttpClient.post(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = post {
+): T = request {
+    method = HttpMethod.Post
     url.takeFrom(urlString)
     block()
 }
@@ -298,7 +300,8 @@ public suspend inline fun <reified T> HttpClient.post(
 public suspend inline fun <reified T> HttpClient.put(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = put {
+): T = request {
+    method = HttpMethod.Put
     url.takeFrom(urlString)
     block()
 }
@@ -312,7 +315,8 @@ public suspend inline fun <reified T> HttpClient.put(
 public suspend inline fun <reified T> HttpClient.delete(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = delete {
+): T = request {
+    method = HttpMethod.Delete
     url.takeFrom(urlString)
     block()
 }
@@ -326,7 +330,8 @@ public suspend inline fun <reified T> HttpClient.delete(
 public suspend inline fun <reified T> HttpClient.options(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = options {
+): T = request {
+    method = HttpMethod.Options
     url.takeFrom(urlString)
     block()
 }
@@ -340,7 +345,8 @@ public suspend inline fun <reified T> HttpClient.options(
 public suspend inline fun <reified T> HttpClient.patch(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = patch {
+): T = request {
+    method = HttpMethod.Patch
     url.takeFrom(urlString)
     block()
 }
@@ -354,7 +360,8 @@ public suspend inline fun <reified T> HttpClient.patch(
 public suspend inline fun <reified T> HttpClient.head(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = head {
+): T = request {
+    method = HttpMethod.Head
     url.takeFrom(urlString)
     block()
 }

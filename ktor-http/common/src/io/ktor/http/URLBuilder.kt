@@ -99,6 +99,30 @@ public class URLBuilder(
         protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
     )
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is URLBuilder) return false
+
+        if (protocol != other.protocol) return false
+        if (authority != other.authority) return false
+        if (encodedPath != other.encodedPath) return false
+        if (parameters != other.parameters) return false
+        if (fragment != other.fragment) return false
+        if (trailingQuery != other.trailingQuery) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = protocol.hashCode()
+        result = 31 * result + authority.hashCode()
+        result = 31 * result + encodedPath.hashCode()
+        result = 31 * result + parameters.hashCode()
+        result = 31 * result + fragment.hashCode()
+        result = 31 * result + trailingQuery.hashCode()
+        return result
+    }
+
     // Required to write external extension function
     public companion object
 }
