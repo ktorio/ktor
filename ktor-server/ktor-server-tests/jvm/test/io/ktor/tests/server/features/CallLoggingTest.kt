@@ -257,6 +257,78 @@ class CallLoggingTest {
     }
 
     @Test
+    fun `deferred MDC entries are evaluated after handling request`() {
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-status-not-deferred") { it.response.status().toString() }
+                    mdc("mdc-status-deferred", defer = true) { it.response.status().toString() }
+                }
+            }
+            log = logger
+        }
+
+        withApplication(environment) {
+            newSingleThreadContext("mdc-test-ctx").use { dispatcher ->
+                application.routing {
+                    get("/*") {
+                        withContext(dispatcher) {
+                            application.log.info("test message")
+                        }
+                        call.respond(HttpStatusCode.OK, "OK")
+                    }
+                }
+
+                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                    assertTrue { call.requestHandled }
+
+                    assertTrue { "INFO: test message [mdc-status-deferred=null, mdc-status-not-deferred=null]" in messages }
+                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-status-deferred=200 OK, mdc-status-not-deferred=null]" in messages }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `deferred MDC entries survive context switch`() {
+        var counter = 0
+
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-status-not-deferred") { it.response.status().toString() }
+                    mdc("mdc-status-deferred", defer = true) { it.response.status().toString() }
+                    callIdMdc("mdc-call-id")
+                }
+                install(CallId) {
+                    generate { "generated-call-id-${counter++}" }
+                }
+            }
+            log = logger
+        }
+
+        withApplication(environment) {
+            newFixedThreadPoolContext(1, "test-dispatcher").use { dispatcher ->
+                application.routing {
+                    get("/*") {
+                        withContext(dispatcher) {
+                            application.log.info("test message")
+                        }
+                        call.respond("OK")
+                    }
+                }
+
+                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                    assertTrue { call.requestHandled }
+
+                    assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-status-deferred=null, mdc-status-not-deferred=null]" in messages }
+                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-status-deferred=200 OK, mdc-status-not-deferred=null]" in messages }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `can configure custom logger`() {
         val customMessages = ArrayList<String>()
         val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
