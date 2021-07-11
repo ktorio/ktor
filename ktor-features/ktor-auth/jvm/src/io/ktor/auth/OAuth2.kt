@@ -38,7 +38,8 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                 callbackRedirectUrl,
                 state = provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
-                interceptor = provider.authorizeUrlInterceptor
+                interceptor = provider.authorizeUrlInterceptor,
+                extraParameters = provider.extraParameters
             )
         } else {
             withContext(dispatcher) {
@@ -74,7 +75,7 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     settings: OAuthServerSettings.OAuth2ServerSettings,
     callbackRedirectUrl: String,
     state: String,
-    extraParameters: List<Pair<String, String>> = emptyList(),
+    extraParameters: Map<String, String> = emptyMap(),
     scopes: List<String> = emptyList(),
     interceptor: URLBuilder.() -> Unit
 ) {
@@ -128,7 +129,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     clientId: String,
     state: String,
     scopes: List<String> = emptyList(),
-    parameters: List<Pair<String, String>> = emptyList(),
+    parameters: Map<String, String> = emptyMap(),
     interceptor: URLBuilder.() -> Unit = {}
 ) {
     val url = URLBuilder()

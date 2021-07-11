@@ -109,6 +109,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      * @property accessTokenInterceptor an interceptor function to customize access token request
+     * @property extraParameters extra parameters to send provider during authentication
      */
     public class OAuth2ServerSettings(
         name: String,
@@ -125,7 +126,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
         public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
         public val passParamsInURL: Boolean = false,
-        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+        public val extraParameters: Map<String, String> = emptyMap()
     ) : OAuthServerSettings(name, OAuthVersion.V20) {
         @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
         public constructor(
@@ -143,6 +145,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
             authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
             passParamsInURL: Boolean = false,
+            extraParameters: Map<String, String> = emptyMap(),
         ) : this(
             name,
             authorizeUrl,
@@ -155,7 +158,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
             nonceManager,
             authorizeUrlInterceptor,
             passParamsInURL,
-            {}
+            {},
+            extraParameters
         )
     }
 }
@@ -326,7 +330,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
                             provider,
                             callbackUrl,
                             code,
-                            emptyMap(),
+                            provider.extraParameters.toMap(),
                             configure
                         )
 
