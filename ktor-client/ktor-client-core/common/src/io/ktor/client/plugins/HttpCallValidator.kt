@@ -98,6 +98,7 @@ public class HttpCallValidator internal constructor(
         override fun prepare(block: Config.() -> Unit): HttpCallValidator {
             val config = Config().apply(block)
 
+            @Suppress("DEPRECATION")
             return HttpCallValidator(
                 config.responseValidators.reversed(),
                 config.responseExceptionHandlers.reversed(),
@@ -105,6 +106,7 @@ public class HttpCallValidator internal constructor(
             )
         }
 
+        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpCallValidator, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {

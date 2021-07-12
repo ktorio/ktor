@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 /**
  * Represents a single value parameter
  * @property name of parameter
@@ -19,8 +17,8 @@ public data class HeaderValueParam(val name: String, val value: String) {
     }
 
     override fun hashCode(): Int {
-        var result = name.toLowerCase().hashCode()
-        result += 31 * result + value.toLowerCase().hashCode()
+        var result = name.lowercase().hashCode()
+        result += 31 * result + value.lowercase().hashCode()
         return result
     }
 }

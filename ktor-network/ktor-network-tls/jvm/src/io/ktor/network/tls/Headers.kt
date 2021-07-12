@@ -8,7 +8,6 @@ import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 internal class TLSRecord(
     val type: TLSRecordType = TLSRecordType.Handshake,
     val version: TLSVersion = TLSVersion.TLS12,
@@ -16,7 +15,6 @@ internal class TLSRecord(
 )
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 internal class TLSHandshake {
     var type: TLSHandshakeType = TLSHandshakeType.HelloRequest
     var packet = ByteReadPacket.Empty

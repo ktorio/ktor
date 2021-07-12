@@ -32,5 +32,6 @@ public suspend inline fun <reified T> HttpResponse.receive(): T = error("Use `bo
  * @throws NoTransformationFoundException If no transformation is found for the type [info].
  * @throws DoubleReceiveException If already called [receive].
  */
+@Suppress("UNUSED_PARAMETER")
 @Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body(info)"), level = DeprecationLevel.ERROR)
 public suspend fun receive(info: TypeInfo): Any = error("Use `body` method instead")

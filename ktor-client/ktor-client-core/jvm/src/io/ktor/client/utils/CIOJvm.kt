@@ -12,7 +12,6 @@ import java.nio.*
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
-@InternalAPI
 public val HttpClientDefaultPool: ByteBufferPool = ByteBufferPool()
 
 @InternalAPI

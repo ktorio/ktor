@@ -40,7 +40,7 @@ class JvmContentTest : ClientLoader() {
         body: Any,
         crossinline block: (Response) -> T
     ): T = preparePost("$TEST_SERVER/content/echo") {
-        this.body = body
+        setBody(body)
     }.body<Response, T> {
         block(it)
     }

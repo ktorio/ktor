@@ -7,6 +7,7 @@ package io.ktor.client.engine.android
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -18,6 +19,7 @@ import kotlin.coroutines.*
 /**
  * Setup [HttpURLConnection] timeout configuration using [HttpTimeout.HttpTimeoutCapabilityConfiguration] as a source.
  */
+@OptIn(InternalAPI::class)
 internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestData) {
     requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { connectTimeout = convertLongTimeoutToIntWithInfiniteAsZero(it) }
@@ -30,6 +32,7 @@ internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestDa
  * Update [HttpURLConnection] timeout configuration to support request timeout. Required to support blocking
  * [HttpURLConnection.connect] call.
  */
+@OptIn(InternalAPI::class)
 private fun HttpURLConnection.setupRequestTimeoutAttributes(
     timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
 ) {
@@ -65,6 +68,7 @@ internal suspend fun <T> HttpURLConnection.timeoutAwareConnection(
 /**
  * Establish connection and return correspondent [ByteReadChannel].
  */
+@OptIn(InternalAPI::class)
 internal fun HttpURLConnection.content(callContext: CoroutineContext, request: HttpRequestData): ByteReadChannel = try {
     inputStream?.buffered()
 } catch (_: IOException) {

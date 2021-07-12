@@ -1,5 +1,6 @@
 description = ""
 
+val kotlin_version: String by project.extra
 val jackson_version: String by project.extra
 val jackson_kotlin_version: String by project.extra
 
@@ -10,6 +11,7 @@ kotlin {
                 api(project(":ktor-shared:ktor-shared-serialization"))
                 api("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
                 api("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_kotlin_version")
+                implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
             }
         }
         jvmTest {

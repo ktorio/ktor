@@ -79,7 +79,6 @@ public fun headersOf(name: String, values: List<String>): Headers = HeadersSingl
  */
 public fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = HeadersImpl(pairs.asList().toMap())
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public class HeadersImpl(
     values: Map<String, List<String>> = emptyMap()
@@ -87,7 +86,6 @@ public class HeadersImpl(
     override fun toString(): String = "Headers ${entries()}"
 }
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public class HeadersSingleImpl(
     name: String,

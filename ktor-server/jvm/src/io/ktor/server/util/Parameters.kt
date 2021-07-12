@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
-import java.lang.reflect.Type
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -51,12 +50,6 @@ public inline fun Parameters.getOrFail(name: String): String {
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
     return getOrFailImpl(name, typeInfo<R>())
-}
-
-@PublishedApi
-@Deprecated("Please use overload with typeInfo parameter", level = DeprecationLevel.ERROR)
-internal fun <R : Any> Parameters.getOrFailImpl(name: String, type: KClass<R>, javaType: Type): R {
-    error("Please use overload with typeInfo parameter")
 }
 
 @PublishedApi

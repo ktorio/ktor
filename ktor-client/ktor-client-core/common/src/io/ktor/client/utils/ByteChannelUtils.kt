@@ -10,6 +10,7 @@ import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+@OptIn(DelicateCoroutinesApi::class)
 internal fun ByteReadChannel.observable(
     context: CoroutineContext,
     contentLength: Long?,

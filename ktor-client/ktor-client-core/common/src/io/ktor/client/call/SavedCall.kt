@@ -17,7 +17,10 @@ import kotlin.coroutines.*
 
 internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteArray) : HttpClientCall(client) {
 
-    /** Returns new read channel of a response body */
+    /**
+     * Returns a channel with [responseBody] data.
+     */
+    @OptIn(InternalAPI::class)
     override suspend fun getResponseContent(): ByteReadChannel {
         return ByteReadChannel(responseBody)
     }
@@ -49,12 +52,14 @@ internal class SavedHttpResponse(
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
+    @OptIn(InternalAPI::class)
     override val content: ByteReadChannel = ByteReadChannel(body)
 }
 
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
+@OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
     val currentClient = client ?: error("Failed to save call in different native thread.")
 

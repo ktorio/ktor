@@ -147,7 +147,7 @@ internal constructor(
             return WebSockets(config.pingInterval, config.maxFrameSize, config.extensionsConfig)
         }
 
-        @OptIn(ExperimentalWebSocketExtensionApi::class)
+        @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
         override fun install(plugin: WebSockets, scope: HttpClient) {
             val extensionsSupported = scope.engine.supportedCapabilities.contains(WebSocketExtensionsCapability)
 

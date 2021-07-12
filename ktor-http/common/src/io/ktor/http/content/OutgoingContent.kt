@@ -79,6 +79,7 @@ public sealed class OutgoingContent {
         /**
          * Provides [ByteReadChannel] for the given range of the content
          */
+        @OptIn(DelicateCoroutinesApi::class)
         public open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) {
             ByteReadChannel.Empty
         } else {

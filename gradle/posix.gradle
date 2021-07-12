@@ -1,7 +1,5 @@
 apply from: rootProject.file("gradle/ide.gradle")
 
-apply plugin: "kotlinx-atomicfu"
-
 def getHostName() {
     def target = System.getProperty("os.name")
     if (target == 'Linux') return 'linux'
@@ -46,7 +44,7 @@ if (host == 'windows' && skipMingw) return
 
 kotlin {
     targets {
-        if (project.ext.ideaActive) {
+        if (KtorBuildProperties.ideaActive) {
             project.ext.hostname = host
             fromPreset(project.ext.ideaPreset, 'posix')
             project.ext.nativeTargets = [posix]
@@ -109,15 +107,10 @@ kotlin {
         project.ext.nativeCompilations += project.ext.nativeTargets.collect { it.compilations.main }
     }
     sourceSets {
-        posixMain.dependencies {
-            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
-            implementation "org.jetbrains.kotlinx:atomicfu:$atomicfu_version"
-        }
-
-        posixTest
         posixMain { dependsOn commonMain }
+        posixTest
 
-        if (!project.ext.ideaActive) {
+        if (!KtorBuildProperties.ideaActive) {
             configure(project.ext.nativeTargets.collect { getByName(it.name + 'Main') }) {
                 dependsOn posixMain
             }

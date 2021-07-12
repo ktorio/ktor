@@ -100,8 +100,8 @@ public class ContentType private constructor(
             parameters == other.parameters
 
     override fun hashCode(): Int {
-        var result = contentType.toLowerCase().hashCode()
-        result += 31 * result + contentSubtype.toLowerCase().hashCode()
+        var result = contentType.lowercase().hashCode()
+        result += 31 * result + contentSubtype.lowercase().hashCode()
         result += 31 * parameters.hashCode()
         return result
     }

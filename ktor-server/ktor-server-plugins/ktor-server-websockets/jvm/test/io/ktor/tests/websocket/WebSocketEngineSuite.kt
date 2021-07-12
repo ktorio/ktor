@@ -278,7 +278,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
 
-        val engine = createAndStartServer {
+        createAndStartServer {
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->
@@ -604,7 +604,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         createAndStartServer {
             webSocket("/") {
                 try {
-                    assertNull(incoming.receiveOrNull(), "Incoming channel should be closed")
+                    assertNull(incoming.receiveCatching().getOrNull(), "Incoming channel should be closed")
                     assertFailsWith<CancellationException>("Outgoing channel should be closed properly") {
                         repeat(10) {
                             // we need this loop because the outgoing is not closed immediately

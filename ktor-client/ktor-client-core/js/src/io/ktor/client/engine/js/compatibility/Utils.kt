@@ -43,6 +43,7 @@ internal fun AbortController(): AbortController {
     return if (PlatformUtils.IS_BROWSER) {
         js("new AbortController()")
     } else {
+        @Suppress("UNUSED_VARIABLE")
         val controller = js("eval('require')('abort-controller')")
         js("new controller()")
     }

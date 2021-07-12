@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.util.thread.*
 
+@OptIn(InternalAPI::class)
 internal class JettyHttp2Engine(
     override val config: JettyEngineConfig
 ) : HttpClientEngineBase("ktor-jetty") {

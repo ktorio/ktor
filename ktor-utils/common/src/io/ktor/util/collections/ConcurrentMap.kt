@@ -17,7 +17,6 @@ private const val UPSIZE_RATIO = 2
 /**
  * Ktor concurrent map implementation. Please do not use it.
  */
-@InternalAPI
 public class ConcurrentMap<Key : Any, Value : Any>(
     private val lock: Lock = Lock(),
     initialCapacity: Int = INITIAL_CAPACITY
