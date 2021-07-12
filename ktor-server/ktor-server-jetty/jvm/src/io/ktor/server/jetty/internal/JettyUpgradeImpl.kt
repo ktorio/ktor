@@ -5,6 +5,7 @@
 package io.ktor.server.jetty.internal
 
 import io.ktor.http.content.*
+import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -15,6 +16,7 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+@OptIn(EngineAPI::class)
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
 public object JettyUpgradeImpl : ServletUpgrade {

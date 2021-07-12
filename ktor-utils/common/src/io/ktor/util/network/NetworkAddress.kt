@@ -25,11 +25,13 @@ public expect fun NetworkAddress(hostname: String, port: Int): NetworkAddress
 /**
  * Network address hostname.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val NetworkAddress.hostname: String
 
 /**
  * Network address port.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val NetworkAddress.port: Int
 
 @Suppress("KDocMissingDocumentation")

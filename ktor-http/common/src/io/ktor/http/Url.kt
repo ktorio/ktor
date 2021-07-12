@@ -108,6 +108,7 @@ public class Url internal constructor(
     public companion object
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Deprecated(
     "Url is not a data class anymore. Please use URLBuilder(url)",
     level = DeprecationLevel.ERROR,

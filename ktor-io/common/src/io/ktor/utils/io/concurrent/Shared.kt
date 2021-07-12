@@ -16,7 +16,6 @@ import kotlin.properties.*
  * var myCounter by shared(0)
  * ```
  */
-@DangerousInternalIoApi
 public expect inline fun <T> shared(value: T): ReadWriteProperty<Any, T>
 
 /**
@@ -25,5 +24,4 @@ public expect inline fun <T> shared(value: T): ReadWriteProperty<Any, T>
  *
  * It will have value in creation thread and null otherwise.
  */
-@DangerousInternalIoApi
 public expect fun <T : Any> threadLocal(value: T): ReadOnlyProperty<Any, T?>

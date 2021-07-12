@@ -22,6 +22,7 @@ internal const val DEFAULT_CLOSE_MESSAGE: String = "Byte channel was closed"
 private const val BYTE_BUFFER_CAPACITY: Int = 4088
 
 // implementation for ByteChannel
+@Suppress("DEPRECATION", "OverridingDeprecatedMember")
 internal open class ByteBufferChannel(
     override val autoFlush: Boolean,
     private val pool: ObjectPool<ReadWriteBufferState.Initial> = BufferObjectPool,
@@ -286,8 +287,11 @@ internal open class ByteBufferChannel(
     private fun setupStateForRead(): ByteBuffer? {
         val newState = _state.updateAndGet { state ->
             when (state) {
-                ReadWriteBufferState.Terminated -> closed?.cause?.let { rethrowClosed(it) } ?: return null
-                ReadWriteBufferState.IdleEmpty -> closed?.cause?.let { rethrowClosed(it) } ?: return null
+                ReadWriteBufferState.Terminated,
+                ReadWriteBufferState.IdleEmpty -> {
+                    val cause = closed?.cause ?: return null
+                    rethrowClosed(cause)
+                }
                 else -> {
                     closed?.cause?.let { rethrowClosed(it) }
                     if (state.capacity.availableForRead == 0) return null
@@ -1022,7 +1026,6 @@ internal open class ByteBufferChannel(
         }
     }
 
-    @ExperimentalIoApi
     override suspend fun awaitFreeSpace() {
         writeSuspend(1)
     }
@@ -1593,7 +1596,6 @@ internal open class ByteBufferChannel(
         writeSession.complete()
     }
 
-    @ExperimentalIoApi
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
             try {
@@ -1604,7 +1606,6 @@ internal open class ByteBufferChannel(
         }
     }
 
-    @ExperimentalIoApi
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             try {
@@ -1805,7 +1806,6 @@ internal open class ByteBufferChannel(
 
     private val writeSession = WriteSessionImpl(this)
 
-    @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = writeSession
 
@@ -2037,7 +2037,7 @@ internal open class ByteBufferChannel(
             val buffer = request(0, 1)
             when {
                 buffer != null -> {
-                    if (buffer.get() != '\r'.toByte()) {
+                    if (buffer.get() != '\r'.code.toByte()) {
                         buffer.position(buffer.position() - 1)
                         throw TooLongLineException("Line is longer than limit")
                     }

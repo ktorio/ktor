@@ -32,7 +32,6 @@ private val EMPTY_INT_ARRAY = IntArray(0)
  * A headers map data structure used in CIO
  */
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {
     public var size: Int = 0
         private set
@@ -138,8 +137,7 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
 /**
  * Dump header values to [out], useful for debugging
  */
-@InternalAPI
-public fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
+internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     for (i in 0 until size) {
         out.append(indent)
         out.append(nameAt(i))

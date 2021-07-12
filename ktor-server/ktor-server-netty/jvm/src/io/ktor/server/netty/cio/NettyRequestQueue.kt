@@ -4,7 +4,9 @@
 
 package io.ktor.server.netty.cio
 
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -20,38 +22,41 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
 
     val elements: ReceiveChannel<CallElement> = incomingQueue
 
-    public fun schedule(call: NettyApplicationCall) {
+    @OptIn(EngineAPI::class)
+    fun schedule(call: NettyApplicationCall) {
         val element = CallElement(call)
         try {
-            incomingQueue.offer(element)
+            incomingQueue.trySend(element).isSuccess
         } catch (t: Throwable) {
             element.tryDispose()
         }
     }
 
-    public fun close() {
+    fun close() {
         incomingQueue.close()
     }
 
-    public fun cancel() {
+    fun cancel() {
         incomingQueue.close()
 
         while (true) {
-            incomingQueue.poll()?.tryDispose() ?: break
+            incomingQueue.tryReceive().getOrNull()?.tryDispose() ?: break
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    public fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
+    fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
+    @OptIn(EngineAPI::class)
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
         private val scheduled = atomic(0)
 
+        @OptIn(InternalAPI::class)
         private val message: Job = call.response.responseMessage
 
         val isCompleted: Boolean get() = message.isCompleted
 
-        public fun ensureRunning(): Boolean {
+        fun ensureRunning(): Boolean {
             scheduled.update { value ->
                 when (value) {
                     0 -> 1
@@ -64,7 +69,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
             return true
         }
 
-        public fun tryDispose() {
+        fun tryDispose() {
             if (scheduled.compareAndSet(0, 2)) {
                 call.dispose()
             }

@@ -32,8 +32,8 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    public val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
 
@@ -57,7 +57,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    public val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -71,21 +71,21 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         get() = testJob + testDispatcher
 
     @get:Rule
-    public val test: TestName = TestName()
+    val test: TestName = TestName()
 
-    public open val timeout: Long = if (isUnderDebugger) {
+    open val timeout: Long = if (isUnderDebugger) {
         1000000
     } else {
         (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(4))
     }
 
     @get:Rule
-    public val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
+    val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
-    public fun setUpBase() {
+    fun setUpBase() {
         val method = this.javaClass.getMethod(test.methodName)
             ?: throw AssertionError("Method ${test.methodName} not found")
 
@@ -101,7 +101,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     }
 
     @After
-    public fun tearDownBase() {
+    fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
@@ -205,6 +205,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         throw MultipleFailureException(lastFailures)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     protected fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
@@ -327,15 +328,15 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
-    public companion object {
-        public val keyStoreFile: File = File("build/temp.jks")
-        public lateinit var keyStore: KeyStore
-        public lateinit var sslContext: SSLContext
-        public lateinit var trustManager: X509TrustManager
+    companion object {
+        val keyStoreFile: File = File("build/temp.jks")
+        lateinit var keyStore: KeyStore
+        lateinit var sslContext: SSLContext
+        lateinit var trustManager: X509TrustManager
 
         @BeforeClass
         @JvmStatic
-        public fun setupAll() {
+        fun setupAll() {
             keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)

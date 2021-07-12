@@ -45,7 +45,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	protected final fun getWritable ()Lio/ktor/utils/io/core/BytePacketBuilder;
 	public fun isClosedForRead ()Z
 	public fun isClosedForWrite ()Z
-	public final fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun peekTo-lBXzO7A (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun prepareFlushedBytes ()V
 	public fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -75,7 +75,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun writeFloat (FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun writeFully-JT6ljtQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeInt (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeLong (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writePacket (Lio/ktor/utils/io/core/ByteReadPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -112,7 +112,7 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract fun isClosedForWrite ()Z
 	public abstract fun lookAhead (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public abstract fun lookAheadSuspend (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun peekTo-lBXzO7A (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readAvailable (ILkotlin/jvm/functions/Function1;)I
 	public abstract fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -141,7 +141,7 @@ public final class io/ktor/utils/io/ByteReadChannel$Companion {
 }
 
 public final class io/ktor/utils/io/ByteReadChannel$DefaultImpls {
-	public static synthetic fun peekTo-vHUFkk8$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun peekTo-lBXzO7A$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun read$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
 }
@@ -188,7 +188,7 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeFully-JT6ljtQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeInt (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeLong (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writePacket (Lio/ktor/utils/io/core/ByteReadPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -399,8 +399,8 @@ public final class io/ktor/utils/io/bits/ByteOrderKt {
 
 public final class io/ktor/utils/io/bits/DefaultAllocator : io/ktor/utils/io/bits/Allocator {
 	public static final field INSTANCE Lio/ktor/utils/io/bits/DefaultAllocator;
-	public fun alloc-SK3TCg8 (I)Ljava/nio/ByteBuffer;
-	public fun alloc-SK3TCg8 (J)Ljava/nio/ByteBuffer;
+	public fun alloc-gFv-Zug (I)Ljava/nio/ByteBuffer;
+	public fun alloc-gFv-Zug (J)Ljava/nio/ByteBuffer;
 	public fun free-3GNKZMM (Ljava/nio/ByteBuffer;)V
 }
 
@@ -408,8 +408,8 @@ public final class io/ktor/utils/io/bits/Memory {
 	public static final field Companion Lio/ktor/utils/io/bits/Memory$Companion;
 	public static final synthetic fun box-impl (Ljava/nio/ByteBuffer;)Lio/ktor/utils/io/bits/Memory;
 	public static fun constructor-impl (Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;
-	public static final fun copyTo-f5Ywojk (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;III)V
-	public static final fun copyTo-iAfECsU (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;JJJ)V
+	public static final fun copyTo-JT6ljtQ (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;III)V
+	public static final fun copyTo-JT6ljtQ (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;JJJ)V
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (Ljava/nio/ByteBuffer;Ljava/lang/Object;)Z
 	public static final fun equals-impl0 (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)Z
@@ -420,8 +420,8 @@ public final class io/ktor/utils/io/bits/Memory {
 	public static fun hashCode-impl (Ljava/nio/ByteBuffer;)I
 	public static final fun loadAt-impl (Ljava/nio/ByteBuffer;I)B
 	public static final fun loadAt-impl (Ljava/nio/ByteBuffer;J)B
-	public static final fun slice-SK3TCg8 (Ljava/nio/ByteBuffer;II)Ljava/nio/ByteBuffer;
-	public static final fun slice-SK3TCg8 (Ljava/nio/ByteBuffer;JJ)Ljava/nio/ByteBuffer;
+	public static final fun slice-87lwejk (Ljava/nio/ByteBuffer;II)Ljava/nio/ByteBuffer;
+	public static final fun slice-87lwejk (Ljava/nio/ByteBuffer;JJ)Ljava/nio/ByteBuffer;
 	public static final fun storeAt-impl (Ljava/nio/ByteBuffer;IB)V
 	public static final fun storeAt-impl (Ljava/nio/ByteBuffer;JB)V
 	public fun toString ()Ljava/lang/String;
@@ -447,148 +447,148 @@ public final class io/ktor/utils/io/bits/MemoryFactoryKt {
 }
 
 public final class io/ktor/utils/io/bits/MemoryJvmKt {
-	public static final fun copyTo-Fs5fovk (Ljava/nio/ByteBuffer;[BIII)V
-	public static final fun copyTo-jqM8g04 (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)V
-	public static final fun copyTo-odTdu9Q (Ljava/nio/ByteBuffer;[BJII)V
-	public static final fun copyTo-rB7MWs8 (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;J)V
-	public static final fun copyTo-rDIWIdE (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)V
-	public static final fun fill-Bd10AMI (Ljava/nio/ByteBuffer;IIB)V
-	public static final fun fill-syO9epc (Ljava/nio/ByteBuffer;JJB)V
+	public static final fun copyTo-62zg_DM (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)V
+	public static final fun copyTo-62zg_DM (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;J)V
+	public static final fun copyTo-9zorpBc (Ljava/nio/ByteBuffer;[BIII)V
+	public static final fun copyTo-9zorpBc (Ljava/nio/ByteBuffer;[BJII)V
+	public static final fun copyTo-SG11BkQ (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)V
+	public static final fun fill-JT6ljtQ (Ljava/nio/ByteBuffer;IIB)V
+	public static final fun fill-JT6ljtQ (Ljava/nio/ByteBuffer;JJB)V
 }
 
 public final class io/ktor/utils/io/bits/MemoryKt {
-	public static final fun copyTo-f8252NU (Ljava/nio/ByteBuffer;[BJI)V
-	public static final fun copyTo-ylBjBJw (Ljava/nio/ByteBuffer;[BII)V
-	public static final fun get-pkUVrfw (Ljava/nio/ByteBuffer;J)B
-	public static final fun get-xtk156I (Ljava/nio/ByteBuffer;I)B
-	public static final fun set-bxgQ-Fg (Ljava/nio/ByteBuffer;IB)V
-	public static final fun set-sgt2R-Q (Ljava/nio/ByteBuffer;JB)V
-	public static final fun storeAt-Fn34HUQ (Ljava/nio/ByteBuffer;IB)V
-	public static final fun storeAt-SVZKsBI (Ljava/nio/ByteBuffer;JB)V
+	public static final fun copyTo-JT6ljtQ (Ljava/nio/ByteBuffer;[BII)V
+	public static final fun copyTo-JT6ljtQ (Ljava/nio/ByteBuffer;[BJI)V
+	public static final fun get-eY85DW0 (Ljava/nio/ByteBuffer;I)B
+	public static final fun get-eY85DW0 (Ljava/nio/ByteBuffer;J)B
+	public static final fun set-62zg_DM (Ljava/nio/ByteBuffer;IB)V
+	public static final fun set-62zg_DM (Ljava/nio/ByteBuffer;JB)V
+	public static final fun storeAt-OEmREl0 (Ljava/nio/ByteBuffer;IB)V
+	public static final fun storeAt-OEmREl0 (Ljava/nio/ByteBuffer;JB)V
 }
 
 public final class io/ktor/utils/io/bits/MemoryPrimitivesJvmKt {
-	public static final fun loadDoubleAt-pkUVrfw (Ljava/nio/ByteBuffer;J)D
-	public static final fun loadDoubleAt-xtk156I (Ljava/nio/ByteBuffer;I)D
-	public static final fun loadFloatAt-pkUVrfw (Ljava/nio/ByteBuffer;J)F
-	public static final fun loadFloatAt-xtk156I (Ljava/nio/ByteBuffer;I)F
-	public static final fun loadIntAt-pkUVrfw (Ljava/nio/ByteBuffer;J)I
-	public static final fun loadIntAt-xtk156I (Ljava/nio/ByteBuffer;I)I
-	public static final fun loadLongAt-pkUVrfw (Ljava/nio/ByteBuffer;J)J
-	public static final fun loadLongAt-xtk156I (Ljava/nio/ByteBuffer;I)J
-	public static final fun loadShortAt-pkUVrfw (Ljava/nio/ByteBuffer;J)S
-	public static final fun loadShortAt-xtk156I (Ljava/nio/ByteBuffer;I)S
-	public static final fun storeDoubleAt-KOHjTOE (Ljava/nio/ByteBuffer;JD)V
-	public static final fun storeDoubleAt-Zzg3DGc (Ljava/nio/ByteBuffer;ID)V
-	public static final fun storeFloatAt-r2iD9jY (Ljava/nio/ByteBuffer;IF)V
-	public static final fun storeFloatAt-t3dZL90 (Ljava/nio/ByteBuffer;JF)V
-	public static final fun storeIntAt-5Mw_xsg (Ljava/nio/ByteBuffer;II)V
-	public static final fun storeIntAt-Ywqd6oY (Ljava/nio/ByteBuffer;JI)V
-	public static final fun storeLongAt-PxUP_Lw (Ljava/nio/ByteBuffer;JJ)V
-	public static final fun storeLongAt-USuK2a8 (Ljava/nio/ByteBuffer;IJ)V
-	public static final fun storeShortAt-tJtnceY (Ljava/nio/ByteBuffer;IS)V
-	public static final fun storeShortAt-zC5p9Kc (Ljava/nio/ByteBuffer;JS)V
+	public static final fun loadDoubleAt-eY85DW0 (Ljava/nio/ByteBuffer;I)D
+	public static final fun loadDoubleAt-eY85DW0 (Ljava/nio/ByteBuffer;J)D
+	public static final fun loadFloatAt-eY85DW0 (Ljava/nio/ByteBuffer;I)F
+	public static final fun loadFloatAt-eY85DW0 (Ljava/nio/ByteBuffer;J)F
+	public static final fun loadIntAt-eY85DW0 (Ljava/nio/ByteBuffer;I)I
+	public static final fun loadIntAt-eY85DW0 (Ljava/nio/ByteBuffer;J)I
+	public static final fun loadLongAt-eY85DW0 (Ljava/nio/ByteBuffer;I)J
+	public static final fun loadLongAt-eY85DW0 (Ljava/nio/ByteBuffer;J)J
+	public static final fun loadShortAt-eY85DW0 (Ljava/nio/ByteBuffer;I)S
+	public static final fun loadShortAt-eY85DW0 (Ljava/nio/ByteBuffer;J)S
+	public static final fun storeDoubleAt-62zg_DM (Ljava/nio/ByteBuffer;ID)V
+	public static final fun storeDoubleAt-62zg_DM (Ljava/nio/ByteBuffer;JD)V
+	public static final fun storeFloatAt-62zg_DM (Ljava/nio/ByteBuffer;IF)V
+	public static final fun storeFloatAt-62zg_DM (Ljava/nio/ByteBuffer;JF)V
+	public static final fun storeIntAt-62zg_DM (Ljava/nio/ByteBuffer;II)V
+	public static final fun storeIntAt-62zg_DM (Ljava/nio/ByteBuffer;JI)V
+	public static final fun storeLongAt-62zg_DM (Ljava/nio/ByteBuffer;IJ)V
+	public static final fun storeLongAt-62zg_DM (Ljava/nio/ByteBuffer;JJ)V
+	public static final fun storeShortAt-62zg_DM (Ljava/nio/ByteBuffer;IS)V
+	public static final fun storeShortAt-62zg_DM (Ljava/nio/ByteBuffer;JS)V
 }
 
 public final class io/ktor/utils/io/bits/MemoryPrimitivesKt {
-	public static final fun loadUIntAt-pkUVrfw (Ljava/nio/ByteBuffer;J)I
-	public static final fun loadUIntAt-xtk156I (Ljava/nio/ByteBuffer;I)I
-	public static final fun loadULongAt-pkUVrfw (Ljava/nio/ByteBuffer;J)J
-	public static final fun loadULongAt-xtk156I (Ljava/nio/ByteBuffer;I)J
-	public static final fun loadUShortAt-pkUVrfw (Ljava/nio/ByteBuffer;J)S
-	public static final fun loadUShortAt-xtk156I (Ljava/nio/ByteBuffer;I)S
-	public static final fun storeUIntAt-0Rnu8j8 (Ljava/nio/ByteBuffer;JI)V
-	public static final fun storeUIntAt-sLALDiY (Ljava/nio/ByteBuffer;II)V
-	public static final fun storeULongAt-K5D3Yio (Ljava/nio/ByteBuffer;IJ)V
-	public static final fun storeULongAt-vUOAiV4 (Ljava/nio/ByteBuffer;JJ)V
-	public static final fun storeUShortAt-OsIYvYc (Ljava/nio/ByteBuffer;IS)V
-	public static final fun storeUShortAt-_uj5-7g (Ljava/nio/ByteBuffer;JS)V
+	public static final fun loadUIntAt-eY85DW0 (Ljava/nio/ByteBuffer;I)I
+	public static final fun loadUIntAt-eY85DW0 (Ljava/nio/ByteBuffer;J)I
+	public static final fun loadULongAt-eY85DW0 (Ljava/nio/ByteBuffer;I)J
+	public static final fun loadULongAt-eY85DW0 (Ljava/nio/ByteBuffer;J)J
+	public static final fun loadUShortAt-eY85DW0 (Ljava/nio/ByteBuffer;I)S
+	public static final fun loadUShortAt-eY85DW0 (Ljava/nio/ByteBuffer;J)S
+	public static final fun storeUIntAt-c9EmHqw (Ljava/nio/ByteBuffer;II)V
+	public static final fun storeUIntAt-c9EmHqw (Ljava/nio/ByteBuffer;JI)V
+	public static final fun storeULongAt-zwzI6Wg (Ljava/nio/ByteBuffer;IJ)V
+	public static final fun storeULongAt-zwzI6Wg (Ljava/nio/ByteBuffer;JJ)V
+	public static final fun storeUShortAt-4ET0KQI (Ljava/nio/ByteBuffer;IS)V
+	public static final fun storeUShortAt-4ET0KQI (Ljava/nio/ByteBuffer;JS)V
 }
 
 public final class io/ktor/utils/io/bits/PrimiteArraysKt {
-	public static final fun loadByteArray-1sQv-GY (Ljava/nio/ByteBuffer;I[BII)V
-	public static synthetic fun loadByteArray-1sQv-GY$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
-	public static final fun loadByteArray-tS5kjXo (Ljava/nio/ByteBuffer;J[BII)V
-	public static synthetic fun loadByteArray-tS5kjXo$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
-	public static final fun loadUByteArray-MNnqWwU (Ljava/nio/ByteBuffer;I[BII)V
-	public static synthetic fun loadUByteArray-MNnqWwU$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
-	public static final fun loadUByteArray-zUZJq0w (Ljava/nio/ByteBuffer;J[BII)V
-	public static synthetic fun loadUByteArray-zUZJq0w$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
-	public static final fun loadUIntArray-IiM6BKY (Ljava/nio/ByteBuffer;J[III)V
-	public static synthetic fun loadUIntArray-IiM6BKY$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
-	public static final fun loadUIntArray-c9ghqu0 (Ljava/nio/ByteBuffer;I[III)V
-	public static synthetic fun loadUIntArray-c9ghqu0$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
-	public static final fun loadULongArray--ReD1cY (Ljava/nio/ByteBuffer;I[JII)V
-	public static synthetic fun loadULongArray--ReD1cY$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
-	public static final fun loadULongArray-LZRIK90 (Ljava/nio/ByteBuffer;J[JII)V
-	public static synthetic fun loadULongArray-LZRIK90$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
-	public static final fun loadUShortArray-Fd_0kgM (Ljava/nio/ByteBuffer;I[SII)V
-	public static synthetic fun loadUShortArray-Fd_0kgM$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
-	public static final fun loadUShortArray-ItsHwlw (Ljava/nio/ByteBuffer;J[SII)V
-	public static synthetic fun loadUShortArray-ItsHwlw$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
-	public static final fun storeByteArray-1sQv-GY (Ljava/nio/ByteBuffer;I[BII)V
-	public static synthetic fun storeByteArray-1sQv-GY$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
-	public static final fun storeByteArray-tS5kjXo (Ljava/nio/ByteBuffer;J[BII)V
-	public static synthetic fun storeByteArray-tS5kjXo$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
-	public static final fun storeUByteArray-MNnqWwU (Ljava/nio/ByteBuffer;I[BII)V
-	public static synthetic fun storeUByteArray-MNnqWwU$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
-	public static final fun storeUByteArray-zUZJq0w (Ljava/nio/ByteBuffer;J[BII)V
-	public static synthetic fun storeUByteArray-zUZJq0w$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
-	public static final fun storeUIntArray-IiM6BKY (Ljava/nio/ByteBuffer;J[III)V
-	public static synthetic fun storeUIntArray-IiM6BKY$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
-	public static final fun storeUIntArray-c9ghqu0 (Ljava/nio/ByteBuffer;I[III)V
-	public static synthetic fun storeUIntArray-c9ghqu0$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
-	public static final fun storeULongArray--ReD1cY (Ljava/nio/ByteBuffer;I[JII)V
-	public static synthetic fun storeULongArray--ReD1cY$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
-	public static final fun storeULongArray-LZRIK90 (Ljava/nio/ByteBuffer;J[JII)V
-	public static synthetic fun storeULongArray-LZRIK90$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
-	public static final fun storeUShortArray-Fd_0kgM (Ljava/nio/ByteBuffer;I[SII)V
-	public static synthetic fun storeUShortArray-Fd_0kgM$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
-	public static final fun storeUShortArray-ItsHwlw (Ljava/nio/ByteBuffer;J[SII)V
-	public static synthetic fun storeUShortArray-ItsHwlw$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
+	public static final fun loadByteArray-9zorpBc (Ljava/nio/ByteBuffer;I[BII)V
+	public static final fun loadByteArray-9zorpBc (Ljava/nio/ByteBuffer;J[BII)V
+	public static synthetic fun loadByteArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
+	public static synthetic fun loadByteArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
+	public static final fun loadUByteArray-KqtU1YU (Ljava/nio/ByteBuffer;I[BII)V
+	public static final fun loadUByteArray-KqtU1YU (Ljava/nio/ByteBuffer;J[BII)V
+	public static synthetic fun loadUByteArray-KqtU1YU$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
+	public static synthetic fun loadUByteArray-KqtU1YU$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
+	public static final fun loadUIntArray-EM3dPTA (Ljava/nio/ByteBuffer;I[III)V
+	public static final fun loadUIntArray-EM3dPTA (Ljava/nio/ByteBuffer;J[III)V
+	public static synthetic fun loadUIntArray-EM3dPTA$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
+	public static synthetic fun loadUIntArray-EM3dPTA$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
+	public static final fun loadULongArray-bNlDJKc (Ljava/nio/ByteBuffer;I[JII)V
+	public static final fun loadULongArray-bNlDJKc (Ljava/nio/ByteBuffer;J[JII)V
+	public static synthetic fun loadULongArray-bNlDJKc$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
+	public static synthetic fun loadULongArray-bNlDJKc$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
+	public static final fun loadUShortArray-m8CCUi4 (Ljava/nio/ByteBuffer;I[SII)V
+	public static final fun loadUShortArray-m8CCUi4 (Ljava/nio/ByteBuffer;J[SII)V
+	public static synthetic fun loadUShortArray-m8CCUi4$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
+	public static synthetic fun loadUShortArray-m8CCUi4$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
+	public static final fun storeByteArray-9zorpBc (Ljava/nio/ByteBuffer;I[BII)V
+	public static final fun storeByteArray-9zorpBc (Ljava/nio/ByteBuffer;J[BII)V
+	public static synthetic fun storeByteArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
+	public static synthetic fun storeByteArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
+	public static final fun storeUByteArray-KqtU1YU (Ljava/nio/ByteBuffer;I[BII)V
+	public static final fun storeUByteArray-KqtU1YU (Ljava/nio/ByteBuffer;J[BII)V
+	public static synthetic fun storeUByteArray-KqtU1YU$default (Ljava/nio/ByteBuffer;I[BIIILjava/lang/Object;)V
+	public static synthetic fun storeUByteArray-KqtU1YU$default (Ljava/nio/ByteBuffer;J[BIIILjava/lang/Object;)V
+	public static final fun storeUIntArray-EM3dPTA (Ljava/nio/ByteBuffer;I[III)V
+	public static final fun storeUIntArray-EM3dPTA (Ljava/nio/ByteBuffer;J[III)V
+	public static synthetic fun storeUIntArray-EM3dPTA$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
+	public static synthetic fun storeUIntArray-EM3dPTA$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
+	public static final fun storeULongArray-bNlDJKc (Ljava/nio/ByteBuffer;I[JII)V
+	public static final fun storeULongArray-bNlDJKc (Ljava/nio/ByteBuffer;J[JII)V
+	public static synthetic fun storeULongArray-bNlDJKc$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
+	public static synthetic fun storeULongArray-bNlDJKc$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
+	public static final fun storeUShortArray-m8CCUi4 (Ljava/nio/ByteBuffer;I[SII)V
+	public static final fun storeUShortArray-m8CCUi4 (Ljava/nio/ByteBuffer;J[SII)V
+	public static synthetic fun storeUShortArray-m8CCUi4$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
+	public static synthetic fun storeUShortArray-m8CCUi4$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
 }
 
 public final class io/ktor/utils/io/bits/PrimitiveArraysJvmKt {
-	public static final fun loadDoubleArray-KUjKYZc (Ljava/nio/ByteBuffer;I[DII)V
-	public static synthetic fun loadDoubleArray-KUjKYZc$default (Ljava/nio/ByteBuffer;I[DIIILjava/lang/Object;)V
-	public static final fun loadDoubleArray-XWWvNjo (Ljava/nio/ByteBuffer;J[DII)V
-	public static synthetic fun loadDoubleArray-XWWvNjo$default (Ljava/nio/ByteBuffer;J[DIIILjava/lang/Object;)V
-	public static final fun loadFloatArray-4iahAcY (Ljava/nio/ByteBuffer;I[FII)V
-	public static synthetic fun loadFloatArray-4iahAcY$default (Ljava/nio/ByteBuffer;I[FIIILjava/lang/Object;)V
-	public static final fun loadFloatArray-ECwikis (Ljava/nio/ByteBuffer;J[FII)V
-	public static synthetic fun loadFloatArray-ECwikis$default (Ljava/nio/ByteBuffer;J[FIIILjava/lang/Object;)V
-	public static final fun loadIntArray-fL2E08M (Ljava/nio/ByteBuffer;I[III)V
-	public static synthetic fun loadIntArray-fL2E08M$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
-	public static final fun loadIntArray-yGba50k (Ljava/nio/ByteBuffer;J[III)V
-	public static synthetic fun loadIntArray-yGba50k$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
-	public static final fun loadLongArray-7oynhWg (Ljava/nio/ByteBuffer;J[JII)V
-	public static synthetic fun loadLongArray-7oynhWg$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
-	public static final fun loadLongArray-v7_xXSA (Ljava/nio/ByteBuffer;I[JII)V
-	public static synthetic fun loadLongArray-v7_xXSA$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
-	public static final fun loadShortArray-96Q0Wk8 (Ljava/nio/ByteBuffer;I[SII)V
-	public static synthetic fun loadShortArray-96Q0Wk8$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
-	public static final fun loadShortArray-c7X_M7M (Ljava/nio/ByteBuffer;J[SII)V
-	public static synthetic fun loadShortArray-c7X_M7M$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
-	public static final fun storeDoubleArray-KUjKYZc (Ljava/nio/ByteBuffer;I[DII)V
-	public static synthetic fun storeDoubleArray-KUjKYZc$default (Ljava/nio/ByteBuffer;I[DIIILjava/lang/Object;)V
-	public static final fun storeDoubleArray-XWWvNjo (Ljava/nio/ByteBuffer;J[DII)V
-	public static synthetic fun storeDoubleArray-XWWvNjo$default (Ljava/nio/ByteBuffer;J[DIIILjava/lang/Object;)V
-	public static final fun storeFloatArray-4iahAcY (Ljava/nio/ByteBuffer;I[FII)V
-	public static synthetic fun storeFloatArray-4iahAcY$default (Ljava/nio/ByteBuffer;I[FIIILjava/lang/Object;)V
-	public static final fun storeFloatArray-ECwikis (Ljava/nio/ByteBuffer;J[FII)V
-	public static synthetic fun storeFloatArray-ECwikis$default (Ljava/nio/ByteBuffer;J[FIIILjava/lang/Object;)V
-	public static final fun storeIntArray-fL2E08M (Ljava/nio/ByteBuffer;I[III)V
-	public static synthetic fun storeIntArray-fL2E08M$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
-	public static final fun storeIntArray-yGba50k (Ljava/nio/ByteBuffer;J[III)V
-	public static synthetic fun storeIntArray-yGba50k$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
-	public static final fun storeLongArray-7oynhWg (Ljava/nio/ByteBuffer;J[JII)V
-	public static synthetic fun storeLongArray-7oynhWg$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
-	public static final fun storeLongArray-v7_xXSA (Ljava/nio/ByteBuffer;I[JII)V
-	public static synthetic fun storeLongArray-v7_xXSA$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
-	public static final fun storeShortArray-96Q0Wk8 (Ljava/nio/ByteBuffer;I[SII)V
-	public static synthetic fun storeShortArray-96Q0Wk8$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
-	public static final fun storeShortArray-c7X_M7M (Ljava/nio/ByteBuffer;J[SII)V
-	public static synthetic fun storeShortArray-c7X_M7M$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
+	public static final fun loadDoubleArray-9zorpBc (Ljava/nio/ByteBuffer;I[DII)V
+	public static final fun loadDoubleArray-9zorpBc (Ljava/nio/ByteBuffer;J[DII)V
+	public static synthetic fun loadDoubleArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[DIIILjava/lang/Object;)V
+	public static synthetic fun loadDoubleArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[DIIILjava/lang/Object;)V
+	public static final fun loadFloatArray-9zorpBc (Ljava/nio/ByteBuffer;I[FII)V
+	public static final fun loadFloatArray-9zorpBc (Ljava/nio/ByteBuffer;J[FII)V
+	public static synthetic fun loadFloatArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[FIIILjava/lang/Object;)V
+	public static synthetic fun loadFloatArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[FIIILjava/lang/Object;)V
+	public static final fun loadIntArray-9zorpBc (Ljava/nio/ByteBuffer;I[III)V
+	public static final fun loadIntArray-9zorpBc (Ljava/nio/ByteBuffer;J[III)V
+	public static synthetic fun loadIntArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
+	public static synthetic fun loadIntArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
+	public static final fun loadLongArray-9zorpBc (Ljava/nio/ByteBuffer;I[JII)V
+	public static final fun loadLongArray-9zorpBc (Ljava/nio/ByteBuffer;J[JII)V
+	public static synthetic fun loadLongArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
+	public static synthetic fun loadLongArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
+	public static final fun loadShortArray-9zorpBc (Ljava/nio/ByteBuffer;I[SII)V
+	public static final fun loadShortArray-9zorpBc (Ljava/nio/ByteBuffer;J[SII)V
+	public static synthetic fun loadShortArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
+	public static synthetic fun loadShortArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
+	public static final fun storeDoubleArray-9zorpBc (Ljava/nio/ByteBuffer;I[DII)V
+	public static final fun storeDoubleArray-9zorpBc (Ljava/nio/ByteBuffer;J[DII)V
+	public static synthetic fun storeDoubleArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[DIIILjava/lang/Object;)V
+	public static synthetic fun storeDoubleArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[DIIILjava/lang/Object;)V
+	public static final fun storeFloatArray-9zorpBc (Ljava/nio/ByteBuffer;I[FII)V
+	public static final fun storeFloatArray-9zorpBc (Ljava/nio/ByteBuffer;J[FII)V
+	public static synthetic fun storeFloatArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[FIIILjava/lang/Object;)V
+	public static synthetic fun storeFloatArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[FIIILjava/lang/Object;)V
+	public static final fun storeIntArray-9zorpBc (Ljava/nio/ByteBuffer;I[III)V
+	public static final fun storeIntArray-9zorpBc (Ljava/nio/ByteBuffer;J[III)V
+	public static synthetic fun storeIntArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[IIIILjava/lang/Object;)V
+	public static synthetic fun storeIntArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[IIIILjava/lang/Object;)V
+	public static final fun storeLongArray-9zorpBc (Ljava/nio/ByteBuffer;I[JII)V
+	public static final fun storeLongArray-9zorpBc (Ljava/nio/ByteBuffer;J[JII)V
+	public static synthetic fun storeLongArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[JIIILjava/lang/Object;)V
+	public static synthetic fun storeLongArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[JIIILjava/lang/Object;)V
+	public static final fun storeShortArray-9zorpBc (Ljava/nio/ByteBuffer;I[SII)V
+	public static final fun storeShortArray-9zorpBc (Ljava/nio/ByteBuffer;J[SII)V
+	public static synthetic fun storeShortArray-9zorpBc$default (Ljava/nio/ByteBuffer;I[SIIILjava/lang/Object;)V
+	public static synthetic fun storeShortArray-9zorpBc$default (Ljava/nio/ByteBuffer;J[SIIILjava/lang/Object;)V
 }
 
 public final class io/ktor/utils/io/charsets/CharsetJVMKt {
@@ -627,8 +627,6 @@ public final class io/ktor/utils/io/charsets/UTFKt {
 	public static final fun decodeUTF (Ljava/nio/ByteBuffer;[CII)J
 	public static final fun decodeUTF8Line (Ljava/nio/ByteBuffer;[CII)J
 	public static synthetic fun decodeUTF8Line$default (Ljava/nio/ByteBuffer;[CIIILjava/lang/Object;)J
-	public static final fun decodeUtf8Result (II)J
-	public static final fun decodeUtf8ResultCombine (JJ)J
 }
 
 public final class io/ktor/utils/io/concurrent/SharedJvmKt {
@@ -683,7 +681,7 @@ public final class io/ktor/utils/io/core/BufferCompatibilityKt {
 	public static final fun append (Lio/ktor/utils/io/core/Buffer;[CII)Lio/ktor/utils/io/core/Buffer;
 	public static final fun fill (Lio/ktor/utils/io/core/Buffer;IB)V
 	public static final fun fill (Lio/ktor/utils/io/core/Buffer;JB)V
-	public static final fun fill-3Qyljrw (Lio/ktor/utils/io/core/Buffer;IB)V
+	public static final fun fill-sEu17AQ (Lio/ktor/utils/io/core/Buffer;IB)V
 	public static final fun flush (Lio/ktor/utils/io/core/Buffer;)V
 	public static final fun makeView (Lio/ktor/utils/io/core/Buffer;)Lio/ktor/utils/io/core/Buffer;
 	public static final fun makeView (Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
@@ -734,14 +732,14 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)I
-	public static final fun readAvailable-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)I
-	public static synthetic fun readAvailable-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
-	public static final fun readAvailable-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)I
-	public static synthetic fun readAvailable-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
-	public static final fun readAvailable-mPGAOow (Lio/ktor/utils/io/core/Buffer;[BII)I
-	public static synthetic fun readAvailable-mPGAOow$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)I
-	public static final fun readAvailable-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)I
-	public static synthetic fun readAvailable-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
+	public static final fun readAvailable-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)I
+	public static synthetic fun readAvailable-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
+	public static final fun readAvailable-o1GoV1E (Lio/ktor/utils/io/core/Buffer;[BII)I
+	public static synthetic fun readAvailable-o1GoV1E$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)I
+	public static final fun readAvailable-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)I
+	public static synthetic fun readAvailable-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
+	public static final fun readAvailable-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)I
+	public static synthetic fun readAvailable-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
 	public static final fun readDouble (Lio/ktor/utils/io/core/Buffer;)D
 	public static final fun readDouble (Lio/ktor/utils/io/core/internal/ChunkBuffer;)D
 	public static final fun readExact (Lio/ktor/utils/io/core/Buffer;ILjava/lang/String;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
@@ -763,14 +761,14 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)V
-	public static final fun readFully-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static synthetic fun readFully-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static final fun readFully-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
-	public static synthetic fun readFully-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
-	public static final fun readFully-mPGAOow (Lio/ktor/utils/io/core/Buffer;[BII)V
-	public static synthetic fun readFully-mPGAOow$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
-	public static final fun readFully-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
-	public static synthetic fun readFully-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun readFully-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)V
+	public static synthetic fun readFully-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
+	public static final fun readFully-o1GoV1E (Lio/ktor/utils/io/core/Buffer;[BII)V
+	public static synthetic fun readFully-o1GoV1E$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
+	public static final fun readFully-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)V
+	public static synthetic fun readFully-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun readFully-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)V
+	public static synthetic fun readFully-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static final fun readInt (Lio/ktor/utils/io/core/Buffer;)I
 	public static final fun readInt (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public static final fun readLong (Lio/ktor/utils/io/core/Buffer;)J
@@ -806,28 +804,28 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)V
-	public static final fun writeFully-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static synthetic fun writeFully-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static final fun writeFully-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
-	public static synthetic fun writeFully-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
-	public static final fun writeFully-mPGAOow (Lio/ktor/utils/io/core/Buffer;[BII)V
-	public static synthetic fun writeFully-mPGAOow$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
-	public static final fun writeFully-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
-	public static synthetic fun writeFully-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun writeFully-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)V
+	public static synthetic fun writeFully-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
+	public static final fun writeFully-o1GoV1E (Lio/ktor/utils/io/core/Buffer;[BII)V
+	public static synthetic fun writeFully-o1GoV1E$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
+	public static final fun writeFully-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)V
+	public static synthetic fun writeFully-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun writeFully-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)V
+	public static synthetic fun writeFully-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static final fun writeInt (Lio/ktor/utils/io/core/Buffer;I)V
 	public static final fun writeInt (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static final fun writeLong (Lio/ktor/utils/io/core/Buffer;J)V
 	public static final fun writeLong (Lio/ktor/utils/io/core/internal/ChunkBuffer;J)V
 	public static final fun writeShort (Lio/ktor/utils/io/core/Buffer;S)V
 	public static final fun writeShort (Lio/ktor/utils/io/core/internal/ChunkBuffer;S)V
-	public static final fun writeUByte-Nf7JEWI (Lio/ktor/utils/io/core/Buffer;B)V
-	public static final fun writeUByte-ZYBa3AY (Lio/ktor/utils/io/core/internal/ChunkBuffer;B)V
-	public static final fun writeUInt-_mVlKAM (Lio/ktor/utils/io/core/Buffer;I)V
-	public static final fun writeUInt-e5fcjRE (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
-	public static final fun writeULong-Zrk_yTk (Lio/ktor/utils/io/core/Buffer;J)V
-	public static final fun writeULong-pLKKpPU (Lio/ktor/utils/io/core/internal/ChunkBuffer;J)V
-	public static final fun writeUShort-SEn4WD4 (Lio/ktor/utils/io/core/internal/ChunkBuffer;S)V
-	public static final fun writeUShort-YTqlC3I (Lio/ktor/utils/io/core/Buffer;S)V
+	public static final fun writeUByte-EK-6454 (Lio/ktor/utils/io/core/Buffer;B)V
+	public static final fun writeUByte-EK-6454 (Lio/ktor/utils/io/core/internal/ChunkBuffer;B)V
+	public static final fun writeUInt-Qn1smSk (Lio/ktor/utils/io/core/Buffer;I)V
+	public static final fun writeUInt-Qn1smSk (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
+	public static final fun writeULong-2TYgG_w (Lio/ktor/utils/io/core/Buffer;J)V
+	public static final fun writeULong-2TYgG_w (Lio/ktor/utils/io/core/internal/ChunkBuffer;J)V
+	public static final fun writeUShort-i8woANY (Lio/ktor/utils/io/core/Buffer;S)V
+	public static final fun writeUShort-i8woANY (Lio/ktor/utils/io/core/internal/ChunkBuffer;S)V
 }
 
 public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
@@ -838,7 +836,6 @@ public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
 	public static final fun readDirect (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
 	public static final fun readDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/jvm/functions/Function1;)I
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)V
-	public static final fun resetFromContentToWrite (Lio/ktor/utils/io/core/internal/ChunkBuffer;Ljava/nio/ByteBuffer;)V
 	public static final fun writeDirect (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;)I
 	public static final fun writeDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;ILkotlin/jvm/functions/Function1;)I
 	public static synthetic fun writeDirect$default (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
@@ -847,7 +844,6 @@ public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
 public final class io/ktor/utils/io/core/BuffersKt {
 	public static final fun readBytes (Lio/ktor/utils/io/core/Buffer;I)[B
 	public static synthetic fun readBytes$default (Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)[B
-	public static final fun remainingAll (Lio/ktor/utils/io/core/internal/ChunkBuffer;)J
 }
 
 public final class io/ktor/utils/io/core/BuilderKt {
@@ -948,21 +944,18 @@ public abstract class io/ktor/utils/io/core/Input : java/io/Closeable {
 	public final fun discard (J)J
 	public final fun discardExact (I)V
 	public final fun ensureNext (Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public final fun ensureNextHead (Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected fun fill ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	protected abstract fun fill-5Mw_xsg (Ljava/nio/ByteBuffer;II)I
-	public final fun fixGapAfterRead (Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
+	protected abstract fun fill-62zg_DM (Ljava/nio/ByteBuffer;II)I
 	public final fun getEndOfInput ()Z
 	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun getRemaining ()J
 	public final fun hasBytes (I)Z
 	protected final fun markNoMoreChunksAvailable ()V
 	public final fun peekTo (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
-	public final fun peekTo-1dgeIsk (Ljava/nio/ByteBuffer;JJJJ)J
-	public static synthetic fun peekTo-1dgeIsk$default (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJJJILjava/lang/Object;)J
+	public final fun peekTo-9zorpBc (Ljava/nio/ByteBuffer;JJJJ)J
+	public static synthetic fun peekTo-9zorpBc$default (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJJJILjava/lang/Object;)J
 	public final fun prepareRead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final fun prepareRead (ILio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public final fun prepareReadHead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final fun readByte ()B
 	public final fun readText (II)Ljava/lang/String;
 	public final fun readText (Ljava/lang/Appendable;II)I
@@ -999,8 +992,8 @@ public final class io/ktor/utils/io/core/InputArraysKt {
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)I
-	public static final fun readAvailable-9JA4kaw (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;II)I
-	public static final fun readAvailable-mCvI5oI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJ)J
+	public static final fun readAvailable-UAd2zVI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;II)I
+	public static final fun readAvailable-UAd2zVI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJ)J
 	public static final fun readFully (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/Buffer;I)V
 	public static final fun readFully (Lio/ktor/utils/io/core/Input;[BII)V
 	public static final fun readFully (Lio/ktor/utils/io/core/Input;[DII)V
@@ -1015,19 +1008,16 @@ public final class io/ktor/utils/io/core/InputArraysKt {
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
-	public static final fun readFully-9JA4kaw (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;II)V
-	public static final fun readFully-mCvI5oI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJ)V
+	public static final fun readFully-UAd2zVI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;II)V
+	public static final fun readFully-UAd2zVI (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJ)V
 }
 
 public final class io/ktor/utils/io/core/InputKt {
 	public static final fun discard (Lio/ktor/utils/io/core/Input;)J
 	public static final fun discardExact (Lio/ktor/utils/io/core/Input;I)V
 	public static final fun discardExact (Lio/ktor/utils/io/core/Input;J)V
-	public static final fun forEach (Lio/ktor/utils/io/core/Input;Lkotlin/jvm/functions/Function1;)V
 	public static final fun peekCharUtf8 (Lio/ktor/utils/io/core/Input;)C
 	public static final fun takeWhile (Lio/ktor/utils/io/core/Input;Lkotlin/jvm/functions/Function1;)V
-	public static final fun takeWhileSize (Lio/ktor/utils/io/core/Input;ILkotlin/jvm/functions/Function1;)V
-	public static synthetic fun takeWhileSize$default (Lio/ktor/utils/io/core/Input;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/utils/io/core/InputLittleEndianKt {
@@ -1051,18 +1041,18 @@ public final class io/ktor/utils/io/core/InputLittleEndianKt {
 	public static synthetic fun readAvailableLittleEndian$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)I
 	public static synthetic fun readAvailableLittleEndian$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)I
 	public static synthetic fun readAvailableLittleEndian$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-Lv-FXd8 (Lio/ktor/utils/io/core/Input;[SII)I
-	public static synthetic fun readAvailableLittleEndian-Lv-FXd8$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-PIFet3Y (Lio/ktor/utils/io/core/Input;[III)I
-	public static synthetic fun readAvailableLittleEndian-PIFet3Y$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)I
-	public static synthetic fun readAvailableLittleEndian-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)I
-	public static synthetic fun readAvailableLittleEndian-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-r2sAqVg (Lio/ktor/utils/io/core/Input;[JII)I
-	public static synthetic fun readAvailableLittleEndian-r2sAqVg$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)I
-	public static final fun readAvailableLittleEndian-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)I
-	public static synthetic fun readAvailableLittleEndian-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)I
+	public static final fun readAvailableLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Input;[SII)I
+	public static synthetic fun readAvailableLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)I
+	public static final fun readAvailableLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Input;[III)I
+	public static synthetic fun readAvailableLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)I
+	public static final fun readAvailableLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Input;[JII)I
+	public static synthetic fun readAvailableLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)I
 	public static final fun readDouble (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/ByteOrder;)D
 	public static final fun readDoubleLittleEndian (Lio/ktor/utils/io/core/Buffer;)D
 	public static final fun readDoubleLittleEndian (Lio/ktor/utils/io/core/Input;)D
@@ -1089,18 +1079,18 @@ public final class io/ktor/utils/io/core/InputLittleEndianKt {
 	public static synthetic fun readFullyLittleEndian$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
 	public static synthetic fun readFullyLittleEndian$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
 	public static synthetic fun readFullyLittleEndian$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-Lv-FXd8 (Lio/ktor/utils/io/core/Input;[SII)V
-	public static synthetic fun readFullyLittleEndian-Lv-FXd8$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-PIFet3Y (Lio/ktor/utils/io/core/Input;[III)V
-	public static synthetic fun readFullyLittleEndian-PIFet3Y$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static synthetic fun readFullyLittleEndian-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
-	public static synthetic fun readFullyLittleEndian-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-r2sAqVg (Lio/ktor/utils/io/core/Input;[JII)V
-	public static synthetic fun readFullyLittleEndian-r2sAqVg$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
-	public static final fun readFullyLittleEndian-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
-	public static synthetic fun readFullyLittleEndian-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)V
+	public static final fun readFullyLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Input;[SII)V
+	public static synthetic fun readFullyLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)V
+	public static final fun readFullyLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Input;[III)V
+	public static synthetic fun readFullyLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)V
+	public static final fun readFullyLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Input;[JII)V
+	public static synthetic fun readFullyLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
 	public static final fun readInt (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/ByteOrder;)I
 	public static final fun readIntLittleEndian (Lio/ktor/utils/io/core/Buffer;)I
 	public static final fun readIntLittleEndian (Lio/ktor/utils/io/core/Input;)I
@@ -1145,7 +1135,7 @@ public abstract class io/ktor/utils/io/core/Output : java/io/Closeable, java/lan
 	public final fun close ()V
 	protected abstract fun closeDestination ()V
 	public final fun flush ()V
-	protected abstract fun flush-5Mw_xsg (Ljava/nio/ByteBuffer;II)V
+	protected abstract fun flush-62zg_DM (Ljava/nio/ByteBuffer;II)V
 	protected final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	protected final fun get_size ()I
 	public final fun prepareWriteHead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
@@ -1182,11 +1172,8 @@ public final class io/ktor/utils/io/core/OutputKt {
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
-	public static final fun writeFully-p0stHsI (Lio/ktor/utils/io/core/Output;Ljava/nio/ByteBuffer;II)V
-	public static final fun writeFully-sqKbz-I (Lio/ktor/utils/io/core/Output;Ljava/nio/ByteBuffer;JJ)V
-	public static final fun writeWhile (Lio/ktor/utils/io/core/Output;Lkotlin/jvm/functions/Function1;)V
-	public static final fun writeWhileSize (Lio/ktor/utils/io/core/Output;ILkotlin/jvm/functions/Function1;)V
-	public static synthetic fun writeWhileSize$default (Lio/ktor/utils/io/core/Output;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun writeFully-UAd2zVI (Lio/ktor/utils/io/core/Output;Ljava/nio/ByteBuffer;II)V
+	public static final fun writeFully-UAd2zVI (Lio/ktor/utils/io/core/Output;Ljava/nio/ByteBuffer;JJ)V
 }
 
 public final class io/ktor/utils/io/core/OutputLittleEndianKt {
@@ -1216,18 +1203,18 @@ public final class io/ktor/utils/io/core/OutputLittleEndianKt {
 	public static synthetic fun writeFullyLittleEndian$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
 	public static synthetic fun writeFullyLittleEndian$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
 	public static synthetic fun writeFullyLittleEndian$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-3GkuuDw (Lio/ktor/utils/io/core/Output;[JII)V
-	public static synthetic fun writeFullyLittleEndian-3GkuuDw$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-Hjr7jUQ (Lio/ktor/utils/io/core/Output;[SII)V
-	public static synthetic fun writeFullyLittleEndian-Hjr7jUQ$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static synthetic fun writeFullyLittleEndian-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
-	public static synthetic fun writeFullyLittleEndian-eOostTs$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-kYjf2rc (Lio/ktor/utils/io/core/Output;[III)V
-	public static synthetic fun writeFullyLittleEndian-kYjf2rc$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
-	public static final fun writeFullyLittleEndian-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
-	public static synthetic fun writeFullyLittleEndian-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Buffer;[SII)V
+	public static final fun writeFullyLittleEndian-Wt3Bwxc (Lio/ktor/utils/io/core/Output;[SII)V
+	public static synthetic fun writeFullyLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian-Wt3Bwxc$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Buffer;[III)V
+	public static final fun writeFullyLittleEndian-o2ZM2JE (Lio/ktor/utils/io/core/Output;[III)V
+	public static synthetic fun writeFullyLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian-o2ZM2JE$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Buffer;[JII)V
+	public static final fun writeFullyLittleEndian-pqYNikA (Lio/ktor/utils/io/core/Output;[JII)V
+	public static synthetic fun writeFullyLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian-pqYNikA$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
 	public static final fun writeInt (Lio/ktor/utils/io/core/Output;ILio/ktor/utils/io/core/ByteOrder;)V
 	public static final fun writeIntLittleEndian (Lio/ktor/utils/io/core/Buffer;I)V
 	public static final fun writeIntLittleEndian (Lio/ktor/utils/io/core/Output;I)V
@@ -1335,30 +1322,30 @@ public final class io/ktor/utils/io/core/StringsKt {
 }
 
 public final class io/ktor/utils/io/core/UnsignedTypesKt {
-	public static final fun readFully-Lv-FXd8 (Lio/ktor/utils/io/core/Input;[SII)V
-	public static synthetic fun readFully-Lv-FXd8$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
-	public static final fun readFully-PIFet3Y (Lio/ktor/utils/io/core/Input;[III)V
-	public static synthetic fun readFully-PIFet3Y$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
-	public static final fun readFully-kDL3d6Y (Lio/ktor/utils/io/core/Input;[BII)V
-	public static synthetic fun readFully-kDL3d6Y$default (Lio/ktor/utils/io/core/Input;[BIIILjava/lang/Object;)V
-	public static final fun readFully-r2sAqVg (Lio/ktor/utils/io/core/Input;[JII)V
-	public static synthetic fun readFully-r2sAqVg$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
+	public static final fun readFully-Wt3Bwxc (Lio/ktor/utils/io/core/Input;[SII)V
+	public static synthetic fun readFully-Wt3Bwxc$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)V
+	public static final fun readFully-o1GoV1E (Lio/ktor/utils/io/core/Input;[BII)V
+	public static synthetic fun readFully-o1GoV1E$default (Lio/ktor/utils/io/core/Input;[BIIILjava/lang/Object;)V
+	public static final fun readFully-o2ZM2JE (Lio/ktor/utils/io/core/Input;[III)V
+	public static synthetic fun readFully-o2ZM2JE$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)V
+	public static final fun readFully-pqYNikA (Lio/ktor/utils/io/core/Input;[JII)V
+	public static synthetic fun readFully-pqYNikA$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)V
 	public static final fun readUByte (Lio/ktor/utils/io/core/Input;)B
 	public static final fun readUInt (Lio/ktor/utils/io/core/Input;)I
 	public static final fun readULong (Lio/ktor/utils/io/core/Input;)J
 	public static final fun readUShort (Lio/ktor/utils/io/core/Input;)S
-	public static final fun writeFully-3GkuuDw (Lio/ktor/utils/io/core/Output;[JII)V
-	public static synthetic fun writeFully-3GkuuDw$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
-	public static final fun writeFully-Hjr7jUQ (Lio/ktor/utils/io/core/Output;[SII)V
-	public static synthetic fun writeFully-Hjr7jUQ$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
-	public static final fun writeFully-kYjf2rc (Lio/ktor/utils/io/core/Output;[III)V
-	public static synthetic fun writeFully-kYjf2rc$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
-	public static final fun writeFully-wDeirj4 (Lio/ktor/utils/io/core/Output;[BII)V
-	public static synthetic fun writeFully-wDeirj4$default (Lio/ktor/utils/io/core/Output;[BIIILjava/lang/Object;)V
-	public static final fun writeUByte-9EPp-TE (Lio/ktor/utils/io/core/Output;B)V
-	public static final fun writeUInt-fzK-hLo (Lio/ktor/utils/io/core/Output;I)V
-	public static final fun writeULong-O6EZHW0 (Lio/ktor/utils/io/core/Output;J)V
-	public static final fun writeUShort-SLr1GAc (Lio/ktor/utils/io/core/Output;S)V
+	public static final fun writeFully-Wt3Bwxc (Lio/ktor/utils/io/core/Output;[SII)V
+	public static synthetic fun writeFully-Wt3Bwxc$default (Lio/ktor/utils/io/core/Output;[SIIILjava/lang/Object;)V
+	public static final fun writeFully-o1GoV1E (Lio/ktor/utils/io/core/Output;[BII)V
+	public static synthetic fun writeFully-o1GoV1E$default (Lio/ktor/utils/io/core/Output;[BIIILjava/lang/Object;)V
+	public static final fun writeFully-o2ZM2JE (Lio/ktor/utils/io/core/Output;[III)V
+	public static synthetic fun writeFully-o2ZM2JE$default (Lio/ktor/utils/io/core/Output;[IIIILjava/lang/Object;)V
+	public static final fun writeFully-pqYNikA (Lio/ktor/utils/io/core/Output;[JII)V
+	public static synthetic fun writeFully-pqYNikA$default (Lio/ktor/utils/io/core/Output;[JIIILjava/lang/Object;)V
+	public static final fun writeUByte-EK-6454 (Lio/ktor/utils/io/core/Output;B)V
+	public static final fun writeUInt-Qn1smSk (Lio/ktor/utils/io/core/Output;I)V
+	public static final fun writeULong-2TYgG_w (Lio/ktor/utils/io/core/Output;J)V
+	public static final fun writeUShort-i8woANY (Lio/ktor/utils/io/core/Output;S)V
 }
 
 public class io/ktor/utils/io/core/internal/ChunkBuffer : io/ktor/utils/io/core/Buffer {
@@ -1394,8 +1381,6 @@ public final class io/ktor/utils/io/core/internal/NumbersKt {
 }
 
 public final class io/ktor/utils/io/core/internal/UTF8Kt {
-	public static final fun decodeUTF8 (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
-	public static final fun decodeUTF8LineLoopSuspend (Ljava/lang/Appendable;ILkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun highSurrogate (I)I
 	public static final fun isBmpCodePoint (I)Z
 	public static final fun isValidCodePoint (I)Z
@@ -1409,7 +1394,6 @@ public final class io/ktor/utils/io/core/internal/UnsafeKt {
 	public static final fun completeReadHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
 	public static final fun prepareReadFirstHead (Lio/ktor/utils/io/core/Input;I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public static final fun prepareReadNextHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public static final fun prepareWriteHead (Lio/ktor/utils/io/core/Output;ILio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 }
 
 public final class io/ktor/utils/io/errors/ErrorsKt {
@@ -1461,14 +1445,14 @@ public final class io/ktor/utils/io/jvm/nio/WritingKt {
 
 public final class io/ktor/utils/io/nio/ChannelsKt {
 	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/Buffer;)I
-	public static final fun read-r2lQqvc (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;II)I
-	public static synthetic fun read-r2lQqvc$default (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
+	public static final fun read-UAd2zVI (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;II)I
+	public static synthetic fun read-UAd2zVI$default (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
 	public static final fun readPacketAtLeast (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun readPacketAtMost (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun readPacketExact (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/Buffer;)I
-	public static final fun write-XQjEsr4 (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;II)I
-	public static synthetic fun write-XQjEsr4$default (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
+	public static final fun write-UAd2zVI (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;II)I
+	public static synthetic fun write-UAd2zVI$default (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
 	public static final fun writePacket (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/ByteReadPacket;)Z
 	public static final fun writePacket (Ljava/nio/channels/WritableByteChannel;Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
 }

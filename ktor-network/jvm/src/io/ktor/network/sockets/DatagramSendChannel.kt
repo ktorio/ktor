@@ -16,7 +16,6 @@ import kotlinx.coroutines.sync.*
 import java.net.*
 import java.nio.*
 import java.nio.channels.*
-import kotlin.coroutines.*
 
 private val CLOSED: (Throwable?) -> Unit = {}
 private val CLOSED_INVOKED: (Throwable?) -> Unit = {}

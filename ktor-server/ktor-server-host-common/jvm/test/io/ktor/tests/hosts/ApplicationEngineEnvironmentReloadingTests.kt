@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("unused", "UNUSED_PARAMETER")
+
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
@@ -19,6 +21,7 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 
+@OptIn(EngineAPI::class)
 class ApplicationEngineEnvironmentReloadingTests {
 
     @Test

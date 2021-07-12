@@ -43,6 +43,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
 /**
  * Start a chunked stream decoder coroutine
  */
+@Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
     writer(coroutineContext) {
         decodeChunked(input, channel)
@@ -67,6 +68,7 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("decodeChunked(input, out)")
 )
+@Suppress("UNUSED_PARAMETER")
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
@@ -116,6 +118,7 @@ public typealias EncoderJob = ReaderJob
 /**
  * Start chunked stream encoding coroutine
  */
+@OptIn(DelicateCoroutinesApi::class)
 public suspend fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext

@@ -83,6 +83,7 @@ public sealed class RouteSelectorEvaluation(
         /**
          * Quality of [RouteSelectorEvaluation] when a HTTP method parameter has matched
          */
+        @Suppress("unused")
         public const val qualityMethodParameter: Double = qualityParameter
 
         /**
@@ -193,7 +194,6 @@ constructor(@Deprecated("This property is not used anymore and will be removed")
 /**
  * The selector for routing root.
  */
-@InternalAPI
 public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
 
     private val parts = RoutingPath.parse(rootPath).parts.map {
@@ -304,6 +304,7 @@ public data class PathSegmentConstantRouteSelector(
     val value: String
 ) : RouteSelector() {
 
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
         level = DeprecationLevel.ERROR,
@@ -350,6 +351,7 @@ public data class PathSegmentParameterRouteSelector(
     val suffix: String? = null
 ) : RouteSelector() {
 
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
         level = DeprecationLevel.ERROR,
@@ -384,6 +386,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
     val suffix: String? = null
 ) : RouteSelector() {
 
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
         level = DeprecationLevel.ERROR,
@@ -430,6 +433,7 @@ public data class PathSegmentTailcardRouteSelector(
     val prefix: String = ""
 ) : RouteSelector() {
 
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
         level = DeprecationLevel.ERROR,
@@ -479,6 +483,7 @@ public data class PathSegmentTailcardRouteSelector(
  * @param first is a first selector
  * @param second is a second selector
  */
+@Suppress("unused")
 public data class OrRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
@@ -501,6 +506,7 @@ public data class OrRouteSelector(
  * @param first is a first selector
  * @param second is a second selector
  */
+@Suppress("unused")
 public data class AndRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector

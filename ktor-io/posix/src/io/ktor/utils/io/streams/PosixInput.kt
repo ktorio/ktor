@@ -11,14 +11,12 @@ import platform.posix.*
  * Create a blocking [Input] reading from the specified [fileDescriptor] using [read].
  */
 @Suppress("FunctionName")
-@ExperimentalIoApi
 public fun Input(fileDescriptor: Int): Input = PosixInputForFileDescriptor(fileDescriptor)
 
 /**
  * Create a blocking [Input] reading from the specified [file] instance using [fread].
  */
 @Suppress("FunctionName")
-@ExperimentalIoApi
 public fun Input(file: CPointer<FILE>): Input = PosixInputForFile(file)
 
 private class PosixInputForFileDescriptor(val fileDescriptor: Int) : Input() {

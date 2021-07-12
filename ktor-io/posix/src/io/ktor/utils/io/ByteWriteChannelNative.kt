@@ -127,7 +127,6 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeFloat(f: Float)
 
-    @ExperimentalIoApi
     public actual suspend fun awaitFreeSpace()
 
     /**

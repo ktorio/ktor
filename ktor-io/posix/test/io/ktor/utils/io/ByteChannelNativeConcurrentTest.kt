@@ -11,6 +11,7 @@ import kotlin.test.*
 class ByteChannelNativeConcurrentTest {
     private val TEST_SIZE = 10 * 1024
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testReadWriteByte() {
         val channel = ByteChannel()
@@ -29,6 +30,7 @@ class ByteChannelNativeConcurrentTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testReadWriteBlock() {
         val channel = ByteChannel()

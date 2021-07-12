@@ -41,7 +41,7 @@ public suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = L
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
  */
-@ExperimentalIoApi
+@OptIn(DelicateCoroutinesApi::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 public fun InputStream.toByteReadChannel(
     context: CoroutineContext = Dispatchers.IO,
@@ -72,7 +72,7 @@ public fun InputStream.toByteReadChannel(
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
  */
-@ExperimentalIoApi
+@OptIn(DelicateCoroutinesApi::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 @JvmName("toByteReadChannelWithArrayPool")
 public fun InputStream.toByteReadChannel(

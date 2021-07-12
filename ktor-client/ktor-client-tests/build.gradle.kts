@@ -13,8 +13,6 @@ val kotlin_version: String by project.extra
 val logback_version: String by project.extra
 val coroutines_version: String by project
 
-val ideaActive: Boolean by project.extra
-
 plugins {
     id("kotlinx-serialization")
 }
@@ -93,7 +91,7 @@ kotlin.sourceSets {
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-            if (project.ext["currentJdk"] as Int >= 11) {
+            if (KtorBuildProperties.currentJdk as Int >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
         }
@@ -102,6 +100,41 @@ kotlin.sourceSets {
     val jsTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-js"))
+        }
+    }
+
+    if (rootProject.ext.get("native_targets_enabled") as Boolean) {
+        if (!KtorBuildProperties.ideaActive) {
+            listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
+                it.dependencies {
+                    api(project(":ktor-client:ktor-client-curl"))
+                }
+            }
+
+            if (!osName.startsWith("Windows")) {
+                listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
+                    it.dependencies {
+                        api(project(":ktor-client:ktor-client-cio"))
+                    }
+                }
+            }
+            listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
+                it.dependencies {
+                    // api(project(":ktor-client:ktor-client-ios"))
+                }
+            }
+        } else {
+            val posixTest by getting {
+                dependencies {
+                    val hostname: String by project.ext
+                    // api(project(":ktor-client:ktor-client-ios"))
+                    api(project(":ktor-client:ktor-client-curl"))
+
+                    if (!hostname.startsWith("win")) {
+                        api(project(":ktor-client:ktor-client-cio"))
+                    }
+                }
+            }
         }
     }
 }
@@ -127,7 +160,7 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
-if (!ideaActive) {
+if (!KtorBuildProperties.ideaActive) {
     testTasks += listOf(
         "macosX64Test",
         "linuxX64Test",

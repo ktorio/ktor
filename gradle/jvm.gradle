@@ -2,17 +2,7 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-apply from: rootProject.file('gradle/jdk.gradle')
-
-def jdk = 6
-
-if (project.name in project.ext.jdk11Modules) {
-    jdk = 11
-} else if (project.name in project.ext.jdk8Modules) {
-    jdk = 8
-} else if (project.name in project.ext.jdk7Modules) {
-    jdk = 7
-}
+def jdk = KtorBuildProperties.projectJdk(name)
 
 String lookupJdk(int startingFrom) {
     return (startingFrom..20)
@@ -23,19 +13,8 @@ String lookupJdk(int startingFrom) {
 
 def jdkHome = lookupJdk(jdk)
 
-int currentJdk = ext.currentJdk
-
-apply plugin: "kotlinx-atomicfu"
-
 kotlin {
     jvm {
-        compilations.all {
-            if (rootProject.ext.jvm_ir_enabled) {
-                kotlinOptions.useIR = true
-            }
-
-            kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses", "-Xuse-14-inline-classes-mangling-scheme"]
-        }
     }
 
     task jarTest(type: Jar, dependsOn: jvmTestClasses) {

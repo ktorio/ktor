@@ -11,7 +11,6 @@ import java.nio.channels.*
 import java.nio.channels.spi.*
 import kotlin.coroutines.*
 
-@InternalAPI
 public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager = ActorSelectorManager(dispatcher)
 
 /**
@@ -66,8 +65,7 @@ public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
  * Select interest kind
  * @property [flag] to be set in NIO selector
  */
-@Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@InternalAPI
+@Suppress("KDocMissingDocumentation")
 public actual enum class SelectInterest(public val flag: Int) {
     READ(SelectionKey.OP_READ),
     WRITE(SelectionKey.OP_WRITE),

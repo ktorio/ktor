@@ -122,7 +122,7 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
             }
 
             dst.writeWhileSize(writeSize) { dstBuffer ->
-                var written: Int = 0
+                var written = 0
 
                 dstBuffer.writeDirect { buffer ->
                     var read = 0
@@ -214,8 +214,8 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
                     val rem = max - copied
                     if (rem == 0) return@takeWhileSize 0
 
-                    var written: Int = 0
-                    var read = 0
+                    var written: Int
+                    var read: Int
 
                     srcView.readDirect { src ->
                         val length = srcView.readRemaining.convert<size_t>()
@@ -337,8 +337,8 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
                     val rem = inputLength - charsCopied
                     if (rem == 0) return@takeWhileSize 0
 
-                    var written: Int = 0
-                    var read = 0
+                    var written: Int
+                    var read: Int
 
                     srcView.readDirect { src ->
                         val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).convert<size_t>()

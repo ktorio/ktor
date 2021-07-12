@@ -7,11 +7,9 @@ package io.ktor.util
 /**
  * Check if [Char] is in lower case
  */
-@InternalAPI
-public fun Char.isLowerCase(): Boolean = toLowerCase() == this
+public fun Char.isLowerCase(): Boolean = lowercaseChar() == this
 
 /**
  * Convert [String] to [CharArray]
  */
-@InternalAPI
 public fun String.toCharArray(): CharArray = CharArray(length) { get(it) }

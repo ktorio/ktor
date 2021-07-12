@@ -9,6 +9,7 @@ public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newDecoder(): CharsetDecoder
 
     public actual companion object {
+        @Suppress("LocalVariableName")
         public actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
             if (name == "ISO-8859-1" || name == "iso-8859-1" ||
@@ -25,7 +26,7 @@ public actual abstract class Charset(internal val _name: String) {
         public actual fun isSupported(charset: String): Boolean = when {
             charset == "UTF-8" || charset == "utf-8" || charset == "UTF8" || charset == "utf8" -> true
             charset == "ISO-8859-1" || charset == "iso-8859-1" || charset.replace('_', '-').let {
-                it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
+                it == "iso-8859-1" || it.lowercase() == "iso-8859-1"
             } || charset == "latin1" -> true
             else -> false
         }

@@ -13,7 +13,9 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlin.test.*
 
-fun routing(rootPath: String = "") = Route(parent = null, selector = RootRouteSelector(rootPath))
+fun routing(rootPath: String = ""): Route =
+    Route(parent = null, selector = RootRouteSelector(rootPath))
+
 fun resolve(
     routing: Route,
     path: String,

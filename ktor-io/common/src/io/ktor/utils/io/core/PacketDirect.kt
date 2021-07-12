@@ -2,6 +2,7 @@ package io.ktor.utils.io.core
 
 import kotlin.contracts.*
 
+@OptIn(ExperimentalContracts::class)
 @PublishedApi
 internal inline fun Input.read(n: Int = 1, block: (Buffer) -> Unit) {
     contract {

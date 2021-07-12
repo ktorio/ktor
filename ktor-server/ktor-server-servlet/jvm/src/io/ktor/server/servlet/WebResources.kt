@@ -10,6 +10,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import kotlin.random.*
 
 /**
@@ -66,6 +67,7 @@ constructor() {
  * itself is not served by default.
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
+@OptIn(InternalAPI::class)
 public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
     @Suppress("DEPRECATION_ERROR")
     val config = WebResourcesConfig().apply(configure)

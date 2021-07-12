@@ -57,6 +57,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
@@ -103,6 +104,7 @@ public fun ByteReadChannel.deflated(
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun ByteWriteChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,

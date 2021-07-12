@@ -5,6 +5,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
 
     @Test

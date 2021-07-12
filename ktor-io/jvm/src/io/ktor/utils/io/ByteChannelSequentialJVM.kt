@@ -6,8 +6,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.nio.*
 
-@Suppress("EXPERIMENTAL_FEATURE_WARNING")
-@ExperimentalIoApi
+@Suppress("DEPRECATION", "OverridingDeprecatedMember")
 public class ByteChannelSequentialJVM(
     initial: ChunkBuffer,
     autoFlush: Boolean
@@ -97,7 +96,7 @@ public class ByteChannelSequentialJVM(
 
         prepareFlushedBytes()
 
-        var result = 0
+        var result: Int
         readable.readDirect(min) {
             val position = it.position()
             block(it)
@@ -210,7 +209,7 @@ public class ByteChannelSequentialJVM(
             return 0
         }
 
-        var result = 0
+        var result: Int
         writable.writeDirect(min) {
             val position = it.position()
             block(it)
@@ -236,7 +235,7 @@ public class ByteChannelSequentialJVM(
                 throw closedCause ?: ClosedSendChannelException("Channel closed for write")
             }
 
-            var shouldContinue: Boolean = false
+            var shouldContinue: Boolean
             awaitAtLeastNBytesAvailableForWrite(1)
             val result = writable.writeByteBufferDirect(1) {
                 shouldContinue = block(it)

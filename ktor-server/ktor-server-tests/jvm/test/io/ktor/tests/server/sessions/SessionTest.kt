@@ -37,12 +37,10 @@ class SessionTest {
                     call.respondText("No session")
                 }
             }
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertNull(
-                    call.response.cookies[cookieName],
-                    "There should be no session data after setting and clearing"
-                )
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session data after setting and clearing"
+            )
         }
     }
 
@@ -52,7 +50,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     cookie.domain = "foo.bar"
-                    cookie.maxAge = 1.hours
+                    cookie.maxAge = Duration.hours(1)
                 }
             }
 
@@ -82,9 +80,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertNull(call.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             var sessionParam: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
@@ -373,9 +372,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { response ->
@@ -422,9 +422,7 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertEquals("There should be no session started", call.response.content)
-            }
+            assertEquals("There should be no session started", handleRequest(HttpMethod.Get, "/0").response.content)
         }
     }
 
@@ -450,9 +448,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             handleRequest(HttpMethod.Get, "/1").let { response ->
                 val sessionCookie = response.response.cookies[cookieName]
@@ -478,7 +477,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
-                    cookie.maxAge = durationSeconds.seconds
+                    cookie.maxAge = Duration.seconds(durationSeconds)
                     identity { (id++).toString() }
                 }
             }
@@ -594,9 +593,7 @@ class SessionTest {
 
         assertFailsWith<TooLateSessionSetException> {
             runBlocking {
-                handleRequest(HttpMethod.Get, "/after-response").let { call ->
-                    call.response.content
-                }
+                handleRequest(HttpMethod.Get, "/after-response").response.content
             }
         }
     }
@@ -606,7 +603,7 @@ class SessionTest {
         val transport = SessionTransportCookie(
             "test",
             CookieConfiguration().apply {
-                maxAge = (365 * 100).days
+                maxAge = Duration.days((365 * 100))
             },
             emptyList()
         )
@@ -624,7 +621,7 @@ class SessionTest {
         val transport = SessionTransportCookie(
             "test",
             CookieConfiguration().apply {
-                maxAge = Long.MAX_VALUE.seconds
+                maxAge = Duration.seconds(Long.MAX_VALUE)
             },
             emptyList()
         )
@@ -670,9 +667,7 @@ class SessionTest {
                 call.respondText(cause.key.name)
             }
         }
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(Sessions.key.name, call.response.content)
-        }
+        assertEquals(Sessions.key.name, handleRequest(HttpMethod.Get, "/").response.content)
     }
 
     @Test
@@ -692,9 +687,7 @@ class SessionTest {
             cookie<TestUserSession>("name1")
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals("OK", call.response.content)
-        }
+        assertEquals("OK", handleRequest(HttpMethod.Get, "/").response.content)
     }
 
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->

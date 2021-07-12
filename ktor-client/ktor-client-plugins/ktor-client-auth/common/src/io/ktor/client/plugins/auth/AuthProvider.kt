@@ -20,6 +20,7 @@ public interface AuthProvider {
     @Deprecated("Please use sendWithoutRequest function instead")
     public val sendWithoutRequest: Boolean
 
+    @Suppress("DEPRECATION")
     public fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequest
 
     /**

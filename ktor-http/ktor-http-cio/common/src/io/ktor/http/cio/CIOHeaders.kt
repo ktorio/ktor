@@ -10,7 +10,6 @@ import io.ktor.util.*
 /**
  * An adapter from CIO low-level headers map to ktor [Headers] interface
  */
-@InternalAPI
 public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
 
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {

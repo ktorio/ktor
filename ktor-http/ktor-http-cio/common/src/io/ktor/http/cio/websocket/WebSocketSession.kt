@@ -125,7 +125,6 @@ public suspend fun WebSocketSession.close(cause: Throwable?) {
 /**
  * Closes session with normal or error close reason, depending on whether [cause] is cancellation or not.
  */
-@InternalAPI
 public suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
     val reason = when (cause) {
         is CancellationException -> CloseReason(CloseReason.Codes.NORMAL, "")

@@ -31,7 +31,7 @@ class HttpStatementTest : ClientLoader() {
                 assertArrayEquals("Invalid content", expected, actual)
             }
 
-            val response = client.prepareGet("$TEST_SERVER/content/hello") { {} }.execute()
+            val response = client.prepareGet("$TEST_SERVER/content/hello").execute()
             assertEquals("hello", response.body())
         }
     }
