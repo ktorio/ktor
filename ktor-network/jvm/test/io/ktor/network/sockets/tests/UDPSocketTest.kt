@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
+import org.junit.Ignore
 import java.net.*
 import kotlin.coroutines.*
 import kotlin.io.use
@@ -202,6 +203,7 @@ class UDPSocketTest : CoroutineScope {
     }
 
     @Test
+    @Ignore
     fun testBind() {
         val socketBuilder: UDPSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).udp()
         val socket = socketBuilder.bind()
