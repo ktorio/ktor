@@ -4,12 +4,10 @@
 
 package io.ktor.http.cio.internals
 
-import io.ktor.util.*
 import io.ktor.utils.io.pool.*
 import kotlin.math.*
 
 @Suppress("LoopToCallChain", "ReplaceRangeToWithUntil", "KDocMissingDocumentation")
-@InternalAPI
 internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool) : CharSequence, Appendable {
     private var buffers: MutableList<CharArray>? = null
     private var current: CharArray? = null
@@ -48,25 +46,25 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
 
     override fun hashCode(): Int = stringified?.hashCode() ?: hashCodeImpl(0, length)
 
-    override fun append(c: Char): Appendable {
-        nonFullBuffer()[current!!.size - remaining] = c
+    override fun append(value: Char): Appendable {
+        nonFullBuffer()[current!!.size - remaining] = value
         stringified = null
         remaining -= 1
         length++
         return this
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
-        csq ?: return this
+    override fun append(value: CharSequence?, startIndex: Int, endIndex: Int): Appendable {
+        value ?: return this
 
-        var current = start
-        while (current < end) {
+        var current = startIndex
+        while (current < endIndex) {
             val buffer = nonFullBuffer()
             val offset = buffer.size - remaining
-            val bytesToCopy = min(end - current, remaining)
+            val bytesToCopy = min(endIndex - current, remaining)
 
             for (i in 0 until bytesToCopy) {
-                buffer[offset + i] = csq[current + i]
+                buffer[offset + i] = value[current + i]
             }
 
             current += bytesToCopy
@@ -74,13 +72,13 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         }
 
         stringified = null
-        length += end - start
+        length += endIndex - startIndex
         return this
     }
 
-    override fun append(csq: CharSequence?): Appendable {
-        csq ?: return this
-        return append(csq, 0, csq.length)
+    override fun append(value: CharSequence?): Appendable {
+        value ?: return this
+        return append(value, 0, value.length)
     }
 
     public fun release() {
@@ -214,7 +212,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
     private fun hashCodeImpl(start: Int, end: Int): Int {
         var hc = 0
         for (i in start until end) {
-            hc = 31 * hc + getImpl(i).toInt()
+            hc = 31 * hc + getImpl(i).code
         }
 
         return hc

@@ -281,7 +281,7 @@ private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {
 }
 
 private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
-    throw ParserException("Character with code ${(ch.toInt() and 0xff)} is not allowed in header names, \n$text")
+    throw ParserException("Character with code ${(ch.code and 0xff)} is not allowed in header names, \n$text")
 
 private fun isDelimiter(ch: Char): Boolean {
     return ch <= ' ' || ch in "\"(),/:;<=>?@[\\]{}"

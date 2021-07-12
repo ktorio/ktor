@@ -5,7 +5,6 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.*
 import io.ktor.util.network.NetworkAddress
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
@@ -34,15 +33,15 @@ internal class TCPSocketNative(
         makeShared()
     }
 
-    override fun attachForReading(userChannel: ByteChannel): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
-        while (!channel.isClosedForWrite) {
-            val count = channel.write { memory, startIndex, endIndex ->
+    override fun attachForReading(channel: ByteChannel): WriterJob = writer(Dispatchers.Unconfined, channel) {
+        while (!this.channel.isClosedForWrite) {
+            val count = this.channel.write { memory, startIndex, endIndex ->
                 val bufferStart = memory.pointer + startIndex
                 val size = endIndex - startIndex
                 val result = recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
                 if (result == 0) {
-                    channel.close()
+                    this.channel.close()
                 }
                 if (result == -1) {
                     if (errno == EAGAIN) {
@@ -55,22 +54,22 @@ internal class TCPSocketNative(
                 result.convert()
             }
 
-            if (count == 0 && !channel.isClosedForWrite) {
+            if (count == 0 && !this.channel.isClosedForWrite) {
                 selector.select(selectable, SelectInterest.READ)
             }
 
-            channel.flush()
+            this.channel.flush()
         }
 
-        channel.closedCause?.let { throw it }
+        this.channel.closedCause?.let { throw it }
     }.apply {
         invokeOnCompletion {
             shutdown(descriptor, SHUT_RD)
         }
     }
 
-    override fun attachForWriting(userChannel: ByteChannel): ReaderJob = reader(Dispatchers.Unconfined, userChannel) {
-        val source = channel
+    override fun attachForWriting(channel: ByteChannel): ReaderJob = reader(Dispatchers.Unconfined, channel) {
+        val source = this.channel
         var sockedClosed = false
         var needSelect = false
         var total = 0

@@ -30,8 +30,10 @@ public actual class NetworkAddress constructor(
 public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
     NetworkAddress(hostname, port, null)
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual val NetworkAddress.hostname: String get() = hostname
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual val NetworkAddress.port: Int get() = port
 
 public actual class UnresolvedAddressException : IllegalArgumentException()

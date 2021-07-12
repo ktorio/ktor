@@ -6,16 +6,14 @@ package io.ktor.server.testing
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-
-internal val RequestHandledAttributeKey = AttributeKey<Unit>("RequestHandledAttributeKey")
 
 /**
  * Represents a test application call that is used in [withTestApplication] and [handleRequest]
  */
-public class TestApplicationCall(
+@OptIn(EngineAPI::class)
+class TestApplicationCall(
     application: Application,
     readResponse: Boolean = false,
     closeRequest: Boolean = true,
@@ -25,7 +23,7 @@ public class TestApplicationCall(
     /**
      * Set to `true` when the request has been handled and a response has been produced
      */
-    @Suppress("DeprecatedCallableAddReplaceWith")
+    @Suppress("DeprecatedCallableAddReplaceWith", "unused")
     @Deprecated(
         "This property may have unpredictable behaviour. " +
             "Please use asserts on response status, headers or content",

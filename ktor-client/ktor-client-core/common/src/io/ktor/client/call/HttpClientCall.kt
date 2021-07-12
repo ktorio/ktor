@@ -71,6 +71,7 @@ public open class HttpClientCall internal constructor(
 
     protected open val allowDoubleReceive: Boolean = false
 
+    @OptIn(InternalAPI::class)
     protected open suspend fun getResponseContent(): ByteReadChannel = response.content
 
     /**
@@ -80,6 +81,7 @@ public open class HttpClientCall internal constructor(
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [body].
      */
+    @OptIn(InternalAPI::class)
     public suspend fun body(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
@@ -153,6 +155,7 @@ public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInf
  * @throws NoTransformationFoundException If no transformation is found for the type info [typeInfo].
  * @throws DoubleReceiveException If already called [body].
  */
+@Suppress("UNCHECKED_CAST")
 public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.body(typeInfo) as T
 
 /**

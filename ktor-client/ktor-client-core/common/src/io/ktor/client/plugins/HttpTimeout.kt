@@ -32,7 +32,6 @@ public class HttpTimeout(
         /**
          * Creates a new instance of [HttpTimeoutCapabilityConfiguration].
          */
-        @InternalAPI
         public constructor(
             requestTimeoutMillis: Long? = null,
             connectTimeoutMillis: Long? = null,

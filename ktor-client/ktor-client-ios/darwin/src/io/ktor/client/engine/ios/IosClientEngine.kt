@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 import kotlin.native.concurrent.*
@@ -18,6 +19,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
     override val supportedCapabilities = setOf(HttpTimeout)
 
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val responseReader = IosResponseReader(callContext, data, config)

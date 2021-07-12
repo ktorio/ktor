@@ -7,10 +7,12 @@ package io.ktor.client.plugins.cache
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
+@OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
     val body = response.content.readRemaining().readBytes()
     response.complete()

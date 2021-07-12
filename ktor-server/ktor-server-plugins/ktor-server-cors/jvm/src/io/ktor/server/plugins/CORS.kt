@@ -342,6 +342,7 @@ public class CORS(configuration: Configuration) {
         /**
          * Allowed CORS headers
          */
+        @OptIn(InternalAPI::class)
         public val headers: MutableSet<String> = CaseInsensitiveSet()
 
         /**
@@ -352,6 +353,7 @@ public class CORS(configuration: Configuration) {
         /**
          * Exposed HTTP headers that could be accessed by a client
          */
+        @OptIn(InternalAPI::class)
         public val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
 
         /**
@@ -486,6 +488,7 @@ public class CORS(configuration: Configuration) {
             return cors
         }
 
+        @OptIn(InternalAPI::class)
         private fun caseInsensitiveSet(vararg elements: String): Set<String> =
             CaseInsensitiveSet(elements.asList())
     }

@@ -63,14 +63,12 @@ public fun parametersOf(name: String, values: List<String>): Parameters = Parame
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters,
     StringValuesImpl(true, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class ParametersSingleImpl(name: String, values: List<String>) : Parameters,
     StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Parameters ${entries()}"

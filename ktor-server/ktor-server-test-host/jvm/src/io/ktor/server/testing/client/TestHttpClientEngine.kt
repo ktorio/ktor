@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
     override val dispatcher = Dispatchers.IO
 
@@ -29,6 +29,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 

@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
-val ideaActive: Boolean by project.extra
 val serialization_version: String by project.extra
 
 plugins {
@@ -12,7 +11,7 @@ plugins {
 kotlin {
     targets.apply {
         val current = mutableListOf<KotlinTarget>()
-        if (ideaActive) {
+        if (KtorBuildProperties.ideaActive) {
             current.add(getByName("posix"))
         } else {
             current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("mingwX64")))
@@ -76,7 +75,7 @@ kotlin {
         }
 
         // Hack: register the Native interop klibs as outputs of Kotlin source sets:
-        if (!ideaActive) {
+        if (!KtorBuildProperties.ideaActive) {
             val libcurlInterop by creating
             getByName("posixMain").dependsOn(libcurlInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")

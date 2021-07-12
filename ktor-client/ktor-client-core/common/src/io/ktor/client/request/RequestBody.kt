@@ -13,6 +13,7 @@ import kotlin.native.concurrent.*
 @SharedImmutable
 internal val BodyTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("BodyTypeAttributeKey")
 
+@OptIn(InternalAPI::class)
 public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     when (body) {
         null -> {

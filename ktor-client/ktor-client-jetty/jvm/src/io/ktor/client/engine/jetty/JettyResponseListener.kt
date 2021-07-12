@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.http.HttpMethod
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -68,7 +67,7 @@ internal class JettyResponseListener(
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
         val data = frame.data!!
         try {
-            if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
+            if (!backendChannel.trySend(JettyResponseChunk(data, callback)).isSuccess) {
                 throw IOException("backendChannel.offer() failed")
             }
 
@@ -115,10 +114,10 @@ internal class JettyResponseListener(
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
-        @OptIn(ExperimentalCoroutinesApi::class)
         while (true) {
-            val (buffer, callback) = backendChannel.receiveOrNull() ?: break
+            val (buffer, callback) = backendChannel.receiveCatching().getOrNull() ?: break
             try {
                 if (buffer.remaining() > 0) channel.writeFully(buffer)
                 callback.succeeded()

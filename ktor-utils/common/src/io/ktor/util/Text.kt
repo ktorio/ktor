@@ -46,7 +46,6 @@ public inline fun String.chomp(
  * Does the same as the regular [toLowerCase] except that locale-specific rules are not applied to ASCII characters
  * so latin characters are converted by the original english rules.
  */
-@InternalAPI
 public fun String.toLowerCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {
         toLowerCasePreservingASCII(it) != it
@@ -70,7 +69,6 @@ public fun String.toLowerCasePreservingASCIIRules(): String {
  * Does the same as the regular [toUpperCase] except that locale-specific rules are not applied to ASCII characters
  * so latin characters are converted by the original english rules.
  */
-@InternalAPI
 public fun String.toUpperCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {
         toUpperCasePreservingASCII(it) != it
@@ -93,19 +91,19 @@ public fun String.toUpperCasePreservingASCIIRules(): String {
 private fun toLowerCasePreservingASCII(ch: Char): Char = when (ch) {
     in 'A'..'Z' -> ch + 32
     in '\u0000'..'\u007f' -> ch
-    else -> ch.toLowerCase()
+    else -> ch.lowercaseChar()
 }
 
 private fun toUpperCasePreservingASCII(ch: Char): Char = when (ch) {
     in 'a'..'z' -> ch - 32
     in '\u0000'..'\u007f' -> ch
-    else -> ch.toLowerCase()
+    else -> ch.lowercaseChar()
 }
 
 internal fun String.caseInsensitive(): CaseInsensitiveString = CaseInsensitiveString(this)
 
 internal class CaseInsensitiveString(val content: String) {
-    private val hash = content.toLowerCase().hashCode()
+    private val hash = content.lowercase().hashCode()
 
     override fun equals(other: Any?): Boolean =
         (other as? CaseInsensitiveString)?.content?.equals(content, ignoreCase = true) == true

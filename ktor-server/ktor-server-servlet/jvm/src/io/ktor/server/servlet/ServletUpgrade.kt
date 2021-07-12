@@ -38,6 +38,7 @@ public interface ServletUpgrade {
  */
 @EngineAPI
 public object DefaultServletUpgrade : ServletUpgrade {
+    @OptIn(InternalAPI::class)
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,

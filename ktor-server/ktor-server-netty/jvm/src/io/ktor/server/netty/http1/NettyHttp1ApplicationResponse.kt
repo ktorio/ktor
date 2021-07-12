@@ -6,9 +6,11 @@ package io.ktor.server.netty.http1
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
@@ -16,7 +18,8 @@ import io.netty.handler.codec.http.*
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.*
 
-internal class NettyHttp1ApplicationResponse(
+@OptIn(EngineAPI::class, InternalAPI::class)
+internal class NettyHttp1ApplicationResponse constructor(
     call: NettyApplicationCall,
     context: ChannelHandlerContext,
     engineContext: CoroutineContext,

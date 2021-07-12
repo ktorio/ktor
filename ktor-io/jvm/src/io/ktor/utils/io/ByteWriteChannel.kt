@@ -169,7 +169,6 @@ public actual interface ByteWriteChannel {
      */
     public actual fun flush()
 
-    @ExperimentalIoApi
     public actual suspend fun awaitFreeSpace()
 
     public actual suspend fun writeFully(src: Buffer)

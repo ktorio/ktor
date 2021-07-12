@@ -18,6 +18,7 @@ import kotlin.test.*
 
 class RequestProducerTest {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testHeadersMerge() {
         val request = HttpRequestData(

@@ -59,6 +59,7 @@ private fun testWithClient(
 /**
  * Perform test with selected client engine [factory].
  */
+@OptIn(DelicateCoroutinesApi::class)
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
@@ -104,7 +105,6 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
     }
 }
 
-@InternalAPI
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
     var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
@@ -114,17 +114,14 @@ class TestClientBuilder<T : HttpClientEngineConfig>(
     var concurrency: Int = 1
 )
 
-@InternalAPI
 fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
     config = block
 }
 
-@InternalAPI
 fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
     test = block
 }
 
-@InternalAPI
 fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit { // ktlint-disable no-unit-return
     after = block
 }

@@ -13,12 +13,13 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testDigestAuthLegacy() = clientTests(listOf("Js", "native")) {
         config {
@@ -184,6 +185,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testBasicAuthMultiple() = clientTests(listOf("Js")) {
         config {
@@ -202,7 +204,7 @@ class AuthTest : ClientLoader() {
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed").bodyAsText()
             client.post("$TEST_SERVER/auth/basic") {
-                body = "{\"test\":\"text\"}"
+                setBody("{\"test\":\"text\"}")
             }.bodyAsText()
         }
     }
@@ -225,7 +227,7 @@ class AuthTest : ClientLoader() {
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed").bodyAsText()
             client.post("$TEST_SERVER/auth/basic") {
-                body = "{\"test\":\"text\"}"
+                setBody("{\"test\":\"text\"}")
             }.bodyAsText()
         }
     }
@@ -351,6 +353,7 @@ class AuthTest : ClientLoader() {
     private var clientWithAuth: HttpClient? by shared(null)
 
     @Suppress("JoinDeclarationAndAssignment")
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testRefreshWithSameClient() = clientTests {
         test { client ->

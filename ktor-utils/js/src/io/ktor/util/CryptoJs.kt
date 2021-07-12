@@ -13,7 +13,6 @@ private const val NONCE_SIZE_IN_BYTES = 8
 /**
  * Generates a nonce string.
  */
-@InternalAPI
 public actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES)
     if (PlatformUtils.IS_NODE) {
@@ -27,7 +26,6 @@ public actual fun generateNonce(): String {
 /**
  * Create [Digest] from specified hash [name].
  */
-@InternalAPI
 public actual fun Digest(name: String): Digest = object : Digest {
     private val state = mutableListOf<ByteArray>()
     override fun plusAssign(bytes: ByteArray) {
@@ -59,13 +57,13 @@ private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable 
 private external class Crypto {
     val subtle: SubtleCrypto
 
-    public fun getRandomValues(array: ByteArray)
+    fun getRandomValues(array: ByteArray)
 
-    public fun randomFillSync(array: ByteArray)
+    fun randomFillSync(array: ByteArray)
 }
 
 private external class SubtleCrypto {
-    public fun digest(algoName: String, buffer: ByteArray): Promise<ArrayBuffer>
+    fun digest(algoName: String, buffer: ByteArray): Promise<ArrayBuffer>
 }
 
 /**

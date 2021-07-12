@@ -27,7 +27,7 @@ internal class JavaHttpResponseBodyHandler(
     }
 
     private class JavaHttpResponseBodySubscriber(
-        private val callContext: CoroutineContext,
+        callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,
         requestTime: GMTDate
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
@@ -61,7 +61,7 @@ internal class JavaHttpResponseBodyHandler(
                 try {
                     queue.consume {
                         while (isActive) {
-                            var buffer = queue.poll()
+                            var buffer = queue.tryReceive().getOrNull()
                             if (buffer == null) {
                                 subscription.value?.request(1)
                                 buffer = queue.receive()
@@ -109,7 +109,7 @@ internal class JavaHttpResponseBodyHandler(
         override fun onNext(items: List<ByteBuffer>) {
             items.forEach {
                 if (it.hasRemaining()) {
-                    queue.offer(it)
+                    queue.trySend(it).isSuccess
                 }
             }
         }

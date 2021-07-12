@@ -35,7 +35,7 @@ internal class IPv4Address(
             sin_port = port.convert()
             sin_family = family
 
-            block(ptr.reinterpret(), sockaddr_in.size.convert())
+            block(ptr.reinterpret(), sizeOf<sockaddr_in>().convert())
         }
     }
 
@@ -43,6 +43,7 @@ internal class IPv4Address(
         get() = error("String address representation is unsupported on Native.")
 }
 
+@Suppress("UNUSED_PARAMETER")
 internal class IPv6Address(
     family: sa_family_t,
     rawAddress: in6_addr,
@@ -62,7 +63,7 @@ internal class IPv6Address(
             sin6_port = port.convert()
             sin6_scope_id = scopeId
 
-            block(ptr.reinterpret(), sockaddr_in6.size.convert())
+            block(ptr.reinterpret(), sizeOf<sockaddr_in6>().convert())
         }
     }
 

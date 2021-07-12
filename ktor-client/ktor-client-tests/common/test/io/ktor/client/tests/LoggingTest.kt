@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
+@OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
     private val content = "Response data"
     private val serverPort = 8080
@@ -497,7 +498,7 @@ class LoggingTest : ClientLoader() {
             val response = client.request<HttpStatement> {
                 method = HttpMethod.Post
                 url("$TEST_SERVER/content/echo")
-                this.body = body
+                setBody(body)
             }.receive<ByteReadChannel>()
             response.discard()
         }
@@ -560,7 +561,7 @@ class LoggingTest : ClientLoader() {
                     port = serverPort
                 }
 
-                body?.let { this@request.body = body }
+                body?.let { setBody(body) }
             }.body<String>()
         }
 

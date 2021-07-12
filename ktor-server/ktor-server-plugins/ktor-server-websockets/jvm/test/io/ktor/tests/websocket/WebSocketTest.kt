@@ -518,9 +518,9 @@ class WebSocketTest {
             }
         }
 
-        handleWebSocketConversation("/close/me") { incoming, outgoing ->
+        handleWebSocketConversation("/close/me") { incoming, _ ->
             assertTrue(incoming.receive() is Frame.Close)
-            assertNull(incoming.receiveOrNull())
+            assertNull(incoming.receiveCatching().getOrNull())
         }
         runBlocking {
             session.await()

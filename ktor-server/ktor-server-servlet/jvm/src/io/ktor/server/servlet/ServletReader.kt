@@ -24,7 +24,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
-    public suspend fun run() {
+    suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             input.setReadListener(this)
@@ -36,8 +36,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 events.close()
                 return
             }
-            @OptIn(ExperimentalCoroutinesApi::class)
-            events.receiveOrNull() ?: return
+            events.receiveCatching().getOrNull() ?: return
             loop(buffer)
 
             events.close()
@@ -64,8 +63,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 channel.writeFully(buffer, 0, rc)
             } else {
                 channel.flush()
-                @OptIn(ExperimentalCoroutinesApi::class)
-                events.receiveOrNull() ?: break
+                events.receiveCatching().getOrNull() ?: break
             }
         }
     }
@@ -83,8 +81,8 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
 
     override fun onDataAvailable() {
         try {
-            if (!events.offer(Unit)) {
-                events.sendBlocking(Unit)
+            if (!events.trySend(Unit).isSuccess) {
+                events.trySendBlocking(Unit)
             }
         } catch (ignore: Throwable) {
         }

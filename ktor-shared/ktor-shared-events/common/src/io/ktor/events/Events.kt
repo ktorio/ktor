@@ -4,10 +4,12 @@
 
 package io.ktor.events
 
+import io.ktor.util.*
 import io.ktor.util.collections.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.internal.*
 
+@OptIn(InternalAPI::class)
 public class Events {
     @OptIn(InternalCoroutinesApi::class)
     private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()

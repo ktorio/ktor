@@ -9,7 +9,7 @@ import kotlin.contracts.*
  * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
  * otherwise an unexpected behaviour may occur.
  */
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@OptIn(ExperimentalContracts::class)
 public inline fun <R> BytePacketBuilder.preview(block: (tmp: ByteReadPacket) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

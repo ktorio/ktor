@@ -6,6 +6,7 @@ package io.ktor.client.plugins.json
 
 import java.util.*
 
+@Suppress("DEPRECATION")
 public actual fun defaultSerializer(): JsonSerializer {
     val serializers = ServiceLoader.load(JsonSerializer::class.java)
         .toList()

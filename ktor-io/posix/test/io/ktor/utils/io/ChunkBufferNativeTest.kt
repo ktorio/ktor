@@ -16,8 +16,8 @@ class ChunkBufferNativeTest {
 
     @Test
     fun testReadDirectOnEmpty() {
-        var invoked = false
-        buffer.readDirect { ptr ->
+        var invoked: Boolean
+        buffer.readDirect {
             invoked = true
             0
         }.also {
@@ -28,9 +28,8 @@ class ChunkBufferNativeTest {
 
     @Test
     fun testReadDirectNegativeResult() {
-        var invoked = false
         assertFails {
-            buffer.readDirect { ptr ->
+            buffer.readDirect {
                 -1
             }
         }
@@ -38,9 +37,8 @@ class ChunkBufferNativeTest {
 
     @Test
     fun testReadDirectTooManyBytesResult() {
-        var invoked = false
         assertFails {
-            buffer.readDirect { ptr ->
+            buffer.readDirect {
                 1
             }
         }
@@ -48,7 +46,7 @@ class ChunkBufferNativeTest {
 
     @Test
     fun testReadDirect() {
-        var result = 0
+        var result: Int
         buffer.writeByte(7)
         buffer.writeByte(8)
         buffer.readDirect { ptr ->
@@ -68,7 +66,7 @@ class ChunkBufferNativeTest {
         }
 
         val size = buffer.readRemaining
-        buffer.readDirect { ptr ->
+        buffer.readDirect {
             buffer.readRemaining
         }.also {
             assertEquals(size, it)
