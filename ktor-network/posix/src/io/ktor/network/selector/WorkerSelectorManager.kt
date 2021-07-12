@@ -12,13 +12,16 @@ import kotlin.coroutines.*
 internal class WorkerSelectorManager : SelectorManager {
     private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
     override val coroutineContext: CoroutineContext = selectorContext
-    override fun notifyClosed(s: Selectable) {}
 
     private val selector = SelectorHelper()
 
     init {
         makeShared()
         selector.start(this)
+    }
+
+    override fun notifyClosed(s: Selectable) {
+        selector.notifyClosed(s.descriptor)
     }
 
     override suspend fun select(

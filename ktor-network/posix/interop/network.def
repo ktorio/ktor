@@ -1,6 +1,7 @@
 package=io.ktor.network.interop
 ---
 #include <sys/select.h>
+#include <arpa/inet.h>
 
 static inline void select_fd_remove(int descriptor, fd_set *set) {
     FD_CLR(descriptor, set);
@@ -16,4 +17,8 @@ static inline void select_fd_clear(fd_set *set) {
 
 static inline int select_fd_isset(int descriptor, fd_set* set) {
     return FD_ISSET(descriptor, set);
+}
+
+static inline const char *ktor_inet_ntop(int af, const void *src, char *dst, socklen_t size) {
+    return inet_ntop(af, src, dst, size);
 }

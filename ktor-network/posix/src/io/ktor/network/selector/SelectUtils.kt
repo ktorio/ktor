@@ -18,6 +18,7 @@ import kotlin.native.concurrent.*
 internal class SelectorHelper {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
+    private val closeQueue = LockFreeMPSCQueue<Int>()
 
     private val wakeupSignalEvent = EventInfo(
         wakeupSignal.selectionDescriptor,
@@ -56,6 +57,11 @@ internal class SelectorHelper {
         wakeupSignal.close()
     }
 
+    fun notifyClosed(descriptor: Int) {
+        closeQueue.addLast(descriptor)
+        wakeupSignal.signal()
+    }
+
     private fun selectionLoop(): Unit = memScoped {
         val readSet = alloc<fd_set>()
         val writeSet = alloc<fd_set>()
@@ -63,6 +69,7 @@ internal class SelectorHelper {
 
         val completed = mutableListOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
+        val closeSet = mutableSetOf<Int>()
 
         while (!interestQueue.isClosed) {
             watchSet.add(wakeupSignalEvent)
@@ -74,7 +81,7 @@ internal class SelectorHelper {
             pselect(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr, null, null)
                 .check()
 
-            processSelectedEvents(watchSet, completed, readSet, writeSet, errorSet)
+            processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
         }
 
         val exception = CancellationException("Selector closed").freeze()
@@ -129,12 +136,22 @@ internal class SelectorHelper {
 
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
+        closeSet: MutableSet<Int>,
         completed: MutableList<EventInfo>,
         readSet: fd_set,
         writeSet: fd_set,
         errorSet: fd_set
     ) {
+        while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeSet.add(event)
+        }
+
         for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                completed.add(event)
+                continue
+            }
             val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
             if (select_fd_isset(event.descriptor, errorSet.ptr) != 0) {
@@ -153,6 +170,11 @@ internal class SelectorHelper {
                 continue
             }
         }
+
+        for (descriptor in closeSet) {
+            close(descriptor)
+        }
+        closeSet.clear()
 
         watchSet.removeAll(completed)
         completed.clear()

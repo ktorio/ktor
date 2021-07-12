@@ -5,7 +5,10 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.NetworkAddress
+import io.ktor.network.util.*
+import io.ktor.util.network.*
+import kotlinx.cinterop.*
+import platform.posix.*
 
 internal actual fun UDPSocketBuilder.Companion.connectUDP(
     selector: SelectorManager,
@@ -13,7 +16,25 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     localAddress: NetworkAddress?,
     options: SocketOptions.UDPSocketOptions
 ): ConnectedDatagramSocket {
-    error("UDP sockets are not supported")
+    val address = localAddress?.address ?: getAnyLocalAddress()
+    val descriptor = socket(address.family.convert(), SOCK_DGRAM, 0).check()
+
+    assignOptions(descriptor, options)
+    nonBlocking(descriptor)
+
+    address.nativeAddress { address, size ->
+        bind(descriptor, address, size).check()
+    }
+
+    remoteAddress.address.nativeAddress { address, size ->
+        connect(descriptor, address, size).check()
+    }
+
+    return DatagramSocketImpl(
+        descriptor = descriptor,
+        selector = selector,
+        parent = selector.coroutineContext
+    )
 }
 
 internal actual fun UDPSocketBuilder.Companion.bindUDP(
@@ -21,5 +42,19 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     localAddress: NetworkAddress?,
     options: SocketOptions.UDPSocketOptions
 ): BoundDatagramSocket {
-    error("UDP sockets are not supported")
+    val address = localAddress?.address ?: getAnyLocalAddress()
+    val descriptor = socket(address.family.convert(), SOCK_DGRAM, 0).check()
+
+    assignOptions(descriptor, options)
+    nonBlocking(descriptor)
+
+    address.nativeAddress { address, size ->
+        bind(descriptor, address, size).check()
+    }
+
+    return DatagramSocketImpl(
+        descriptor = descriptor,
+        selector = selector,
+        parent = selector.coroutineContext
+    )
 }

@@ -5,7 +5,6 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.util.*
+import io.ktor.util.network.*
 
-internal fun getAnyLocalAddress(): SocketAddress = error(
-    "Address auto-assign is not supported on Native. Consider specifying address manually."
-)
+internal fun getAnyLocalAddress(): SocketAddress = NetworkAddress("0.0.0.0", 0).address

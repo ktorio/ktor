@@ -1,7 +1,7 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.core.internal.ChunkBuffer
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.DefaultPool
 import io.ktor.utils.io.pool.ObjectPool
 import kotlin.native.concurrent.ThreadLocal
@@ -54,8 +54,9 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 @Suppress("DEPRECATION")
 internal val DefaultChunkedBufferPool: ObjectPool<IoBuffer> = DefaultBufferPool()
 
+@DangerousInternalIoApi
 @Suppress("DEPRECATION")
-internal class DefaultBufferPool(
+public class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
