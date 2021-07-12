@@ -5,6 +5,7 @@
 package io.ktor.server.jetty
 
 import io.ktor.http.*
+import io.ktor.server.engine.*
 import io.ktor.server.jetty.internal.*
 import io.ktor.server.response.*
 import io.ktor.server.servlet.*
@@ -15,7 +16,8 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class JettyApplicationResponse(
+@OptIn(EngineAPI::class)
+public class JettyApplicationResponse constructor(
     call: AsyncServletApplicationCall,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,

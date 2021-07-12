@@ -6,7 +6,6 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 open class BytePacketStringTest {
@@ -70,7 +69,7 @@ open class BytePacketStringTest {
     fun testMultiBufferReadText() {
         val size = 100000
         val ba = ByteArray(size) {
-            'x'.toByte()
+            'x'.code.toByte()
         }
         val s = CharArray(size) {
             'x'
@@ -419,7 +418,7 @@ open class BytePacketStringTest {
         }
 
         try {
-            assertEquals("\u0422", packet.readTextExactBytes(bytes = 2))
+            assertEquals("\u0422", packet.readTextExactBytes(bytesCount = 2))
         } finally {
             packet.release()
         }
@@ -429,7 +428,7 @@ open class BytePacketStringTest {
         }
 
         try {
-            assertEquals("\u0422e", packet.readTextExactBytes(bytes = 3))
+            assertEquals("\u0422e", packet.readTextExactBytes(bytesCount = 3))
         } finally {
             packet.release()
         }
@@ -440,7 +439,7 @@ open class BytePacketStringTest {
 
         try {
             assertFails {
-                assertEquals("\u0422", packet.readTextExactBytes(bytes = 4))
+                assertEquals("\u0422", packet.readTextExactBytes(bytesCount = 4))
             }
         } finally {
             packet.release()
@@ -451,7 +450,7 @@ open class BytePacketStringTest {
         }
 
         try {
-            val text = packet.readTextExactBytes(bytes = 5)
+            val text = packet.readTextExactBytes(bytesCount = 5)
             assertEquals(3, text.length)
             assertEquals("\u0422e\u0438", text)
         } finally {
@@ -472,7 +471,7 @@ open class BytePacketStringTest {
                 val copied = big.copy()
 
                 try {
-                    val actual = copied.readTextExactBytes(bytes = i)
+                    val actual = copied.readTextExactBytes(bytesCount = i)
                     assertEquals(i, actual.length)
                     assertTrue { longLine.substring(0, i) == actual }
                 } finally {

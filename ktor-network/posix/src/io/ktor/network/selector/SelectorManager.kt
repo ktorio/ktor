@@ -4,12 +4,10 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-@InternalAPI
 public actual fun SelectorManager(
     dispatcher: CoroutineContext
 ): SelectorManager = WorkerSelectorManager()
@@ -41,7 +39,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
  * Select interest kind
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@InternalAPI
 public actual enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 

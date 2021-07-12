@@ -5,9 +5,11 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.util.*
 
 private val initHook = CIO
 
+@OptIn(InternalAPI::class)
 internal actual fun addToLoader() {
     engines.append(CIO)
 }

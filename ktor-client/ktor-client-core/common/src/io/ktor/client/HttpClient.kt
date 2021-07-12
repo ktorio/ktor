@@ -69,7 +69,7 @@ public fun HttpClient(
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
  * @property engine: [HttpClientEngine] for executing requests.
  */
-@OptIn(InternalCoroutinesApi::class)
+@OptIn(InternalCoroutinesApi::class, InternalAPI::class)
 public class HttpClient(
     public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
@@ -182,7 +182,7 @@ public class HttpClient(
     }
 
     /**
-     * Creates a new [HttpRequest] from a request [data] and a specific client [call].
+     * Creates a new [HttpClientCall] from a request [builder].
      */
     internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall {
         monitor.raise(HttpRequestCreated, builder)

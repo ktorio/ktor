@@ -54,7 +54,7 @@ fun Project.setupTrainForSubproject() {
     val serialization_version: String by extra
 
     extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-    var kotlin_version: String by extra
+    val kotlin_version: String by extra
     println("Using Kotlin $kotlin_version for project $this")
     val deployVersion = properties["DeployVersion"]
     if (deployVersion != null) version = deployVersion

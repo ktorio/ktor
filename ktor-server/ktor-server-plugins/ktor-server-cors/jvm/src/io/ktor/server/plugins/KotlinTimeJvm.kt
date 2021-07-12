@@ -12,8 +12,8 @@ import kotlin.time.*
  */
 @ExperimentalTime
 public var CORS.Configuration.maxAgeDuration: Duration
-    get() = maxAgeInSeconds.seconds
+    get() = Duration.seconds(maxAgeInSeconds)
     set(newMaxAge) {
         require(!newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
-        maxAgeInSeconds = newMaxAge.inSeconds.roundToLong()
+        maxAgeInSeconds = newMaxAge.toDouble(DurationUnit.SECONDS).roundToLong()
     }

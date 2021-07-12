@@ -265,6 +265,6 @@ internal class URLBuilderTest {
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
     private fun testBuildString(url: String) {
-        assertEquals(url.toLowerCase(), URLBuilder(url).buildString().toLowerCase())
+        assertEquals(url.lowercase(), URLBuilder(url).buildString().lowercase())
     }
 }

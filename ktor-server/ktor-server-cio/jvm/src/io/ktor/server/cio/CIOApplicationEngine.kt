@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
@@ -16,6 +17,7 @@ import kotlinx.coroutines.scheduling.*
 /**
  * Engine that based on CIO backend
  */
+@OptIn(EngineAPI::class, InternalAPI::class)
 public class CIOApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
@@ -42,7 +44,7 @@ public class CIOApplicationEngine(
     @OptIn(InternalCoroutinesApi::class)
     private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
 
-    @OptIn(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class, InternalAPI::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
@@ -118,6 +120,7 @@ public class CIOApplicationEngine(
         return this
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
             shutdownServer(gracePeriodMillis, timeoutMillis)

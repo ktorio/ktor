@@ -59,10 +59,6 @@ internal class SocketImpl<out S : SocketChannel>(
     }
 
     private fun selfConnect(): Boolean {
-        if (this.localAddress == null || this.remoteAddress == null) {
-            throw IllegalStateException("localAddress and remoteAddress should not be null.")
-        }
-
         val localHostAddress = (this.localAddress as? InetSocketAddress)?.address?.hostAddress ?: ""
         val remoteHostAddress = (this.remoteAddress as? InetSocketAddress)?.address?.hostAddress ?: ""
         val isRemoteAnyLocalAddress = (this.remoteAddress as? InetSocketAddress)?.address?.isAnyLocalAddress ?: false

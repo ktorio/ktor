@@ -100,7 +100,6 @@ public interface StringValuesBuilder {
     public fun build(): StringValues
 }
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public open class StringValuesSingleImpl(
     override val caseInsensitiveName: Boolean,
@@ -144,7 +143,6 @@ public open class StringValuesSingleImpl(
         name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public open class StringValuesImpl(
     override val caseInsensitiveName: Boolean = false,
@@ -187,7 +185,6 @@ public open class StringValuesImpl(
     override fun hashCode(): Int = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
 }
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public open class StringValuesBuilderImpl(
     final override val caseInsensitiveName: Boolean = false,

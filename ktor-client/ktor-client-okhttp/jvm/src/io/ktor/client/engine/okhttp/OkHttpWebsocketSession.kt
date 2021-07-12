@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
@@ -51,7 +52,7 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -97,12 +98,12 @@ internal class OkHttpWebsocketSession(
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
         super.onMessage(webSocket, bytes)
-        _incoming.sendBlocking(Frame.Binary(true, bytes.toByteArray()))
+        _incoming.trySendBlocking(Frame.Binary(true, bytes.toByteArray()))
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         super.onMessage(webSocket, text)
-        _incoming.sendBlocking(Frame.Text(true, text.toByteArray()))
+        _incoming.trySendBlocking(Frame.Text(true, text.toByteArray()))
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -122,7 +123,7 @@ internal class OkHttpWebsocketSession(
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
         try {
-            outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+            outgoing.trySendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
         } catch (ignore: Throwable) {
         }
         _incoming.close()
@@ -162,11 +163,12 @@ internal class OkHttpWebsocketSession(
 public class UnsupportedFrameTypeException(
     private val frame: Frame
 ) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
-    override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {
+    override fun createCopy(): UnsupportedFrameTypeException = UnsupportedFrameTypeException(frame).also {
         it.initCause(this)
     }
 }
 
+@OptIn(InternalAPI::class)
 @Suppress("DEPRECATION")
 private fun CloseReason.isReserved() = CloseReason.Codes.byCode(code).let { recognized ->
     recognized == null || recognized == CloseReason.Codes.CLOSED_ABNORMALLY

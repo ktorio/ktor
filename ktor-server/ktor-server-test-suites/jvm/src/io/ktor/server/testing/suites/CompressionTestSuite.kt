@@ -16,6 +16,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import org.junit.*
@@ -27,6 +28,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testLocalFileContentWithCompression() {
         val file = loadTestFile()
@@ -46,6 +48,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testStreamingContentWithCompression() {
         val file = loadTestFile()

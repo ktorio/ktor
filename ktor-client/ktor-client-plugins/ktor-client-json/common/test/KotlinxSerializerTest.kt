@@ -22,13 +22,7 @@ internal data class User(val id: Long, val login: String)
 @Serializable
 internal data class Photo(val id: Long, val path: String)
 
-@Serializable
-data class GithubProfile(
-    val login: String,
-    val id: Int,
-    val name: String
-)
-
+@Suppress("DEPRECATION")
 class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testRegisterCustom() {

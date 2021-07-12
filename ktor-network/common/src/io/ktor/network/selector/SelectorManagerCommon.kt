@@ -1,6 +1,5 @@
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -9,7 +8,6 @@ import kotlin.coroutines.*
  * Creates the selector manager for current platform.
  */
 @Suppress("FunctionName")
-@InternalAPI
 public expect fun SelectorManager(
     dispatcher: CoroutineContext = EmptyCoroutineContext
 ): SelectorManager
@@ -41,7 +39,6 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
  * Select interest kind
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@InternalAPI
 public expect enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 

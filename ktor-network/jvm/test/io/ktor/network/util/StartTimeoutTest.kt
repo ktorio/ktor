@@ -99,6 +99,7 @@ class StartTimeoutTest {
         assertTrue(timeoutInvoked)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testTimeoutCancelsWhenParentScopeCancels() = runBlocking {
         var timeoutInvoked = false

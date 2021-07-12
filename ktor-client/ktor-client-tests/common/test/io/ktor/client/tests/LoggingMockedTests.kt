@@ -89,7 +89,7 @@ class LoggingMockedTests {
 
         config {
             engine {
-                addHandler { request ->
+                addHandler {
                     respondOk("Hello")
                 }
             }
@@ -151,7 +151,7 @@ class LoggingMockedTests {
 
         config {
             engine {
-                addHandler { request ->
+                addHandler {
                     respondOk("Hello")
                 }
             }

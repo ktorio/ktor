@@ -13,8 +13,6 @@ val kotlin_version: String by project.extra
 val logback_version: String by project.extra
 val coroutines_version: String by project
 
-val ideaActive: Boolean by project.extra
-
 plugins {
     id("kotlinx-serialization")
 }
@@ -93,7 +91,7 @@ kotlin.sourceSets {
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-            if (project.ext["currentJdk"] as Int >= 11) {
+            if (KtorBuildProperties.currentJdk as Int >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
         }
@@ -106,7 +104,7 @@ kotlin.sourceSets {
     }
 
     if (rootProject.ext.get("native_targets_enabled") as Boolean) {
-        if (!ideaActive) {
+        if (!KtorBuildProperties.ideaActive) {
             listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
                 it.dependencies {
                     api(project(":ktor-client:ktor-client-curl"))
@@ -162,7 +160,7 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
-if (!ideaActive) {
+if (!KtorBuildProperties.ideaActive) {
     testTasks += listOf(
         "macosX64Test",
         "linuxX64Test",

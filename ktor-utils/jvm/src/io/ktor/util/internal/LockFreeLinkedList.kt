@@ -10,7 +10,6 @@ package io.ktor.util.internal
  * Copied from kotlinx.coroutines
  */
 
-import io.ktor.util.*
 import kotlinx.atomicfu.*
 
 private typealias Node = LockFreeLinkedListNode
@@ -54,7 +53,6 @@ private class Symbol(val symbol: String) {
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
-@InternalAPI
 public abstract class OpDescriptor {
     /**
      * Returns `null` is operation was performed successfully or some other
@@ -76,7 +74,6 @@ private val NO_DECISION: Any = Symbol("NO_DECISION")
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
-@InternalAPI
 public abstract class AtomicOp<in T> : OpDescriptor() {
     private val _consensus = atomic<Any?>(NO_DECISION)
 
@@ -112,7 +109,6 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
-@InternalAPI
 public abstract class AtomicDesc {
 
     // returns `null` if prepared successfully
@@ -138,7 +134,6 @@ public abstract class AtomicDesc {
  * @suppress **This is unstable API and it is subject to change.**
  */
 @Suppress("LeakingThis")
-@InternalAPI
 public open class LockFreeLinkedListNode {
 
     // Node | Removed | OpDescriptor
@@ -506,7 +501,6 @@ public open class LockFreeLinkedListNode {
         final override fun finishOnSuccess(affected: Node, next: Node): Unit = affected.finishRemove(next)
     }
 
-    @InternalAPI
     public abstract class AbstractAtomicDesc : AtomicDesc() {
         protected abstract val affectedNode: Node?
         protected abstract val originalNext: Node?
@@ -779,7 +773,6 @@ internal fun Any.unwrap(): Node = (this as? Removed)?.ref ?: this as Node
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
-@InternalAPI
 public open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
     public val isEmpty: Boolean get() = next === this
 

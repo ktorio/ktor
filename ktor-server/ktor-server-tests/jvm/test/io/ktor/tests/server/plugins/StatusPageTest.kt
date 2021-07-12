@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlin.test.*
 
+@Suppress("IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION")
 class StatusPageTest {
     private val textPlainUtf8 = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
     private val textHtmlUtf8 = ContentType.Text.Html.withCharset(Charsets.UTF_8)
@@ -288,7 +289,7 @@ class StatusPageTest {
 
     @Test
     @Suppress("RedundantAsync", "IMPLICIT_NOTHING_AS_TYPE_PARAMETER", "ReplaceSingleLineLet")
-    fun testErrorInAsync(): Unit = withTestApplication<Unit> {
+    fun testErrorInAsync(): Unit = withTestApplication {
         class AsyncFailedException : Exception()
 
         application.install(StatusPages) {

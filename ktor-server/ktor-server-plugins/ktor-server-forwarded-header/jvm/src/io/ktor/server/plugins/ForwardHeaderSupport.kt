@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
+import kotlin.reflect.KProperty
 
 /**
  * `X-Forwarded-*` headers support
@@ -104,6 +105,7 @@ public object XForwardedHeaderSupport :
         /**
          * Port X-header names. Default is `X-Forwarded-Port`
          */
+        @OptIn(InternalAPI::class)
         @PublicAPICandidate("2.0.0")
         internal val portHeaders: ArrayList<String> = arrayListOf("X-Forwarded-Port")
     }

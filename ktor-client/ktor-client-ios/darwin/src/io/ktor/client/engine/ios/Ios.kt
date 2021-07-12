@@ -5,6 +5,7 @@
 package io.ktor.client.engine.ios
 
 import io.ktor.client.engine.*
+import io.ktor.util.*
 import platform.Foundation.*
 
 private val initHook = Ios
@@ -13,6 +14,7 @@ private val initHook = Ios
  * [HttpClientEngineFactory] using a [NSURLRequest] in implementation
  * with the the associated requestConfig [HttpClientEngineConfig].
  */
+@OptIn(InternalAPI::class)
 public object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
     init {
         engines.append(this)

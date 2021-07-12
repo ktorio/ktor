@@ -10,10 +10,11 @@ import kotlin.test.*
 
 class ReaderTest {
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCancelExceptionLoggedOnce() = testSuspend {
         var failInHandler = false
-        val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        val handler = CoroutineExceptionHandler { _, _ ->
             failInHandler = true
         }
 
