@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CollectionsSerializationTest {
     private val testSerializer = KotlinxSerializer()
 

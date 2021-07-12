@@ -2,6 +2,8 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
@@ -32,7 +34,7 @@ class DigestProviderTest {
         DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
     }
 
-    lateinit var requestBuilder: HttpRequestBuilder
+    private lateinit var requestBuilder: HttpRequestBuilder
 
     @BeforeTest
     fun setup() {
@@ -62,6 +64,7 @@ class DigestProviderTest {
     fun addRequestHeadersMissingRealm() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
+        @Suppress("DEPRECATION")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
         val authHeader = parseAuthorizationHeader(authAllFields)!!
         requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
@@ -77,6 +80,7 @@ class DigestProviderTest {
     fun addRequestHeadersChangedRealm() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
+        @Suppress("DEPRECATION")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", "wrong!")
         val authHeader = parseAuthorizationHeader(authAllFields)!!
         requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)

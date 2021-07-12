@@ -64,6 +64,7 @@ public fun Buffer.writeFully(src: ArrayBufferView, offset: Int = 0, length: Int 
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.writeDirect(block: (DataView) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -74,6 +75,7 @@ public inline fun Buffer.writeDirect(block: (DataView) -> Int): Int {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -84,6 +86,7 @@ public inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -94,6 +97,7 @@ public inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.readDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

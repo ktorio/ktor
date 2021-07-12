@@ -75,7 +75,7 @@ public data class PinnedCertificate(
             ) {
                 "Unexpected pattern: $pattern"
             }
-            val canonicalPattern = pattern.toLowerCase()
+            val canonicalPattern = pattern.lowercase()
             return when {
                 pin.startsWith(HASH_ALGORITHM_SHA_1) -> {
                     val hash = pin.substring(HASH_ALGORITHM_SHA_1.length)

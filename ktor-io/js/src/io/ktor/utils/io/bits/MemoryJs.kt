@@ -9,7 +9,7 @@ import kotlin.require
 /**
  * Represents a linear range of bytes.
  */
-public actual class Memory @DangerousInternalIoApi constructor(public val view: DataView) {
+public actual class Memory constructor(public val view: DataView) {
     /**
      * Size of memory range in bytes.
      */

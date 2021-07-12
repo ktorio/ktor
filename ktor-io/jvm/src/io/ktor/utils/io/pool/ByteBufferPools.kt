@@ -12,7 +12,6 @@ private const val DEFAULT_POOL_CAPACITY: Int = 2000
 
 private const val DEFAULT_BUFFER_SIZE: Int = 4096
 
-@ExperimentalIoApi
 public class ByteBufferPool(
     capacity: Int = DEFAULT_POOL_CAPACITY,
     public val bufferSize: Int = DEFAULT_BUFFER_SIZE
@@ -31,7 +30,6 @@ public class ByteBufferPool(
     }
 }
 
-@ExperimentalIoApi
 public class DirectByteBufferPool(
     capacity: Int = DEFAULT_POOL_CAPACITY,
     public val bufferSize: Int = DEFAULT_BUFFER_SIZE

@@ -13,8 +13,7 @@ private const val EXPECTED_CAPACITY: Long = 4088L
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
-@Suppress("OverridingDeprecatedMember")
-@DangerousInternalIoApi
+@Suppress("OverridingDeprecatedMember", "DEPRECATION")
 public abstract class ByteChannelSequentialBase(
     initial: ChunkBuffer,
     override val autoFlush: Boolean,
@@ -248,7 +247,6 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    @ExperimentalIoApi
     @Suppress("DEPRECATION")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = beginWriteSession()
@@ -710,7 +708,6 @@ public abstract class ByteChannelSequentialBase(
             return false
         }
 
-        @OptIn(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead(size)
             if (await(size)) readable

@@ -560,11 +560,9 @@ public abstract class Input(
         throw EOFException("Not enough data in packet ($remaining) to read $n byte(s)")
     }
 
-    @DangerousInternalIoApi
-    public fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareReadLoop(minSize, head)
+    internal fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareReadLoop(minSize, head)
 
-    @DangerousInternalIoApi
-    public fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
+    internal fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
 
     @PublishedApi
     internal fun ensureNext(current: ChunkBuffer): ChunkBuffer? = ensureNext(
@@ -572,8 +570,7 @@ public abstract class Input(
         ChunkBuffer.Empty
     )
 
-    @DangerousInternalIoApi
-    public fun fixGapAfterRead(current: ChunkBuffer) {
+    internal fun fixGapAfterRead(current: ChunkBuffer) {
         val next = current.next ?: return fixGapAfterReadFallback(current)
 
         val remaining = current.readRemaining
@@ -815,6 +812,7 @@ public fun Input.discardExact(n: Long) {
 /**
  * Discard exactly [n] bytes or fail if not enough bytes in the input to be discarded.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public fun Input.discardExact(n: Int) {
     discardExact(n.toLong())
 }
@@ -827,7 +825,6 @@ public fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-@DangerousInternalIoApi
 public inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
     var release = true
     var current = prepareReadFirstHead(1) ?: return
@@ -857,8 +854,7 @@ public inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-@DangerousInternalIoApi
-public inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
+internal inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var release = true
     var current = prepareReadFirstHead(initialSize) ?: return
     var size = initialSize
@@ -887,11 +883,7 @@ public inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> I
                     prepareReadFirstHead(size)
                 }
                 else -> current
-            }
-
-            if (next == null) {
-                break
-            }
+            } ?: break
 
             current = next
             release = true
@@ -903,7 +895,6 @@ public inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> I
     }
 }
 
-@ExperimentalIoApi
 public fun Input.peekCharUtf8(): Char {
     val rc = tryPeek()
     if (rc and 0x80 == 0) return rc.toChar()
@@ -915,8 +906,7 @@ public fun Input.peekCharUtf8(): Char {
 /**
  * For every byte from this input invokes [block] function giving it as parameter.
  */
-@ExperimentalIoApi
-public inline fun Input.forEach(block: (Byte) -> Unit) {
+internal inline fun Input.forEach(block: (Byte) -> Unit) {
     takeWhile { buffer ->
         buffer.forEach(block)
         true

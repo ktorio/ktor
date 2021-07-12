@@ -28,7 +28,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any
-    ): OutgoingContent? {
+    ): OutgoingContent {
         return TextContent(gson.toJson(value), contentType.withCharset(charset))
     }
 

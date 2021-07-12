@@ -20,7 +20,6 @@ private typealias Core<E> = LockFreeMPSCQueueCore<E>
  * Thread 2: addLast(2) = 2 // this operation is concurrent with both operations in the first thread
  * ```
  */
-@InternalAPI
 internal class LockFreeMPSCQueue<E : Any> {
     private val _cur = atomic(Core<E>(Core.INITIAL_CAPACITY))
 

@@ -18,6 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
@@ -589,6 +590,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
         }
     }
 
+    @OptIn(UseHttp2Push::class)
     @Test
     @Http2Only
     fun testServerPush() {

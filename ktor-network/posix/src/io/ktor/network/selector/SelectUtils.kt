@@ -5,6 +5,7 @@ package io.ktor.network.selector
 
 import io.ktor.network.interop.*
 import io.ktor.network.util.*
+import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.*
@@ -15,6 +16,7 @@ import kotlin.coroutines.*
 import kotlin.math.*
 import kotlin.native.concurrent.*
 
+@OptIn(InternalAPI::class)
 internal class SelectorHelper {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()

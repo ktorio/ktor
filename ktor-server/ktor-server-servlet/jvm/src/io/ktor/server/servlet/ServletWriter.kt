@@ -105,8 +105,8 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     override fun onWritePossible() {
         try {
-            if (!events.offer(Unit)) {
-                events.sendBlocking(Unit)
+            if (!events.trySend(Unit).isSuccess) {
+                events.trySendBlocking(Unit)
             }
         } catch (ignore: Throwable) {
         }

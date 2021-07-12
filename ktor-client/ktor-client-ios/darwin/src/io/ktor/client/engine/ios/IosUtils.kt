@@ -14,6 +14,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 
+@OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().toNSData()
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(Dispatchers.Unconfined) {

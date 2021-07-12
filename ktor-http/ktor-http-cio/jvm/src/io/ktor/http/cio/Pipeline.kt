@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.backend.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
@@ -54,6 +55,7 @@ public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handl
  *
  * @return pipeline job
  */
+@OptIn(InternalAPI::class)
 @Deprecated(
     "This is going to become internal. " +
         "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts.",

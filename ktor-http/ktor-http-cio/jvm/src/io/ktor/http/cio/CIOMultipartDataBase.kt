@@ -31,7 +31,7 @@ public class CIOMultipartDataBase(
 
     override suspend fun readPart(): PartData? {
         while (true) {
-            val event = events.poll() ?: break
+            val event = events.tryReceive().getOrNull() ?: break
             eventToData(event)?.let { return it }
         }
 

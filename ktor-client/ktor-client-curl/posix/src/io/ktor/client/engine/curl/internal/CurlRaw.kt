@@ -72,6 +72,7 @@ internal class CurlFail(
     override fun toString(): String = "CurlFail($cause)"
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray = when (this@toCurlByteArray) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {

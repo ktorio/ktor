@@ -9,6 +9,7 @@ import io.ktor.http.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import java.net.*
 
@@ -22,6 +23,8 @@ internal class CIOApplicationRequest(
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
 
     override fun receiveChannel() = input
+
+    @OptIn(InternalAPI::class)
     override val headers: Headers = CIOHeaders(request.headers)
 
     override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {

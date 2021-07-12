@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import java.net.*
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public suspend fun TcpSocketBuilder.connect(
     remoteAddress: SocketAddress,
     configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}

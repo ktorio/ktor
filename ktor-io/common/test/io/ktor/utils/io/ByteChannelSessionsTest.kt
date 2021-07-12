@@ -32,7 +32,7 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
             1,
             ch.read { buffer, start, endExclusive ->
                 assertEquals(3, endExclusive - start)
-                assertEquals('A'.toByte(), buffer[start])
+                assertEquals('A'.code.toByte(), buffer[start])
                 1
             }
         )
@@ -41,8 +41,8 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
             2,
             ch.read { buffer, start, endExclusive ->
                 assertEquals(2, endExclusive - start)
-                assertEquals('B'.toByte(), buffer[start])
-                assertEquals('C'.toByte(), buffer[start + 1])
+                assertEquals('B'.code.toByte(), buffer[start])
+                assertEquals('C'.code.toByte(), buffer[start + 1])
                 2
             }
         )
@@ -93,10 +93,10 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
                 var textOffset = bytesRead
                 for (index in start until endIndex) {
                     assertEquals(
-                        text[textOffset].toByte(),
+                        text[textOffset].code.toByte(),
                         source[index],
                         "Expected character '${text[textOffset]}', " +
-                            "got '${source[index].toChar()}', index $bytesRead + $index"
+                            "got '${source[index].toInt().toChar()}', index $bytesRead + $index"
                     )
                     textOffset++
                 }

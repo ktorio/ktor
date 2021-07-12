@@ -122,7 +122,6 @@ internal fun ByteReadPacket.readHashAndSign(): HashAndSign? {
     return HashAndSign.byCode(hash, sign)
 }
 
-@InternalAPI
 public fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign? {
     check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }
 

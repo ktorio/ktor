@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
-val ideaActive: Boolean by extra
-
 val nativeTargets: List<KotlinNativeTarget> by extra
 kotlin {
     nativeTargets.forEach {
@@ -37,7 +35,7 @@ kotlin {
             dependsOn(socketsMain)
         }
 
-        if (!ideaActive) {
+        if (!KtorBuildProperties.ideaActive) {
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
             val registerInteropAsSourceSetOutput: groovy.lang.Closure<*> by extra
             afterEvaluate {

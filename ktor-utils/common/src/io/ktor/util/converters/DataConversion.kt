@@ -77,13 +77,13 @@ public class DelegatingConversionService(
 ) : ConversionService {
 
     override fun fromValues(values: List<String>, type: TypeInfo): Any? {
-        if (decoder == null) throw IllegalStateException("Decoder was not specified for type '$klass'")
-        return decoder!!(values)
+        val currentDecoder = decoder ?: throw IllegalStateException("Decoder was not specified for type '$klass'")
+        return currentDecoder(values)
     }
 
     override fun toValues(value: Any?): List<String> {
-        if (encoder == null) throw IllegalStateException("Encoder was not specified for type '$klass'")
-        return encoder!!(value)
+        val currentDecoder = encoder ?: throw IllegalStateException("Encoder was not specified for type '$klass'")
+        return currentDecoder(value)
     }
 
     /**

@@ -4,8 +4,10 @@
 
 package io.ktor.network.util
 
+import io.ktor.util.*
 import io.ktor.util.network.*
 
+@OptIn(InternalAPI::class)
 public val NetworkAddress.address: SocketAddress get() {
     if (explicitAddress.value == null) {
         explicitAddress.value = resolve().first()

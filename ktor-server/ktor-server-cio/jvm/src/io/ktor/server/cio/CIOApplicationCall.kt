@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(EngineAPI::class)
 internal class CIOApplicationCall(
     application: Application,
     _request: Request,

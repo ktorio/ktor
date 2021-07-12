@@ -65,6 +65,7 @@ public class HttpRedirect {
             }
         }
 
+        @OptIn(InternalAPI::class)
         private suspend fun Sender.handleCall(
             context: HttpRequestBuilder,
             origin: HttpClientCall,

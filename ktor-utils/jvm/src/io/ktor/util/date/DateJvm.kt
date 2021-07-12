@@ -38,7 +38,6 @@ public actual fun GMTDate(
     set(Calendar.MILLISECOND, 0)
 }.toDate(timestamp = null)
 
-@InternalAPI
 public fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }
 

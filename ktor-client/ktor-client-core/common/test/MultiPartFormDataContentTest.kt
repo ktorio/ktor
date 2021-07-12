@@ -24,9 +24,9 @@ class MultiPartFormDataContentTest {
 
         val actual = channel.readRemaining().readBytes()
 
-        assertNotEquals('\r'.toByte(), actual[0])
-        assertNotEquals('\n'.toByte(), actual[1])
-        assertNotEquals('\r'.toByte(), actual[2])
-        assertNotEquals('\n'.toByte(), actual[3])
+        assertNotEquals('\r'.code.toByte(), actual[0])
+        assertNotEquals('\n'.code.toByte(), actual[1])
+        assertNotEquals('\r'.code.toByte(), actual[2])
+        assertNotEquals('\n'.code.toByte(), actual[3])
     }
 }

@@ -95,6 +95,7 @@ public class Sessions(public val providers: List<SessionProvider<*>>) {
 public val ApplicationCall.sessions: CurrentSession
     get() = attributes.getOrNull(SessionKey) ?: reportMissingSession()
 
+@OptIn(InternalAPI::class)
 private fun ApplicationCall.reportMissingSession(): Nothing {
     application.plugin(Sessions) // ensure the plugin is installed
     throw SessionNotYetConfiguredException()
@@ -180,6 +181,7 @@ private data class SessionData(
         return entry.value.provider.name
     }
 
+    @OptIn(InternalAPI::class)
     override fun set(name: String, value: Any?) {
         if (committed) {
             throw TooLateSessionSetException()
@@ -239,7 +241,6 @@ private val SessionKey = AttributeKey<SessionData>("SessionKey")
 /**
  * This exception is thrown when HTTP response has already been sent but an attempt to modify session is made
  */
-@InternalAPI
 public class TooLateSessionSetException :
     IllegalStateException("It's too late to set session: response most likely already has been sent")
 
@@ -248,6 +249,5 @@ public class TooLateSessionSetException :
  * For example, in a phase before [ApplicationCallPipeline.Plugins] or in a plugin installed before [Sessions] into
  * the same phase.
  */
-@InternalAPI
 public class SessionNotYetConfiguredException :
     IllegalStateException("Sessions are not yet ready: you are asking it to early before the Sessions plugin.")

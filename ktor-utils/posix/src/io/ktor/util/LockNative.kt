@@ -8,7 +8,6 @@ import kotlinx.cinterop.*
 import utils.*
 import kotlin.native.concurrent.*
 
-@InternalAPI
 public actual class Lock {
     private val mutex = nativeHeap.alloc<ktor_mutex_t>()
 

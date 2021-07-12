@@ -26,7 +26,8 @@ internal class IosResponseReader(
 
     private val requestTime = GMTDate()
 
-    public suspend fun awaitResponse(): HttpResponseData {
+    @OptIn(DelicateCoroutinesApi::class)
+    suspend fun awaitResponse(): HttpResponseData {
         val response = rawResponse.await()
 
         @Suppress("UNCHECKED_CAST")
@@ -70,7 +71,7 @@ internal class IosResponseReader(
 
         val content = didReceiveData.toByteArray()
         try {
-            chunks.offer(content)
+            chunks.trySend(content).isSuccess
         } catch (cause: CancellationException) {
             dataTask.cancel()
         }

@@ -3,6 +3,7 @@ package io.ktor.utils.io.core.internal
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.jvm.*
 
 internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     read { memory, start, endExclusive ->
@@ -20,8 +21,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     return true
 }
 
-@DangerousInternalIoApi
-public suspend fun decodeUTF8LineLoopSuspend(
+internal suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
     nextChunk: suspend (Int) -> Input?
@@ -87,7 +87,6 @@ public suspend fun decodeUTF8LineLoopSuspend(
 private fun prematureEndOfStreamUtf(size: Int): Nothing =
     throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
 
-@DangerousInternalIoApi
 internal fun byteCountUtf8(firstByte: Int): Int {
     var byteCount = 0
     var mask = 0x80
@@ -113,8 +112,7 @@ internal fun byteCountUtf8(firstByte: Int): Int {
  * @return number of bytes required to decode incomplete utf8 character or 0 if all bytes were processed
  * or -1 if consumer rejected loop
  */
-@DangerousInternalIoApi
-public inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+internal inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var lastByteCount = 0
@@ -215,8 +213,9 @@ internal class CharArraySequence(
     }
 }
 
-@Suppress("NOTHING_TO_INLINE", "EXPERIMENTAL_FEATURE_WARNING")
-internal inline class EncodeResult(val value: Int) {
+@Suppress("NOTHING_TO_INLINE")
+@JvmInline
+internal value class EncodeResult(val value: Int) {
     constructor(characters: UShort, bytes: UShort) : this(characters.toInt() shl 16 or bytes.toInt())
 
     inline val characters: UShort get() = value.highShort.toUShort()
@@ -238,7 +237,7 @@ internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset
             return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
         }
 
-        val character = text[index++].toInt() and 0xffff
+        val character = text[index++].code and 0xffff
         if (character and 0xff80 == 0) {
             storeAt(resultPosition++, character.toByte())
         } else {
@@ -281,7 +280,7 @@ private fun Memory.encodeUTF8Stage1(
                     codePoint(character, text[index++])
                 }
             }
-            else -> character.toInt()
+            else -> character.code
         }
         val size = putUtf8Char(resultPosition, codepoint)
 
@@ -315,7 +314,7 @@ private fun Memory.encodeUTF8Stage2(
 
         val character = text[index++]
         val codepoint = when {
-            !character.isHighSurrogate() -> character.toInt()
+            !character.isHighSurrogate() -> character.code
             else -> {
                 if (index == lastCharIndex || !text[index].isLowSurrogate()) {
                     63
@@ -336,33 +335,33 @@ private fun Memory.encodeUTF8Stage2(
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun charactersSize(v: Int) = when {
-    v in 1..0x7f -> 1
-    v in 0x80..0x7ff -> 2
-    v in 0x800..0xffff -> 3
-    v in 0x10000..0x10ffff -> 4
+private inline fun charactersSize(v: Int) = when (v) {
+    in 1..0x7f -> 1
+    in 0x80..0x7ff -> 2
+    in 0x800..0xffff -> 3
+    in 0x10000..0x10ffff -> 4
     else -> malformedCodePoint(v)
 }
 
 // TODO optimize it, now we are simply do naive encoding here
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun Memory.putUtf8Char(offset: Int, v: Int): Int = when {
-    v in 0..0x7f -> {
+internal inline fun Memory.putUtf8Char(offset: Int, v: Int): Int = when (v) {
+    in 0..0x7f -> {
         storeAt(offset, v.toByte())
         1
     }
-    v in 0x80..0x7ff -> {
+    in 0x80..0x7ff -> {
         this[offset] = (0xc0 or ((v shr 6) and 0x1f)).toByte()
         this[offset + 1] = (0x80 or (v and 0x3f)).toByte()
         2
     }
-    v in 0x800..0xffff -> {
+    in 0x800..0xffff -> {
         this[offset] = (0xe0 or ((v shr 12) and 0x0f)).toByte()
         this[offset + 1] = (0x80 or ((v shr 6) and 0x3f)).toByte()
         this[offset + 2] = (0x80 or (v and 0x3f)).toByte()
         3
     }
-    v in 0x10000..0x10ffff -> {
+    in 0x10000..0x10ffff -> {
         this[offset] = (0xf0 or ((v shr 18) and 0x07)).toByte() // 3 bits
         this[offset + 1] = (0x80 or ((v shr 12) and 0x3f)).toByte() // 6 bits
         this[offset + 2] = (0x80 or ((v shr 6) and 0x3f)).toByte() // 6 bits
@@ -399,11 +398,8 @@ internal fun lowSurrogate(cp: Int): Int = (cp and 0x3ff) + MinLowSurrogate
 internal fun highSurrogate(cp: Int): Int = (cp ushr 10) + HighSurrogateMagic
 
 internal fun codePoint(high: Char, low: Char): Int {
-//    check(high.isHighSurrogate())
-//    check(low.isLowSurrogate())
-
-    val highValue = high.toInt() - HighSurrogateMagic
-    val lowValue = low.toInt() - MinLowSurrogate
+    val highValue = high.code - HighSurrogateMagic
+    val lowValue = low.code - MinLowSurrogate
 
     return highValue shl 10 or lowValue
 }

@@ -4,10 +4,8 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 
 public expect abstract class Charset {
-    @ExperimentalIoApi
     public abstract fun newEncoder(): CharsetEncoder
 
-    @ExperimentalIoApi
     public abstract fun newDecoder(): CharsetDecoder
 
     public companion object {
@@ -19,7 +17,6 @@ public expect abstract class Charset {
 public expect val Charset.name: String
 
 // ----------------------------- ENCODER -------------------------------------------------------------------------------
-@ExperimentalIoApi
 public expect abstract class CharsetEncoder
 
 public expect val CharsetEncoder.charset: Charset
@@ -36,7 +33,6 @@ public fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: I
     encodeToImpl(dst, input, fromIndex, toIndex)
 }
 
-@ExperimentalIoApi
 public expect fun CharsetEncoder.encodeToByteArray(
     input: CharSequence,
     fromIndex: Int = 0,
@@ -56,10 +52,8 @@ public fun CharsetEncoder.encodeToByteArrayImpl(
     return encodeToByteArray(input, fromIndex, toIndex)
 }
 
-@ExperimentalIoApi
 public expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output)
 
-@ExperimentalIoApi
 public fun CharsetEncoder.encode(
     input: CharSequence,
     fromIndex: Int = 0,
@@ -68,12 +62,10 @@ public fun CharsetEncoder.encode(
     encodeToImpl(this, input, fromIndex, toIndex)
 }
 
-@ExperimentalIoApi
 public fun CharsetEncoder.encodeUTF8(input: ByteReadPacket): ByteReadPacket = buildPacket {
     encodeUTF8(input, this)
 }
 
-@ExperimentalIoApi
 public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: Output) {
     var start = fromIndex
 
@@ -95,7 +87,6 @@ public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int,
 
 // ----------------------------- DECODER -------------------------------------------------------------------------------
 
-@ExperimentalIoApi
 public expect abstract class CharsetDecoder
 
 /**
@@ -103,16 +94,13 @@ public expect abstract class CharsetDecoder
  */
 public expect val CharsetDecoder.charset: Charset
 
-@ExperimentalIoApi
 public fun CharsetDecoder.decode(input: Input, max: Int = Int.MAX_VALUE): String =
     buildString(minOf(max.toLong(), input.sizeEstimate()).toInt()) {
         decode(input, this, max)
     }
 
-@ExperimentalIoApi
 public expect fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int
 
-@ExperimentalIoApi
 public expect fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String
 
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------

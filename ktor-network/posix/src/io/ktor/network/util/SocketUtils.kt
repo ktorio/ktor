@@ -46,7 +46,7 @@ internal fun getAddressInfo(
 internal fun getLocalAddress(descriptor: Int): SocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
-    length.value = sockaddr_storage.size.convert()
+    length.value = sizeOf<sockaddr_storage>().convert()
 
     getsockname(descriptor, address.ptr.reinterpret(), length.ptr).check()
 
@@ -56,7 +56,7 @@ internal fun getLocalAddress(descriptor: Int): SocketAddress = memScoped {
 internal fun getRemoteAddress(descriptor: Int): SocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
-    length.value = sockaddr_storage.size.convert()
+    length.value = sizeOf<sockaddr_storage>().convert()
 
     getpeername(descriptor, address.ptr.reinterpret(), length.ptr).check()
 

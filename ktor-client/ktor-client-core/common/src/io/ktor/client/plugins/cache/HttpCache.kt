@@ -66,6 +66,7 @@ public class HttpCache(
             }
         }
 
+        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpCache, scope: HttpClient) {
             val CachePhase = PipelinePhase("Cache")
             scope.sendPipeline.insertPhaseAfter(HttpSendPipeline.State, CachePhase)
@@ -177,6 +178,7 @@ public class HttpCache(
     }
 }
 
+@OptIn(InternalAPI::class)
 private fun mergedHeadersLookup(
     content: OutgoingContent,
     headerExtractor: (String) -> String?,

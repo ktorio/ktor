@@ -10,6 +10,7 @@ import io.ktor.http.content.*
 import io.ktor.http.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -79,6 +80,7 @@ public class WebSocketUpgrade(
         }
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun upgrade(
         input: ByteReadChannel,
         output: ByteWriteChannel,

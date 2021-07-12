@@ -6,7 +6,6 @@ package io.ktor.network.tls
 
 import io.ktor.util.*
 
-@InternalAPI
 public data class OID(public val identifier: String) {
     public val asArray: IntArray = identifier.split(".", " ").map { it.trim().toInt() }.toIntArray()
 
@@ -50,7 +49,6 @@ public data class OID(public val identifier: String) {
     }
 }
 
-@InternalAPI
 public fun keysGenerationAlgorithm(algorithm: String): String = when {
     algorithm.endsWith("ecdsa", ignoreCase = true) -> "EC"
     algorithm.endsWith("dsa", ignoreCase = true) -> "DSA"

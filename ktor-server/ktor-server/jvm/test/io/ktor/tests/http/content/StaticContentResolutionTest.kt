@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import kotlin.test.*
 
+@OptIn(InternalAPI::class)
 class StaticContentResolutionTest {
 
     private val baseUrl = StaticContentResolutionTest::class.java.classLoader.getResource("testjar.jar")

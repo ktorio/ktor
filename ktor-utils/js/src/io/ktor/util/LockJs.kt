@@ -5,7 +5,6 @@
 
 package io.ktor.util
 
-@InternalAPI
 public actual class Lock {
     public actual fun lock() {}
     public actual fun unlock() {}

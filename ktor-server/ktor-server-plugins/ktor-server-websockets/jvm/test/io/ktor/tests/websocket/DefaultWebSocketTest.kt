@@ -5,6 +5,7 @@
 package io.ktor.tests.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -26,6 +27,7 @@ class DefaultWebSocketTest {
 
     private lateinit var client: RawWebSocket
 
+    @OptIn(InternalAPI::class)
     @BeforeTest
     fun prepare() {
         parent = Job()
@@ -88,7 +90,7 @@ class DefaultWebSocketTest {
     fun testCancellation(): Unit = runBlocking {
         server.cancel()
 
-        client.incoming.receiveOrNull()
+        client.incoming.receiveCatching().getOrNull()
         client.close()
 
         ensureCompletion()

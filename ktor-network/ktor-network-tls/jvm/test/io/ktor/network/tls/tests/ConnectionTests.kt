@@ -29,6 +29,7 @@ import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
 
+@Suppress("UNCHECKED_CAST")
 class ConnectionTests {
 
     @get:Rule
@@ -72,7 +73,7 @@ class ConnectionTests {
                 addKeyStore(keyStore, "changeit".toCharArray())
             }
 
-        val input = socket.openReadChannel()
+        socket.openReadChannel()
         val output = socket.openWriteChannel(autoFlush = true)
         output.close()
         socket.close()

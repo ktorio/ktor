@@ -42,7 +42,7 @@ public class ContentEncoding(
     }
 
     private fun CoroutineScope.decode(headers: Headers, content: ByteReadChannel): ByteReadChannel {
-        val encodings = headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().toLowerCase() }
+        val encodings = headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
             ?: return content
 
         var current = content
@@ -99,7 +99,7 @@ public class ContentEncoding(
          */
         public fun customEncoder(encoder: ContentEncoder, quality: Float? = null) {
             val name = encoder.name
-            encoders[name.toLowerCase()] = encoder
+            encoders[name.lowercase()] = encoder
 
             if (quality == null) {
                 qualityValues.remove(name)

@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {
@@ -213,6 +213,7 @@ class MultipartTest {
         assertEquals(380, fileContent.length)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testMultipartFormDataChunkedEncoded() = runBlocking {
         val body = """
@@ -337,6 +338,7 @@ class MultipartTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testEmptyPayload() = runBlocking {
         val body = "POST /add HTTP/1.1\r\n" +

@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -26,6 +27,7 @@ private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 /**
  * Android client engine
  */
+@OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
     override val dispatcher: CoroutineDispatcher by lazy {
@@ -85,14 +87,14 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             outgoingContent.writeTo(outputStream, callContext)
         }
 
-        return connection.timeoutAwareConnection(data) { connection ->
-            val responseCode = connection.responseCode
-            val responseMessage = connection.responseMessage
+        return connection.timeoutAwareConnection(data) { current ->
+            val responseCode = current.responseCode
+            val responseMessage = current.responseMessage
             val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) }
                 ?: HttpStatusCode.fromValue(responseCode)
 
-            val content: ByteReadChannel = connection.content(callContext, data)
-            val headerFields: Map<String, List<String>> = connection.headerFields
+            val content: ByteReadChannel = current.content(callContext, data)
+            val headerFields: Map<String, List<String>> = current.headerFields
                 .mapKeys { it.key?.lowercase(Locale.getDefault()) ?: "" }
                 .filter { it.key.isNotBlank() }
 
@@ -110,6 +112,8 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
+@Suppress("BlockingMethodInNonBlockingContext")
 internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream,
     callContext: CoroutineContext

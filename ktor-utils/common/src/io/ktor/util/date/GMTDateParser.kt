@@ -19,7 +19,6 @@ import io.ktor.util.*
  * | Year     | Y            | parse year                                           |
  * | Any char | *            | Match any character                                  |
  */
-@InternalAPI
 public class GMTDateParser(private val pattern: String) {
     init {
         check(pattern.isNotEmpty()) { "Date parser pattern shouldn't be empty." }

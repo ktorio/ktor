@@ -10,7 +10,6 @@ import kotlin.coroutines.*
 /**
  * Print [Job] children tree.
  */
-@InternalAPI
 public fun Job.printDebugTree(offset: Int = 0) {
     println(" ".repeat(offset) + this)
 
@@ -21,7 +20,6 @@ public fun Job.printDebugTree(offset: Int = 0) {
     if (offset == 0) println()
 }
 
-@InternalAPI
 @Suppress("NOTHING_TO_INLINE")
 internal expect inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
@@ -32,6 +30,5 @@ internal expect inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterc
 /**
  * Supervisor with empty coroutine exception handler ignoring all exceptions.
  */
-@InternalAPI
 public fun SilentSupervisor(parent: Job? = null): CoroutineContext =
     SupervisorJob(parent) + CoroutineExceptionHandler { _, _ -> }

@@ -4,11 +4,9 @@
 
 package io.ktor.util.collections.internal
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 
-@InternalAPI
 internal class SharedList<T>(override val size: Int) : List<T?> {
     private val data: AtomicArray<T?> = atomicArrayOfNulls<T>(size)
 

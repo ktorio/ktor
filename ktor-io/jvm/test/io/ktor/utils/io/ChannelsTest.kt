@@ -17,7 +17,7 @@ class ChannelsTest {
 
     @Test
     fun testInputBig() {
-        val array = ByteArray(16384) { ((it and 0x0f) + 'a'.toInt()).toByte() }
+        val array = ByteArray(16384) { ((it and 0x0f) + 'a'.code).toByte() }
 
         val content = ByteArrayInputStream(array)
         val input = Channels.newChannel(content).asInput()

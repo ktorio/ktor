@@ -40,7 +40,7 @@ internal class TextDecoderFallback(
 ) : Decoder {
 
     init {
-        val requestedEncoding = encoding.trim().toLowerCase()
+        val requestedEncoding = encoding.trim().lowercase()
         check(ENCODING_ALIASES.contains(requestedEncoding)) { "$encoding is not supported." }
     }
 

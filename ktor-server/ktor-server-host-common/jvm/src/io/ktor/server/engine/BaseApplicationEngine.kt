@@ -68,6 +68,7 @@ public abstract class BaseApplicationEngine(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun Application.installDefaultInterceptors() {
         intercept(ApplicationCallPipeline.Setup) {
             call.response.pipeline.intercept(ApplicationSendPipeline.Before) {

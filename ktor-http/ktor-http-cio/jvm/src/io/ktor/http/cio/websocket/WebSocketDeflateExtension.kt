@@ -6,6 +6,7 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
+import java.util.*
 import java.util.zip.*
 
 private const val SERVER_MAX_WINDOW_BITS: String = "server_max_window_bits"
@@ -84,7 +85,7 @@ public class WebSocketDeflateExtension internal constructor(
         val parameters = mutableListOf<String>()
 
         for ((key, value) in protocol.parseParameters()) {
-            when (key.toLowerCase()) {
+            when (key.lowercase(Locale.getDefault())) {
                 SERVER_MAX_WINDOW_BITS -> {
                     check(value.toInt() == MAX_WINDOW_BITS) { "Only $MAX_WINDOW_BITS window size is supported" }
                 }

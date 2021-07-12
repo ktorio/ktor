@@ -4,6 +4,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.writeInt
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ByteBufferChannelLookAheadTest : ByteChannelTestBase() {
     @Test
     fun testDoNothing() = runTest {

@@ -1,5 +1,3 @@
-@file:Suppress("RedundantModalityModifier")
-
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
@@ -61,8 +59,7 @@ public inline fun ChunkBuffer.writeDirect(size: Int, block: (ByteBuffer) -> Unit
 /**
  * Reset read/write position to original's content pos/limit. May not work due to slicing.
  */
-@DangerousInternalIoApi
-public fun ChunkBuffer.resetFromContentToWrite(child: ByteBuffer) {
+internal fun ChunkBuffer.resetFromContentToWrite(child: ByteBuffer) {
     resetForWrite(child.limit())
     commitWrittenUntilIndex(child.position())
 }
@@ -86,6 +83,7 @@ public fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()):
     return size
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -100,6 +98,8 @@ public inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

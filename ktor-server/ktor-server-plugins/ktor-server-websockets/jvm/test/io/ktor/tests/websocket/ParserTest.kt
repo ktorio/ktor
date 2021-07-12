@@ -78,7 +78,7 @@ class ParserTest {
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
 
-        assertEquals('1', buffer.get().toChar())
+        assertEquals('1', buffer.get().toInt().toChar())
         parser.bodyComplete()
 
         parser.frame(buffer)
@@ -89,7 +89,7 @@ class ParserTest {
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
 
-        assertEquals('2', buffer.get().toChar())
+        assertEquals('2', buffer.get().toInt().toChar())
         parser.bodyComplete()
 
         parser.frame(buffer)
@@ -100,7 +100,7 @@ class ParserTest {
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
 
-        assertEquals('3', buffer.get().toChar())
+        assertEquals('3', buffer.get().toInt().toChar())
         parser.bodyComplete()
 
         assertFalse { buffer.hasRemaining() }

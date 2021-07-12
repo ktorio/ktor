@@ -29,6 +29,7 @@ object UserDataSerializer : KSerializer<UserData> {
     }
 }
 
+@Suppress("DEPRECATION")
 class ContextualSerializationTest {
 
     @Test

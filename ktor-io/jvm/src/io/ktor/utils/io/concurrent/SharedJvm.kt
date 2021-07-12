@@ -18,7 +18,6 @@ import kotlin.reflect.*
  * ```
  */
 @Suppress("NOTHING_TO_INLINE")
-@DangerousInternalIoApi
 public actual inline fun <T> shared(value: T): ReadWriteProperty<Any, T> = object : ReadWriteProperty<Any, T> {
     private var value: T = value
 
@@ -37,6 +36,5 @@ public actual inline fun <T> shared(value: T): ReadWriteProperty<Any, T> = objec
  *
  * This reference is allowed to use only from creation thread. Otherwise it will return null.
  */
-@DangerousInternalIoApi
 public actual fun <T : Any> threadLocal(value: T): ReadOnlyProperty<Any, T?> =
-    ReadOnlyProperty<Any, T?> { thisRef, property -> value }
+    ReadOnlyProperty<Any, T?> { _, _ -> value }

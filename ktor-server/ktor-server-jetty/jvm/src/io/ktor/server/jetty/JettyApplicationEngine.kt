@@ -6,11 +6,13 @@ package io.ktor.server.jetty
 
 import io.ktor.server.engine.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Jetty
  */
+@OptIn(EngineAPI::class, InternalAPI::class)
 public class JettyApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit

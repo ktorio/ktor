@@ -16,7 +16,6 @@ import io.ktor.utils.io.core.internal.*
  *
  * @return number of bytes consumed, possibly 0
  */
-@ExperimentalIoApi
 public suspend inline fun ByteReadChannel.read(
     desiredSize: Int = 1,
     block: (source: Memory, start: Long, endExclusive: Long) -> Int

@@ -10,7 +10,6 @@ import io.ktor.util.*
  * Process path components such as `.` and `..`, replacing redundant path components including all leading.
  * It also discards all reserved characters and component names that are reserved (such as `CON`, `NUL`).
  */
-@InternalAPI
 public fun List<String>.normalizePathComponents(): List<String> {
     for (index in indices) {
         val component = get(index)
@@ -105,6 +104,6 @@ private fun String.shouldBeReplaced(): Boolean {
 
 private fun CharArray.toASCIITable(): BooleanArray = BooleanArray(0x100) { it.toChar() in this@toASCIITable }
 private operator fun BooleanArray.contains(char: Char): Boolean {
-    val codepoint = char.toInt()
+    val codepoint = char.code
     return codepoint < size && this[codepoint]
 }

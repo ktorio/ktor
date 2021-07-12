@@ -26,6 +26,7 @@ public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
  * @param configure configuration script for the engine
  * @param module application module function
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
 embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,

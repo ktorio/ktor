@@ -54,6 +54,6 @@ public final class io/ktor/server/plugins/CORS$Plugin : io/ktor/server/applicati
 
 public final class io/ktor/server/plugins/KotlinTimeJvmKt {
 	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/CORS$Configuration;)J
-	public static final fun setMaxAgeDuration-Kw8x68k (Lio/ktor/server/plugins/CORS$Configuration;J)V
+	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/CORS$Configuration;J)V
 }
 

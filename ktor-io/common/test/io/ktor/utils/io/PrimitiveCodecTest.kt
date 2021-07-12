@@ -5,6 +5,7 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.math.*
 import kotlin.test.*
 
+@Suppress("EXPERIMENTAL_API_USAGE")
 class PrimitiveCodecTest {
     val pool = VerifyingChunkBufferPool()
     val builder = BytePacketBuilder(0, pool)

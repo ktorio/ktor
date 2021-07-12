@@ -132,7 +132,7 @@ private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
 
     var chunked = false
     transferEncoding.split(",").forEach {
-        when (val name = it.trim().toLowerCase()) {
+        when (val name = it.trim().lowercase()) {
             "chunked" -> {
                 if (chunked) {
                     throw IllegalArgumentException("Double-chunked TE is not supported: $transferEncoding")

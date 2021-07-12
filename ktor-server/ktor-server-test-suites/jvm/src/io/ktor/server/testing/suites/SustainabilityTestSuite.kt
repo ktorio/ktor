@@ -19,6 +19,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -253,6 +254,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertTrue(job!!.isCancelled)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testEmbeddedServerCancellation() {
         val parent = Job()
@@ -322,6 +324,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     open fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
@@ -379,6 +382,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertEquals(count * multiplier, completed.get())
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testBigFile() {
         val file = File("build/large-file.dat")
@@ -722,7 +726,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             .forEach { phase ->
                 var intercepted = false
                 val server = createServer(log = logger) {
-                    intercept(ApplicationCallPipeline.Setup) {
+                    intercept(ApplicationCallPipeline.Setup) setup@{
                         call.response.pipeline.intercept(phase) {
                             if (intercepted) return@intercept
                             intercepted = true
@@ -739,7 +743,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/", { intercepted = false }) {
-                    val text = body<String>()
+                    body<String>()
                     assertEquals("Failed in phase $phase", InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
                     assertEquals("Failed in phase $phase", exceptions[0].message)
@@ -750,6 +754,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
     }
 
+    @OptIn(EngineAPI::class)
     @Test
     public open fun testErrorInEnginePipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
@@ -782,6 +787,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     public fun testRespondBlockingLarge() {
         val server = createServer {

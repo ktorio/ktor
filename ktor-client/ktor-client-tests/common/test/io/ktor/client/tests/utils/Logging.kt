@@ -35,8 +35,8 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         val stashed = ArrayList<String>()
 
         while (expectedIndex < expectedLog.size && actualIndex < log.size) {
-            var expected = expectedLog[expectedIndex].toLowerCase()
-            val actual = log[actualIndex].toLowerCase()
+            var expected = expectedLog[expectedIndex].lowercase()
+            val actual = log[actualIndex].lowercase()
 
             var flaky = false
             var optional = false
@@ -96,7 +96,7 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         }
 
         while (actualIndex < log.size && stashed.isNotEmpty()) {
-            val actual = log[actualIndex].toLowerCase()
+            val actual = log[actualIndex].lowercase()
             if (actual in stashed) {
                 actualIndex++
                 stashed.remove(actual)

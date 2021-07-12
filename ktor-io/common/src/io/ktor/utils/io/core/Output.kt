@@ -192,7 +192,7 @@ public abstract class Output internal constructor(
     override fun append(value: Char): Output {
         val tailPosition = tailPosition
         if (tailEndExclusive - tailPosition >= 3) {
-            val size = tailMemory.putUtf8Char(tailPosition, value.toInt())
+            val size = tailMemory.putUtf8Char(tailPosition, value.code)
             this.tailPosition = tailPosition + size
             return this
         }
@@ -203,7 +203,7 @@ public abstract class Output internal constructor(
 
     private fun appendCharFallback(c: Char) {
         write(3) { buffer ->
-            val size = buffer.memory.putUtf8Char(buffer.writePosition, c.toInt())
+            val size = buffer.memory.putUtf8Char(buffer.writePosition, c.code)
             buffer.commitWritten(size)
             size
         }
@@ -238,13 +238,13 @@ public abstract class Output internal constructor(
             return
         }
 
-        val _tail = _tail
-        if (_tail == null) {
+        val tail = _tail
+        if (tail == null) {
             appendChain(foreignStolen)
             return
         }
 
-        writePacketMerging(_tail, foreignStolen, packet.pool)
+        writePacketMerging(tail, foreignStolen, packet.pool)
     }
 
     /**
@@ -375,8 +375,8 @@ public abstract class Output internal constructor(
         close()
     }
 
-    @DangerousInternalIoApi
-    public fun prepareWriteHead(n: Int): ChunkBuffer {
+    @PublishedApi
+    internal fun prepareWriteHead(n: Int): ChunkBuffer {
         if (tailRemaining >= n) {
             _tail?.let {
                 it.commitWrittenUntilIndex(tailPosition)
@@ -386,8 +386,8 @@ public abstract class Output internal constructor(
         return appendNewChunk()
     }
 
-    @DangerousInternalIoApi
-    public fun afterHeadWrite() {
+    @PublishedApi
+    internal fun afterHeadWrite() {
         _tail?.let { tailPosition = it.writePosition }
     }
 
@@ -422,10 +422,12 @@ public abstract class Output internal constructor(
     }
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public fun Output.append(csq: CharSequence, start: Int = 0, end: Int = csq.length): Appendable {
     return append(csq, start, end)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public fun Output.append(csq: CharArray, start: Int = 0, end: Int = csq.size): Appendable {
     return append(csq, start, end)
 }
@@ -497,8 +499,7 @@ public fun Output.fill(times: Long, value: Byte = 0) {
  * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
  * however it is guaranteed that it is always non-empty.
  */
-@DangerousInternalIoApi
-public inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
+internal inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
     var tail: ChunkBuffer = prepareWriteHead(1, null)
     try {
         while (true) {
@@ -516,8 +517,7 @@ public inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
  * bytes space (could be the same buffer as before if it complies to the restriction).
  * @param initialSize for the first buffer passed to [block] function
  */
-@DangerousInternalIoApi
-public inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
+internal inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var tail = prepareWriteHead(initialSize, null)
 
     try {

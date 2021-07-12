@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import java.io.*
@@ -18,7 +19,7 @@ import java.io.*
 /**
  * Sends a [message] as a response
  */
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
 @JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
     if (message !is OutgoingContent && message !is String && message !is ByteArray) {

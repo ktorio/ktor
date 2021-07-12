@@ -42,11 +42,11 @@ internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
     return builderSize
 }
 
-@DangerousInternalIoApi
-public fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? = prepareReadHead(minSize)
+@PublishedApi
+internal fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? = prepareReadHead(minSize)
 
-@DangerousInternalIoApi
-public fun Input.completeReadHead(current: ChunkBuffer) {
+@PublishedApi
+internal fun Input.completeReadHead(current: ChunkBuffer) {
     when {
         current === this -> return
         !current.canRead() -> ensureNext(current)
@@ -55,8 +55,8 @@ public fun Input.completeReadHead(current: ChunkBuffer) {
     }
 }
 
-@DangerousInternalIoApi
-public fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
+@PublishedApi
+internal fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
@@ -64,8 +64,7 @@ public fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     return ensureNextHead(current)
 }
 
-@DangerousInternalIoApi
-public fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
+internal fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     if (current != null) {
         afterHeadWrite()
     }

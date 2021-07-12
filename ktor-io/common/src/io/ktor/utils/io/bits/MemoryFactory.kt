@@ -2,8 +2,7 @@ package io.ktor.utils.io.bits
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
+import kotlin.contracts.*
 
 // TODO: length default argument should be this.size - offset but it doesn't work due to KT-29920
 /**
@@ -17,7 +16,6 @@ import kotlin.contracts.contract
  * 1. length has no default (blocked by expect/actual with default value compiler bug (fixed in KT 1.4.3))
  * 2. no inline -> can't suspend inside block (blocked by inline compiler bug)
  */
-@ExperimentalIoApi
 public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
 
 /**
@@ -25,7 +23,7 @@ public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
  * may occur including crash and/or data corruption.
  */
-@ExperimentalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -39,7 +37,7 @@ public inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
  * may occur including crash and/or data corruption.
  */
-@ExperimentalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -57,7 +55,6 @@ public inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
 @PublishedApi
 internal expect object DefaultAllocator : Allocator
 
-@DangerousInternalIoApi
 internal interface Allocator {
     fun alloc(size: Int): Memory
 

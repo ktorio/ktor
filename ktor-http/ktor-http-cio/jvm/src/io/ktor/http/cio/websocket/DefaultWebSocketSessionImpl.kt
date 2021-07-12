@@ -64,7 +64,7 @@ public class DefaultWebSocketSessionImpl(
         }
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         if (!started.compareAndSet(false, true)) {
             error("WebSocket session is already started.")
@@ -103,7 +103,7 @@ public class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @OptIn(ExperimentalWebSocketExtensionApi::class, io.ktor.util.InternalAPI::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
@@ -204,6 +204,7 @@ public class DefaultWebSocketSessionImpl(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private suspend fun sendCloseSequence(reason: CloseReason?) {
         if (!tryClose()) return
         context.complete()
@@ -236,7 +237,8 @@ public class DefaultWebSocketSessionImpl(
         // that will cause it to terminate connection on timeout
         pinger.getAndSet(newPinger)?.close()
 
-        newPinger?.offer(EmptyPong) // it is safe here to send dummy pong because pinger will ignore it
+        // it is safe here to send dummy pong because pinger will ignore it
+        newPinger?.trySend(EmptyPong)?.isSuccess
 
         if (closed.value && newPinger != null) {
             runOrCancelPinger()

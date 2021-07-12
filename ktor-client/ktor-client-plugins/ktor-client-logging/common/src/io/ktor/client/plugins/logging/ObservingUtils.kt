@@ -34,5 +34,6 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 private fun OutgoingContent.WriteChannelContent.toReadChannel():
     ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined) { writeTo(channel) }.channel

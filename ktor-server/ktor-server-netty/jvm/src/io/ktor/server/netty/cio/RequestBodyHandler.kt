@@ -33,8 +33,8 @@ internal class RequestBodyHandler(
         try {
             while (true) {
                 @OptIn(ExperimentalCoroutinesApi::class)
-                val event = queue.poll()
-                    ?: run { current?.flush(); queue.receiveOrNull() }
+                val event = queue.tryReceive().getOrNull()
+                    ?: run { current?.flush(); queue.receiveCatching().getOrNull() }
                     ?: break
 
                 if (event is ByteBufHolder) {
@@ -66,12 +66,12 @@ internal class RequestBodyHandler(
         }
     }
 
-    public fun upgrade(): ByteReadChannel {
+    fun upgrade(): ByteReadChannel {
         tryOfferChannelOrToken(Upgrade)
         return newChannel()
     }
 
-    public fun newChannel(): ByteReadChannel {
+    fun newChannel(): ByteReadChannel {
         val bc = ByteChannel()
         tryOfferChannelOrToken(bc)
         return bc
@@ -79,7 +79,7 @@ internal class RequestBodyHandler(
 
     private fun tryOfferChannelOrToken(token: Any) {
         try {
-            if (!queue.offer(token)) {
+            if (!queue.trySend(token).isSuccess) {
                 throw IllegalStateException(
                     "Unable to start request processing: failed to offer $token to the HTTP pipeline queue"
                 )
@@ -89,17 +89,15 @@ internal class RequestBodyHandler(
         }
     }
 
-    public fun close() {
+    fun close() {
         queue.close()
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
-        if (msg is ByteBufHolder) {
-            handleBytesRead(msg)
-        } else if (msg is ByteBuf) {
-            handleBytesRead(msg)
-        } else {
-            ctx.fireChannelRead(msg)
+        when (msg) {
+            is ByteBufHolder -> handleBytesRead(msg)
+            is ByteBuf -> handleBytesRead(msg)
+            else -> ctx.fireChannelRead(msg)
         }
     }
 
@@ -132,7 +130,7 @@ internal class RequestBodyHandler(
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
             val e = try {
-                queue.poll()
+                queue.tryReceive().getOrNull()
             } catch (t: Throwable) {
                 null
             } ?: break
@@ -155,7 +153,7 @@ internal class RequestBodyHandler(
     }
 
     private fun handleBytesRead(content: ReferenceCounted) {
-        if (!queue.offer(content)) {
+        if (!queue.trySend(content).isSuccess) {
             content.release()
             throw IllegalStateException("Unable to process received buffer: queue offer failed")
         }

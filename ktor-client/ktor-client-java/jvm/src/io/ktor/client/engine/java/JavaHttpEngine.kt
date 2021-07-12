@@ -16,7 +16,6 @@ import java.net.http.*
 import java.time.*
 import java.util.concurrent.*
 
-@InternalAPI
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
 
     private val executorThreadCounter = atomic(0L)
@@ -49,6 +48,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         }
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val engine = getJavaHttpClient(data)
         val callContext = callContext()

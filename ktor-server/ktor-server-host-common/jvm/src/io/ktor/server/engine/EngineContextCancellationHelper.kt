@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
 /**
  * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
  */
+@OptIn(InternalAPI::class)
 @EngineAPI
 public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
@@ -21,6 +22,7 @@ public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
  * It is important to complete or cancel returned deferred
  * otherwise the parent job will be unable to complete successfully.
  */
+@OptIn(DelicateCoroutinesApi::class)
 @InternalAPI
 public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val deferred: CompletableJob = Job(parent = this)

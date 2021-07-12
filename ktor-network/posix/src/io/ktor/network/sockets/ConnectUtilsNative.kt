@@ -56,8 +56,8 @@ internal actual fun bind(
 
     fcntl(descriptor, F_SETFL, O_NONBLOCK).check { it == 0 }
 
-    address.nativeAddress { address, size ->
-        bind(descriptor, address, size).check()
+    address.nativeAddress { pointer, size ->
+        bind(descriptor, pointer, size).check()
     }
 
     listen(descriptor, DEFAULT_BACKLOG_SIZE).check()

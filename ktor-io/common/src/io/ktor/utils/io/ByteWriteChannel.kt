@@ -105,7 +105,6 @@ public expect interface ByteWriteChannel {
     /**
      * Invokes [block] when at least 1 byte is available for write.
      */
-    @ExperimentalIoApi
     public suspend fun awaitFreeSpace()
 
     /**
@@ -189,7 +188,7 @@ public suspend fun ByteWriteChannel.writeBoolean(b: Boolean) {
  * Writes UTF16 character
  */
 public suspend fun ByteWriteChannel.writeChar(ch: Char) {
-    return writeShort(ch.toInt())
+    return writeShort(ch.code)
 }
 
 public suspend inline fun ByteWriteChannel.writePacket(headerSizeHint: Int = 0, builder: BytePacketBuilder.() -> Unit) {

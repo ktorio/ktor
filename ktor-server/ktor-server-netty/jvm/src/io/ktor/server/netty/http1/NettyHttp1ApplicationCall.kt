@@ -5,12 +5,14 @@
 package io.ktor.server.netty.http1
 
 import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlin.coroutines.*
 
+@OptIn(EngineAPI::class)
 internal class NettyHttp1ApplicationCall(
     application: Application,
     context: ChannelHandlerContext,

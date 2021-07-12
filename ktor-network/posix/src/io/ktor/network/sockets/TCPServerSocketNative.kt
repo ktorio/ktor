@@ -26,10 +26,11 @@ internal class TCPServerSocketNative(
     override val socketContext: Job
         get() = _socketContext
 
+    @Suppress("DUPLICATE_LABEL_IN_WHEN")
     override suspend fun accept(): Socket = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()
-        clientAddressLength.value = sockaddr_storage.size.convert()
+        clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
         var clientDescriptor: Int
         while (true) {

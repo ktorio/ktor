@@ -119,6 +119,7 @@ internal class TLSConfigBuilderTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun useNullAsPassword() {
         val customProvider = object : Provider("InMemorySPI", 0.0, "") {

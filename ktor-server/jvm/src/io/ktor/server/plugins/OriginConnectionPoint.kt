@@ -14,6 +14,7 @@ import kotlin.reflect.*
  * Represents request and connection parameters possibly overridden via https headers.
  * By default it fallbacks to [ApplicationRequest.local]
  */
+@Suppress("DEPRECATION")
 public val ApplicationRequest.origin: RequestConnectionPoint
     get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
@@ -89,6 +90,7 @@ internal class OriginConnectionPoint(
 /**
  * Returns [MutableOriginConnectionPoint] associated with this call
  */
+@Suppress("DEPRECATION")
 public val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(

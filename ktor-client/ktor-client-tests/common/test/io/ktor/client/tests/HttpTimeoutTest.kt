@@ -67,7 +67,7 @@ class HttpTimeoutTest : ClientLoader() {
             val requestBuilder = HttpRequestBuilder().apply {
                 method = HttpMethod.Get
                 url("$TEST_URL/with-delay")
-                parameter("delay", 60 * 1000)
+                parameter("delay", 60000)
             }
 
             val exception = assertFails {

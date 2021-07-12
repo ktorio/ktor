@@ -85,6 +85,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Create call context and use it as a coroutine context to [execute] request.
      */
+    @OptIn(InternalAPI::class)
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
         callContext.makeShared()

@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import java.net.*
+import java.util.*
 import kotlin.coroutines.*
 import kotlin.io.use
 import kotlin.test.*
@@ -118,6 +119,7 @@ class UDPSocketTest : CoroutineScope {
         assertTrue(socket.isClosed)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testInvokeOnClose() = runBlocking {
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -143,6 +145,7 @@ class UDPSocketTest : CoroutineScope {
         assertEquals(1, done)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnClose() = runBlocking {
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -162,6 +165,7 @@ class UDPSocketTest : CoroutineScope {
         assertTrue(socket.isClosed)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnCloseWithSocketClose() = runBlocking {
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -181,6 +185,7 @@ class UDPSocketTest : CoroutineScope {
         assertTrue(socket.isClosed)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnClosed() = runBlocking {
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -222,7 +227,7 @@ class UDPSocketTest : CoroutineScope {
 
 private val OS_NAME: String
     get() {
-        val os = System.getProperty("os.name", "unknown").toLowerCase()
+        val os = System.getProperty("os.name", "unknown").lowercase(Locale.getDefault())
         return when {
             os.contains("win") -> "win"
             os.contains("mac") -> "mac"

@@ -13,7 +13,7 @@ class TextDecoderFallbackTest {
     @Test
     fun testReplacement() {
         val origin = byteArrayOf(0x81.toByte(), 0x8F.toByte(), 0x90.toByte())
-        val jsArray = origin as Int8Array
+        val jsArray = origin.unsafeCast<Int8Array>()
 
         val fatalDecoder = TextDecoderFallback("ISO-8859-1", fatal = true)
         val decoder = TextDecoderFallback("ISO-8859-1", fatal = false)
@@ -31,7 +31,7 @@ class TextDecoderFallbackTest {
         val asciiArray = (0x20..0x7E).toList().map { it.toByte() }.toByteArray()
 
         val decoder = TextDecoderFallback("ISO-8859-1", fatal = false)
-        val decoded = decoder.decode(asciiArray as Int8Array)
+        val decoded = decoder.decode(asciiArray.unsafeCast<Int8Array>())
 
         assertEquals(
             " !\"#\$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",

@@ -72,7 +72,7 @@ public class WebSocketWriter(
 
         try {
             do {
-                val message = queue.poll() ?: break
+                val message = queue.tryReceive().getOrNull() ?: break
                 when (message) {
                     is Frame.Close -> {
                     } // ignore
@@ -96,7 +96,7 @@ public class WebSocketWriter(
         // initially serializer has at least one message queued
         while (true) {
             while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
-                val message = queue.poll() ?: break
+                val message = queue.tryReceive().getOrNull() ?: break
                 when (message) {
                     is FlushRequest -> flush = message
                     is Frame.Close -> {

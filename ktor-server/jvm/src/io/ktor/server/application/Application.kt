@@ -26,6 +26,7 @@ public class Application(
     /**
      * Called by [ApplicationEngine] when [Application] is terminated
      */
+    @Suppress("DEPRECATION")
     public fun dispose() {
         applicationJob.cancel()
         uninstallAllPlugins()

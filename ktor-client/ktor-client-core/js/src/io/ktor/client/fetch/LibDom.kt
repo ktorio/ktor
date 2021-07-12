@@ -288,16 +288,16 @@ public external interface AbortSignal : EventTarget {
         options: EventListenerOptions? = definedExternally
     )
 
-    override fun removeEventListener(type: String, listener: EventListener, options: Boolean?)
-    override fun removeEventListener(type: String, listener: EventListener, options: EventListenerOptions?)
-    override fun removeEventListener(type: String, listener: EventListenerObject, options: Boolean?)
-    override fun removeEventListener(type: String, listener: EventListenerObject, options: EventListenerOptions?)
+    override fun removeEventListener(type: String, callback: EventListener, options: Boolean?)
+    override fun removeEventListener(type: String, callback: EventListener, options: EventListenerOptions?)
+    override fun removeEventListener(type: String, callback: EventListenerObject, options: Boolean?)
+    override fun removeEventListener(type: String, callback: EventListenerObject, options: EventListenerOptions?)
     public fun <K : Any> addEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
     override fun addEventListener(type: String, listener: EventListener)
     override fun addEventListener(type: String, listener: EventListenerObject)
     public fun <K : Any> removeEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
-    override fun removeEventListener(type: String, listener: EventListener)
-    override fun removeEventListener(type: String, listener: EventListenerObject)
+    override fun removeEventListener(type: String, callback: EventListener)
+    override fun removeEventListener(type: String, callback: EventListenerObject)
 }
 
 public external interface EventTarget {

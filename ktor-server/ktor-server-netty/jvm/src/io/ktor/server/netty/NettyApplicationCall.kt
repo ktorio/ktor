@@ -6,6 +6,7 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.util.*
 import kotlinx.atomicfu.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
+@OptIn(InternalAPI::class)
 public abstract class NettyApplicationCall(
     application: Application,
     public val context: ChannelHandlerContext,
@@ -29,9 +31,9 @@ public abstract class NettyApplicationCall(
     internal suspend fun finish() {
         try {
             response.ensureResponseSent()
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             finishComplete()
-            throw t
+            throw cause
         }
 
         if (responseWriteJob.isCompleted) {

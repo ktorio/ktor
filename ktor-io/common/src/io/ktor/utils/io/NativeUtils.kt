@@ -4,10 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.internal.*
-
-@DangerousInternalIoApi
 public expect fun Any.preventFreeze()
 
-@DangerousInternalIoApi
 public expect fun Any.makeShared()

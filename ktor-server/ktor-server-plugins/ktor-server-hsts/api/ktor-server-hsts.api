@@ -25,6 +25,6 @@ public final class io/ktor/server/plugins/HSTS$Plugin : io/ktor/server/applicati
 
 public final class io/ktor/server/plugins/KotlinTimeJvmKt {
 	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/HSTS$Configuration;)J
-	public static final fun setMaxAgeDuration-x3IzF7w (Lio/ktor/server/plugins/HSTS$Configuration;J)V
+	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/HSTS$Configuration;J)V
 }
 

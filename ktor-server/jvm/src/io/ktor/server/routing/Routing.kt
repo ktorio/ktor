@@ -19,6 +19,7 @@ public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey
  * Root routing node for an [Application]
  * @param application is an instance of [Application] for this routing
  */
+@OptIn(InternalAPI::class)
 public class Routing(
     public val application: Application
 ) : Route(

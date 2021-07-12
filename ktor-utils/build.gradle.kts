@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
 val nativeCompilations: List<KotlinNativeCompilation> by project.extra
-val ideaActive: Boolean by project.extra
 
 kotlin {
     configure(nativeCompilations) {
@@ -31,7 +30,7 @@ kotlin {
         }
 
         // Hack: register the Native interop klibs as outputs of Kotlin source sets:
-        if (!ideaActive && rootProject.ext.get("native_targets_enabled") as Boolean) {
+        if (!KtorBuildProperties.ideaActive && rootProject.ext.get("native_targets_enabled") as Boolean) {
             val utilsInterop by creating
             getByName("posixMain").dependsOn(utilsInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")

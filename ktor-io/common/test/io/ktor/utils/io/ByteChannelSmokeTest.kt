@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import kotlin.math.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 open class ByteChannelSmokeTest : ByteChannelTestBase() {
 
     @Test

@@ -8,7 +8,7 @@ import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.require
 
-public actual class Memory @DangerousInternalIoApi constructor(
+public actual class Memory constructor(
     public val pointer: CPointer<ByteVar>,
     public actual inline val size: Long
 ) {

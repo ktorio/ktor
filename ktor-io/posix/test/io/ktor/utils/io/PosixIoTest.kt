@@ -18,7 +18,7 @@ class PosixIoTest {
     fun setup() {
         buffer = Buffer(DefaultAllocator.alloc(4096))
         buffer.resetForWrite()
-        buffer.append("test")
+        buffer.writeFully("test".encodeToByteArray())
 
         unlink(filename)
     }
@@ -31,9 +31,9 @@ class PosixIoTest {
 
     @Test
     fun testFFunctions() {
-        val file = fopen(filename, "w") ?: return
+        val descriptor = fopen(filename, "w") ?: return
 
-        file.use { file ->
+        descriptor.use { file ->
             assertEquals(4, fwrite(buffer, file).convert(), "Expected all bytes to be written")
         }
         buffer.resetForWrite()
@@ -46,12 +46,12 @@ class PosixIoTest {
 
     @Test
     fun testFunctions() {
-        val file = open(filename, O_WRONLY or O_CREAT, 420)
-        if (file < 0) {
+        val descriptor = open(filename, O_WRONLY or O_CREAT, 420)
+        if (descriptor < 0) {
             return
         }
 
-        file.use { file ->
+        descriptor.use { file ->
             assertEquals(4, write(file, buffer).toInt(), "Expected all bytes to be written")
         }
         buffer.resetForWrite()
@@ -104,13 +104,13 @@ class PosixIoTest {
         val clientAddr = alloc<sockaddr_in>()
 
         with(serverAddr) {
-            memset(this.ptr, 0, sockaddr_in.size.convert())
+            memset(this.ptr, 0, sizeOf<sockaddr_in>().convert())
             sin_family = AF_INET.convert()
             sin_port = 0u // my_htons(port)
         }
 
         with(clientAddr) {
-            memset(this.ptr, 0, sockaddr_in.size.convert())
+            memset(this.ptr, 0, sizeOf<sockaddr_in>().convert())
             sin_family = AF_INET.convert()
             sin_port = my_htons(port)
             set_loopback(ptr)
@@ -118,7 +118,7 @@ class PosixIoTest {
 
         val acceptor = socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
         acceptor.makeNonBlocking()
-        bind(acceptor, serverAddr.ptr.reinterpret(), sockaddr_in.size.convert()).let { rc ->
+        bind(acceptor, serverAddr.ptr.reinterpret(), sizeOf<sockaddr_in>().convert()).let { rc ->
             if (rc != 0) {
                 val error = socket_get_error()
                 throw PosixException.forErrno(errno = error, posixFunctionName = "bind()")
@@ -127,7 +127,7 @@ class PosixIoTest {
         listen(acceptor, 10).checkError("listen()")
 
         val addrSizeResult = alloc<UIntVar>()
-        addrSizeResult.value = sockaddr_in.size.convert()
+        addrSizeResult.value = sizeOf<sockaddr_in>().convert()
         getsockname(
             acceptor,
             serverAddr.ptr.reinterpret(),
@@ -166,19 +166,23 @@ class PosixIoTest {
                 }
             }
 
-            if (!connectedFlag) {
-                val result = connect(connected, clientAddr.ptr.reinterpret(), sockaddr_in.size.convert())
-                if (result != 0) {
-                    val error = socket_get_error()
-                    if (error == EINPROGRESS || error == EISCONN) {
-                    } else if (error != EAGAIN && error != EWOULDBLOCK) {
-                        throw PosixException.forErrno(error, "connect()")
-                    } else {
-                        continue
-                    }
-                }
-                connectedFlag = true
+            if (connectedFlag) {
+                continue
             }
+
+            val result = connect(connected, clientAddr.ptr.reinterpret(), sizeOf<sockaddr_in>().convert())
+            if (result != 0) {
+                val error = socket_get_error()
+                if (error != EINPROGRESS && error != EISCONN) {
+                    if (error != EAGAIN && error != EWOULDBLOCK) {
+                        throw PosixException.forErrno(error, "connect()")
+                    }
+
+                    continue
+                }
+            }
+
+            connectedFlag = true
         }
 
         // send

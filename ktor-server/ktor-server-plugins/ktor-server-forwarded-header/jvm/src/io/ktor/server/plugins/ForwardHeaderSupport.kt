@@ -108,6 +108,7 @@ public object XForwardedHeaderSupport :
         /**
          * Port X-header names. Default is `X-Forwarded-Port`
          */
+        @OptIn(InternalAPI::class)
         @PublicAPICandidate("2.0.0")
         internal val portHeaders: ArrayList<String> = arrayListOf("X-Forwarded-Port")
     }

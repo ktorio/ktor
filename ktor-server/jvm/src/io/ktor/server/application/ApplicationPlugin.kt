@@ -94,7 +94,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
     val registry = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
     registry.allKeys.forEach {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "DEPRECATION")
         uninstallPlugin(it as AttributeKey<Any>)
     }
 }
@@ -102,6 +102,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
 /**
  * Uninstalls [plugin] from the pipeline
  */
+@Suppress("DEPRECATION")
 @Deprecated(
     "This method is misleading and will be removed. " +
         "If you have use case that requires this functionaity, please add it in KTOR-2696"

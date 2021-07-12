@@ -5,6 +5,7 @@
 import io.ktor.client.plugins.json.*
 import io.ktor.client.plugins.json.tests.*
 
+@Suppress("DEPRECATION")
 class DefaultSerializerJsonTest : JsonTest() {
     // Force JsonPlugin to use defaultSerializer()
     override val serializerImpl: JsonSerializer = GsonSerializer()

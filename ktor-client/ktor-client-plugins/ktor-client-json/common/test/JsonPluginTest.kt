@@ -7,6 +7,7 @@ package io.ktor.client.plugins.json
 import io.ktor.http.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class JsonPluginTest {
     @Test
     fun testDefaultContentTypes() {

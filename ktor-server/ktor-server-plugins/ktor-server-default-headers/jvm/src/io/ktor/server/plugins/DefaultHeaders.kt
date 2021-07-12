@@ -18,6 +18,7 @@ import java.util.*
  */
 public class DefaultHeaders(config: Configuration) {
     private val headers = config.headers.build()
+    @OptIn(InternalAPI::class)
     private val clock = config.clock
 
     private var cachedDateTimeStamp: Long = 0L
@@ -40,7 +41,6 @@ public class DefaultHeaders(config: Configuration) {
         /**
          * Provides time source. Useful for testing.
          */
-        @InternalAPI
         public var clock: () -> Long = { System.currentTimeMillis() }
     }
 

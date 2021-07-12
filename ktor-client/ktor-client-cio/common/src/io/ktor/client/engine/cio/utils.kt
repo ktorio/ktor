@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -18,6 +19,7 @@ import io.ktor.utils.io.errors.EOFException
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 internal suspend fun HttpRequestData.write(
     output: ByteWriteChannel,
     callContext: CoroutineContext,
@@ -104,6 +106,7 @@ internal suspend fun HttpRequestData.write(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
     request: HttpRequestData,
@@ -214,6 +217,7 @@ internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
 /**
  * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
  */
+@OptIn(DelicateCoroutinesApi::class)
 internal fun ByteWriteChannel.withoutClosePropagation(
     coroutineContext: CoroutineContext,
     closeOnCoroutineCompletion: Boolean = true

@@ -649,9 +649,9 @@ public final class io/ktor/util/date/DateJvmKt {
 
 public final class io/ktor/util/date/DateKt {
 	public static final fun minus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
-	public static final fun minus-DXA3NOw (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun minus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
-	public static final fun plus-DXA3NOw (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun plus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
 }
 

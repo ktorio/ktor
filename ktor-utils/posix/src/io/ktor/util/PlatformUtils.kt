@@ -4,7 +4,6 @@
 
 package io.ktor.util
 
-@InternalAPI
 public actual object PlatformUtils {
     public actual val IS_BROWSER: Boolean = false
     public actual val IS_NODE: Boolean = false

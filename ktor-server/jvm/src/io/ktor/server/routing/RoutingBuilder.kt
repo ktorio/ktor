@@ -325,6 +325,7 @@ public object PathSegmentSelectorBuilder {
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("parseParameter(value)")
     )
+    @Suppress("UNUSED_PARAMETER")
     public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector = parseParameter(value)
 
     /**
@@ -343,6 +344,7 @@ public object PathSegmentSelectorBuilder {
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("parseConstant(value)")
     )
+    @Suppress("UNUSED_PARAMETER")
     public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = parseConstant(value)
 
     /**

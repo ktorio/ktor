@@ -60,7 +60,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             } catch (parseFailed: Throwable) { // try to write 400 Bad Request
                 // TODO log parseFailed?
                 val bc = ByteChannel()
-                if (outputsActor.offer(bc)) {
+                if (outputsActor.trySend(bc).isSuccess) {
                     bc.writePacket(BadRequestPacket.copy())
                     bc.close()
                 }
@@ -182,6 +182,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
+@OptIn(InternalAPI::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
     timeout: WeakTimeoutQueue,
@@ -189,8 +190,7 @@ private suspend fun pipelineWriterLoop(
 ) {
     val receiveChildOrNull =
         suspendLambda<CoroutineScope, ByteReadChannel?> {
-            @OptIn(ExperimentalCoroutinesApi::class)
-            channel.receiveOrNull()
+            channel.receiveCatching().getOrNull()
         }
     while (true) {
         val child = timeout.withTimeout(receiveChildOrNull) ?: break

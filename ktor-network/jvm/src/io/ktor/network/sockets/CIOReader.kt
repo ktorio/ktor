@@ -71,7 +71,6 @@ internal fun CoroutineScope.attachForReadingImpl(
     }
 }
 
-@OptIn(ExperimentalIoApi::class)
 internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,

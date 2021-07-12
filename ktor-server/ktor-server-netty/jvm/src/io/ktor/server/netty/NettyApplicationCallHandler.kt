@@ -24,9 +24,9 @@ internal class NettyApplicationCallHandler(
     private val enginePipeline: EnginePipeline,
     logger: Logger
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
+    @OptIn(EngineAPI::class)
     override val coroutineContext: CoroutineContext = userCoroutineContext +
-        CallHandlerCoroutineName +
-        DefaultUncaughtExceptionHandler(logger)
+        CallHandlerCoroutineName + DefaultUncaughtExceptionHandler(logger)
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
@@ -35,7 +35,7 @@ internal class NettyApplicationCallHandler(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, EngineAPI::class)
     private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 

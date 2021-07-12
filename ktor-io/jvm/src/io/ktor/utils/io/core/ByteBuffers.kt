@@ -2,8 +2,7 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.core.internal.*
 import java.nio.*
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
+import kotlin.contracts.*
 
 /**
  * Read at most `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
@@ -54,6 +53,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
+@OptIn(ExperimentalContracts::class)
 public inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -74,6 +74,7 @@ public inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
+@OptIn(ExperimentalContracts::class)
 public inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -84,6 +85,7 @@ public inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (Byt
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -94,6 +96,7 @@ public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Un
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 @Deprecated("Use read {} instead.")
 public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
@@ -105,10 +108,6 @@ public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
             block(it)
         }
     }
-}
-
-internal fun Buffer.writeBuffer(): ByteBuffer {
-    return memory.slice(writePosition, writeRemaining).buffer
 }
 
 internal fun Buffer.hasArray(): Boolean = memory.buffer.let { it.hasArray() && !it.isReadOnly }

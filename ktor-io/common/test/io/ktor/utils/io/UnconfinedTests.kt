@@ -9,8 +9,10 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class UnconfinedTests {
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testReaderPropagation() {
         var resumed = false

@@ -12,6 +12,7 @@ import java.io.*
 import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(DelicateCoroutinesApi::class)
 internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) : CoroutineScope, Closeable {
     private val selector = ActorSelectorManager(Dispatchers.IO)
     override val coroutineContext: CoroutineContext

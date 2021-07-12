@@ -83,10 +83,10 @@ class RawWebSocketTest {
     @Test
     fun testServerIncomingDisconnected(): Unit = runTest {
         client2server.close()
-        assertNull(server.incoming.receiveOrNull())
+        assertNull(server.incoming.receiveCatching().getOrNull())
         server.outgoing.send(Frame.Close())
 
-        client.incoming.receiveOrNull() as Frame.Close
+        client.incoming.receiveCatching().getOrNull() as Frame.Close
         client.cancel()
 
         ensureCompletion()

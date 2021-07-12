@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
@@ -76,7 +77,7 @@ internal class Endpoint(
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
-        if (deliveryPoint.offer(task)) return
+        if (deliveryPoint.trySend(task).isSuccess) return
 
         val connections = connections.value
         if (connections < config.endpoint.maxConnectionsPerRoute) {
@@ -91,6 +92,7 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
+    @OptIn(InternalAPI::class)
     private fun makeDedicatedRequest(
         task: RequestTask
     ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {

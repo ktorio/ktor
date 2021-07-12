@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.cinterop.*
 import libcurl.*
 
@@ -55,6 +56,7 @@ internal fun EasyHandle.getInfo(info: CURLINFO, optionValue: CPointer<*>) {
     curl_easy_getinfo(this, info, optionValue).verify()
 }
 
+@OptIn(InternalAPI::class)
 internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     var result: CPointer<curl_slist>? = null
 

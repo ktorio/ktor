@@ -13,7 +13,6 @@ import kotlin.contracts.*
  * Concurrent unsafe: the same memory could be shared between different instances of [Buffer] however you can't
  * read/write using the same [Buffer] instance from different threads.
  */
-@DangerousInternalIoApi
 public open class Buffer(public val memory: Memory) {
     private val bufferState: BufferSharedState = BufferSharedState(memory.size32)
 
@@ -87,8 +86,10 @@ public open class Buffer(public val memory: Memory) {
     /**
      * User data: could be a session, connection or anything useful
      */
-    @Deprecated("Will be removed. Inherit Buffer and add required fields instead.")
-    @ExperimentalIoApi
+    @Deprecated(
+        "Will be removed. Inherit Buffer and add required fields instead.",
+        level = DeprecationLevel.ERROR
+    )
     public var attachment: Any?
         get() = bufferState.attachment
         set(value) {
@@ -110,7 +111,6 @@ public open class Buffer(public val memory: Memory) {
         readPosition = newReadPosition
     }
 
-    @DangerousInternalIoApi
     public fun commitWritten(count: Int) {
         val newWritePosition = writePosition + count
         if (count < 0 || newWritePosition > limit) {
@@ -361,13 +361,11 @@ public open class Buffer(public val memory: Memory) {
          * when several instances of [io.ktor.utils.io.core.internal.ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
-        @DangerousInternalIoApi
         public const val ReservedSize: Int = 8
 
         /**
          * The empty buffer singleton: it has zero capacity for read and write.
          */
-        @Suppress("DEPRECATION")
         public val Empty: Buffer get() = ChunkBuffer.Empty
     }
 }
@@ -388,7 +386,7 @@ public inline fun Buffer.canWrite(): Boolean = limit > writePosition
  * No read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
-@DangerousInternalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -405,7 +403,7 @@ public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: 
  * o read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
-@DangerousInternalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.write(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -466,7 +464,6 @@ internal fun Buffer.restoreStartGap(size: Int) {
     releaseStartGap(readPosition - size)
 }
 
-@ExperimentalIoApi
 public class InsufficientSpaceException(message: String = "Not enough free space") : Exception(message) {
     public constructor(
         size: Int,

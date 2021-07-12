@@ -39,6 +39,7 @@ public fun Buffer.readFloatLittleEndian(): Float = readPrimitiveTemplate({ readF
 
 public fun Buffer.readDoubleLittleEndian(): Double = readPrimitiveTemplate({ readDouble() }, { reverseByteOrder() })
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readFullyLittleEndian(dst: UShortArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asShortArray(), offset, length)
 }
@@ -51,6 +52,7 @@ public fun Input.readFullyLittleEndian(dst: ShortArray, offset: Int = 0, length:
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readFullyLittleEndian(dst: UIntArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asIntArray(), offset, length)
 }
@@ -63,6 +65,7 @@ public fun Input.readFullyLittleEndian(dst: IntArray, offset: Int = 0, length: I
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readFullyLittleEndian(dst: ULongArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asLongArray(), offset, length)
 }
@@ -91,6 +94,7 @@ public fun Input.readFullyLittleEndian(dst: DoubleArray, offset: Int = 0, length
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readAvailableLittleEndian(dst: UShortArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asShortArray(), offset, length)
 }
@@ -106,6 +110,7 @@ public fun Input.readAvailableLittleEndian(dst: ShortArray, offset: Int = 0, len
     return result
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readAvailableLittleEndian(dst: UIntArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asIntArray(), offset, length)
 }
@@ -121,6 +126,7 @@ public fun Input.readAvailableLittleEndian(dst: IntArray, offset: Int = 0, lengt
     return result
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Input.readAvailableLittleEndian(dst: ULongArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asLongArray(), offset, length)
 }
@@ -158,6 +164,7 @@ public fun Input.readAvailableLittleEndian(dst: DoubleArray, offset: Int = 0, le
     return result
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFullyLittleEndian(dst: UShortArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asShortArray(), offset, length)
 }
@@ -170,6 +177,7 @@ public fun Buffer.readFullyLittleEndian(dst: ShortArray, offset: Int = 0, length
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFullyLittleEndian(dst: UIntArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asIntArray(), offset, length)
 }
@@ -182,6 +190,7 @@ public fun Buffer.readFullyLittleEndian(dst: IntArray, offset: Int = 0, length: 
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFullyLittleEndian(dst: ULongArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyLittleEndian(dst.asLongArray(), offset, length)
 }
@@ -210,6 +219,7 @@ public fun Buffer.readFullyLittleEndian(dst: DoubleArray, offset: Int = 0, lengt
     }
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailableLittleEndian(dst: UShortArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asShortArray(), offset, length)
 }
@@ -223,6 +233,7 @@ public fun Buffer.readAvailableLittleEndian(dst: ShortArray, offset: Int = 0, le
     return result
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailableLittleEndian(dst: UIntArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asIntArray(), offset, length)
 }
@@ -236,6 +247,7 @@ public fun Buffer.readAvailableLittleEndian(dst: IntArray, offset: Int = 0, leng
     return result
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailableLittleEndian(dst: ULongArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailableLittleEndian(dst.asLongArray(), offset, length)
 }

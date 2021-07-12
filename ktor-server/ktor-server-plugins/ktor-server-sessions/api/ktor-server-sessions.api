@@ -82,7 +82,7 @@ public class io/ktor/server/sessions/HeaderSessionBuilder {
 
 public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 	public static final fun getMaxAge (Lio/ktor/server/sessions/CookieConfiguration;)Lkotlin/time/Duration;
-	public static final fun setMaxAge-YQjt_ts (Lio/ktor/server/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
+	public static final fun setMaxAge-6Au4x4Y (Lio/ktor/server/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
 }
 
 public final class io/ktor/server/sessions/SessionIdProviderKt {

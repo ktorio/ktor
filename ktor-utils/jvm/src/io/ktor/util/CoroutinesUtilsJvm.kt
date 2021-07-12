@@ -6,7 +6,6 @@ package io.ktor.util
 
 import kotlin.coroutines.*
 
-@InternalAPI
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,

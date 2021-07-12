@@ -5,6 +5,7 @@
 package io.ktor.server.netty.cio
 
 import io.ktor.http.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.http2.*
 import io.ktor.server.netty.http2.NettyHttp2ApplicationResponse
@@ -25,7 +26,8 @@ import kotlin.coroutines.*
 
 private const val UNFLUSHED_LIMIT = 65536
 
-internal class NettyResponsePipeline(
+@OptIn(InternalAPI::class, EngineAPI::class)
+internal class NettyResponsePipeline constructor(
     private val dst: ChannelHandlerContext,
     initialEncapsulation: WriterEncapsulation,
     private val requestQueue: NettyRequestQueue,
@@ -56,7 +58,7 @@ internal class NettyResponsePipeline(
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
 
-    public fun ensureRunning() {
+    fun ensureRunning() {
         responses.start()
     }
 
@@ -94,7 +96,7 @@ internal class NettyResponsePipeline(
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
             @OptIn(ExperimentalCoroutinesApi::class)
-            val e = incoming.receiveOrNull()
+            val e = incoming.receiveCatching().getOrNull()
 
             if (e != null && e.ensureRunning()) {
                 running.addLast(e)
@@ -105,7 +107,7 @@ internal class NettyResponsePipeline(
 
     private fun pollReady(): Boolean {
         for (index in 1..(readyQueueSize - ready.size)) {
-            val e = incoming.poll() ?: return false
+            val e = incoming.tryReceive().getOrNull() ?: return false
             ready.addLast(e)
         }
         return true
@@ -266,6 +268,7 @@ internal class NettyResponsePipeline(
         var unflushedBytes = 0
         var lastFuture: ChannelFuture = requestMessageFuture
 
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             while (true) {
                 val buffer = request(0, 1)
@@ -313,6 +316,7 @@ internal class NettyResponsePipeline(
         var unflushedBytes = 0
         var lastFuture: ChannelFuture = requestMessageFuture
 
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             while (true) {
                 val buffer = request(0, 1)
@@ -349,6 +353,7 @@ internal class NettyResponsePipeline(
     }
 }
 
+@OptIn(InternalAPI::class)
 private fun NettyApplicationResponse.isUpgradeResponse() =
     status()?.value == HttpStatusCode.SwitchingProtocols.value
 

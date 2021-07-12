@@ -126,6 +126,7 @@ public fun Route.webSocketRaw(
     ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)"),
     DeprecationLevel.ERROR
 )
+@Suppress("UNUSED_PARAMETER")
 public fun Route.webSocketRaw(
     webSocketProtocol: String,
     webSocketHandler: suspend WebSocketServerSession.() -> Unit,

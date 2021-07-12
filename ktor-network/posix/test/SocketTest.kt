@@ -2,6 +2,7 @@ package io.ktor.network.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -9,6 +10,7 @@ import kotlin.test.*
 
 class SocketTest {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testEcho() = runBlocking {
         SelectorManager().use { selector ->

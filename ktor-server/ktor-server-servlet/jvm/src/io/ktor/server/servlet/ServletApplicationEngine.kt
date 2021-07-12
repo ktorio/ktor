@@ -17,6 +17,7 @@ import kotlin.coroutines.*
 /**
  * This servlet need to be installed into a servlet container
  */
+@OptIn(EngineAPI::class)
 @MultipartConfig
 public open class ServletApplicationEngine : KtorServlet() {
     private val environment: ApplicationEngineEnvironment by lazy {

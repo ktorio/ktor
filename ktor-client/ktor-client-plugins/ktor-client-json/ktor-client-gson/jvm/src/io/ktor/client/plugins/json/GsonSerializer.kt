@@ -13,6 +13,7 @@ import io.ktor.utils.io.core.*
 /**
  * [JsonSerializer] using [Gson] as backend.
  */
+@Suppress("DEPRECATION")
 @Deprecated("Please use ContentNegotiation plugin and its converters")
 public class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
     private val backend: Gson = GsonBuilder().apply(block).create()

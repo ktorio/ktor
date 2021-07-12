@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -15,6 +16,7 @@ import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): RequestInit {
     val jsHeaders = js("({})")
     mergeHeaders(this@toRaw.headers, this@toRaw.body) { key, value ->

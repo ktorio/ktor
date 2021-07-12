@@ -25,6 +25,7 @@ public class HttpCookies(
     private val storage: CookiesStorage,
     private val defaults: List<suspend CookiesStorage.() -> Unit>
 ) : Closeable {
+    @OptIn(DelicateCoroutinesApi::class)
     private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
         defaults.forEach { it(storage) }
     }

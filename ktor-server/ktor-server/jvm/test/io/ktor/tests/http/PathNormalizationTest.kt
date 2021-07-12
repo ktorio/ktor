@@ -5,6 +5,7 @@
 package io.ktor.tests.http
 
 import io.ktor.server.util.*
+import java.util.*
 import kotlin.test.*
 
 class PathNormalizationTest {
@@ -116,7 +117,13 @@ class PathNormalizationTest {
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
             "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
         )
-        for (name in names + names.map { it.toLowerCase() } + names.map { it.toLowerCase().capitalize() }) {
+        val allNames = names + names.map { it.lowercase(Locale.getDefault()) } + names.map { current ->
+            current.lowercase(Locale.getDefault()).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
+        }
+
+        for (name in allNames) {
             assertEquals(listOf(), listOf(name).normalizePathComponents())
             assertEquals(listOf(), listOf(name, name).normalizePathComponents())
             assertEquals(listOf("a"), listOf(name, "a", name).normalizePathComponents())

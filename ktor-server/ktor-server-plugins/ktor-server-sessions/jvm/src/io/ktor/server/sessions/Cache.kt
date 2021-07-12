@@ -27,7 +27,7 @@ internal interface CacheReference<out K> {
     val key: K
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
 internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 
@@ -77,6 +77,7 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
     }
 }
 
+@OptIn(InternalAPI::class)
 internal open class ReferenceCache<K : Any, V : Any, out R>(
     val calc: suspend (K) -> V,
     val wrapFunction: (K, V, ReferenceQueue<V>) -> R
@@ -124,7 +125,8 @@ internal open class ReferenceCache<K : Any, V : Any, out R>(
     }
 }
 
-private class ReferenceWorker<out K : Any, R : CacheReference<K>>(
+@OptIn(InternalAPI::class)
+private class ReferenceWorker<out K : Any, R : CacheReference<K>> constructor(
     owner: Cache<K, R>,
     val queue: ReferenceQueue<*>
 ) : Runnable {
@@ -146,15 +148,18 @@ private class ReferenceWorker<out K : Any, R : CacheReference<K>>(
 
 internal class CacheSoftReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) :
     SoftReference<V>(value, queue), CacheReference<K>
+
 internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) :
     WeakReference<V>(value, queue), CacheReference<K>
 
 internal class SoftReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
     ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
+
 internal class WeakReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
     ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
 
-internal class BaseTimeoutCache<in K : Any, V : Any>(
+@OptIn(InternalAPI::class)
+internal class BaseTimeoutCache<in K : Any, V : Any> constructor(
     val timeoutValue: Long,
     val touchOnGet: Boolean,
     val delegate: Cache<K, V>
@@ -237,11 +242,11 @@ private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>(
     val key: WeakReference<K> = WeakReference(key)
     var lastAccess = System.currentTimeMillis()
 
-    public fun touch() {
+    fun touch() {
         lastAccess = System.currentTimeMillis()
     }
 
-    public fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
+    fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
 }
 
 private class TimeoutWorker<K : Any>(
@@ -292,11 +297,11 @@ private class PullableLinkedList<E : ListElement<E>> {
     private var head: E? = null
     private var tail: E? = null
 
-    public fun isEmpty() = head == null
-    public fun take(): E = head().apply { remove(this) }
-    public fun head(): E = head ?: throw NoSuchElementException()
+    fun isEmpty() = head == null
+    fun take(): E = head().apply { remove(this) }
+    fun head(): E = head ?: throw NoSuchElementException()
 
-    public fun add(element: E) {
+    fun add(element: E) {
         require(element.next == null)
         require(element.prev == null)
 
@@ -311,7 +316,7 @@ private class PullableLinkedList<E : ListElement<E>> {
         }
     }
 
-    public fun remove(element: E) {
+    fun remove(element: E) {
         if (element == head) {
             head = null
         }
@@ -324,12 +329,12 @@ private class PullableLinkedList<E : ListElement<E>> {
         element.prev = null
     }
 
-    public fun clear() {
+    fun clear() {
         head = null
         tail = null
     }
 
-    public fun pull(element: E) {
+    fun pull(element: E) {
         if (element !== head) {
             remove(element)
             add(element)

@@ -10,7 +10,6 @@ import io.ktor.utils.io.*
 /**
  * Concurrent set implemented on top of [ConcurrentMap]
  */
-@InternalAPI
 public class ConcurrentSet<Key : Any> constructor(
     private val lock: Lock = Lock(),
     private val delegate: ConcurrentMap<Key, Unit> = ConcurrentMap(lock)

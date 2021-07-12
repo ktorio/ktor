@@ -23,6 +23,7 @@ public interface LookAheadSession {
     public fun request(skip: Int, atLeast: Int): ByteBuffer?
 }
 
+@Suppress("DEPRECATION")
 @Deprecated("Use read { } instead.")
 public interface LookAheadSuspendSession : LookAheadSession {
     /**
@@ -32,7 +33,7 @@ public interface LookAheadSuspendSession : LookAheadSession {
     public suspend fun awaitAtLeast(n: Int): Boolean
 }
 
-@ExperimentalIoApi
+@Suppress("DEPRECATION")
 public inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolean) {
     do {
         val cont = request(0, 1)?.let {
@@ -46,8 +47,7 @@ public inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) ->
     } while (true)
 }
 
-@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
-@ExperimentalIoApi
+@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE", "DEPRECATION")
 public suspend inline fun LookAheadSuspendSession.consumeEachRemaining(visitor: suspend (ByteBuffer) -> Boolean) {
     do {
         val buffer = request(0, 1)

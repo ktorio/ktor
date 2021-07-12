@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -19,6 +20,7 @@ import kotlinx.coroutines.channels.*
 import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationRequest(
     call: ApplicationCall,
     coroutineContext: CoroutineContext,

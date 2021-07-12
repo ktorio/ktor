@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -12,6 +13,7 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
     private val websocket: WebSocket
@@ -24,13 +26,14 @@ internal class JsWebSocketSession(
     override val outgoing: SendChannel<Frame> = _outgoing
 
     @ExperimentalWebSocketExtensionApi
-    override val extensions: List<WebSocketExtension<*>> get() = emptyList()
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
 
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(value) {}
+        set(_) {}
 
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
@@ -53,7 +56,7 @@ internal class JsWebSocketSession(
                         }
                     }
 
-                    _incoming.offer(frame)
+                    _incoming.trySend(frame).isSuccess
                 }
             }
         )
@@ -126,7 +129,7 @@ internal class JsWebSocketSession(
         }
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -145,6 +148,7 @@ internal class JsWebSocketSession(
         websocket.close()
     }
 
+    @OptIn(InternalAPI::class)
     private fun Short.isReservedStatusCode(): Boolean {
         return CloseReason.Codes.byCode(this).let { resolved ->
             @Suppress("DEPRECATION")

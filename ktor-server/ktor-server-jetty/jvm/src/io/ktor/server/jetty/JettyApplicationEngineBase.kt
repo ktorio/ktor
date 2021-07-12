@@ -14,6 +14,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
+@OptIn(EngineAPI::class)
 public open class JettyApplicationEngineBase @EngineAPI constructor(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit

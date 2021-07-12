@@ -38,6 +38,7 @@ class ChannelTest {
         assertArrayEquals(data, results[1])
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelSource() = testSuspend {
         val source = ByteChannel()
@@ -67,6 +68,7 @@ class ChannelTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelFirstReader() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }
@@ -97,6 +99,7 @@ class ChannelTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelSecondReader() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }

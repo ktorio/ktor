@@ -26,8 +26,11 @@ import kotlin.coroutines.*
 /**
  * Tomcat application engine that runs it in embedded mode
  */
-public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
-    BaseApplicationEngine(environment) {
+@OptIn(EngineAPI::class)
+public class TomcatApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit
+) : BaseApplicationEngine(environment) {
     /**
      * Tomcat engine specific configuration builder
      */
@@ -81,17 +84,17 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                                 )
                             }
 
-                            setAttribute("keyAlias", ktorConnector.keyAlias)
-                            setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
-                            setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
-                            setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                            setAttribute("clientAuth", false)
-                            setAttribute("sslProtocol", "TLS")
-                            setAttribute("SSLEnabled", true)
+                            setProperty("keyAlias", ktorConnector.keyAlias)
+                            setProperty("keystorePass", String(ktorConnector.keyStorePassword()))
+                            setProperty("keyPass", String(ktorConnector.privateKeyPassword()))
+                            setProperty("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                            setProperty("clientAuth", "false")
+                            setProperty("sslProtocol", "TLS")
+                            setProperty("SSLEnabled", "true")
 
                             val sslImpl = chooseSSLImplementation()
 
-                            setAttribute("sslImplementationName", sslImpl.name)
+                            setProperty("sslImplementationName", sslImpl.name)
 
                             if (sslImpl.simpleName == "OpenSSLImplementation") {
                                 addUpgradeProtocol(Http2Protocol())
@@ -138,14 +141,14 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        if (stopped.compareAndSet(false, true)) {
-            cancellationDeferred?.complete()
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-            server.stop()
-            environment.stop()
-            server.destroy()
-            tempDirectory.toFile().deleteRecursively()
-        }
+        if (!stopped.compareAndSet(expect = false, update = true)) return
+
+        cancellationDeferred?.complete()
+        environment.monitor.raise(ApplicationStopPreparing, environment)
+        server.stop()
+        environment.stop()
+        server.destroy()
+        tempDirectory.toFile().deleteRecursively()
     }
 
     public companion object {

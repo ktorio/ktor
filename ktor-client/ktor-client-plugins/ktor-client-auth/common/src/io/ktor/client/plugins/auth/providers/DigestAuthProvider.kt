@@ -49,6 +49,7 @@ public class DigestAuthConfig {
      */
     public var realm: String? = null
 
+    @Suppress("DEPRECATION")
     internal var _credentials: suspend () -> DigestAuthCredentials? = {
         DigestAuthCredentials(username = username, password = password)
     }
@@ -114,6 +115,7 @@ public class DigestAuthProvider(
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = false
 
+    @Suppress("DEPRECATION")
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth !is HttpAuthHeader.Parameterized ||
             auth.authScheme != AuthScheme.Digest
@@ -135,9 +137,10 @@ public class DigestAuthProvider(
         return true
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
         val nonceCount = requestCounter.incrementAndGet()
-        val methodName = request.method.value.toUpperCase()
+        val methodName = request.method.value.uppercase()
         val url = URLBuilder().takeFrom(request.url).build()
 
         val nonce = serverNonce.value!!
@@ -185,6 +188,8 @@ public class DigestAuthProvider(
         return true
     }
 
+    @Suppress("DEPRECATION")
+    @OptIn(InternalAPI::class)
     private suspend fun makeDigest(data: String): ByteArray {
         val digest = Digest(algorithmName)
         return digest.build(data.toByteArray(Charsets.UTF_8))

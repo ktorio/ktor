@@ -5,6 +5,7 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
@@ -12,6 +13,7 @@ import org.junit.Rule
 import java.time.*
 import kotlin.test.*
 
+@OptIn(InternalAPI::class)
 class WeakTimeoutQueueTest {
     private val testClock = TestClock(0L)
     private val q = WeakTimeoutQueue(1000L, clock = { testClock.millis() })

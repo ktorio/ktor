@@ -60,7 +60,7 @@ class InputTest {
                 if (items.isEmpty()) return 0
                 val next = items.removeAt(0)
                 for (index in 0 until next.length) {
-                    destination[offset + index] = next[index].toByte()
+                    destination[offset + index] = next[index].code.toByte()
                 }
                 return next.length
             }

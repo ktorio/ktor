@@ -9,7 +9,6 @@ import platform.posix.*
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
-@InternalAPI
 public actual fun generateNonce(): String {
     val builder = StringBuilder()
     repeat(16) {
@@ -22,7 +21,6 @@ public actual fun generateNonce(): String {
 /**
  * Create [Digest] from specified hash [name].
  */
-@InternalAPI
 public actual fun Digest(name: String): Digest = error("[Digest] is not supported on iOS")
 
 /**

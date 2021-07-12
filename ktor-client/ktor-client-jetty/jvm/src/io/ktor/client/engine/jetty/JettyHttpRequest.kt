@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
@@ -66,6 +67,7 @@ internal suspend fun HTTP2Client.connect(
     connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
 }
 
+@OptIn(InternalAPI::class)
 private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields()
 
@@ -86,6 +88,7 @@ private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     return HeadersFrame(meta, null, body is OutgoingContent.NoContent)
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent, callContext: CoroutineContext) {
     when (content) {
         is OutgoingContent.NoContent -> return
@@ -102,6 +105,7 @@ private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent
     }
 }
 
+@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 private fun writeRequest(
     from: ByteReadChannel,
     request: JettyHttp2Request,

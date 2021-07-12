@@ -8,6 +8,7 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.WeakTimeoutQueue
 import io.ktor.network.util.*
 import io.ktor.server.cio.backend.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.*
@@ -16,6 +17,8 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 
 // this is only suitable for tests, do not use in production
+@Suppress("BlockingMethodInNonBlockingContext")
+@OptIn(DelicateCoroutinesApi::class)
 internal fun testHttpServer(
     port: Int = 9096,
     ioCoroutineContext: CoroutineContext,
@@ -36,7 +39,7 @@ internal fun testHttpServer(
         try {
             while (true) {
                 val client = server.accept() ?: break
-                live.put(client, Unit)
+                live[client] = Unit
                 client(client, ioCoroutineContext, callDispatcher, handler)
             }
         } catch (expected: ClosedChannelException) {
@@ -62,6 +65,7 @@ internal fun testHttpServer(
     return Pair(j, deferred)
 }
 
+@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 private suspend fun client(
     socket: SocketChannel,
     ioCoroutineContext: CoroutineContext,
@@ -82,6 +86,7 @@ private suspend fun client(
 
                 buffer.flip()
                 while (buffer.hasRemaining()) {
+                    @Suppress("BlockingMethodInNonBlockingContext")
                     socket.write(buffer)
                 }
             }
@@ -96,6 +101,7 @@ private suspend fun client(
         try {
             while (true) {
                 buffer.clear()
+                @Suppress("BlockingMethodInNonBlockingContext")
                 val rc = socket.read(buffer)
                 if (rc == -1) break
 

@@ -39,6 +39,7 @@ public fun ApplicationCall.push(encodedPath: String, encodedParameters: Paramete
  * or does nothing (may call or not call [block]).
  * Exact behaviour is up to engine implementation.
  */
+@OptIn(InternalAPI::class)
 @UseHttp2Push
 public fun ApplicationCall.push(block: ResponsePushBuilder.() -> Unit) {
     response.push(DefaultResponsePushBuilder(this).apply(block))

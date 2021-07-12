@@ -10,6 +10,7 @@ import kotlin.coroutines.*
 /**
  * Test runner for js suspend tests.
  */
+@OptIn(DelicateCoroutinesApi::class)
 public actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit

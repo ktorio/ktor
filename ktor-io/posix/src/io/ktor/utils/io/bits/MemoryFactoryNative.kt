@@ -12,6 +12,7 @@ import kotlin.contracts.*
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
+@OptIn(ExperimentalContracts::class)
 public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -88,7 +89,7 @@ public fun NativeFreeablePlacement.free(memory: Memory) {
     free(memory.pointer)
 }
 
-internal inline class PlacementAllocator(private val placement: NativeFreeablePlacement) : Allocator {
+internal value class PlacementAllocator(private val placement: NativeFreeablePlacement) : Allocator {
     override fun alloc(size: Int): Memory = alloc(size.toLong())
 
     override fun alloc(size: Long): Memory = Memory(placement.allocArray(size), size)

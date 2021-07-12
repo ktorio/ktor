@@ -17,6 +17,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
+@OptIn(EngineAPI::class)
 public abstract class NettyApplicationResponse(
     call: NettyApplicationCall,
     protected val context: ChannelHandlerContext,
@@ -24,7 +25,7 @@ public abstract class NettyApplicationResponse(
     protected val userContext: CoroutineContext
 ) : BaseApplicationResponse(call) {
 
-    public val responseMessage: CompletableDeferred<Any> = CompletableDeferred<Any>()
+    public val responseMessage: CompletableDeferred<Any> = CompletableDeferred()
 
     @Volatile
     protected var responseMessageSent: Boolean = false

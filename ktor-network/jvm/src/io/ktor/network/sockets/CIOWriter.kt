@@ -42,7 +42,7 @@ internal fun CoroutineScope.attachForWritingImpl(
                 buffer.flip()
 
                 while (buffer.hasRemaining()) {
-                    var rc = 0
+                    var rc: Int
 
                     timeout.withTimeout {
                         do {
@@ -80,6 +80,7 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
 ): ReaderJob = reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             val timeout = if (socketOptions?.socketTimeout != null) {
                 createTimeout("writing-direct", socketOptions.socketTimeout) {

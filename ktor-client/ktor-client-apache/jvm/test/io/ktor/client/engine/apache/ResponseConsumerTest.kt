@@ -17,6 +17,7 @@ import kotlin.test.*
 class ResponseConsumerTest {
     private val parentContext = Dispatchers.Main + Job()
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testConsumeContent() {
         val body = object : OutgoingContent.WriteChannelContent() {

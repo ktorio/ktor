@@ -24,6 +24,7 @@ import javax.naming.directory.*
 import javax.naming.ldap.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @RunWith(FrameworkRunner::class)
 @CreateLdapServer(transports = arrayOf(CreateTransport(protocol = "LDAP")))
 @Ignore("LdapAuthTest is ignored because it is very slow. Run it explicitly when you need.")

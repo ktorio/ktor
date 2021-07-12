@@ -4,9 +4,11 @@
 
 package io.ktor.server.auth.jwt
 
+import java.util.*
+
 internal class JWTAuthSchemes(val defaultScheme: String, vararg additionalSchemes: String) {
     val schemes = (arrayOf(defaultScheme) + additionalSchemes).toSet()
-    val schemesLowerCase = schemes.map { it.toLowerCase() }.toSet()
+    val schemesLowerCase = schemes.map { it.lowercase(Locale.getDefault()) }.toSet()
 
-    operator fun contains(scheme: String): Boolean = scheme.toLowerCase() in schemesLowerCase
+    operator fun contains(scheme: String): Boolean = scheme.lowercase(Locale.getDefault()) in schemesLowerCase
 }

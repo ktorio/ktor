@@ -610,7 +610,7 @@ public class HighLoadHttpGenerator(
         private const val HTTP_200_SPACE_Int = 0x32303020
         private const val HTTP_200_R_Int = 0x3230300d
 
-        private const val N = '\n'.toByte()
+        private const val N = '\n'.code.toByte()
         private const val S = 0x20.toByte()
 
         public fun doRun(

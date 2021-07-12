@@ -14,6 +14,5 @@ public val LongRange.length: Long
 /**
  * Returns `true` if [other] range is fully contained inside [this] range
  */
-@InternalAPI
 public operator fun LongRange.contains(other: LongRange): Boolean =
     other.start >= start && other.endInclusive <= endInclusive

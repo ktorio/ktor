@@ -70,7 +70,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            val session = client.webSocket(echoWebsocket) {
+            client.webSocket(echoWebsocket) {
                 close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
             }
         }

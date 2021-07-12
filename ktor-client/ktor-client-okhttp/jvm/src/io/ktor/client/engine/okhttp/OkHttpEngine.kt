@@ -24,8 +24,8 @@ import java.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
+@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     public override val dispatcher: CoroutineDispatcher by lazy {
@@ -61,6 +61,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                     client.connectionPool.evictAll()
                     client.dispatcher.executorService.shutdown()
                 }
+                @Suppress("BlockingMethodInNonBlockingContext")
                 (dispatcher as Closeable).close()
             }
         }
@@ -155,6 +156,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 private fun BufferedSource.toChannel(context: CoroutineContext, requestData: HttpRequestData): ByteReadChannel =
     GlobalScope.writer(context) {
         use { source ->
@@ -176,6 +178,7 @@ private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable
     else -> cause
 }
 
+@OptIn(InternalAPI::class)
 private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
     val builder = Request.Builder()
 
@@ -198,6 +201,7 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
     return builder.build()
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().let {
         it.toRequestBody(null, 0, it.size)
@@ -214,6 +218,7 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
  * Update [OkHttpClient.Builder] setting timeout configuration taken from
  * [HttpTimeout.HttpTimeoutCapabilityConfiguration].
  */
+@OptIn(InternalAPI::class)
 private fun OkHttpClient.Builder.setupTimeoutAttributes(
     timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
 ): OkHttpClient.Builder {

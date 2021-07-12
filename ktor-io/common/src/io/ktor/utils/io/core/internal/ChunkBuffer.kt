@@ -121,8 +121,6 @@ public open class ChunkBuffer(
         require(origin == null) { "Unable to reset buffer with origin" }
 
         super.reset()
-        @Suppress("DEPRECATION")
-        attachment = null
         nextRef.value = null
     }
 

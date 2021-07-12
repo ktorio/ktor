@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
  * [HttpClientEngine] for writing tests without network.
  */
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    @OptIn(InternalAPI::class)
     override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
     override val supportedCapabilities: Set<HttpTimeout.Plugin> = setOf(HttpTimeout)
     private val mutex = Lock()
@@ -43,6 +44,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
      */
     public val responseHistory: List<HttpResponseData> get() = _responseHistory
 
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 

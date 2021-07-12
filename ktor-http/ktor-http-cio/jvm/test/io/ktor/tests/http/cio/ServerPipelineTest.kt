@@ -7,6 +7,7 @@ package io.ktor.tests.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.backend.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -20,6 +21,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.test.Test
 
+@OptIn(InternalAPI::class)
 class ServerPipelineTest : CoroutineScope {
     @get:Rule
     val testName = TestName()

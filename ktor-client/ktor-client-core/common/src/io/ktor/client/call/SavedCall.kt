@@ -26,6 +26,7 @@ internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
     /**
      * Saves [responseContent] and returns it's copy that is safe to use without loosing [responseContent] data.
      * */
+    @OptIn(InternalAPI::class)
     override suspend fun getResponseContent(): ByteReadChannel {
         if (responseContent == null) {
             responseContent = response.content
@@ -62,12 +63,14 @@ internal class SavedHttpResponse(
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
+    @OptIn(InternalAPI::class)
     override val content: ByteReadChannel = ByteReadChannel(body)
 }
 
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
+@OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
     val currentClient = client ?: error("Failed to save call in different native thread.")
 

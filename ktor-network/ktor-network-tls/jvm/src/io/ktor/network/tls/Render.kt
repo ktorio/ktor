@@ -64,7 +64,7 @@ internal fun BytePacketBuilder.writeTLSClientHello(
         extensions += buildServerNameExtension(name)
     }
 
-    writeShort(extensions.sumBy { it.remaining.toInt() }.toShort())
+    writeShort(extensions.sumOf { it.remaining.toInt() }.toShort())
     for (e in extensions) {
         writePacket(e)
     }

@@ -18,7 +18,7 @@ import java.nio.channels.*
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, EngineAPI::class)
 public fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: HttpRequestHandler

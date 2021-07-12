@@ -75,14 +75,14 @@ public open class MapApplicationConfig : ApplicationConfig {
         val keys = if (isTopLevel) map.keys else map.keys.filter { it.startsWith("$path.") }
         val listEntries = keys.filter { it.contains(".size") }.map { it.substringBefore(".size") }
         val addedListKeys = mutableSetOf<String>()
-        return keys.mapNotNull { key ->
-            val listKey = listEntries.firstOrNull { key.startsWith(it) }
+        return keys.mapNotNull { candidate ->
+            val listKey = listEntries.firstOrNull { candidate.startsWith(it) }
             val key = when {
                 listKey != null && !addedListKeys.contains(listKey) -> {
                     addedListKeys.add(listKey)
                     listKey
                 }
-                listKey == null -> key
+                listKey == null -> candidate
                 else -> null
             }
             if (isTopLevel) key else key?.substringAfter("$path.")

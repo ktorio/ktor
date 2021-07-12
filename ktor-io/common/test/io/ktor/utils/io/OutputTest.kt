@@ -43,13 +43,13 @@ class OutputTest {
         val fromHead = ChunkBuffer.Pool.borrow()
         var current = fromHead
         repeat(3) {
-            current.append("test $it. ")
+            current.appendChars("test $it. ")
             val next = ChunkBuffer.Pool.borrow()
             current.next = next
             current = next
         }
 
-        current.append("end.")
+        current.appendChars("end.")
 
         val from = ByteReadPacket(fromHead, ChunkBuffer.Pool)
 

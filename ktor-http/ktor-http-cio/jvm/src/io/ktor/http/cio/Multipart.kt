@@ -184,7 +184,6 @@ private suspend fun parsePartBodyImpl(
 /**
  * Skip multipart boundary
  */
-@OptIn(ExperimentalIoApi::class)
 @Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
 public suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     return skipBoundary(boundaryPrefixed, input)
@@ -379,7 +378,7 @@ private suspend fun copyUntilBoundary(
     }
 }
 
-private const val PrefixChar = '-'.toByte()
+private const val PrefixChar = '-'.code.toByte()
 
 private fun findBoundary(contentType: CharSequence): Int {
     var state = 0 // 0 header value, 1 param name, 2 param value unquoted, 3 param value quoted, 4 escaped
@@ -474,7 +473,7 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
 
     loop@ for (i in boundaryStart until contentType.length) {
         val ch = contentType[i]
-        val v = ch.toInt() and 0xffff
+        val v = ch.code and 0xffff
         if (v and 0xffff > 0x7f) {
             throw IOException(
                 "Failed to parse multipart: wrong boundary byte 0x${v.toString(16)} - should be 7bit character"
@@ -546,6 +545,7 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
  * Tries to skip the specified [delimiter] or fails if encounters bytes differs from the required.
  * @return `true` if the delimiter was found and skipped or `false` when EOF.
  */
+@Suppress("DEPRECATION")
 internal suspend fun ByteReadChannel.skipDelimiterOrEof(delimiter: ByteBuffer): Boolean {
     require(delimiter.hasRemaining())
     require(delimiter.remaining() <= DEFAULT_BUFFER_SIZE) {
@@ -565,6 +565,7 @@ internal suspend fun ByteReadChannel.skipDelimiterOrEof(delimiter: ByteBuffer): 
     return trySkipDelimiterSuspend(delimiter)
 }
 
+@Suppress("DEPRECATION")
 private suspend fun ByteReadChannel.trySkipDelimiterSuspend(delimiter: ByteBuffer): Boolean {
     var result = true
 

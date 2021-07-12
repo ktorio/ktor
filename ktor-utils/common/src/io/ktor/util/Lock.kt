@@ -6,7 +6,6 @@
 
 package io.ktor.util
 
-@InternalAPI
 public expect class Lock() {
     public fun lock()
     public fun unlock()
@@ -14,7 +13,6 @@ public expect class Lock() {
     public fun close()
 }
 
-@InternalAPI
 public inline fun <R> Lock.withLock(crossinline block: () -> R): R {
     try {
         lock()
