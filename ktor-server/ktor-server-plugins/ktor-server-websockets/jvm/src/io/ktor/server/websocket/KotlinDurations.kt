@@ -21,8 +21,8 @@ public fun WebSockets(
     maxFrameSize: Long,
     masking: Boolean
 ): WebSockets = WebSockets(
-    pingInterval?.toLongMilliseconds() ?: 0L,
-    timeout.toLongMilliseconds(),
+    pingInterval?.inWholeMilliseconds ?: 0L,
+    timeout.inWholeMilliseconds,
     maxFrameSize,
     masking
 )
@@ -37,4 +37,4 @@ public fun CoroutineScope.pinger(
     period: Duration,
     timeout: Duration,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = pinger(outgoing, period.toLongMilliseconds(), timeout.toLongMilliseconds(), pool)
+): SendChannel<Frame.Pong> = pinger(outgoing, period.inWholeMilliseconds, timeout.inWholeMilliseconds, pool)

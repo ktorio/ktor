@@ -17,6 +17,7 @@ public suspend fun ByteReadChannel.toByteArray(limit: Int = Int.MAX_VALUE): Byte
 /**
  * Executes [block] on [ByteWriteChannel] and close it down correctly whether an exception
  */
+@OptIn(ExperimentalContracts::class)
 public inline fun ByteWriteChannel.use(block: ByteWriteChannel.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

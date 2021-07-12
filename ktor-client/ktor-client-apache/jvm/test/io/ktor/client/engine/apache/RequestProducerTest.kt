@@ -17,8 +17,10 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@kotlin.Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testHeadersMerge() = runBlocking {
         val request = ApacheRequestProducer(
@@ -82,6 +84,7 @@ class RequestProducerTest {
         producer.close()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingReadChannelContent() = runBlocking {
         val content = ByteChannel(true)
@@ -120,6 +123,7 @@ class RequestProducerTest {
         producer.close()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingWriteChannelContent() = runBlocking {
         val body = ChannelWriterContent(
@@ -157,6 +161,7 @@ class RequestProducerTest {
         producer.close()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingWriteChannelContentOnScale() = runBlocking {
         repeat(5000) {
@@ -188,6 +193,7 @@ class RequestProducerTest {
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun producer(body: OutgoingContent, context: CoroutineContext) = ApacheRequestProducer(
         requestData = HttpRequestData(
             URLBuilder("https://example.com").build(),

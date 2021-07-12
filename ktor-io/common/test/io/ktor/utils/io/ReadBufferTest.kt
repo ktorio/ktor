@@ -17,7 +17,7 @@ class ReadBufferTest {
         reserveEndGap(8)
 
         repeat(writeRemaining) { index ->
-            append(charForIndex(index))
+            writeByte(charForIndex(index).code.toByte())
         }
     }
     private val initialBufferSize = buffer.readRemaining
@@ -51,7 +51,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -75,7 +75,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -99,7 +99,7 @@ class ReadBufferTest {
                     val rc = buffer.readAvailable(dst, size)
                     assertEquals(size, rc)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -124,7 +124,7 @@ class ReadBufferTest {
                     assertEquals(initialBufferSize - offset, buffer.readRemaining)
                     buffer.readFully(dst, size)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -151,7 +151,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -175,7 +175,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -199,7 +199,7 @@ class ReadBufferTest {
                     val rc = packet.readAvailable(dst, size)
                     assertEquals(size, rc)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -224,7 +224,7 @@ class ReadBufferTest {
                     assertEquals(initialPacketSize - offset, packet.remaining)
                     packet.readFully(dst, size)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {

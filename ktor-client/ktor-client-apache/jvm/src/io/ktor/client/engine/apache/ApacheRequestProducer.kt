@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.apache.http.*
@@ -25,6 +26,7 @@ import org.apache.http.protocol.*
 import java.nio.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 internal class ApacheRequestProducer(
     private val requestData: HttpRequestData,
     private val config: ApacheEngineConfig,
@@ -41,6 +43,7 @@ internal class ApacheRequestProducer(
     private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    @OptIn(DelicateCoroutinesApi::class)
     private val channel: ByteReadChannel = when (val body = requestData.body) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
@@ -152,6 +155,7 @@ internal class ApacheRequestProducer(
     }
 }
 
+@OptIn(InternalAPI::class)
 private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
     requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }

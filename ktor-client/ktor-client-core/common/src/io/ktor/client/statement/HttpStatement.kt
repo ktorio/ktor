@@ -11,6 +11,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -67,7 +68,7 @@ public class HttpStatement(
      *
      * Note if T is a streaming type, you should manage how to close it manually.
      */
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
     public suspend inline fun <reified T> body(): T {
         val response = executeUnsafe()
         return try {
@@ -96,6 +97,7 @@ public class HttpStatement(
      * Return [HttpResponse] with open streaming body.
      */
     @PublishedApi
+    @OptIn(InternalAPI::class)
     internal suspend fun executeUnsafe(): HttpResponse {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
 
@@ -107,6 +109,7 @@ public class HttpStatement(
      * Complete [HttpResponse] and release resources.
      */
     @PublishedApi
+    @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup() {
         val job = coroutineContext[Job]!! as CompletableJob
 

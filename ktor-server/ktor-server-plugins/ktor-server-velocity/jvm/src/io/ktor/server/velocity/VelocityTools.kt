@@ -21,6 +21,7 @@ public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit)
 /**
  * VelocityTools ktor plugin. Populates model with standard Velocity tools.
  */
+@Suppress("UNCHECKED_CAST")
 public class VelocityTools private constructor(private val toolManager: ToolManager) {
 
     /**
@@ -33,15 +34,15 @@ public class VelocityTools private constructor(private val toolManager: ToolMana
 
         override fun install(
             pipeline: ApplicationCallPipeline,
-            config: EasyFactoryConfiguration.() -> Unit
+            configure: EasyFactoryConfiguration.() -> Unit
         ): VelocityTools {
-            val factoryConfig = EasyFactoryConfiguration().apply(config)
+            val factoryConfig = EasyFactoryConfiguration().apply(configure)
             val engineConfig = factoryConfig.getData(ENGINE_CONFIG_KEY)
                 ?.also { factoryConfig.removeData(it) }
                 ?.value as (VelocityEngine.() -> Unit)? ?: {}
             val engine = VelocityEngine().apply(engineConfig)
             val toolManager = ToolManager().apply {
-                configure(factoryConfig)
+                this.configure(factoryConfig)
                 velocityEngine = engine
             }
             val plugin = VelocityTools(toolManager)

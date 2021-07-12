@@ -15,7 +15,6 @@ import java.nio.charset.*
  * @param limit is an optional parameter specifying maximum number of bytes to be moved
  * @return number of bytes moved
  */
-@InternalAPI
 public fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
     val size = minOf(limit, remaining(), destination.remaining())
     if (size == remaining()) {
@@ -32,7 +31,6 @@ public fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE
 /**
  * Moves bytes from `this` buffer into newly created [ByteArray] and returns it
  */
-@InternalAPI
 public fun ByteBuffer.moveToByteArray(): ByteArray {
     val array = ByteArray(remaining())
     get(array)
@@ -42,7 +40,6 @@ public fun ByteBuffer.moveToByteArray(): ByteArray {
 /**
  * Decodes a string from `this` buffer with the specified [charset]
  */
-@InternalAPI
 public fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
     return charset.decode(this).toString()
 }
@@ -50,7 +47,6 @@ public fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
 /**
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size]
  */
-@InternalAPI
 public fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
     return ByteBuffer.allocate(size).apply {
         this@copy.slice().moveTo(this@apply)
@@ -61,7 +57,6 @@ public fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
 /**
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size] by allocating it from the given [pool]
  */
-@InternalAPI
 public fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().apply {
     limit(size)
     this@copy.slice().moveTo(this)

@@ -76,16 +76,16 @@ public class BytePacketBuilder(
     final override fun flush(source: Memory, offset: Int, length: Int) {
     }
 
-    override fun append(c: Char): BytePacketBuilder {
-        return super.append(c) as BytePacketBuilder
+    override fun append(value: Char): BytePacketBuilder {
+        return super.append(value) as BytePacketBuilder
     }
 
-    override fun append(csq: CharSequence?): BytePacketBuilder {
-        return super.append(csq) as BytePacketBuilder
+    override fun append(value: CharSequence?): BytePacketBuilder {
+        return super.append(value) as BytePacketBuilder
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
-        return super.append(csq, start, end) as BytePacketBuilder
+    override fun append(value: CharSequence?, startIndex: Int, endIndex: Int): BytePacketBuilder {
+        return super.append(value, startIndex, endIndex) as BytePacketBuilder
     }
 
     /**
@@ -93,9 +93,8 @@ public class BytePacketBuilder(
      */
     public fun build(): ByteReadPacket {
         val size = size
-        val head = stealAll()
 
-        return when (head) {
+        return when (val head = stealAll()) {
             null -> ByteReadPacket.Empty
             else -> ByteReadPacket(head, size.toLong(), pool)
         }

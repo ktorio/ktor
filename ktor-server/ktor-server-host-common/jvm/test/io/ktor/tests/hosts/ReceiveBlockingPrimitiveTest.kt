@@ -15,7 +15,7 @@ import java.lang.reflect.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, EngineAPI::class)
 class ReceiveBlockingPrimitiveTest {
     private val pipeline = ApplicationReceivePipeline()
 

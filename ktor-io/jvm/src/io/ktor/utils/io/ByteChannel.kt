@@ -23,7 +23,6 @@ public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int):
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes using [close] function to close
  * channel.
  */
-@ExperimentalIoApi
 public fun ByteChannel(autoFlush: Boolean = false, exceptionMapper: (Throwable?) -> Throwable?): ByteChannel =
     object : ByteBufferChannel(autoFlush = autoFlush) {
 

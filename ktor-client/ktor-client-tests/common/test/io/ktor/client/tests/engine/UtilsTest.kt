@@ -7,9 +7,11 @@ package io.ktor.client.tests.engine
 import io.ktor.client.engine.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlin.test.*
 
 class UtilsTest {
+    @OptIn(InternalAPI::class)
     @Test
     fun testMergeHeaders() {
         val headers = HeadersBuilder().apply {

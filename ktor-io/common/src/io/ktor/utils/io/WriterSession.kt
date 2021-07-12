@@ -14,7 +14,6 @@ import io.ktor.utils.io.core.internal.ChunkBuffer
  * or when it is impossible to represent all [desiredSpace] bytes as a single memory range
  * due to internal implementation reasons.
  */
-@ExperimentalIoApi
 public suspend inline fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
     block: (freeSpace: Memory, startOffset: Long, endExclusive: Long) -> Int

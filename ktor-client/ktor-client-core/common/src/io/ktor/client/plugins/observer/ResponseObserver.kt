@@ -40,6 +40,7 @@ public class ResponseObserver(
         override fun prepare(block: Config.() -> Unit): ResponseObserver =
             ResponseObserver(Config().apply(block).responseHandler)
 
+        @OptIn(InternalAPI::class)
         override fun install(plugin: ResponseObserver, scope: HttpClient) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
                 val (loggingContent, responseContent) = response.content.split(response)

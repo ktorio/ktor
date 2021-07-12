@@ -27,6 +27,7 @@ internal fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 internal inline fun ChunkBuffer.forEachChunk(block: (ChunkBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_LEAST_ONCE)
@@ -65,8 +66,7 @@ internal tailrec fun ChunkBuffer.findTail(): ChunkBuffer {
 /**
  * Summarize remainings of all elements of the chain
  */
-@DangerousInternalIoApi
-public fun ChunkBuffer.remainingAll(): Long = remainingAll(0L)
+internal fun ChunkBuffer.remainingAll(): Long = remainingAll(0L)
 
 private tailrec fun ChunkBuffer.remainingAll(n: Long): Long {
     val rem = readRemaining.toLong() + n
@@ -90,7 +90,7 @@ internal inline fun Long.coerceAtMostMaxIntOrFail(message: String): Int {
     return this.toInt()
 }
 
-internal fun Buffer.peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+internal fun Buffer.peekTo(destination: Memory, destinationOffset: Long, offset: Long, max: Long): Long {
     val size = minOf(
         destination.size - destinationOffset,
         max,

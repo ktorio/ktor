@@ -4,8 +4,6 @@
 
 description = "Ktor client Content Negotiation support"
 
-val ideaActive: Boolean by project.extra
-
 plugins {
     id("kotlinx-serialization")
 }

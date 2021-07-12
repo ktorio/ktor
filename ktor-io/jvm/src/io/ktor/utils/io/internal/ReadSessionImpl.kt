@@ -4,6 +4,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 
+@Suppress("DEPRECATION")
 internal class ReadSessionImpl(private val channel: ByteBufferChannel) : SuspendableReadSession {
     private var lastAvailable = 0
     private var lastView: ChunkBuffer = ChunkBuffer.Empty

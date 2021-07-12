@@ -1,21 +1,13 @@
 package io.ktor.utils.io.charsets
 
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
-@DangerousInternalIoApi
-public fun decodeUtf8Result(numberOfChars: Int, requireBytes: Int): Long =
+internal fun decodeUtf8Result(numberOfChars: Int, requireBytes: Int): Long =
     numberOfChars.toLong() shl 32 or (requireBytes.toLong() and 0xffffffffL)
 
-internal fun decodeUtf8ResultAcc(predecoded: Int, result: Long): Long =
-    decodeUtf8Result(predecoded + (result shr 32).toInt(), (result and 0xffffffffL).toInt())
+internal fun decodeUtf8ResultAcc(preDecoded: Int, result: Long): Long =
+    decodeUtf8Result(preDecoded + (result shr 32).toInt(), (result and 0xffffffffL).toInt())
 
-@DangerousInternalIoApi
-public fun decodeUtf8ResultCombine(prev: Long, next: Long): Long =
-    ((prev and 0xffffffffL.inv()) + (next and 0xffffffffL.inv())) or (next and 0xffffffffL)
-
-@ExperimentalIoApi
 public fun ByteBuffer.decodeUTF(out: CharArray, offset: Int, length: Int): Long {
     val decoded = decodeASCII(out, offset, length)
 
@@ -30,7 +22,6 @@ public fun ByteBuffer.decodeUTF(out: CharArray, offset: Int, length: Int): Long 
  * @return packed number of decoded characters to [out] buffer (highest 32 bits) and number of bytes required
  * to decode the next character, or 0 if buffer has been decoded completely or -1 if end of line has been encountered
  */
-@ExperimentalIoApi
 public fun ByteBuffer.decodeUTF8Line(out: CharArray, offset: Int = 0, length: Int = out.size): Long {
     return when {
         hasArray() -> decodeUTF8Line_array(out, offset, length)
@@ -129,7 +120,7 @@ private fun ByteBuffer.decodeUTF8Line_buffer(out: CharArray, offset: Int, length
  * @see [decodeUtf8Result]
  */
 private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int): Long {
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 
@@ -147,7 +138,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
 
         when {
             v >= 0 -> {
-                val ch = v.toChar()
+                val ch = v.toInt().toChar()
                 out[outPos++] = ch
             }
             vi and 0xe0 == 0xc0 -> {
@@ -233,7 +224,7 @@ private fun ByteBuffer.decodeUTF8_buffer(out: CharArray, offset: Int, length: In
 
         when {
             v >= 0 -> {
-                val ch = v.toChar()
+                val ch = v.toInt().toChar()
                 out[outPos++] = ch
             }
             vi and 0xe0 == 0xc0 -> {
@@ -311,7 +302,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
     length: Int,
     predicate: (Char) -> Boolean
 ): Long {
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 
@@ -329,7 +320,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
 
         when {
             v >= 0 -> {
-                val ch = v.toChar()
+                val ch = v.toInt().toChar()
                 if (!predicate(ch)) {
                     position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, -1)
@@ -443,7 +434,7 @@ private inline fun ByteBuffer.decodeUTF8_buffer(
 
         when {
             v >= 0 -> {
-                val ch = v.toChar()
+                val ch = v.toInt().toChar()
                 if (!predicate(ch)) {
                     position(position() - 1)
                     return decodeUtf8Result(outPos - offset, -1)

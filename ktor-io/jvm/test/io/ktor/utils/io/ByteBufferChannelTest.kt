@@ -61,6 +61,7 @@ class ByteBufferChannelTest {
         testWriteXRaceCondition { it.writeLong(1) }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun testWriteXRaceCondition(writer: suspend (ByteChannel) -> Unit): Unit = runBlocking {
         val channel = ByteBufferChannel(false)
 

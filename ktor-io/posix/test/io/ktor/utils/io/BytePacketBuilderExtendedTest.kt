@@ -5,10 +5,8 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 import kotlin.test.*
-import kotlin.test.Test
 
 class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
     override val pool = VerifyingChunkBufferPool()
@@ -18,7 +16,7 @@ class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
     @Test
     fun smokeSingleBufferTestExtended() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(2))
+            writeFully(ByteArray(2))
             writeFully(buffer, 3)
 
             writeByte(0x12)
@@ -32,7 +30,7 @@ class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 3 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals(40L, p.remaining)
 
         p.readFully(ByteArray(2))
         p.readFully(buffer, 3)
@@ -64,7 +62,7 @@ class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(9999 + 8888 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals(18922L, p.remaining)
 
         p.readFully(ByteArray(9999))
         p.readFully(buffer, 8888)
@@ -91,6 +89,5 @@ class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
     }
 
     companion object {
-        val PACKET_BUFFER_SIZE = 4096
     }
 }

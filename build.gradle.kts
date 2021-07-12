@@ -77,10 +77,7 @@ extra["publishLocal"] = project.hasProperty("publishLocal")
 
 val configuredVersion: String by extra
 
-apply(from = "gradle/experimental.gradle")
 apply(from = "gradle/verifier.gradle")
-
-val experimentalAnnotations: List<String> by extra
 
 /**
  * `darwin` is subset of `posix`.
@@ -146,6 +143,7 @@ allprojects {
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
     apply(plugin = "kotlin-multiplatform")
+    apply(plugin = "kotlinx-atomicfu")
 
     apply(from = rootProject.file("gradle/utility.gradle"))
 
@@ -166,30 +164,39 @@ allprojects {
         maybeCreate("testOutput")
     }
 
+
     kotlin {
+        targets.all {
+
+            if (this is org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget) {
+                irTarget?.compilations?.all {
+                    configureCompilation()
+                }
+
+            }
+            compilations.all {
+                configureCompilation()
+            }
+        }
+
         if (!disabledExplicitApiModeProjects.contains(project.name)) {
             explicitApi()
         }
 
-        sourceSets.matching { !(it.name in listOf("main", "test")) }.all {
-            val srcDir = if (name.endsWith("Main")) "src" else "test"
-            val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
-            val platform = name.dropLast(4)
+        sourceSets
+            .matching { it.name !in listOf("main", "test") }
+            .all {
+                val srcDir = if (name.endsWith("Main")) "src" else "test"
+                val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
+                val platform = name.dropLast(4)
 
-            kotlin.srcDir("$platform/$srcDir")
-            resources.srcDir("$platform/${resourcesPrefix}resources")
+                kotlin.srcDir("$platform/$srcDir")
+                resources.srcDir("$platform/${resourcesPrefix}resources")
 
-            languageSettings.apply {
-                progressiveMode = true
-                experimentalAnnotations.forEach { useExperimentalAnnotation(it) }
-
-                if (project.path.startsWith(":ktor-server:ktor-server")
-                    && project.name != "ktor-server-core"
-                ) {
-                    useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
+                languageSettings.apply {
+                    progressiveMode = true
                 }
             }
-        }
     }
 
     val skipPublish: List<String> by rootProject.extra

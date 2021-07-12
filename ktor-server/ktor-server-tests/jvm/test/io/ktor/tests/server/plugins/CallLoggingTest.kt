@@ -207,7 +207,7 @@ class CallLoggingTest {
                     }
                 }
 
-                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                handleRequest(HttpMethod.Get, "/uri1").let { _ ->
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "INFO: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
@@ -246,7 +246,7 @@ class CallLoggingTest {
                     }
                 }
 
-                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                handleRequest(HttpMethod.Get, "/uri1").let {
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "INFO: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages

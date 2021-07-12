@@ -9,7 +9,6 @@ import kotlin.contracts.*
 /**
  * For every byte from this buffer invokes [block] function giving it as parameter.
  */
-@ExperimentalIoApi
 public inline fun Buffer.forEach(block: (Byte) -> Unit) {
     read { memory, start, endExclusive ->
         for (index in start until endExclusive) {
@@ -226,6 +225,7 @@ public inline fun ChunkBuffer.readFully(
 /**
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFully(destination: UByteArray, offset: Int = 0, length: Int = destination.size - offset) {
     readFully(destination.asByteArray(), offset, length)
 }
@@ -264,6 +264,7 @@ public inline fun ChunkBuffer.readAvailable(
  * will be returned as result.
  * @return number of bytes copied to the [destination] or `-1` if the buffer is empty
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailable(
     destination: UByteArray,
     offset: Int = 0,
@@ -288,6 +289,7 @@ public inline fun ChunkBuffer.writeFully(source: ByteArray, offset: Int = 0, len
 /**
  * Write the whole [source] array range staring at [offset] and having the specified bytes [length].
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFully(source: UByteArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFully(source.asByteArray(), offset, length)
 }
@@ -306,6 +308,7 @@ public fun Buffer.readFully(destination: ShortArray, offset: Int = 0, length: In
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFully(destination: UShortArray, offset: Int = 0, length: Int = destination.size - offset) {
     readFully(destination.asShortArray(), offset, length)
 }
@@ -344,6 +347,7 @@ public fun Buffer.readAvailable(
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailable(
     destination: UShortArray,
     offset: Int = 0,
@@ -366,6 +370,7 @@ public fun Buffer.writeFully(source: ShortArray, offset: Int = 0, length: Int = 
  * Write the whole [source] array range staring at [offset] and having the specified items [length].
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFully(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFully(source.asShortArray(), offset, length)
 }
@@ -384,6 +389,7 @@ public fun Buffer.readFully(destination: IntArray, offset: Int = 0, length: Int 
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFully(destination: UIntArray, offset: Int = 0, length: Int = destination.size - offset) {
     readFully(destination.asIntArray(), offset, length)
 }
@@ -418,6 +424,7 @@ public fun Buffer.readAvailable(destination: IntArray, offset: Int = 0, length: 
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailable(destination: UIntArray, offset: Int = 0, length: Int = destination.size - offset): Int {
     return readAvailable(destination.asIntArray(), offset, length)
 }
@@ -436,6 +443,7 @@ public fun Buffer.writeFully(source: IntArray, offset: Int = 0, length: Int = so
  * Write the whole [source] array range staring at [offset] and having the specified items [length].
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFully(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFully(source.asIntArray(), offset, length)
 }
@@ -454,6 +462,7 @@ public fun Buffer.readFully(destination: LongArray, offset: Int = 0, length: Int
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readFully(destination: ULongArray, offset: Int = 0, length: Int = destination.size - offset) {
     readFully(destination.asLongArray(), offset, length)
 }
@@ -488,6 +497,7 @@ public fun Buffer.readAvailable(destination: LongArray, offset: Int = 0, length:
  * @return number of elements copied to the [destination] or `-1` if the buffer is empty,
  *  `0` - not enough bytes for at least an element
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.readAvailable(
     destination: ULongArray,
     offset: Int = 0,
@@ -510,6 +520,7 @@ public fun Buffer.writeFully(source: LongArray, offset: Int = 0, length: Int = s
  * Write the whole [source] array range staring at [offset] and having the specified items [length].
  * Numeric values are interpreted in the network byte order (Big Endian).
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFully(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFully(source.asLongArray(), offset, length)
 }
@@ -670,6 +681,7 @@ public fun Buffer.writeFully(src: Buffer, length: Int) {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 @PublishedApi
 internal inline fun <R> Buffer.readExact(size: Int, name: String, block: (memory: Memory, offset: Int) -> R): R {
     contract {
@@ -679,9 +691,10 @@ internal inline fun <R> Buffer.readExact(size: Int, name: String, block: (memory
     var value: R
 
     read { memory, start, endExclusive ->
-        require(endExclusive - start >= size) {
+        if (endExclusive - start < size) {
             throw EOFException("Not enough bytes to read a $name of size $size.")
         }
+
         value = block(memory, start)
         size
     }
@@ -689,6 +702,7 @@ internal inline fun <R> Buffer.readExact(size: Int, name: String, block: (memory
     return value
 }
 
+@OptIn(ExperimentalContracts::class)
 @PublishedApi
 internal inline fun Buffer.writeExact(size: Int, name: String, block: (memory: Memory, offset: Int) -> Unit) {
     contract {

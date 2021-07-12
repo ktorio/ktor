@@ -216,6 +216,7 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testNoVaryIn304() = clientTests(listOf("Js")) {
         config {

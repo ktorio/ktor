@@ -49,8 +49,10 @@ public class BasicAuthConfig {
      */
     public var realm: String? = null
 
+    @Suppress("DEPRECATION")
     internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { sendWithoutRequest }
 
+    @Suppress("DEPRECATION")
     internal var _credentials: suspend () -> BasicAuthCredentials? = {
         BasicAuthCredentials(username = username, password = password)
     }

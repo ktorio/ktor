@@ -18,7 +18,7 @@ internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = 
     val responseData = Channel<ByteArray>(1)
 
     body.on("data") { chunk: ArrayBuffer ->
-        val result = responseData.offer(Uint8Array(chunk).asByteArray())
+        responseData.trySend(Uint8Array(chunk).asByteArray()).isSuccess
         body.pause()
     }
 

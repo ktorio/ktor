@@ -176,7 +176,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         }
 
         override fun hashCode(): Int {
-            return Hash.combine(authScheme.toLowerCase(), blob.toLowerCase())
+            return Hash.combine(authScheme.lowercase(), blob.lowercase())
         }
     }
 
@@ -258,7 +258,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         }
 
         override fun hashCode(): Int {
-            return Hash.combine(authScheme.toLowerCase(), parameters)
+            return Hash.combine(authScheme.lowercase(), parameters)
         }
     }
 

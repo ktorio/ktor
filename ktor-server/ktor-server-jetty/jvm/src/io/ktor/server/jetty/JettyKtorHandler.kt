@@ -27,6 +27,7 @@ private val JettyKtorCounter = AtomicLong()
 
 private const val THREAD_KEEP_ALIVE_TIME = 1L
 
+@OptIn(InternalAPI::class, EngineAPI::class)
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,
@@ -50,9 +51,7 @@ internal class JettyKtorHandler(
     private val handlerJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext =
-        environment.parentCoroutineContext +
-            handlerJob +
-            DefaultUncaughtExceptionHandler(environment.log)
+        environment.parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
         dispatcher.prepareShutdown()

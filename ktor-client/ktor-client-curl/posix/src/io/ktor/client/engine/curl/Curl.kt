@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
+import io.ktor.util.*
 import kotlinx.cinterop.*
 import libcurl.*
 import kotlin.native.SharedImmutable
@@ -17,12 +18,14 @@ import kotlin.native.SharedImmutable
 @SharedImmutable
 private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.convert())
 
+@Suppress("unused")
 private val initHook = Curl
 
 /**
  * [HttpClientEngineFactory] using a curl library in implementation
  * with the the associated configuration [HttpClientEngineConfig].
  */
+@OptIn(InternalAPI::class)
 public object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {
     init {
         engines.append(this)

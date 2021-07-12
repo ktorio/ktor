@@ -92,6 +92,7 @@ public fun Buffer.writeFully(pointer: CPointer<ByteVar>, offset: Long, length: I
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.readDirect(block: (CPointer<ByteVar>) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -102,6 +103,7 @@ public inline fun Buffer.readDirect(block: (CPointer<ByteVar>) -> Int): Int {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
