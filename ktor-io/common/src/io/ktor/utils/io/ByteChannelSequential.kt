@@ -298,7 +298,7 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    @ExperimentalIoApi
+    @OptIn(ExperimentalIoApi::class)
     @Suppress("DEPRECATION")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = beginWriteSession()
