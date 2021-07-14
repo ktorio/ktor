@@ -1636,7 +1636,7 @@ internal open class ByteBufferChannel(
         writeSession.complete()
     }
 
-    @ExperimentalIoApi
+    @OptIn(ExperimentalIoApi::class)
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
             try {
@@ -1647,7 +1647,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    @ExperimentalIoApi
+    @OptIn(ExperimentalIoApi::class)
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             try {
@@ -1859,7 +1859,7 @@ internal open class ByteBufferChannel(
 
     private val writeSession = WriteSessionImpl(this)
 
-    @ExperimentalIoApi
+    @OptIn(ExperimentalIoApi::class)
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = writeSession
 
