@@ -2365,23 +2365,27 @@ internal open class ByteBufferChannel(
     private suspend fun writeSuspend(size: Int) {
         while (writeSuspendPredicate(size)) {
             suspendCancellableCoroutine<Unit> { c ->
-                do {
-                    closed?.sendException?.let { rethrowClosed(it) }
-                    if (!writeSuspendPredicate(size)) {
-                        c.resume(Unit)
-                        break
-                    }
-                } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
-
-                flushImpl(minWriteSize = size)
-
-                if (shouldResumeReadOp()) {
-                    resumeReadOp()
-                }
+                writeSuspend(size, c)
             }
         }
 
         closed?.sendException?.let { rethrowClosed(it) }
+    }
+
+    private fun writeSuspend(size: Int, c: CancellableContinuation<Unit>) {
+        do {
+            closed?.sendException?.let { rethrowClosed(it) }
+            if (!writeSuspendPredicate(size)) {
+                c.resume(Unit)
+                break
+            }
+        } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
+
+        flushImpl(minWriteSize = size)
+
+        if (shouldResumeReadOp()) {
+            resumeReadOp()
+        }
     }
 
     private inline fun <T, C : Continuation<T>> setContinuation(
