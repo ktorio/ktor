@@ -416,4 +416,24 @@ class OriginConnectionPointTest {
         handleRequest(HttpMethod.Get, "/no-header") {
         }
     }
+
+    @Test
+    fun testProxyXForwardedPortList() {
+        withTestApplication {
+            application.install(XForwardedHeaderSupport)
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals(91, port)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Port", "91, 90,95")
+            }
+        }
+    }
 }

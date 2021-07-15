@@ -82,11 +82,7 @@ internal class OriginConnectionPoint(
  * See http://ktor.io/servers/features/forward-headers.html for details
  */
 public object XForwardedHeaderSupport :
-    ApplicationFeature<
-        ApplicationCallPipeline,
-        XForwardedHeaderSupport.Config,
-        XForwardedHeaderSupport.Config
-        > {
+    ApplicationFeature<ApplicationCallPipeline, XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
 
     override val key: AttributeKey<Config> = AttributeKey("XForwardedHeaderSupport")
 
@@ -105,12 +101,12 @@ public object XForwardedHeaderSupport :
             }
 
             call.forEachHeader(config.httpsFlagHeaders) { value ->
-                if (value.toBoolean()) {
-                    call.mutableOriginConnectionPoint.let { route ->
-                        route.scheme = "https"
-                        URLProtocol.byName[route.scheme]?.let {
-                            route.port = it.defaultPort
-                        }
+                if (!value.toBoolean()) return@forEachHeader
+
+                call.mutableOriginConnectionPoint.let { route ->
+                    route.scheme = "https"
+                    URLProtocol.byName[route.scheme]?.let {
+                        route.port = it.defaultPort
                     }
                 }
             }
@@ -121,7 +117,7 @@ public object XForwardedHeaderSupport :
 
                 call.mutableOriginConnectionPoint.let { route ->
                     route.host = host
-                    port.tryParseInt()?.let {
+                    port.toIntOrNull()?.let {
                         route.port = it
                     } ?: URLProtocol.byName[route.scheme]?.let {
                         route.port = it.defaultPort
@@ -130,8 +126,8 @@ public object XForwardedHeaderSupport :
             }
 
             call.forEachHeader(config.portHeaders) { value ->
-                val port = value.toInt()
-                call.mutableOriginConnectionPoint.port = port
+                val port = value.split(",").first().trim()
+                call.mutableOriginConnectionPoint.port = port.toInt()
             }
 
             call.forEachHeader(config.forHeaders) { xForwardedFor ->
@@ -197,38 +193,36 @@ public object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipelin
         configure(Unit)
 
         pipeline.intercept(ApplicationCallPipeline.Features) {
-            val forwarded = call.request.forwarded()
-            if (forwarded != null) {
-                call.attributes.put(ForwardedParsedKey, forwarded)
-                val firstForward = forwarded.firstOrNull()
+            val forwarded = call.request.forwarded() ?: return@intercept
+            call.attributes.put(ForwardedParsedKey, forwarded)
+            val firstForward = forwarded.firstOrNull() ?: return@intercept
 
-                if (firstForward != null) {
-                    if (firstForward.proto != null) {
-                        call.mutableOriginConnectionPoint.let { route ->
-                            val proto: String = firstForward.proto
-                            route.scheme = proto
-                            URLProtocol.byName[proto]?.let { p ->
-                                route.port = p.defaultPort
-                            }
-                        }
+            if (firstForward.proto != null) {
+                call.mutableOriginConnectionPoint.let { route ->
+                    val proto: String = firstForward.proto
+                    route.scheme = proto
+                    URLProtocol.byName[proto]?.let { p ->
+                        route.port = p.defaultPort
                     }
-                    if (firstForward.forParam != null) {
-                        val remoteHost = firstForward.forParam.split(",").first().trim()
-                        if (remoteHost.isNotBlank()) {
-                            call.mutableOriginConnectionPoint.remoteHost = remoteHost
-                        }
-                    }
-                    if (firstForward.host != null) {
-                        val host = firstForward.host.substringBefore(':')
-                        val port = firstForward.host.substringAfter(':', "")
+                }
+            }
 
-                        call.mutableOriginConnectionPoint.let { route ->
-                            route.host = host
-                            port.tryParseInt()?.let { route.port = it } ?: URLProtocol.byName[route.scheme]?.let {
-                                route.port = it.defaultPort
-                            }
-                        }
-                    }
+            if (firstForward.forParam != null) {
+                val remoteHost = firstForward.forParam.split(",").first().trim()
+                if (remoteHost.isNotBlank()) {
+                    call.mutableOriginConnectionPoint.remoteHost = remoteHost
+                }
+            }
+
+            if (firstForward.host == null) return@intercept
+
+            val host = firstForward.host.substringBefore(':')
+            val port = firstForward.host.substringAfter(':', "")
+
+            call.mutableOriginConnectionPoint.let { route ->
+                route.host = host
+                port.toIntOrNull()?.let { route.port = it } ?: URLProtocol.byName[route.scheme]?.let {
+                    route.port = it.defaultPort
                 }
             }
         }
@@ -288,10 +282,4 @@ private class AssignableWithDelegate<T : Any>(val property: () -> T) {
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
         assigned = value
     }
-}
-
-private fun String.tryParseInt() = try {
-    if (isNotEmpty()) toInt() else null
-} catch (nfe: NumberFormatException) {
-    null
 }
