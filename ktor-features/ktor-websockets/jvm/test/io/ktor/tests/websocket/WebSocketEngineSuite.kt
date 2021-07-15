@@ -365,6 +365,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
+    @Ignore
     fun testReceiveMessages() {
         val count = 125
         val template = (1..count).joinToString("") { (it and 0x0f).toString(16) }

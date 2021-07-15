@@ -16,6 +16,7 @@ private const val TEST_SIZE: Int = 100
 class WebSocketJvmTest : ClientLoader(100000) {
 
     @Test
+    @Ignore
     fun testWebSocketDeflateBinary() = clientTests(ENGINES_WITHOUT_WS_EXTENSIONS) {
         config {
             WebSockets {
