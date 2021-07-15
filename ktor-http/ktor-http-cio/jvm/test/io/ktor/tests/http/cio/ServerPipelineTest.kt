@@ -29,6 +29,7 @@ class ServerPipelineTest : CoroutineScope {
 
     private val job = SupervisorJob()
 
+    @OptIn(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
         CoroutineName("PipelineTest.${testName.methodName}") + job + dispatcher
     }
