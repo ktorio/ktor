@@ -120,6 +120,7 @@ class WebSocketTest : ClientLoader() {
 
 
     @Test
+    @Ignore
     fun testWsHandshakeHeadersWithMultipleValues() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
         // browser websocket client does not support custom headers so the test gets ignored
         if (PlatformUtils.IS_BROWSER) return@clientTests
