@@ -38,21 +38,25 @@ internal fun ApplicationEnvironment.executeModuleFunction(
         }
     }
 
-    if (Function1::class.java.isAssignableFrom(clazz)) {
-        val constructor = clazz.declaredConstructors.single()
-        if (constructor.parameterCount != 0) {
-            throw ReloadingException("Module function with captured variables cannot be instantiated '$fqName'")
-        }
+    try {
+        if (Function1::class.java.isAssignableFrom(clazz)) {
+            val constructor = clazz.declaredConstructors.single()
+            if (constructor.parameterCount != 0) {
+                throw ReloadingException("Module function with captured variables cannot be instantiated '$fqName'")
+            }
 
-        constructor.isAccessible = true
-        @Suppress("UNCHECKED_CAST")
-        val function = constructor.newInstance() as Function1<Application, Unit>
-        function(application)
-        return
+            constructor.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            val function = constructor.newInstance() as Function1<Application, Unit>
+            function(application)
+            return
+        }
+    } catch (_: NoSuchMethodError) {
+        // Skip this case for the Android device
     }
 
     val kclass = clazz.takeIfNotFacade()
-        ?: throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
+        ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
     kclass.functions
         .filter { it.name == functionName && it.isApplicableFunction() }
