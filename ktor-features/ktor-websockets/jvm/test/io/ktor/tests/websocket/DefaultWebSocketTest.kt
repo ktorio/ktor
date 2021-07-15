@@ -27,6 +27,7 @@ class DefaultWebSocketTest {
     private lateinit var client: RawWebSocket
 
     @BeforeTest
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
     fun prepare() {
         parent = Job()
         client2server = ByteChannel()
