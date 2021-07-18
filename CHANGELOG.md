@@ -67,7 +67,7 @@
 * HTTP-client auth with Bearer token ([KTOR-331](https://youtrack.jetbrains.com/issue/KTOR-331))
 * Expose TrailingSlashRouteSelector ([KTOR-2511](https://youtrack.jetbrains.com/issue/KTOR-2511))
 * Add an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
-* Upgrade kotlin to 1.5.1 ([KTOR-2722](https://youtrack.jetbrains.com/issue/KTOR-2722))
+* Upgrade kotlin to 1.5.10 ([KTOR-2722](https://youtrack.jetbrains.com/issue/KTOR-2722))
 
 # 1.5.4
 > Published 30 Apr 2021
