@@ -69,7 +69,13 @@ public class ApplicationEngineEnvironmentReloading(
 
     internal val modulesNames: List<String> = configModulesNames
 
-    private val watcher by lazy { FileSystems.getDefault().newWatchService() }
+    private val watcher: WatchService? by lazy {
+        try {
+            FileSystems.getDefault().newWatchService()
+        } catch (_: NoClassDefFoundError) {
+            null
+        }
+    }
 
     override val monitor: ApplicationEvents = ApplicationEvents()
 
@@ -258,8 +264,10 @@ public class ApplicationEngineEnvironmentReloading(
         }
 
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
-        packageWatchKeys = paths.map {
-            it.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
+        packageWatchKeys = paths.mapNotNull { path ->
+            watcher?.let {
+                path.register(it, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
+            }
         }
     }
 
@@ -270,7 +278,7 @@ public class ApplicationEngineEnvironmentReloading(
             } catch (cause: Throwable) {
                 destroyApplication()
                 if (watchPatterns.isNotEmpty()) {
-                    watcher.close()
+                    watcher?.close()
                 }
 
                 throw cause
@@ -285,7 +293,7 @@ public class ApplicationEngineEnvironmentReloading(
             destroyApplication()
         }
         if (watchPatterns.isNotEmpty()) {
-            watcher.close()
+            watcher?.close()
         }
     }
 
