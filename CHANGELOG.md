@@ -9,7 +9,6 @@
 * Fixed StatusPages doesn't catch FreeMarker exceptions ([KTOR-343](https://youtrack.jetbrains.com/issue/KTOR-343))
 * Fixed java.nio.charset.IllegalCharsetNameException: %s ([KTOR-2645](https://youtrack.jetbrains.com/issue/KTOR-2645))
 * Added application startup and hot-reloading time log ([KTOR-2816](https://youtrack.jetbrains.com/issue/KTOR-2816))
-* Added watchosX64 as an architecture ([KTOR-2678](https://youtrack.jetbrains.com/issue/KTOR-2678))
 * Fixed postpone (and don't cache) name resolution in cio client ([KTOR-2513](https://youtrack.jetbrains.com/issue/KTOR-2513))
 * Improved diagnostics for exceptions inherited from IOException ([KTOR-2691](https://youtrack.jetbrains.com/issue/KTOR-2691))
 * Fixed refresh token gets stuck ([KTOR-2797](https://youtrack.jetbrains.com/issue/KTOR-2797))
