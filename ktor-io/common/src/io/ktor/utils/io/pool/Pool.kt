@@ -2,7 +2,6 @@ package io.ktor.utils.io.pool
 
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
-import kotlin.jvm.*
 
 public interface ObjectPool<T : Any> : Closeable {
     /**
@@ -55,8 +54,7 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
     private val borrowed = atomic(0)
     private val disposed = atomic(false)
 
-    @Volatile
-    private var instance: T? = null
+    private val instance = atomic<T?>(null)
 
     /**
      * Creates a new instance of [T]
@@ -77,21 +75,21 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
         }
 
         val instance = produceInstance()
-        this.instance = instance
+        this.instance.value = instance
 
         return instance
     }
 
     final override fun recycle(instance: T) {
-        if (this.instance !== instance) {
-            if (this.instance == null && borrowed.value != 0) {
+        if (this.instance.value !== instance) {
+            if (this.instance.value == null && borrowed.value != 0) {
                 throw IllegalStateException("Already recycled or an irrelevant instance tried to be recycled")
             }
 
             throw IllegalStateException("Unable to recycle irrelevant instance")
         }
 
-        this.instance = null
+        this.instance.value = null
 
         if (!disposed.compareAndSet(false, true)) {
             throw IllegalStateException("An instance is already disposed")
@@ -102,10 +100,10 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
 
     final override fun dispose() {
         if (disposed.compareAndSet(false, true)) {
-            val instance = this.instance ?: return
-            this.instance = null
+            val value = instance.value ?: return
+            instance.value = null
 
-            disposeInstance(instance)
+            disposeInstance(value)
         }
     }
 }
