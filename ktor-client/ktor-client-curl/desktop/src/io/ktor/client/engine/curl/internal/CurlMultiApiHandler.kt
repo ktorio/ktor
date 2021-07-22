@@ -6,32 +6,26 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.*
+import io.ktor.util.collections.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
+import kotlinx.coroutines.*
 import libcurl.*
 
-private class RequestHolders(
-    private val requestBody: StableRef<ByteReadPacket>?,
-    private val response: StableRef<CurlResponseBuilder>
-) {
-    public fun dispose() {
-        requestBody?.dispose()
-        response.dispose()
-    }
-}
 
 internal class CurlMultiApiHandler : Closeable {
-    private val activeHandles: MutableMap<EasyHandle, RequestHolders> = mutableMapOf()
+    private val activeHandles: MutableMap<EasyHandle, CompletableDeferred<CurlSuccess>> = ConcurrentMap()
 
-    private val cancelledHandles: MutableList<Pair<EasyHandle, Throwable>> = mutableListOf()
+    private val cancelledHandles: MutableList<Pair<EasyHandle, Throwable>> = ConcurrentList()
 
     private val multiHandle: MultiHandle = curl_multi_init()
         ?: @Suppress("DEPRECATION") throw CurlRuntimeException("Could not initialize curl multi handle")
 
-    override fun close() {
-        for ((handle, holders) in activeHandles) {
-            holders.dispose()
+    private val easyHandlesToUnpause by shared(ConcurrentList<EasyHandle>())
 
+    override fun close() {
+        for ((handle, _) in activeHandles) {
             curl_multi_remove_handle(multiHandle, handle).verify()
             curl_easy_cleanup(handle)
         }
@@ -40,17 +34,33 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    public fun scheduleRequest(request: CurlRequestData): EasyHandle {
+    public fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
+        val bodyStartedReceiving = CompletableDeferred<Unit>()
         val responseData = CurlResponseBuilder(request)
         val responseDataRef = responseData.asStablePointer()
 
-        setupMethod(easyHandle, request.method, request.content.size)
-        val contentHolder = setupUploadContent(easyHandle, request.content)
+        val responseWrapper = CurlResponseBodyData(
+            body = responseData.bodyChannel,
+            callContext = request.executionContext,
+            bodyStartedReceiving = bodyStartedReceiving,
+            onUnpause = {
+                easyHandlesToUnpause.add(easyHandle)
+                curl_multi_wakeup(multiHandle)
+            }
+        ).asStablePointer()
 
-        activeHandles[easyHandle] = RequestHolders(contentHolder?.asStableRef(), responseDataRef.asStableRef())
+        bodyStartedReceiving.invokeOnCompletion {
+            val result = collectSuccessResponse(easyHandle) ?: return@invokeOnCompletion
+            activeHandles[easyHandle]!!.complete(result)
+        }
+
+        setupMethod(easyHandle, request.method, request.contentLength)
+        setupUploadContent(easyHandle, request)
+
+        activeHandles[easyHandle] = deferred
 
         easyHandle.apply {
             option(CURLOPT_URL, request.url)
@@ -58,7 +68,7 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_HEADERFUNCTION, staticCFunction(::onHeadersReceived))
             option(CURLOPT_HEADERDATA, responseDataRef)
             option(CURLOPT_WRITEFUNCTION, staticCFunction(::onBodyChunkReceived))
-            option(CURLOPT_WRITEDATA, responseDataRef)
+            option(CURLOPT_WRITEDATA, responseWrapper)
             option(CURLOPT_PRIVATE, responseDataRef)
             option(CURLOPT_ACCEPT_ENCODING, "")
             request.connectTimeout?.let {
@@ -90,28 +100,31 @@ internal class CurlMultiApiHandler : Closeable {
 
     internal fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         cancelledHandles += Pair(easyHandle, cause)
+        curl_multi_remove_handle(multiHandle, easyHandle).verify()
     }
 
-    public fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
+    public fun perform(millis: Int = 100) {
         memScoped {
             val transfersRunning = alloc<IntVar>()
-            val activeTasks = alloc<IntVar>()
-            var repeats = 0
             do {
+                var handle = easyHandlesToUnpause.removeFirstOrNull()
+                while (handle != null) {
+                    curl_easy_pause(handle, CURLPAUSE_CONT)
+                    handle = easyHandlesToUnpause.removeFirstOrNull()
+                }
                 curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                curl_multi_wait(multiHandle, null, 0.toUInt(), millis, activeTasks.ptr).verify()
-
-                repeats = if (activeTasks.value == 0) repeats + 1 else 0
-            } while (repeats <= 1 && transfersRunning.value != 0)
+                curl_multi_poll(multiHandle, null, 0.toUInt(), millis, null).verify()
+                if (transfersRunning.value < activeHandles.size) {
+                    handleCompleted()
+                }
+            } while (transfersRunning.value != 0)
         }
-
-        return collectCompleted()
     }
 
     private fun setupMethod(
         easyHandle: EasyHandle,
         method: String,
-        size: Int
+        size: Long
     ) {
         easyHandle.apply {
             when (method) {
@@ -129,25 +142,28 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray): COpaquePointer? {
-        val stream = buildPacket { writeFully(content) }
-        val requestPointer = stream.asStablePointer()
+    private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData) {
+        val requestPointer = CurlRequestBodyData(
+            body = request.content,
+            callContext = request.executionContext,
+            onUnpause = {
+                easyHandlesToUnpause.add(easyHandle)
+                curl_multi_wakeup(multiHandle)
+            }
+        ).asStablePointer()
 
         easyHandle.apply {
             option(CURLOPT_READDATA, requestPointer)
             option(CURLOPT_READFUNCTION, staticCFunction(::onBodyChunkRequested))
-            option(CURLOPT_INFILESIZE_LARGE, content.size)
+            option(CURLOPT_INFILESIZE_LARGE, request.contentLength)
         }
-
-        return requestPointer
     }
 
-    private fun collectCompleted(): List<CurlResponseData> {
-        val responseDataList = mutableListOf<CurlResponseData>()
-
+    private fun handleCompleted() {
         for (cancellation in cancelledHandles) {
-            responseDataList += processCancelledEasyHandle(cancellation.first, cancellation.second)
-            activeHandles.remove(cancellation.first)!!.dispose()
+            val cancelled = processCancelledEasyHandle(cancellation.first, cancellation.second)
+            val handler = activeHandles.remove(cancellation.first)!!
+            handler.completeExceptionally(cancelled.cause)
         }
         cancelledHandles.clear()
 
@@ -162,15 +178,21 @@ internal class CurlMultiApiHandler : Closeable {
                     throw CurlIllegalStateException("Got a null easy handle from the message")
 
                 try {
-                    responseDataList += readResponseDataFromEasyHandle(message.msg, easyHandle, message.data.result)
+                    val result = processCompletedEasyHandle(message.msg, easyHandle, message.data.result)
+                    val deferred = activeHandles[easyHandle]!!
+                    if (deferred.isCompleted) {
+                        // already completed with partial response
+                        continue
+                    }
+                    when (result) {
+                        is CurlSuccess -> deferred.complete(result)
+                        is CurlFail -> deferred.completeExceptionally(result.cause)
+                    }
                 } finally {
-                    activeHandles[easyHandle]!!.dispose()
                     activeHandles.remove(easyHandle)
                 }
             } while (messagesLeft.value != 0)
         }
-
-        return responseDataList
     }
 
     private fun processCancelledEasyHandle(easyHandle: EasyHandle, cause: Throwable): CurlFail = memScoped {
@@ -179,9 +201,9 @@ internal class CurlMultiApiHandler : Closeable {
             easyHandle.apply { getInfo(CURLINFO_PRIVATE, responseDataRef.ptr) }
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
             try {
-                return CurlFail(responseBuilder.request, cause)
+                return CurlFail(cause)
             } finally {
-                responseBuilder.bodyBytes.release()
+                responseBuilder.bodyChannel.close(cause)
                 responseBuilder.headersBytes.release()
             }
         } finally {
@@ -190,81 +212,99 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun readResponseDataFromEasyHandle(
+    private fun processCompletedEasyHandle(
         message: CURLMSG?,
         easyHandle: EasyHandle,
         result: CURLcode
     ): CurlResponseData = memScoped {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
-            val httpProtocolVersion = alloc<LongVar>()
             val httpStatusCode = alloc<LongVar>()
 
             easyHandle.apply {
                 getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
-//                getInfo(CURLINFO_HTTP_VERSION, httpProtocolVersion.ptr)
                 getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
             }
 
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
             try {
-                val request = responseBuilder.request
-                curl_slist_free_all(request.headers)
-
-                if (message != CURLMSG.CURLMSG_DONE) {
-                    return CurlFail(
-                        request,
-                        @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Request $request failed: $message")
-                    )
-                }
-
-                if (httpStatusCode.value == 0L) {
-                    if (result == CURLE_OPERATION_TIMEDOUT) {
-                        return CurlFail(
-                            request,
-                            ConnectTimeoutException(request.url, request.connectTimeout)
-                        )
-                    }
-
-                    val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
-
-                    if (result == CURLE_PEER_FAILED_VERIFICATION) {
-                        return CurlFail(
-                            request,
-                            @Suppress("DEPRECATION")
-                            CurlIllegalStateException(
-                                "TLS verification failed for request: $request. Reason: $errorMessage"
-                            )
-                        )
-                    }
-
-                    return CurlFail(
-                        request,
-                        @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
-                    )
-                }
-
-                with(responseBuilder) {
-                    val headers = headersBytes.build().readBytes()
-                    val body = bodyBytes.build().readBytes()
-
-                    CurlSuccess(
-                        request,
-                        httpStatusCode.value.toInt(),
-                        httpProtocolVersion.value.toUInt(),
-                        headers,
-                        body
-                    )
-                }
+                collectFailedResponse(message, responseBuilder.request, result, httpStatusCode.value)
+                    ?: collectSuccessResponse(easyHandle)!!
             } finally {
-                responseBuilder.bodyBytes.release()
+                responseBuilder.bodyChannel.close(null)
                 responseBuilder.headersBytes.release()
             }
         } finally {
             curl_multi_remove_handle(multiHandle, easyHandle).verify()
             curl_easy_cleanup(easyHandle)
+        }
+    }
+
+    private fun collectFailedResponse(
+        message: CURLMSG?,
+        request: CurlRequestData,
+        result: CURLcode,
+        httpStatusCode: Long
+    ): CurlFail? {
+        curl_slist_free_all(request.headers)
+
+        if (message != CURLMSG.CURLMSG_DONE) {
+            return CurlFail(
+                @Suppress("DEPRECATION")
+                CurlIllegalStateException("Request $request failed: $message")
+            )
+        }
+
+        if (httpStatusCode != 0L) {
+            return null
+        }
+
+        if (result == CURLE_OPERATION_TIMEDOUT) {
+            return CurlFail(ConnectTimeoutException(request.url, request.connectTimeout))
+        }
+
+        val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+
+        if (result == CURLE_PEER_FAILED_VERIFICATION) {
+            return CurlFail(
+                @Suppress("DEPRECATION")
+                CurlIllegalStateException(
+                    "TLS verification failed for request: $request. Reason: $errorMessage"
+                )
+            )
+        }
+
+        return CurlFail(
+            @Suppress("DEPRECATION")
+            CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
+        )
+    }
+
+    private fun collectSuccessResponse(easyHandle: EasyHandle): CurlSuccess? = memScoped {
+        val responseDataRef = alloc<COpaquePointerVar>()
+        val httpProtocolVersion = alloc<LongVar>()
+        val httpStatusCode = alloc<LongVar>()
+
+        easyHandle.apply {
+            getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
+            getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
+        }
+
+        if (httpStatusCode.value == 0L) {
+            // if error happened, it will be handled in collectCompleted
+            return@memScoped null
+        }
+
+        val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
+        with(responseBuilder) {
+            val headers = headersBytes.build().readBytes()
+
+            CurlSuccess(
+                httpStatusCode.value.toInt(),
+                httpProtocolVersion.value.toUInt(),
+                headers,
+                bodyChannel
+            )
         }
     }
 }

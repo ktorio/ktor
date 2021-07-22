@@ -17,7 +17,7 @@ class HttpStatementTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testExecute() = clientTests(listOf("curl")) {
+    fun testExecute() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
                 val expected = buildPacket {

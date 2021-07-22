@@ -37,17 +37,13 @@ internal class CurlClientEngine(
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest(config)
-        val responseData = curlProcessor.executeRequest(curlRequest, callContext)
+        val responseData = curlProcessor.executeRequest(curlRequest)
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {
                 readUTF8Line()
             }
             val rawHeaders = parseHeaders(headerBytes)
-
-            val body = writer(coroutineContext) {
-                channel.writeFully(bodyBytes)
-            }.channel
 
             val status = HttpStatusCode.fromValue(status)
 
@@ -59,7 +55,7 @@ internal class CurlClientEngine(
                 requestTime,
                 headers,
                 version.fromCurl(),
-                body,
+                bodyChannel,
                 callContext
             )
         }

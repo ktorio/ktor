@@ -24,20 +24,19 @@ class PostTest : ClientLoader() {
     }
 
     @Test
-    fun testHugePost() = clientTests(listOf("Js", "Darwin", "Curl", "CIO")) {
+    fun testHugePost() = clientTests(listOf("Js", "Darwin", "CIO")) {
         test { client ->
             client.postHelper(makeString(32 * 1024 * 1024))
         }
     }
 
     @Test
-    fun testWithPause() = clientTests(listOf("Js", "Darwin", "Curl", "CIO")) {
+    fun testWithPause() = clientTests(listOf("Js", "Darwin", "CIO")) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
             }
         }
-
         test { client ->
             val content = makeString(16 * 1024 * 1024)
 
