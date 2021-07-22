@@ -8,33 +8,18 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
-    /**
-     * Equals [HttpResponse.content] in case [receive] was never called before or equals it's copy if [receive] was
-     * already called at least once.
-     * */
-    private var responseContent: ByteReadChannel? = null
+internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteArray) : HttpClientCall(client) {
 
-    /**
-     * Saves [responseContent] and returns it's copy that is safe to use without loosing [responseContent] data.
-     * */
+    /** Returns new read channel of a response body */
     override suspend fun getResponseContent(): ByteReadChannel {
-        if (responseContent == null) {
-            responseContent = response.content
-        }
-        val contentBytes = responseContent!!.toByteArray()
-        responseContent = ByteReadChannel(contentBytes)
-        return ByteReadChannel(contentBytes)
+        return ByteReadChannel(responseBody)
     }
-
-    override val allowDoubleReceive: Boolean = true
 }
 
 internal class SavedHttpRequest(
@@ -70,10 +55,10 @@ internal class SavedHttpResponse(
 public suspend fun HttpClientCall.save(): HttpClientCall {
     val currentClient = client ?: error("Failed to save call in different native thread.")
 
-    return SavedHttpCall(currentClient).also { result ->
-        val content = response.content.readRemaining()
+    val responseBody = response.content.readRemaining().readBytes()
 
+    return SavedHttpCall(currentClient, responseBody).also { result ->
         result.request = SavedHttpRequest(result, request)
-        result.response = SavedHttpResponse(result, content.readBytes(), response)
+        result.response = SavedHttpResponse(result, responseBody, response)
     }
 }
