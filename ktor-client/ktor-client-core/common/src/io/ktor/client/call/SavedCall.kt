@@ -20,6 +20,8 @@ internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteA
     override suspend fun getResponseContent(): ByteReadChannel {
         return ByteReadChannel(responseBody)
     }
+
+    override val allowDoubleReceive: Boolean = true
 }
 
 internal class SavedHttpRequest(
