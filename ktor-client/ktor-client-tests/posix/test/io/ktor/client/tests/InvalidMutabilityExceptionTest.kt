@@ -10,10 +10,10 @@ import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class InvalidMutabilityExceptionTest : ClientLoader(60) {
+class InvalidMutabilityExceptionTest : ClientLoader() {
 
     @Test
-    fun testSavedCall() = clientTests(emptyList()) {
+    fun testSavedCall() = clientTests() {
         test { client ->
             val cause = assertFails {
                 val response = withContext(Dispatchers.Default) {
