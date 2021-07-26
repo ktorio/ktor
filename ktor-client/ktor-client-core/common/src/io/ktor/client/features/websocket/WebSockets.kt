@@ -90,6 +90,8 @@ internal constructor(
 
     @OptIn(ExperimentalWebSocketExtensionApi::class)
     private fun addNegotiatedProtocols(context: HttpRequestBuilder, protocols: List<WebSocketExtensionHeader>) {
+        if (protocols.isEmpty()) return
+
         val headerValue = protocols.joinToString(";")
         context.header(HttpHeaders.SecWebSocketExtensions, headerValue)
     }
