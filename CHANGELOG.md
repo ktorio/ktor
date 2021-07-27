@@ -66,6 +66,7 @@
 * HTTP-client auth with Bearer token ([KTOR-331](https://youtrack.jetbrains.com/issue/KTOR-331))
 * Expose TrailingSlashRouteSelector ([KTOR-2511](https://youtrack.jetbrains.com/issue/KTOR-2511))
 * Add an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
+* Upgrade kotlin to 1.5.10 ([KTOR-2722](https://youtrack.jetbrains.com/issue/KTOR-2722))
 
 # 1.5.4
 > Published 30 Apr 2021
@@ -101,6 +102,7 @@
 *  Fixed flaky JavaEngineTests.testThreadLeak[jvm] ([KTOR-2098](https://youtrack.jetbrains.com/issue/KTOR-2098))
 *  Fixed flaky JettyStressTest.highLoadStressTest ([KTOR-2080](https://youtrack.jetbrains.com/issue/KTOR-2080))
 *  Fixed flaky ExceptionsJvmTest.testConnectionClosedDuringRequest[jvm] ([KTOR-2063](https://youtrack.jetbrains.com/issue/KTOR-2063))
+* Upgrade kotlin to 1.4.32 ([KTOR-2403](https://youtrack.jetbrains.com/issue/KTOR-2403))
 
 # 1.5.2
 > Published 25 Feb 2021
@@ -122,6 +124,7 @@
 * Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
 * Fixed custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
 * Fixed session cookie with very long max age duration ([KTOR-692](https://youtrack.jetbrains.com/issue/KTOR-692))
+* Upgrade kotlin to 1.4.30 ([KTOR-1639](https://youtrack.jetbrains.com/issue/KTOR-1639))
 
 # 1.5.1
 > Published 27 Jan 2021
@@ -186,7 +189,8 @@
 * Implemented development mode for Ktor ([KTOR-1184](https://youtrack.jetbrains.com/issue/KTOR-1184))
 * Implemented proper unhandled exception handling strategy ([KTOR-835](https://youtrack.jetbrains.com/issue/KTOR-835))
 * Added OAuth feature config to avoid Dropbox issue ([KTOR-715](https://youtrack.jetbrains.com/issue/KTOR-715))
-* Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))
+* **Breaking change**: Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))  
+  Routes registered without trailing slashes no longer match URLs with trailing slashes, and vice versa. To keep the previous behavior, install the `IgnoreTrailingSlash` feature.
 * Added CIO client proxy tunneling support ([KTOR-1458](https://youtrack.jetbrains.com/issue/KTOR-1458))
 * Supported Sealed Classes inside Session-Objects ([KTOR-826](https://youtrack.jetbrains.com/issue/KTOR-826))
 * Fixed code autoreload ([KTOR-664](https://youtrack.jetbrains.com/issue/KTOR-664))
