@@ -1,3 +1,29 @@
+# 1.6.2
+> Published 29 July 2021
+
+* Fixed Ktor plugin raises StackOverflowError when opening some files ([KTOR-2950](https://youtrack.jetbrains.com/issue/KTOR-2950))
+* Added parseUrlEncodedParameters Documentation ([KTOR-2843](https://youtrack.jetbrains.com/issue/KTOR-2843))
+* Fixed CIO WebSockets client incorrectly sends Sec-WebSocket-Extensions header even if empty regression ([KTOR-2388](https://youtrack.jetbrains.com/issue/KTOR-2388))
+* Updated serialization version to 1.2.2 ([KTOR-2968](https://youtrack.jetbrains.com/issue/KTOR-2968))
+* Made code example complete in OAuth documentation([KTOR-1415](https://youtrack.jetbrains.com/issue/KTOR-1415))
+* Added quick action on a Application.module(...) to generate tests for a given module with all the endpoints in plugin ([KTOR-2411](https://youtrack.jetbrains.com/issue/KTOR-2411))
+* Fixed kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen <object>@72c18 ([KTOR-2883](https://youtrack.jetbrains.com/issue/KTOR-2883))
+* Fixed 404 errors in ktor docs ([KTOR-2915](https://youtrack.jetbrains.com/issue/KTOR-2915))
+* Added prometeus version to Ktor docs ([KTOR-2015](https://youtrack.jetbrains.com/issue/KTOR-2015))
+* Fixed incorrect Structured Markup (LD+JSON) on Ktor docs ([KTOR-2943](https://youtrack.jetbrains.com/issue/KTOR-2943))
+* Fixed confusing/incorrect JWT auth documentation ([KTOR-979](https://youtrack.jetbrains.com/issue/KTOR-979))
+* Fixed embedded Netty Server with watch paths is crashing in API level 22 when calling stopping server ([KTOR-1613](https://youtrack.jetbrains.com/issue/KTOR-1613))
+* Fixed NoSuchMethodError: No virtual method getParameterCount on Android API 25 and lower regression ([KTOR-2924](https://youtrack.jetbrains.com/issue/KTOR-2924))
+* Fixed X-Forwarded-Port Parse Exception when it contains comma separated list of ports regression ([KTOR-2918](https://youtrack.jetbrains.com/issue/KTOR-2918))
+* Made CookieConfiguration default to secure configuration and require user opt-out long-standing ([KTOR-628](https://youtrack.jetbrains.com/issue/KTOR-628))
+* Updated docs section about testing with cookies ([KTOR-273](https://youtrack.jetbrains.com/issue/KTOR-273))
+* Fixed "ApplicationEngineEnvironment was not started" when accessing application before server is started ([KTOR-1854](https://youtrack.jetbrains.com/issue/KTOR-1854))
+* Updated HTTP/2 documentation ([KTOR-267](https://youtrack.jetbrains.com/issue/KTOR-267))
+* Fixed NPE in ApacheRequestProducer when "http://" is requested ([KTOR-1405](https://youtrack.jetbrains.com/issue/KTOR-1405))
+* Updated vulnerable versions from sonatype report ([KTOR-2875](https://youtrack.jetbrains.com/issue/KTOR-2875))
+* Fixed ByteReadChannel.readUTF8Line() indefinitely returns empty lines when `\r` is not followed by `\n` ([KTOR-2868](https://youtrack.jetbrains.com/issue/KTOR-2868))
+
+
 # 1.6.1
 > Published 1 July 2021
 
