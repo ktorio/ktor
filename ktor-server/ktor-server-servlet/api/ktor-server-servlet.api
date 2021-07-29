@@ -7,6 +7,7 @@ public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/servlet/ServletApplicationResponse;
+	public fun onCallFinish (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/ktor/server/servlet/ServletApplicationRequest, kotlinx/coroutines/CoroutineScope {

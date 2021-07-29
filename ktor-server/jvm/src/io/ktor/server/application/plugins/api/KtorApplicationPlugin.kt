@@ -16,7 +16,7 @@ import kotlin.random.Random
 
 /**
  * Gets plugin instance for this pipeline, or fails with [MissingApplicationPluginException] if the feature is not
- * installed
+ * installed.
  * @throws MissingApplicationPluginException
  * @param plugin plugin to lookup
  * @return an instance of plugin
@@ -38,7 +38,7 @@ internal fun <A : Pipeline<*, ApplicationCall>> A.findInterceptionsHolder(
 /**
  * Factory class that can be passed to install function in order to produce an instance of [KtorApplicationPlugin]
  * that will be installed into the current application context.
- * */
+ **/
 public abstract class ApplicationInstallablePlugin<Configuration : Any>(public val name: String) :
     ApplicationPlugin<ApplicationCallPipeline, Configuration, KtorApplicationPlugin<Configuration>>
 
@@ -46,7 +46,7 @@ internal typealias PipelineHandler = (Pipeline<*, ApplicationCall>) -> Unit
 
 /**
  * A plugin for Ktor that embeds into the HTTP pipeline and extends functionality of Ktor framework.
- * */
+ **/
 public abstract class KtorApplicationPlugin<Configuration : Any> private constructor(
     installablePlugin: ApplicationInstallablePlugin<Configuration>
 ) : PluginContext {
@@ -106,7 +106,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
     /**
      * Callable object that defines how HTTP call handling should be modified by the current [KtorApplicationPlugin].
-     * */
+     **/
     public override val onCall: OnCall = object : OnCall {
         private val plugin get() = this@KtorApplicationPlugin
 
@@ -124,7 +124,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
     /**
      * Callable object that defines how receiving data from HTTP call should be modified by the current
      * [KtorApplicationPlugin].
-     * */
+     **/
     public override val onCallReceive: OnCallReceive = object : OnCallReceive {
         private val plugin = this@KtorApplicationPlugin
 
@@ -141,7 +141,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
     /**
      * Callable object that defines how sending data to a client within HTTP call should be modified by the current
      * [KtorApplicationPlugin].
-     * */
+     **/
     public override val onCallRespond: OnCallRespond = object : OnCallRespond {
         private val plugin = this@KtorApplicationPlugin
 
@@ -164,6 +164,9 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
         }
     }
 
+    /**
+     * A [PluginContext] context that allows inserting [currentPlugin] actions relatively (before/after) to [otherPlugins].
+     **/
     public abstract class RelativePluginContext(
         private val currentPlugin: KtorApplicationPlugin<*>,
         private val otherPlugins: List<KtorApplicationPlugin<*>>
@@ -286,6 +289,9 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
         }
     }
 
+    /**
+     * Every handler called in this context will be executed only after same handler has finished for all [otherPlugins].
+     **/
     public class AfterPluginContext(
         currentPlugin: KtorApplicationPlugin<*>,
         otherPlugins: List<KtorApplicationPlugin<*>>
@@ -302,6 +308,9 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
         }
     }
 
+    /**
+     * Every handler called in this context will be executed only before same handler has finished for all [otherPlugins].
+     **/
     public class BeforePluginsContext(
         currentPlugin: KtorApplicationPlugin<*>,
         otherPlugins: List<KtorApplicationPlugin<*>>
@@ -324,7 +333,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
      * (such as [onCall], [onCallRespond], etc.) and each of these actions will be executed right after all actions defined
      * by the given [plugin] were already executed in the same stage.
-     * */
+     **/
     public fun afterPlugins(
         vararg targetPlugins: ApplicationInstallablePlugin<out Any>,
         build: AfterPluginContext.() -> Unit
@@ -340,7 +349,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
      * (such as [onCall], [onCallRespond], etc.) and each of these actions will be executed right before all actions defined
      * by the given [targetPlugins] were already executed in the same stage.
-     * */
+     **/
 
     public fun beforePlugins(
         vararg targetPlugins: ApplicationInstallablePlugin<out Any>,
@@ -354,7 +363,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
     public companion object {
         /**
          * A canonical way to create a [KtorApplicationPlugin].
-         * */
+         **/
         public fun <Configuration : Any> createPlugin(
             name: String,
             createConfiguration: (ApplicationCallPipeline) -> Configuration,
@@ -417,7 +426,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
         /**
          * A canonical way to create a [KtorApplicationPlugin].
-         * */
+         **/
         public fun createPlugin(
             name: String,
             body: KtorApplicationPlugin<Unit>.() -> Unit
@@ -433,10 +442,10 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
 /**
  * Port of the current application. Same as in config.
- * */
+ **/
 public val ApplicationConfig.port: Int get() = propertyOrNull("ktor.deployment.port")?.getString()?.toInt() ?: 8080
 
 /**
  * Host of the current application. Same as in config.
- * */
+ **/
 public val ApplicationConfig.host: String get() = propertyOrNull("ktor.deployment.host")?.getString() ?: "0.0.0.0"

@@ -34,7 +34,7 @@ class KtorApplicationPluginTest {
         data class Config(var enabled: Boolean = true)
 
         val plugin = createPlugin("F", createConfiguration = { Config() }) {
-            onRequest { call ->
+            onCall { call ->
                 if (this@createPlugin.pluginConfig.enabled) {
                     call.respondText("Plugin enabled!")
                     finish()
@@ -66,16 +66,18 @@ class KtorApplicationPluginTest {
         val plugin = createPlugin("F", createConfiguration = { }) {
             val key = AttributeKey<String>("FKey")
 
-            onRequest { call ->
+            onCall { call ->
                 val data = call.request.headers["F"]
                 if (data != null) {
                     call.attributes.put(key, data)
                 }
             }
-            onCallRespond.beforeTransform { call ->
+            onCallRespond { call ->
                 val data = call.attributes.getOrNull(key)
                 if (data != null) {
-                    transformRespondBody { data }
+                    transformRespondBody {
+                        data
+                    }
                 }
             }
         }
@@ -112,7 +114,7 @@ class KtorApplicationPluginTest {
     @Test
     fun `test dependent plugins`() {
         val pluginF = createPlugin("F", {}) {
-            onCallRespond.beforeTransform { call ->
+            onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
                     transformRespondBody { data }
@@ -121,8 +123,8 @@ class KtorApplicationPluginTest {
         }
 
         val pluginG = createPlugin("G", {}) {
-            beforePlugin(pluginF) {
-                onCallRespond.beforeTransform { call ->
+            beforePlugins(pluginF) {
+                onCallRespond { call ->
                     val data = call.request.headers["F"]
                     if (data != null) {
                         call.attributes.put(FConfig.Key, data)
@@ -162,7 +164,7 @@ class KtorApplicationPluginTest {
     @Test
     fun `test multiple installs changing config`() {
         val pluginF = createPlugin("F", { ConfigWithData() }) {
-            onRequest { call ->
+            onCall { call ->
                 val oldValue = pluginConfig.data
                 pluginConfig.data = "newValue"
                 val newValue = pluginConfig.data
@@ -217,9 +219,45 @@ class KtorApplicationPluginTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/request").let { call ->
+            handleRequest(HttpMethod.Get, "/request").let {
                 assertEquals(2, onCallProcessedTimes)
             }
+        }
+    }
+
+    @Test
+    fun `test afterFinish is executed after plugins code`() {
+        val eventsList = mutableListOf<String>()
+
+        val plugin = createPlugin("F") {
+            onCall { call ->
+                eventsList.add("onCall")
+
+                call.afterFinish {
+                    eventsList.add("afterFinish")
+                }
+            }
+            onCallRespond.afterTransform { call, _ ->
+                eventsList.add("onCallRespond.afterTransform")
+
+                call.afterFinish {
+                    eventsList.add("afterFinish")
+                }
+            }
+        }
+
+        withTestApplication {
+            application.install(plugin)
+
+            application.routing {
+                get("/request") {
+                    call.respondText("response")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/request")
+
+            assertEquals(listOf("onCall", "onCallRespond.afterTransform", "afterFinish", "afterFinish"), eventsList)
         }
     }
 }
