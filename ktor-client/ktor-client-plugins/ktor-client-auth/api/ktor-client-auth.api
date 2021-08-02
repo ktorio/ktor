@@ -138,3 +138,10 @@ public final class io/ktor/client/plugins/auth/providers/DigestAuthProviderKt {
 	public static final fun digest (Lio/ktor/client/plugins/auth/Auth;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/client/plugins/auth/providers/RefreshTokensParams {
+	public fun <init> (Lio/ktor/client/HttpClient;Lio/ktor/client/statement/HttpResponse;Lio/ktor/client/plugins/auth/providers/BearerTokens;)V
+	public final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getOldTokens ()Lio/ktor/client/plugins/auth/providers/BearerTokens;
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+}
+

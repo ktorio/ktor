@@ -360,4 +360,27 @@ class AuthTest : ClientLoader() {
             assertEquals("OK", second)
         }
     }
+
+    @Test
+    fun testRefreshWithSameClientInBlock() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("first", "first") }
+
+                    refreshTokens {
+                        val token = client.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
+                        BearerTokens(token, token)
+                    }
+                }
+            }
+        }
+        test { client ->
+            val first = client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+
+            assertEquals("OK", first)
+            assertEquals("OK", second)
+        }
+    }
 }
