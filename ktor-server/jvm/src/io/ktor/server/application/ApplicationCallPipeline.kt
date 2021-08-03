@@ -59,6 +59,12 @@ public open class ApplicationCallPipeline(
          * Phase for handling unprocessed calls
          */
         public val Fallback: PipelinePhase = PipelinePhase("Fallback")
+
+        /**
+         * Phase for plugins. Most plugins should intercept this phase.
+         */
+        @Deprecated("Renamed to Plugins", replaceWith = ReplaceWith("Plugins"))
+        public val Features: PipelinePhase = Plugins
     }
 }
 
