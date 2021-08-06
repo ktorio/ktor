@@ -100,10 +100,6 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     private var rootContinuation: Any? = null
     private var index = 0
 
-    init {
-        preventFreeze()
-    }
-
     override fun finish() {
         index = blocks.size
     }

@@ -21,7 +21,7 @@ private typealias Core<E> = LockFreeMPSCQueueCore<E>
  */
 @InternalAPI
 public class LockFreeMPSCQueue<E : Any> {
-    private val _cur = AtomicReference(Core<E>(Core.INITIAL_CAPACITY))
+    private val _cur = FreezableAtomicReference(Core<E>(Core.INITIAL_CAPACITY))
     private val closed = AtomicInt(0)
 
     // Note: it is not atomic w.r.t. remove operation (remove can transiently fail when isEmpty is false)
@@ -67,13 +67,9 @@ public class LockFreeMPSCQueue<E : Any> {
  */
 private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private val mask = capacity - 1
-    private val _next = AtomicReference<Core<E>?>(null)
+    private val _next = FreezableAtomicReference<Core<E>?>(null)
     private val _state = AtomicLong(0L)
-    private val array = Array<AtomicReference<Any?>>(capacity) { AtomicReference(null) }
-
-    init {
-        freeze()
-    }
+    private val array = Array<FreezableAtomicReference<Any?>>(capacity) { FreezableAtomicReference(null) }
 
     private fun setArrayValueHelper(index: Int, value: Any?) {
         array[index].value = value
@@ -288,7 +284,7 @@ public inline fun AtomicLong.updateAndGet(function: (Long) -> Long): Long {
     }
 }
 
-public inline fun <T> AtomicReference<T>.loop(action: (T) -> Unit): Nothing {
+public inline fun <T> FreezableAtomicReference<T>.loop(action: (T) -> Unit): Nothing {
     while (true) {
         action(value)
     }

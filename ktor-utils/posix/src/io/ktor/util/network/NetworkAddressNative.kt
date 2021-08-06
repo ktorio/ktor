@@ -16,10 +16,6 @@ public actual class NetworkAddress constructor(
     @InternalAPI
     public var explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
 
-    init {
-        makeShared()
-    }
-
     /**
      * Resolve current socket address.
      */

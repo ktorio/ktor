@@ -17,10 +17,6 @@ import kotlinx.coroutines.*
 internal class AwaitingSlot {
     private val suspension: AtomicRef<CompletableJob?> = atomic(null)
 
-    init {
-        makeShared()
-    }
-
     /**
      * Wait for other [sleep] or resume.
      */

@@ -138,6 +138,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
         maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 
@@ -194,6 +195,10 @@ allprojects {
     val skipPublish: List<String> by rootProject.extra
     if (!skipPublish.contains(project.name)) {
         apply(from = rootProject.file("gradle/publish.gradle"))
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.AbstractKotlinNativeCompile<*, *>> {
+        kotlinOptions.freeCompilerArgs += listOf("-memory-model", "experimental")
     }
 }
 

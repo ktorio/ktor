@@ -17,7 +17,6 @@ class SingleInstancePoolTest {
             override fun disposeInstance(instance: Int) {}
         }
 
-        pool.makeShared()
         pool.borrow()
     }
 }

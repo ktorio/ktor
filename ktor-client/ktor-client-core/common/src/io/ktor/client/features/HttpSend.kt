@@ -45,10 +45,6 @@ public class HttpSend(
 
     private val interceptors: MutableList<HttpSendInterceptor> = sharedList()
 
-    init {
-        makeShared()
-    }
-
     /**
      * Install send pipeline starter interceptor
      */

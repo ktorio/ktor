@@ -13,10 +13,6 @@ internal class MapNode<Key, Value>(override val key: Key, value: Value) : Mutabl
 
     val hash: Int = key.hashCode()
 
-    init {
-        makeShared()
-    }
-
     override fun setValue(newValue: Value): Value {
         val result = value
         value = newValue

@@ -30,7 +30,7 @@ internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
         HTTP_ENABLE_KEY to 1,
         HTTP_PROXY_KEY to url.host,
         HTTP_PORT_KEY to url.port
-    ).freeze()
+    )
 }
 
 internal fun CFStringRef?.toNSString(): NSString = CFBridgingRelease(this) as NSString

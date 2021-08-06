@@ -11,10 +11,6 @@ internal class ConcurrentMapKeys<Key : Any, Value : Any>(
     private val delegate: ConcurrentMap<Key, Value>
 ) : MutableSet<Key> {
 
-    init {
-        makeShared()
-    }
-
     override fun add(element: Key): Boolean = throw UnsupportedOperationException()
 
     override fun addAll(elements: Collection<Key>): Boolean {
@@ -27,10 +23,6 @@ internal class ConcurrentMapKeys<Key : Any, Value : Any>(
 
     override fun iterator(): MutableIterator<Key> = object : MutableIterator<Key> {
         private val delegateIterator: MutableIterator<MutableMap.MutableEntry<Key, Value>> = delegate.iterator()
-
-        init {
-            makeShared()
-        }
 
         override fun hasNext(): Boolean = delegateIterator.hasNext()
 

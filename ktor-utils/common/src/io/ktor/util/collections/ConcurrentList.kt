@@ -20,10 +20,6 @@ public class ConcurrentList<T> : MutableList<T> {
 
     private val lock = SynchronizedObject()
 
-    init {
-        makeShared()
-    }
-
     override fun hashCode(): Int = synchronized(lock) {
         return@synchronized fold(7) { state, current -> Hash.combine(state, current.hashCode()) }
     }

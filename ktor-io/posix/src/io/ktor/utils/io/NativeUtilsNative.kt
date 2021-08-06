@@ -7,12 +7,3 @@ package io.ktor.utils.io
 import io.ktor.utils.io.core.internal.*
 import kotlin.native.concurrent.*
 
-@DangerousInternalIoApi
-public actual fun Any.preventFreeze() {
-    ensureNeverFrozen()
-}
-
-@DangerousInternalIoApi
-public actual fun Any.makeShared() {
-    freeze()
-}

@@ -30,10 +30,6 @@ internal class TCPSocketNative(
     override val socketContext: Job
         get() = _context
 
-    init {
-        makeShared()
-    }
-
     override fun attachForReading(userChannel: ByteChannel): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
         while (!channel.isClosedForWrite) {
             val count = channel.write { memory, startIndex, endIndex ->

@@ -15,16 +15,9 @@ import kotlin.coroutines.*
  * call coroutine's name is "call-context".
  */
 internal actual suspend fun HttpClientEngine.createCallContext(parentJob: Job): CoroutineContext {
-    parentJob.makeShared()
-    val callJob = Job(parentJob).apply {
-        makeShared()
-    }
-
+    val callJob = Job(parentJob)
     attachToUserJob(callJob)
-
-    return (functionContext() + callJob + CALL_COROUTINE).apply {
-        makeShared()
-    }
+    return (functionContext() + callJob + CALL_COROUTINE)
 }
 
 private suspend inline fun functionContext(): CoroutineContext = coroutineContext

@@ -13,7 +13,6 @@ public actual class Lock {
     private val mutex = nativeHeap.alloc<ktor_mutex_t>()
 
     init {
-        freeze()
         ktor_mutex_create(mutex.ptr).checkResult { "Failed to create mutex." }
     }
 

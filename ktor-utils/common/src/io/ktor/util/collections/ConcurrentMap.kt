@@ -32,10 +32,6 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         putAll(map)
     }
 
-    init {
-        makeShared()
-    }
-
     override val size: Int
         get() = _size.value
 
@@ -172,10 +168,6 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         object : MutableIterator<MutableMap.MutableEntry<Key, Value>> {
             private var current: ForwardListNode<MapNode<Key, Value>>? by shared(insertionOrder.first())
             private val previous: ForwardListNode<MapNode<Key, Value>>? get() = current?.previous
-
-            init {
-                makeShared()
-            }
 
             override fun hasNext(): Boolean = current != null
 

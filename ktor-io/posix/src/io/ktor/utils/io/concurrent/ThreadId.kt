@@ -8,10 +8,6 @@ import kotlin.native.ThreadLocal
 import kotlin.native.concurrent.*
 
 internal class ThreadId {
-    init {
-        freeze()
-    }
-
     companion object {
         val current get() = threadLocal
     }

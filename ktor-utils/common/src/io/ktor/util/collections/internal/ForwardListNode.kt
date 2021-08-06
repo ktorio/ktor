@@ -16,10 +16,6 @@ internal class ForwardListNode<T : Any>(
     var next by shared(next)
     var previous: ForwardListNode<T>? by shared(previous)
 
-    init {
-        makeShared()
-    }
-
     fun insertAfter(value: T): ForwardListNode<T> {
         val result = ForwardListNode(list, next, value, this)
         next?.previous = result

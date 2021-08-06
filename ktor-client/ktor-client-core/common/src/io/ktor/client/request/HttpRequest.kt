@@ -85,11 +85,6 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     public var executionContext: Job = SupervisorJob()
-        .also { it.makeShared() }
-        internal set(value) {
-            value.makeShared()
-            field = value
-        }
 
     /**
      * Call specific attributes.

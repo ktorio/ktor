@@ -16,8 +16,6 @@ class ExceptionsTest {
     @Test
     fun testResponseExceptionThreadLocal() {
         val exception = createResponseException()
-            .freeze()
-
         val worker = Worker.start(errorReporting = true)
 
         worker.execute(TransferMode.SAFE, { exception }) {

@@ -11,10 +11,6 @@ internal class ConcurrentMapValues<Key : Any, Value : Any>(
     private val delegate: ConcurrentMap<Key, Value>
 ) : MutableCollection<Value> {
 
-    init {
-        makeShared()
-    }
-
     override val size: Int
         get() = delegate.size
 
@@ -38,10 +34,6 @@ internal class ConcurrentMapValues<Key : Any, Value : Any>(
 
     override fun iterator(): MutableIterator<Value> = object : MutableIterator<Value> {
         val delegateIterator = delegate.iterator()
-
-        init {
-            makeShared()
-        }
 
         override fun hasNext(): Boolean = delegateIterator.hasNext()
 

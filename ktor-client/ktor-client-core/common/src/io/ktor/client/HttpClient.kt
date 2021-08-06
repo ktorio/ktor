@@ -171,8 +171,6 @@ public class HttpClient(
 
             config.install(this@HttpClient)
         }
-
-        makeShared()
     }
 
     /**

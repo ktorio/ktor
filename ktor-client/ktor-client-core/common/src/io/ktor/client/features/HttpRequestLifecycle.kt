@@ -26,10 +26,7 @@ internal class HttpRequestLifecycle {
 
         override fun install(feature: HttpRequestLifecycle, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val executionContext = Job(context.executionContext).also {
-                    it.makeShared()
-                }
-
+                val executionContext = Job(context.executionContext)
                 attachToClientEngineJob(executionContext, scope.coroutineContext[Job]!!)
 
                 try {
@@ -53,8 +50,6 @@ private fun attachToClientEngineJob(
     requestJob: CompletableJob,
     clientEngineJob: Job
 ) {
-    clientEngineJob.makeShared()
-
     val handler = clientEngineJob.invokeOnCompletion { cause ->
         if (cause != null) {
             requestJob.cancel("Engine failed", cause)

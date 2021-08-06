@@ -11,10 +11,6 @@ internal class MutableMapEntries<Key : Any, Value : Any>(
     private val delegate: ConcurrentMap<Key, Value>
 ) : MutableSet<MutableMap.MutableEntry<Key, Value>> {
 
-    init {
-        makeShared()
-    }
-
     override fun add(element: MutableMap.MutableEntry<Key, Value>): Boolean =
         delegate.put(element.key, element.value) != element.value
 

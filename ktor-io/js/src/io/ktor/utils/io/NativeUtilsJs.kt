@@ -6,10 +6,3 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.core.internal.*
 
-@DangerousInternalIoApi
-public actual fun Any.preventFreeze() {
-}
-
-@DangerousInternalIoApi
-public actual fun Any.makeShared() {
-}

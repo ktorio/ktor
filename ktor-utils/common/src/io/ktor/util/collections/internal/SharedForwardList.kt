@@ -12,8 +12,6 @@ internal class SharedForwardList<T : Any> : MutableIterable<T> {
     internal var tail by shared(head)
 
     init {
-        makeShared()
-
         head = ForwardListNode(this, null, null, null)
         tail = head
     }

@@ -65,10 +65,6 @@ internal class ByteChannelNative(
 ) : ByteChannelSequentialBase(initial, autoFlush, pool) {
     private var attachedJob: Job? by shared(null)
 
-    init {
-        makeShared()
-    }
-
     @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()

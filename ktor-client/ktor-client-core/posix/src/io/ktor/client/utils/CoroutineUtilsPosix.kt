@@ -20,7 +20,6 @@ public actual fun Dispatchers.clientDispatcher(
 internal actual fun checkCoroutinesVersion() {
     try {
         val parent = Job()
-        parent.freeze()
         Job(parent)
     } catch (cause: Throwable) {
         val message = "Ktor native HttpClient requires kotlinx.coroutines version with `native-mt` suffix" +

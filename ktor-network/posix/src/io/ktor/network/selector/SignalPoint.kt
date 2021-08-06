@@ -34,8 +34,6 @@ internal class SignalPoint : Closeable {
 
         readDescriptor = read
         writeDescriptor = write
-
-        makeShared()
     }
 
     fun check(): Boolean {

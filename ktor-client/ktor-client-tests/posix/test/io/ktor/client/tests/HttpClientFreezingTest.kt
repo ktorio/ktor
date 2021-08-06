@@ -16,7 +16,6 @@ class HttpClientFreezingTest : ClientLoader() {
     @Test
     fun testRequestWithFrozenClient() = clientTests {
         test { client ->
-            client.makeShared()
             val response = client.get<String>("$TEST_SERVER/content/hello")
             assertEquals("hello", response)
         }
