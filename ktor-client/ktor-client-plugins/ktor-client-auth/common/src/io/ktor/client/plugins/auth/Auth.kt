@@ -36,7 +36,8 @@ public class Auth(
             }
 
             val circuitBreaker = AttributeKey<Unit>("auth-request")
-            scope.plugin(HttpSend)!!.intercept { origin, context ->
+            scope.plugin(HttpSend)!!.intercept { context ->
+                val origin = execute(context)
                 if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
                 if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
 
