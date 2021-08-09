@@ -56,7 +56,7 @@ public class ResponseObserver(
         @OptIn(InternalAPI::class)
         override fun install(plugin: ResponseObserver, scope: HttpClient) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
-                if (feature.filter?.invoke(context) == false) return@intercept
+                if (plugin.filter?.invoke(response.call) == false) return@intercept
 
                 val (loggingContent, responseContent) = response.content.split(response)
 
