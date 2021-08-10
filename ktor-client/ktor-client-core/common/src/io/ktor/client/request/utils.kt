@@ -5,6 +5,7 @@
 package io.ktor.client.request
 
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 
 /**
@@ -77,3 +78,17 @@ public fun HttpRequestBuilder.parameter(key: String, value: Any?): Unit =
  */
 public fun HttpRequestBuilder.accept(contentType: ContentType): Unit =
     headers.append(HttpHeaders.Accept, contentType.toString())
+
+/**
+ * Sets the [HttpHeaders.Authorization] to Basic Authorization with the provided [username] and [password].
+ * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ */
+public fun HttpRequestBuilder.basicAuth(username: String, password: String): Unit =
+    header(HttpHeaders.Authorization, "Basic ${"$username:$password".encodeBase64()}")
+
+/**
+ * Sets the [HttpHeaders.Authorization] to Bearer Authorization with the provided [token].
+ * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ */
+public fun HttpRequestBuilder.bearerAuth(token: String): Unit =
+    header(HttpHeaders.Authorization, "Bearer $token")
