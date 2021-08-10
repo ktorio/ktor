@@ -35,7 +35,7 @@ class ServerPluginTest {
 
         val plugin = createPlugin("F", createConfiguration = { Config() }) {
             onCall { call ->
-                if (this@createPlugin.pluginConfig.enabled) {
+                if (pluginConfig.enabled) {
                     call.respondText("Plugin enabled!")
                     finish()
                 }

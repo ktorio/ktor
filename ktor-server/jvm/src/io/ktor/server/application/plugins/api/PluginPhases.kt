@@ -6,6 +6,9 @@ package io.ktor.server.application.plugins.api
 
 import io.ktor.server.application.*
 
+/**
+ * Callable object that provides handlers to extend handling of an application call.
+ **/
 public interface OnCall {
     /**
      * Define how processing an HTTP call should be modified by the current [ApplicationPlugin].
@@ -13,6 +16,9 @@ public interface OnCall {
     public operator fun invoke(block: suspend CallContext.(ApplicationCall) -> Unit): Unit
 }
 
+/**
+ * Callable object that provides handlers to extend data receiving when handling an application call.
+ **/
 public interface OnCallReceive {
     /**
      * Define how current [ApplicationPlugin] should transform data received from a client.
@@ -20,6 +26,9 @@ public interface OnCallReceive {
     public operator fun invoke(block: suspend CallReceiveContext.(ApplicationCall) -> Unit): Unit
 }
 
+/**
+ * Callable object that provides handlers to extend sending response when handling an application call.
+ **/
 public interface OnCallRespond {
     /**
      * Do transformations of the data. Example: you can write a custom serializer using this method.
