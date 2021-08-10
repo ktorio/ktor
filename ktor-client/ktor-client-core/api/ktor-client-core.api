@@ -992,6 +992,8 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 
 public final class io/ktor/client/request/UtilsKt {
 	public static final fun accept (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/ContentType;)V
+	public static final fun basicAuth (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun bearerAuth (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 	public static final fun cookie (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
 	public static synthetic fun cookie$default (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
 	public static final fun getHost (Lio/ktor/client/request/HttpRequestBuilder;)Ljava/lang/String;
