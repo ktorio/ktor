@@ -2,7 +2,7 @@ package io.ktor.tests.plugins.api
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.application.plugins.api.KtorApplicationPlugin.Companion.createPlugin
+import io.ktor.server.application.plugins.api.ServerPlugin.Companion.createPlugin
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -10,7 +10,7 @@ import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class KtorApplicationPluginTest {
+class ServerPluginTest {
     @Test
     fun `test empty plugin does not break pipeline`(): Unit = withTestApplication {
         val plugin = createPlugin("F", createConfiguration = {}) {
@@ -75,7 +75,7 @@ class KtorApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(key)
                 if (data != null) {
-                    transformRespondBody {
+                    transformResponseBody {
                         data
                     }
                 }
@@ -117,7 +117,7 @@ class KtorApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
-                    transformRespondBody { data }
+                    transformResponseBody { data }
                 }
             }
         }

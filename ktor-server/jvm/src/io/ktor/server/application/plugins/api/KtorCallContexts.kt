@@ -29,7 +29,7 @@ public class CallContext(internal val context: PipelineContext<Unit, Application
 public class CallReceiveContext(
     private val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
 ) : CallHandlingContext(context) {
-    public fun transformReceiveBody(transform: (ByteReadChannel) -> Any) {
+    public fun transformRequestBody(transform: (ByteReadChannel) -> Any) {
         val receiveBody = context.subject.value as? ByteReadChannel
             ?: throw NoByteReadChannelException(context.subject.value)
         context.subject = ApplicationReceiveRequest(
@@ -46,7 +46,7 @@ public class CallReceiveContext(
 public class CallRespondContext(
     private val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
-    public fun transformRespondBody(transform: (Any) -> Any) {
+    public fun transformResponseBody(transform: (Any) -> Any) {
         context.subject = transform(context.subject)
     }
 }
@@ -57,7 +57,7 @@ public class CallRespondContext(
 public class CallRespondAfterTransformContext(
     private val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
-    public fun transformRespondBody(transform: (OutgoingContent) -> OutgoingContent) {
+    public fun transformResponseBody(transform: (OutgoingContent) -> OutgoingContent) {
         val newContent = context.subject as? OutgoingContent ?: throw NoOutgoingContentException(context.subject)
         context.subject = transform(newContent)
     }

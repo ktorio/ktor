@@ -22,33 +22,33 @@ import kotlin.random.Random
  * @return an instance of plugin
  */
 public fun <A : Pipeline<*, ApplicationCall>, ConfigurationT : Any> A.plugin(
-    plugin: ApplicationInstallablePlugin<ConfigurationT>
-): KtorApplicationPlugin<ConfigurationT> {
+    plugin: ServerPluginFactory<ConfigurationT>
+): ServerPlugin<ConfigurationT> {
     return attributes[pluginRegistryKey].getOrNull(plugin.key)
         ?: throw MissingApplicationPluginException(plugin.key)
 }
 
 internal fun <A : Pipeline<*, ApplicationCall>> A.findInterceptionsHolder(
-    plugin: ApplicationInstallablePlugin<*>
-): KtorApplicationPlugin<*> {
+    plugin: ServerPluginFactory<*>
+): ServerPlugin<*> {
     return attributes[pluginRegistryKey].getOrNull(plugin.key)
         ?: throw MissingApplicationPluginException(plugin.key)
 }
 
 /**
- * Factory class that can be passed to install function in order to produce an instance of [KtorApplicationPlugin]
+ * Factory class that can be passed to install function in order to produce an instance of [ServerPlugin]
  * that will be installed into the current application context.
  **/
-public abstract class ApplicationInstallablePlugin<Configuration : Any>(public val name: String) :
-    ApplicationPlugin<ApplicationCallPipeline, Configuration, KtorApplicationPlugin<Configuration>>
+public abstract class ServerPluginFactory<Configuration : Any>(public val name: String) :
+    ApplicationPlugin<ApplicationCallPipeline, Configuration, ServerPlugin<Configuration>>
 
 internal typealias PipelineHandler = (Pipeline<*, ApplicationCall>) -> Unit
 
 /**
  * A plugin for Ktor that embeds into the HTTP pipeline and extends functionality of Ktor framework.
  **/
-public abstract class KtorApplicationPlugin<Configuration : Any> private constructor(
-    installablePlugin: ApplicationInstallablePlugin<Configuration>
+public abstract class ServerPlugin<Configuration : Any> private constructor(
+    installablePlugin: ServerPluginFactory<Configuration>
 ) : PluginContext {
     protected abstract val pipeline: ApplicationCallPipeline
 
@@ -59,7 +59,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
     public val environment: ApplicationEnvironment? get() = pipeline.environment
     public val configuration: ApplicationConfig? get() = environment?.config
 
-    private val key: AttributeKey<KtorApplicationPlugin<Configuration>> = installablePlugin.key
+    private val key: AttributeKey<ServerPlugin<Configuration>> = installablePlugin.key
 
     internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 
@@ -105,10 +105,10 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
     }
 
     /**
-     * Callable object that defines how HTTP call handling should be modified by the current [KtorApplicationPlugin].
+     * Callable object that defines how HTTP call handling should be modified by the current [ServerPlugin].
      **/
     public override val onCall: OnCall = object : OnCall {
-        private val plugin get() = this@KtorApplicationPlugin
+        private val plugin get() = this@ServerPlugin
 
         override operator fun invoke(block: suspend CallContext.(ApplicationCall) -> Unit) {
             plugin.onDefaultPhase(
@@ -123,10 +123,10 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
     /**
      * Callable object that defines how receiving data from HTTP call should be modified by the current
-     * [KtorApplicationPlugin].
+     * [ServerPlugin].
      **/
     public override val onCallReceive: OnCallReceive = object : OnCallReceive {
-        private val plugin = this@KtorApplicationPlugin
+        private val plugin = this@ServerPlugin
 
         override fun invoke(block: suspend CallReceiveContext.(ApplicationCall) -> Unit) {
             plugin.onDefaultPhase(
@@ -140,10 +140,10 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
     /**
      * Callable object that defines how sending data to a client within HTTP call should be modified by the current
-     * [KtorApplicationPlugin].
+     * [ServerPlugin].
      **/
     public override val onCallRespond: OnCallRespond = object : OnCallRespond {
-        private val plugin = this@KtorApplicationPlugin
+        private val plugin = this@ServerPlugin
 
         override fun invoke(block: suspend CallRespondContext.(ApplicationCall) -> Unit) {
             plugin.onDefaultPhase(
@@ -168,13 +168,13 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * A [PluginContext] context that allows inserting [currentPlugin] actions relatively (before/after) to [otherPlugins].
      **/
     public abstract class RelativePluginContext(
-        private val currentPlugin: KtorApplicationPlugin<*>,
-        private val otherPlugins: List<KtorApplicationPlugin<*>>
+        private val currentPlugin: ServerPlugin<*>,
+        private val otherPlugins: List<ServerPlugin<*>>
     ) : PluginContext {
         private fun <T : Any> sortedPhases(
             interceptions: List<Interception<T>>,
             pipeline: Pipeline<*, ApplicationCall>,
-            otherPlugin: KtorApplicationPlugin<*>
+            otherPlugin: ServerPlugin<*>
         ): List<PipelinePhase> =
             interceptions
                 .map { it.phase }
@@ -293,8 +293,8 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * Every handler called in this context will be executed only after same handler has finished for all [otherPlugins].
      **/
     public class AfterPluginContext(
-        currentPlugin: KtorApplicationPlugin<*>,
-        otherPlugins: List<KtorApplicationPlugin<*>>
+        currentPlugin: ServerPlugin<*>,
+        otherPlugins: List<ServerPlugin<*>>
     ) :
         RelativePluginContext(currentPlugin, otherPlugins) {
         override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.lastOrNull()
@@ -312,8 +312,8 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * Every handler called in this context will be executed only before same handler has finished for all [otherPlugins].
      **/
     public class BeforePluginsContext(
-        currentPlugin: KtorApplicationPlugin<*>,
-        otherPlugins: List<KtorApplicationPlugin<*>>
+        currentPlugin: ServerPlugin<*>,
+        otherPlugins: List<ServerPlugin<*>>
     ) :
         RelativePluginContext(currentPlugin, otherPlugins) {
         override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.firstOrNull()
@@ -335,7 +335,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      * by the given [plugin] were already executed in the same stage.
      **/
     public fun afterPlugins(
-        vararg targetPlugins: ApplicationInstallablePlugin<out Any>,
+        vararg targetPlugins: ServerPluginFactory<out Any>,
         build: AfterPluginContext.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
@@ -352,7 +352,7 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
      **/
 
     public fun beforePlugins(
-        vararg targetPlugins: ApplicationInstallablePlugin<out Any>,
+        vararg targetPlugins: ServerPluginFactory<out Any>,
         build: BeforePluginsContext.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
@@ -362,24 +362,24 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
 
     public companion object {
         /**
-         * A canonical way to create a [KtorApplicationPlugin].
+         * A canonical way to create a [ServerPlugin].
          **/
         public fun <Configuration : Any> createPlugin(
             name: String,
             createConfiguration: (ApplicationCallPipeline) -> Configuration,
-            body: KtorApplicationPlugin<Configuration>.() -> Unit
-        ): ApplicationInstallablePlugin<Configuration> = object : ApplicationInstallablePlugin<Configuration>(name) {
-            override val key: AttributeKey<KtorApplicationPlugin<Configuration>> = AttributeKey(name)
+            body: ServerPlugin<Configuration>.() -> Unit
+        ): ServerPluginFactory<Configuration> = object : ServerPluginFactory<Configuration>(name) {
+            override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
 
             override fun install(
                 pipeline: ApplicationCallPipeline,
                 configure: Configuration.() -> Unit
-            ): KtorApplicationPlugin<Configuration> {
+            ): ServerPlugin<Configuration> {
                 val config = createConfiguration(pipeline)
                 config.configure()
 
                 val self = this
-                val pluginInstance = object : KtorApplicationPlugin<Configuration>(self) {
+                val pluginInstance = object : ServerPlugin<Configuration>(self) {
                     override val pipeline: ApplicationCallPipeline
                         get() = pipeline
                     override val pluginConfig: Configuration
@@ -425,12 +425,12 @@ public abstract class KtorApplicationPlugin<Configuration : Any> private constru
         }
 
         /**
-         * A canonical way to create a [KtorApplicationPlugin].
+         * A canonical way to create a [ServerPlugin].
          **/
         public fun createPlugin(
             name: String,
-            body: KtorApplicationPlugin<Unit>.() -> Unit
-        ): ApplicationInstallablePlugin<Unit> = createPlugin<Unit>(name, {}, body)
+            body: ServerPlugin<Unit>.() -> Unit
+        ): ServerPluginFactory<Unit> = createPlugin<Unit>(name, {}, body)
     }
 
     override fun applicationShutdownHook(hook: (Application) -> Unit) {
