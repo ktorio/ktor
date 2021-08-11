@@ -892,21 +892,14 @@ public class io/ktor/util/pipeline/Pipeline {
 	public final fun merge (Lio/ktor/util/pipeline/Pipeline;)V
 }
 
-public abstract interface class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {
+public abstract class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Ljava/lang/Object;)V
 	public abstract fun finish ()V
-	public abstract fun getContext ()Ljava/lang/Object;
+	public final fun getContext ()Ljava/lang/Object;
 	public abstract fun getSubject ()Ljava/lang/Object;
 	public abstract fun proceed (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun proceedWith (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setSubject (Ljava/lang/Object;)V
-}
-
-public final class io/ktor/util/pipeline/PipelineContextKt {
-	public static final fun pipelineExecutorFor (Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)Lio/ktor/util/pipeline/PipelineExecutor;
-}
-
-public abstract interface class io/ktor/util/pipeline/PipelineExecutor {
-	public abstract fun execute (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/pipeline/PipelineKt {
