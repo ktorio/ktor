@@ -9,7 +9,7 @@ import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }
 
 @SharedImmutable
 private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
@@ -25,7 +25,7 @@ private val URL_PROTOCOL_PART = listOf(
     ':', '/', '?', '#', '[', ']', '@', // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // sub-components
     '-', '.', '_', '~', '+' // unreserved
-).map { it.toByte() }
+).map { it.code.toByte() }
 
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
@@ -65,7 +65,7 @@ public fun String.encodeURLQueryComponent(
     content.forEach {
         when {
             it == ' '.toByte() -> if (spaceToPlus) append('+') else append("%20")
-            it in URL_ALPHABET || (!encodeFull && it in URL_PROTOCOL_PART) -> append(it.toChar())
+            it in URL_ALPHABET || (!encodeFull && it in URL_PROTOCOL_PART) -> append(it.toInt().toChar())
             else -> append(it.percentEncode())
         }
     }
@@ -124,7 +124,7 @@ public fun String.encodeURLParameter(
     content.forEach {
         when {
             it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toChar())
-            spaceToPlus && it == ' '.toByte() -> append('+')
+            spaceToPlus && it == ' '.code.toByte() -> append('+')
             else -> append(it.percentEncode())
         }
     }

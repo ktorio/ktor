@@ -33,7 +33,7 @@ public abstract class HeaderValueWithParameters(
     override fun toString(): String = when {
         parameters.isEmpty() -> content
         else -> {
-            val size = content.length + parameters.sumBy { it.name.length + it.value.length + 3 }
+            val size = content.length + parameters.sumOf{ it.name.length + it.value.length + 3 }
             StringBuilder(size).apply {
                 append(content)
                 for (index in 0 until parameters.size) {
