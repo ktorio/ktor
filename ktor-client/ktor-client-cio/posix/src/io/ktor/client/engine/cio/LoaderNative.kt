@@ -6,6 +6,8 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 
+@OptIn(ExperimentalStdlibApi::class)
+@EagerInitialization
 private val initHook = CIO
 
 internal actual fun addToLoader() {

@@ -7,6 +7,8 @@ package io.ktor.client.engine.ios
 import io.ktor.client.engine.*
 import platform.Foundation.*
 
+@OptIn(ExperimentalStdlibApi::class)
+@EagerInitialization
 private val initHook = Ios
 
 /**

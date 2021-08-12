@@ -17,6 +17,8 @@ import kotlin.native.SharedImmutable
 @SharedImmutable
 private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.convert())
 
+@OptIn(ExperimentalStdlibApi::class)
+@EagerInitialization
 private val initHook = Curl
 
 /**
