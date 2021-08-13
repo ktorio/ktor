@@ -1,27 +1,31 @@
+/*
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = ""
+
+val typesafe_config_version: String by extra
+val kotlin_version: String by extra
+val mockk_version: String by extra
 
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
-            api(project(":ktor-server"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-caching-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-cors"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-data-conversion"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-double-receive"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-http-redirect"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            api(project(":ktor-legacy:ktor-server-legacy"))
+            api(project(":ktor-utils"))
+            api(project(":ktor-http"))
+            api(project(":ktor-shared:ktor-shared-serialization"))
+            api(project(":ktor-shared:ktor-shared-events"))
+
+            api("com.typesafe:config:$typesafe_config_version")
+            api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+        }
+    }
+    val jvmTest by getting {
+        dependencies {
+            api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-network"))
+            api(project(":ktor-server:ktor-server-test-host"))
+            implementation("io.mockk:mockk:$mockk_version")
         }
     }
 }

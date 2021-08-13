@@ -10,7 +10,7 @@ val kotlin_version: String by extra
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
-            api(project(":ktor-server"))
+            api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-network:ktor-network-tls"))
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
@@ -39,7 +39,7 @@ kotlin.sourceSets {
 
     val jvmTest by getting {
         dependencies {
-            api(project(":ktor-server", configuration = "testOutput"))
+            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
         }
     }
