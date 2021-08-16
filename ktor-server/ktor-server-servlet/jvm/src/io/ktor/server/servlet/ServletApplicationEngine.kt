@@ -46,7 +46,7 @@ public open class ServletApplicationEngine : KtorServlet() {
                     "No config ${hocon.getString(configPath)} found for the servlet named $servletName"
                 )
             val loadedKtorConfig = configStream.bufferedReader().use { ConfigFactory.parseReader(it) }
-            hocon.withFallback(loadedKtorConfig)
+            hocon.withFallback(loadedKtorConfig).resolve()
         } else {
             hocon.withFallback(ConfigFactory.load())
         }
