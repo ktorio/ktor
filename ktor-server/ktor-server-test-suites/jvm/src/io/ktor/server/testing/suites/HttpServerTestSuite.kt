@@ -785,6 +785,28 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
         }
     }
 
+    @Test
+    fun queryParameterContainingSemicolon() {
+        createAndStartServer {
+            handle {
+                assertEquals("01;21", call.request.queryParameters["code"])
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        withUrl(
+            "/",
+            {
+                url {
+                    parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
+                    parameters.append("code", "01;21")
+                }
+            }
+        ) {
+            assertEquals(200, status.value)
+        }
+    }
+
     private data class TestData(
         val name: String
     ) : AbstractCoroutineContextElement(TestData) {

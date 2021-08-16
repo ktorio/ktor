@@ -29,7 +29,7 @@ public abstract class NettyApplicationRequest(
 ) : BaseApplicationRequest(call), CoroutineScope {
 
     public final override val queryParameters: Parameters = object : Parameters {
-        private val decoder = QueryStringDecoder(uri)
+        private val decoder = QueryStringDecoder(uri, HttpConstants.DEFAULT_CHARSET, true, 1024, true)
         override val caseInsensitiveName: Boolean get() = true
         override fun getAll(name: String) = decoder.parameters()[name]
         override fun names() = decoder.parameters().keys
