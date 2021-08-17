@@ -138,11 +138,25 @@ internal class URLBuilderTest {
     }
 
     @Test
+    fun rewritePathWithRoot() {
+        val url = URLBuilder("https://example.com/api/v1/")
+        url.takeFrom("/foo")
+        assertEquals("https://example.com/foo", url.buildString())
+    }
+
+    @Test
     fun rewritePathFileWithDot() {
         val url = URLBuilder("https://example.org/first/file.html")
 
         url.takeFrom("./")
         assertEquals("https://example.org/first/./", url.buildString())
+    }
+
+    @Test
+    fun rewriteHost() {
+        val url = URLBuilder("https://example.com/api/v1")
+        url.takeFrom("//other.com")
+        assertEquals("https://other.com", url.buildString())
     }
 
     @Test
