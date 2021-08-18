@@ -23,14 +23,21 @@ public abstract class RelativePluginContext(
             .map { it.phase }
             .sortedBy {
                 if (!pipeline.items.contains(it)) {
-                    throw PluginNotInstalledException(otherPlugin.name)
+                    throw MissingApplicationPluginException(otherPlugin.key)
                 }
 
                 pipeline.items.indexOf(it)
             }
 
+    /**
+     * Defines how a phase will be selected from a sorted list of [PipelinePhase] of phases of some other plugin.
+     * After a phase has been selected, it will be passed to [insertPhase] method as a relativePhase.
+     **/
     protected abstract fun selectPhase(phases: List<PipelinePhase>): PipelinePhase?
 
+    /**
+     * Defines how a [newPhase] will be inserted relatively to a [relativePhase] of some other plugin.
+     **/
     protected abstract fun insertPhase(
         pipeline: Pipeline<*, ApplicationCall>,
         relativePhase: PipelinePhase,
@@ -138,8 +145,7 @@ public abstract class RelativePluginContext(
 public class AfterPluginContext(
     currentPlugin: ServerPlugin<*>,
     otherPlugins: List<ServerPlugin<*>>
-) :
-    RelativePluginContext(currentPlugin, otherPlugins) {
+) : RelativePluginContext(currentPlugin, otherPlugins) {
     override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.lastOrNull()
 
     override fun insertPhase(
@@ -157,8 +163,7 @@ public class AfterPluginContext(
 public class BeforePluginsContext(
     currentPlugin: ServerPlugin<*>,
     otherPlugins: List<ServerPlugin<*>>
-) :
-    RelativePluginContext(currentPlugin, otherPlugins) {
+) : RelativePluginContext(currentPlugin, otherPlugins) {
     override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.firstOrNull()
 
     override fun insertPhase(

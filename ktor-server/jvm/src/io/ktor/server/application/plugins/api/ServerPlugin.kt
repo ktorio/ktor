@@ -20,16 +20,36 @@ import kotlin.random.Random
 public abstract class ServerPlugin<Configuration : Any> private constructor(
     pluginFactory: ServerPluginFactory<Configuration>
 ) : PluginContext {
+    /**
+     * [ServerPlugin] encapsulates a bunch of actions you can perform with HTTP pipeline.
+     * [pipeline] represents an [ApplicationCallPipeline] object.
+     *
+     * Please, see https://ktor.io/docs/pipelines.html for more information.
+     **/
     protected abstract val pipeline: ApplicationCallPipeline
 
+    /**
+     * A configuration for the current plugin. It may hold required data and any functionality that can be used by your
+     * plugin.
+     **/
     public abstract val pluginConfig: Configuration
 
+    /**
+     * A name for your plugin. Will be used to find your plugin in the current application.
+     **/
     public val name: String = pluginFactory.name
 
+    /**
+     * Allows you to access the environment of the currently running application where the plugin is installed.
+     **/
     public val environment: ApplicationEnvironment? get() = pipeline.environment
+
+    /**
+     * Configuration of your current application (incl. host, port and anything else you can define in application.conf).
+     **/
     public val configuration: ApplicationConfig? get() = environment?.config
 
-    private val key: AttributeKey<ServerPlugin<Configuration>> = pluginFactory.key
+    internal val key: AttributeKey<ServerPlugin<Configuration>> = pluginFactory.key
 
     internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 
@@ -151,7 +171,6 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
      * (such as [onCall], [onCallRespond], etc.) and each of these actions will be executed right before all actions defined
      * by the given [targetPlugins] were already executed in the same stage.
      **/
-
     public fun beforePlugins(
         vararg targetPlugins: ServerPluginFactory<out Any>,
         build: BeforePluginsContext.() -> Unit

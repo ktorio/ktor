@@ -29,9 +29,12 @@ public class CallContext(internal val context: PipelineContext<Unit, Application
 public class CallReceiveContext(
     private val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
 ) : CallHandlingContext(context) {
+    /**
+     * Defines transformation of the body that is being received from a client.
+     **/
     public suspend fun transformRequestBody(transform: suspend (ByteReadChannel) -> Any) {
         val receiveBody = context.subject.value as? ByteReadChannel
-            ?: throw NoByteReadChannelException(context.subject.value)
+            ?: throw noBinaryDataException("ByteReadChannel", context.subject.value)
         context.subject = ApplicationReceiveRequest(
             context.subject.typeInfo,
             transform(receiveBody),
@@ -46,6 +49,9 @@ public class CallReceiveContext(
 public class CallRespondContext(
     private val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
+    /**
+     * Defines transformation of the response body that is being sent to a client.
+     **/
     public suspend fun transformResponseBody(transform: suspend (Any) -> Any) {
         context.subject = transform(context.subject)
     }
@@ -57,8 +63,13 @@ public class CallRespondContext(
 public class CallRespondAfterTransformContext(
     private val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
+    /**
+     * Defines transformation of the response body that has already been transformed into [OutgoingContent]
+     * right before sending it to a client.
+     **/
     public suspend fun transformResponseBody(transform: suspend (OutgoingContent) -> OutgoingContent) {
-        val newContent = context.subject as? OutgoingContent ?: throw NoOutgoingContentException(context.subject)
+        val newContent =
+            context.subject as? OutgoingContent ?: throw  noBinaryDataException("OutgoingContent", context.subject)
         context.subject = transform(newContent)
     }
 }

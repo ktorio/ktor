@@ -42,6 +42,10 @@ public interface OnCallRespond {
     public fun afterTransform(block: suspend CallRespondAfterTransformContext.(ApplicationCall, Any) -> Unit): Unit
 }
 
+/**
+ * A context that is available inside a plugin creation block. It allows you to define handlers for different stages
+ * (a.k.a. phases) of the HTTP pipeline.
+ **/
 public interface PluginContext {
     public val onCall: OnCall
     public val onCallReceive: OnCallReceive
