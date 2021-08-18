@@ -106,14 +106,12 @@ internal class NettyHttp2Handler(
 
         val promisedStreamId = connection.local().incrementAndGetNextStreamId()
         val headers = DefaultHttp2Headers().apply {
-            val url = builder.url
-
-            val pathAndQuery = buildString { appendUrlFullPath(url.encodedPath, url.encodedParameters, false) }
+            val url = builder.url.build()
 
             method(builder.method.value)
-            authority(builder.url.host + ":" + builder.url.port)
-            scheme(builder.url.protocol.name)
-            path(pathAndQuery)
+            authority(url.hostWithPort)
+            scheme(url.protocol.name)
+            path(url.encodedPathAndQuery)
         }
 
         val bs = Http2StreamChannelBootstrap(channel.parent()).handler(this)
