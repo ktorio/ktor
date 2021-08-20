@@ -7,6 +7,7 @@ package io.ktor.network.tls
 import kotlinx.coroutines.*
 import java.security.*
 import java.security.cert.*
+import java.security.cert.Certificate
 import javax.net.ssl.*
 
 /**
@@ -116,8 +117,9 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, a
 
     val aliases = alias?.let { listOf(it) } ?: store.aliases()!!.toList()
     loop@ for (certAlias in aliases) {
-        val chain = store.getCertificateChain(certAlias)
-
+        val chain: Array<Certificate>? = store.getCertificateChain(certAlias)
+        checkNotNull(chain) { "Fail to get the certificate chain for this alias: $certAlias" }
+        
         val allX509 = chain.all { it is X509Certificate }
         check(allX509) { "Fail to add key store $store. Only X509 certificate format supported." }
 

@@ -157,4 +157,13 @@ internal class TLSConfigBuilderTest {
         }
         assertEquals(1, config.certificates.size)
     }
+
+    @Test
+    fun aliasNotFound() {
+        assertFailsWith<IllegalStateException> {
+            TLSConfigBuilder().apply {
+                addKeyStore(keyStore, "".toCharArray() as CharArray?, "notFound")
+            }
+        }
+    }
 }
