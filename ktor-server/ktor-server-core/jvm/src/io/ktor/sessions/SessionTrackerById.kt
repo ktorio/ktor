@@ -85,8 +85,8 @@ public class SessionTrackerById<S : Any>(
             )
         }
 
-        // we remove the wrong session identifier if no related session found
-        call.attributes.put(sessionIdKey, sessionId)
+        // Remove the wrong session identifier if no related session was found
+        call.attributes.remove(sessionIdKey)
 
         return null
     }
