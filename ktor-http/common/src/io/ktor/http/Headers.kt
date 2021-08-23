@@ -28,8 +28,6 @@ public interface Headers : StringValues {
 @Suppress("KDocMissingDocumentation")
 public class HeadersBuilder(size: Int = 8) : StringValuesBuilderImpl(true, size) {
     override fun build(): Headers {
-        require(!built) { "HeadersBuilder can only build a single Headers instance" }
-        built = true
         return HeadersImpl(values)
     }
 

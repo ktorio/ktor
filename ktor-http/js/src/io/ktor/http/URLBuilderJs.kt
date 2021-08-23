@@ -12,7 +12,8 @@ import kotlinx.browser.*
  *
  * It uses "localhost" for all platforms except js.
  */
-internal actual val URLBuilder.Companion.originHost: String?
-    get() = if (PlatformUtils.IS_BROWSER) {
-        window.location.origin
-    } else null
+public actual val URLBuilder.Companion.origin: String
+    get() = when {
+        PlatformUtils.IS_BROWSER -> window.location.origin
+        else -> "http://localhost"
+    }

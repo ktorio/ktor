@@ -15,9 +15,9 @@ import io.ktor.http.cio.websocket.*
  */
 public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientWebSocketSession = request {
     this.method = method
@@ -30,15 +30,15 @@ public suspend fun HttpClient.webSocketRawSession(
  */
 public suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
 ): Unit { // ktlint-disable filename no-unit-return
     val session = webSocketRawSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
-        url.port = port
+        if (port != null) url.port = port
 
         request()
     }
@@ -57,9 +57,9 @@ public suspend fun HttpClient.webSocketRaw(
  */
 public suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
@@ -69,9 +69,9 @@ public suspend fun HttpClient.wsRaw(
  */
 public suspend fun HttpClient.wssRaw(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(
@@ -81,7 +81,7 @@ public suspend fun HttpClient.wssRaw(
     path,
     request = {
         url.protocol = URLProtocol.WSS
-        url.port = port
+        if (port != null) url.port = port
 
         request()
     },
