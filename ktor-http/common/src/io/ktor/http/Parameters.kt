@@ -36,8 +36,6 @@ public fun ParametersBuilder(size: Int = 8): ParametersBuilder = ParametersBuild
 @Suppress("KDocMissingDocumentation")
 public class ParametersBuilderImpl(size: Int = 8) : StringValuesBuilderImpl(true, size), ParametersBuilder {
     override fun build(): Parameters {
-        require(!built) { "ParametersBuilder can only build a single Parameters instance" }
-        built = true
         return ParametersImpl(values)
     }
 }

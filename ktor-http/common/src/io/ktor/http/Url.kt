@@ -66,6 +66,18 @@ public class Url internal constructor(
         urlString.substring(queryStart, queryEnd)
     }
 
+    public val encodedPathAndQuery: String by lazy {
+        val pathStart = urlString.indexOf('/', protocol.name.length + 3)
+        if (pathStart == -1) {
+            return@lazy ""
+        }
+        val queryEnd = urlString.indexOf('#', pathStart)
+        if (queryEnd == -1) {
+            return@lazy urlString.substring(pathStart)
+        }
+        urlString.substring(pathStart, queryEnd)
+    }
+
     public val encodedUser: String? by lazy {
         if (user == null) return@lazy null
         if (user.isEmpty()) return@lazy ""

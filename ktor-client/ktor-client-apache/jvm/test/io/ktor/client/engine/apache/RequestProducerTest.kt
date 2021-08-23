@@ -209,11 +209,11 @@ class RequestProducerTest {
 
     @Test
     fun expectToThrowIllegalStateExceptionIfHostCannotBeExtractedFromRequestURL() {
-        val request = HttpRequestBuilder { takeFrom("http://") }.build()
+        val request = HttpRequestBuilder { takeFrom("file://") }.build()
         val cause = assertFailsWith<IllegalArgumentException> {
             ApacheRequestProducer(request, ApacheEngineConfig(), EmptyCoroutineContext)
         }
-        assertEquals("Cannot extract host from URL http:///", cause.message)
+        assertEquals("Cannot extract host from URL file:///", cause.message)
     }
 }
 
