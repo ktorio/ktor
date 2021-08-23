@@ -324,6 +324,26 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testRefreshOnBackgroundThread() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+            }
+        }
+
+        test { client ->
+            val response = withContext(Dispatchers.Default) {
+                client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute()
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
     @Suppress("JoinDeclarationAndAssignment")
     @Test
     fun testRefreshWithSameClient() = clientTests {

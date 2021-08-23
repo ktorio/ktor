@@ -13,6 +13,7 @@ import kotlin.native.concurrent.*
 @ThreadLocal
 private val TOKEN_EXTRA = setOf('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~')
 
+@ThreadLocal
 private val TOKEN68_EXTRA = setOf('-', '.', '_', '~', '+', '/')
 
 @ThreadLocal
