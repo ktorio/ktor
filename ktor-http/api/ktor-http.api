@@ -891,11 +891,14 @@ public final class io/ktor/http/URLBuilder$Companion {
 }
 
 public final class io/ktor/http/URLBuilderJvmKt {
+	public static final fun getOrigin (Lio/ktor/http/URLBuilder$Companion;)Ljava/lang/String;
 	public static final fun invoke (Lio/ktor/http/Url$Companion;Ljava/lang/String;)Lio/ktor/http/Url;
 }
 
 public final class io/ktor/http/URLBuilderKt {
 	public static final field DEFAULT_PORT I
+	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
+	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 	public static final fun clone (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
@@ -978,6 +981,7 @@ public final class io/ktor/http/Url {
 	public final fun getEncodedFragment ()Ljava/lang/String;
 	public final fun getEncodedPassword ()Ljava/lang/String;
 	public final fun getEncodedPath ()Ljava/lang/String;
+	public final fun getEncodedPathAndQuery ()Ljava/lang/String;
 	public final fun getEncodedQuery ()Ljava/lang/String;
 	public final fun getEncodedUser ()Ljava/lang/String;
 	public final fun getFragment ()Ljava/lang/String;
