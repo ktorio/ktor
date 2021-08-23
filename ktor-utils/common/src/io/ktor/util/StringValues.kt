@@ -145,12 +145,16 @@ public open class StringValuesSingleImpl(
 
 @Suppress("KDocMissingDocumentation")
 public open class StringValuesImpl(
-    override val caseInsensitiveName: Boolean = false,
+    final override val caseInsensitiveName: Boolean = false,
     values: Map<String, List<String>> = emptyMap()
 ) : StringValues {
 
-    protected val values: Map<String, List<String>> by lazy {
-        if (caseInsensitiveName) caseInsensitiveMap<List<String>>().apply { putAll(values) } else values.toMap()
+    protected val values: Map<String, List<String>>
+
+    init {
+        val newMap: MutableMap<String, List<String>> = if (caseInsensitiveName) caseInsensitiveMap() else mutableMapOf()
+        values.forEach { (key, value) -> newMap[key] = List(value.size) { value[it] } }
+        this.values = newMap
     }
 
     override operator fun get(name: String): String? = listForKey(name)?.firstOrNull()
@@ -193,8 +197,6 @@ public open class StringValuesBuilderImpl(
 
     protected val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
-
-    protected var built: Boolean = false
 
     override fun getAll(name: String): List<String>? = values[name]
 
@@ -266,8 +268,6 @@ public open class StringValuesBuilderImpl(
     }
 
     override fun build(): StringValues {
-        require(!built) { "ValueMapBuilder can only build a single ValueMap" }
-        built = true
         return StringValuesImpl(caseInsensitiveName, values)
     }
 
@@ -278,13 +278,6 @@ public open class StringValuesBuilderImpl(
     }
 
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
-        if (built) {
-            throw IllegalStateException(
-                "Cannot modify a builder after build() function already invoked. " +
-                    "Make sure you call build() last."
-            )
-        }
-
         return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }
     }
 }

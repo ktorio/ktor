@@ -335,7 +335,6 @@ public class io/ktor/util/StringValuesBuilderImpl : io/ktor/util/StringValuesBui
 	public fun entries ()Ljava/util/Set;
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	public fun getAll (Ljava/lang/String;)Ljava/util/List;
-	protected final fun getBuilt ()Z
 	public final fun getCaseInsensitiveName ()Z
 	protected final fun getValues ()Ljava/util/Map;
 	public fun isEmpty ()Z
@@ -344,7 +343,6 @@ public class io/ktor/util/StringValuesBuilderImpl : io/ktor/util/StringValuesBui
 	public fun remove (Ljava/lang/String;Ljava/lang/String;)Z
 	public fun removeKeysWithNoEntries ()V
 	public fun set (Ljava/lang/String;Ljava/lang/String;)V
-	protected final fun setBuilt (Z)V
 	protected fun validateName (Ljava/lang/String;)V
 	protected fun validateValue (Ljava/lang/String;)V
 }
@@ -360,7 +358,7 @@ public class io/ktor/util/StringValuesImpl : io/ktor/util/StringValues {
 	public fun forEach (Lkotlin/jvm/functions/Function2;)V
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	public fun getAll (Ljava/lang/String;)Ljava/util/List;
-	public fun getCaseInsensitiveName ()Z
+	public final fun getCaseInsensitiveName ()Z
 	protected final fun getValues ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun isEmpty ()Z

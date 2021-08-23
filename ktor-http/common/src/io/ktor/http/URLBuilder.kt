@@ -24,7 +24,7 @@ public const val DEFAULT_PORT: Int = 0
  */
 public class URLBuilder(
     public var protocol: URLProtocol = URLProtocol.HTTP,
-    public var host: String = "localhost",
+    public var host: String = "",
     public var port: Int = DEFAULT_PORT,
     user: String? = null,
     password: String? = null,
@@ -34,79 +34,77 @@ public class URLBuilder(
     public var trailingQuery: Boolean = false
 ) {
 
+    public var encodedUser: String? = user?.encodeURLParameter()
     public var user: String?
         get() = encodedUser?.decodeURLPart()
         set(value) {
             encodedUser = value?.encodeURLParameter()
         }
 
+    public var encodedPassword: String? = password?.encodeURLParameter()
     public var password: String?
         get() = encodedPassword?.decodeURLPart()
         set(value) {
             encodedPassword = value?.encodeURLParameter()
         }
 
+    public var encodedFragment: String = fragment.encodeURLQueryComponent()
     public var fragment: String
         get() = encodedFragment.decodeURLQueryComponent()
         set(value) {
             encodedFragment = value.encodeURLQueryComponent()
         }
 
+    public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPath() }
     public var pathSegments: List<String>
-        get() = _encodedPathSegments.map { it.decodeURLPart() }
+        get() = encodedPathSegments.map { it.decodeURLPart() }
         set(value) {
             encodedPathSegments = value.map { it.encodeURLPath() }
         }
 
-    public var parameters: ParametersBuilder
-        private set
-
-    public var encodedUser: String?
-    public var encodedPassword: String?
-    public var encodedFragment: String
     public var encodedParameters: ParametersBuilder = encodeParameters(parameters)
         set(value) {
             field = value
             parameters = UrlDecodedParametersBuilder(value)
         }
-
-    internal var _encodedPathSegments: MutableList<String>
-    public var encodedPathSegments: List<String>
-        get() = _encodedPathSegments
-        set(value) {
-            _encodedPathSegments = value.toMutableList()
-        }
-
-    init {
-        originHost?.let { takeFrom(it) }
-        encodedPassword = password?.encodeURLParameter()
-        encodedUser = user?.encodeURLParameter()
-        encodedFragment = fragment.encodeURLQueryComponent()
-        _encodedPathSegments = pathSegments.map { it.encodeURLPath() }.toMutableList()
-        this.parameters = UrlDecodedParametersBuilder(encodedParameters)
-    }
+    public var parameters: ParametersBuilder = UrlDecodedParametersBuilder(encodedParameters)
+        private set
 
     /**
      * Build a URL string
      */
     // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
-    public fun buildString(): String = appendTo(StringBuilder(256)).toString()
+    public fun buildString(): String {
+        applyOrigin()
+        return appendTo(StringBuilder(256)).toString()
+    }
 
     /**
      * Build a [Url] instance (everything is copied to a new instance)
      */
-    public fun build(): Url = Url(
-        protocol = protocol,
-        host = host,
-        specifiedPort = port,
-        pathSegments = pathSegments,
-        parameters = parameters.build(),
-        fragment = fragment,
-        user = user,
-        password = password,
-        trailingQuery = trailingQuery,
-        urlString = buildString()
-    )
+    public fun build(): Url {
+        applyOrigin()
+        return Url(
+            protocol = protocol,
+            host = host,
+            specifiedPort = port,
+            pathSegments = pathSegments,
+            parameters = parameters.build(),
+            fragment = fragment,
+            user = user,
+            password = password,
+            trailingQuery = trailingQuery,
+            urlString = buildString()
+        )
+    }
+
+    private fun applyOrigin() {
+        if (host.isNotEmpty() || protocol.name == "file") return
+        val originUrl = Url(origin)
+        host = originUrl.host
+        if (protocol == URLProtocol.HTTP) protocol = originUrl.protocol
+        if (port == DEFAULT_PORT) port = originUrl.specifiedPort
+    }
 
     // Required to write external extension function
     public companion object
@@ -157,9 +155,9 @@ private fun Appendable.appendFile(host: String, encodedPath: String) {
 /**
  * Hostname of current origin.
  *
- * It uses "localhost" for all platforms except js.
+ * It uses "http://localhost" for all platforms except js.
  */
-internal expect val URLBuilder.Companion.originHost: String?
+public expect val URLBuilder.Companion.origin: String
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
@@ -191,7 +189,7 @@ public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder {
         .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' }.encodeURLPath() }
         .filter { it.isNotEmpty() }
 
-    _encodedPathSegments.addAll(paths)
+    encodedPathSegments = encodedPathSegments + paths
 
     return this
 }
@@ -205,6 +203,26 @@ public fun URLBuilder.appendPathSegments(vararg components: String): URLBuilder 
 
 public fun URLBuilder.path(vararg path: String) {
     pathSegments = path.toList()
+}
+
+/**
+ * Adds [components] to current [encodedPath]
+ */
+public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
+    val paths = segments
+        .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' } }
+        .filter { it.isNotEmpty() }
+
+    encodedPathSegments = encodedPathSegments + paths
+
+    return this
+}
+
+/**
+ * Adds [components] to current [encodedPath]
+ */
+public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder {
+    return appendEncodedPathSegments(components.toList())
 }
 
 /**

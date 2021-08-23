@@ -274,6 +274,7 @@ class UrlTest {
         assertEquals("password", url.encodedPassword)
         assertEquals("/quickstart/", url.encodedPath)
         assertEquals("query=string&param=value&param=value2", url.encodedQuery)
+        assertEquals("/quickstart/?query=string&param=value&param=value2", url.encodedPathAndQuery)
         assertEquals("fragment", url.encodedFragment)
         assertEquals(urlString, "$url")
     }

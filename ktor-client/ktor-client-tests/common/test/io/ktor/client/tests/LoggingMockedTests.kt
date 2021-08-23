@@ -20,7 +20,7 @@ class LoggingMockedTests {
     @Test
     fun testLogRequestWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -31,7 +31,7 @@ class LoggingMockedTests {
             "BODY START",
             "",
             "BODY END",
-            "REQUEST http://localhost/ failed with exception: CustomError[BAD REQUEST]"
+            "REQUEST ${URLBuilder.origin}/ failed with exception: CustomError[BAD REQUEST]"
         )
 
         config {
@@ -65,7 +65,7 @@ class LoggingMockedTests {
     @Test
     fun testLogResponseWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -78,9 +78,9 @@ class LoggingMockedTests {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost/",
+            "FROM: ${URLBuilder.origin}/",
             "COMMON HEADERS",
-            "+++RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
+            "+++RESPONSE ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]",
             "BODY Content-Type: null",
             "BODY START",
             "Hello",
@@ -130,7 +130,7 @@ class LoggingMockedTests {
     @Test
     fun testLogResponseWithExceptionSingle() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -143,10 +143,10 @@ class LoggingMockedTests {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost/",
+            "FROM: ${URLBuilder.origin}/",
             "COMMON HEADERS",
-            "RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
-            "REQUEST http://localhost/ failed with exception: CustomError[PARSE ERROR]"
+            "RESPONSE ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]",
+            "REQUEST ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]"
         )
 
         config {

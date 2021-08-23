@@ -265,19 +265,20 @@ public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> 
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
+ * Pass `null` to keep existing value in the [URLBuilder].
  */
 public fun HttpRequestBuilder.url(
-    scheme: String = "http",
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    scheme: String? = null,
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: URLBuilder.() -> Unit = {}
 ): Unit { // ktlint-disable filename no-unit-return
     url.apply {
-        protocol = URLProtocol.createOrDefault(scheme)
-        this.host = host
-        this.port = port
-        encodedPath = path
+        if (scheme != null) protocol = URLProtocol.createOrDefault(scheme)
+        if (host != null) this.host = host
+        if (port != null) this.port = port
+        if (path != null) encodedPath = path
         block(url)
     }
 }
@@ -285,12 +286,13 @@ public fun HttpRequestBuilder.url(
 /**
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
+ * Pass `null` to keep existing value in the [URLBuilder].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
-    scheme: String = "http",
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    scheme: String? = null,
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
