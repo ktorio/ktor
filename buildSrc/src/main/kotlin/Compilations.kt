@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.plugin.*
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
     kotlinOptions {
-        if (platformType == KotlinPlatformType.jvm) {
+        if (platformType == KotlinPlatformType.jvm && !KtorBuildProperties.ideaActive) {
             allWarningsAsErrors = true
         }
         freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
