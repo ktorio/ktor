@@ -15,6 +15,7 @@ internal class AuthTokenHolder<T>(
 
     internal fun clearToken() {
         cachedBearerTokens.value = null
+        initialized.value = false
     }
 
     internal suspend fun loadToken(): T? {

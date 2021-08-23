@@ -354,4 +354,28 @@ class AuthTest : ClientLoader() {
             assertEquals("OK", second)
         }
     }
+
+    @Test
+    fun testLoadTokenAfterClear() = clientTests {
+        var loadCount = 0
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { null }
+                    loadTokens {
+                        loadCount++
+                        BearerTokens("valid", "refresh")
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
+            client[Auth].providers.filterIsInstance<BearerAuthProvider>().first().clearToken()
+            client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
+
+            assertEquals(2, loadCount)
+        }
+    }
 }
