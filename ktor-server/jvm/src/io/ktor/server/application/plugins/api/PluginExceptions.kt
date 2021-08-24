@@ -5,7 +5,7 @@
 package io.ktor.server.application.plugins.api
 
 /**
- * Reports that current body in HTTP pipeline is invalid.
+ * An exception that is thrown when the current body in the HTTP pipeline is invalid.
  */
 public class InvalidBodyException(override val message: String) : Exception()
 

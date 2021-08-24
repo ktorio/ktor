@@ -11,7 +11,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**
- * Represents a single act of communication between client and server.
+ * Represents a single act of communication between a client and server.
  */
 public interface ApplicationCall {
     /**
@@ -20,17 +20,17 @@ public interface ApplicationCall {
     public val application: Application
 
     /**
-     * Client request.
+     * [ApplicationRequest] that represents a client request.
      */
     public val request: ApplicationRequest
 
     /**
-     * Server response.
+     * [ApplicationRequest] that represents a server response.
      */
     public val response: ApplicationResponse
 
     /**
-     * Attributes attached to this instance.
+     * [Attributes] attached to this call.
      */
     public val attributes: Attributes
 
@@ -40,9 +40,9 @@ public interface ApplicationCall {
     public val parameters: Parameters
 
     /**
-     * Callback that will be executed after the call finishes its execution.
+     * Allows you to execute a [handler] after the current call is finished.
      *
-     * @param exception optional exception that happened before the call has finished
+     * @param throwable An exception that can take place before the call has finished.
      * */
     public fun afterFinish(handler: (Throwable?) -> Unit)
 }

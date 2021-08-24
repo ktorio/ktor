@@ -88,7 +88,7 @@ class ReceiveBlockingPrimitiveTest {
             get() = error("Shouldn't be invoked")
 
         override fun afterFinish(handler: (Throwable?) -> Unit) {
-            error("onCallFinish is not available for TestCall")
+            error("afterFinish is not available for TestCall")
         }
 
         fun close() {

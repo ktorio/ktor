@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * A [PluginContext] context that allows inserting [currentPlugin] actions relatively (before/after) to [otherPlugins].
+ * A [PluginContext] context that allows you to insert the [currentPlugin] actions before/after [otherPlugins].
  **/
 public abstract class RelativePluginContext(
     private val currentPlugin: ServerPlugin<*>,
@@ -30,13 +30,13 @@ public abstract class RelativePluginContext(
             }
 
     /**
-     * Defines how a phase will be selected from a sorted list of [PipelinePhase] of phases of some other plugin.
-     * After a phase has been selected, it will be passed to [insertPhase] method as a relativePhase.
+     * Specifies how to select a phase from a sorted list of pipeline phases of another plugin.
+     * After a phase is selected, it is passed to the [insertPhase] method as [relativePhase].
      **/
     protected abstract fun selectPhase(phases: List<PipelinePhase>): PipelinePhase?
 
     /**
-     * Defines how a [newPhase] will be inserted relatively to a [relativePhase] of some other plugin.
+     * Specifies how to insert a [newPhase] relatively to a [relativePhase] of another plugin.
      **/
     protected abstract fun insertPhase(
         pipeline: Pipeline<*, ApplicationCall>,
@@ -140,7 +140,7 @@ public abstract class RelativePluginContext(
 }
 
 /**
- * Every handler called in this context will be executed only after same handler has finished for all [otherPlugins].
+ * Contains handlers executed after the same handler is finished for all [otherPlugins].
  **/
 public class AfterPluginContext(
     currentPlugin: ServerPlugin<*>,
@@ -158,7 +158,7 @@ public class AfterPluginContext(
 }
 
 /**
- * Every handler called in this context will be executed only before same handler has finished for all [otherPlugins].
+ * Contains handlers executed before the same handler is finished for all [otherPlugins].
  **/
 public class BeforePluginsContext(
     currentPlugin: ServerPlugin<*>,

@@ -8,16 +8,16 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * Factory class that can be passed to install function in order to produce an instance of [ServerPlugin]
- * that will be installed into the current application context.
+ * A factory class to be passed to the [install] function for creating a [ServerPlugin]
+ * instance and installing it into the current application context.
  **/
 public abstract class ServerPluginFactory<Configuration : Any>(
     public val name: String
 ) : ApplicationPlugin<ApplicationCallPipeline, Configuration, ServerPlugin<Configuration>>
 
 /**
- * Gets plugin instance for this pipeline, or fails with [MissingApplicationPluginException] if the feature is not
- * installed.
+ * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
+ * if the plugin is not installed.
  * @throws MissingApplicationPluginException
  * @param plugin plugin to lookup
  * @return an instance of plugin

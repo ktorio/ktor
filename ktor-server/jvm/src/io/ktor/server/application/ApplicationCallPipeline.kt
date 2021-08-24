@@ -9,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 
 /**
- * Pipeline configuration for executing [ApplicationCall] instances
+ * Pipeline configuration for executing [ApplicationCall] instances.
  */
 @Suppress("PublicApiImplicitType")
 public open class ApplicationCallPipeline public constructor(

@@ -131,17 +131,9 @@ public final class io/ktor/server/application/plugins/api/CallRespondContext : i
 	public final fun transformResponseBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public class io/ktor/server/application/plugins/api/NoBinaryDataException : java/lang/Exception {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Object;)V
+public final class io/ktor/server/application/plugins/api/InvalidBodyException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/application/plugins/api/NoByteReadChannelException : io/ktor/server/application/plugins/api/NoBinaryDataException {
-	public fun <init> (Ljava/lang/Object;)V
-}
-
-public final class io/ktor/server/application/plugins/api/NoOutgoingContentException : io/ktor/server/application/plugins/api/NoBinaryDataException {
-	public fun <init> (Ljava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/server/application/plugins/api/OnCall {
@@ -162,11 +154,6 @@ public abstract interface class io/ktor/server/application/plugins/api/PluginCon
 	public abstract fun getOnCall ()Lio/ktor/server/application/plugins/api/OnCall;
 	public abstract fun getOnCallReceive ()Lio/ktor/server/application/plugins/api/OnCallReceive;
 	public abstract fun getOnCallRespond ()Lio/ktor/server/application/plugins/api/OnCallRespond;
-}
-
-public final class io/ktor/server/application/plugins/api/PluginNotInstalledException : java/lang/Exception {
-	public fun <init> (Ljava/lang/String;)V
-	public fun getMessage ()Ljava/lang/String;
 }
 
 public abstract class io/ktor/server/application/plugins/api/RelativePluginContext : io/ktor/server/application/plugins/api/PluginContext {

@@ -7,11 +7,11 @@ package io.ktor.server.application.plugins.api
 import io.ktor.server.config.*
 
 /**
- * Port of the current application. Same as in config.
+ * The port the current application is running on, as defined by the configuration at start-up.
  **/
 public val ApplicationConfig.port: Int get() = propertyOrNull("ktor.deployment.port")?.getString()?.toInt() ?: 8080
 
 /**
- * Host of the current application. Same as in config.
+ * The host address of the currently running application, as defined by the configuration at start-up.
  **/
 public val ApplicationConfig.host: String get() = propertyOrNull("ktor.deployment.host")?.getString() ?: "0.0.0.0"

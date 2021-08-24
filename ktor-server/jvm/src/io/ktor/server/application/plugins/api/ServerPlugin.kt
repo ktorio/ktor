@@ -15,16 +15,14 @@ import io.ktor.util.pipeline.*
 import kotlin.random.Random
 
 /**
- * A plugin for Ktor that embeds into the HTTP pipeline and extends functionality of Ktor framework.
+ * A plugin that embeds into the HTTP pipeline and extends Ktor functionality.
  **/
 public abstract class ServerPlugin<Configuration : Any> private constructor(
     pluginFactory: ServerPluginFactory<Configuration>
 ) : PluginContext {
     /**
-     * [ServerPlugin] encapsulates a bunch of actions you can perform with HTTP pipeline.
-     * [pipeline] represents an [ApplicationCallPipeline] object.
-     *
-     * Please, see https://ktor.io/docs/pipelines.html for more information.
+     * A pipeline configuration for the current plugin. See [ktor.io/docs/pipelines.html](https://ktor.io/docs/pipelines.html)
+     * for more information.
      **/
     protected abstract val pipeline: ApplicationCallPipeline
 
@@ -35,7 +33,7 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     public abstract val pluginConfig: Configuration
 
     /**
-     * A name for your plugin. Will be used to find your plugin in the current application.
+     * A name for your plugin. A name is used to find your plugin in the current application.
      **/
     public val name: String = pluginFactory.name
 
@@ -89,7 +87,8 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     }
 
     /**
-     * Callable object that defines how HTTP call handling should be modified by the current [ServerPlugin].
+     * Specifies how to modify HTTP call handling for the current [ServerPlugin].
+     * @see OnCall
      **/
     public override val onCall: OnCall = object : OnCall {
         private val plugin get() = this@ServerPlugin
@@ -106,8 +105,8 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     }
 
     /**
-     * Callable object that defines how receiving data from HTTP call should be modified by the current
-     * [ServerPlugin].
+     * Specifies how to modify receiving data from an HTTP call for the current [ServerPlugin].
+     * @see OnCallReceive
      **/
     public override val onCallReceive: OnCallReceive = object : OnCallReceive {
         private val plugin = this@ServerPlugin
@@ -123,8 +122,8 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     }
 
     /**
-     * Callable object that defines how sending data to a client within HTTP call should be modified by the current
-     * [ServerPlugin].
+     * Specifies how to modify sending data within an HTTP call for the current [ServerPlugin].
+     * @see OnCallRespond
      **/
     public override val onCallRespond: OnCallRespond = object : OnCallRespond {
         private val plugin = this@ServerPlugin
@@ -149,10 +148,13 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     }
 
     /**
-     * Execute some actions right after all [targetPlugins] were already executed.
+     * Executes specific actions after all [targetPlugins] are executed.
+     *
+     * @param targetPlugins Plugins that need to be executed before your current [ServerPlugin].
+     * @param build Defines the code of your plugin that needs to be executed after [targetPlugins].
      *
      * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
-     * (such as [onCall], [onCallRespond], etc.) and each of these actions will be executed right after all actions defined
+     * (such as [onCall], [onCallRespond], and so on) and each of these actions will be executed right after all actions defined
      * by the given [plugin] were already executed in the same stage.
      **/
     public fun afterPlugins(
@@ -165,10 +167,13 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
     }
 
     /**
-     * Execute some actions right before all [targetPlugins] were already executed.
+     * Executes specific actions before all [targetPlugins] are executed.
+     *
+     * @param targetPlugins Plugins that need to be executed after your current [ServerPlugin].
+     * @param build Defines the code of your plugin that needs to be executed before [targetPlugins].
      *
      * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
-     * (such as [onCall], [onCallRespond], etc.) and each of these actions will be executed right before all actions defined
+     * (such as [onCall], [onCallRespond], and so on) and each of these actions will be executed right before all actions defined
      * by the given [targetPlugins] were already executed in the same stage.
      **/
     public fun beforePlugins(
@@ -182,7 +187,26 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
 
     public companion object {
         /**
-         * A canonical way to create a [ServerPlugin].
+         * Creates a [ServerPlugin].
+         *
+         * @param name A name of your new plugin that will be used if you need find an instance of
+         * your plugin when it is installed to an [Application].
+         * @param createConfiguration Defines how the initial [Configuration] of your new plugin can be created. Please
+         * note that it may be modified later when a user of your plugin calls [Application.install].
+         * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+         * can modify the behaviour of an [Application] where your plugin is installed.
+         *
+         * Usage example:
+         * ```
+         * val MyPlugin = createPlugin("MyPlugin") {
+         *      // This block will be executed when you call install(MyPlugin)
+         *
+         *      onCall { call ->
+         *          // Prints requested URL each time your application receives a call:
+         *          println(call.request.uri)
+         *      }
+         * }
+         * ```
          **/
         public fun <Configuration : Any> createPlugin(
             name: String,
@@ -233,7 +257,24 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
         }
 
         /**
-         * A canonical way to create a [ServerPlugin].
+         * Creates an instance of [ServerPlugin]. A canonical way to create a [ServerPlugin] without any configuration.
+         *
+         * @param name A name of your new plugin that will be used if you need find an instance of
+         * your plugin when it is installed to an [Application].
+         * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+         * can modify the behaviour of an [Application] where your plugin is installed.
+         *
+         * Usage example:
+         * ```
+         * val MyPlugin = createPlugin("MyPlugin") {
+         *      // This block will be executed when you call install(MyPlugin)
+         *
+         *      onCall { call ->
+         *          // Prints requested URL each time your application receives a call:
+         *          println(call.request.uri)
+         *      }
+         * }
+         * ```
          **/
         public fun createPlugin(
             name: String,
