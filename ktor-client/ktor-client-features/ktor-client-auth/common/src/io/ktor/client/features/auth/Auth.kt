@@ -82,5 +82,5 @@ public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
  * be removed after that.
  */
 @PublicAPICandidate("1.6.0")
-@ThreadLocal
+@SharedImmutable
 internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")
