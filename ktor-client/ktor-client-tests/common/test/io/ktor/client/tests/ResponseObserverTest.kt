@@ -51,7 +51,7 @@ class ResponseObserverTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/download") {
+            client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
             assertEquals(1, observerCalls)
@@ -68,7 +68,7 @@ class ResponseObserverTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/download") {
+            client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
             assertEquals(1, observerCalls)
@@ -85,7 +85,7 @@ class ResponseObserverTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/download") {
+            client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
             assertEquals(0, observerCalls)
