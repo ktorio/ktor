@@ -11,13 +11,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
 
     @Test
-    fun testDigestAuthLegacy() = clientTests(listOf("Js")) {
+    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native")) {
         config {
             install(Auth) {
                 digest {
@@ -35,7 +36,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuth() = clientTests(listOf("Js")) {
+    fun testDigestAuth() = clientTests(listOf("Js", "native")) {
         config {
             install(Auth) {
                 digest {
@@ -52,7 +53,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthPerRealm() = clientTests(listOf("Js")) {
+    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native")) {
         config {
             install(Auth) {
                 digest {
@@ -344,40 +345,42 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    private var clientWithAuth: HttpClient? by shared(null)
+
     @Suppress("JoinDeclarationAndAssignment")
     @Test
     fun testRefreshWithSameClient() = clientTests {
         test { client ->
-            lateinit var clientWithAuth: HttpClient
             clientWithAuth = client.config {
                 developmentMode = true
 
                 install(Auth) {
                     bearer {
                         loadTokens {
-                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/first")
+                            val token = clientWithAuth!!.get<String>("$TEST_SERVER/auth/bearer/token/first")
                             BearerTokens(token, token)
                         }
 
                         refreshTokens {
-                            val token = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/token/second")
+                            val token = clientWithAuth!!.get<String>("$TEST_SERVER/auth/bearer/token/second")
                             BearerTokens(token, token)
                         }
                     }
                 }
             }
 
-            val first = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/first")
-            val second = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/second")
+            val first = clientWithAuth!!.get<String>("$TEST_SERVER/auth/bearer/first")
+            val second = clientWithAuth!!.get<String>("$TEST_SERVER/auth/bearer/second")
 
             assertEquals("OK", first)
             assertEquals("OK", second)
         }
     }
 
+    private var loadCount by shared(0)
+
     @Test
     fun testLoadTokenAfterClear() = clientTests {
-        var loadCount = 0
         config {
             install(Auth) {
                 bearer {
@@ -391,6 +394,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
+            loadCount = 0
             client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
             client[Auth].providers.filterIsInstance<BearerAuthProvider>().first().clearToken()
             client.get<String>("$TEST_SERVER/auth/bearer/test-refresh")
