@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import kotlin.native.concurrent.*
 
 /**
  * Client authentication feature.
@@ -81,4 +82,5 @@ public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
  * be removed after that.
  */
 @PublicAPICandidate("1.6.0")
+@SharedImmutable
 internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")
