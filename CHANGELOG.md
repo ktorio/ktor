@@ -1,3 +1,20 @@
+# 1.6.3
+> Published 26 August 2021
+
+* Auth Feature: token refresh works only on main thread in Kotlin/Native ([KTOR-3055](https://youtrack.jetbrains.com/issue/KTOR-3055))
+* FUS report mixes up feature id and feature version ([KTOR-3067](https://youtrack.jetbrains.com/issue/KTOR-3067))
+* SessionTrackerById - doesn't remove invalid session id ([KTOR-2584](https://youtrack.jetbrains.com/issue/KTOR-2584))
+* Bearer Token is Not Initialized after Clean ([KTOR-3008](https://youtrack.jetbrains.com/issue/KTOR-3008))
+* Allow using the client itself inside Auth plugin in the refreshTokens lambda. ([KTOR-2977](https://youtrack.jetbrains.com/issue/KTOR-2977))
+* ktor does not support semicolon query parameter in Netty Engine ([KTOR-2991](https://youtrack.jetbrains.com/issue/KTOR-2991))
+* HOCON config not resolved in ServletApplicationEngine ([KTOR-3020](https://youtrack.jetbrains.com/issue/KTOR-3020))
+* Deploy WAR on Tomcat ([KTOR-2867](https://youtrack.jetbrains.com/issue/KTOR-2867))
+* The wizard missing the Pebble plugin ([KTOR-2922](https://youtrack.jetbrains.com/issue/KTOR-2922))
+* Wizard: Creating a project without sample code creates `Application.configureRouting` without `routing` ([KTOR-2581](https://youtrack.jetbrains.com/issue/KTOR-2581))
+* The 'Create Run Configuration automatically' option name is cropped ([KTOR-2898](https://youtrack.jetbrains.com/issue/KTOR-2898))
+* InvalidMutabilityException when using withContext and SavedHttpCall ([KTOR-2033](https://youtrack.jetbrains.com/issue/KTOR-2033))
+* Reuse Package Search to add dependencies for Ktor Features in Plugin ([KTOR-2433](https://youtrack.jetbrains.com/issue/KTOR-2433))
+
 # 1.6.2
 > Published 29 July 2021
 
