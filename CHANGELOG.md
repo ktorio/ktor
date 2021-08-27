@@ -13,6 +13,8 @@
 * The 'Create Run Configuration automatically' option name is cropped ([KTOR-2898](https://youtrack.jetbrains.com/issue/KTOR-2898))
 * InvalidMutabilityException when using withContext and SavedHttpCall ([KTOR-2033](https://youtrack.jetbrains.com/issue/KTOR-2033))
 * Reuse Package Search to add dependencies for Ktor Features in Plugin ([KTOR-2433](https://youtrack.jetbrains.com/issue/KTOR-2433))
+* Server: TLSConfigBuilder.addKeyStore: store.getCertificateChain could return null([KTOR-3047](https://youtrack.jetbrains.com/issue/KTOR-3047))
+
 
 # 1.6.2
 > Published 29 July 2021
