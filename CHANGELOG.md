@@ -5,7 +5,6 @@
 * FUS report mixes up feature id and feature version ([KTOR-3067](https://youtrack.jetbrains.com/issue/KTOR-3067))
 * SessionTrackerById - doesn't remove invalid session id ([KTOR-2584](https://youtrack.jetbrains.com/issue/KTOR-2584))
 * Bearer Token is Not Initialized after Clean ([KTOR-3008](https://youtrack.jetbrains.com/issue/KTOR-3008))
-* Allow using the client itself inside Auth plugin in the refreshTokens lambda. ([KTOR-2977](https://youtrack.jetbrains.com/issue/KTOR-2977))
 * ktor does not support semicolon query parameter in Netty Engine ([KTOR-2991](https://youtrack.jetbrains.com/issue/KTOR-2991))
 * HOCON config not resolved in ServletApplicationEngine ([KTOR-3020](https://youtrack.jetbrains.com/issue/KTOR-3020))
 * Deploy WAR on Tomcat ([KTOR-2867](https://youtrack.jetbrains.com/issue/KTOR-2867))
