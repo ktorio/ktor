@@ -11,7 +11,7 @@ import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class ResponseObserverTest : ClientLoader() {
-    private var observerCalls by shared(0)
+    private var observerCalled by shared(false)
 
     @Test
     fun testEmptyResponseObserverIsNotFreezing() = clientTests {
@@ -45,8 +45,8 @@ class ResponseObserverTest : ClientLoader() {
     @Test
     fun testResponseObserverCalledWhenNoFilterPresent() = clientTests {
         config {
-            ResponseObserver {
-                observerCalls++
+            install(ResponseObserver) {
+                onResponse { observerCalled = true }
             }
         }
 
@@ -54,7 +54,7 @@ class ResponseObserverTest : ClientLoader() {
             client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
-            assertEquals(1, observerCalls)
+            assertTrue { observerCalled }
         }
     }
 
@@ -62,7 +62,7 @@ class ResponseObserverTest : ClientLoader() {
     fun testResponseObserverCalledWhenFilterMatched() = clientTests {
         config {
             install(ResponseObserver) {
-                onResponse { observerCalls++ }
+                onResponse { observerCalled = true }
                 filter { true }
             }
         }
@@ -71,7 +71,7 @@ class ResponseObserverTest : ClientLoader() {
             client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
-            assertEquals(1, observerCalls)
+            assertTrue { observerCalled }
         }
     }
 
@@ -79,7 +79,7 @@ class ResponseObserverTest : ClientLoader() {
     fun testResponseObserverNotCalledWhenFilterNotMatched() = clientTests {
         config {
             install(ResponseObserver) {
-                onResponse { observerCalls++ }
+                onResponse { observerCalled = true }
                 filter { false }
             }
         }
@@ -88,7 +88,7 @@ class ResponseObserverTest : ClientLoader() {
             client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
-            assertEquals(0, observerCalls)
+            assertFalse { observerCalled }
         }
     }
 }
