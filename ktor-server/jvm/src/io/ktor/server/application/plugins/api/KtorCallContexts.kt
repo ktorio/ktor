@@ -85,7 +85,7 @@ public class CallRespondAfterTransformContext(
      **/
     public suspend fun transformResponseBody(transform: suspend (OutgoingContent) -> OutgoingContent) {
         val newContent =
-            context.subject as? OutgoingContent ?: throw  noBinaryDataException("OutgoingContent", context.subject)
+            context.subject as? OutgoingContent ?: throw noBinaryDataException("OutgoingContent", context.subject)
         context.subject = transform(newContent)
     }
 }

@@ -3,6 +3,7 @@ package io.ktor.tests.plugins.api
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.plugins.api.ServerPlugin.Companion.createPlugin
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -232,6 +233,23 @@ class ServerPluginTest {
         val plugin = createPlugin("F") {
             onCall { call ->
                 eventsList.add("onCall")
+                println(call)
+
+                call.afterFinish {
+                    eventsList.add("afterFinish")
+                }
+            }
+            onCallReceive { call ->
+                eventsList.add("onCallReceive")
+                println(call)
+
+                call.afterFinish {
+                    eventsList.add("afterFinish")
+                }
+            }
+            onCallRespond { call ->
+                eventsList.add("onCallRespond")
+                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")
@@ -239,6 +257,7 @@ class ServerPluginTest {
             }
             onCallRespond.afterTransform { call, _ ->
                 eventsList.add("onCallRespond.afterTransform")
+                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")
@@ -251,13 +270,28 @@ class ServerPluginTest {
 
             application.routing {
                 get("/request") {
-                    call.respondText("response")
+                    val data = call.receive<String>()
+                    call.respondText("response : $data")
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/request")
+            handleRequest(HttpMethod.Get, "/request") {
+                this.setBody("data")
+            }
 
-            assertEquals(listOf("onCall", "onCallRespond.afterTransform", "afterFinish", "afterFinish"), eventsList)
+            assertEquals(
+                listOf(
+                    "onCall",
+                    "onCallReceive",
+                    "onCallRespond",
+                    "onCallRespond.afterTransform",
+                    "afterFinish",
+                    "afterFinish",
+                    "afterFinish",
+                    "afterFinish"
+                ),
+                eventsList
+            )
         }
     }
 }
