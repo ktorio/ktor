@@ -606,11 +606,13 @@ public final class io/ktor/client/plugins/observer/DelegatedCallKt {
 
 public final class io/ktor/client/plugins/observer/ResponseObserver {
 	public static final field Plugin Lio/ktor/client/plugins/observer/ResponseObserver$Plugin;
-	public fun <init> (Lkotlin/jvm/functions/Function2;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/observer/ResponseObserver$Config {
 	public fun <init> ()V
+	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun onResponse (Lkotlin/jvm/functions/Function2;)V
 }
 

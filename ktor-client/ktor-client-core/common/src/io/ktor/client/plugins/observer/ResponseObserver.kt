@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.observer
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
@@ -20,10 +21,13 @@ public typealias ResponseHandler = suspend (HttpResponse) -> Unit
  * Observe response plugin.
  */
 public class ResponseObserver(
-    private val responseHandler: ResponseHandler
+    private val responseHandler: ResponseHandler,
+    private val filter: ((HttpClientCall) -> Boolean)? = null
 ) {
     public class Config {
         internal var responseHandler: ResponseHandler = {}
+
+        internal var filter: ((HttpClientCall) -> Boolean)? = null
 
         /**
          * Set response handler for logging.
@@ -31,18 +35,29 @@ public class ResponseObserver(
         public fun onResponse(block: ResponseHandler) {
             responseHandler = block
         }
+
+        /**
+         * Set filter predicate to dynamically control if interceptor is executed or not for each http call.
+         */
+        public fun filter(block: ((HttpClientCall) -> Boolean)) {
+            filter = block
+        }
     }
 
     public companion object Plugin : HttpClientPlugin<Config, ResponseObserver> {
 
         override val key: AttributeKey<ResponseObserver> = AttributeKey("BodyInterceptor")
 
-        override fun prepare(block: Config.() -> Unit): ResponseObserver =
-            ResponseObserver(Config().apply(block).responseHandler)
+        override fun prepare(block: Config.() -> Unit): ResponseObserver {
+            val config = Config().apply(block)
+            return ResponseObserver(config.responseHandler, config.filter)
+        }
 
         @OptIn(InternalAPI::class)
         override fun install(plugin: ResponseObserver, scope: HttpClient) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
+                if (plugin.filter?.invoke(response.call) == false) return@intercept
+
                 val (loggingContent, responseContent) = response.content.split(response)
 
                 val newResponse = response.wrapWithContent(responseContent)
