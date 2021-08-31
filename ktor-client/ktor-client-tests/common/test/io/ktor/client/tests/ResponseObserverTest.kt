@@ -7,9 +7,11 @@ package io.ktor.client.tests
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class ResponseObserverTest : ClientLoader() {
+    private var observerCalled by shared(false)
 
     @Test
     fun testEmptyResponseObserverIsNotFreezing() = clientTests {
@@ -37,6 +39,56 @@ class ResponseObserverTest : ClientLoader() {
             client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
+        }
+    }
+
+    @Test
+    fun testResponseObserverCalledWhenNoFilterPresent() = clientTests {
+        config {
+            install(ResponseObserver) {
+                onResponse { observerCalled = true }
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/download") {
+                parameter("size", (1024 * 10).toString())
+            }
+            assertTrue { observerCalled }
+        }
+    }
+
+    @Test
+    fun testResponseObserverCalledWhenFilterMatched() = clientTests {
+        config {
+            install(ResponseObserver) {
+                onResponse { observerCalled = true }
+                filter { true }
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/download") {
+                parameter("size", (1024 * 10).toString())
+            }
+            assertTrue { observerCalled }
+        }
+    }
+
+    @Test
+    fun testResponseObserverNotCalledWhenFilterNotMatched() = clientTests {
+        config {
+            install(ResponseObserver) {
+                onResponse { observerCalled = true }
+                filter { false }
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/download") {
+                parameter("size", (1024 * 10).toString())
+            }
+            assertFalse { observerCalled }
         }
     }
 }
