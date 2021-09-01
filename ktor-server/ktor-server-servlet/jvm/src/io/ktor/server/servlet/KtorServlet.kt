@@ -139,7 +139,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     private fun blockingService(request: HttpServletRequest, response: HttpServletResponse) {
         runBlocking(coroutineContext) {
-            val call = BlockingServletApplicationCall(application, request, response, coroutineContext)
+            val call = BlockingServletApplicationCall(application, request, response, this@runBlocking.coroutineContext)
             enginePipeline.execute(call)
         }
     }
