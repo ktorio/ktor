@@ -31,7 +31,7 @@ public actual interface WebSocketSession : CoroutineScope {
      * raw websocket session.
      */
     @Suppress("ACTUAL_WITHOUT_EXPECT")
-    public suspend fun send(frame: Frame) {
+    public actual suspend fun send(frame: Frame) {
         outgoing.send(frame)
     }
 
