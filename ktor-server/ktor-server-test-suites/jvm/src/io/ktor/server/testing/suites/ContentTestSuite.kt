@@ -27,6 +27,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testTextContent() {
         createAndStartServer {
