@@ -90,7 +90,7 @@ internal class JettyKtorHandler(
                     response,
                     engineContext = engineDispatcher,
                     userContext = dispatcher,
-                    coroutineContext = coroutineContext
+                    coroutineContext = this@launch.coroutineContext
                 )
 
                 try {

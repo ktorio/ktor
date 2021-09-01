@@ -28,6 +28,10 @@ public abstract class NettyApplicationCall(
 
     private val messageReleased = atomic(false)
 
+    override fun afterFinish(handler: (Throwable?) -> Unit) {
+        responseWriteJob.invokeOnCompletion(handler)
+    }
+
     internal suspend fun finish() {
         try {
             response.ensureResponseSent()

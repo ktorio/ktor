@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class, EngineAPI::class)
@@ -85,6 +86,10 @@ class ReceiveBlockingPrimitiveTest {
             get() = error("Shouldn't be invoked")
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
+
+        override fun afterFinish(handler: (Throwable?) -> Unit) {
+            error("afterFinish is not available for TestCall")
+        }
 
         fun close() {
             application.dispose()

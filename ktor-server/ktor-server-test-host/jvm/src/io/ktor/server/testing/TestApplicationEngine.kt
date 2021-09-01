@@ -148,9 +148,15 @@ class TestApplicationEngine(
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
-        val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
+        val job = Job()
+        val call = createCall(
+            readResponse = true,
+            closeRequest = closeRequest,
+            setup = { processRequest(setup) },
+            context = Dispatchers.IO + job
+        )
 
-        val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
+        val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request") + job
         val pipelineJob = GlobalScope.async(context) {
             pipeline.execute(call)
         }
@@ -267,9 +273,10 @@ class TestApplicationEngine(
     fun createCall(
         readResponse: Boolean = false,
         closeRequest: Boolean = true,
+        context: CoroutineContext = Dispatchers.IO,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall =
-        TestApplicationCall(application, readResponse, closeRequest, Dispatchers.IO).apply { setup(request) }
+        TestApplicationCall(application, readResponse, closeRequest, context).apply { setup(request) }
 }
 
 /**

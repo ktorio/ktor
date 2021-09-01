@@ -18,3 +18,11 @@ class JettyEngineHttp2HttpServerTest :
 
 class JettyEngineHttp2SustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyEngineServerPluginsTest :
+    ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
