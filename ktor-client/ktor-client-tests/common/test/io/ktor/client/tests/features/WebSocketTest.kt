@@ -81,6 +81,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testEchoWSS() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
         config {
             install(WebSockets)
