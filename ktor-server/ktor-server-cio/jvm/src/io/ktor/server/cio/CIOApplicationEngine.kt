@@ -183,7 +183,8 @@ public class CIOApplicationEngine(
                 userDispatcher,
                 upgraded,
                 remoteAddress,
-                localAddress
+                localAddress,
+                this@withContext.coroutineContext
             )
 
             try {

@@ -139,3 +139,11 @@ class TomcatSustainabilityTestSuite :
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
 
 class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
+
+class TomcatServerPluginsTest :
+    ServerPluginsTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
+    }
+}

@@ -1,5 +1,6 @@
-public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
+public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, io/ktor/server/application/ApplicationCallWithContext {
 	public fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;)V
+	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;

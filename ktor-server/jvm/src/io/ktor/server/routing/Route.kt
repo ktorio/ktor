@@ -19,7 +19,8 @@ public open class Route(
     public val parent: Route?,
     public val selector: RouteSelector,
     developmentMode: Boolean,
-) : ApplicationCallPipeline(developmentMode) {
+    environment: ApplicationEnvironment? = null
+) : ApplicationCallPipeline(developmentMode, environment) {
 
     /**
      * Describes a node in a routing tree.
@@ -30,7 +31,8 @@ public open class Route(
     public constructor(
         parent: Route?,
         selector: RouteSelector,
-    ) : this(parent, selector, developmentMode = false)
+        environment: ApplicationEnvironment? = null
+    ) : this(parent, selector, developmentMode = false, environment = environment)
 
     /**
      * List of child routes for this node
@@ -50,7 +52,7 @@ public open class Route(
     public fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
-            val entry = Route(this, selector)
+            val entry = Route(this, selector, environment)
             childList.add(entry)
             return entry
         }
@@ -87,7 +89,7 @@ public open class Route(
     internal fun buildPipeline(): ApplicationCallPipeline {
         return cachedPipeline ?: run {
             var current: Route? = this
-            val pipeline = ApplicationCallPipeline(developmentMode)
+            val pipeline = ApplicationCallPipeline(developmentMode, application.environment)
             val routePipelines = mutableListOf<ApplicationCallPipeline>()
             while (current != null) {
                 routePipelines.add(current)

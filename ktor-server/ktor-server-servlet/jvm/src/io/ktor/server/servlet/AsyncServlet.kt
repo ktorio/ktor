@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
+import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -25,8 +26,8 @@ public open class AsyncServletApplicationCall(
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
     upgrade: ServletUpgrade,
-    parentCoroutineContext: CoroutineContext
-) : BaseApplicationCall(application), CoroutineScope {
+    parentCoroutineContext: CoroutineContext,
+) : BaseApplicationCall(application), ApplicationCallWithContext {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 
