@@ -24,8 +24,12 @@ public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/
 	public final fun setReuseHandlers (Z)V
 }
 
+public final class io/ktor/client/engine/mock/MockEngineConfigKt {
+}
+
 public final class io/ktor/client/engine/mock/MockRequestHandleScope {
 	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun getCallContext$ktor_client_mock ()Lkotlin/coroutines/CoroutineContext;
 }
 
 public final class io/ktor/client/engine/mock/MockUtilsKt {

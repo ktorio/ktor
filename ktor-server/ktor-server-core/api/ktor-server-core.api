@@ -53,6 +53,9 @@ public final class io/ktor/application/ApplicationEvents {
 	public final fun unsubscribe (Lio/ktor/application/EventDefinition;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/application/ApplicationEventsKt {
+}
+
 public abstract interface class io/ktor/application/ApplicationFeature {
 	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
 	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -146,6 +149,9 @@ protected final class io/ktor/config/MapApplicationConfig$MapApplicationConfigVa
 	public fun getString ()Ljava/lang/String;
 }
 
+public final class io/ktor/config/MapApplicationConfigKt {
+}
+
 public final class io/ktor/features/AutoHeadResponse : io/ktor/application/ApplicationFeature {
 	public static final field INSTANCE Lio/ktor/features/AutoHeadResponse;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
@@ -162,6 +168,7 @@ public final class io/ktor/features/CORS {
 	public static final field CORS_DEFAULT_MAX_AGE J
 	public static final field Feature Lio/ktor/features/CORS$Feature;
 	public fun <init> (Lio/ktor/features/CORS$Configuration;)V
+	public final fun checkOrigin$ktor_server_core (Ljava/lang/String;Lio/ktor/http/RequestConnectionPoint;)Lio/ktor/features/OriginCheckResult;
 	public final fun getAllHeaders ()Ljava/util/Set;
 	public final fun getAllHeadersSet ()Ljava/util/Set;
 	public final fun getAllowCredentials ()Z
@@ -234,11 +241,13 @@ public final class io/ktor/features/CachedTransformationResult$Success : io/ktor
 public final class io/ktor/features/CachingHeaders {
 	public static final field Feature Lio/ktor/features/CachingHeaders$Feature;
 	public fun <init> (Ljava/util/List;)V
+	public final fun interceptor$ktor_server_core (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)V
 	public final fun optionsFor (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
 }
 
 public final class io/ktor/features/CachingHeaders$Configuration {
 	public fun <init> ()V
+	public final fun getOptionsProviders$ktor_server_core ()Ljava/util/List;
 	public final fun options (Lkotlin/jvm/functions/Function1;)V
 }
 
@@ -256,17 +265,23 @@ public final class io/ktor/features/CallId {
 public final class io/ktor/features/CallId$Configuration {
 	public fun <init> ()V
 	public final fun generate (Lkotlin/jvm/functions/Function1;)V
+	public final fun getGenerators$ktor_server_core ()Ljava/util/ArrayList;
+	public final fun getResponseInterceptors$ktor_server_core ()Ljava/util/ArrayList;
+	public final fun getRetrievers$ktor_server_core ()Ljava/util/ArrayList;
+	public final fun getVerifier$ktor_server_core ()Lkotlin/jvm/functions/Function1;
 	public final fun header (Ljava/lang/String;)V
 	public final fun reply (Lkotlin/jvm/functions/Function2;)V
 	public final fun replyToHeader (Ljava/lang/String;)V
 	public final fun retrieve (Lkotlin/jvm/functions/Function1;)V
 	public final fun retrieveFromHeader (Ljava/lang/String;)V
+	public final fun setVerifier$ktor_server_core (Lkotlin/jvm/functions/Function1;)V
 	public final fun verify (Ljava/lang/String;Z)V
 	public final fun verify (Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun verify$default (Lio/ktor/features/CallId$Configuration;Ljava/lang/String;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/features/CallId$Feature : io/ktor/application/ApplicationFeature {
+	public final fun getCallIdKey$ktor_server_core ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public final fun getPhase ()Lio/ktor/util/pipeline/PipelinePhase;
 	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/features/CallId;
@@ -285,15 +300,21 @@ public final class io/ktor/features/CallIdKt {
 public final class io/ktor/features/CallLogging {
 	public static final field Feature Lio/ktor/features/CallLogging$Feature;
 	public synthetic fun <init> (Lorg/slf4j/Logger;Lio/ktor/application/ApplicationEvents;Lorg/slf4j/event/Level;Ljava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun cleanupMdc$ktor_server_core ()V
+	public final fun setupMdc$ktor_server_core (Lio/ktor/application/ApplicationCall;)Ljava/util/Map;
 }
 
 public final class io/ktor/features/CallLogging$Configuration {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun format (Lkotlin/jvm/functions/Function1;)V
+	public final fun getFilters$ktor_server_core ()Ljava/util/List;
+	public final fun getFormatCall$ktor_server_core ()Lkotlin/jvm/functions/Function1;
 	public final fun getLevel ()Lorg/slf4j/event/Level;
 	public final fun getLogger ()Lorg/slf4j/Logger;
+	public final fun getMdcEntries$ktor_server_core ()Ljava/util/List;
 	public final fun mdc (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun setFormatCall$ktor_server_core (Lkotlin/jvm/functions/Function1;)V
 	public final fun setLevel (Lorg/slf4j/event/Level;)V
 	public final fun setLogger (Lorg/slf4j/Logger;)V
 }
@@ -310,8 +331,21 @@ public final class io/ktor/features/CallLogging$Internals {
 	public final fun withMDCBlock (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/features/CallLogging$MDCEntry {
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getProvider ()Lkotlin/jvm/functions/Function1;
+}
+
 public final class io/ktor/features/CallLoggingKt {
 	public static final fun toLogString (Lio/ktor/request/ApplicationRequest;)Ljava/lang/String;
+}
+
+public final class io/ktor/features/CannotTransformContentToTypeException : io/ktor/features/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
+	public synthetic fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KType;)V
+	public fun createCopy ()Lio/ktor/features/CannotTransformContentToTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
 public final class io/ktor/features/Compression {
@@ -322,6 +356,7 @@ public final class io/ktor/features/Compression {
 public final class io/ktor/features/Compression$Configuration : io/ktor/features/ConditionsHolderBuilder {
 	public fun <init> ()V
 	public final fun build ()Lio/ktor/features/CompressionOptions;
+	public final fun buildOptions$ktor_server_core ()Lio/ktor/features/CompressionOptions;
 	public final fun default ()V
 	public final fun encoder (Ljava/lang/String;Lio/ktor/features/CompressionEncoder;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun encoder$default (Lio/ktor/features/Compression$Configuration;Ljava/lang/String;Lio/ktor/features/CompressionEncoder;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
@@ -349,7 +384,9 @@ public final class io/ktor/features/CompressionEncoder$DefaultImpls {
 }
 
 public final class io/ktor/features/CompressionEncoderBuilder : io/ktor/features/ConditionsHolderBuilder {
+	public fun <init> (Ljava/lang/String;Lio/ktor/features/CompressionEncoder;)V
 	public final fun build ()Lio/ktor/features/CompressionEncoderConfig;
+	public final fun buildConfig$ktor_server_core ()Lio/ktor/features/CompressionEncoderConfig;
 	public fun getConditions ()Ljava/util/ArrayList;
 	public synthetic fun getConditions ()Ljava/util/List;
 	public final fun getEncoder ()Lio/ktor/features/CompressionEncoder;
@@ -376,6 +413,7 @@ public final class io/ktor/features/CompressionEncoderConfig {
 }
 
 public final class io/ktor/features/CompressionKt {
+	public static final field DEFAULT_MINIMAL_COMPRESSION_SIZE J
 	public static final fun condition (Lio/ktor/features/ConditionsHolderBuilder;Lkotlin/jvm/functions/Function2;)V
 	public static final fun deflate (Lio/ktor/features/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun deflate$default (Lio/ktor/features/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
@@ -406,11 +444,13 @@ public final class io/ktor/features/CompressionOptions {
 public final class io/ktor/features/ConditionalHeaders {
 	public static final field Feature Lio/ktor/features/ConditionalHeaders$Feature;
 	public fun <init> (Ljava/util/List;)V
+	public final fun interceptor$ktor_server_core (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun versionsFor (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/features/ConditionalHeaders$Configuration {
 	public fun <init> ()V
+	public final fun getVersionProviders$ktor_server_core ()Ljava/util/List;
 	public final fun version (Lkotlin/jvm/functions/Function2;)V
 }
 
@@ -439,13 +479,18 @@ public abstract interface class io/ktor/features/ContentConverter {
 public final class io/ktor/features/ContentNegotiation {
 	public static final field Feature Lio/ktor/features/ContentNegotiation$Feature;
 	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Z)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun checkAcceptHeader$ktor_server_core (Ljava/util/List;Lio/ktor/http/ContentType;)Z
 	public final fun getRegistrations ()Ljava/util/List;
 }
 
 public final class io/ktor/features/ContentNegotiation$Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
+	public final fun getAcceptContributors$ktor_server_core ()Ljava/util/List;
 	public final fun getCheckAcceptHeaderCompliance ()Z
+	public final fun getRegistrations$ktor_server_core ()Ljava/util/List;
 	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun register$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lio/ktor/features/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setCheckAcceptHeaderCompliance (Z)V
@@ -503,9 +548,11 @@ public final class io/ktor/features/DataConversion : io/ktor/util/ConversionServ
 
 public final class io/ktor/features/DataConversion$Configuration {
 	public fun <init> ()V
+	public final synthetic fun convert (Lkotlin/jvm/functions/Function1;)V
 	public final fun convert (Lkotlin/reflect/KClass;Lio/ktor/util/ConversionService;)V
 	public final fun convert (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
 	public final fun convert (Lkotlin/reflect/KType;Lio/ktor/util/ConversionService;)V
+	public final fun getConverters$ktor_server_core ()Ljava/util/Map;
 }
 
 public final class io/ktor/features/DataConversion$Feature : io/ktor/application/ApplicationFeature {
@@ -526,6 +573,7 @@ public final class io/ktor/features/DefaultHeaders {
 public final class io/ktor/features/DefaultHeaders$Configuration {
 	public fun <init> ()V
 	public final fun getClock ()Lkotlin/jvm/functions/Function0;
+	public final fun getHeaders$ktor_server_core ()Lio/ktor/http/HeadersBuilder;
 	public final fun header (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun setClock (Lkotlin/jvm/functions/Function0;)V
 }
@@ -544,6 +592,7 @@ public final class io/ktor/features/DeflateEncoder : io/ktor/features/Compressio
 }
 
 public final class io/ktor/features/DelegatingConversionService : io/ktor/util/ConversionService {
+	public fun <init> (Lkotlin/reflect/KClass;)V
 	public final fun decode (Lkotlin/jvm/functions/Function2;)V
 	public final fun encode (Lkotlin/jvm/functions/Function1;)V
 	public fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
@@ -552,6 +601,7 @@ public final class io/ktor/features/DelegatingConversionService : io/ktor/util/C
 
 public final class io/ktor/features/DoubleReceive {
 	public static final field Feature Lio/ktor/features/DoubleReceive$Feature;
+	public fun <init> (Lio/ktor/features/DoubleReceive$Configuration;)V
 }
 
 public final class io/ktor/features/DoubleReceive$Configuration {
@@ -564,6 +614,9 @@ public final class io/ktor/features/DoubleReceive$Feature : io/ktor/application/
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/features/DoubleReceive;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/features/DoubleReceiveKt {
 }
 
 public final class io/ktor/features/ForwardedHeaderSupport : io/ktor/application/ApplicationFeature {
@@ -685,9 +738,11 @@ public final class io/ktor/features/MissingRequestParameterException : io/ktor/f
 
 public final class io/ktor/features/MultipleRangeWriterKt {
 	public static final fun writeMultipleRanges (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun writeMultipleRangesImpl (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/features/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun <init> (Lio/ktor/features/OriginConnectionPoint;)V
 	public fun <init> (Lio/ktor/http/RequestConnectionPoint;)V
 	public fun getHost ()Ljava/lang/String;
 	public fun getMethod ()Lio/ktor/http/HttpMethod;
@@ -711,7 +766,28 @@ public final class io/ktor/features/NotFoundException : java/lang/Exception {
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class io/ktor/features/OriginCheckResult : java/lang/Enum {
+	public static final field Failed Lio/ktor/features/OriginCheckResult;
+	public static final field OK Lio/ktor/features/OriginCheckResult;
+	public static final field SkipCORS Lio/ktor/features/OriginCheckResult;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/features/OriginCheckResult;
+	public static fun values ()[Lio/ktor/features/OriginCheckResult;
+}
+
+public final class io/ktor/features/OriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun <init> (Lio/ktor/application/ApplicationCall;)V
+	public fun <init> (Lio/ktor/http/RequestConnectionPoint;Ljava/lang/String;)V
+	public fun getHost ()Ljava/lang/String;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getPort ()I
+	public fun getRemoteHost ()Ljava/lang/String;
+	public fun getScheme ()Ljava/lang/String;
+	public fun getUri ()Ljava/lang/String;
+	public fun getVersion ()Ljava/lang/String;
+}
+
 public final class io/ktor/features/OriginConnectionPointKt {
+	public static final fun getMutableOriginConnectionPoint (Lio/ktor/application/ApplicationCall;)Lio/ktor/features/MutableOriginConnectionPoint;
 	public static final fun getMutableOriginConnectionPointKey ()Lio/ktor/util/AttributeKey;
 	public static final fun getOrigin (Lio/ktor/request/ApplicationRequest;)Lio/ktor/http/RequestConnectionPoint;
 }
@@ -742,6 +818,9 @@ public final class io/ktor/features/PartialContent$Feature : io/ktor/application
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/features/PartialContentKt {
+}
+
 public final class io/ktor/features/RejectedCallIdException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Ljava/lang/String;)V
 	public fun createCopy ()Lio/ktor/features/RejectedCallIdException;
@@ -750,6 +829,7 @@ public final class io/ktor/features/RejectedCallIdException : java/lang/IllegalA
 }
 
 public final class io/ktor/features/RequestReceiveAlreadyFailedException : java/lang/Exception {
+	public fun <init> (Ljava/lang/Throwable;)V
 }
 
 public final class io/ktor/features/StatusPages {
@@ -760,6 +840,7 @@ public final class io/ktor/features/StatusPages {
 public final class io/ktor/features/StatusPages$Configuration {
 	public fun <init> ()V
 	public final fun exception (Ljava/lang/Class;Lkotlin/jvm/functions/Function3;)V
+	public final synthetic fun exception (Lkotlin/jvm/functions/Function3;)V
 	public final fun getExceptions ()Ljava/util/Map;
 	public final fun getStatuses ()Ljava/util/Map;
 	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
@@ -793,6 +874,7 @@ public final class io/ktor/features/XForwardedHeaderSupport$Config {
 	public final fun getForHeaders ()Ljava/util/ArrayList;
 	public final fun getHostHeaders ()Ljava/util/ArrayList;
 	public final fun getHttpsFlagHeaders ()Ljava/util/ArrayList;
+	public final fun getPortHeaders$ktor_server_core ()Ljava/util/ArrayList;
 	public final fun getProtoHeaders ()Ljava/util/ArrayList;
 }
 
@@ -907,16 +989,19 @@ public final class io/ktor/http/content/StaticContentKt {
 }
 
 public final class io/ktor/http/content/StaticContentResolutionKt {
+	public static final fun findContainingJarFile (Ljava/lang/String;)Ljava/io/File;
 	public static final fun resolveResource (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent;
 	public static synthetic fun resolveResource$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 	public static final fun resourceClasspathResource (Ljava/net/URL;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/request/ApplicationReceiveFunctionsKt {
+	public static final synthetic fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveChannel (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveMultipart (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveParameters (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1036,6 +1121,8 @@ public final class io/ktor/response/ApplicationResponseFunctionsKt {
 	public static synthetic fun respondText$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun respondTextWriter (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondTextWriter$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun respondWithType (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun respondWithType (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/response/ApplicationResponsePropertiesKt {
@@ -1244,6 +1331,10 @@ public final class io/ktor/routing/IgnoreTrailingSlash$Feature : io/ktor/applica
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/routing/IgnoreTrailingSlashKt {
+	public static final fun getIgnoreTrailingSlash (Lio/ktor/application/ApplicationCall;)Z
+}
+
 public final class io/ktor/routing/LocalPortRouteSelector : io/ktor/routing/RouteSelector {
 	public static final field Companion Lio/ktor/routing/LocalPortRouteSelector$Companion;
 	public static final field LocalPortParameter Ljava/lang/String;
@@ -1399,8 +1490,10 @@ public class io/ktor/routing/Route : io/ktor/application/ApplicationCallPipeline
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;)V
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;Z)V
 	public fun afterIntercepted ()V
+	public final fun buildPipeline$ktor_server_core ()Lio/ktor/application/ApplicationCallPipeline;
 	public final fun createChild (Lio/ktor/routing/RouteSelector;)Lio/ktor/routing/Route;
 	public final fun getChildren ()Ljava/util/List;
+	public final fun getHandlers$ktor_server_core ()Ljava/util/ArrayList;
 	public final fun getParent ()Lio/ktor/routing/Route;
 	public final fun getSelector ()Lio/ktor/routing/RouteSelector;
 	public final fun handle (Lkotlin/jvm/functions/Function3;)V
@@ -1451,6 +1544,11 @@ public final class io/ktor/routing/RouteSelectorEvaluation$Companion {
 	public final fun getMissing ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getTransparent ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getWildcardPath ()Lio/ktor/routing/RouteSelectorEvaluation;
+}
+
+public final class io/ktor/routing/RouteSelectorKt {
+	public static final fun evaluatePathSegmentParameter (Ljava/util/List;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lio/ktor/routing/RouteSelectorEvaluation;
+	public static synthetic fun evaluatePathSegmentParameter$default (Ljava/util/List;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/routing/RouteSelectorEvaluation;
 }
 
 public final class io/ktor/routing/Routing : io/ktor/routing/Route {
@@ -1525,10 +1623,16 @@ public final class io/ktor/routing/RoutingBuilderKt {
 	public static final fun param (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
 	public static final fun patch (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun patch (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun patchTyped (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun patchTypedPath (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun post (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun post (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun postTyped (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun postTypedPath (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun put (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun put (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun putTyped (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun putTypedPath (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun route (Lio/ktor/routing/Route;Ljava/lang/String;Lio/ktor/http/HttpMethod;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
 	public static final fun route (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
 }
@@ -1595,7 +1699,9 @@ public final class io/ktor/routing/RoutingResolveResult$Failure : io/ktor/routin
 
 public final class io/ktor/routing/RoutingResolveResult$Success : io/ktor/routing/RoutingResolveResult {
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/http/Parameters;)V
+	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/http/Parameters;D)V
 	public fun getParameters ()Lio/ktor/http/Parameters;
+	public final fun getQuality$ktor_server_core ()D
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1722,13 +1828,17 @@ public abstract interface class io/ktor/sessions/SessionSerializer {
 
 public final class io/ktor/sessions/SessionSerializerReflection : io/ktor/sessions/SessionSerializer {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KType;)V
 	public fun deserialize (Ljava/lang/String;)Ljava/lang/Object;
 	public final fun getType ()Lkotlin/reflect/KClass;
+	public final fun getTypeInfo$ktor_server_core ()Lkotlin/reflect/KType;
 	public fun serialize (Ljava/lang/Object;)Ljava/lang/String;
 }
 
 public final class io/ktor/sessions/SessionSerializerReflectionKt {
+	public static final synthetic fun autoSerializerOf ()Lio/ktor/sessions/SessionSerializerReflection;
 	public static final fun autoSerializerOf (Lkotlin/reflect/KClass;)Lio/ktor/sessions/SessionSerializerReflection;
+	public static final synthetic fun defaultSessionSerializer ()Lio/ktor/sessions/SessionSerializer;
 	public static final fun defaultSessionSerializer (Lkotlin/reflect/KType;)Lio/ktor/sessions/SessionSerializer;
 }
 
@@ -1756,6 +1866,7 @@ public final class io/ktor/sessions/SessionTrackerById : io/ktor/sessions/Sessio
 	public fun <init> (Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionSerializer;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function0;)V
 	public fun clear (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getSerializer ()Lio/ktor/sessions/SessionSerializer;
+	public final fun getSessionIdKey$ktor_server_core ()Lio/ktor/util/AttributeKey;
 	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
 	public final fun getStorage ()Lio/ktor/sessions/SessionStorage;
 	public final fun getType ()Lkotlin/reflect/KClass;
@@ -1767,6 +1878,7 @@ public final class io/ktor/sessions/SessionTrackerById : io/ktor/sessions/Sessio
 
 public final class io/ktor/sessions/SessionTrackerByIdKt {
 	public static final fun getSessionId (Lio/ktor/application/ApplicationCall;)Ljava/lang/String;
+	public static final synthetic fun sessionId (Lio/ktor/application/ApplicationCall;)Ljava/lang/String;
 	public static final fun sessionId (Lio/ktor/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
 }
 
@@ -1827,6 +1939,9 @@ public final class io/ktor/sessions/SessionTransportTransformerDigest : io/ktor/
 	public fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class io/ktor/sessions/SessionTransportTransformerDigestKt {
+}
+
 public final class io/ktor/sessions/SessionTransportTransformerEncrypt : io/ktor/sessions/SessionTransportTransformer {
 	public static final field Companion Lio/ktor/sessions/SessionTransportTransformerEncrypt$Companion;
 	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)V
@@ -1881,12 +1996,20 @@ public final class io/ktor/sessions/Sessions$Feature : io/ktor/application/Appli
 }
 
 public final class io/ktor/sessions/SessionsBuilderKt {
+	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/CookieIdSessionBuilder;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
+	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;)V
+	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/CookieSessionBuilder;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
+	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;)V
+	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;)V
+	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;Lio/ktor/sessions/HeaderSessionBuilder;)V
@@ -1895,11 +2018,20 @@ public final class io/ktor/sessions/SessionsBuilderKt {
 }
 
 public final class io/ktor/sessions/SessionsKt {
+	public static final synthetic fun clear (Lio/ktor/sessions/CurrentSession;)V
+	public static final synthetic fun get (Lio/ktor/sessions/CurrentSession;)Ljava/lang/Object;
+	public static final synthetic fun getOrSet (Lio/ktor/sessions/CurrentSession;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static synthetic fun getOrSet$default (Lio/ktor/sessions/CurrentSession;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun getSessions (Lio/ktor/application/ApplicationCall;)Lio/ktor/sessions/CurrentSession;
+	public static final synthetic fun set (Lio/ktor/sessions/CurrentSession;Ljava/lang/Object;)V
 }
 
 public final class io/ktor/sessions/TooLateSessionSetException : java/lang/IllegalStateException {
 	public fun <init> ()V
+}
+
+public final class io/ktor/util/CacheControlMergeKt {
+	public static final fun mergeCacheControlDirectives (Ljava/util/List;)Ljava/util/List;
 }
 
 public abstract interface class io/ktor/util/ConversionService {
@@ -1943,9 +2075,11 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 }
 
 public final class io/ktor/util/ParametersKt {
+	public static final synthetic fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/Object;
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public static final synthetic fun getValue (Lio/ktor/http/Parameters;Ljava/lang/Object;Lkotlin/reflect/KProperty;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/PathsKt {

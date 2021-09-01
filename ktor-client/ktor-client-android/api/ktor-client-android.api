@@ -12,6 +12,10 @@ public final class io/ktor/client/engine/android/AndroidClientEngine : io/ktor/c
 	public fun getSupportedCapabilities ()Ljava/util/Set;
 }
 
+public final class io/ktor/client/engine/android/AndroidClientEngineKt {
+	public static final fun writeTo (Lio/ktor/http/content/OutgoingContent;Ljava/io/OutputStream;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/engine/android/AndroidEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun getConnectTimeout ()I
@@ -28,5 +32,11 @@ public final class io/ktor/client/engine/android/AndroidEngineContainer : io/kto
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/android/AndroidURLConnectionUtilsKt {
+	public static final fun content (Ljava/net/HttpURLConnection;Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun setupTimeoutAttributes (Ljava/net/HttpURLConnection;Lio/ktor/client/request/HttpRequestData;)V
+	public static final fun timeoutAwareConnection (Ljava/net/HttpURLConnection;Lio/ktor/client/request/HttpRequestData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

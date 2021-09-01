@@ -9,9 +9,11 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 	public final fun addNetworkInterceptor (Lokhttp3/Interceptor;)V
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
 	public final fun getClientCacheSize ()I
+	public final fun getConfig$ktor_client_okhttp ()Lkotlin/jvm/functions/Function1;
 	public final fun getPreconfigured ()Lokhttp3/OkHttpClient;
 	public final fun getWebSocketFactory ()Lokhttp3/WebSocket$Factory;
 	public final fun setClientCacheSize (I)V
+	public final fun setConfig$ktor_client_okhttp (Lkotlin/jvm/functions/Function1;)V
 	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
 	public final fun setWebSocketFactory (Lokhttp3/WebSocket$Factory;)V
 }
@@ -31,6 +33,55 @@ public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpEngineKt {
+	public static final fun convertToOkHttpBody (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;)Lokhttp3/RequestBody;
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpWebsocketSession : okhttp3/WebSocketListener, io/ktor/http/cio/websocket/DefaultWebSocketSession {
+	public fun <init> (Lokhttp3/OkHttpClient;Lokhttp3/WebSocket$Factory;Lokhttp3/Request;Lkotlin/coroutines/CoroutineContext;)V
+	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getExtensions ()Ljava/util/List;
+	public fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public fun getMasking ()Z
+	public fun getMaxFrameSize ()J
+	public final fun getOriginResponse$ktor_client_okhttp ()Lkotlinx/coroutines/CompletableDeferred;
+	public fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
+	public fun getPingIntervalMillis ()J
+	public fun getTimeoutMillis ()J
+	public fun onClosed (Lokhttp3/WebSocket;ILjava/lang/String;)V
+	public fun onClosing (Lokhttp3/WebSocket;ILjava/lang/String;)V
+	public fun onFailure (Lokhttp3/WebSocket;Ljava/lang/Throwable;Lokhttp3/Response;)V
+	public fun onMessage (Lokhttp3/WebSocket;Ljava/lang/String;)V
+	public fun onMessage (Lokhttp3/WebSocket;Lokio/ByteString;)V
+	public fun onOpen (Lokhttp3/WebSocket;Lokhttp3/Response;)V
+	public fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setMasking (Z)V
+	public fun setMaxFrameSize (J)V
+	public fun setPingIntervalMillis (J)V
+	public fun setTimeoutMillis (J)V
+	public final fun start ()V
+	public fun start (Ljava/util/List;)V
+	public fun terminate ()V
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpWebsocketSessionKt {
+}
+
+public final class io/ktor/client/engine/okhttp/OkUtilsKt {
+	public static final fun execute (Lokhttp3/OkHttpClient;Lokhttp3/Request;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun fromOkHttp (Lokhttp3/Headers;)Lio/ktor/http/Headers;
+	public static final fun fromOkHttp (Lokhttp3/Protocol;)Lio/ktor/http/HttpProtocolVersion;
+}
+
+public final class io/ktor/client/engine/okhttp/StreamRequestBody : okhttp3/RequestBody {
+	public fun <init> (Ljava/lang/Long;Lkotlin/jvm/functions/Function0;)V
+	public fun contentLength ()J
+	public fun contentType ()Lokhttp3/MediaType;
+	public fun writeTo (Lokio/BufferedSink;)V
 }
 
 public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {

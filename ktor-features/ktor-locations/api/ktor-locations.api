@@ -1,3 +1,11 @@
+public final class io/ktor/locations/BackwardCompatibleImpl : io/ktor/locations/LocationsImpl {
+	public fun <init> (Lio/ktor/application/Application;Lio/ktor/locations/LocationRouteService;)V
+	public fun getOrCreateInfo (Lkotlin/reflect/KClass;)Lio/ktor/locations/LocationInfo;
+	public fun href (Ljava/lang/Object;)Ljava/lang/String;
+	public fun href (Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
+	public fun instantiate (Lio/ktor/locations/LocationInfo;Lio/ktor/http/Parameters;)Ljava/lang/Object;
+}
+
 public abstract interface annotation class io/ktor/locations/KtorExperimentalLocationsAPI : java/lang/annotation/Annotation {
 }
 
@@ -11,6 +19,7 @@ public final class io/ktor/locations/LocationAttributeRouteService : io/ktor/loc
 }
 
 public final class io/ktor/locations/LocationInfo {
+	public fun <init> (Lkotlin/reflect/KClass;Lio/ktor/locations/LocationInfo;Lio/ktor/locations/LocationPropertyInfo;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
 	public final fun component1 ()Lkotlin/reflect/KClass;
 	public final fun component2 ()Lio/ktor/locations/LocationInfo;
 	public final fun component3 ()Lio/ktor/locations/LocationPropertyInfo;
@@ -31,22 +40,39 @@ public final class io/ktor/locations/LocationInfo {
 }
 
 public final class io/ktor/locations/LocationKt {
+	public static final synthetic fun delete (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun get (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun getLocations (Lio/ktor/application/Application;)Lio/ktor/locations/Locations;
 	public static final fun getLocations (Lio/ktor/application/ApplicationCall;)Lio/ktor/locations/Locations;
 	public static final fun getLocations (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/locations/Locations;
+	public static final synthetic fun handle (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)V
 	public static final fun handle (Lio/ktor/routing/Route;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
+	public static final synthetic fun head (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun href (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Ljava/lang/String;
+	public static final synthetic fun location (Lio/ktor/application/ApplicationCall;)Ljava/lang/Object;
+	public static final synthetic fun location (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
 	public static final fun location (Lio/ktor/routing/Route;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
+	public static final synthetic fun locationOrNull (Lio/ktor/application/ApplicationCall;)Ljava/lang/Object;
 	public static final fun locationOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 	public static final fun locationOrThrow (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun patch (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun post (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
+	public static final synthetic fun put (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 }
 
 public abstract class io/ktor/locations/LocationPropertyInfo {
+	public fun <init> (Ljava/lang/String;Z)V
 	public final fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
 	public final fun hashCode ()I
 	public final fun isOptional ()Z
 	public final fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/locations/LocationPropertyInfoImpl : io/ktor/locations/LocationPropertyInfo {
+	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KProperty1$Getter;Z)V
+	public final fun getKGetter ()Lkotlin/reflect/KProperty1$Getter;
 }
 
 public abstract interface class io/ktor/locations/LocationRouteService {
@@ -64,6 +90,9 @@ public class io/ktor/locations/Locations {
 	public final fun createEntry (Lio/ktor/routing/Route;Lkotlin/reflect/KClass;)Lio/ktor/routing/Route;
 	public final fun getRegisteredLocations ()Ljava/util/List;
 	public final fun href (Ljava/lang/Object;)Ljava/lang/String;
+	public final fun href$ktor_locations (Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
+	public final synthetic fun resolve (Lio/ktor/application/ApplicationCall;)Ljava/lang/Object;
+	public final synthetic fun resolve (Lio/ktor/http/Parameters;)Ljava/lang/Object;
 	public final fun resolve (Lkotlin/reflect/KClass;Lio/ktor/application/ApplicationCall;)Ljava/lang/Object;
 	public final fun resolve (Lkotlin/reflect/KClass;Lio/ktor/http/Parameters;)Ljava/lang/Object;
 }
@@ -78,6 +107,19 @@ public final class io/ktor/locations/Locations$Feature : io/ktor/application/App
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/locations/Locations;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public abstract class io/ktor/locations/LocationsImpl {
+	public fun <init> (Lio/ktor/application/Application;Lio/ktor/locations/LocationRouteService;)V
+	protected final fun getApplication ()Lio/ktor/application/Application;
+	protected final fun getConversionService ()Lio/ktor/util/ConversionService;
+	protected final fun getInfo ()Ljava/util/Map;
+	public abstract fun getOrCreateInfo (Lkotlin/reflect/KClass;)Lio/ktor/locations/LocationInfo;
+	public final fun getRegisteredLocations ()Ljava/util/List;
+	protected final fun getRouteService ()Lio/ktor/locations/LocationRouteService;
+	public abstract fun href (Ljava/lang/Object;)Ljava/lang/String;
+	public abstract fun href (Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
+	public abstract fun instantiate (Lio/ktor/locations/LocationInfo;Lio/ktor/http/Parameters;)Ljava/lang/Object;
 }
 
 public final class io/ktor/locations/URLBuilderKt {

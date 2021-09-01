@@ -1,3 +1,6 @@
+public final class io/ktor/content/CompatibilityKt {
+}
+
 public final class io/ktor/http/ApplicationResponsePropertiesKt {
 	public static final fun etag (Lio/ktor/http/HeadersBuilder;Ljava/lang/String;)V
 }
@@ -40,6 +43,7 @@ public final class io/ktor/http/CacheControl$NoStore : io/ktor/http/CacheControl
 public final class io/ktor/http/CacheControl$Visibility : java/lang/Enum {
 	public static final field Private Lio/ktor/http/CacheControl$Visibility;
 	public static final field Public Lio/ktor/http/CacheControl$Visibility;
+	public final fun getHeaderValue$ktor_http ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/CacheControl$Visibility;
 	public static fun values ()[Lio/ktor/http/CacheControl$Visibility;
 }
@@ -52,9 +56,12 @@ public final class io/ktor/http/CodecsKt {
 	public static final fun encodeOAuth (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLParameter (Ljava/lang/String;Z)Ljava/lang/String;
 	public static synthetic fun encodeURLParameter$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/lang/String;
+	public static final fun encodeURLParameterValue (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLPath (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLQueryComponent (Ljava/lang/String;ZZLjava/nio/charset/Charset;)Ljava/lang/String;
 	public static synthetic fun encodeURLQueryComponent$default (Ljava/lang/String;ZZLjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getLETTERS_AND_NUMBERS ()Ljava/util/Set;
+	public static final fun getTOKENS ()Ljava/util/Set;
 }
 
 public final class io/ktor/http/ContentDisposition : io/ktor/http/HeaderValueWithParameters {
@@ -274,6 +281,28 @@ public final class io/ktor/http/Cookie {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/http/CookieDateBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/util/date/GMTDate;
+	public final fun getDayOfMonth ()Ljava/lang/Integer;
+	public final fun getHours ()Ljava/lang/Integer;
+	public final fun getMinutes ()Ljava/lang/Integer;
+	public final fun getMonth ()Lio/ktor/util/date/Month;
+	public final fun getSeconds ()Ljava/lang/Integer;
+	public final fun getYear ()Ljava/lang/Integer;
+	public final fun setDayOfMonth (Ljava/lang/Integer;)V
+	public final fun setHours (Ljava/lang/Integer;)V
+	public final fun setMinutes (Ljava/lang/Integer;)V
+	public final fun setMonth (Lio/ktor/util/date/Month;)V
+	public final fun setSeconds (Ljava/lang/Integer;)V
+	public final fun setYear (Ljava/lang/Integer;)V
+}
+
+public final class io/ktor/http/CookieDateParser {
+	public fun <init> ()V
+	public final fun parse (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
+}
+
 public final class io/ktor/http/CookieEncoding : java/lang/Enum {
 	public static final field BASE64_ENCODING Lio/ktor/http/CookieEncoding;
 	public static final field DQUOTES Lio/ktor/http/CookieEncoding;
@@ -293,6 +322,20 @@ public final class io/ktor/http/CookieKt {
 	public static final fun renderSetCookieHeader (Lio/ktor/http/Cookie;)Ljava/lang/String;
 	public static final fun renderSetCookieHeader (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;Z)Ljava/lang/String;
 	public static synthetic fun renderSetCookieHeader$default (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ZILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class io/ktor/http/CookieUtilsKt {
+	public static final fun handleToken (Lio/ktor/http/CookieDateBuilder;Ljava/lang/String;)V
+	public static final fun isDelimiter (C)Z
+	public static final fun isDigit (C)Z
+	public static final fun isNonDelimiter (C)Z
+	public static final fun isNonDigit (C)Z
+	public static final fun isOctet (C)Z
+	public static final fun otherwise (ZLkotlin/jvm/functions/Function0;)V
+	public static final fun tryParseDayOfMonth (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static final fun tryParseMonth (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static final fun tryParseTime (Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
+	public static final fun tryParseYear (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/http/DateUtilsKt {
@@ -342,6 +385,9 @@ public final class io/ktor/http/FileContentTypeKt {
 	public static final fun fileExtensions (Lio/ktor/http/ContentType;)Ljava/util/List;
 	public static final fun fromFileExtension (Lio/ktor/http/ContentType$Companion;Ljava/lang/String;)Ljava/util/List;
 	public static final fun fromFilePath (Lio/ktor/http/ContentType$Companion;Ljava/lang/String;)Ljava/util/List;
+	public static final fun groupByPairs (Lkotlin/sequences/Sequence;)Ljava/util/Map;
+	public static final fun selectDefault (Ljava/util/List;)Lio/ktor/http/ContentType;
+	public static final fun toContentType (Ljava/lang/String;)Lio/ktor/http/ContentType;
 }
 
 public final class io/ktor/http/HeaderValue {
@@ -541,12 +587,16 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getXCorrelationId ()Ljava/lang/String;
 	public final fun getXForwardedFor ()Ljava/lang/String;
 	public final fun getXForwardedHost ()Ljava/lang/String;
+	public final fun getXForwardedPort$ktor_http ()Ljava/lang/String;
 	public final fun getXForwardedProto ()Ljava/lang/String;
 	public final fun getXForwardedServer ()Ljava/lang/String;
 	public final fun getXHttpMethodOverride ()Ljava/lang/String;
 	public final fun getXRequestId ()Ljava/lang/String;
 	public final fun getXTotalCount ()Ljava/lang/String;
 	public final fun isUnsafe (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/http/HttpHeadersKt {
 }
 
 public abstract interface class io/ktor/http/HttpMessage {
@@ -583,6 +633,7 @@ public final class io/ktor/http/HttpMessagePropertiesKt {
 	public static final fun ifNoneMatch (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;)V
 	public static final fun maxAge (Lio/ktor/http/HttpMessageBuilder;I)V
 	public static final fun setCookie (Lio/ktor/http/HttpMessage;)Ljava/util/List;
+	public static final fun splitSetCookieHeader (Ljava/lang/String;)Ljava/util/List;
 	public static final fun userAgent (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;)V
 	public static final fun vary (Lio/ktor/http/HttpMessage;)Ljava/util/List;
 	public static final fun vary (Lio/ktor/http/HttpMessageBuilder;)Ljava/util/List;
@@ -711,6 +762,7 @@ public final class io/ktor/http/HttpStatusCode$Companion {
 }
 
 public final class io/ktor/http/HttpStatusCodeKt {
+	public static final fun allStatusCodes ()Ljava/util/List;
 	public static final fun getExceptionFailed (Lio/ktor/http/HttpStatusCode$Companion;)Lio/ktor/http/HttpStatusCode;
 	public static final fun isSuccess (Lio/ktor/http/HttpStatusCode;)Z
 }
@@ -721,9 +773,13 @@ public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncode (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;)Ljava/lang/String;
 	public static synthetic fun formUrlEncode$default (Ljava/util/List;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun formUrlEncodeTo (Lio/ktor/http/Parameters;Ljava/lang/Appendable;)V
+	public static final fun formUrlEncodeTo (Lio/ktor/http/ParametersBuilder;Ljava/lang/Appendable;)V
 	public static final synthetic fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;)V
+	public static final synthetic fun formUrlEncodeTo (Ljava/util/Set;Ljava/lang/Appendable;)V
+	public static final fun formUrlEncodeTo (Ljava/util/Set;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;)V
 	public static synthetic fun formUrlEncodeTo$default (Ljava/util/List;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)V
+	public static synthetic fun formUrlEncodeTo$default (Ljava/util/Set;Ljava/lang/Appendable;Lio/ktor/http/UrlEncodingOption;ILjava/lang/Object;)V
 	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
 	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
 }
@@ -738,6 +794,10 @@ public final class io/ktor/http/IllegalHeaderValueException : java/lang/IllegalA
 	public fun <init> (Ljava/lang/String;I)V
 	public final fun getHeaderValue ()Ljava/lang/String;
 	public final fun getPosition ()I
+}
+
+public final class io/ktor/http/InvalidCookieDateException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class io/ktor/http/IpParserKt {
@@ -772,6 +832,11 @@ public final class io/ktor/http/LinkHeader$Rel {
 	public static final field PreRender Ljava/lang/String;
 	public static final field Prefetch Ljava/lang/String;
 	public static final field Stylesheet Ljava/lang/String;
+}
+
+public final class io/ktor/http/MimesKt {
+	public static final fun getMimes ()Ljava/util/List;
+	public static final fun loadMimes ()Ljava/util/List;
 }
 
 public abstract interface class io/ktor/http/Parameters : io/ktor/util/StringValues {
@@ -844,7 +909,9 @@ public final class io/ktor/http/RangeUnits : java/lang/Enum {
 }
 
 public final class io/ktor/http/RangesKt {
+	public static final fun mergeRangesKeepOrder (Ljava/util/List;)Ljava/util/List;
 	public static final fun parseRangesSpecifier (Ljava/lang/String;)Lio/ktor/http/RangesSpecifier;
+	public static final fun toLongRanges (Ljava/util/List;J)Ljava/util/List;
 }
 
 public final class io/ktor/http/RangesSpecifier {
@@ -876,6 +943,18 @@ public abstract interface class io/ktor/http/RequestConnectionPoint {
 	public abstract fun getScheme ()Ljava/lang/String;
 	public abstract fun getUri ()Ljava/lang/String;
 	public abstract fun getVersion ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/StringLexer {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun accept (Lkotlin/jvm/functions/Function1;)Z
+	public final fun acceptWhile (Lkotlin/jvm/functions/Function1;)Z
+	public final fun capture (Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
+	public final fun getHasRemaining ()Z
+	public final fun getIndex ()I
+	public final fun getSource ()Ljava/lang/String;
+	public final fun setIndex (I)V
+	public final fun test (Lkotlin/jvm/functions/Function1;)Z
 }
 
 public final class io/ktor/http/URLBuilder {
@@ -910,6 +989,7 @@ public final class io/ktor/http/URLBuilder$Companion {
 }
 
 public final class io/ktor/http/URLBuilderJvmKt {
+	public static final fun getOriginHost (Lio/ktor/http/URLBuilder$Companion;)Ljava/lang/String;
 	public static final fun invoke (Lio/ktor/http/Url$Companion;Ljava/lang/String;)Lio/ktor/http/Url;
 }
 
@@ -918,6 +998,8 @@ public final class io/ktor/http/URLBuilderKt {
 	public static final fun clone (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
 	public static final fun getAuthority (Lio/ktor/http/URLBuilder;)Ljava/lang/String;
 	public static final fun getAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
+	public static final fun getUserAndPassword (Lio/ktor/http/URLBuilder;)Ljava/lang/String;
+	public static final fun getUserAndPassword (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun pathComponents (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun pathComponents (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 }
@@ -932,6 +1014,7 @@ public final class io/ktor/http/URLParserException : java/lang/IllegalStateExcep
 
 public final class io/ktor/http/URLParserKt {
 	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final fun takeFromUnsafe (Lio/ktor/http/URLBuilder;Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 }
 
 public final class io/ktor/http/URLProtocol {
@@ -976,6 +1059,8 @@ public final class io/ktor/http/URLUtilsKt {
 	public static final fun URLBuilder (Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 	public static final fun Url (Lio/ktor/http/URLBuilder;)Lio/ktor/http/Url;
 	public static final fun Url (Ljava/lang/String;)Lio/ktor/http/Url;
+	public static final fun appendUrlFullPath (Ljava/lang/Appendable;Ljava/lang/String;Lio/ktor/http/Parameters;Z)V
+	public static final fun appendUrlFullPath (Ljava/lang/Appendable;Ljava/lang/String;Lio/ktor/http/ParametersBuilder;Z)V
 	public static final fun getFullPath (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getHostWithPort (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
@@ -1023,6 +1108,8 @@ public final class io/ktor/http/UrlEncodingOption : java/lang/Enum {
 	public static final field KEY_ONLY Lio/ktor/http/UrlEncodingOption;
 	public static final field NO_ENCODING Lio/ktor/http/UrlEncodingOption;
 	public static final field VALUE_ONLY Lio/ktor/http/UrlEncodingOption;
+	public final fun getEncodeKey$ktor_http ()Z
+	public final fun getEncodeValue$ktor_http ()Z
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/UrlEncodingOption;
 	public static fun values ()[Lio/ktor/http/UrlEncodingOption;
 }
@@ -1106,6 +1193,10 @@ public final class io/ktor/http/auth/HttpAuthHeader$Single : io/ktor/http/auth/H
 
 public final class io/ktor/http/auth/HttpAuthHeaderKt {
 	public static final fun parseAuthorizationHeader (Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader;
+}
+
+public final class io/ktor/http/content/BlockingBridgeKt {
+	public static final fun withBlocking (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/content/ByteArrayContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
@@ -1326,11 +1417,143 @@ public final class io/ktor/http/content/WriterContent : io/ktor/http/content/Out
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/parsing/AnyOfGrammar : io/ktor/http/parsing/Grammar {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/parsing/AtLeastOne : io/ktor/http/parsing/Grammar, io/ktor/http/parsing/SimpleGrammar {
+	public fun <init> (Lio/ktor/http/parsing/Grammar;)V
+	public fun getGrammar ()Lio/ktor/http/parsing/Grammar;
+}
+
+public abstract interface class io/ktor/http/parsing/ComplexGrammar {
+	public abstract fun getGrammars ()Ljava/util/List;
+}
+
+public final class io/ktor/http/parsing/DebugKt {
+	public static final fun printDebug (Lio/ktor/http/parsing/Grammar;I)V
+	public static synthetic fun printDebug$default (Lio/ktor/http/parsing/Grammar;IILjava/lang/Object;)V
+}
+
+public abstract class io/ktor/http/parsing/Grammar {
+}
+
+public final class io/ktor/http/parsing/GrammarBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/http/parsing/Grammar;
+	public final fun then (Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/GrammarBuilder;
+	public final fun then (Ljava/lang/String;)Lio/ktor/http/parsing/GrammarBuilder;
+	public final fun unaryPlus (Lio/ktor/http/parsing/Grammar;)V
+	public final fun unaryPlus (Ljava/lang/String;)V
+	public final fun unaryPlus (Lkotlin/jvm/functions/Function0;)V
+}
+
+public final class io/ktor/http/parsing/GrammarBuilderKt {
+	public static final fun grammar (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/ManyGrammar : io/ktor/http/parsing/Grammar, io/ktor/http/parsing/SimpleGrammar {
+	public fun <init> (Lio/ktor/http/parsing/Grammar;)V
+	public fun getGrammar ()Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/MaybeGrammar : io/ktor/http/parsing/Grammar, io/ktor/http/parsing/SimpleGrammar {
+	public fun <init> (Lio/ktor/http/parsing/Grammar;)V
+	public fun getGrammar ()Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/NamedGrammar : io/ktor/http/parsing/Grammar {
+	public fun <init> (Ljava/lang/String;Lio/ktor/http/parsing/Grammar;)V
+	public final fun getGrammar ()Lio/ktor/http/parsing/Grammar;
+	public final fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/parsing/OrGrammar : io/ktor/http/parsing/Grammar, io/ktor/http/parsing/ComplexGrammar {
+	public fun <init> (Ljava/util/List;)V
+	public fun getGrammars ()Ljava/util/List;
+}
+
 public final class io/ktor/http/parsing/ParseException : java/lang/IllegalArgumentException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getMessage ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/parsing/ParseResult {
+	public fun <init> (Ljava/util/Map;)V
+	public final fun contains (Ljava/lang/String;)Z
+	public final fun get (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAll (Ljava/lang/String;)Ljava/util/List;
+}
+
+public abstract interface class io/ktor/http/parsing/Parser {
+	public abstract fun match (Ljava/lang/String;)Z
+	public abstract fun parse (Ljava/lang/String;)Lio/ktor/http/parsing/ParseResult;
+}
+
+public final class io/ktor/http/parsing/ParserDslKt {
+	public static final fun anyOf (Ljava/lang/String;)Lio/ktor/http/parsing/Grammar;
+	public static final fun atLeastOne (Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final synthetic fun flatten (Ljava/util/List;)Ljava/util/List;
+	public static final fun many (Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun maybe (Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun maybe (Ljava/lang/String;)Lio/ktor/http/parsing/Grammar;
+	public static final fun maybe (Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function0;
+	public static final fun named (Lio/ktor/http/parsing/Grammar;Ljava/lang/String;)Lio/ktor/http/parsing/Grammar;
+	public static final fun or (Lio/ktor/http/parsing/Grammar;Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun or (Lio/ktor/http/parsing/Grammar;Ljava/lang/String;)Lio/ktor/http/parsing/Grammar;
+	public static final fun or (Ljava/lang/String;Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun then (Lio/ktor/http/parsing/Grammar;Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun then (Lio/ktor/http/parsing/Grammar;Ljava/lang/String;)Lio/ktor/http/parsing/Grammar;
+	public static final fun then (Ljava/lang/String;Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Grammar;
+	public static final fun to (CC)Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/PrimitivesKt {
+	public static final fun getAlpha ()Lio/ktor/http/parsing/Grammar;
+	public static final fun getAlphaDigit ()Lio/ktor/http/parsing/Grammar;
+	public static final fun getAlphas ()Lio/ktor/http/parsing/Grammar;
+	public static final fun getDigit ()Lio/ktor/http/parsing/RawGrammar;
+	public static final fun getDigits ()Lio/ktor/http/parsing/Grammar;
+	public static final fun getHex ()Lio/ktor/http/parsing/Grammar;
+	public static final fun getLowAlpha ()Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/RangeGrammar : io/ktor/http/parsing/Grammar {
+	public fun <init> (CC)V
+	public final fun getFrom ()C
+	public final fun getTo ()C
+}
+
+public final class io/ktor/http/parsing/RawGrammar : io/ktor/http/parsing/Grammar {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/parsing/SequenceGrammar : io/ktor/http/parsing/Grammar, io/ktor/http/parsing/ComplexGrammar {
+	public fun <init> (Ljava/util/List;)V
+	public fun getGrammars ()Ljava/util/List;
+}
+
+public abstract interface class io/ktor/http/parsing/SimpleGrammar {
+	public abstract fun getGrammar ()Lio/ktor/http/parsing/Grammar;
+}
+
+public final class io/ktor/http/parsing/StringGrammar : io/ktor/http/parsing/Grammar {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/parsing/regex/RegexParser : io/ktor/http/parsing/Parser {
+	public fun <init> (Lkotlin/text/Regex;Ljava/util/Map;)V
+	public fun match (Ljava/lang/String;)Z
+	public fun parse (Ljava/lang/String;)Lio/ktor/http/parsing/ParseResult;
+}
+
+public final class io/ktor/http/parsing/regex/RegexParserGeneratorKt {
+	public static final fun buildRegexParser (Lio/ktor/http/parsing/Grammar;)Lio/ktor/http/parsing/Parser;
 }
 
 public final class io/ktor/http/websocket/UtilsKt {

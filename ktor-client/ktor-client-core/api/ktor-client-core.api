@@ -1,10 +1,12 @@
 public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/client/engine/HttpClientEngine;Lio/ktor/client/HttpClientConfig;)V
 	public synthetic fun <init> (Lio/ktor/client/engine/HttpClientEngine;Lio/ktor/client/HttpClientConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/client/engine/HttpClientEngine;Lio/ktor/client/HttpClientConfig;Z)V
 	public fun close ()V
 	public final fun config (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public final fun execute (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
+	public final fun getConfig$ktor_client_core ()Lio/ktor/client/HttpClientConfig;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getEngine ()Lio/ktor/client/engine/HttpClientEngine;
@@ -22,6 +24,7 @@ public final class io/ktor/client/HttpClientConfig {
 	public final fun clone ()Lio/ktor/client/HttpClientConfig;
 	public final fun engine (Lkotlin/jvm/functions/Function1;)V
 	public final fun getDevelopmentMode ()Z
+	public final fun getEngineConfig$ktor_client_core ()Lkotlin/jvm/functions/Function1;
 	public final fun getExpectSuccess ()Z
 	public final fun getFollowRedirects ()Z
 	public final fun getUseDefaultTransformers ()Z
@@ -31,6 +34,7 @@ public final class io/ktor/client/HttpClientConfig {
 	public static synthetic fun install$default (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/features/HttpClientFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun plusAssign (Lio/ktor/client/HttpClientConfig;)V
 	public final fun setDevelopmentMode (Z)V
+	public final fun setEngineConfig$ktor_client_core (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExpectSuccess (Z)V
 	public final fun setFollowRedirects (Z)V
 	public final fun setUseDefaultTransformers (Z)V
@@ -61,6 +65,9 @@ public final class io/ktor/client/call/DoubleReceiveException : java/lang/Illega
 
 public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/client/call/HttpClientCall$Companion;
+	public field request Lio/ktor/client/request/HttpRequest;
+	public field response Lio/ktor/client/statement/HttpResponse;
+	public fun <init> (Lio/ktor/client/HttpClient;)V
 	protected fun getAllowDoubleReceive ()Z
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
@@ -70,6 +77,8 @@ public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineSc
 	protected fun getResponseContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun receive (Lio/ktor/client/call/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setRequest$ktor_client_core (Lio/ktor/client/request/HttpRequest;)V
+	public final fun setResponse$ktor_client_core (Lio/ktor/client/statement/HttpResponse;)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -78,8 +87,11 @@ public final class io/ktor/client/call/HttpClientCall$Companion {
 }
 
 public final class io/ktor/client/call/HttpClientCallKt {
+	public static final fun HttpClientCall (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/request/HttpResponseData;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun call (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun receive (Lio/ktor/client/call/HttpClientCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun receive (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/call/HttpEngineCall {
@@ -112,6 +124,36 @@ public final class io/ktor/client/call/SavedCallKt {
 	public static final fun save (Lio/ktor/client/call/HttpClientCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/call/SavedHttpCall : io/ktor/client/call/HttpClientCall {
+	public fun <init> (Lio/ktor/client/HttpClient;[B)V
+}
+
+public final class io/ktor/client/call/SavedHttpRequest : io/ktor/client/request/HttpRequest {
+	public fun <init> (Lio/ktor/client/call/SavedHttpCall;Lio/ktor/client/request/HttpRequest;)V
+	public fun getAttributes ()Lio/ktor/util/Attributes;
+	public synthetic fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getCall ()Lio/ktor/client/call/SavedHttpCall;
+	public fun getContent ()Lio/ktor/http/content/OutgoingContent;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getUrl ()Lio/ktor/http/Url;
+}
+
+public final class io/ktor/client/call/SavedHttpResponse : io/ktor/client/statement/HttpResponse {
+	public fun <init> (Lio/ktor/client/call/SavedHttpCall;[BLio/ktor/client/statement/HttpResponse;)V
+	public synthetic fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getCall ()Lio/ktor/client/call/SavedHttpCall;
+	public fun getContent ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
+	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
+}
+
 public class io/ktor/client/call/TypeBase {
 	public fun <init> ()V
 }
@@ -130,6 +172,11 @@ public final class io/ktor/client/call/TypeInfo : io/ktor/util/reflect/TypeInfo 
 	public fun getType ()Lkotlin/reflect/KClass;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/call/TypeInfoKt {
+	public static final fun instanceOf (Ljava/lang/Object;Lkotlin/reflect/KClass;)Z
+	public static final synthetic fun typeInfo ()Lio/ktor/client/call/TypeInfo;
 }
 
 public final class io/ktor/client/call/UnsupportedContentTypeException : java/lang/IllegalStateException {
@@ -168,6 +215,20 @@ public final class io/ktor/client/content/LocalFileContentKt {
 	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/client/content/LocalFileContent;
 }
 
+public final class io/ktor/client/content/ObservableContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function3;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+}
+
+public final class io/ktor/client/content/ObservableContentKt {
+}
+
 public final class io/ktor/client/engine/ClientEngineClosedException : java/lang/IllegalStateException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
@@ -196,11 +257,15 @@ public abstract class io/ktor/client/engine/HttpClientEngineBase : io/ktor/clien
 	public fun install (Lio/ktor/client/HttpClient;)V
 }
 
+public final class io/ktor/client/engine/HttpClientEngineBaseKt {
+}
+
 public abstract interface class io/ktor/client/engine/HttpClientEngineCapability {
 }
 
 public final class io/ktor/client/engine/HttpClientEngineCapabilityKt {
 	public static final fun getDEFAULT_CAPABILITIES ()Ljava/util/Set;
+	public static final fun getENGINE_CAPABILITIES_KEY ()Lio/ktor/util/AttributeKey;
 }
 
 public class io/ktor/client/engine/HttpClientEngineConfig {
@@ -222,8 +287,13 @@ public final class io/ktor/client/engine/HttpClientEngineFactory$DefaultImpls {
 	public static synthetic fun create$default (Lio/ktor/client/engine/HttpClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/engine/HttpClientEngine;
 }
 
+public final class io/ktor/client/engine/HttpClientEngineJvmKt {
+	public static final fun createCallContext (Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/coroutines/Job;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/engine/HttpClientEngineKt {
 	public static final fun config (Lio/ktor/client/engine/HttpClientEngineFactory;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngineFactory;
+	public static final fun getCALL_COROUTINE ()Lkotlinx/coroutines/CoroutineName;
 }
 
 public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client/engine/HttpClientEngine {
@@ -234,6 +304,23 @@ public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public fun getSupportedCapabilities ()Ljava/util/Set;
 	public fun install (Lio/ktor/client/HttpClient;)V
+}
+
+public final class io/ktor/client/engine/HttpClientJvmEngineKt {
+}
+
+public final class io/ktor/client/engine/KtorCallContextElement : kotlin/coroutines/CoroutineContext$Element {
+	public static final field Companion Lio/ktor/client/engine/KtorCallContextElement$Companion;
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
+	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public final fun getCallContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
+	public fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/client/engine/KtorCallContextElement$Companion : kotlin/coroutines/CoroutineContext$Key {
 }
 
 public final class io/ktor/client/engine/ProxyBuilder {
@@ -260,6 +347,7 @@ public final class io/ktor/client/engine/ProxyType : java/lang/Enum {
 }
 
 public final class io/ktor/client/engine/UtilsKt {
+	public static final fun attachToUserJob (Lkotlinx/coroutines/Job;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun callContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getKTOR_DEFAULT_USER_AGENT ()Ljava/lang/String;
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
@@ -267,6 +355,7 @@ public final class io/ktor/client/engine/UtilsKt {
 
 public final class io/ktor/client/features/BodyProgress {
 	public static final field Feature Lio/ktor/client/features/BodyProgress$Feature;
+	public fun <init> ()V
 }
 
 public final class io/ktor/client/features/BodyProgress$Feature : io/ktor/client/features/HttpClientFeature {
@@ -280,6 +369,7 @@ public final class io/ktor/client/features/BodyProgress$Feature : io/ktor/client
 public final class io/ktor/client/features/BodyProgressKt {
 	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function3;)V
 	public static final fun onUpload (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function3;)V
+	public static final fun withObservableDownload (Lio/ktor/client/call/HttpClientCall;Lkotlin/jvm/functions/Function3;)Lio/ktor/client/call/HttpClientCall;
 }
 
 public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
@@ -315,11 +405,17 @@ public final class io/ktor/client/features/DefaultRequestKt {
 }
 
 public final class io/ktor/client/features/DefaultResponseValidationKt {
+	public static final field DEPRECATED_EXCEPTION_CTOR Ljava/lang/String;
+	public static final field NO_RESPONSE_TEXT Ljava/lang/String;
 	public static final fun addDefaultResponseValidation (Lio/ktor/client/HttpClientConfig;)V
 }
 
 public final class io/ktor/client/features/DefaultTransformKt {
 	public static final fun defaultTransformers (Lio/ktor/client/HttpClient;)V
+}
+
+public final class io/ktor/client/features/DefaultTransformersJvmKt {
+	public static final fun platformDefaultTransformers (Lio/ktor/client/HttpClient;)V
 }
 
 public final class io/ktor/client/features/ExpectSuccess {
@@ -335,9 +431,13 @@ public final class io/ktor/client/features/ExpectSuccess$Companion : io/ktor/cli
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/features/ExpectSuccessKt {
+}
+
 public final class io/ktor/client/features/HttpCallValidator {
 	public static final field Companion Lio/ktor/client/features/HttpCallValidator$Companion;
 	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Z)V
 }
 
 public final class io/ktor/client/features/HttpCallValidator$Companion : io/ktor/client/features/HttpClientFeature {
@@ -351,6 +451,8 @@ public final class io/ktor/client/features/HttpCallValidator$Companion : io/ktor
 public final class io/ktor/client/features/HttpCallValidator$Config {
 	public fun <init> ()V
 	public final fun getExpectSuccess ()Z
+	public final fun getResponseExceptionHandlers$ktor_client_core ()Ljava/util/List;
+	public final fun getResponseValidators$ktor_client_core ()Ljava/util/List;
 	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
 	public final fun setExpectSuccess (Z)V
 	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
@@ -359,6 +461,7 @@ public final class io/ktor/client/features/HttpCallValidator$Config {
 public final class io/ktor/client/features/HttpCallValidatorKt {
 	public static final fun HttpResponseValidator (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getExpectSuccess (Lio/ktor/client/request/HttpRequestBuilder;)Z
+	public static final fun getExpectSuccessAttributeKey ()Lio/ktor/util/AttributeKey;
 	public static final fun setExpectSuccess (Lio/ktor/client/request/HttpRequestBuilder;Z)V
 }
 
@@ -375,16 +478,22 @@ public final class io/ktor/client/features/HttpClientFeature$DefaultImpls {
 public final class io/ktor/client/features/HttpClientFeatureKt {
 	public static final fun feature (Lio/ktor/client/HttpClient;Lio/ktor/client/features/HttpClientFeature;)Ljava/lang/Object;
 	public static final fun get (Lio/ktor/client/HttpClient;Lio/ktor/client/features/HttpClientFeature;)Ljava/lang/Object;
+	public static final fun getFEATURE_INSTALLED_LIST ()Lio/ktor/util/AttributeKey;
 }
 
 public final class io/ktor/client/features/HttpPlainText {
 	public static final field Feature Lio/ktor/client/features/HttpPlainText$Feature;
+	public fun <init> (Ljava/util/Set;Ljava/util/Map;Ljava/nio/charset/Charset;Ljava/nio/charset/Charset;)V
+	public final fun addCharsetHeaders$ktor_client_core (Lio/ktor/client/request/HttpRequestBuilder;)V
 	public final fun getDefaultCharset ()Ljava/nio/charset/Charset;
+	public final fun read$ktor_client_core (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/core/Input;)Ljava/lang/String;
 	public final fun setDefaultCharset (Ljava/nio/charset/Charset;)V
 }
 
 public final class io/ktor/client/features/HttpPlainText$Config {
 	public fun <init> ()V
+	public final fun getCharsetQuality$ktor_client_core ()Ljava/util/Map;
+	public final fun getCharsets$ktor_client_core ()Ljava/util/Set;
 	public final fun getDefaultCharset ()Ljava/nio/charset/Charset;
 	public final fun getResponseCharsetFallback ()Ljava/nio/charset/Charset;
 	public final fun getSendCharset ()Ljava/nio/charset/Charset;
@@ -424,6 +533,25 @@ public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/features/HttpRedirectKt {
+}
+
+public final class io/ktor/client/features/HttpRequestLifecycle {
+	public static final field Feature Lio/ktor/client/features/HttpRequestLifecycle$Feature;
+	public fun <init> ()V
+}
+
+public final class io/ktor/client/features/HttpRequestLifecycle$Feature : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/HttpRequestLifecycle;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/HttpRequestLifecycle;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/HttpRequestLifecycleKt {
+}
+
 public final class io/ktor/client/features/HttpRequestTimeoutException : java/util/concurrent/CancellationException {
 	public fun <init> (Lio/ktor/client/request/HttpRequestBuilder;)V
 }
@@ -447,6 +575,9 @@ public final class io/ktor/client/features/HttpSend$Feature : io/ktor/client/fea
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/features/HttpSendKt {
+}
+
 public final class io/ktor/client/features/HttpTimeout {
 	public static final field Feature Lio/ktor/client/features/HttpTimeout$Feature;
 	public static final field INFINITE_TIMEOUT_MS J
@@ -465,6 +596,7 @@ public final class io/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConf
 	public static final field Companion Lio/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConfiguration$Companion;
 	public fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;)V
 	public synthetic fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun build$ktor_client_core ()Lio/ktor/client/features/HttpTimeout;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getConnectTimeoutMillis ()Ljava/lang/Long;
 	public final fun getRequestTimeoutMillis ()Ljava/lang/Long;
@@ -544,6 +676,14 @@ public final class io/ktor/client/features/UserAgentKt {
 	public static final fun CurlUserAgent (Lio/ktor/client/HttpClientConfig;)V
 }
 
+public final class io/ktor/client/features/cache/CacheControl {
+	public static final field INSTANCE Lio/ktor/client/features/cache/CacheControl;
+	public final fun getMUST_REVALIDATE$ktor_client_core ()Lio/ktor/http/HeaderValue;
+	public final fun getNO_CACHE$ktor_client_core ()Lio/ktor/http/HeaderValue;
+	public final fun getNO_STORE$ktor_client_core ()Lio/ktor/http/HeaderValue;
+	public final fun getPRIVATE$ktor_client_core ()Lio/ktor/http/HeaderValue;
+}
+
 public final class io/ktor/client/features/cache/HttpCache {
 	public static final field Companion Lio/ktor/client/features/cache/HttpCache$Companion;
 	public fun <init> (Lio/ktor/client/features/cache/storage/HttpCacheStorage;Lio/ktor/client/features/cache/storage/HttpCacheStorage;)V
@@ -568,16 +708,37 @@ public final class io/ktor/client/features/cache/HttpCache$Config {
 }
 
 public final class io/ktor/client/features/cache/HttpCacheEntry {
+	public fun <init> (Lio/ktor/util/date/GMTDate;Ljava/util/Map;Lio/ktor/client/statement/HttpResponse;[B)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBody ()[B
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+	public final fun getResponseHeaders$ktor_client_core ()Lio/ktor/http/Headers;
 	public final fun getVaryKeys ()Ljava/util/Map;
 	public fun hashCode ()I
+	public final fun produceResponse$ktor_client_core ()Lio/ktor/client/statement/HttpResponse;
+}
+
+public final class io/ktor/client/features/cache/HttpCacheEntryKt {
+	public static final fun HttpCacheEntry (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun cacheExpires (Lio/ktor/client/statement/HttpResponse;Lkotlin/jvm/functions/Function0;)Lio/ktor/util/date/GMTDate;
+	public static synthetic fun cacheExpires$default (Lio/ktor/client/statement/HttpResponse;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
+	public static final fun shouldValidate (Lio/ktor/client/features/cache/HttpCacheEntry;)Z
+	public static final fun varyKeys (Lio/ktor/client/statement/HttpResponse;)Ljava/util/Map;
+}
+
+public final class io/ktor/client/features/cache/HttpCacheKt {
 }
 
 public final class io/ktor/client/features/cache/InvalidCacheStateException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/http/Url;)V
+}
+
+public final class io/ktor/client/features/cache/storage/DisabledCacheStorage : io/ktor/client/features/cache/storage/HttpCacheStorage {
+	public static final field INSTANCE Lio/ktor/client/features/cache/storage/DisabledCacheStorage;
+	public fun find (Lio/ktor/http/Url;Ljava/util/Map;)Lio/ktor/client/features/cache/HttpCacheEntry;
+	public fun findByUrl (Lio/ktor/http/Url;)Ljava/util/Set;
+	public fun store (Lio/ktor/http/Url;Lio/ktor/client/features/cache/HttpCacheEntry;)V
 }
 
 public abstract class io/ktor/client/features/cache/storage/HttpCacheStorage {
@@ -591,6 +752,17 @@ public abstract class io/ktor/client/features/cache/storage/HttpCacheStorage {
 public final class io/ktor/client/features/cache/storage/HttpCacheStorage$Companion {
 	public final fun getDisabled ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
 	public final fun getUnlimited ()Lkotlin/jvm/functions/Function0;
+}
+
+public final class io/ktor/client/features/cache/storage/HttpCacheStorageKt {
+	public static final fun store (Lio/ktor/client/features/cache/storage/HttpCacheStorage;Lio/ktor/http/Url;Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/cache/storage/UnlimitedCacheStorage : io/ktor/client/features/cache/storage/HttpCacheStorage {
+	public fun <init> ()V
+	public fun find (Lio/ktor/http/Url;Ljava/util/Map;)Lio/ktor/client/features/cache/HttpCacheEntry;
+	public fun findByUrl (Lio/ktor/http/Url;)Ljava/util/Set;
+	public fun store (Lio/ktor/http/Url;Lio/ktor/client/features/cache/HttpCacheEntry;)V
 }
 
 public final class io/ktor/client/features/cookies/AcceptAllCookiesStorage : io/ktor/client/features/cookies/CookiesStorage {
@@ -614,6 +786,8 @@ public abstract interface class io/ktor/client/features/cookies/CookiesStorage :
 
 public final class io/ktor/client/features/cookies/CookiesStorageKt {
 	public static final fun addCookie (Lio/ktor/client/features/cookies/CookiesStorage;Ljava/lang/String;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun fillDefaults (Lio/ktor/http/Cookie;Lio/ktor/http/Url;)Lio/ktor/http/Cookie;
+	public static final fun matches (Lio/ktor/http/Cookie;Lio/ktor/http/Url;)Z
 }
 
 public final class io/ktor/client/features/cookies/HttpCookies : java/io/Closeable {
@@ -621,6 +795,8 @@ public final class io/ktor/client/features/cookies/HttpCookies : java/io/Closeab
 	public fun <init> (Lio/ktor/client/features/cookies/CookiesStorage;Ljava/util/List;)V
 	public fun close ()V
 	public final fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun saveCookiesFrom$ktor_client_core (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun sendCookiesWith$ktor_client_core (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/cookies/HttpCookies$Companion : io/ktor/client/features/HttpClientFeature {
@@ -633,6 +809,7 @@ public final class io/ktor/client/features/cookies/HttpCookies$Companion : io/kt
 
 public final class io/ktor/client/features/cookies/HttpCookies$Config {
 	public fun <init> ()V
+	public final fun build$ktor_client_core ()Lio/ktor/client/features/cookies/HttpCookies;
 	public final fun default (Lkotlin/jvm/functions/Function2;)V
 	public final fun getStorage ()Lio/ktor/client/features/cookies/CookiesStorage;
 	public final fun setStorage (Lio/ktor/client/features/cookies/CookiesStorage;)V
@@ -644,9 +821,37 @@ public final class io/ktor/client/features/cookies/HttpCookiesKt {
 	public static final fun get (Ljava/util/List;Ljava/lang/String;)Lio/ktor/http/Cookie;
 }
 
+public final class io/ktor/client/features/observer/DelegatedCall : io/ktor/client/call/HttpClientCall {
+	public fun <init> (Lio/ktor/client/HttpClient;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/call/HttpClientCall;)V
+}
+
 public final class io/ktor/client/features/observer/DelegatedCallKt {
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;Z)Lio/ktor/client/call/HttpClientCall;
+}
+
+public final class io/ktor/client/features/observer/DelegatedRequest : io/ktor/client/request/HttpRequest {
+	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpRequest;)V
+	public fun getAttributes ()Lio/ktor/util/Attributes;
+	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getContent ()Lio/ktor/http/content/OutgoingContent;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getUrl ()Lio/ktor/http/Url;
+}
+
+public final class io/ktor/client/features/observer/DelegatedResponse : io/ktor/client/statement/HttpResponse {
+	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/statement/HttpResponse;)V
+	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getContent ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
+	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
 }
 
 public final class io/ktor/client/features/observer/ResponseObserver {
@@ -656,7 +861,9 @@ public final class io/ktor/client/features/observer/ResponseObserver {
 
 public final class io/ktor/client/features/observer/ResponseObserver$Config {
 	public fun <init> ()V
+	public final fun getResponseHandler$ktor_client_core ()Lkotlin/jvm/functions/Function2;
 	public final fun onResponse (Lkotlin/jvm/functions/Function2;)V
+	public final fun setResponseHandler$ktor_client_core (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/client/features/observer/ResponseObserver$Feature : io/ktor/client/features/HttpClientFeature {
@@ -723,9 +930,35 @@ public final class io/ktor/client/features/websocket/DefaultClientWebSocketSessi
 	public fun terminate ()V
 }
 
+public final class io/ktor/client/features/websocket/DelegatingClientWebSocketSession : io/ktor/client/features/websocket/ClientWebSocketSession, io/ktor/http/cio/websocket/WebSocketSession {
+	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/cio/websocket/WebSocketSession;)V
+	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getExtensions ()Ljava/util/List;
+	public fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public fun getMasking ()Z
+	public fun getMaxFrameSize ()J
+	public fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
+	public fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setMasking (Z)V
+	public fun setMaxFrameSize (J)V
+	public fun terminate ()V
+}
+
 public final class io/ktor/client/features/websocket/WebSocketCapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/features/websocket/WebSocketCapability;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/features/websocket/WebSocketContent : io/ktor/client/request/ClientUpgradeContent {
+	public fun <init> ()V
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun toString ()Ljava/lang/String;
+	public fun verify (Lio/ktor/http/Headers;)V
+}
+
+public final class io/ktor/client/features/websocket/WebSocketContentKt {
 }
 
 public final class io/ktor/client/features/websocket/WebSocketException : java/lang/IllegalStateException {
@@ -742,6 +975,8 @@ public final class io/ktor/client/features/websocket/WebSockets {
 	public fun <init> ()V
 	public fun <init> (JJ)V
 	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (JJLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;)V
+	public final fun convertSessionToDefault$ktor_client_core (Lio/ktor/http/cio/websocket/WebSocketSession;)Lio/ktor/http/cio/websocket/DefaultWebSocketSession;
 	public final fun getMaxFrameSize ()J
 	public final fun getPingInterval ()J
 }
@@ -749,6 +984,7 @@ public final class io/ktor/client/features/websocket/WebSockets {
 public final class io/ktor/client/features/websocket/WebSockets$Config {
 	public fun <init> ()V
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getExtensionsConfig$ktor_client_core ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
 	public final fun getMaxFrameSize ()J
 	public final fun getPingInterval ()J
 	public final fun setMaxFrameSize (J)V
@@ -763,11 +999,89 @@ public final class io/ktor/client/features/websocket/WebSockets$Feature : io/kto
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/features/websocket/WebSocketsKt {
+}
+
+public final class io/ktor/client/request/BuildersJvmKt {
+	public static final synthetic fun delete (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun get (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun get$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun head (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun head$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun options$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun patch (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun patch$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun post (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun post$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun put (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun put$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun request (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun request$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/request/BuildersKt {
+	public static final synthetic fun delete (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun delete (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun delete (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun get (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun get (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun get (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun get$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun get$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun head (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun head (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun head (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun head$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun head$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun options$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun options$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun patch (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun patch (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun patch (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun patch$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun patch$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun post (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun post (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun post (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun post$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun post$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun put (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun put (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun put (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun put$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun put$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun request (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun request (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun request (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun request (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun request (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/request/HttpRequestBuilder;
+	public static synthetic fun request$default (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun request$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun request$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/request/BuildersWithUrlKt {
+	public static final synthetic fun delete (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun get (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun get$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun head (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun head$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun options (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun options$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun patch (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun patch$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun post (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun post$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun put (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun put$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun url (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/Url;)V
 }
 
@@ -819,6 +1133,7 @@ public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/Http
 	public final fun setAttributes (Lkotlin/jvm/functions/Function1;)V
 	public final fun setBody (Ljava/lang/Object;)V
 	public final fun setCapability (Lio/ktor/client/engine/HttpClientEngineCapability;Ljava/lang/Object;)V
+	public final fun setExecutionContext$ktor_client_core (Lkotlinx/coroutines/Job;)V
 	public final fun setMethod (Lio/ktor/http/HttpMethod;)V
 	public final fun takeFrom (Lio/ktor/client/request/HttpRequestBuilder;)Lio/ktor/client/request/HttpRequestBuilder;
 	public final fun takeFromWithExecutionContext (Lio/ktor/client/request/HttpRequestBuilder;)Lio/ktor/client/request/HttpRequestBuilder;
@@ -836,6 +1151,7 @@ public final class io/ktor/client/request/HttpRequestData {
 	public final fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public final fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getRequiredCapabilities$ktor_client_core ()Ljava/util/Set;
 	public final fun getUrl ()Lio/ktor/http/Url;
 	public fun toString ()Ljava/lang/String;
 }
@@ -916,6 +1232,7 @@ public final class io/ktor/client/request/UtilsKt {
 }
 
 public final class io/ktor/client/request/forms/FormBuilder {
+	public fun <init> ()V
 	public final fun append (Lio/ktor/client/request/forms/FormPart;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/client/request/forms/InputProvider;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/http/Headers;)V
@@ -933,6 +1250,22 @@ public final class io/ktor/client/request/forms/FormBuilder {
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;[BLio/ktor/http/Headers;ILjava/lang/Object;)V
 	public final fun appendInput (Ljava/lang/String;Lio/ktor/http/Headers;Ljava/lang/Long;Lkotlin/jvm/functions/Function0;)V
 	public static synthetic fun appendInput$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Ljava/lang/Long;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun build$ktor_client_core ()Ljava/util/List;
+}
+
+public final class io/ktor/client/request/forms/FormBuildersKt {
+	public static final synthetic fun submitForm (Lio/ktor/client/HttpClient;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun submitForm (Lio/ktor/client/HttpClient;Ljava/lang/String;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun submitForm (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun submitForm$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun submitForm$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun submitForm$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun submitFormWithBinaryData (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun submitFormWithBinaryData (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun submitFormWithBinaryData (Lio/ktor/client/HttpClient;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun submitFormWithBinaryData$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun submitFormWithBinaryData$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun submitFormWithBinaryData$default (Lio/ktor/client/HttpClient;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/request/forms/FormDataContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
@@ -941,6 +1274,9 @@ public final class io/ktor/client/request/forms/FormDataContent : io/ktor/http/c
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getFormData ()Lio/ktor/http/Parameters;
+}
+
+public final class io/ktor/client/request/forms/FormDataContentKt {
 }
 
 public final class io/ktor/client/request/forms/FormDslKt {
@@ -1077,6 +1413,8 @@ public final class io/ktor/client/statement/HttpStatement {
 	public final fun execute (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun executeUnsafe (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun receive (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1097,6 +1435,10 @@ public final class io/ktor/client/utils/ByteBufferPool : io/ktor/utils/io/pool/D
 	public fun <init> ()V
 	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
 	public synthetic fun produceInstance ()Ljava/lang/Object;
+}
+
+public final class io/ktor/client/utils/ByteChannelUtilsKt {
+	public static final fun observable (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;Ljava/lang/Long;Lkotlin/jvm/functions/Function3;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/client/utils/CIOJvmKt {
@@ -1136,11 +1478,21 @@ public final class io/ktor/client/utils/CacheControl {
 	public final synthetic fun getS_MAX_AGE ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/utils/ClosableBlockingDispatcher : kotlinx/coroutines/CoroutineDispatcher, java/io/Closeable {
+	public fun <init> (ILjava/lang/String;)V
+	public fun close ()V
+	public fun dispatch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
+	public fun dispatchYield (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
+	public final fun getClosed ()Z
+	public fun isDispatchNeeded (Lkotlin/coroutines/CoroutineContext;)Z
+}
+
 public final class io/ktor/client/utils/ContentKt {
 	public static final fun wrapHeaders (Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/client/utils/CoroutineDispatcherUtilsKt {
+	public static final fun checkCoroutinesVersion ()V
 	public static final fun clientDispatcher (Lkotlinx/coroutines/Dispatchers;ILjava/lang/String;)Lkotlinx/coroutines/CoroutineDispatcher;
 	public static synthetic fun clientDispatcher$default (Lkotlinx/coroutines/Dispatchers;ILjava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/CoroutineDispatcher;
 	public static final synthetic fun fixedThreadPoolDispatcher (Lkotlinx/coroutines/Dispatchers;ILjava/lang/String;)Lkotlinx/coroutines/CoroutineDispatcher;
@@ -1162,6 +1514,11 @@ public final class io/ktor/client/utils/HeadersKt {
 	public static synthetic fun buildHeaders$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/Headers;
 }
 
+public final class io/ktor/client/utils/SharedCollectionsKt {
+	public static final fun sharedList ()Ljava/util/List;
+	public static final fun sharedMap ()Ljava/util/Map;
+}
+
 public final class io/ktor/network/sockets/ConnectTimeoutException : java/net/ConnectException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1177,5 +1534,9 @@ public final class io/ktor/network/sockets/SocketTimeoutException : java/net/Soc
 public final class io/ktor/network/sockets/TimeoutExceptionsCommonKt {
 	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/network/sockets/TimeoutExceptionsKt {
+	public static final fun ByteChannelWithMappedExceptions (Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteChannel;
 }
 

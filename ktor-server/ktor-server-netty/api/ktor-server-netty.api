@@ -66,15 +66,33 @@ public final class io/ktor/server/netty/Netty : io/ktor/server/engine/Applicatio
 
 public abstract class io/ktor/server/netty/NettyApplicationCall : io/ktor/server/engine/BaseApplicationCall {
 	public fun <init> (Lio/ktor/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public final fun dispose$ktor_server_netty ()V
+	public final fun finish$ktor_server_netty (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	public abstract fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
 	public abstract fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
 	public final fun getResponseWriteJob ()Lkotlinx/coroutines/Job;
 }
 
+public final class io/ktor/server/netty/NettyApplicationCallHandler : io/netty/channel/ChannelInboundHandlerAdapter, kotlinx/coroutines/CoroutineScope {
+	public static final field Companion Lio/ktor/server/netty/NettyApplicationCallHandler$Companion;
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EnginePipeline;Lorg/slf4j/Logger;)V
+	public fun channelRead (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/server/netty/NettyApplicationCallHandler$Companion {
+}
+
+public final class io/ktor/server/netty/NettyApplicationCallHandlerKt {
+	public static final fun hasValidTransferEncoding (Ljava/util/List;)Z
+	public static final fun isValid (Lio/netty/handler/codec/http/HttpRequest;)Z
+}
+
 public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
 	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBootstraps$ktor_server_netty ()Ljava/util/List;
 	public synthetic fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
 	public fun start (Z)Lio/ktor/server/netty/NettyApplicationEngine;
 	public fun stop (JJ)V
@@ -101,16 +119,24 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun setTcpKeepAlive (Z)V
 }
 
+public final class io/ktor/server/netty/NettyApplicationEngineKt {
+}
+
 public abstract class io/ktor/server/netty/NettyApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/String;Z)V
 	public final fun close ()V
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	public fun getCookies ()Lio/ktor/request/RequestCookies;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getKeepAlive$ktor_server_netty ()Z
 	public final fun getQueryParameters ()Lio/ktor/http/Parameters;
 	protected final fun getUri ()Ljava/lang/String;
 	protected abstract fun newDecoder ()Lio/netty/handler/codec/http/multipart/HttpPostMultipartRequestDecoder;
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+}
+
+public final class io/ktor/server/netty/NettyApplicationRequestCookies : io/ktor/request/RequestCookies {
+	public fun <init> (Lio/ktor/request/ApplicationRequest;)V
 }
 
 public final class io/ktor/server/netty/NettyApplicationRequestHeaders : io/ktor/http/Headers {
@@ -130,8 +156,11 @@ public abstract class io/ktor/server/netty/NettyApplicationResponse : io/ktor/se
 	public static final field Companion Lio/ktor/server/netty/NettyApplicationResponse$Companion;
 	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;Lio/netty/channel/ChannelHandlerContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun cancel ()V
+	public final fun close$ktor_server_netty ()V
+	public final fun ensureResponseSent$ktor_server_netty ()V
 	protected final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	protected final fun getEngineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getResponseChannel$ktor_server_netty ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getResponseMessage ()Lkotlinx/coroutines/CompletableDeferred;
 	protected final fun getResponseMessageSent ()Z
 	protected final fun getUserContext ()Lkotlin/coroutines/CoroutineContext;
@@ -141,6 +170,9 @@ public abstract class io/ktor/server/netty/NettyApplicationResponse : io/ktor/se
 	protected fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun responseMessage (ZZ)Ljava/lang/Object;
 	protected fun responseMessage (Z[B)Ljava/lang/Object;
+	public final fun sendResponse$ktor_server_netty (ZLio/ktor/utils/io/ByteReadChannel;)V
+	public static synthetic fun sendResponse$ktor_server_netty$default (Lio/ktor/server/netty/NettyApplicationResponse;ZLio/ktor/utils/io/ByteReadChannel;ILjava/lang/Object;)V
+	public final fun setResponseChannel$ktor_server_netty (Lio/ktor/utils/io/ByteReadChannel;)V
 	protected final fun setResponseMessageSent (Z)V
 }
 
@@ -155,6 +187,80 @@ public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/chann
 }
 
 public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
+	public final fun getAlpnProvider$ktor_server_netty ()Lio/netty/handler/ssl/SslProvider;
+}
+
+public final class io/ktor/server/netty/NettyDirectDecoder : io/netty/handler/codec/ByteToMessageDecoder {
+	public fun <init> ()V
+}
+
+public final class io/ktor/server/netty/NettyDirectEncoder : io/netty/handler/codec/MessageToByteEncoder {
+	public fun <init> ()V
+	public synthetic fun allocateBuffer (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;Z)Lio/netty/buffer/ByteBuf;
+	public synthetic fun encode (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;Lio/netty/buffer/ByteBuf;)V
+}
+
+public final class io/ktor/server/netty/NettyDispatcher : kotlinx/coroutines/CoroutineDispatcher {
+	public static final field INSTANCE Lio/ktor/server/netty/NettyDispatcher;
+	public fun dispatch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
+	public fun isDispatchNeeded (Lkotlin/coroutines/CoroutineContext;)Z
+}
+
+public final class io/ktor/server/netty/NettyDispatcher$CurrentContext : kotlin/coroutines/AbstractCoroutineContextElement {
+	public fun <init> (Lio/netty/channel/ChannelHandlerContext;)V
+	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+}
+
+public final class io/ktor/server/netty/NettyDispatcher$CurrentContextKey : kotlin/coroutines/CoroutineContext$Key {
+	public static final field INSTANCE Lio/ktor/server/netty/NettyDispatcher$CurrentContextKey;
+}
+
+public final class io/ktor/server/netty/NettyMultiPartData : io/ktor/http/content/MultiPartData {
+	public fun <init> (Lio/netty/handler/codec/http/multipart/HttpPostMultipartRequestDecoder;Lio/netty/buffer/ByteBufAllocator;Lio/ktor/utils/io/ByteReadChannel;)V
+	public final fun destroy$ktor_server_netty ()V
+	public final fun getAlloc ()Lio/netty/buffer/ByteBufAllocator;
+	public fun readPart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/netty/cio/NettyRequestQueue {
+	public fun <init> (II)V
+	public final fun canRequestMoreEvents ()Z
+	public final fun cancel ()V
+	public final fun close ()V
+	public final fun getElements ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public final fun getReadLimit$ktor_server_netty ()I
+	public final fun getRunningLimit$ktor_server_netty ()I
+	public final fun schedule (Lio/ktor/server/netty/NettyApplicationCall;)V
+}
+
+public final class io/ktor/server/netty/cio/NettyRequestQueue$CallElement : io/ktor/util/internal/LockFreeLinkedListNode {
+	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;)V
+	public final fun ensureRunning ()Z
+	public final fun getCall ()Lio/ktor/server/netty/NettyApplicationCall;
+	public final fun isCompleted ()Z
+	public final fun tryDispose ()V
+}
+
+public final class io/ktor/server/netty/cio/NettyResponsePipeline : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/netty/channel/ChannelHandlerContext;Lio/ktor/server/netty/cio/WriterEncapsulation;Lio/ktor/server/netty/cio/NettyRequestQueue;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun ensureRunning ()V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/server/netty/cio/NettyResponsePipelineKt {
+}
+
+public final class io/ktor/server/netty/cio/RequestBodyHandler : io/netty/channel/ChannelInboundHandlerAdapter, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/netty/channel/ChannelHandlerContext;Lio/ktor/server/netty/cio/NettyRequestQueue;)V
+	public fun channelRead (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public final fun close ()V
+	public fun exceptionCaught (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Throwable;)V
+	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun handlerAdded (Lio/netty/channel/ChannelHandlerContext;)V
+	public fun handlerRemoved (Lio/netty/channel/ChannelHandlerContext;)V
+	public final fun newChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun upgrade ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public abstract class io/ktor/server/netty/cio/WriterEncapsulation {
@@ -185,5 +291,113 @@ public final class io/ktor/server/netty/cio/WriterEncapsulation$Raw : io/ktor/se
 	public fun getRequiresContextClose ()Z
 	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
 	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
+}
+
+public final class io/ktor/server/netty/http1/NettyConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun <init> (Lio/netty/handler/codec/http/HttpRequest;Lio/netty/channel/ChannelHandlerContext;)V
+	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	public fun getHost ()Ljava/lang/String;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getPort ()I
+	public fun getRemoteHost ()Ljava/lang/String;
+	public final fun getRequest ()Lio/netty/handler/codec/http/HttpRequest;
+	public fun getScheme ()Ljava/lang/String;
+	public fun getUri ()Ljava/lang/String;
+	public fun getVersion ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/netty/http1/NettyHttp1ApplicationCall : io/ktor/server/netty/NettyApplicationCall {
+	public fun <init> (Lio/ktor/application/Application;Lio/netty/channel/ChannelHandlerContext;Lio/netty/handler/codec/http/HttpRequest;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun getRequest ()Lio/ktor/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
+	public fun getRequest ()Lio/ktor/server/netty/http1/NettyHttp1ApplicationRequest;
+	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
+	public fun getResponse ()Lio/ktor/server/netty/http1/NettyHttp1ApplicationResponse;
+}
+
+public final class io/ktor/server/netty/http1/NettyHttp1ApplicationRequest : io/ktor/server/netty/NettyApplicationRequest {
+	public fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/netty/handler/codec/http/HttpRequest;Lio/ktor/utils/io/ByteReadChannel;)V
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public final fun getHttpRequest ()Lio/netty/handler/codec/http/HttpRequest;
+	public synthetic fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
+	public fun getLocal ()Lio/ktor/server/netty/http1/NettyConnectionPoint;
+}
+
+public final class io/ktor/server/netty/http1/NettyHttp1ApplicationResponse : io/ktor/server/netty/NettyApplicationResponse {
+	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;Lio/netty/channel/ChannelHandlerContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/netty/handler/codec/http/HttpVersion;)V
+	public fun getHeaders ()Lio/ktor/response/ResponseHeaders;
+	public final fun getProtocol ()Lio/netty/handler/codec/http/HttpVersion;
+}
+
+public final class io/ktor/server/netty/http1/NettyHttp1Handler : io/netty/channel/ChannelInboundHandlerAdapter, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/netty/cio/NettyRequestQueue;)V
+	public fun channelActive (Lio/netty/channel/ChannelHandlerContext;)V
+	public fun channelInactive (Lio/netty/channel/ChannelHandlerContext;)V
+	public fun channelRead (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public fun exceptionCaught (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Throwable;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/server/netty/http2/Http2LocalConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun <init> (Lio/netty/handler/codec/http2/Http2Headers;Ljava/net/InetSocketAddress;Ljava/net/InetSocketAddress;)V
+	public fun getHost ()Ljava/lang/String;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getPort ()I
+	public fun getRemoteHost ()Ljava/lang/String;
+	public fun getScheme ()Ljava/lang/String;
+	public fun getUri ()Ljava/lang/String;
+	public fun getVersion ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/netty/http2/HttpFrameAdapterKt {
+	public static final fun http2frameLoop (Lkotlinx/coroutines/channels/ReceiveChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/netty/http2/NettyHttp2ApplicationCall : io/ktor/server/netty/NettyApplicationCall {
+	public fun <init> (Lio/ktor/application/Application;Lio/netty/channel/ChannelHandlerContext;Lio/netty/handler/codec/http2/Http2Headers;Lio/ktor/server/netty/http2/NettyHttp2Handler;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun getHeaders ()Lio/netty/handler/codec/http2/Http2Headers;
+	public synthetic fun getRequest ()Lio/ktor/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
+	public fun getRequest ()Lio/ktor/server/netty/http2/NettyHttp2ApplicationRequest;
+	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
+	public fun getResponse ()Lio/ktor/server/netty/http2/NettyHttp2ApplicationResponse;
+}
+
+public final class io/ktor/server/netty/http2/NettyHttp2ApplicationRequest : io/ktor/server/netty/NettyApplicationRequest {
+	public fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/netty/handler/codec/http2/Http2Headers;Lio/ktor/utils/io/ByteChannel;)V
+	public synthetic fun <init> (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/CoroutineContext;Lio/netty/channel/ChannelHandlerContext;Lio/netty/handler/codec/http2/Http2Headers;Lio/ktor/utils/io/ByteChannel;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentActor ()Lkotlinx/coroutines/channels/SendChannel;
+	public final fun getContentByteChannel ()Lio/ktor/utils/io/ByteChannel;
+	public fun getCookies ()Lio/ktor/request/RequestCookies;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public synthetic fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
+	public fun getLocal ()Lio/ktor/server/netty/http2/Http2LocalConnectionPoint;
+	public final fun getNettyHeaders ()Lio/netty/handler/codec/http2/Http2Headers;
+}
+
+public final class io/ktor/server/netty/http2/NettyHttp2ApplicationResponse : io/ktor/server/netty/NettyApplicationResponse {
+	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;Lio/ktor/server/netty/http2/NettyHttp2Handler;Lio/netty/channel/ChannelHandlerContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun getHandler ()Lio/ktor/server/netty/http2/NettyHttp2Handler;
+	public fun getHeaders ()Lio/ktor/response/ResponseHeaders;
+	public fun push (Lio/ktor/response/ResponsePushBuilder;)V
+}
+
+public final class io/ktor/server/netty/http2/NettyHttp2Handler : io/netty/channel/ChannelInboundHandlerAdapter, kotlinx/coroutines/CoroutineScope {
+	public static final field Companion Lio/ktor/server/netty/http2/NettyHttp2Handler$Companion;
+	public fun <init> (Lio/ktor/server/engine/EnginePipeline;Lio/ktor/application/Application;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;)V
+	public fun channelRead (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
+	public fun channelRegistered (Lio/netty/channel/ChannelHandlerContext;)V
+	public fun exceptionCaught (Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Throwable;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun startHttp2PushPromise$ktor_server_netty (Lio/netty/channel/ChannelHandlerContext;Lio/ktor/response/ResponsePushBuilder;)V
+}
+
+public final class io/ktor/server/netty/http2/NettyHttp2Handler$Companion {
 }
 

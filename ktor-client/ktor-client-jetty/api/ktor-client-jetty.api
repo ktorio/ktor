@@ -17,3 +17,72 @@ public final class io/ktor/client/engine/jetty/JettyEngineContainer : io/ktor/cl
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/engine/jetty/JettyHttp2Engine : io/ktor/client/engine/HttpClientEngineBase {
+	public fun <init> (Lio/ktor/client/engine/jetty/JettyEngineConfig;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getClientCache$ktor_client_jetty ()Ljava/util/Map;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/jetty/JettyEngineConfig;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getOrCreateClient$ktor_client_jetty (Lio/ktor/client/request/HttpRequestData;)Lorg/eclipse/jetty/http2/client/HTTP2Client;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
+public final class io/ktor/client/engine/jetty/JettyHttp2EngineKt {
+}
+
+public final class io/ktor/client/engine/jetty/JettyHttp2Request : org/eclipse/jetty/util/Callback {
+	public fun <init> (Lorg/eclipse/jetty/http2/api/Stream;)V
+	public final fun endBody ()V
+	public fun failed (Ljava/lang/Throwable;)V
+	public fun succeeded ()V
+	public final fun write (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/jetty/JettyHttp2RequestKt {
+}
+
+public final class io/ktor/client/engine/jetty/JettyHttpRequestKt {
+	public static final fun connect (Lorg/eclipse/jetty/http2/client/HTTP2Client;Lio/ktor/http/Url;Lio/ktor/client/engine/jetty/JettyEngineConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun executeRequest (Lio/ktor/client/request/HttpRequestData;Lorg/eclipse/jetty/http2/client/HTTP2Client;Lio/ktor/client/engine/jetty/JettyEngineConfig;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/jetty/JettyResponseListener : org/eclipse/jetty/http2/api/Stream$Listener {
+	public static final field Companion Lio/ktor/client/engine/jetty/JettyResponseListener$Companion;
+	public fun <init> (Lio/ktor/client/request/HttpRequestData;Lorg/eclipse/jetty/http2/client/HTTP2ClientSession;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun awaitHeaders (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onData (Lorg/eclipse/jetty/http2/api/Stream;Lorg/eclipse/jetty/http2/frames/DataFrame;Lorg/eclipse/jetty/util/Callback;)V
+	public fun onFailure (Lorg/eclipse/jetty/http2/api/Stream;ILjava/lang/String;Ljava/lang/Throwable;Lorg/eclipse/jetty/util/Callback;)V
+	public fun onHeaders (Lorg/eclipse/jetty/http2/api/Stream;Lorg/eclipse/jetty/http2/frames/HeadersFrame;)V
+	public fun onIdleTimeout (Lorg/eclipse/jetty/http2/api/Stream;Ljava/lang/Throwable;)Z
+	public fun onPush (Lorg/eclipse/jetty/http2/api/Stream;Lorg/eclipse/jetty/http2/frames/PushPromiseFrame;)Lorg/eclipse/jetty/http2/api/Stream$Listener;
+	public fun onReset (Lorg/eclipse/jetty/http2/api/Stream;Lorg/eclipse/jetty/http2/frames/ResetFrame;)V
+}
+
+public final class io/ktor/client/engine/jetty/JettyResponseListener$Companion {
+}
+
+public final class io/ktor/client/engine/jetty/PromiseContinuation : org/eclipse/jetty/util/Promise {
+	public fun <init> (Lkotlin/coroutines/Continuation;)V
+	public fun failed (Ljava/lang/Throwable;)V
+	public fun succeeded (Ljava/lang/Object;)V
+}
+
+public final class io/ktor/client/engine/jetty/StatusWithHeaders {
+	public fun <init> (Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)V
+	public final fun component1 ()Lio/ktor/http/HttpStatusCode;
+	public final fun component2 ()Lio/ktor/http/Headers;
+	public final fun copy (Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/engine/jetty/StatusWithHeaders;
+	public static synthetic fun copy$default (Lio/ktor/client/engine/jetty/StatusWithHeaders;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/engine/jetty/StatusWithHeaders;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeaders ()Lio/ktor/http/Headers;
+	public final fun getStatusCode ()Lio/ktor/http/HttpStatusCode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/jetty/UtilsKt {
+	public static final fun withPromise (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

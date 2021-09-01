@@ -11,6 +11,17 @@ public final class io/ktor/client/features/logging/LogLevel : java/lang/Enum {
 	public static fun values ()[Lio/ktor/client/features/logging/LogLevel;
 }
 
+public final class io/ktor/client/features/logging/LoggedContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Lio/ktor/http/content/OutgoingContent;Lio/ktor/utils/io/ByteReadChannel;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+}
+
 public abstract interface class io/ktor/client/features/logging/Logger {
 	public static final field Companion Lio/ktor/client/features/logging/Logger$Companion;
 	public abstract fun log (Ljava/lang/String;)V
@@ -52,8 +63,10 @@ public final class io/ktor/client/features/logging/Logging$Companion : io/ktor/c
 public final class io/ktor/client/features/logging/Logging$Config {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getFilters$ktor_client_logging ()Ljava/util/List;
 	public final fun getLevel ()Lio/ktor/client/features/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
+	public final fun setFilters$ktor_client_logging (Ljava/util/List;)V
 	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
 	public final fun setLogger (Lio/ktor/client/features/logging/Logger;)V
 }
@@ -61,6 +74,7 @@ public final class io/ktor/client/features/logging/Logging$Config {
 public final class io/ktor/client/features/logging/LoggingKt {
 	public static final fun Logging (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun Logging$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun tryReadText (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/logging/MessageLengthLimitingLogger : io/ktor/client/features/logging/Logger {
@@ -68,5 +82,9 @@ public final class io/ktor/client/features/logging/MessageLengthLimitingLogger :
 	public fun <init> (IILio/ktor/client/features/logging/Logger;)V
 	public synthetic fun <init> (IILio/ktor/client/features/logging/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun log (Ljava/lang/String;)V
+}
+
+public final class io/ktor/client/features/logging/ObservingUtilsKt {
+	public static final fun observe (Lio/ktor/http/content/OutgoingContent;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

@@ -16,6 +16,7 @@ public final class io/ktor/client/features/auth/Auth$Feature : io/ktor/client/fe
 
 public final class io/ktor/client/features/auth/AuthKt {
 	public static final fun Auth (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+	public static final fun getAuthHeaderAttribute ()Lio/ktor/util/AttributeKey;
 }
 
 public abstract interface class io/ktor/client/features/auth/AuthProvider {
@@ -31,6 +32,13 @@ public final class io/ktor/client/features/auth/AuthProvider$DefaultImpls {
 	public static fun sendWithoutRequest (Lio/ktor/client/features/auth/AuthProvider;Lio/ktor/client/request/HttpRequestBuilder;)Z
 }
 
+public final class io/ktor/client/features/auth/providers/AuthTokenHolder {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final fun clearToken$ktor_client_auth ()V
+	public final fun loadToken$ktor_client_auth (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setToken$ktor_client_auth (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/features/auth/providers/BasicAuthConfig {
 	public field password Ljava/lang/String;
 	public field username Ljava/lang/String;
@@ -40,11 +48,15 @@ public final class io/ktor/client/features/auth/providers/BasicAuthConfig {
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun getSendWithoutRequest ()Z
 	public final fun getUsername ()Ljava/lang/String;
+	public final fun get_credentials$ktor_client_auth ()Lkotlin/jvm/functions/Function1;
+	public final fun get_sendWithoutRequest$ktor_client_auth ()Lkotlin/jvm/functions/Function1;
 	public final fun sendWithoutRequest (Lkotlin/jvm/functions/Function1;)V
 	public final fun setPassword (Ljava/lang/String;)V
 	public final fun setRealm (Ljava/lang/String;)V
 	public final fun setSendWithoutRequest (Z)V
 	public final fun setUsername (Ljava/lang/String;)V
+	public final fun set_credentials$ktor_client_auth (Lkotlin/jvm/functions/Function1;)V
+	public final fun set_sendWithoutRequest$ktor_client_auth (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/client/features/auth/providers/BasicAuthCredentials {
@@ -67,15 +79,22 @@ public final class io/ktor/client/features/auth/providers/BasicAuthProvider : io
 
 public final class io/ktor/client/features/auth/providers/BasicAuthProviderKt {
 	public static final fun basic (Lio/ktor/client/features/auth/Auth;Lkotlin/jvm/functions/Function1;)V
+	public static final fun constructBasicAuthValue (Lio/ktor/client/features/auth/providers/BasicAuthCredentials;)Ljava/lang/String;
 }
 
 public final class io/ktor/client/features/auth/providers/BearerAuthConfig {
 	public fun <init> ()V
 	public final fun getRealm ()Ljava/lang/String;
+	public final fun get_loadTokens$ktor_client_auth ()Lkotlin/jvm/functions/Function1;
+	public final fun get_refreshTokens$ktor_client_auth ()Lkotlin/jvm/functions/Function2;
+	public final fun get_sendWithoutRequest$ktor_client_auth ()Lkotlin/jvm/functions/Function1;
 	public final fun loadTokens (Lkotlin/jvm/functions/Function1;)V
 	public final fun refreshTokens (Lkotlin/jvm/functions/Function2;)V
 	public final fun sendWithoutRequest (Lkotlin/jvm/functions/Function1;)V
 	public final fun setRealm (Ljava/lang/String;)V
+	public final fun set_loadTokens$ktor_client_auth (Lkotlin/jvm/functions/Function1;)V
+	public final fun set_refreshTokens$ktor_client_auth (Lkotlin/jvm/functions/Function2;)V
+	public final fun set_sendWithoutRequest$ktor_client_auth (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/client/features/auth/providers/BearerAuthProvider : io/ktor/client/features/auth/AuthProvider {
@@ -106,10 +125,12 @@ public final class io/ktor/client/features/auth/providers/DigestAuthConfig {
 	public final fun getPassword ()Ljava/lang/String;
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun getUsername ()Ljava/lang/String;
+	public final fun get_credentials$ktor_client_auth ()Lkotlin/jvm/functions/Function1;
 	public final fun setAlgorithmName (Ljava/lang/String;)V
 	public final fun setPassword (Ljava/lang/String;)V
 	public final fun setRealm (Ljava/lang/String;)V
 	public final fun setUsername (Ljava/lang/String;)V
+	public final fun set_credentials$ktor_client_auth (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/client/features/auth/providers/DigestAuthCredentials {

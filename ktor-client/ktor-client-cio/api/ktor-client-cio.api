@@ -4,6 +4,17 @@ public final class io/ktor/client/engine/cio/CIO : io/ktor/client/engine/HttpCli
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/engine/cio/CIOEngine : io/ktor/client/engine/HttpClientEngineBase {
+	public fun <init> (Lio/ktor/client/engine/cio/CIOEngineConfig;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/cio/CIOEngineConfig;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
 public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun getEndpoint ()Lio/ktor/client/engine/cio/EndpointConfig;
@@ -35,6 +46,42 @@ public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
 	public fun <init> ()V
 }
 
+public final class io/ktor/client/engine/cio/ConnectionFactory {
+	public fun <init> (Lio/ktor/network/selector/SelectorManager;I)V
+	public final fun connect (Ljava/net/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun connect$default (Lio/ktor/client/engine/cio/ConnectionFactory;Ljava/net/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun release ()V
+}
+
+public final class io/ktor/client/engine/cio/ConnectionPipeline : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (JILio/ktor/network/sockets/Connection;ZLkotlinx/coroutines/channels/Channel;Lkotlin/coroutines/CoroutineContext;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getPipelineContext ()Lkotlinx/coroutines/Job;
+}
+
+public final class io/ktor/client/engine/cio/ConnectionPipelineKt {
+}
+
+public final class io/ktor/client/engine/cio/ConnectionResponseTask {
+	public fun <init> (Lio/ktor/util/date/GMTDate;Lio/ktor/client/engine/cio/RequestTask;)V
+	public final fun component1 ()Lio/ktor/util/date/GMTDate;
+	public final fun component2 ()Lio/ktor/client/engine/cio/RequestTask;
+	public final fun copy (Lio/ktor/util/date/GMTDate;Lio/ktor/client/engine/cio/RequestTask;)Lio/ktor/client/engine/cio/ConnectionResponseTask;
+	public static synthetic fun copy$default (Lio/ktor/client/engine/cio/ConnectionResponseTask;Lio/ktor/util/date/GMTDate;Lio/ktor/client/engine/cio/RequestTask;ILjava/lang/Object;)Lio/ktor/client/engine/cio/ConnectionResponseTask;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRequestTime ()Lio/ktor/util/date/GMTDate;
+	public final fun getTask ()Lio/ktor/client/engine/cio/RequestTask;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/cio/Endpoint : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Ljava/lang/String;ILjava/net/Proxy;ZLio/ktor/client/engine/cio/CIOEngineConfig;Lio/ktor/client/engine/cio/ConnectionFactory;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function0;)V
+	public fun close ()V
+	public final fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
 public final class io/ktor/client/engine/cio/EndpointConfig {
 	public fun <init> ()V
 	public final fun getAllowHalfClose ()Z
@@ -55,8 +102,54 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 	public final fun setSocketTimeout (J)V
 }
 
+public final class io/ktor/client/engine/cio/EndpointKt {
+}
+
+public final class io/ktor/client/engine/cio/EngineTasksKt {
+	public static final fun requiresDedicatedConnection (Lio/ktor/client/request/HttpRequestData;)Z
+}
+
+public final class io/ktor/client/engine/cio/ExceptionsKt {
+	public static final fun mapToKtor (Ljava/lang/Throwable;Lio/ktor/client/request/HttpRequestData;)Ljava/lang/Throwable;
+}
+
 public final class io/ktor/client/engine/cio/FailToConnectException : java/lang/Exception {
 	public fun <init> ()V
+}
+
+public final class io/ktor/client/engine/cio/LoaderJvmKt {
+	public static final fun addToLoader ()V
+}
+
+public final class io/ktor/client/engine/cio/RequestTask {
+	public fun <init> (Lio/ktor/client/request/HttpRequestData;Lkotlinx/coroutines/CompletableDeferred;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun component1 ()Lio/ktor/client/request/HttpRequestData;
+	public final fun component2 ()Lkotlinx/coroutines/CompletableDeferred;
+	public final fun component3 ()Lkotlin/coroutines/CoroutineContext;
+	public final fun copy (Lio/ktor/client/request/HttpRequestData;Lkotlinx/coroutines/CompletableDeferred;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/client/engine/cio/RequestTask;
+	public static synthetic fun copy$default (Lio/ktor/client/engine/cio/RequestTask;Lio/ktor/client/request/HttpRequestData;Lkotlinx/coroutines/CompletableDeferred;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/client/engine/cio/RequestTask;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getRequest ()Lio/ktor/client/request/HttpRequestData;
+	public final fun getResponse ()Lkotlinx/coroutines/CompletableDeferred;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/cio/UtilsKt {
+	public static final fun handleHalfClosed (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Z)Lio/ktor/utils/io/ByteWriteChannel;
+	public static final fun isInformational (Lio/ktor/http/HttpStatusCode;)Z
+	public static final fun readResponse (Lio/ktor/util/date/GMTDate;Lio/ktor/client/request/HttpRequestData;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun startTunnel (Lio/ktor/client/request/HttpRequestData;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun toMap (Lio/ktor/http/cio/HttpHeadersMap;)Ljava/util/Map;
+	public static final fun withoutClosePropagation (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Z)Lio/ktor/utils/io/ByteWriteChannel;
+	public static synthetic fun withoutClosePropagation$default (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static final fun write (Lio/ktor/client/request/HttpRequestData;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun write$default (Lio/ktor/client/request/HttpRequestData;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/cio/WebSocketUtilsJvmKt {
+	public static final fun startWebSocketSession (Lio/ktor/http/HttpStatusCode;Lio/ktor/util/date/GMTDate;Lio/ktor/http/Headers;Lio/ktor/http/HttpProtocolVersion;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;)Lio/ktor/client/request/HttpResponseData;
 }
 
 public final class io/ktor/client/features/websocket/BuildersCioKt {

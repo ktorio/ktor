@@ -56,6 +56,8 @@ public final class io/ktor/websocket/WebSocketServerSession$DefaultImpls {
 
 public final class io/ktor/websocket/WebSocketServerSessionKt {
 	public static final fun getApplication (Lio/ktor/websocket/WebSocketServerSession;)Lio/ktor/application/Application;
+	public static final fun toServerSession (Lio/ktor/http/cio/websocket/DefaultWebSocketSession;Lio/ktor/application/ApplicationCall;)Lio/ktor/websocket/DefaultWebSocketServerSession;
+	public static final fun toServerSession (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/application/ApplicationCall;)Lio/ktor/websocket/WebSocketServerSession;
 }
 
 public final class io/ktor/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {
@@ -96,6 +98,7 @@ public final class io/ktor/websocket/WebSockets$Feature : io/ktor/application/Ap
 public final class io/ktor/websocket/WebSockets$WebSocketOptions {
 	public fun <init> ()V
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getExtensionsConfig$ktor_websockets ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
 	public final fun getMasking ()Z
 	public final fun getMaxFrameSize ()J
 	public final synthetic fun getPingPeriod ()Ljava/time/Duration;

@@ -3,16 +3,43 @@ public final class io/ktor/auth/jwt/JWTAuthKt {
 	public static synthetic fun jwt$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
+public final class io/ktor/auth/jwt/JWTAuthSchemes {
+	public fun <init> (Ljava/lang/String;[Ljava/lang/String;)V
+	public final fun contains (Ljava/lang/String;)Z
+	public final fun getDefaultScheme ()Ljava/lang/String;
+	public final fun getSchemes ()Ljava/util/Set;
+	public final fun getSchemesLowerCase ()Ljava/util/Set;
+}
+
 public final class io/ktor/auth/jwt/JWTAuthenticationProvider : io/ktor/auth/AuthenticationProvider {
+	public fun <init> (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;)V
+	public final fun getAuthHeader$ktor_auth_jwt ()Lkotlin/jvm/functions/Function1;
+	public final fun getAuthenticationFunction$ktor_auth_jwt ()Lkotlin/jvm/functions/Function3;
+	public final fun getChallengeFunction$ktor_auth_jwt ()Lkotlin/jvm/functions/Function4;
+	public final fun getRealm$ktor_auth_jwt ()Ljava/lang/String;
+	public final fun getSchemes$ktor_auth_jwt ()Lio/ktor/auth/jwt/JWTAuthSchemes;
+	public final fun getVerifier$ktor_auth_jwt ()Lkotlin/jvm/functions/Function1;
 }
 
 public final class io/ktor/auth/jwt/JWTAuthenticationProvider$Configuration : io/ktor/auth/AuthenticationProvider$Configuration {
+	public fun <init> (Ljava/lang/String;)V
 	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
 	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
 	public static synthetic fun authSchemes$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun build$ktor_auth_jwt ()Lio/ktor/auth/jwt/JWTAuthenticationProvider;
 	public final fun challenge (Lkotlin/jvm/functions/Function4;)V
+	public final fun getAuthHeader$ktor_auth_jwt ()Lkotlin/jvm/functions/Function1;
+	public final fun getAuthenticationFunction$ktor_auth_jwt ()Lkotlin/jvm/functions/Function3;
+	public final fun getChallenge$ktor_auth_jwt ()Lkotlin/jvm/functions/Function4;
 	public final fun getRealm ()Ljava/lang/String;
+	public final fun getSchemes$ktor_auth_jwt ()Lio/ktor/auth/jwt/JWTAuthSchemes;
+	public final fun getVerifier$ktor_auth_jwt ()Lkotlin/jvm/functions/Function1;
+	public final fun setAuthHeader$ktor_auth_jwt (Lkotlin/jvm/functions/Function1;)V
+	public final fun setAuthenticationFunction$ktor_auth_jwt (Lkotlin/jvm/functions/Function3;)V
+	public final fun setChallenge$ktor_auth_jwt (Lkotlin/jvm/functions/Function4;)V
 	public final fun setRealm (Ljava/lang/String;)V
+	public final fun setSchemes$ktor_auth_jwt (Lio/ktor/auth/jwt/JWTAuthSchemes;)V
+	public final fun setVerifier$ktor_auth_jwt (Lkotlin/jvm/functions/Function1;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;)V
@@ -47,5 +74,9 @@ public abstract class io/ktor/auth/jwt/JWTPayloadHolder {
 
 public final class io/ktor/auth/jwt/JWTPrincipal : io/ktor/auth/jwt/JWTPayloadHolder, io/ktor/auth/Principal {
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
+}
+
+public final class io/ktor/auth/jwt/JWTUtilsKt {
+	public static final fun makeAlgorithm (Lcom/auth0/jwk/Jwk;)Lcom/auth0/jwt/algorithms/Algorithm;
 }
 

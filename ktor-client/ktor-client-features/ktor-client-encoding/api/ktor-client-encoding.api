@@ -21,6 +21,8 @@ public final class io/ktor/client/features/compression/ContentEncoding$Config {
 	public static synthetic fun customEncoder$default (Lio/ktor/client/features/compression/ContentEncoding$Config;Lio/ktor/client/features/compression/ContentEncoder;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun deflate (Ljava/lang/Float;)V
 	public static synthetic fun deflate$default (Lio/ktor/client/features/compression/ContentEncoding$Config;Ljava/lang/Float;ILjava/lang/Object;)V
+	public final fun getEncoders$ktor_client_encoding ()Ljava/util/Map;
+	public final fun getQualityValues$ktor_client_encoding ()Ljava/util/Map;
 	public final fun gzip (Ljava/lang/Float;)V
 	public static synthetic fun gzip$default (Lio/ktor/client/features/compression/ContentEncoding$Config;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun identity (Ljava/lang/Float;)V
@@ -30,6 +32,27 @@ public final class io/ktor/client/features/compression/ContentEncoding$Config {
 public final class io/ktor/client/features/compression/ContentEncodingKt {
 	public static final fun ContentEncoding (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun ContentEncoding$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/client/features/compression/DeflateEncoder : io/ktor/client/features/compression/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/client/features/compression/DeflateEncoder;
+	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/features/compression/GZipEncoder : io/ktor/client/features/compression/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/client/features/compression/GZipEncoder;
+	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/features/compression/IdentityEncoder : io/ktor/client/features/compression/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/client/features/compression/IdentityEncoder;
+	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun getName ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/features/compression/UnsupportedContentEncodingException : java/lang/IllegalStateException {

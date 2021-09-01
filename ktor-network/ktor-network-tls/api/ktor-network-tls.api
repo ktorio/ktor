@@ -16,6 +16,13 @@ public final class io/ktor/network/tls/CertificateAndKey {
 	public final fun getKey ()Ljava/security/PrivateKey;
 }
 
+public final class io/ktor/network/tls/CertificateInfo {
+	public fun <init> ([B[Lio/ktor/network/tls/extensions/HashAndSign;Ljava/util/Set;)V
+	public final fun getAuthorities ()Ljava/util/Set;
+	public final fun getHashAndSign ()[Lio/ktor/network/tls/extensions/HashAndSign;
+	public final fun getTypes ()[B
+}
+
 public final class io/ktor/network/tls/CipherSuite {
 	public fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;)V
 	public synthetic fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -56,11 +63,66 @@ public final class io/ktor/network/tls/CipherSuite {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/network/tls/CipherSuitesJvmKt {
+	public static final fun isSupported (Lio/ktor/network/tls/CipherSuite;)Z
+}
+
 public final class io/ktor/network/tls/CipherType : java/lang/Enum {
 	public static final field CBC Lio/ktor/network/tls/CipherType;
 	public static final field GCM Lio/ktor/network/tls/CipherType;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/CipherType;
 	public static fun values ()[Lio/ktor/network/tls/CipherType;
+}
+
+public final class io/ktor/network/tls/Digest : java/io/Closeable {
+	public static final synthetic fun box-impl (Lio/ktor/utils/io/core/BytePacketBuilder;)Lio/ktor/network/tls/Digest;
+	public fun close ()V
+	public static fun close-impl (Lio/ktor/utils/io/core/BytePacketBuilder;)V
+	public static fun constructor-impl (Lio/ktor/utils/io/core/BytePacketBuilder;)Lio/ktor/utils/io/core/BytePacketBuilder;
+	public static final fun doHash-impl (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/lang/String;)[B
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/utils/io/core/BytePacketBuilder;)Z
+	public final fun getState ()Lio/ktor/utils/io/core/BytePacketBuilder;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Lio/ktor/utils/io/core/BytePacketBuilder;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Lio/ktor/utils/io/core/BytePacketBuilder;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Lio/ktor/utils/io/core/BytePacketBuilder;
+	public static final fun update-impl (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/utils/io/core/ByteReadPacket;)V
+}
+
+public final class io/ktor/network/tls/EncryptionInfo {
+	public fun <init> (Ljava/security/PublicKey;Ljava/security/PublicKey;Ljava/security/PrivateKey;)V
+	public final fun component1 ()Ljava/security/PublicKey;
+	public final fun component2 ()Ljava/security/PublicKey;
+	public final fun component3 ()Ljava/security/PrivateKey;
+	public final fun copy (Ljava/security/PublicKey;Ljava/security/PublicKey;Ljava/security/PrivateKey;)Lio/ktor/network/tls/EncryptionInfo;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/EncryptionInfo;Ljava/security/PublicKey;Ljava/security/PublicKey;Ljava/security/PrivateKey;ILjava/lang/Object;)Lio/ktor/network/tls/EncryptionInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClientPrivate ()Ljava/security/PrivateKey;
+	public final fun getClientPublic ()Ljava/security/PublicKey;
+	public final fun getServerPublic ()Ljava/security/PublicKey;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/network/tls/HashesKt {
+	public static final fun PRF (Ljavax/crypto/SecretKey;[B[BI)[B
+	public static synthetic fun PRF$default (Ljavax/crypto/SecretKey;[B[BIILjava/lang/Object;)[B
+}
+
+public final class io/ktor/network/tls/KeysKt {
+	public static final fun clientIV ([BLio/ktor/network/tls/CipherSuite;)[B
+	public static final fun clientKey ([BLio/ktor/network/tls/CipherSuite;)Ljavax/crypto/spec/SecretKeySpec;
+	public static final fun clientMacKey ([BLio/ktor/network/tls/CipherSuite;)Ljavax/crypto/spec/SecretKeySpec;
+	public static final fun getCLIENT_FINISHED_LABEL ()[B
+	public static final fun getSERVER_FINISHED_LABEL ()[B
+	public static final fun keyMaterial (Ljavax/crypto/SecretKey;[BIII)[B
+	public static final fun masterSecret (Ljavax/crypto/SecretKey;[B[B)Ljavax/crypto/spec/SecretKeySpec;
+	public static final fun serverIV ([BLio/ktor/network/tls/CipherSuite;)[B
+	public static final fun serverKey ([BLio/ktor/network/tls/CipherSuite;)Ljavax/crypto/spec/SecretKeySpec;
+	public static final fun serverMacKey ([BLio/ktor/network/tls/CipherSuite;)Ljavax/crypto/spec/SecretKeySpec;
 }
 
 public final class io/ktor/network/tls/NoPrivateKeyException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
@@ -102,6 +164,31 @@ public final class io/ktor/network/tls/OID$Companion {
 
 public final class io/ktor/network/tls/OIDKt {
 	public static final fun keysGenerationAlgorithm (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class io/ktor/network/tls/ParserKt {
+	public static final fun readCurveParams (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/network/tls/extensions/NamedCurve;
+	public static final fun readECPoint (Lio/ktor/utils/io/core/ByteReadPacket;I)Ljava/security/spec/ECPoint;
+	public static final fun readShortCompatible (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readTLSCertificate (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/util/List;
+	public static final fun readTLSHandshake (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/network/tls/TLSHandshake;
+	public static final fun readTLSRecord (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readTLSServerHello (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/network/tls/TLSServerHello;
+	public static final fun readTripleByteLength (Lio/ktor/utils/io/core/ByteReadPacket;)I
+}
+
+public final class io/ktor/network/tls/RenderKt {
+	public static final fun finished ([BLjavax/crypto/SecretKey;)Lio/ktor/utils/io/core/ByteReadPacket;
+	public static final fun serverFinished ([BLjavax/crypto/SecretKey;I)[B
+	public static synthetic fun serverFinished$default ([BLjavax/crypto/SecretKey;IILjava/lang/Object;)[B
+	public static final fun writeECPoint (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/security/spec/ECPoint;I)V
+	public static final fun writeEncryptedPreMasterSecret (Lio/ktor/utils/io/core/BytePacketBuilder;[BLjava/security/PublicKey;Ljava/security/SecureRandom;)V
+	public static final fun writePublicKeyUncompressed (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/security/PublicKey;)V
+	public static final fun writeRecord (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/network/tls/TLSRecord;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeTLSCertificates (Lio/ktor/utils/io/core/BytePacketBuilder;[Ljava/security/cert/X509Certificate;)V
+	public static final fun writeTLSClientHello (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/network/tls/TLSVersion;Ljava/util/List;[B[BLjava/lang/String;)V
+	public static synthetic fun writeTLSClientHello$default (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/network/tls/TLSVersion;Ljava/util/List;[B[BLjava/lang/String;ILjava/lang/Object;)V
+	public static final fun writeTLSHandshakeType (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/network/tls/TLSHandshakeType;I)V
 }
 
 public final class io/ktor/network/tls/SecretExchangeType : java/lang/Enum {
@@ -175,6 +262,22 @@ public final class io/ktor/network/tls/TLSAlertType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSAlertType;
 }
 
+public final class io/ktor/network/tls/TLSClientHandshake : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/CoroutineContext;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getInput ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public final fun getOutput ()Lkotlinx/coroutines/channels/SendChannel;
+	public final fun negotiate (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/network/tls/TLSClientHandshakeKt {
+	public static final fun readClientCertificateRequest (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/network/tls/CertificateInfo;
+}
+
+public final class io/ktor/network/tls/TLSClientSessionJvmKt {
+	public static final fun openTLSSession (Lio/ktor/network/sockets/Socket;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/network/tls/TLSCommonKt {
 	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -215,6 +318,19 @@ public final class io/ktor/network/tls/TLSConfigBuilderKt {
 	public static final fun takeFrom (Lio/ktor/network/tls/TLSConfigBuilder;Lio/ktor/network/tls/TLSConfigBuilder;)V
 }
 
+public final class io/ktor/network/tls/TLSException : java/io/IOException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/network/tls/TLSHandshake {
+	public fun <init> ()V
+	public final fun getPacket ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public final fun getType ()Lio/ktor/network/tls/TLSHandshakeType;
+	public final fun setPacket (Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun setType (Lio/ktor/network/tls/TLSHandshakeType;)V
+}
+
 public final class io/ktor/network/tls/TLSHandshakeType : java/lang/Enum {
 	public static final field Certificate Lio/ktor/network/tls/TLSHandshakeType;
 	public static final field CertificateRequest Lio/ktor/network/tls/TLSHandshakeType;
@@ -243,6 +359,15 @@ public final class io/ktor/network/tls/TLSKt {
 	public static synthetic fun tls$default (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Ljavax/net/ssl/X509TrustManager;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/network/tls/TLSRecord {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/network/tls/TLSRecordType;Lio/ktor/network/tls/TLSVersion;Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public synthetic fun <init> (Lio/ktor/network/tls/TLSRecordType;Lio/ktor/network/tls/TLSVersion;Lio/ktor/utils/io/core/ByteReadPacket;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getPacket ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public final fun getType ()Lio/ktor/network/tls/TLSRecordType;
+	public final fun getVersion ()Lio/ktor/network/tls/TLSVersion;
+}
+
 public final class io/ktor/network/tls/TLSRecordType : java/lang/Enum {
 	public static final field Alert Lio/ktor/network/tls/TLSRecordType;
 	public static final field ApplicationData Lio/ktor/network/tls/TLSRecordType;
@@ -258,6 +383,18 @@ public final class io/ktor/network/tls/TLSRecordType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSRecordType;
 }
 
+public final class io/ktor/network/tls/TLSServerHello {
+	public fun <init> (Lio/ktor/network/tls/TLSVersion;[B[BSSLjava/util/List;)V
+	public synthetic fun <init> (Lio/ktor/network/tls/TLSVersion;[B[BSSLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCipherSuite ()Lio/ktor/network/tls/CipherSuite;
+	public final fun getCompressionMethod ()S
+	public final fun getExtensions ()Ljava/util/List;
+	public final fun getHashAndSignAlgorithms ()Ljava/util/List;
+	public final fun getServerSeed ()[B
+	public final fun getSessionId ()[B
+	public final fun getVersion ()Lio/ktor/network/tls/TLSVersion;
+}
+
 public final class io/ktor/network/tls/TLSVersion : java/lang/Enum {
 	public static final field Companion Lio/ktor/network/tls/TLSVersion$Companion;
 	public static final field SSL3 Lio/ktor/network/tls/TLSVersion;
@@ -271,6 +408,59 @@ public final class io/ktor/network/tls/TLSVersion : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSVersion$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSVersion;
+}
+
+public final class io/ktor/network/tls/UtilsKt {
+	public static final fun Digest ()Lio/ktor/utils/io/core/BytePacketBuilder;
+	public static final fun plusAssign-Bb1Az4c (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/network/tls/TLSHandshake;)V
+}
+
+public final class io/ktor/network/tls/certificates/CertificateType {
+	public static final field INSTANCE Lio/ktor/network/tls/certificates/CertificateType;
+	public final fun getDSS ()B
+	public final fun getDSS_EPHEMERAL_DH_RESERVED ()B
+	public final fun getDSS_FIXED_DH ()B
+	public final fun getFORTEZZA_DMS_RESERVED ()B
+	public final fun getRSA ()B
+	public final fun getRSA_EPHEMERAL_DH_RESERVED ()B
+	public final fun getRSA_FIXED_DH ()B
+}
+
+public final class io/ktor/network/tls/cipher/CBCCipher : io/ktor/network/tls/cipher/TLSCipher {
+	public fun <init> (Lio/ktor/network/tls/CipherSuite;[B)V
+	public fun decrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+	public fun encrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+}
+
+public final class io/ktor/network/tls/cipher/CipherKt {
+	public static final fun getEmptyByteBuffer ()Ljava/nio/ByteBuffer;
+	public static final fun set ([BIJ)V
+	public static final fun set ([BIS)V
+}
+
+public final class io/ktor/network/tls/cipher/CipherUtilsKt {
+	public static final fun cipherLoop (Lio/ktor/utils/io/core/ByteReadPacket;Ljavax/crypto/Cipher;Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
+	public static synthetic fun cipherLoop$default (Lio/ktor/utils/io/core/ByteReadPacket;Ljavax/crypto/Cipher;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/utils/io/core/ByteReadPacket;
+	public static final fun getCryptoBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
+}
+
+public final class io/ktor/network/tls/cipher/GCMCipher : io/ktor/network/tls/cipher/TLSCipher {
+	public fun <init> (Lio/ktor/network/tls/CipherSuite;[B)V
+	public fun decrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+	public fun encrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+}
+
+public final class io/ktor/network/tls/cipher/GCMCipherKt {
+}
+
+public abstract interface class io/ktor/network/tls/cipher/TLSCipher {
+	public static final field Companion Lio/ktor/network/tls/cipher/TLSCipher$Companion;
+	public abstract fun decrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+	public abstract fun encrypt (Lio/ktor/network/tls/TLSRecord;)Lio/ktor/network/tls/TLSRecord;
+}
+
+public final class io/ktor/network/tls/cipher/TLSCipher$Companion {
+	public final fun fromSuite (Lio/ktor/network/tls/CipherSuite;[B)Lio/ktor/network/tls/cipher/TLSCipher;
 }
 
 public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum {
@@ -387,8 +577,19 @@ public final class io/ktor/network/tls/extensions/SignatureAlgorithm$Companion {
 }
 
 public final class io/ktor/network/tls/extensions/SignatureAlgorithmKt {
+	public static final fun HashAndSign (BBLjava/lang/String;)Lio/ktor/network/tls/extensions/HashAndSign;
+	public static synthetic fun HashAndSign$default (BBLjava/lang/String;ILjava/lang/Object;)Lio/ktor/network/tls/extensions/HashAndSign;
 	public static final fun byCode (Lio/ktor/network/tls/extensions/HashAndSign$Companion;BB)Lio/ktor/network/tls/extensions/HashAndSign;
 	public static final fun getSupportedSignatureAlgorithms ()Ljava/util/List;
+	public static final fun parseSignatureAlgorithms (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/util/List;
+	public static final fun readHashAndSign (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/network/tls/extensions/HashAndSign;
+}
+
+public final class io/ktor/network/tls/extensions/TLSExtension {
+	public fun <init> (Lio/ktor/network/tls/extensions/TLSExtensionType;ILio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun getLength ()I
+	public final fun getPacket ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public final fun getType ()Lio/ktor/network/tls/extensions/TLSExtensionType;
 }
 
 public final class io/ktor/network/tls/extensions/TLSExtensionType : java/lang/Enum {
@@ -409,5 +610,20 @@ public final class io/ktor/network/tls/extensions/TLSExtensionType : java/lang/E
 
 public final class io/ktor/network/tls/extensions/TLSExtensionType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/extensions/TLSExtensionType;
+}
+
+public final class io/ktor/network/tls/platform/PlatformVersion {
+	public static final field Companion Lio/ktor/network/tls/platform/PlatformVersion$Companion;
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun getMajor ()Ljava/lang/String;
+	public final fun getMinor ()I
+}
+
+public final class io/ktor/network/tls/platform/PlatformVersion$Companion {
+	public final fun invoke (Ljava/lang/String;)Lio/ktor/network/tls/platform/PlatformVersion;
+}
+
+public final class io/ktor/network/tls/platform/PlatformVersionKt {
+	public static final fun getPlatformVersion ()Lio/ktor/network/tls/platform/PlatformVersion;
 }
 

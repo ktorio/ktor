@@ -4,6 +4,17 @@ public final class io/ktor/server/cio/CIO : io/ktor/server/engine/ApplicationEng
 	public synthetic fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 }
 
+public final class io/ktor/server/cio/CIOApplicationCall : io/ktor/server/engine/BaseApplicationCall {
+	public fun <init> (Lio/ktor/application/Application;Lio/ktor/http/cio/Request;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CompletableDeferred;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
+	public synthetic fun getRequest ()Lio/ktor/request/ApplicationRequest;
+	public fun getRequest ()Lio/ktor/server/cio/CIOApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
+	public fun getResponse ()Lio/ktor/server/cio/CIOApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public final fun release$ktor_server_cio ()V
+}
+
 public final class io/ktor/server/cio/CIOApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
 	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
 	public fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
@@ -14,6 +25,21 @@ public final class io/ktor/server/cio/CIOApplicationEngine$Configuration : io/kt
 	public fun <init> ()V
 	public final fun getConnectionIdleTimeoutSeconds ()I
 	public final fun setConnectionIdleTimeoutSeconds (I)V
+}
+
+public final class io/ktor/server/cio/CIOApplicationRequest : io/ktor/server/engine/BaseApplicationRequest {
+	public fun <init> (Lio/ktor/application/ApplicationCall;Ljava/net/InetSocketAddress;Ljava/net/InetSocketAddress;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/Request;)V
+	public fun getCookies ()Lio/ktor/request/RequestCookies;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
+	public fun getQueryParameters ()Lio/ktor/http/Parameters;
+	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun release$ktor_server_cio ()V
+}
+
+public final class io/ktor/server/cio/CIOApplicationResponse : io/ktor/server/engine/BaseApplicationResponse {
+	public fun <init> (Lio/ktor/server/cio/CIOApplicationCall;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CompletableDeferred;)V
+	public fun getHeaders ()Lio/ktor/response/ResponseHeaders;
 }
 
 public final class io/ktor/server/cio/DevelopmentEngine {

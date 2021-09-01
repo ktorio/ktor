@@ -1,3 +1,9 @@
+public final class io/ktor/gson/ExcludedTypeGsonException : java/lang/Exception, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun createCopy ()Lio/ktor/gson/ExcludedTypeGsonException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+}
+
 public final class io/ktor/gson/GsonConverter : io/ktor/features/ContentConverter {
 	public fun <init> ()V
 	public fun <init> (Lcom/google/gson/Gson;)V
@@ -9,5 +15,9 @@ public final class io/ktor/gson/GsonConverter : io/ktor/features/ContentConverte
 public final class io/ktor/gson/GsonSupportKt {
 	public static final fun gson (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun gson$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/gson/UnsupportedNullValuesException : io/ktor/features/ContentTransformationException {
+	public fun <init> ()V
 }
 

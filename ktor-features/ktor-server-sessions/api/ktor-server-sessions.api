@@ -1,9 +1,40 @@
+public final class io/ktor/sessions/BaseCache : io/ktor/sessions/Cache {
+	public fun <init> (Lkotlin/jvm/functions/Function2;)V
+	public final fun getCalc ()Lkotlin/jvm/functions/Function2;
+	public fun getOrCompute (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invalidate (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun invalidate (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun invalidateAll ()V
+	public fun peek (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/sessions/BaseTimeoutCache : io/ktor/sessions/Cache {
+	public fun <init> (JZLio/ktor/sessions/Cache;)V
+	public final fun getDelegate ()Lio/ktor/sessions/Cache;
+	public fun getOrCompute (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getTimeoutValue ()J
+	public final fun getTouchOnGet ()Z
+	public fun invalidate (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun invalidate (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun invalidateAll ()V
+	public fun peek (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
 public abstract interface class io/ktor/sessions/Cache {
 	public abstract fun getOrCompute (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun invalidate (Ljava/lang/Object;)Ljava/lang/Object;
 	public abstract fun invalidate (Ljava/lang/Object;Ljava/lang/Object;)Z
 	public abstract fun invalidateAll ()V
 	public abstract fun peek (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/sessions/CacheReference {
+	public abstract fun getKey ()Ljava/lang/Object;
+}
+
+public final class io/ktor/sessions/CacheSoftReference : java/lang/ref/SoftReference, io/ktor/sessions/CacheReference {
+	public fun <init> (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/ref/ReferenceQueue;)V
+	public fun getKey ()Ljava/lang/Object;
 }
 
 public final class io/ktor/sessions/CacheStorage : io/ktor/sessions/SessionStorage {
@@ -14,8 +45,40 @@ public final class io/ktor/sessions/CacheStorage : io/ktor/sessions/SessionStora
 	public fun write (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/sessions/CacheWeakReference : java/lang/ref/WeakReference, io/ktor/sessions/CacheReference {
+	public fun <init> (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/ref/ReferenceQueue;)V
+	public fun getKey ()Ljava/lang/Object;
+}
+
+public final class io/ktor/sessions/DirectoryStorage : io/ktor/sessions/SessionStorage, java/io/Closeable {
+	public fun <init> (Ljava/io/File;)V
+	public fun close ()V
+	public fun invalidate (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun read (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun write (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/sessions/DirectoryStorageKt {
 	public static final fun directorySessionStorage (Ljava/io/File;Z)Lio/ktor/sessions/SessionStorage;
 	public static synthetic fun directorySessionStorage$default (Ljava/io/File;ZILjava/lang/Object;)Lio/ktor/sessions/SessionStorage;
+}
+
+public class io/ktor/sessions/ReferenceCache : io/ktor/sessions/Cache {
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
+	public final fun getCalc ()Lkotlin/jvm/functions/Function2;
+	public fun getOrCompute (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getWrapFunction ()Lkotlin/jvm/functions/Function3;
+	public fun invalidate (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun invalidate (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun invalidateAll ()V
+	public fun peek (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/sessions/SoftReferenceCache : io/ktor/sessions/ReferenceCache {
+	public fun <init> (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/sessions/WeakReferenceCache : io/ktor/sessions/ReferenceCache {
+	public fun <init> (Lkotlin/jvm/functions/Function2;)V
 }
 

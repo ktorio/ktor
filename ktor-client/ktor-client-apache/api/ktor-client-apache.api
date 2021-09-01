@@ -3,6 +3,16 @@ public final class io/ktor/client/engine/apache/Apache : io/ktor/client/engine/H
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
 }
 
+public final class io/ktor/client/engine/apache/ApacheEngine : io/ktor/client/engine/HttpClientEngineBase {
+	public fun <init> (Lio/ktor/client/engine/apache/ApacheEngineConfig;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/apache/ApacheEngineConfig;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
 public final class io/ktor/client/engine/apache/ApacheEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun customizeClient (Lkotlin/jvm/functions/Function1;)V
@@ -25,5 +35,68 @@ public final class io/ktor/client/engine/apache/ApacheEngineContainer : io/ktor/
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/apache/ApacheEngineKt {
+}
+
+public final class io/ktor/client/engine/apache/ApacheHttpRequestKt {
+	public static final fun mapCause (Ljava/lang/Exception;Lio/ktor/client/request/HttpRequestData;)Ljava/lang/Exception;
+	public static final fun sendRequest (Lorg/apache/http/impl/nio/client/CloseableHttpAsyncClient;Lio/ktor/client/engine/apache/ApacheRequestProducer;Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/apache/ApacheRequestProducer : kotlinx/coroutines/CoroutineScope, org/apache/http/nio/protocol/HttpAsyncRequestProducer {
+	public fun <init> (Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/engine/apache/ApacheEngineConfig;Lkotlin/coroutines/CoroutineContext;)V
+	public fun close ()V
+	public fun failed (Ljava/lang/Exception;)V
+	public fun generateRequest ()Lorg/apache/http/HttpRequest;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getTarget ()Lorg/apache/http/HttpHost;
+	public fun isRepeatable ()Z
+	public fun produceContent (Lorg/apache/http/nio/ContentEncoder;Lorg/apache/http/nio/IOControl;)V
+	public fun requestCompleted (Lorg/apache/http/protocol/HttpContext;)V
+	public fun resetRequest ()V
+}
+
+public final class io/ktor/client/engine/apache/ApacheRequestProducerKt {
+}
+
+public final class io/ktor/client/engine/apache/ApacheResponseConsumer : kotlinx/coroutines/CoroutineScope, org/apache/http/nio/protocol/HttpAsyncResponseConsumer {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestData;)V
+	public fun cancel ()Z
+	public fun close ()V
+	public fun consumeContent (Lorg/apache/http/nio/ContentDecoder;Lorg/apache/http/nio/IOControl;)V
+	public fun failed (Ljava/lang/Exception;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getException ()Ljava/lang/Exception;
+	public final fun getParentContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getResponseChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public synthetic fun getResult ()Ljava/lang/Object;
+	public fun getResult ()V
+	public fun isDone ()Z
+	public fun responseCompleted (Lorg/apache/http/protocol/HttpContext;)V
+	public fun responseReceived (Lorg/apache/http/HttpResponse;)V
+	public final fun waitForResponse (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/apache/ApacheUtilsKt {
+	public static final fun isTimeoutException (Ljava/net/ConnectException;)Z
+}
+
+public final class io/ktor/client/engine/apache/InterestControllerHolder {
+	public fun <init> ()V
+	public final fun getInputSuspended ()Z
+	public final fun getOutputSuspended ()Z
+	public final fun resumeInputIfPossible ()V
+	public final fun resumeOutputIfPossible ()V
+	public final fun suspendInput (Lorg/apache/http/nio/IOControl;)V
+	public final fun suspendOutput (Lorg/apache/http/nio/IOControl;)V
+}
+
+public final class io/ktor/client/engine/apache/ReactorLoopDispatcher : kotlinx/coroutines/CoroutineDispatcher {
+	public fun <init> (Lio/ktor/client/engine/apache/InterestControllerHolder;I)V
+	public fun dispatch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
+	public final fun hasTasks ()Z
+	public final fun processLoop ()V
 }
 

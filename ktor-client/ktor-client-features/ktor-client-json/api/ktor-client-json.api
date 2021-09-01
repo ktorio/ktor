@@ -2,9 +2,18 @@ public final class io/ktor/client/features/json/DefaultJvmKt {
 	public static final fun defaultSerializer ()Lio/ktor/client/features/json/JsonSerializer;
 }
 
+public final class io/ktor/client/features/json/JsonContentTypeMatcher : io/ktor/http/ContentTypeMatcher {
+	public fun <init> ()V
+	public fun contains (Lio/ktor/http/ContentType;)Z
+}
+
 public final class io/ktor/client/features/json/JsonFeature {
 	public static final field Feature Lio/ktor/client/features/json/JsonFeature$Feature;
+	public fun <init> (Lio/ktor/client/features/json/JsonFeature$Config;)V
 	public fun <init> (Lio/ktor/client/features/json/JsonSerializer;)V
+	public fun <init> (Lio/ktor/client/features/json/JsonSerializer;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Lio/ktor/client/features/json/JsonSerializer;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun canHandle$ktor_client_json (Lio/ktor/http/ContentType;)Z
 	public final fun getAcceptContentTypes ()Ljava/util/List;
 	public final fun getSerializer ()Lio/ktor/client/features/json/JsonSerializer;
 }

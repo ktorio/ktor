@@ -13,6 +13,7 @@ public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/kt
 	public fun <init> (Lio/ktor/application/ApplicationCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun upgraded$ktor_server_servlet ()V
 }
 
 public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
@@ -30,7 +31,23 @@ public final class io/ktor/server/servlet/AsyncServletApplicationResponse$Compan
 
 public final class io/ktor/server/servlet/AttributesKt {
 	public static final fun getServletRequestAttributes (Lio/ktor/request/ApplicationRequest;)Ljava/util/Map;
+	public static final fun getServletRequestAttributesKey ()Lio/ktor/util/AttributeKey;
 	public static final fun putServletAttributes (Lio/ktor/application/ApplicationCall;Ljavax/servlet/ServletRequest;)V
+}
+
+public final class io/ktor/server/servlet/BlockingServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public synthetic fun getRequest ()Lio/ktor/request/ApplicationRequest;
+	public fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getResponse ()Lio/ktor/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public fun getResponse ()Lio/ktor/server/servlet/BlockingServletApplicationResponse;
+}
+
+public final class io/ktor/server/servlet/BlockingServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/application/ApplicationCall;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 }
 
 public final class io/ktor/server/servlet/DefaultServletUpgrade : io/ktor/server/servlet/ServletUpgrade {
@@ -112,6 +129,21 @@ public abstract class io/ktor/server/servlet/ServletApplicationResponse : io/kto
 	protected fun setStatus (Lio/ktor/http/HttpStatusCode;)V
 }
 
+public final class io/ktor/server/servlet/ServletConnectionPoint : io/ktor/http/RequestConnectionPoint {
+	public fun <init> (Ljavax/servlet/http/HttpServletRequest;)V
+	public fun getHost ()Ljava/lang/String;
+	public fun getMethod ()Lio/ktor/http/HttpMethod;
+	public fun getPort ()I
+	public fun getRemoteHost ()Ljava/lang/String;
+	public fun getScheme ()Ljava/lang/String;
+	public fun getUri ()Ljava/lang/String;
+	public fun getVersion ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/servlet/ServletReaderKt {
+	public static final fun servletReader (Lkotlinx/coroutines/CoroutineScope;Ljavax/servlet/ServletInputStream;)Lio/ktor/utils/io/WriterJob;
+}
+
 public abstract interface class io/ktor/server/servlet/ServletUpgrade {
 	public abstract fun performUpgrade (Lio/ktor/http/content/OutgoingContent$ProtocolUpgrade;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -127,6 +159,14 @@ public final class io/ktor/server/servlet/ServletUpgradeHandler : javax/servlet/
 	public fun init (Ljavax/servlet/http/WebConnection;)V
 	public final fun setUp (Lio/ktor/server/servlet/UpgradeRequest;)V
 	public final fun setUpgradeJob (Lkotlinx/coroutines/CompletableJob;)V
+}
+
+public final class io/ktor/server/servlet/ServletUpgradeKt {
+}
+
+public final class io/ktor/server/servlet/ServletWriterKt {
+	public static final fun getArrayPool ()Lio/ktor/utils/io/pool/DefaultPool;
+	public static final fun servletWriter (Lkotlinx/coroutines/CoroutineScope;Ljavax/servlet/ServletOutputStream;)Lio/ktor/utils/io/ReaderJob;
 }
 
 public final class io/ktor/server/servlet/UpgradeRequest {

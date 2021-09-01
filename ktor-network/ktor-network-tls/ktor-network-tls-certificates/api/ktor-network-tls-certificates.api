@@ -7,6 +7,8 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public field hash Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public field password Ljava/lang/String;
 	public field sign Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public fun <init> ()V
+	public final fun build$ktor_network_tls_certificates ()Lio/ktor/network/tls/certificates/CertificateInfo;
 	public final fun getDaysValid ()J
 	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun getKeySizeInBits ()I
@@ -19,12 +21,50 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
 }
 
+public final class io/ktor/network/tls/certificates/CertificateInfo {
+	public fun <init> (Ljava/security/cert/Certificate;Ljava/security/KeyPair;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/security/cert/Certificate;
+	public final fun component2 ()Ljava/security/KeyPair;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/security/cert/Certificate;Ljava/security/KeyPair;Ljava/lang/String;)Lio/ktor/network/tls/certificates/CertificateInfo;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/certificates/CertificateInfo;Ljava/security/cert/Certificate;Ljava/security/KeyPair;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/network/tls/certificates/CertificateInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCertificate ()Ljava/security/cert/Certificate;
+	public final fun getKeys ()Ljava/security/KeyPair;
+	public final fun getPassword ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/ktor/network/tls/certificates/CertificatesKt {
 	public static final fun generateCertificate (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Ljava/security/KeyStore;
 	public static synthetic fun generateCertificate$default (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/Object;)Ljava/security/KeyStore;
+	public static final fun writeCertificate (Lio/ktor/utils/io/core/BytePacketBuilder;Lio/ktor/network/tls/certificates/Counterparty;Lio/ktor/network/tls/certificates/Counterparty;Ljava/security/KeyPair;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/util/List;Ljava/util/List;)V
+	public static final fun writeX509Info (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/lang/String;Lio/ktor/network/tls/certificates/Counterparty;Lio/ktor/network/tls/certificates/Counterparty;Ljava/security/PublicKey;Ljava/util/Date;Ljava/util/Date;Ljava/util/List;Ljava/util/List;)V
+}
+
+public final class io/ktor/network/tls/certificates/Counterparty {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/network/tls/certificates/Counterparty;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/certificates/Counterparty;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/network/tls/certificates/Counterparty;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCommonName ()Ljava/lang/String;
+	public final fun getCountry ()Ljava/lang/String;
+	public final fun getOrganization ()Ljava/lang/String;
+	public final fun getOrganizationUnit ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/network/tls/certificates/KeyStoreBuilder {
+	public fun <init> ()V
+	public final fun build$ktor_network_tls_certificates ()Ljava/security/KeyStore;
 	public final fun certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 }
 

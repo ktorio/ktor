@@ -1,3 +1,6 @@
+public final class io/ktor/metrics/MetricsKt {
+}
+
 public final class io/ktor/metrics/dropwizard/DropwizardMetrics {
 	public static final field Feature Lio/ktor/metrics/dropwizard/DropwizardMetrics$Feature;
 	public fun <init> (Lcom/codahale/metrics/MetricRegistry;Ljava/lang/String;)V

@@ -32,3 +32,9 @@ public final class io/ktor/serialization/SerializationConverterKt {
 	public static synthetic fun serialization$default (Lio/ktor/features/ContentNegotiation$Configuration;Lio/ktor/http/ContentType;Lkotlinx/serialization/json/Json;ILjava/lang/Object;)V
 }
 
+public final class io/ktor/serialization/SerializerLookupKt {
+	public static final fun guessSerializer (Ljava/lang/Object;Lkotlinx/serialization/modules/SerializersModule;)Lkotlinx/serialization/KSerializer;
+	public static final fun serializerByTypeInfo (Lkotlin/reflect/KType;)Lkotlinx/serialization/KSerializer;
+	public static final fun serializerFromResponseType (Lio/ktor/util/pipeline/PipelineContext;Lkotlinx/serialization/modules/SerializersModule;)Lkotlinx/serialization/KSerializer;
+}
+

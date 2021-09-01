@@ -6,6 +6,8 @@ public final class io/ktor/client/engine/java/Java : io/ktor/client/engine/HttpC
 public final class io/ktor/client/engine/java/JavaHttpConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun getConfig$ktor_client_java ()Lkotlin/jvm/functions/Function1;
+	public final fun setConfig$ktor_client_java (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/client/engine/java/JavaHttpEngine : io/ktor/client/engine/HttpClientEngineBase {
@@ -14,6 +16,7 @@ public final class io/ktor/client/engine/java/JavaHttpEngine : io/ktor/client/en
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/java/JavaHttpConfig;
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getExecutor$ktor_client_java ()Ljava/util/concurrent/ExecutorService;
 	public fun getSupportedCapabilities ()Ljava/util/Set;
 }
 
@@ -21,5 +24,56 @@ public final class io/ktor/client/engine/java/JavaHttpEngineContainer : io/ktor/
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/java/JavaHttpRequestBodyPublisher : java/net/http/HttpRequest$BodyPublisher {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun contentLength ()J
+	public fun subscribe (Ljava/util/concurrent/Flow$Subscriber;)V
+}
+
+public final class io/ktor/client/engine/java/JavaHttpRequestKt {
+	public static final fun convertToHttpRequest (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/CoroutineContext;)Ljava/net/http/HttpRequest;
+	public static final fun convertToHttpRequestBody (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;)Ljava/net/http/HttpRequest$BodyPublisher;
+	public static final fun getDISALLOWED_HEADERS ()Ljava/util/TreeSet;
+}
+
+public final class io/ktor/client/engine/java/JavaHttpResponseBodyHandler : java/net/http/HttpResponse$BodyHandler {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/util/date/GMTDate;)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/util/date/GMTDate;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun apply (Ljava/net/http/HttpResponse$ResponseInfo;)Ljava/net/http/HttpResponse$BodySubscriber;
+}
+
+public final class io/ktor/client/engine/java/JavaHttpResponseKt {
+	public static final fun executeHttpRequest (Ljava/net/http/HttpClient;Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/engine/java/JavaHttpWebSocket : io/ktor/http/cio/websocket/WebSocketSession, java/net/http/WebSocket$Listener {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Ljava/net/http/HttpClient;Lio/ktor/client/request/HttpRequestData;Lio/ktor/util/date/GMTDate;)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Ljava/net/http/HttpClient;Lio/ktor/client/request/HttpRequestData;Lio/ktor/util/date/GMTDate;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getExtensions ()Ljava/util/List;
+	public fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public fun getMasking ()Z
+	public fun getMaxFrameSize ()J
+	public fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
+	public final fun getResponse (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onBinary (Ljava/net/http/WebSocket;Ljava/nio/ByteBuffer;Z)Ljava/util/concurrent/CompletionStage;
+	public fun onClose (Ljava/net/http/WebSocket;ILjava/lang/String;)Ljava/util/concurrent/CompletionStage;
+	public fun onError (Ljava/net/http/WebSocket;Ljava/lang/Throwable;)V
+	public fun onOpen (Ljava/net/http/WebSocket;)V
+	public fun onPing (Ljava/net/http/WebSocket;Ljava/nio/ByteBuffer;)Ljava/util/concurrent/CompletionStage;
+	public fun onPong (Ljava/net/http/WebSocket;Ljava/nio/ByteBuffer;)Ljava/util/concurrent/CompletionStage;
+	public fun onText (Ljava/net/http/WebSocket;Ljava/lang/CharSequence;Z)Ljava/util/concurrent/CompletionStage;
+	public fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setMasking (Z)V
+	public fun setMaxFrameSize (J)V
+	public fun terminate ()V
+}
+
+public final class io/ktor/client/engine/java/JavaHttpWebSocketKt {
+	public static final fun executeWebSocketRequest (Ljava/net/http/HttpClient;Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

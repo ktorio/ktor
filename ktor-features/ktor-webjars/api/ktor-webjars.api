@@ -1,6 +1,7 @@
 public final class io/ktor/webjars/Webjars {
 	public static final field Feature Lio/ktor/webjars/Webjars$Feature;
 	public fun <init> (Lio/ktor/webjars/Webjars$Configuration;)V
+	public fun <init> (Ljava/lang/String;)V
 }
 
 public final class io/ktor/webjars/Webjars$Configuration {

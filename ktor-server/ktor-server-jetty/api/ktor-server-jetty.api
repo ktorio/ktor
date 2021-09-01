@@ -51,6 +51,33 @@ public final class io/ktor/server/jetty/JettyApplicationResponse : io/ktor/serve
 	public fun push (Lio/ktor/response/ResponsePushBuilder;)V
 }
 
+public final class io/ktor/server/jetty/JettyKtorHandler : org/eclipse/jetty/server/handler/AbstractHandler, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineDispatcher;Lio/ktor/server/jetty/JettyApplicationEngineBase$Configuration;)V
+	public fun destroy ()V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public fun handle (Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V
+}
+
+public final class io/ktor/server/jetty/JettyKtorHandlerKt {
+}
+
+public final class io/ktor/server/jetty/ServerInitializerKt {
+	public static final fun initializeServer (Lorg/eclipse/jetty/server/Server;Lio/ktor/server/engine/ApplicationEngineEnvironment;)V
+}
+
+public final class io/ktor/server/jetty/internal/EndPointChannelsKt {
+	public static final fun endPointWriter (Lkotlinx/coroutines/CoroutineScope;Lorg/eclipse/jetty/io/EndPoint;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/ReaderJob;
+	public static synthetic fun endPointWriter$default (Lkotlinx/coroutines/CoroutineScope;Lorg/eclipse/jetty/io/EndPoint;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/ReaderJob;
+}
+
+public final class io/ktor/server/jetty/internal/EndPointReader : org/eclipse/jetty/io/AbstractConnection, kotlinx/coroutines/CoroutineScope, org/eclipse/jetty/io/Connection$UpgradeTo {
+	public fun <init> (Lorg/eclipse/jetty/io/EndPoint;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteWriteChannel;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun onFillable ()V
+	public fun onUpgradeTo (Ljava/nio/ByteBuffer;)V
+}
+
 public final class io/ktor/server/jetty/internal/JettyUpgradeImpl : io/ktor/server/servlet/ServletUpgrade {
 	public static final field INSTANCE Lio/ktor/server/jetty/internal/JettyUpgradeImpl;
 	public fun performUpgrade (Lio/ktor/http/content/OutgoingContent$ProtocolUpgrade;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

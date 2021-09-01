@@ -14,11 +14,14 @@ public final class io/ktor/metrics/micrometer/MicrometerMetrics$Configuration {
 	public final fun getDistributionStatisticConfig ()Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;
 	public final fun getMeterBinders ()Ljava/util/List;
 	public final fun getRegistry ()Lio/micrometer/core/instrument/MeterRegistry;
+	public final fun getTimerBuilder$ktor_metrics_micrometer ()Lkotlin/jvm/functions/Function3;
+	public final fun isRegistryInitialized$ktor_metrics_micrometer ()Z
 	public final fun setBaseName (Ljava/lang/String;)V
 	public final fun setDistinctNotRegisteredRoutes (Z)V
 	public final fun setDistributionStatisticConfig (Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;)V
 	public final fun setMeterBinders (Ljava/util/List;)V
 	public final fun setRegistry (Lio/micrometer/core/instrument/MeterRegistry;)V
+	public final fun setTimerBuilder$ktor_metrics_micrometer (Lkotlin/jvm/functions/Function3;)V
 	public final fun timers (Lkotlin/jvm/functions/Function3;)V
 }
 

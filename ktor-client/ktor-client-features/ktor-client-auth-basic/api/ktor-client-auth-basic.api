@@ -9,6 +9,7 @@ public final class io/ktor/client/features/auth/basic/BasicAuth$Configuration {
 	public field password Ljava/lang/String;
 	public field username Ljava/lang/String;
 	public fun <init> ()V
+	public final fun build$ktor_client_auth_basic ()Lio/ktor/client/features/auth/basic/BasicAuth;
 	public final fun getPassword ()Ljava/lang/String;
 	public final fun getUsername ()Ljava/lang/String;
 	public final fun setPassword (Ljava/lang/String;)V
