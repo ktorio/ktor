@@ -31,7 +31,7 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 3 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals<Long>((2 + 3 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5).toLong(), p.remaining)
 
         p.readFully(ByteArray(2))
         p.readFully(ByteBuffer.allocate(3))
@@ -63,7 +63,7 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(9999 + 8888 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals<Long>((9999 + 8888 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5).toLong(), p.remaining)
 
         p.readFully(ByteArray(9999))
         p.readFully(ByteBuffer.allocate(8888))
