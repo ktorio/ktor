@@ -98,6 +98,7 @@ public actual interface ByteWriteChannel {
 
     @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")
+    @ExperimentalIoApi
     public actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

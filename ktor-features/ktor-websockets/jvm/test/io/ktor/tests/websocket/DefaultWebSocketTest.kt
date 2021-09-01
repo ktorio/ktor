@@ -26,6 +26,7 @@ class DefaultWebSocketTest {
 
     private lateinit var client: RawWebSocket
 
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
     @BeforeTest
     fun prepare() {
         parent = Job()
