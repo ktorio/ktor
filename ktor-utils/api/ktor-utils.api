@@ -892,6 +892,7 @@ public abstract interface class io/ktor/util/pipeline/PipelineContext : kotlinx/
 	public abstract fun getSubject ()Ljava/lang/Object;
 	public abstract fun proceed (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun proceedWith (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setSubject (Ljava/lang/Object;)V
 }
 
 public final class io/ktor/util/pipeline/PipelineContextKt {

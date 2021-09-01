@@ -25,3 +25,13 @@ class JettyBlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
     )
+
+class JettyBlockingServletServerPluginTest :
+    ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}

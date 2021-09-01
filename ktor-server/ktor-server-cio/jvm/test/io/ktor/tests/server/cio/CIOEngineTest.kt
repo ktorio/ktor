@@ -38,3 +38,10 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
 class CIOConfigTest : ConfigTestSuite(CIO)
 
 class CIOConnectionTest : ConnectionTestSuite(CIO)
+
+class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}

@@ -76,3 +76,12 @@ class JettySustainabilityTest :
 class JettyConfigTest : ConfigTestSuite(Jetty)
 
 class JettyConnectionTest : ConnectionTestSuite(Jetty)
+
+class JettyServerPluginsTest : ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty
+) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
