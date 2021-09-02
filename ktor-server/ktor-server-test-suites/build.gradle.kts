@@ -13,6 +13,8 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
 
+            implementation(kotlin("test-junit"))
+
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
         }
     }

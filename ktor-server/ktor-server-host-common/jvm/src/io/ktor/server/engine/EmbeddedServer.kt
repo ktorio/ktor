@@ -54,16 +54,45 @@ CoroutineScope.embeddedServer(
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine {
+    val connectors: Array<EngineConnectorConfig> = arrayOf(
+        EngineConnectorBuilder().apply {
+            this.port = port
+            this.host = host
+        }
+    )
+    return embeddedServer(
+        factory = factory,
+        connectors = connectors,
+        watchPaths = watchPaths,
+        parentCoroutineContext = parentCoroutineContext,
+        configure = configure,
+        module = module
+    )
+}
+
+/**
+ * Creates an embedded server with the given [factory], listening on given [connectors]
+ * @param connectors default listening on 0.0.0.0:80
+ * @param watchPaths specifies path substrings that will be watched for automatic reloading
+ * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
+ * @param configure configuration script for the engine
+ * @param module application module function
+ */
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+CoroutineScope.embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    configure: TConfiguration.() -> Unit = {},
+    module: Application.() -> Unit
+): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.log = LoggerFactory.getLogger("ktor.application")
         this.watchPaths = watchPaths
         this.module(module)
-
-        connector {
-            this.port = port
-            this.host = host
-        }
+        this.connectors.addAll(connectors)
     }
 
     return embeddedServer(factory, environment, configure)

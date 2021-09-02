@@ -80,15 +80,27 @@ public class TomcatApplicationEngine(
                             if (ktorConnector.keyStorePath == null) {
                                 throw IllegalArgumentException(
                                     "Tomcat requires keyStorePath. Make sure you're setting " +
-                                        "the property in the EngineSSLConnectorConfig class used"
+                                        "the property in the EngineSSLConnectorConfig class."
                                 )
+                            }
+
+                            if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
+                                throw IllegalArgumentException(
+                                    "Tomcat requires trustStorePath for client certificate authentication." +
+                                        "Make sure you're setting the property in the EngineSSLConnectorConfig class."
+                                )
+                            }
+                            if (ktorConnector.trustStorePath != null) {
+                                setProperty("clientAuth", "true")
+                                setProperty("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
+                            } else {
+                                setProperty("clientAuth", "false")
                             }
 
                             setProperty("keyAlias", ktorConnector.keyAlias)
                             setProperty("keystorePass", String(ktorConnector.keyStorePassword()))
                             setProperty("keyPass", String(ktorConnector.privateKeyPassword()))
                             setProperty("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                            setProperty("clientAuth", "false")
                             setProperty("sslProtocol", "TLS")
                             setProperty("SSLEnabled", "true")
 

@@ -53,6 +53,18 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                         setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
                         setKeyStorePassword(String(ktorConnector.keyStorePassword()))
 
+                        needClientAuth = when {
+                            ktorConnector.trustStore != null -> {
+                                trustStore = ktorConnector.trustStore
+                                true
+                            }
+                            ktorConnector.trustStorePath != null -> {
+                                trustStorePath = ktorConnector.trustStorePath!!.absolutePath
+                                true
+                            }
+                            else -> false
+                        }
+
                         addExcludeCipherSuites(
                             "SSL_RSA_WITH_DES_CBC_SHA",
                             "SSL_DHE_RSA_WITH_DES_CBC_SHA",

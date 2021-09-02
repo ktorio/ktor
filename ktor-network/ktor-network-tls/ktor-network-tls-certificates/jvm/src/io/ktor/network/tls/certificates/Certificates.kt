@@ -11,13 +11,15 @@ import java.math.*
 import java.net.*
 import java.security.*
 import java.security.cert.*
+import java.security.cert.Certificate
 import java.text.*
 import java.time.*
 import java.util.*
+import javax.net.ssl.*
 
 /**
- * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword],
- * and a JKS keystore to hold it in [file] with [jksPassword].
+ * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword].
+ * If [file] is set, the key is stored in a JKS keystore in [file] with [jksPassword].
  *
  * Only for testing purposes: NEVER use it for production!
  *
@@ -25,14 +27,14 @@ import java.util.*
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
  */
 public fun generateCertificate(
-    file: File,
+    file: File? = null,
     algorithm: String = "SHA1withRSA",
     keyAlias: String = "mykey",
     keyPassword: String = "changeit",
     jksPassword: String = keyPassword,
-    keySizeInBits: Int = 1024
+    keySizeInBits: Int = 1024,
+    keyType: KeyType = KeyType.Server
 ): KeyStore {
-    val daysValid: Long = 3
     val keyStore = KeyStore.getInstance("JKS")!!
     keyStore.load(null, null)
 
@@ -40,42 +42,144 @@ public fun generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
     val keyPair = keyPairGenerator.genKeyPair()!!
 
-    val id = Counterparty(
-        country = "RU",
-        organization = "JetBrains",
-        organizationUnit = "Kotlin",
-        commonName = "localhost"
+    val id = id(if (keyType == KeyType.CA) "localhostCA" else "localhost")
+    val cert = certificate(
+        subject = id,
+        issuer = id,
+        keyPair = keyPair,
+        signerKeyPair = keyPair,
+        algorithm = algorithm,
+        keyType = keyType
     )
 
-    val from = Date()
-    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
-
-    val certificateBytes = buildPacket {
-        writeCertificate(
-            issuer = id,
-            subject = id,
-            keyPair = keyPair,
-            algorithm = algorithm,
-            from = from,
-            to = to,
-            domains = listOf("127.0.0.1", "localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
-        )
-    }.readBytes()
-
-    val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
-
-    cert.verify(keyPair.public)
-
-    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
 
-    file.parentFile?.mkdirs()
-    file.outputStream().use {
+    file?.parentFile?.mkdirs()
+    file?.outputStream()?.use {
         keyStore.store(it, jksPassword.toCharArray())
     }
     return keyStore
 }
+
+private fun id(commonName: String): Counterparty = Counterparty(
+    country = "RU",
+    organization = "JetBrains",
+    organizationUnit = "Kotlin",
+    commonName = commonName
+)
+
+private fun certificate(
+    subject: Counterparty,
+    issuer: Counterparty,
+    keyPair: KeyPair,
+    signerKeyPair: KeyPair,
+    algorithm: String,
+    daysValid: Long = 3,
+    keyType: KeyType = KeyType.Server
+): Certificate {
+    val from = Date()
+    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
+    val certificateBytes = buildPacket {
+        writeCertificate(
+            issuer = issuer,
+            subject = subject,
+            keyPair = keyPair,
+            signerKeyPair = signerKeyPair,
+            algorithm = algorithm,
+            from = from,
+            to = to,
+            domains = listOf("127.0.0.1", "localhost"),
+            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1")),
+            keyType = keyType
+        )
+    }.readBytes()
+
+    val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
+    cert.verify(signerKeyPair.public)
+    return cert
+}
+
+public enum class KeyType {
+    CA, Server, Client
+}
+
+/**
+ * Uses the given keystore as certificate CA [caKeyAlias] to generate a signed certificate with [keyAlias] name.
+ *
+ * All private keys are encrypted with [keyPassword].
+ * If [file] is set, all keys are stored in a JKS keystore in [file] with [jksPassword].
+ *
+ * Only for testing purposes: NEVER use it for production!
+ *
+ * A generated certificate will have 3 days validity period and 1024-bits key strength.
+ * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ */
+public fun KeyStore.generateCertificate(
+    file: File? = null,
+    algorithm: String = "SHA1withRSA",
+    keyAlias: String = "mykey",
+    keyPassword: String = "changeit",
+    jksPassword: String = keyPassword,
+    keySizeInBits: Int = 1024,
+    caKeyAlias: String = "mykey",
+    caPassword: String = "changeit",
+    keyType: KeyType = KeyType.Server
+): KeyStore {
+    val caCert = getCertificate(caKeyAlias)
+    val ca = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
+
+    val keyStore = KeyStore.getInstance("JKS")!!
+    keyStore.load(null, null)
+
+    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
+    keyPairGenerator.initialize(keySizeInBits)
+
+    val certKeyPair = keyPairGenerator.genKeyPair()!!
+    val cert = certificate(
+        issuer = id("localhostCA"),
+        subject = id("localhost"),
+        algorithm = algorithm,
+        keyPair = certKeyPair,
+        signerKeyPair = ca,
+        keyType = keyType
+    )
+
+    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(cert, caCert))
+
+    file?.parentFile?.mkdirs()
+    file?.outputStream()?.use {
+        keyStore.store(it, jksPassword.toCharArray())
+    }
+    return keyStore
+}
+
+/**
+ * Extracts all certificates from the given KeyStore to use these certificates as a valid TrustStore.
+ *
+ * A TrustStore should only contain the public certificates of a certificate authority,
+ * while their responding keys are private.
+ *
+ *  If [file] is set, all certificates are stored in a JKS keystore in [file] with [password].
+ */
+public fun KeyStore.trustStore(file: File? = null, password: CharArray = "changeit".toCharArray()): KeyStore {
+    val trustStore = KeyStore.getInstance("JKS")!!
+    trustStore.load(null, null)
+    aliases().toList().forEach { alias ->
+        val cert: Certificate = getCertificate(alias)
+        trustStore.setCertificateEntry(alias, cert)
+    }
+    file?.parentFile?.mkdirs()
+    file?.outputStream()?.use {
+        trustStore.store(it, password)
+    }
+    return trustStore
+}
+
+public val KeyStore.trustManagers: List<TrustManager>
+    get() = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        .apply { init(this@trustManagers) }.trustManagers.toList()
 
 internal data class Counterparty(
     val country: String = "",
@@ -92,7 +196,8 @@ internal fun BytePacketBuilder.writeX509Info(
     from: Date,
     to: Date,
     domains: List<String>,
-    ipAddresses: List<InetAddress>
+    ipAddresses: List<InetAddress>,
+    keyType: KeyType = KeyType.Server
 ) {
     val version = BigInteger(64, SecureRandom())
 
@@ -114,24 +219,16 @@ internal fun BytePacketBuilder.writeX509Info(
         writeByte(0xa3.toByte())
         val extensions = buildPacket {
             writeDerSequence {
-                // subject alt name
-                writeDerSequence {
-                    writeDerObjectIdentifier(OID.SubjectAltName)
-                    writeDerOctetString {
-                        writeDerSequence {
-                            for (domain in domains) {
-                                writeX509Extension(2) {
-                                    // DNSName
-                                    writeFully(domain.toByteArray())
-                                }
-                            }
-                            for (ip in ipAddresses) {
-                                writeX509Extension(7) {
-                                    // IP address
-                                    writeFully(ip.address)
-                                }
-                            }
-                        }
+                when (keyType) {
+                    KeyType.CA -> {
+                        caExtension()
+                    }
+                    KeyType.Server -> {
+                        extKeyUsage { serverAuth() }
+                        subjectAlternativeNames(domains, ipAddresses)
+                    }
+                    KeyType.Client -> {
+                        extKeyUsage { clientAuth() }
                     }
                 }
             }
@@ -139,6 +236,66 @@ internal fun BytePacketBuilder.writeX509Info(
 
         writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
+    }
+}
+
+private fun BytePacketBuilder.extKeyUsage(content: BytePacketBuilder.() -> Unit) {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.ExtKeyUsage)
+        writeDerOctetString {
+            content()
+        }
+    }
+}
+
+private fun BytePacketBuilder.clientAuth() {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.ClientAuth)
+    }
+}
+
+private fun BytePacketBuilder.serverAuth() {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.ServerAuth)
+    }
+}
+
+private fun BytePacketBuilder.subjectAlternativeNames(
+    domains: List<String>,
+    ipAddresses: List<InetAddress>
+) {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.SubjectAltName)
+        writeDerOctetString {
+            writeDerSequence {
+                for (domain in domains) {
+                    writeX509Extension(2) {
+                        // DNSName
+                        writeFully(domain.toByteArray())
+                    }
+                }
+                for (ip in ipAddresses) {
+                    writeX509Extension(7) {
+                        // IP address
+                        writeFully(ip.address)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun BytePacketBuilder.caExtension() {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.BasicConstraints)
+        // is critical extension bit
+        writeDerBoolean(true)
+        writeDerOctetString {
+            writeDerSequence {
+                // Path Length Constraint Limit or true, if no limit
+                writeDerBoolean(true)
+            }
+        }
     }
 }
 
@@ -191,17 +348,19 @@ internal fun BytePacketBuilder.writeCertificate(
     from: Date,
     to: Date,
     domains: List<String>,
-    ipAddresses: List<InetAddress>
+    ipAddresses: List<InetAddress>,
+    signerKeyPair: KeyPair = keyPair,
+    keyType: KeyType = KeyType.Server
 ) {
     require(to.after(from))
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses)
+        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses, keyType)
     }
 
     val certInfoBytes = certInfo.readBytes()
     val signature = Signature.getInstance(algorithm)
-    signature.initSign(keyPair.private)
+    signature.initSign(signerKeyPair.private)
     signature.update(certInfoBytes)
     val signed = signature.sign()
 
@@ -408,6 +567,26 @@ private fun Int.derLength(): Int {
     }
 
     return byteCount
+}
+
+/**
+ * Boolean DER
+ *
+ * Tag: 1 (0x01)
+ * Length: 1 Byte (0x01)
+ * Value: 0b1111 1111 if true or 0b0000 0000 if false
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+private fun BytePacketBuilder.writeDerBoolean(value: Boolean) {
+    writeDerType(0, 1, true)
+    writeDerLength(1)
+    writeUByte(value.toUByte())
+}
+
+private fun Boolean.toUByte(): UByte = if (this) {
+    255.toUByte()
+} else {
+    0.toUByte()
 }
 
 private fun BytePacketBuilder.writeDerInt(value: Int) {
