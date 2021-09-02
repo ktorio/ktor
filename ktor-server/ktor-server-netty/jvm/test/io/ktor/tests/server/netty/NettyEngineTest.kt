@@ -65,4 +65,14 @@ class NettyConfigTest : ConfigTestSuite(Netty)
 
 class NettyConnectionTest : ConnectionTestSuite(Netty)
 
+
 class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+    Netty
+) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
+    }
+}

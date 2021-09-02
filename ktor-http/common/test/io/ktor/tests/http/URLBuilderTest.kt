@@ -261,6 +261,38 @@ internal class URLBuilderTest {
         assertEquals("as+df", urlBuilder.encodedParameters["as%25df"])
     }
 
+    @Test
+    fun testBuiltUrlDoesNotMutate() {
+        val builder = URLBuilder()
+        builder.parameters.append("key", "value1")
+        builder.appendPathSegments("path1")
+        val url = builder.build()
+
+        builder.parameters.append("key", "value2")
+        builder.appendPathSegments("path2")
+
+        assertEquals(listOf("value1"), url.parameters.getAll("key"))
+        assertEquals(listOf("", "path1"), url.pathSegments)
+    }
+
+    @Test
+    fun testCanBuildMultipleTimes() {
+        val builder = URLBuilder()
+
+        builder.parameters.append("key", "value1")
+        builder.appendPathSegments("path1")
+        val url1 = builder.build()
+
+        builder.parameters.append("key", "value2")
+        builder.appendPathSegments("path2")
+        val url2 = builder.build()
+
+        assertEquals(listOf("value1"), url1.parameters.getAll("key"))
+        assertEquals(listOf("", "path1"), url1.pathSegments)
+        assertEquals(listOf("value1", "value2"), url2.parameters.getAll("key"))
+        assertEquals(listOf("", "path1", "path2"), url2.pathSegments)
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */

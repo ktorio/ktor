@@ -4,11 +4,13 @@
 
 package io.ktor.client.plugins.auth.providers
 
+import io.ktor.client.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import kotlin.jvm.*
 
 /**
  * Add [BearerAuthProvider] to client [Auth] providers.
@@ -25,16 +27,25 @@ public class BearerTokens(
 )
 
 /**
+ * Parameters that will be passed to [BearerAuthConfig.refreshTokens] lambda
+ */
+public class RefreshTokensParams(
+    public val client: HttpClient,
+    public val response: HttpResponse,
+    public val oldTokens: BearerTokens?
+)
+
+/**
  * [BearerAuthProvider] configuration.
  */
 public class BearerAuthConfig {
-    internal var _refreshTokens: suspend (response: HttpResponse) -> BearerTokens? = { null }
+    internal var _refreshTokens: suspend RefreshTokensParams.() -> BearerTokens? = { null }
     internal var _loadTokens: suspend () -> BearerTokens? = { null }
     internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
     public var realm: String? = null
 
-    public fun refreshTokens(block: suspend (response: HttpResponse) -> BearerTokens?) {
+    public fun refreshTokens(block: suspend RefreshTokensParams.() -> BearerTokens?) {
         _refreshTokens = block
     }
 
@@ -54,7 +65,7 @@ public class BearerAuthConfig {
  * Client bearer [AuthProvider].
  */
 public class BearerAuthProvider(
-    private val refreshTokens: suspend (response: HttpResponse) -> BearerTokens?,
+    private val refreshTokens: suspend RefreshTokensParams.() -> BearerTokens?,
     loadTokens: suspend () -> BearerTokens?,
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
     private val realm: String?
@@ -94,7 +105,10 @@ public class BearerAuthProvider(
     }
 
     public override suspend fun refreshToken(response: HttpResponse): Boolean {
-        return tokensHolder.setToken { refreshTokens(response) } != null
+        val newToken = tokensHolder.setToken {
+            refreshTokens(RefreshTokensParams(response.call.client!!, response, tokensHolder.loadToken()))
+        }
+        return newToken != null
     }
 
     public suspend fun clearToken() {

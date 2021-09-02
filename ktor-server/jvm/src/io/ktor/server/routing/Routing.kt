@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 
 @InternalAPI
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
@@ -25,7 +26,8 @@ public class Routing(
 ) : Route(
     parent = null,
     selector = RootRouteSelector(application.environment.rootPath),
-    application.environment.developmentMode
+    application.environment.developmentMode,
+    application.environment
 ) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
@@ -63,7 +65,14 @@ public class Routing(
             routingCallPipeline.sendPipeline
         ) { ApplicationSendPipeline(developmentMode) }
 
-        val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
+        val routingCall = RoutingApplicationCall(
+            context.call,
+            route,
+            context.coroutineContext,
+            receivePipeline,
+            responsePipeline,
+            parameters
+        )
         application.environment.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingCall)

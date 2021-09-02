@@ -39,9 +39,9 @@ public suspend fun HttpClient.webSocketSession(
 @OptIn(WebSocketInternalAPI::class)
 public suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): DefaultClientWebSocketSession = webSocketSession {
     this.method = method
@@ -78,9 +78,9 @@ public suspend fun HttpClient.webSocket(
  */
 public suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ) {
@@ -123,9 +123,9 @@ public suspend fun HttpClient.webSocket(
  */
 public suspend fun HttpClient.ws(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(method, host, port, path, request, block)
@@ -182,9 +182,9 @@ public suspend fun HttpClient.wss(
  */
 public suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get,
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(
@@ -194,7 +194,7 @@ public suspend fun HttpClient.wss(
     path,
     request = {
         url.protocol = URLProtocol.WSS
-        url.port = port
+        if (port != null) url.port = port
 
         request()
     },

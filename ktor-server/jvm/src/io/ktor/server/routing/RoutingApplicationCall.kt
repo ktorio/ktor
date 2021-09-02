@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import kotlin.coroutines.*
 
 /**
  * Represents an application call being handled by [Routing]
@@ -17,10 +18,11 @@ import io.ktor.util.*
 public class RoutingApplicationCall(
     private val call: ApplicationCall,
     public val route: Route,
+    override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
     parameters: Parameters
-) : ApplicationCall {
+) : ApplicationCallWithContext {
 
     override val application: Application get() = call.application
     override val attributes: Attributes get() = call.attributes

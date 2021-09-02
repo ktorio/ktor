@@ -161,5 +161,11 @@ class TomcatClientCertTest :
             trustStore = ca.trustStore(trustStorePath)
             this.trustStorePath = trustStorePath
         }
+
+class TomcatServerPluginsTest :
+    ServerPluginsTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
     }
 }
