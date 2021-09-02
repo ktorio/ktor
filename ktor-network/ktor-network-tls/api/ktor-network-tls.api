@@ -84,11 +84,15 @@ public final class io/ktor/network/tls/OID {
 
 public final class io/ktor/network/tls/OID$Companion {
 	public final fun fromAlgorithm (Ljava/lang/String;)Lio/ktor/network/tls/OID;
+	public final fun getBasicConstraints ()Lio/ktor/network/tls/OID;
+	public final fun getClientAuth ()Lio/ktor/network/tls/OID;
 	public final fun getCommonName ()Lio/ktor/network/tls/OID;
 	public final fun getCountryName ()Lio/ktor/network/tls/OID;
 	public final fun getECDSAwithSHA256Encryption ()Lio/ktor/network/tls/OID;
 	public final fun getECDSAwithSHA384Encryption ()Lio/ktor/network/tls/OID;
 	public final fun getECEncryption ()Lio/ktor/network/tls/OID;
+	public final fun getExtKeyUsage ()Lio/ktor/network/tls/OID;
+	public final fun getKeyUsage ()Lio/ktor/network/tls/OID;
 	public final fun getOrganizationName ()Lio/ktor/network/tls/OID;
 	public final fun getOrganizationalUnitName ()Lio/ktor/network/tls/OID;
 	public final fun getRSAEncryption ()Lio/ktor/network/tls/OID;
@@ -97,6 +101,7 @@ public final class io/ktor/network/tls/OID$Companion {
 	public final fun getRSAwithSHA384Encryption ()Lio/ktor/network/tls/OID;
 	public final fun getRSAwithSHA512Encryption ()Lio/ktor/network/tls/OID;
 	public final fun getSecp256r1 ()Lio/ktor/network/tls/OID;
+	public final fun getServerAuth ()Lio/ktor/network/tls/OID;
 	public final fun getSubjectAltName ()Lio/ktor/network/tls/OID;
 }
 

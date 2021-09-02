@@ -6,7 +6,6 @@ package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -66,8 +65,12 @@ class NettyConfigTest : ConfigTestSuite(Netty)
 
 class NettyConnectionTest : ConnectionTestSuite(Netty)
 
-class NettyServerPluginsTest :
-    ServerPluginsTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+    Netty
+) {
     init {
         enableSsl = false
         enableHttp2 = false
