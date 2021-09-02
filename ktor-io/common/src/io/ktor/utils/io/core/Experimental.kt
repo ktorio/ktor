@@ -6,5 +6,4 @@ package io.ktor.utils.io.core
  */
 @Suppress("DEPRECATION")
 @RequiresOptIn(level = RequiresOptIn.Level.WARNING)
-@Experimental(Experimental.Level.WARNING)
 public annotation class ExperimentalIoApi

@@ -180,10 +180,10 @@ allprojects {
 
             languageSettings.apply {
                 progressiveMode = true
-                experimentalAnnotations.forEach { useExperimentalAnnotation(it) }
+                experimentalAnnotations.forEach { optIn(it) }
 
                 if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
-                    useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
+                    optIn("io.ktor.server.engine.EngineAPI")
                 }
             }
         }

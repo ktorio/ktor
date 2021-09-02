@@ -48,6 +48,7 @@ public class CIOApplicationEngine(
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()
 
+    @OptIn(InternalCoroutinesApi::class)
     private val serverJob = CoroutineScope(
         environment.parentCoroutineContext + engineDispatcher
     ).launch(start = CoroutineStart.LAZY) {
@@ -166,6 +167,7 @@ public class CIOApplicationEngine(
         }
     }
 
+    @OptIn(InternalCoroutinesApi::class)
     private suspend fun ServerRequestScope.handleRequest(request: Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(
