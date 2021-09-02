@@ -81,22 +81,6 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testEchoWSS() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            client.webSocket("wss://echo.websocket.org") {
-                outgoing.send(Frame.Text("PING"))
-                val frame = incoming.receive()
-                assertTrue(frame is Frame.Text)
-                assertEquals("PING", frame.readText())
-            }
-        }
-    }
-
-    @Test
     fun testWsHandshakeHeaders() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
         // browser websocket client does not support custom headers so the test gets ignored
         if (PlatformUtils.IS_BROWSER) return@clientTests
