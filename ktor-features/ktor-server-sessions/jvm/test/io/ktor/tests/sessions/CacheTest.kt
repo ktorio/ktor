@@ -136,6 +136,7 @@ class CacheTest {
     }
 
     @Test
+    @Ignore
     fun testWeakReferenceCache(): Unit = runBlocking {
         var ref: D? = null
         val weak = WeakReferenceCache<Int, D> { ref = D(it); ref!! }
