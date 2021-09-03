@@ -19,7 +19,6 @@ import kotlin.coroutines.*
  * @property masking: whether it will mask serialized frames.
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
-@WebSocketInternalAPI
 public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,

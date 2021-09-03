@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {

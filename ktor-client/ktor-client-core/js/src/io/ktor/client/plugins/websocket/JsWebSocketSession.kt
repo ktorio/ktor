@@ -25,7 +25,6 @@ internal class JsWebSocketSession(
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
 
-    @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
 
@@ -129,7 +128,7 @@ internal class JsWebSocketSession(
         }
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
+    @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }

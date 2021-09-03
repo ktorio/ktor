@@ -19,6 +19,7 @@ public class Events {
      */
     public fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
         val registration = HandlerRegistration(handler)
+        @OptIn(InternalCoroutinesApi::class)
         handlers.computeIfAbsent(definition) { LockFreeLinkedListHead() }.addLast(registration)
         return registration
     }
@@ -27,6 +28,7 @@ public class Events {
      * Unsubscribe [handler] from an event specified by [definition]
      */
     public fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
+        @OptIn(InternalCoroutinesApi::class)
         handlers[definition]?.forEach<HandlerRegistration> {
             if (it.handler == handler) it.remove()
         }

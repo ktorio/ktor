@@ -13,7 +13,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 internal fun Application.tests() {
     install(io.ktor.server.websocket.WebSockets) {
         maxFrameSize = 4 * 1024

@@ -52,7 +52,7 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
+    @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -87,7 +87,6 @@ internal class OkHttpWebsocketSession(
         }
     }
 
-    @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
 
