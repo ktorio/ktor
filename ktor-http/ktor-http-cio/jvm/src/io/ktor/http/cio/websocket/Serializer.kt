@@ -9,7 +9,6 @@ import java.nio.*
 import java.util.concurrent.*
 
 @Suppress("KDocMissingDocumentation")
-@WebSocketInternalAPI
 public class Serializer {
     private val messages = ArrayBlockingQueue<Frame>(1024)
 

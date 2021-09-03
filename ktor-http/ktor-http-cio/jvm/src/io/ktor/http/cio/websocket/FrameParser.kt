@@ -8,7 +8,6 @@ import java.nio.*
 import java.util.concurrent.atomic.*
 
 @Suppress("KDocMissingDocumentation", "UsePropertyAccessSyntax")
-@WebSocketInternalAPI
 public class FrameParser {
     private val state = AtomicReference(State.HEADER0)
 

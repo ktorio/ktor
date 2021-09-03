@@ -8,7 +8,6 @@ import io.ktor.util.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation")
-@WebSocketInternalAPI
 public class SimpleFrameCollector {
     private var remaining: Int = 0
     private var buffer: ByteBuffer? = null

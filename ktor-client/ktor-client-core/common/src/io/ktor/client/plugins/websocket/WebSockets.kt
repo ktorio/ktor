@@ -15,7 +15,6 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
-@ExperimentalWebSocketExtensionApi
 @SharedImmutable
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -40,9 +39,7 @@ public object WebSocketExtensionsCapability : HttpClientEngineCapability<Unit> {
  * @property maxFrameSize - max size of single websocket frame.
  * @property extensionsConfig - extensions configuration
  */
-@OptIn(WebSocketInternalAPI::class)
-public class WebSockets @OptIn(ExperimentalWebSocketExtensionApi::class)
-internal constructor(
+public class WebSockets internal constructor(
     public val pingInterval: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig
@@ -53,7 +50,6 @@ internal constructor(
      * @property pingInterval - interval between [FrameType.PING] messages.
      * @property maxFrameSize - max size of single websocket frame.
      */
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     public constructor(
         pingInterval: Long = -1L,
         maxFrameSize: Long = Int.MAX_VALUE.toLong(),
@@ -62,10 +58,8 @@ internal constructor(
     /**
      * Client WebSocket plugin.
      */
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     public constructor() : this(-1L, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
 
-    @ExperimentalWebSocketExtensionApi
     private fun installExtensions(context: HttpRequestBuilder) {
         val installed = extensionsConfig.build()
         context.attributes.put(REQUEST_EXTENSIONS_KEY, installed)
@@ -75,7 +69,6 @@ internal constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    @ExperimentalWebSocketExtensionApi
     private fun completeNegotiation(
         call: HttpClientCall
     ): List<WebSocketExtension<*>> {
@@ -88,7 +81,6 @@ internal constructor(
         return clientExtensions.filter { it.clientNegotiation(serverExtensions) }
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     private fun addNegotiatedProtocols(context: HttpRequestBuilder, protocols: List<WebSocketExtensionHeader>) {
         if (protocols.isEmpty()) return
 
@@ -111,7 +103,6 @@ internal constructor(
      * [WebSockets] configuration.
      */
     public class Config {
-        @ExperimentalWebSocketExtensionApi
         internal val extensionsConfig: WebSocketExtensionsConfig = WebSocketExtensionsConfig()
 
         /**
@@ -129,7 +120,6 @@ internal constructor(
         /**
          * Configure WebSocket extensions.
          */
-        @ExperimentalWebSocketExtensionApi
         public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
             extensionsConfig.apply(block)
         }
@@ -141,13 +131,12 @@ internal constructor(
     public companion object Plugin : HttpClientPlugin<Config, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("Websocket")
 
-        @OptIn(ExperimentalWebSocketExtensionApi::class)
         override fun prepare(block: Config.() -> Unit): WebSockets {
             val config = Config().apply(block)
             return WebSockets(config.pingInterval, config.maxFrameSize, config.extensionsConfig)
         }
 
-        @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
+        @OptIn(InternalAPI::class)
         override fun install(plugin: WebSockets, scope: HttpClient) {
             val extensionsSupported = scope.engine.supportedCapabilities.contains(WebSocketExtensionsCapability)
 

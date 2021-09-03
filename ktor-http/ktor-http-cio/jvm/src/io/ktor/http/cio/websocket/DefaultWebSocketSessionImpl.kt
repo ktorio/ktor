@@ -22,7 +22,6 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 /**
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
  */
-@WebSocketInternalAPI
 public class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Long = -1L,
@@ -36,7 +35,6 @@ public class DefaultWebSocketSessionImpl(
     private val closed: AtomicBoolean = atomic(false)
     private val context = Job(raw.coroutineContext[Job])
 
-    @ExperimentalWebSocketExtensionApi
     private val _extensions: MutableList<WebSocketExtension<*>> = mutableListOf()
     private val started = atomic(false)
 
@@ -44,7 +42,6 @@ public class DefaultWebSocketSessionImpl(
 
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
-    @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
         get() = _extensions
 
@@ -64,7 +61,7 @@ public class DefaultWebSocketSessionImpl(
         }
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class, InternalAPI::class)
+    @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         if (!started.compareAndSet(false, true)) {
             error("WebSocket session is already started.")
@@ -103,7 +100,7 @@ public class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class, io.ktor.util.InternalAPI::class)
+    @OptIn(InternalAPI::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
@@ -187,7 +184,6 @@ public class DefaultWebSocketSessionImpl(
         }
     }
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     private suspend fun outgoingProcessorLoop() {
         for (frame in outgoingToBeProcessed) {
             val processedFrame: Frame = when (frame) {
@@ -257,11 +253,9 @@ public class DefaultWebSocketSessionImpl(
         }
     }
 
-    @ExperimentalWebSocketExtensionApi
     private fun processIncomingExtensions(frame: Frame): Frame =
         extensions.fold(frame) { current, extension -> extension.processIncomingFrame(current) }
 
-    @ExperimentalWebSocketExtensionApi
     private fun processOutgoingExtensions(frame: Frame): Frame =
         extensions.fold(frame) { current, extension -> extension.processOutgoingFrame(current) }
 

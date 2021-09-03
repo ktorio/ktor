@@ -12,7 +12,6 @@ import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 class WebSocketJvmTest : ClientLoader(100000) {
 
     @Test

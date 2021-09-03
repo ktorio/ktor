@@ -220,7 +220,6 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
     }
 }
 
-@OptIn(WebSocketInternalAPI::class, ExperimentalWebSocketExtensionApi::class)
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.plugin(WebSockets)
 
@@ -241,7 +240,6 @@ private suspend fun CoroutineScope.joinSession() {
     coroutineContext[Job]!!.join()
 }
 
-@OptIn(WebSocketInternalAPI::class)
 private suspend fun DefaultWebSocketSessionImpl.handleServerSession(
     call: ApplicationCall,
     handler: suspend DefaultWebSocketServerSession.() -> Unit

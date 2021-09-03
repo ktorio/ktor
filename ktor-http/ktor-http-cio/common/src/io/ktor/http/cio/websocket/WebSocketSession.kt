@@ -31,7 +31,6 @@ public expect interface WebSocketSession : CoroutineScope {
     /**
      * Negotiated WebSocket extensions.
      */
-    @ExperimentalWebSocketExtensionApi
     public val extensions: List<WebSocketExtension<*>>
 
     /**
@@ -66,7 +65,6 @@ public expect interface WebSocketSession : CoroutineScope {
  * @return extension instance.
  * @throws [IllegalStateException] if the extension is not found.
  */
-@ExperimentalWebSocketExtensionApi
 public fun <T : WebSocketExtension<*>> WebSocketSession.extension(extension: WebSocketExtensionFactory<*, T>): T =
     extensionOrNull(extension) ?: error("Extension $extension not found.")
 
@@ -76,7 +74,6 @@ public fun <T : WebSocketExtension<*>> WebSocketSession.extension(extension: Web
  * @return extension instance or `null` if the extension is not installed.
  */
 @Suppress("UNCHECKED_CAST")
-@ExperimentalWebSocketExtensionApi
 public fun <T : WebSocketExtension<*>> WebSocketSession.extensionOrNull(
     extension: WebSocketExtensionFactory<*, T>
 ): T? = extensions.firstOrNull { it.factory.key === extension.key } as? T?

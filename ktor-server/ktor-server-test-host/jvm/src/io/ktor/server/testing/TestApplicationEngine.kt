@@ -208,7 +208,6 @@ class TestApplicationEngine(
      * Make a test request that setup a websocket session and invoke [callback] function
      * that does conversation with server
      */
-    @OptIn(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {},
@@ -219,6 +218,7 @@ class TestApplicationEngine(
             setup()
             bodyChannel = websocketChannel
         }
+
 
         // we need this to wait for response channel appearance
         // otherwise we get NPE at websocket reader start attempt

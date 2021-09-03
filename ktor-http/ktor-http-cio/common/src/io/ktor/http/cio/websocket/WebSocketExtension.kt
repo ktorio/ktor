@@ -6,20 +6,6 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 
-/**
- * WebSocket extensions API is experimental according to [KTOR-688](https://youtrack.jetbrains.com/issue/KTOR-688)
- * To get more information about Ktor experimental guarantees consult
- * with [KTOR-1035](https://youtrack.jetbrains.com/issue/KTOR-1035).
- */
-@RequiresOptIn(
-    message = "WebSocket extensions API is experimental according to https://youtrack.jetbrains.com/issue/KTOR-688." +
-        "To get more information about Ktor experimental guarantees consult " +
-        "with https://youtrack.jetbrains.com/issue/KTOR-1035",
-    level = RequiresOptIn.Level.ERROR
-)
-public annotation class ExperimentalWebSocketExtensionApi
-
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 private typealias ExtensionInstaller = () -> WebSocketExtension<*>
 
 /**
@@ -28,7 +14,6 @@ private typealias ExtensionInstaller = () -> WebSocketExtension<*>
  *
  * Usually this interface implemented in `companion object` of the origin [WebSocketExtension].
  */
-@ExperimentalWebSocketExtensionApi
 public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : WebSocketExtension<ConfigType>> {
     /**
      * Key is used to locate extension.
@@ -69,7 +54,6 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
  * WebSocket extension instance. This instance is created for each WebSocket request, for every installed extension by
  * [WebSocketExtensionFactory].
  */
-@ExperimentalWebSocketExtensionApi
 public interface WebSocketExtension<ConfigType : Any> {
 
     /**
@@ -118,7 +102,6 @@ public interface WebSocketExtension<ConfigType : Any> {
 /**
  * Extensions configuration for WebSocket client and server plugins.
  */
-@ExperimentalWebSocketExtensionApi
 public class WebSocketExtensionsConfig {
     private val installers: MutableList<ExtensionInstaller> = mutableListOf()
     private val rcv: Array<Boolean> = arrayOf(false, false, false)

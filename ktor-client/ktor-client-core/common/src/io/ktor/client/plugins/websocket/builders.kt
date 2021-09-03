@@ -22,7 +22,6 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 /**
  * Open [DefaultClientWebSocketSession].
  */
-@OptIn(WebSocketInternalAPI::class)
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
 ): DefaultClientWebSocketSession = request {
@@ -36,7 +35,6 @@ public suspend fun HttpClient.webSocketSession(
 /**
  * Open [DefaultClientWebSocketSession].
  */
-@OptIn(WebSocketInternalAPI::class)
 public suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get,
     host: String? = null,

@@ -27,7 +27,7 @@ import kotlin.test.*
 import kotlin.test.Ignore
 import kotlin.test.Test
 
-@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
