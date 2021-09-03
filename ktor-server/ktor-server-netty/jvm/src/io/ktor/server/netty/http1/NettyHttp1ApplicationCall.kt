@@ -12,7 +12,6 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlin.coroutines.*
 
-@OptIn(EngineAPI::class)
 internal class NettyHttp1ApplicationCall(
     application: Application,
     context: ChannelHandlerContext,
@@ -29,6 +28,7 @@ internal class NettyHttp1ApplicationCall(
         httpRequest,
         requestBodyChannel
     )
+
     override val response = NettyHttp1ApplicationResponse(
         this,
         context,

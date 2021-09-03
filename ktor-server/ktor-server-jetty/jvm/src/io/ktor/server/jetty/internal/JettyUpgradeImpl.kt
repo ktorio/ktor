@@ -16,7 +16,6 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-@OptIn(EngineAPI::class)
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
 public object JettyUpgradeImpl : ServletUpgrade {

@@ -11,7 +11,6 @@ import kotlin.coroutines.*
 /**
  * Represents a test application call that is used in [withTestApplication] and [handleRequest]
  */
-@OptIn(EngineAPI::class)
 class TestApplicationCall(
     application: Application,
     readResponse: Boolean = false,

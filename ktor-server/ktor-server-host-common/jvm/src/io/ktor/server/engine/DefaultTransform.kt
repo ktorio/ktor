@@ -38,7 +38,6 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
 /**
  * Default send transformation
  */
-@EngineAPI
 public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
@@ -49,7 +48,6 @@ public fun ApplicationSendPipeline.installDefaultTransformations() {
 /**
  * Default receive transformation
  */
-@EngineAPI
 public fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept

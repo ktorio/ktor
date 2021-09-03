@@ -17,7 +17,7 @@ import kotlinx.coroutines.scheduling.*
 /**
  * Engine that based on CIO backend
  */
-@OptIn(EngineAPI::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 public class CIOApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit

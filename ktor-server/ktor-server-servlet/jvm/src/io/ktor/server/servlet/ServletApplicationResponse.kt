@@ -12,8 +12,6 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import javax.servlet.http.*
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public abstract class ServletApplicationResponse(
     call: ApplicationCall,
     protected val servletResponse: HttpServletResponse

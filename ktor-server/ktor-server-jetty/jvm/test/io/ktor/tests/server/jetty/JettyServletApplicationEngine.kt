@@ -21,7 +21,6 @@ internal class Servlet(private val async: Boolean) :
     ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, configure, async)
 }
 
-@OptIn(EngineAPI::class)
 internal class JettyServletApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit,

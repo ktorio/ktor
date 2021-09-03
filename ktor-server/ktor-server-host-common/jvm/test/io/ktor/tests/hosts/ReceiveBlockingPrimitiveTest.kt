@@ -13,10 +13,8 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import kotlin.concurrent.*
-import kotlin.coroutines.*
 import kotlin.test.*
 
-@OptIn(ExperimentalStdlibApi::class, EngineAPI::class)
 class ReceiveBlockingPrimitiveTest {
     private val pipeline = ApplicationReceivePipeline()
 

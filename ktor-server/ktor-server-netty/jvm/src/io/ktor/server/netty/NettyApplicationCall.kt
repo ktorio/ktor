@@ -12,9 +12,6 @@ import io.netty.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
-@OptIn(InternalAPI::class)
 public abstract class NettyApplicationCall(
     application: Application,
     public val context: ChannelHandlerContext,

@@ -17,7 +17,6 @@ import kotlin.coroutines.*
 /**
  * This servlet need to be installed into a servlet container
  */
-@OptIn(EngineAPI::class)
 @MultipartConfig
 public open class ServletApplicationEngine : KtorServlet() {
     private val environment: ApplicationEngineEnvironment by lazy {
@@ -109,7 +108,6 @@ public open class ServletApplicationEngine : KtorServlet() {
          * An application engine environment instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        @EngineAPI
         public const val ApplicationEngineEnvironmentAttributeKey: String =
             "_ktor_application_engine_environment_instance"
 
@@ -117,7 +115,6 @@ public open class ServletApplicationEngine : KtorServlet() {
          * An application engine pipeline instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        @EngineAPI
         public const val ApplicationEnginePipelineAttributeKey: String = "_ktor_application_engine_pipeline_instance"
 
         private val jettyUpgrade by lazy {

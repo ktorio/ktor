@@ -29,7 +29,6 @@ import kotlin.coroutines.*
  *
  * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
  */
-@EngineAPI
 public class ApplicationEngineEnvironmentReloading(
     override val classLoader: ClassLoader,
     override val log: Logger,

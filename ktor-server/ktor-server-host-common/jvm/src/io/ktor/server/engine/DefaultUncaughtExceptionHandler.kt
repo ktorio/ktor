@@ -14,7 +14,6 @@ import kotlin.coroutines.*
  * Handles all uncaught exceptions and logs errors with the specified [logger]
  * ignoring [CancellationException] and [IOException].
  */
-@EngineAPI
 public class DefaultUncaughtExceptionHandler(
     private val logger: () -> Logger
 ) : CoroutineExceptionHandler {

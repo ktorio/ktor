@@ -26,7 +26,6 @@ import kotlin.coroutines.*
 /**
  * Tomcat application engine that runs it in embedded mode
  */
-@OptIn(EngineAPI::class)
 public class TomcatApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit

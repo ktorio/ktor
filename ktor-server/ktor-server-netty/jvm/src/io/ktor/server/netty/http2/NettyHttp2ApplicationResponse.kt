@@ -14,7 +14,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
-@OptIn(EngineAPI::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationResponse constructor(
     call: NettyApplicationCall,
     val handler: NettyHttp2Handler,

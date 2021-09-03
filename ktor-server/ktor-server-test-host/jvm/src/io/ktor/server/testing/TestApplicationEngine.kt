@@ -26,7 +26,6 @@ import kotlin.coroutines.*
  * ktor test engine that provides way to simulate application calls to existing application module(s)
  * without actual HTTP connection
  */
-@OptIn(EngineAPI::class)
 class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
