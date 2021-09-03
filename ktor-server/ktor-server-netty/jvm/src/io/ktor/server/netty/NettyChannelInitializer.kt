@@ -26,7 +26,6 @@ import kotlin.coroutines.*
 /**
  * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
  */
-@EngineAPI
 public class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEngineEnvironment,
@@ -199,7 +198,6 @@ public class NettyChannelInitializer(
         }
     }
 
-    @EngineAPI
     public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
 

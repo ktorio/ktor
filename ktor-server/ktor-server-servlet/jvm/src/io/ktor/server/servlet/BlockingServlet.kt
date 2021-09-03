@@ -15,7 +15,6 @@ import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-@OptIn(EngineAPI::class)
 internal class BlockingServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
@@ -32,7 +31,6 @@ internal class BlockingServletApplicationCall(
     }
 }
 
-@OptIn(EngineAPI::class)
 private class BlockingServletApplicationRequest(
     call: ApplicationCall,
     servletRequest: HttpServletRequest
@@ -45,7 +43,6 @@ private class BlockingServletApplicationRequest(
     override fun receiveChannel() = inputStreamChannel
 }
 
-@OptIn(EngineAPI::class)
 internal class BlockingServletApplicationResponse(
     call: ApplicationCall,
     servletResponse: HttpServletResponse,

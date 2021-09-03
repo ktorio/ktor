@@ -22,7 +22,6 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
 
     val elements: ReceiveChannel<CallElement> = incomingQueue
 
-    @OptIn(EngineAPI::class)
     fun schedule(call: NettyApplicationCall) {
         val element = CallElement(call)
         try {
@@ -47,7 +46,6 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
     @OptIn(ExperimentalCoroutinesApi::class)
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
-    @OptIn(EngineAPI::class)
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
         private val scheduled = atomic(0)
 

@@ -23,7 +23,6 @@ import java.util.*
  * @param environment instance of [ApplicationEngineEnvironment] for this engine
  * @param pipeline pipeline to use with this engine
  */
-@EngineAPI
 public abstract class BaseApplicationEngine(
     public final override val environment: ApplicationEngineEnvironment,
     public val pipeline: EnginePipeline = defaultEnginePipeline(environment)

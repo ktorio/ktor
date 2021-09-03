@@ -130,7 +130,6 @@ public actual interface ByteReadChannel {
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    @ExperimentalIoApi
     public actual fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
@@ -139,7 +138,6 @@ public actual interface ByteReadChannel {
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    @ExperimentalIoApi
     public actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     @Suppress("DEPRECATION")

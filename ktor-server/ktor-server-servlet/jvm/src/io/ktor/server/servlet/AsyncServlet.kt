@@ -18,7 +18,6 @@ import javax.servlet.http.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@EngineAPI
 public open class AsyncServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
@@ -54,7 +53,6 @@ public open class AsyncServletApplicationCall(
 }
 
 @Suppress("KDocMissingDocumentation")
-@EngineAPI
 public class AsyncServletApplicationRequest(
     call: ApplicationCall,
     servletRequest: HttpServletRequest,
@@ -68,14 +66,11 @@ public class AsyncServletApplicationRequest(
 
     override fun receiveChannel(): ByteReadChannel = inputStreamChannel
 
-    @EngineAPI
     internal fun upgraded() {
         upgraded = true
     }
 }
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,

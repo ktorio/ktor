@@ -22,7 +22,6 @@ import kotlin.coroutines.*
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-@OptIn(ExperimentalIoApi::class)
 public fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,

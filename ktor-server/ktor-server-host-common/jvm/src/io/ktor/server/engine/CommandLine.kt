@@ -163,7 +163,6 @@ private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let 
 /**
  * Load engine's configuration suitable for all engines from [deploymentConfig]
  */
-@OptIn(EngineAPI::class)
 public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
         callGroupSize = it

@@ -108,7 +108,6 @@ public class ApplicationEngineEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    @OptIn(EngineAPI::class)
     public fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
         return ApplicationEngineEnvironmentReloading(

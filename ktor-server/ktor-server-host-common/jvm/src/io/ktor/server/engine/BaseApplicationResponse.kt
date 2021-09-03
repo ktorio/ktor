@@ -284,15 +284,13 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
          * This is engine internal API and should be never used by end-users
          * unless you are writing your own engine implementation
          */
-        @EngineAPI
         public val EngineResponseAtributeKey: AttributeKey<BaseApplicationResponse> =
-            AttributeKey<BaseApplicationResponse>("EngineResponse")
+            AttributeKey("EngineResponse")
 
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
          * to start response object processing via [respondOutgoingContent]
          */
-        @EngineAPI
         public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
