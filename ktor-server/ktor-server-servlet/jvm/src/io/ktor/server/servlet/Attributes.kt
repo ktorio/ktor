@@ -22,7 +22,6 @@ public val ApplicationRequest.servletRequestAttributes: Map<String, Any>
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
 
-@EngineAPI
 public fun ApplicationCall.putServletAttributes(request: ServletRequest) {
     val servletAttributes = request.attributeNames?.asSequence()?.associateWith { attributeName ->
         request.getAttribute(attributeName)

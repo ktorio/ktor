@@ -57,8 +57,8 @@ public expect interface ByteWriteChannel {
 
     public suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")
-    @ExperimentalIoApi
     public suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

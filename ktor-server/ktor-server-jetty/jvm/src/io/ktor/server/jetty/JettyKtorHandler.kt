@@ -27,7 +27,7 @@ private val JettyKtorCounter = AtomicLong()
 
 private const val THREAD_KEEP_ALIVE_TIME = 1L
 
-@OptIn(InternalAPI::class, EngineAPI::class)
+@OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,

@@ -16,7 +16,6 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-@OptIn(EngineAPI::class)
 public class JettyApplicationResponse constructor(
     call: AsyncServletApplicationCall,
     servletRequest: HttpServletRequest,

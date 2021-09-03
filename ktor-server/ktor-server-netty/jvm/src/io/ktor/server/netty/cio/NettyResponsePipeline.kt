@@ -26,7 +26,7 @@ import kotlin.coroutines.*
 
 private const val UNFLUSHED_LIMIT = 65536
 
-@OptIn(InternalAPI::class, EngineAPI::class)
+@OptIn(InternalAPI::class)
 internal class NettyResponsePipeline constructor(
     private val dst: ChannelHandlerContext,
     initialEncapsulation: WriterEncapsulation,
@@ -256,7 +256,6 @@ internal class NettyResponsePipeline constructor(
         finishCall(call, lastMessage, future)
     }
 
-    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyGeneral(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
@@ -304,7 +303,6 @@ internal class NettyResponsePipeline constructor(
         finishCall(call, lastMessage, lastFuture)
     }
 
-    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyFlusher(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,

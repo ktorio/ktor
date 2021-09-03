@@ -754,7 +754,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
     }
 
-    @OptIn(EngineAPI::class)
     @Test
     public open fun testErrorInEnginePipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")

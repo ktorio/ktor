@@ -13,8 +13,6 @@ import org.eclipse.jetty.server.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-@OptIn(EngineAPI::class)
-@Suppress("KDocMissingDocumentation")
 @InternalAPI
 public class JettyApplicationCall(
     application: Application,

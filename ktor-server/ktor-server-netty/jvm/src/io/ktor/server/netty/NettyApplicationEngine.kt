@@ -27,7 +27,7 @@ import kotlin.reflect.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
-@OptIn(EngineAPI::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 public class NettyApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit = {}

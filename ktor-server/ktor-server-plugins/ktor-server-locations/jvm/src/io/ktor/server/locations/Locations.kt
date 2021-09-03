@@ -17,7 +17,9 @@ import kotlin.reflect.*
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
-public open class Locations @KtorExperimentalLocationsAPI constructor(
+@Suppress("unused")
+@KtorExperimentalLocationsAPI
+public open class Locations constructor(
     application: Application,
     routeService: LocationRouteService
 ) {

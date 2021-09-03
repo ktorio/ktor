@@ -21,7 +21,6 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 
-@OptIn(EngineAPI::class)
 class ApplicationEngineEnvironmentReloadingTests {
 
     @Test

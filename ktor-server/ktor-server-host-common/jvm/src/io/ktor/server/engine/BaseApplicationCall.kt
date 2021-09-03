@@ -7,12 +7,10 @@ package io.ktor.server.engine
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 
 /**
  * Base class for implementing an [ApplicationCall].
  */
-@EngineAPI
 public abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
     public final override val attributes: Attributes = Attributes()
     override val parameters: Parameters get() = request.queryParameters
@@ -23,7 +21,6 @@ public abstract class BaseApplicationCall(final override val application: Applic
     /**
      * Put engine response attribute. This is required for base implementation to work properly
      */
-    @EngineAPI
     protected fun putResponseAttribute(response: BaseApplicationResponse = this.response) {
         attributes.put(BaseApplicationResponse.EngineResponseAtributeKey, response)
     }
