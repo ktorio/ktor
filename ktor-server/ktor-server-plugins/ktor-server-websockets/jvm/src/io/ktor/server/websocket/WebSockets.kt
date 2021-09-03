@@ -30,7 +30,7 @@ import kotlin.coroutines.*
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
  */
-public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
+public class WebSockets constructor(
     public val pingIntervalMillis: Long,
     public val timeoutMillis: Long,
     public val maxFrameSize: Long,
@@ -39,7 +39,6 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     public constructor(
         pingIntervalMillis: Long,
         timeoutMillis: Long,
@@ -64,7 +63,6 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
      * Websockets configuration options
      */
     public class WebSocketOptions {
-        @ExperimentalWebSocketExtensionApi
         internal val extensionsConfig = WebSocketExtensionsConfig()
 
         /**
@@ -90,7 +88,6 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
         /**
          * Configure WebSocket extensions.
          */
-        @ExperimentalWebSocketExtensionApi
         public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
             extensionsConfig.apply(block)
         }
@@ -105,14 +102,12 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
         /**
          * Key for saving configured WebSocket extensions for the specific call.
          */
-        @ExperimentalWebSocketExtensionApi
         public val EXTENSIONS_KEY: AttributeKey<List<WebSocketExtension<*>>> =
             AttributeKey("WebSocket extensions")
 
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
-                @OptIn(ExperimentalWebSocketExtensionApi::class)
                 val webSockets = WebSockets(
                     pingPeriodMillis,
                     timeoutMillis,

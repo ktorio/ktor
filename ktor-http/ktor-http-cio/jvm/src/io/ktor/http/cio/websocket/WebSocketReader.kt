@@ -21,7 +21,6 @@ import kotlin.coroutines.*
  *
  * @param maxFrameSize maximum frame size that could be read
  */
-@WebSocketInternalAPI
 public class WebSocketReader(
     private val byteChannel: ByteReadChannel,
     override val coroutineContext: CoroutineContext,

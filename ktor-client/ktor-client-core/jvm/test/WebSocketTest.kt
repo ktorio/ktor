@@ -10,7 +10,6 @@ import kotlin.test.*
 
 class WebSocketTest {
 
-    @ExperimentalWebSocketExtensionApi
     @Test
     fun testAsDefault() {
         val plugin = WebSockets(42, 16)

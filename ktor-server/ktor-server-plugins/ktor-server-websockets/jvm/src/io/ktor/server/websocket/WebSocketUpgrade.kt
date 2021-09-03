@@ -30,7 +30,6 @@ import kotlin.coroutines.*
  * @param installExtensions specifies if WebSocket extensions should be installed in current session.
  * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
  */
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 public class WebSocketUpgrade(
     public val call: ApplicationCall,
     @Suppress("MemberVisibilityCanBePrivate") public val protocol: String? = null,

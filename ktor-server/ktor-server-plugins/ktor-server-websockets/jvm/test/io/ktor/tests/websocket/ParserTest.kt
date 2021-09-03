@@ -9,7 +9,6 @@ import io.ktor.util.*
 import java.nio.*
 import kotlin.test.*
 
-@OptIn(WebSocketInternalAPI::class)
 class ParserTest {
     @Test
     fun testParserSimpleFrame() {

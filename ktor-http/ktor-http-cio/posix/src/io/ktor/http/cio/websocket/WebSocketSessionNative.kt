@@ -60,6 +60,5 @@ public actual interface WebSocketSession : CoroutineScope {
     /**
      * Negotiated WebSocket extensions.
      */
-    @ExperimentalWebSocketExtensionApi
     public actual val extensions: List<WebSocketExtension<*>>
 }

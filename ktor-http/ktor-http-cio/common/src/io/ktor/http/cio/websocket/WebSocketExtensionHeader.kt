@@ -10,7 +10,6 @@ package io.ktor.http.cio.websocket
  * @param name is extension name.
  * @param parameters is list of extension parameters.
  */
-@ExperimentalWebSocketExtensionApi
 public class WebSocketExtensionHeader(public val name: String, public val parameters: List<String>) {
 
     /**
@@ -36,7 +35,6 @@ public class WebSocketExtensionHeader(public val name: String, public val parame
 /**
  * Parse `Sec-WebSocket-Accept` header.
  */
-@ExperimentalWebSocketExtensionApi
 public fun parseWebSocketExtensions(value: String): List<WebSocketExtensionHeader> = value
     .split(";")
     .map { it ->

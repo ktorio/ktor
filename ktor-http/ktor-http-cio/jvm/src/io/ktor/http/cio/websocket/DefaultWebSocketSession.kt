@@ -10,7 +10,6 @@ import kotlinx.coroutines.*
 /**
  * Create [DefaultWebSocketSession] from session.
  */
-@OptIn(WebSocketInternalAPI::class)
 public actual fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingInterval: Long,
@@ -49,6 +48,5 @@ public actual interface DefaultWebSocketSession : WebSocketSession {
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
      */
     @InternalAPI
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     public actual fun start(negotiatedExtensions: List<WebSocketExtension<*>>)
 }

@@ -22,7 +22,6 @@ public fun WebSockets(config: () -> Unit): Unit =
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("webSocketSession(block)", "io.ktor.client.plugins.websocket.*")
 )
-@OptIn(WebSocketInternalAPI::class)
 public fun webSocketSession(block: () -> Unit): DefaultClientWebSocketSession =
     error("Moved to io.ktor.client.plugins.websocket")
 
@@ -31,7 +30,6 @@ public fun webSocketSession(block: () -> Unit): DefaultClientWebSocketSession =
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("webSocketSession(method, host, port, path, block)", "io.ktor.client.plugins.websocket.*")
 )
-@OptIn(WebSocketInternalAPI::class)
 public suspend fun webSocketSession(
     method: HttpMethod = HttpMethod.Get,
     host: String = "localhost",

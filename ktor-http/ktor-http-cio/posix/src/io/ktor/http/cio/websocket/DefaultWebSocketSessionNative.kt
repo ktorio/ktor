@@ -22,7 +22,6 @@ public actual interface DefaultWebSocketSession : WebSocketSession {
      *
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
      */
-    @OptIn(ExperimentalWebSocketExtensionApi::class)
     @InternalAPI
     public actual fun start(negotiatedExtensions: List<WebSocketExtension<*>>)
 }

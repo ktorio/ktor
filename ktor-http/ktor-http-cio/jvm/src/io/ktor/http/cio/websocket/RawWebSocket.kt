@@ -18,7 +18,6 @@ import kotlin.properties.*
 /**
  * Represents a RAW web socket session
  */
-@OptIn(WebSocketInternalAPI::class)
 public class RawWebSocket(
     input: ByteReadChannel,
     output: ByteWriteChannel,
@@ -34,7 +33,6 @@ public class RawWebSocket(
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
 
-    @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
 
@@ -83,8 +81,6 @@ public class RawWebSocket(
     }
 }
 
-@Suppress("KDocMissingDocumentation")
-@OptIn(WebSocketInternalAPI::class)
 @InternalAPI
 public suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     try {
