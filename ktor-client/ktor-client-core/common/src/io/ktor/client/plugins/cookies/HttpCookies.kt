@@ -43,9 +43,8 @@ public class HttpCookies(
 
         with(builder) {
             if (cookies.isNotEmpty()) {
-                headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
-            } else {
-                headers.remove(HttpHeaders.Cookie)
+                headers[HttpHeaders.Cookie] = headers[HttpHeaders.Cookie]?.plus("; ").orEmpty() +
+                    renderClientCookies(cookies)
             }
         }
     }

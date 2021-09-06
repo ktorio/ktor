@@ -28,4 +28,38 @@ class CookiesTest {
             builder.headers[HttpHeaders.Cookie]
         )
     }
+
+    @Test
+    fun testRequestCookiesAreNotDroppedWhenEmptyStorage() = testSuspend {
+        val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
+        val builder = HttpRequestBuilder()
+
+        builder.cookie("test", "value")
+        feature.sendCookiesWith(builder)
+
+        assertEquals("test=value", builder.headers[HttpHeaders.Cookie])
+    }
+
+    @Test
+    fun testRequestCookiesArePreservedWhenAddingCookiesFromStorage() = testSuspend {
+        val storage = AcceptAllCookiesStorage()
+        storage.addCookie("http://localhost/", parseServerSetCookieHeader("SOMECOOKIE=somevalue;"))
+        val feature = HttpCookies(storage, emptyList())
+        val builder = HttpRequestBuilder()
+
+        builder.cookie("test", "value")
+        feature.sendCookiesWith(builder)
+
+        assertEquals("test=value; SOMECOOKIE=somevalue;", builder.headers[HttpHeaders.Cookie])
+    }
+
+    @Test
+    fun testNoCookieHeaderWhenEmptyStorageAndNoRequestCookies() = testSuspend {
+        val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
+        val builder = HttpRequestBuilder()
+
+        feature.sendCookiesWith(builder)
+
+        assertNull(builder.headers[HttpHeaders.Cookie])
+    }
 }
