@@ -5,6 +5,7 @@
 package io.ktor.util.converters
 
 import java.math.*
+import java.util.*
 import kotlin.reflect.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -34,6 +35,7 @@ private fun convertSimpleTypes(value: String, klass: KClass<*>): Any? = when (kl
     java.lang.Character::class -> value[0]
     BigDecimal::class -> BigDecimal(value)
     BigInteger::class -> BigInteger(value)
+    UUID::class -> UUID.fromString(value)
     else -> null
 }
 
@@ -53,6 +55,7 @@ internal actual fun platformDefaultToValues(value: Any): List<String>? {
         is java.lang.Character -> listOf(value.toString())
         is BigDecimal -> listOf(value.toString())
         is BigInteger -> listOf(value.toString())
+        is UUID -> listOf(value.toString())
         else -> null
     }
 }
