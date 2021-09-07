@@ -12,30 +12,55 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlin.random.Random
+import kotlin.random.*
 
 /**
  * A plugin that embeds into the HTTP pipeline and extends Ktor functionality.
  **/
-public abstract class ServerPlugin<Configuration : Any> private constructor(
-    pluginFactory: ServerPluginFactory<Configuration>
+public sealed class ServerPlugin<Configuration : Any> private constructor(
+    internal val key: AttributeKey<out ServerPlugin<Configuration>>
 ) : PluginContext {
+
+    public abstract class ApplicationPlugin<Configuration : Any>(
+        pluginFactory: ServerApplicationPluginFactory<Configuration>
+    ) : ServerPlugin<Configuration>(pluginFactory.key) {
+
+        /**
+         * A configuration for the current plugin. It may hold required data and any functionality that can be used by your
+         * plugin.
+         **/
+        public abstract val pluginConfig: Configuration
+    }
+
+    public abstract class RoutingScopedPlugin<Configuration : Any>(
+        pluginFactory: ServerRoutingScopedPluginFactory<Configuration>
+    ) : ServerPlugin<Configuration>(pluginFactory.key) {
+
+        /**
+         * A configuration for the current plugin for this pipeline. It may hold required data and any
+         * functionality that can be used by your plugin.
+         **/
+        public val PipelineContext<*, ApplicationCall>.pluginConfig: Configuration
+            get() = call.attributes[configKey]
+
+        /**
+         * A configuration for the current plugin for this pipeline. It may hold required data and any
+         * functionality that can be used by your plugin.
+         **/
+        public val CallHandlingContext.pluginConfig: Configuration
+            get() = context.pluginConfig
+
+        /**
+         * Unique key that identifies a plugin configuration
+         */
+        public val configKey: AttributeKey<Configuration> = EquatableAttributeKey("${key.name}_config")
+    }
+
     /**
      * A pipeline configuration for the current plugin. See [ktor.io/docs/pipelines.html](https://ktor.io/docs/pipelines.html)
      * for more information.
      **/
     protected abstract val pipeline: ApplicationCallPipeline
-
-    /**
-     * A configuration for the current plugin. It may hold required data and any functionality that can be used by your
-     * plugin.
-     **/
-    public abstract val pluginConfig: Configuration
-
-    /**
-     * A name for your plugin. A name is used to find your plugin in the current application.
-     **/
-    public val name: String = pluginFactory.name
 
     /**
      * Allows you to access the environment of the currently running application where the plugin is installed.
@@ -47,8 +72,6 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
      **/
     public val configuration: ApplicationConfig? get() = environment?.config
 
-    internal val key: AttributeKey<ServerPlugin<Configuration>> = pluginFactory.key
-
     internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 
     internal val onReceiveInterceptions: MutableList<ReceiveInterception> = mutableListOf()
@@ -59,7 +82,7 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
 
     internal val pipelineHandlers: MutableList<PipelineHandler> = mutableListOf()
 
-    internal fun newPhase(): PipelinePhase = PipelinePhase("${name}Phase${Random.nextInt()}")
+    internal fun newPhase(): PipelinePhase = PipelinePhase("${key.name}Phase${Random.nextInt()}")
 
     private fun <T : Any, ContextT : CallHandlingContext> onDefaultPhaseWithMessage(
         interceptions: MutableList<Interception<T>>,
@@ -158,11 +181,11 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
      * by the given [plugin] were already executed in the same stage.
      **/
     public fun afterPlugins(
-        vararg targetPlugins: ServerPluginFactory<out Any>,
+        vararg targetPlugins: ServerPluginFactory<*, *>,
         build: AfterPluginContext.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
-            AfterPluginContext(this, targetPlugins.map { pipeline.findServerPlugin(it) }).build()
+            AfterPluginContext(this, targetPlugins.map { pipeline.plugin(it) }).build()
         }
     }
 
@@ -177,17 +200,17 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
      * by the given [targetPlugins] were already executed in the same stage.
      **/
     public fun beforePlugins(
-        vararg targetPlugins: ServerPluginFactory<out Any>,
+        vararg targetPlugins: ServerPluginFactory<*, *>,
         build: BeforePluginsContext.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
-            BeforePluginsContext(this, targetPlugins.map { pipeline.findServerPlugin(it) }).build()
+            BeforePluginsContext(this, targetPlugins.map { pipeline.plugin(it) }).build()
         }
     }
 
     public companion object {
         /**
-         * Creates a [ServerPlugin].
+         * Creates a [ServerPluginFactory] that can be installed into [Application].
          *
          * @param name A name of your new plugin that will be used if you need find an instance of
          * your plugin when it is installed to an [Application].
@@ -206,58 +229,87 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
          *          println(call.request.uri)
          *      }
          * }
+         *
+         * application.install(MyPlugin)
          * ```
          **/
-        public fun <Configuration : Any> createPlugin(
+        public fun <Configuration : Any> createApplicationPlugin(
             name: String,
-            createConfiguration: (ApplicationCallPipeline) -> Configuration,
-            body: ServerPlugin<Configuration>.() -> Unit
-        ): ServerPluginFactory<Configuration> = object : ServerPluginFactory<Configuration>(name) {
-            override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
+            createConfiguration: () -> Configuration,
+            body: ApplicationPlugin<Configuration>.() -> Unit
+        ): ServerApplicationPluginFactory<Configuration> = object : ServerApplicationPluginFactory<Configuration>() {
+            override val key: AttributeKey<ApplicationPlugin<Configuration>> = AttributeKey(name)
 
             override fun install(
                 pipeline: ApplicationCallPipeline,
                 configure: Configuration.() -> Unit
-            ): ServerPlugin<Configuration> {
-                val config = createConfiguration(pipeline)
+            ): ApplicationPlugin<Configuration> {
+                val config = createConfiguration()
                 config.configure()
 
                 val self = this
-                val pluginInstance = object : ServerPlugin<Configuration>(self) {
-                    override val pipeline: ApplicationCallPipeline
-                        get() = pipeline
-                    override val pluginConfig: Configuration
-                        get() = config
+                val pluginInstance = object : ApplicationPlugin<Configuration>(self) {
+                    override val pipeline: ApplicationCallPipeline = pipeline
+                    override val pluginConfig: Configuration = config
                 }
-
-                pluginInstance.apply(body)
-
-                pluginInstance.pipelineHandlers.forEach { handle ->
-                    handle(pipeline)
-                }
-
-                pluginInstance.callInterceptions.forEach {
-                    it.action(pipeline)
-                }
-
-                pluginInstance.onReceiveInterceptions.forEach {
-                    it.action(pipeline.receivePipeline)
-                }
-
-                pluginInstance.onResponseInterceptions.forEach {
-                    it.action(pipeline.sendPipeline)
-                }
-
-                pluginInstance.afterResponseInterceptions.forEach {
-                    it.action(pipeline.sendPipeline)
-                }
-
+                pluginInstance.setupPlugin(body)
                 return pluginInstance
             }
         }
 
         /**
-         * Creates an instance of [ServerPlugin]. A canonical way to create a [ServerPlugin] without any configuration.
+         * Creates a [ServerRoutingScopedPluginFactory] that can be installed into [io.ktor.server.routing.Routing].
+         *
+         * @param name A name of your new plugin that will be used if you need find an instance of
+         * your plugin when it is installed to an [io.ktor.server.routing.Routing].
+         * @param createConfiguration Defines how the initial [Configuration] of your new plugin can be created. Please
+         * note that it may be modified later when a user of your plugin calls [install].
+         * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+         * can modify the behaviour of an [Application] where your plugin is installed.
+         *
+         * Usage example:
+         * ```
+         * val MyPlugin = createPlugin("MyPlugin") {
+         *      // This block will be executed when you call install(MyPlugin)
+         *
+         *      onCall { call ->
+         *          // Prints requested URL each time your application receives a call:
+         *          println(call.request.uri)
+         *      }
+         * }
+         *
+         * route("a") {
+         *   install(MyPlugin)
+         * }
+         * ```
+         **/
+        public fun <Configuration : Any> createRoutingScopedPlugin(
+            name: String,
+            createConfiguration: () -> Configuration,
+            body: RoutingScopedPlugin<Configuration>.() -> Unit
+        ): ServerRoutingScopedPluginFactory<Configuration> = object
+            : ServerRoutingScopedPluginFactory<Configuration>() {
+
+            override val key: AttributeKey<RoutingScopedPlugin<Configuration>> = AttributeKey(name)
+
+            override fun createConfiguration(): Configuration =
+                createConfiguration.invoke()
+
+            override fun install(
+                pipeline: ApplicationCallPipeline
+            ): RoutingScopedPlugin<Configuration> {
+                val self = this
+                val pluginInstance = object : RoutingScopedPlugin<Configuration>(self) {
+                    override val pipeline: ApplicationCallPipeline = pipeline
+                }
+                pluginInstance.setupPlugin(body)
+                return pluginInstance
+            }
+        }
+
+        /**
+         * Creates a [ServerPluginFactory] that can be installed into [Application].
+         * A canonical way to create a [ServerPlugin] without any configuration.
          *
          * @param name A name of your new plugin that will be used if you need find an instance of
          * your plugin when it is installed to an [Application].
@@ -274,12 +326,68 @@ public abstract class ServerPlugin<Configuration : Any> private constructor(
          *          println(call.request.uri)
          *      }
          * }
+         *
+         * application.install(MyPlugin)
          * ```
          **/
-        public fun createPlugin(
+        public fun createApplicationPlugin(
             name: String,
             body: ServerPlugin<Unit>.() -> Unit
-        ): ServerPluginFactory<Unit> = createPlugin<Unit>(name, {}, body)
+        ): ServerApplicationPluginFactory<Unit> = createApplicationPlugin(name, {}, body)
+
+        /**
+         * Creates a [ServerPluginFactory] that can be installed into [Application].
+         * A canonical way to create a [ServerPlugin] without any configuration.
+         *
+         * @param name A name of your new plugin that will be used if you need find an instance of
+         * your plugin when it is installed to an [Application].
+         * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+         * can modify the behaviour of an [Application] where your plugin is installed.
+         *
+         * Usage example:
+         * ```
+         * val MyPlugin = createPlugin("MyPlugin") {
+         *      // This block will be executed when you call install(MyPlugin)
+         *
+         *      onCall { call ->
+         *          // Prints requested URL each time your application receives a call:
+         *          println(call.request.uri)
+         *      }
+         * }
+         *
+         * route("a") {
+         *   install(MyPlugin)
+         * }
+         * ```
+         **/
+        public fun createRoutingScopedPlugin(
+            name: String,
+            body: RoutingScopedPlugin<Unit>.() -> Unit
+        ): ServerRoutingScopedPluginFactory<Unit> = createRoutingScopedPlugin(name, {}, body)
+
+        private fun <Configuration : Any, Plugin : ServerPlugin<Configuration>> Plugin.setupPlugin(body: Plugin.() -> Unit) {
+            apply(body)
+
+            pipelineHandlers.forEach { handle ->
+                handle(pipeline)
+            }
+
+            callInterceptions.forEach {
+                it.action(pipeline)
+            }
+
+            onReceiveInterceptions.forEach {
+                it.action(pipeline.receivePipeline)
+            }
+
+            onResponseInterceptions.forEach {
+                it.action(pipeline.sendPipeline)
+            }
+
+            afterResponseInterceptions.forEach {
+                it.action(pipeline.sendPipeline)
+            }
+        }
     }
 
     override fun applicationShutdownHook(hook: (Application) -> Unit) {

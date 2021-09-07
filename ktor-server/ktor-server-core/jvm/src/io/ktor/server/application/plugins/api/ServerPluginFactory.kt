@@ -11,9 +11,24 @@ import io.ktor.util.pipeline.*
  * A factory class to be passed to the [install] function for creating a [ServerPlugin]
  * instance and installing it into the current application context.
  **/
-public abstract class ServerPluginFactory<Configuration : Any>(
-    public val name: String
-) : ApplicationPlugin<ApplicationCallPipeline, Configuration, ServerPlugin<Configuration>>
+public sealed class ServerPluginFactory<Configuration : Any, TPlugin : ServerPlugin<Configuration>> :
+    Plugin<ApplicationCallPipeline, Configuration, TPlugin>
+
+/**
+ * A factory class to be passed to the [install] function for creating a [ServerPlugin.ApplicationPlugin]
+ * instance and installing it into the current application context.
+ **/
+public abstract class ServerApplicationPluginFactory<Configuration : Any> :
+    ServerPluginFactory<Configuration, ServerPlugin.ApplicationPlugin<Configuration>>(),
+    ApplicationPlugin<ApplicationCallPipeline, Configuration, ServerPlugin.ApplicationPlugin<Configuration>>
+
+/**
+ * A factory class to be passed to the [install] function for creating a [ServerPlugin.RoutingScopedPlugin]
+ * instance and installing it into the current application context.
+ **/
+public abstract class ServerRoutingScopedPluginFactory<Configuration : Any> :
+    ServerPluginFactory<Configuration, ServerPlugin.RoutingScopedPlugin<Configuration>>(),
+    RoutingScopedPlugin<ApplicationCallPipeline, Configuration, ServerPlugin.RoutingScopedPlugin<Configuration>>
 
 /**
  * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
@@ -23,16 +38,9 @@ public abstract class ServerPluginFactory<Configuration : Any>(
  * @return an instance of plugin
  */
 public fun <A : Pipeline<*, ApplicationCall>, ConfigurationT : Any> A.plugin(
-    plugin: ServerPluginFactory<ConfigurationT>
-): ServerPlugin<ConfigurationT> {
-    return attributes[pluginRegistryKey].getOrNull(plugin.key)
-        ?: throw MissingApplicationPluginException(plugin.key)
-}
-
-internal fun <A : Pipeline<*, ApplicationCall>> A.findServerPlugin(
-    plugin: ServerPluginFactory<*>
+    plugin: ServerPluginFactory<ConfigurationT, *>
 ): ServerPlugin<*> {
-    return attributes[pluginRegistryKey].getOrNull(plugin.key)
+    return pluginRegistry.getOrNull(plugin.key)
         ?: throw MissingApplicationPluginException(plugin.key)
 }
 

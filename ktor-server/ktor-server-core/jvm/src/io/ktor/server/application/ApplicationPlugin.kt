@@ -10,7 +10,24 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * Defines an installable Application Plugin
+ * Defines an installable Plugin
+ * @param TPipeline is the type of the pipeline this plugin is compatible with
+ * @param TConfiguration is the type for the configuration object for this Plugin
+ * @param TPlugin is the type for the instance of the Plugin object
+ */
+@Suppress("AddVarianceModifier")
+public interface Plugin<
+    in TPipeline : Pipeline<*, ApplicationCall>,
+    out TConfiguration : Any,
+    TPlugin : Any> {
+    /**
+     * Unique key that identifies a plugin
+     */
+    public val key: AttributeKey<TPlugin>
+}
+
+/**
+ * Defines a Plugin that is installed into Application
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the type for the configuration object for this Plugin
  * @param TPlugin is the type for the instance of the Plugin object
@@ -19,11 +36,7 @@ import kotlinx.coroutines.*
 public interface ApplicationPlugin<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
-    TPlugin : Any> {
-    /**
-     * Unique key that identifies a plugin
-     */
-    public val key: AttributeKey<TPlugin>
+    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin> {
 
     /**
      * Plugin installation script
@@ -34,20 +47,26 @@ public interface ApplicationPlugin<
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
 /**
+ * Returns existing plugin registry or register and returns a new one
+ */
+public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
+    get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
+
+/**
  * Gets plugin instance for this pipeline, or fails with [MissingApplicationPluginException] if the plugin is not installed
  * @throws MissingApplicationPluginException
  * @param plugin application plugin to lookup
  * @return an instance of plugin
  */
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.plugin(plugin: ApplicationPlugin<A, B, F>): F {
-    return attributes[pluginRegistryKey].getOrNull(plugin.key)
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.plugin(plugin: Plugin<A, B, F>): F {
+    return pluginRegistry.getOrNull(plugin.key)
         ?: throw MissingApplicationPluginException(plugin.key)
 }
 
 /**
  * Returns plugin instance for this pipeline, or null if plugin is not installed
  */
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.pluginOrNull(plugin: ApplicationPlugin<A, B, F>): F? {
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.pluginOrNull(plugin: Plugin<A, B, F>): F? {
     return attributes.getOrNull(pluginRegistryKey)?.getOrNull(plugin.key)
 }
 
@@ -58,7 +77,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     plugin: ApplicationPlugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    val registry = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
+    val registry = pluginRegistry
     val installedPlugin = registry.getOrNull(plugin.key)
     when (installedPlugin) {
         null -> {
@@ -92,8 +111,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
         "If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
-    val registry = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
-    registry.allKeys.forEach {
+    pluginRegistry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST", "DEPRECATION")
         uninstallPlugin(it as AttributeKey<Any>)
     }
@@ -108,7 +126,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
         "If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
-    plugin: ApplicationPlugin<A, B, F>
+    plugin: Plugin<A, B, F>
 ): Unit = uninstallPlugin(plugin.key)
 
 /**
