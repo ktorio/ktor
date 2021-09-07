@@ -335,12 +335,6 @@ public abstract interface class io/ktor/utils/io/ReaderScope : kotlinx/coroutine
 	public abstract fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
-public final class io/ktor/utils/io/ReadersKt {
-	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun toByteArray$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun use (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
-}
-
 public abstract interface class io/ktor/utils/io/SuspendableReadSession : io/ktor/utils/io/ReadSession {
 	public abstract fun await (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -933,9 +927,6 @@ public final class io/ktor/utils/io/core/CloseableKt {
 
 public final class io/ktor/utils/io/core/CopyKt {
 	public static final fun copyTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/Output;)J
-}
-
-public abstract interface annotation class io/ktor/utils/io/core/ExperimentalIoApi : java/lang/annotation/Annotation {
 }
 
 public abstract class io/ktor/utils/io/core/Input : java/io/Closeable {

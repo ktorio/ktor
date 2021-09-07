@@ -274,9 +274,6 @@ public final class io/ktor/http/cio/websocket/DefaultWebSocketSessionKt {
 	public static final fun DefaultWebSocketSession (Lio/ktor/http/cio/websocket/WebSocketSession;JJ)Lio/ktor/http/cio/websocket/DefaultWebSocketSession;
 }
 
-public abstract interface annotation class io/ktor/http/cio/websocket/ExperimentalWebSocketExtensionApi : java/lang/annotation/Annotation {
-}
-
 public abstract class io/ktor/http/cio/websocket/Frame {
 	public static final field Companion Lio/ktor/http/cio/websocket/Frame$Companion;
 	public synthetic fun <init> (ZLio/ktor/http/cio/websocket/FrameType;[BLkotlinx/coroutines/DisposableHandle;ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -497,9 +494,6 @@ public final class io/ktor/http/cio/websocket/WebSocketExtensionsConfig {
 	public final fun build ()Ljava/util/List;
 	public final fun install (Lio/ktor/http/cio/websocket/WebSocketExtensionFactory;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun install$default (Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;Lio/ktor/http/cio/websocket/WebSocketExtensionFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-}
-
-public abstract interface annotation class io/ktor/http/cio/websocket/WebSocketInternalAPI : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/http/cio/websocket/WebSocketReader : kotlinx/coroutines/CoroutineScope {

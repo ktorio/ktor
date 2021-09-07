@@ -219,7 +219,6 @@ class TestApplicationEngine(
             bodyChannel = websocketChannel
         }
 
-
         // we need this to wait for response channel appearance
         // otherwise we get NPE at websocket reader start attempt
         val responseSent: CompletableJob = Job()

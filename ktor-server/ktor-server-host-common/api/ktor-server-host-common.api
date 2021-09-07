@@ -220,9 +220,6 @@ public final class io/ktor/server/engine/EmbeddedServerKt {
 	public static synthetic fun embeddedServer$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;[Lio/ktor/server/engine/EngineConnectorConfig;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 }
 
-public abstract interface annotation class io/ktor/server/engine/EngineAPI : java/lang/annotation/Annotation {
-}
-
 public class io/ktor/server/engine/EngineConnectorBuilder : io/ktor/server/engine/EngineConnectorConfig {
 	public fun <init> ()V
 	public fun <init> (Lio/ktor/server/engine/ConnectorType;)V
