@@ -132,6 +132,10 @@ public class ContentType private constructor(
 
                 val subtype = parts.substring(slash + 1).trim()
 
+                if (type.contains(' ') || subtype.contains(' ')) {
+                    throw BadContentTypeFormatException(value)
+                }
+
                 if (subtype.isEmpty() || subtype.contains('/')) {
                     throw BadContentTypeFormatException(value)
                 }
