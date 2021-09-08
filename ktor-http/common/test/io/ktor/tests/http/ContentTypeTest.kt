@@ -72,6 +72,20 @@ class ContentTypeTest {
     }
 
     @Test
+    fun testContentSubtypeWithSpace() {
+        assertFailsWith<BadContentTypeFormatException> {
+            ContentType.parse("text/html xxx")
+        }
+    }
+
+    @Test
+    fun testContentTypeWithSpace() {
+        assertFailsWith<BadContentTypeFormatException> {
+            ContentType.parse("text xxx/html")
+        }
+    }
+
+    @Test
     fun contentTypeWithEmptyParametersBlock() {
         assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain; "))
         assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain;"))
