@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -47,7 +48,7 @@ class CommonHttpClientTest {
         assertTrue(client.feature(TestFeature)!!.closed)
     }
     class TestFeature : Closeable {
-        var closed = false
+        var closed by shared(false)
         override fun close() {
             closed = true
         }
