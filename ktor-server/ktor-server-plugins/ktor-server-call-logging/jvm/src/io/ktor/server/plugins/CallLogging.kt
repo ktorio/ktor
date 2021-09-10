@@ -7,6 +7,7 @@ package io.ktor.server.plugins
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.logging.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -14,6 +15,8 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
 import kotlin.coroutines.*
+import org.fusesource.jansi.*
+import org.fusesource.jansi.Ansi.*
 
 /**
  * Logs application lifecycle and call events.
@@ -206,6 +209,26 @@ private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElemen
 }
 
 private fun defaultFormat(call: ApplicationCall): String = when (val status = call.response.status() ?: "Unhandled") {
-    HttpStatusCode.Found -> "$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}"
-    else -> "$status: ${call.request.toLogString()}"
+    HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
+    "Unhandled" -> "${colored(status, Color.RED)}: ${call.request.toLogStringWithColors()}"
+    else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
 }
+
+internal fun ApplicationRequest.toLogStringWithColors(): String = "${colored(httpMethod.value, Color.CYAN)} - ${path()}"
+
+private fun colored(status: HttpStatusCode): String = when (status) {
+    HttpStatusCode.Found, HttpStatusCode.OK, HttpStatusCode.Accepted, HttpStatusCode.Created -> colored(
+        status,
+        Color.GREEN
+    )
+    HttpStatusCode.Continue, HttpStatusCode.Processing, HttpStatusCode.PartialContent,
+    HttpStatusCode.NotModified, HttpStatusCode.UseProxy, HttpStatusCode.UpgradeRequired,
+    HttpStatusCode.NoContent -> colored(
+        status,
+        Color.YELLOW
+    )
+    else -> colored(status, Color.RED)
+}
+
+private fun colored(value: Any, color: Color): String =
+    ansi().fg(color).a(value).reset().toString()

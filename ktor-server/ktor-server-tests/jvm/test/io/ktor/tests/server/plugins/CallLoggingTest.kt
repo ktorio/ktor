@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
+import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
 import java.util.concurrent.*
@@ -84,7 +85,14 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/")
         }
 
-        assertTrue("INFO: 404 Not Found: GET - /" in messages)
+        assertTrue(
+            "INFO: ${colored("404 Not Found", Ansi.Color.RED)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /" in messages
+        )
     }
 
     @Test
@@ -95,7 +103,14 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("INFO: 200 OK: GET - /" in messages)
+        assertTrue(
+            "INFO: ${colored("200 OK", Ansi.Color.GREEN)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /" in messages
+        )
     }
 
     @Test
@@ -106,7 +121,14 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("INFO: 404 Not Found: GET - /" in messages)
+        assertTrue(
+            "INFO: ${colored("404 Not Found", Ansi.Color.RED)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /" in messages
+        )
     }
 
     @Test
@@ -155,8 +177,22 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("INFO: 404 Not Found: GET - /" in messages)
-        assertFalse("INFO: 404 Not Found: GET - /avoid" in messages)
+        assertTrue(
+            "INFO: ${colored("404 Not Found", Ansi.Color.RED)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /" in messages
+        )
+        assertFalse(
+            "INFO: ${colored("404 Not Found", Ansi.Color.RED)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /avoid" in messages
+        )
     }
 
     @Test
@@ -176,7 +212,14 @@ class CallLoggingTest {
             }
         }
 
-        assertTrue("DEBUG: 404 Not Found: GET - /" in messages)
+        assertTrue(
+            "DEBUG: ${colored("404 Not Found", Ansi.Color.RED)}: ${
+                colored(
+                    "GET",
+                    Ansi.Color.CYAN
+                )
+            } - /" in messages
+        )
     }
 
     @Test
@@ -210,7 +253,12 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let { _ ->
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
-                        "INFO: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                        "INFO: ${colored("200 OK", Ansi.Color.GREEN)}: ${
+                            colored(
+                                "GET",
+                                Ansi.Color.CYAN
+                            )
+                        } - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
                     }
                 }
             }
@@ -249,7 +297,12 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let {
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
-                        "INFO: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                        "INFO: ${colored("200 OK", Ansi.Color.GREEN)}: ${
+                            colored(
+                                "GET",
+                                Ansi.Color.CYAN
+                            )
+                        } - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
                     }
                 }
             }
@@ -284,3 +337,7 @@ class CallLoggingTest {
         assertTrue(messages.isEmpty())
     }
 }
+
+private fun colored(value: Any, color: Ansi.Color): String =
+    Ansi.ansi().fg(color).a(value).reset().toString()
+
