@@ -10,8 +10,10 @@ import io.ktor.request.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
+import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
+import java.awt.*
 import kotlin.coroutines.*
 
 /**
@@ -35,6 +37,7 @@ public class CallLogging private constructor(
         internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
         internal val mdcEntries = mutableListOf<MDCEntry>()
         internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
+        internal var isColorsEnabled: Boolean = true
 
         /**
          * Logging level for [CallLogging], default is [Level.TRACE]
@@ -68,6 +71,52 @@ public class CallLogging private constructor(
         public fun format(formatter: (ApplicationCall) -> String) {
             formatCall = formatter
         }
+
+        /**
+         * Disables colors in log message in case the default formatter was used.
+         * */
+        public fun disableDefaultColors() {
+            isColorsEnabled = false
+        }
+
+        private fun defaultFormat(call: ApplicationCall): String =
+            when (val status = call.response.status() ?: "Unhandled") {
+                HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: " +
+                    "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
+                "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
+                else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
+            }
+
+        internal fun ApplicationRequest.toLogStringWithColors(): String =
+            "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()}"
+
+        private fun colored(status: HttpStatusCode): String {
+            try {
+                if (!AnsiConsole.isInstalled()) {
+                    AnsiConsole.systemInstall()
+                }
+            } catch (cause: Throwable) {
+                isColorsEnabled = false // ignore colors if console was not installed
+            }
+
+            return when (status) {
+                HttpStatusCode.Found, HttpStatusCode.OK, HttpStatusCode.Accepted, HttpStatusCode.Created -> colored(
+                    status,
+                    Ansi.Color.GREEN
+                )
+                HttpStatusCode.Continue, HttpStatusCode.Processing, HttpStatusCode.PartialContent,
+                HttpStatusCode.NotModified, HttpStatusCode.UseProxy, HttpStatusCode.UpgradeRequired,
+                HttpStatusCode.NoContent -> colored(
+                    status,
+                    Ansi.Color.YELLOW
+                )
+                else -> colored(status, Ansi.Color.RED)
+            }
+        }
+
+        private fun colored(value: Any, color: Ansi.Color): String =
+            if (isColorsEnabled) Ansi.ansi().fg(color).a(value).reset().toString()
+            else value.toString() // ignore color
     }
 
     private val starting: (Application) -> Unit = { log("Application starting: $it") }
@@ -219,9 +268,4 @@ private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElemen
     }
 
     private object Key : CoroutineContext.Key<MDCSurvivalElement>
-}
-
-private fun defaultFormat(call: ApplicationCall): String = when (val status = call.response.status() ?: "Unhandled") {
-    HttpStatusCode.Found -> "$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}"
-    else -> "$status: ${call.request.toLogString()}"
 }

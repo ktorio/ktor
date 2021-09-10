@@ -3,6 +3,7 @@ description = ""
 val typesafe_config_version: String by extra
 val kotlin_version: String by extra
 val mockk_version: String by extra
+val jansi_version: String by project.extra
 
 kotlin.sourceSets {
     val jvmMain by getting {
@@ -12,6 +13,7 @@ kotlin.sourceSets {
 
             api("com.typesafe:config:$typesafe_config_version")
             api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+            implementation("org.fusesource.jansi:jansi:$jansi_version")
         }
     }
     val jvmTest by getting {
