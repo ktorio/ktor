@@ -4,7 +4,6 @@ package io.ktor.utils.io.streams
 
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.internal.utils.*
 import kotlinx.cinterop.*
 import platform.posix.*
 

@@ -1,15 +1,14 @@
 package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.internal.utils.*
 import io.ktor.utils.io.streams.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
-@Suppress("unused")
-@SharedImmutable
-private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
+//@Suppress("unused")
+//@SharedImmutable
+//private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
 
 @SharedImmutable
 private val KnownPosixErrors = mapOf<Int, String>(

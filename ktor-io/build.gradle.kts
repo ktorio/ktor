@@ -9,7 +9,7 @@ kotlin {
             val main by getting {
                 cinterops {
                     val bits by creating { defFile = file("posix/interop/bits.def") }
-                    val sockets by creating { defFile = file("posix/interop/sockets.def") }
+                    // val sockets by creating { defFile = file("posix/interop/sockets.def") }
                 }
             }
             val test by getting {
@@ -30,11 +30,11 @@ kotlin {
 
 // Hack: register the Native interop klibs as outputs of Kotlin source sets:
         val bitsMain by creating { dependsOn(commonMain) }
-        val socketsMain by creating { dependsOn(commonMain) }
+        // val socketsMain by creating { dependsOn(commonMain) }
 
         val posixMain by getting {
             dependsOn(bitsMain)
-            dependsOn(socketsMain)
+            // dependsOn(socketsMain)
         }
 
         val ss = listOf(
@@ -63,7 +63,7 @@ kotlin {
                 "watchosArm64",
             ).map { getByName("${it}Main") }.forEach {
                 it.dependsOn(this)
-                dependsOn(posixMain)
+                dependsOn(posixWoMingw)
             }
         }
 
@@ -80,7 +80,7 @@ kotlin {
                 "watchosX64",
             ).map { getByName("${it}Main") }.forEach {
                 it.dependsOn(this)
-                dependsOn(posixMain)
+                dependsOn(posixWoMingw)
             }
         }
 
@@ -89,7 +89,7 @@ kotlin {
             val registerInteropAsSourceSetOutput: groovy.lang.Closure<*> by extra
             afterEvaluate {
                 registerInteropAsSourceSetOutput("bits", bitsMain)
-                registerInteropAsSourceSetOutput("sockets", socketsMain)
+                // registerInteropAsSourceSetOutput("sockets", socketsMain)
             }
         }
     }

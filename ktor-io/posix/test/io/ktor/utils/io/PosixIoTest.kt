@@ -116,7 +116,7 @@ class PosixIoTest {
             set_loopback(ptr)
         }
 
-        val acceptor = socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
+        val acceptor = io.ktor.utils.io.streams.socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
         acceptor.makeNonBlocking()
         bind(acceptor, serverAddr.ptr.reinterpret(), sockaddr_in.size.convert()).let { rc ->
             if (rc != 0) {
@@ -136,7 +136,7 @@ class PosixIoTest {
 
         clientAddr.sin_port = serverAddr.sin_port
 
-        val connected: KX_SOCKET = socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
+        val connected: KX_SOCKET = io.ktor.utils.io.streams.socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
         val zero: KX_SOCKET = 0.convert()
         var accepted: KX_SOCKET = zero
         var connectedFlag = false
@@ -167,7 +167,7 @@ class PosixIoTest {
             }
 
             if (!connectedFlag) {
-                val result = connect(connected, clientAddr.ptr.reinterpret(), sockaddr_in.size.convert())
+                val result = io.ktor.utils.io.streams.connect(connected, clientAddr.ptr.reinterpret(), sockaddr_in.size.convert())
                 if (result != 0) {
                     val error = socket_get_error()
                     if (error == EINPROGRESS || error == EISCONN) {

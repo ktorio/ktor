@@ -12,49 +12,61 @@ import platform.posix.*
 public typealias _size_t = size_t // TODO: why?
 public typealias _ssize_t = ssize_t // TODO: why?
 
-public typealias socklen_tVar = UIntVarOf<UInt>
-public typealias socklen_t = UInt
+public expect val SSIZE_MAX: _ssize_t
+
+// TODO: public expect class KX_SOCKET : Number
+// public typealias KX_SOCKET = Int
+public expect class KX_SOCKET
+
+public expect class KX_SOCKADDR_LEN : Number
+
+public typealias FileDescriptor = Int
+
+@Suppress("NO_ACTUAL_FOR_EXPECT")
+public expect class KX_SOCKADDR_LENVar : CPointed
+
+public expect fun kx_internal_is_non_blocking(fileDescriptor: FileDescriptor): Int
 
 public expect fun recv(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int
 ): _ssize_t
 
 public expect fun send(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int
 ): _ssize_t
 
 public expect fun recvfrom(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int,
     __addr: CValuesRef<sockaddr>?,
-    __addr_len: CValuesRef<socklen_tVar>?
+    __addr_len: CValuesRef<KX_SOCKADDR_LENVar>?
 ): _ssize_t
 
 public expect fun sendto(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int,
     __addr: CValuesRef<sockaddr>?,
-    __addr_len: socklen_t
+    __addr_len: KX_SOCKADDR_LEN
 ): _ssize_t
 
 public expect fun read(
-    __fd: Int,
+    __fd: FileDescriptor,
     __buf: CValuesRef<*>?,
     __nbytes: _size_t
 ): _ssize_t
 
 public expect fun write(
-    __fd: Int,
+    __fd: FileDescriptor,
     __buf: CValuesRef<*>?,
     __n: _size_t
 ): _ssize_t
@@ -73,4 +85,19 @@ public expect fun fread(
     __stream: CValuesRef<FILE>?
 ): _size_t
 
-public expect val SSIZE_MAX: _ssize_t
+// Used only in test source set. TODO: move to test sourceset
+public expect fun socket(
+    __domain: Int,
+    __type: Int,
+    __protocol: Int
+):  KX_SOCKET
+
+public expect fun close_socket(socket: KX_SOCKET)
+
+public expect fun connect(
+    __fd: KX_SOCKET,
+    __addr: CValuesRef<sockaddr>?,
+    __len: KX_SOCKADDR_LEN
+): Int
+
+public expect fun set_no_delay(socket: KX_SOCKET)

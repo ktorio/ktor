@@ -7,45 +7,57 @@ package io.ktor.utils.io.streams
 import kotlinx.cinterop.*
 import platform.posix.*
 
+public actual val SSIZE_MAX: _ssize_t = platform.posix.SSIZE_MAX.convert()
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+public actual typealias KX_SOCKADDR_LEN = Int
+
+@Suppress("ACTUAL_TYPE_ALIAS_NOT_TO_CLASS", "ACTUAL_WITHOUT_EXPECT")
+public actual typealias KX_SOCKADDR_LENVar = IntVar
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+public actual typealias KX_SOCKET = ULong
+public actual fun kx_internal_is_non_blocking(fileDescriptor: FileDescriptor): Int = 0
+
 public actual fun recv(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int
 ): _ssize_t = platform.posix.recv(
-    __fd.convert(),
+    __fd,
     __buf as CValuesRef<ByteVar>?, // TODO: Is it safe to do so?
     __n.convert(),
     __flags
-)
+).convert()
 
 public actual fun send(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int
 ): _ssize_t = platform.posix.send(
-    __fd.convert(),
+    __fd,
     __buf as CValuesRef<ByteVar>?, // TODO: Is it safe to do so?
     __n.convert(),
     __flags
-)
+).convert()
 
 public actual fun recvfrom(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int,
     __addr: CValuesRef<sockaddr>?,
-    __addr_len: CValuesRef<socklen_tVar>?
+    __addr_len: CValuesRef<KX_SOCKADDR_LENVar>?
 ): _ssize_t = platform.posix.recvfrom(
-    __fd.convert(),
+    __fd,
     __buf as CValuesRef<ByteVar>?, // TODO: Is it safe to do so?
     __n.convert(),
     __flags,
     __addr,
     __addr_len as CValuesRef<IntVar> // TODO: Is it safe to do so?
-)
+).convert()
 
 //    memScoped {
 //
@@ -60,14 +72,14 @@ public actual fun recvfrom(
 //}
 
 public actual fun sendto(
-    __fd: Int,
+    __fd: KX_SOCKET,
     __buf: CValuesRef<*>?,
     __n: _size_t,
     __flags: Int,
     __addr: CValuesRef<sockaddr>?,
-    __addr_len: socklen_t
+    __addr_len: KX_SOCKADDR_LEN
 ): _ssize_t = platform.posix.sendto(
-    __fd.convert(),
+    __fd,
     __buf as CValuesRef<ByteVar>?, // TODO: Is it safe to do so?
     __n.convert(),
     __flags,
@@ -76,16 +88,16 @@ public actual fun sendto(
 ).convert()
 
 public actual fun read(
-    __fd: Int,
+    __fd: FileDescriptor,
     __buf: CValuesRef<*>?,
     __nbytes: _size_t
-): _ssize_t = platform.posix.read(__fd, __buf, __nbytes)
+): _ssize_t = platform.posix.read(__fd, __buf, __nbytes.convert()).convert()
 
 public actual fun write(
-    __fd: Int,
+    __fd: FileDescriptor,
     __buf: CValuesRef<*>?,
     __n: _size_t
-): _ssize_t = platform.posix.write(__fd, __buf, __n)
+): _ssize_t = platform.posix.write(__fd, __buf, __n.convert()).convert()
 
 public actual fun fwrite(
     __ptr: CValuesRef<*>?,
@@ -101,4 +113,24 @@ public actual fun fread(
     __stream: CValuesRef<FILE>?
 ): _size_t = platform.posix.fread(__ptr, __size.convert(), __nitems.convert(), __stream).convert()
 
-public actual val SSIZE_MAX: _ssize_t = platform.posix.SSIZE_MAX.convert()
+// TODO: Move to test sourceset
+
+public actual fun socket(
+    __domain: Int,
+    __type: Int,
+    __protocol: Int
+): KX_SOCKET = platform.posix.socket(__domain, __type, __protocol)
+
+public actual fun close_socket(socket: KX_SOCKET) {
+    closesocket(socket)
+}
+
+public actual fun connect(
+    __fd: KX_SOCKET,
+    __addr: CValuesRef<sockaddr>?,
+    __len: KX_SOCKADDR_LEN
+): Int = platform.posix.connect(__fd, __addr, __len)
+
+public actual fun set_no_delay(socket: KX_SOCKET) {
+    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, "\u0001", sizeOf<IntVar>().convert())
+}

@@ -14,14 +14,14 @@ static inline int make_socket_non_blocking(SOCKET fd) {
     return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? 1 : 0;
 }
 
-static inline void close_socket(SOCKET socket) {
-    closesocket(socket);
-}
+//static inline void close_socket(SOCKET socket) {
+//    closesocket(socket);
+//}
 
-static inline void set_no_delay(SOCKET socket) {
-    int one = 1;
-    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(int));
-}
+//static inline void set_no_delay(SOCKET socket) {
+//    int one = 1;
+//    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(int));
+//}
 
 static inline int socket_get_error() {
     int rc = WSAGetLastError();
@@ -55,14 +55,14 @@ static inline int make_socket_non_blocking(int fd) {
     return (fcntl(fd, F_SETFL, flags) == 0) ? 0 : 1;
 }
 
-static inline void close_socket(int socket) {
-    close(socket);
-}
+//static inline void close_socket(int socket) {
+//    close(socket);
+//}
 
-static inline void set_no_delay(int socket) {
-    int one = 1;
-    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(int));
-}
+//static inline void set_no_delay(int socket) {
+//    int one = 1;
+//    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(int));
+//}
 
 static inline int socket_get_error() {
     return errno;
