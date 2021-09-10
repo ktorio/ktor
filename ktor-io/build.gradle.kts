@@ -37,6 +37,53 @@ kotlin {
             dependsOn(socketsMain)
         }
 
+        val ss = listOf(
+            "macosX64",
+            "linuxX64",
+            "iosX64",
+            "iosArm64",
+            "iosArm32",
+            "tvosArm64",
+            "tvosX64",
+            "watchosArm32",
+            "watchosArm64",
+            "watchosX86",
+            "watchosX64",
+        ).map { "${it}Main" }.map { getByName(it) }
+        val posixWoMingw by creating {
+            ss.forEach { it.dependsOn(this) }
+            dependsOn(posixMain)
+        }
+
+        val b32 by creating {
+            listOf(
+                "iosArm32",
+                "watchosArm32",
+                "watchosX86",
+                "watchosArm64",
+            ).map { getByName("${it}Main") }.forEach {
+                it.dependsOn(this)
+                dependsOn(posixMain)
+            }
+        }
+
+        val b64 by creating {
+            listOf(
+                "macosX64",
+                "linuxX64",
+                "iosX64",
+                "iosArm64",
+                "tvosArm64",
+                "tvosX64",
+//                "mingwX64",
+//                "watchosArm64",
+                "watchosX64",
+            ).map { getByName("${it}Main") }.forEach {
+                it.dependsOn(this)
+                dependsOn(posixMain)
+            }
+        }
+
         if (!ideaActive) {
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
             val registerInteropAsSourceSetOutput: groovy.lang.Closure<*> by extra

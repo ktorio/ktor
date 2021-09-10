@@ -23,6 +23,24 @@ kotlin {
             }
         }
 
+        val posixMain by getting
+
+        val darwin by creating {
+            listOf(
+                "macosX64",
+                "iosX64",
+                "iosArm64",
+                "iosArm32",
+                "tvosArm64",
+                "tvosX64",
+                "watchosArm32",
+                "watchosArm64",
+                "watchosX86",
+                "watchosX64",
+            ).map { getByName("${it}Main") }.forEach { it.dependsOn(this) }
+            dependsOn(posixMain)
+        }
+
         val jvmTest by getting {
             dependencies {
                 implementation("io.mockk:mockk:$mockk_version")

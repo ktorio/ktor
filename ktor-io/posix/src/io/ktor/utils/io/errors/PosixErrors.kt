@@ -2,6 +2,7 @@ package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.internal.utils.*
+import io.ktor.utils.io.streams.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
@@ -152,3 +153,11 @@ private tailrec fun MemScope.strerror(errno: Int, size: size_t = 8192.convert())
     }
     return message.toKString()
 }
+
+/**
+ * C declaration:
+ * int strerror_r(int errnum, char *buf, size_t buflen);
+ *
+ * @see https://linux.die.net/man/3/strerror_r
+ */
+public expect fun strerror_r(errnum: Int, msg: CArrayPointer<ByteVar>, size: _size_t): Int
