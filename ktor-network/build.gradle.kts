@@ -23,24 +23,6 @@ kotlin {
             }
         }
 
-        val posixMain by getting
-
-        val darwin by creating {
-            listOf(
-                "macosX64",
-                "iosX64",
-                "iosArm64",
-                "iosArm32",
-                "tvosArm64",
-                "tvosX64",
-                "watchosArm32",
-                "watchosArm64",
-                "watchosX86",
-                "watchosX64",
-            ).map { getByName("${it}Main") }.forEach { it.dependsOn(this) }
-            dependsOn(posixMain)
-        }
-
         val jvmTest by getting {
             dependencies {
                 implementation("io.mockk:mockk:$mockk_version")
@@ -49,7 +31,27 @@ kotlin {
 
         if (!ideaActive && findByName("posixMain") != null) {
             val networkInterop by creating
-            getByName("posixMain").dependsOn(networkInterop)
+
+            val posixMain by getting {
+                dependsOn(networkInterop)
+            }
+
+            val darwin by creating {
+                listOf(
+                    "macosX64",
+                    "iosX64",
+                    "iosArm64",
+                    "iosArm32",
+                    "tvosArm64",
+                    "tvosX64",
+                    "watchosArm32",
+                    "watchosArm64",
+                    "watchosX86",
+                    "watchosX64",
+                ).map { getByName("${it}Main") }.forEach { it.dependsOn(this) }
+                dependsOn(posixMain)
+            }
+
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
             val registerInteropAsSourceSetOutput = extra["registerInteropAsSourceSetOutput"] as groovy.lang.Closure<*>
             registerInteropAsSourceSetOutput.invoke("network", networkInterop)
