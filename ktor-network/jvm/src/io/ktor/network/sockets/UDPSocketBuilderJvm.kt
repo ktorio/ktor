@@ -15,7 +15,7 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     assignOptions(options)
     nonBlocking()
 
-    socket().bind(localAddress?.toJavaAddress())
+    bind(localAddress?.toJavaAddress())
     connect(remoteAddress.toJavaAddress())
 
     return DatagramSocketImpl(this, selector)
@@ -29,6 +29,6 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     assignOptions(options)
     nonBlocking()
 
-    socket().bind(localAddress?.toJavaAddress())
+    bind(localAddress?.toJavaAddress())
     return DatagramSocketImpl(this, selector)
 }

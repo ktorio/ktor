@@ -122,7 +122,7 @@ class ClientSocketTest {
             assertFailsWith<ClosedChannelException>(
                 "Channel should be closed if local and remote addresses of client socket match"
             ) {
-                SocketImpl(channel, channel.socket(), selector).connect(
+                SocketImpl(channel, selector).connect(
                     mockSocketAddress("server", 2)
                 )
             }

@@ -9,7 +9,6 @@ import java.nio.channels.*
 
 internal class SocketImpl<out S : SocketChannel>(
     override val channel: S,
-    private val socket: java.net.Socket,
     selector: SelectorManager,
     socketOptions: SocketOptions.TCPClientSocketOptions? = null
 ) : NIOSocketImpl<S>(channel, selector, pool = null, socketOptions = socketOptions),
@@ -19,11 +18,11 @@ internal class SocketImpl<out S : SocketChannel>(
     }
 
     override val localAddress: SocketAddress
-        get() = socket.localSocketAddress?.toSocketAddress()
+        get() = channel.localAddress?.toSocketAddress()
             ?: throw IllegalStateException("Channel is not yet bound")
 
     override val remoteAddress: SocketAddress
-        get() = socket.remoteSocketAddress?.toSocketAddress()
+        get() = channel.remoteAddress?.toSocketAddress()
             ?: throw IllegalStateException("Channel is not yet connected")
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -38,7 +37,7 @@ internal class SocketImpl<out S : SocketChannel>(
                 // TCP has a well known self-connect problem, which client can connect to the client itself
                 // without any program listen on the port.
                 if (selfConnect()) {
-                    this.socket.close()
+                    channel.close()
                     continue
                 }
                 break
@@ -58,8 +57,8 @@ internal class SocketImpl<out S : SocketChannel>(
     }
 
     private fun selfConnect(): Boolean {
-        val localAddress = socket.localSocketAddress
-        val remoteAddress = socket.remoteSocketAddress
+        val localAddress = channel.localAddress
+        val remoteAddress = channel.remoteAddress
 
         if (localAddress == null || remoteAddress == null) {
             throw IllegalStateException("localAddress and remoteAddress should not be null.")

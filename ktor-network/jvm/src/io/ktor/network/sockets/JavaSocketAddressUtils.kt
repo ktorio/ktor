@@ -20,7 +20,10 @@ public fun SocketAddress.toJavaAddress(): java.net.SocketAddress {
 internal fun java.net.SocketAddress.toSocketAddress(): SocketAddress {
     return when {
         this is java.net.InetSocketAddress -> InetSocketAddress(hostName, port)
-        this.javaClass.name == UNIX_DOMAIN_SOCKET_ADDRESS_CLASS -> UnixSocketAddress(this.javaClass.toString())
+        this.javaClass.name == UNIX_DOMAIN_SOCKET_ADDRESS_CLASS -> {
+            val getPath = Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS).getMethod("getPath")
+            UnixSocketAddress(getPath.invoke(this).toString())
+        }
         else -> error("Unknown socket address type")
     }
 }
