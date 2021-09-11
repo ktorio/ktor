@@ -81,6 +81,11 @@ public fun parametersOf(name: String, value: String): Parameters = ParametersSin
 public fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 
 /**
+ * Creates a parameters instance from the entries of the given [map]
+ */
+public fun parametersOf(map: Map<String, List<String>>): Parameters = ParametersImpl(map)
+
+/**
  * Creates a parameters instance from the specified [pairs]
  */
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
