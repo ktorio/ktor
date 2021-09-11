@@ -40,7 +40,8 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected actual var port: Int by shared(
         aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
-            it.localAddress.port
+            val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
+            inetAddress.port
         }
     )
 
