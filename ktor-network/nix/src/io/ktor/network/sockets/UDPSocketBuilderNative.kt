@@ -12,8 +12,8 @@ import platform.posix.*
 
 internal actual fun UDPSocketBuilder.Companion.connectUDP(
     selector: SelectorManager,
-    remoteAddress: NetworkAddress,
-    localAddress: NetworkAddress?,
+    remoteAddress: SocketAddress,
+    localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
 ): ConnectedDatagramSocket {
     val address = localAddress?.address ?: getAnyLocalAddress()
@@ -39,7 +39,7 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
 
 internal actual fun UDPSocketBuilder.Companion.bindUDP(
     selector: SelectorManager,
-    localAddress: NetworkAddress?,
+    localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
 ): BoundDatagramSocket {
     val address = localAddress?.address ?: getAnyLocalAddress()

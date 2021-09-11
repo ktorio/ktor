@@ -138,7 +138,7 @@ class ServerSocketTest : CoroutineScope {
 
     private fun client(block: (java.net.Socket) -> Unit) {
         val address = runBlocking { serverSocket.await().localAddress }
-        val client = java.net.Socket().apply { connect(address) }
+        val client = java.net.Socket().apply { connect(address.toJavaAddress()) }
 
         val thread = thread(start = false) {
             try {

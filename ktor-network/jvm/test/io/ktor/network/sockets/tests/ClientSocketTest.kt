@@ -14,8 +14,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.rules.*
-import java.net.*
+import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.net.SocketAddress
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -130,8 +131,8 @@ class ClientSocketTest {
 
     private fun mockSocket(local: SocketAddress, remote: SocketAddress, channel: SocketChannel): java.net.Socket {
         val socket = mockk<java.net.Socket>()
-        every { socket.localSocketAddress } returns local
-        every { socket.remoteSocketAddress } returns remote
+        every { channel.localAddress } returns local
+        every { channel.remoteAddress } returns remote
         every { socket.close() } answers { channel.close() }
         return socket
     }
@@ -146,7 +147,7 @@ class ClientSocketTest {
 
     private fun client(block: suspend (Socket) -> Unit) {
         runBlocking {
-            aSocket(selector).tcp().connect(server!!.first.localSocketAddress).use {
+            aSocket(selector).tcp().connect(server!!.first.localSocketAddress.toSocketAddress()).use {
                 block(it)
             }
         }

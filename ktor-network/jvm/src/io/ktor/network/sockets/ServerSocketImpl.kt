@@ -5,7 +5,6 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 
@@ -20,8 +19,8 @@ internal class ServerSocketImpl(
 
     override val socketContext: CompletableJob = Job()
 
-    override val localAddress: NetworkAddress
-        get() = channel.socket().localSocketAddress
+    override val localAddress: SocketAddress
+        get() = channel.socket().localSocketAddress.toSocketAddress()
 
     override suspend fun accept(): Socket {
         channel.accept()?.let { return accepted(it) }

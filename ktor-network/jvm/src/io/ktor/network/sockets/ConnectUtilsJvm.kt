@@ -5,30 +5,29 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
 
 internal actual suspend fun connect(
     selector: SelectorManager,
-    networkAddress: NetworkAddress,
+    remoteAddress: SocketAddress,
     socketOptions: SocketOptions.TCPClientSocketOptions
 ): Socket = selector.buildOrClose({ openSocketChannel() }) {
     assignOptions(socketOptions)
     nonBlocking()
 
     SocketImpl(this, socket()!!, selector, socketOptions).apply {
-        connect(networkAddress)
+        connect(remoteAddress.toJavaAddress())
     }
 }
 
 internal actual fun bind(
     selector: SelectorManager,
-    localAddress: NetworkAddress?,
+    localAddress: SocketAddress?,
     socketOptions: SocketOptions.AcceptorOptions
 ): ServerSocket = selector.buildOrClose({ openServerSocketChannel() }) {
     assignOptions(socketOptions)
     nonBlocking()
 
     ServerSocketImpl(this, selector).apply {
-        channel.socket().bind(localAddress, socketOptions.backlogSize)
+        channel.socket().bind(localAddress?.toJavaAddress(), socketOptions.backlogSize)
     }
 }

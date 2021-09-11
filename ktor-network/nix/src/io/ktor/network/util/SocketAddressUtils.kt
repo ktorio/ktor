@@ -4,16 +4,16 @@
 
 package io.ktor.network.util
 
-import io.ktor.util.*
-import io.ktor.util.network.*
+import io.ktor.network.sockets.*
+import kotlinx.cinterop.*
+import platform.posix.*
 
-@OptIn(InternalAPI::class)
-public val NetworkAddress.address: SocketAddress get() {
-    if (explicitAddress.value == null) {
-        explicitAddress.value = resolve().first()
-    }
-
-    return explicitAddress.value as? SocketAddress ?: error("Failed to resolve address for $this")
+internal val SocketAddress.address: NativeSocketAddress get() {
+    val explicitAddress = resolve().first()
+    return explicitAddress as? NativeSocketAddress ?: error("Failed to resolve address for $this")
 }
 
-public fun NetworkAddress.resolve(): List<SocketAddress> = getAddressInfo(hostname, port)
+internal fun SocketAddress.resolve(): List<NativeSocketAddress> = when (this) {
+    is InetSocketAddress -> getAddressInfo(hostname, port)
+    is UnixSocketAddress -> listOf(NativeUnixSocketAddress(AF_UNIX.convert(), path))
+}

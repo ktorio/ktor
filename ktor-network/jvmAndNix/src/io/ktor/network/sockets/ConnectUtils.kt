@@ -5,16 +5,15 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
 
 internal expect suspend fun connect(
     selector: SelectorManager,
-    networkAddress: NetworkAddress,
+    remoteAddress: SocketAddress,
     socketOptions: SocketOptions.TCPClientSocketOptions
 ): Socket
 
 internal expect fun bind(
     selector: SelectorManager,
-    localAddress: NetworkAddress?,
+    localAddress: SocketAddress?,
     socketOptions: SocketOptions.AcceptorOptions
 ): ServerSocket
