@@ -1,43 +1,27 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import java.net.*
-import java.util.*
-import kotlin.coroutines.*
-import kotlin.io.use
 import kotlin.test.*
-import kotlin.test.Test
 
-class UDPSocketTest : CoroutineScope {
-    private val testJob = Job()
-    private val selector = ActorSelectorManager(Dispatchers.Default + testJob)
+class UDPSocketTest {
 
-    @get:Rule
-    val timeout = CoroutinesTimeout(1000, cancelOnTimeout = true)
-
-    override val coroutineContext: CoroutineContext
-        get() = testJob
-
-    @AfterTest
-    fun tearDown() {
-        testJob.cancel()
-        selector.close()
-    }
+    private val done = atomic(0)
 
     @Test
-    fun testBroadcastFails(): Unit = runBlocking {
-        if (OS_NAME == "win") {
-            return@runBlocking
+    fun testBroadcastFails(): Unit = testUdpSockets { selector ->
+        if (isJvmWindows()) {
+            return@testUdpSockets
         }
 
         lateinit var socket: BoundDatagramSocket
@@ -55,8 +39,8 @@ class UDPSocketTest : CoroutineScope {
 
                 it.send(datagram)
             }
-        } catch (cause: SocketException) {
-            if (!cause.message.equals("Permission denied", ignoreCase = true)) {
+        } catch (cause: Exception) {
+            if (cause.message?.contains("Permission denied", ignoreCase = true) != true) {
                 throw cause
             }
 
@@ -69,7 +53,7 @@ class UDPSocketTest : CoroutineScope {
     }
 
     @Test
-    fun testBroadcastSuccessful() = runBlocking {
+    fun testBroadcastSuccessful() = testUdpSockets { selector ->
         val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
         val server = launch {
             aSocket(selector)
@@ -108,7 +92,7 @@ class UDPSocketTest : CoroutineScope {
     }
 
     @Test
-    fun testClose(): Unit = runBlocking {
+    fun testClose(): Unit = testUdpSockets { selector ->
         val socket = aSocket(selector)
             .udp()
             .bind()
@@ -121,12 +105,11 @@ class UDPSocketTest : CoroutineScope {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testInvokeOnClose() = runBlocking {
+    fun testInvokeOnClose() = testUdpSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
 
-        var done = 0
         socket.outgoing.invokeOnClose {
             done += 1
         }
@@ -142,17 +125,16 @@ class UDPSocketTest : CoroutineScope {
 
         socket.socketContext.join()
         assertTrue(socket.isClosed)
-        assertEquals(1, done)
+        assertEquals(1, done.value)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClose() = runBlocking {
+    fun testOutgoingInvokeOnClose() = testUdpSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
 
-        var done = 0
         socket.outgoing.invokeOnClose {
             done += 1
             assertTrue(it is AssertionError)
@@ -160,26 +142,25 @@ class UDPSocketTest : CoroutineScope {
 
         socket.outgoing.close(AssertionError())
 
-        assertEquals(1, done)
+        assertEquals(1, done.value)
         socket.socketContext.join()
         assertTrue(socket.isClosed)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnCloseWithSocketClose() = runBlocking {
+    fun testOutgoingInvokeOnCloseWithSocketClose() = testUdpSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
 
-        var done = 0
         socket.outgoing.invokeOnClose {
             done += 1
         }
 
         socket.close()
 
-        assertEquals(1, done)
+        assertEquals(1, done.value)
 
         socket.socketContext.join()
         assertTrue(socket.isClosed)
@@ -187,51 +168,62 @@ class UDPSocketTest : CoroutineScope {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClosed() = runBlocking {
+    fun testOutgoingInvokeOnClosed() = testUdpSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
 
         socket.outgoing.close(AssertionError())
 
-        var done = 0
         socket.outgoing.invokeOnClose {
             done += 1
             assertTrue(it is AssertionError)
         }
 
-        assertEquals(1, done)
+        assertEquals(1, done.value)
 
         socket.socketContext.join()
         assertTrue(socket.isClosed)
     }
 
     @Test
-    fun testBind() {
-        val socketBuilder: UDPSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).udp()
-        val socket = socketBuilder.bind()
-        val port = socket.localAddress.port
-        socket.close()
+    fun testSendReceive(): Unit = testUdpSockets { selector ->
+        aSocket(selector)
+            .udp()
+            .bind(NetworkAddress("127.0.0.1", 8000)) {
+                reuseAddress = true
+            }
+            .use { socket ->
+                assertEquals(8000, socket.localAddress.port)
 
-        repeat(1024) {
-            try {
-                socketBuilder
-                    .bind(InetSocketAddress("0.0.0.0", port))
-                    .close()
-            } catch (_: BindException) {
-                // Don't confuse with: Socket Exception: Already bound
+                // Send messages to localhost
+                launch {
+                    val address = NetworkAddress("127.0.0.1", 8000)
+                    repeat(10) {
+                        val bytePacket = buildPacket { append("hello") }
+                        val data = Datagram(bytePacket, address)
+                        socket.send(data)
+                    }
+                }
+
+                // Receive messages from localhost
+                repeat(10) {
+                    val incoming = socket.receive()
+                    assertEquals("hello", incoming.packet.readText())
+                }
+            }
+    }
+}
+
+private fun testUdpSockets(block: suspend CoroutineScope.(SelectorManager) -> Unit) {
+    if (!PlatformUtils.IS_JVM && !PlatformUtils.IS_NATIVE) return
+    testSuspend {
+        withTimeout(1000) {
+            SelectorManager().use { selector ->
+                block(selector)
             }
         }
     }
 }
 
-private val OS_NAME: String
-    get() {
-        val os = System.getProperty("os.name", "unknown").lowercase(Locale.getDefault())
-        return when {
-            os.contains("win") -> "win"
-            os.contains("mac") -> "mac"
-            os.contains("nux") -> "unix"
-            else -> "unknown"
-        }
-    }
+expect fun isJvmWindows(): Boolean
