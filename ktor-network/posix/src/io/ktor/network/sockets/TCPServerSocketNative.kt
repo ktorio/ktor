@@ -6,7 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.util.network.NetworkAddress
+import io.ktor.util.network.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -74,7 +74,8 @@ internal class TCPServerSocketNative(
         _socketContext.complete()
         _socketContext.invokeOnCompletion {
             shutdown(descriptor, SHUT_RDWR)
-            close(descriptor)
+            // Descriptor is closed by the selector manager
+            selectorManager.notifyClosed(selectable)
         }
     }
 }

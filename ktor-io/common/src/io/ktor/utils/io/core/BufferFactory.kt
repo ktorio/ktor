@@ -50,7 +50,7 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 @ThreadLocal
 internal val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer> = DefaultBufferPool()
 
-internal class DefaultBufferPool(
+public class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
