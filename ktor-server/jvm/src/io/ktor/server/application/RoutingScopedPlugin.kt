@@ -9,24 +9,13 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * Gets plugin instance for this pipeline, or fails with [MissingApplicationPluginException] if the plugin is not installed
- * @throws MissingApplicationPluginException
- * @param plugin application plugin to lookup
- * @return an instance of plugin
- */
-public fun <A : ApplicationCallPipeline, B : Any, F : Any> A.plugin(plugin: RoutingScopedPlugin<A, B, F>): F {
-    return findPluginInRoute(plugin) ?: throw MissingApplicationPluginException(plugin.key)
-}
-
-/**
  * Defines a Plugin that can be installed into [Routing]
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the type for the configuration object for this Plugin
  * @param TPlugin is the type for the instance of the Plugin object
  */
-public interface RoutingScopedPlugin<
-    in TPipeline : ApplicationCallPipeline, TConfiguration : Any, TPlugin : Any> :
-    Plugin<TPipeline, TConfiguration, TPlugin> {
+public interface RoutingScopedPlugin<TConfiguration : Any, TPlugin : Any> :
+    Plugin<Route, TConfiguration, TPlugin> {
 
     /**
      * Unique key that identifies a plugin configuration
@@ -42,7 +31,7 @@ public interface RoutingScopedPlugin<
     /**
      * Plugin installation script
      */
-    public fun install(pipeline: TPipeline): TPlugin
+    public fun install(pipeline: Route): TPlugin
 
     /**
      * Instance of [TConfiguration], configured for this pipeline
@@ -55,23 +44,24 @@ public interface RoutingScopedPlugin<
  * Installs [plugin] into this pipeline, if it is not yet installed
  */
 public fun <P : ApplicationCallPipeline, B : Any, F : Any> P.install(
-    plugin: RoutingScopedPlugin<P, B, F>,
+    plugin: RoutingScopedPlugin<B, F>,
     configure: B.() -> Unit = {}
 ): F {
     intercept(ApplicationCallPipeline.Setup) {
         call.attributes.put(plugin.configKey, plugin.createConfiguration().apply(configure))
     }
 
-    val installedPlugin = findPluginInRoute(plugin)
-    if (installedPlugin != null) {
-        return installedPlugin
-    }
-
     // routing scoped plugin needs to be installed into routing. Otherwise, configuration block will not be overwritten
     @Suppress("UNCHECKED_CAST")
     val installPipeline = when (this) {
-        is Application -> routing {} as P
-        else -> this
+        is Application -> routing {}
+        is Route -> this
+        else -> throw IllegalStateException("RoutingScopedPlugin can be installed only in Application or Route")
+    }
+
+    val installedPlugin = installPipeline.findPluginInRoute(plugin)
+    if (installedPlugin != null) {
+        return installedPlugin
     }
     val installed = plugin.install(installPipeline)
     val registry = installPipeline.pluginRegistry
@@ -80,17 +70,20 @@ public fun <P : ApplicationCallPipeline, B : Any, F : Any> P.install(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun <P : ApplicationCallPipeline, B : Any, F : Any> P.findPluginInRoute(
-    plugin: RoutingScopedPlugin<P, B, F>
-): F? {
-    var current: Route? = this as? Route
-    while (current != null) {
-        val registry = current.pluginRegistry
-        val installedFeature = registry.getOrNull(plugin.key)
+public fun <F : Any> Route.findPluginInRoute(plugin: Plugin<*, *, F>): F? {
+    var current = this
+    while (true) {
+        val installedFeature = current.pluginOrNull(plugin)
         if (installedFeature != null) {
             return installedFeature
         }
-        current = current.parent
+        if (current.parent == null) {
+            break
+        }
+        current = current.parent!!
+    }
+    if (current is Routing) {
+        return application.pluginOrNull(plugin)
     }
     return null
 }

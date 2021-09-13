@@ -10,6 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlin.random.*
@@ -21,7 +22,10 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
     internal val key: AttributeKey<out ServerPlugin<Configuration>>
 ) : PluginContext {
 
-    public abstract class ApplicationPlugin<Configuration : Any>(
+    /**
+     * An implementation of [ServerPlugin] that can be installed into [Application]
+     **/
+    public abstract class ApplicationPlugin<Configuration : Any> internal constructor(
         pluginFactory: ServerApplicationPluginFactory<Configuration>
     ) : ServerPlugin<Configuration>(pluginFactory.key) {
 
@@ -32,7 +36,10 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
         public abstract val pluginConfig: Configuration
     }
 
-    public abstract class RoutingScopedPlugin<Configuration : Any>(
+    /**
+     * An implementation of [ServerPlugin] that can be installed into [io.ktor.server.routing.Routing]
+     **/
+    public abstract class RoutingScopedPlugin<Configuration : Any> internal constructor(
         pluginFactory: ServerRoutingScopedPluginFactory<Configuration>
     ) : ServerPlugin<Configuration>(pluginFactory.key) {
 
@@ -238,10 +245,10 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
             createConfiguration: () -> Configuration,
             body: ApplicationPlugin<Configuration>.() -> Unit
         ): ServerApplicationPluginFactory<Configuration> = object : ServerApplicationPluginFactory<Configuration>() {
-            override val key: AttributeKey<ApplicationPlugin<Configuration>> = AttributeKey(name)
+            override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
 
             override fun install(
-                pipeline: ApplicationCallPipeline,
+                pipeline: Application,
                 configure: Configuration.() -> Unit
             ): ApplicationPlugin<Configuration> {
                 val config = createConfiguration()
@@ -290,13 +297,13 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
         ): ServerRoutingScopedPluginFactory<Configuration> = object
             : ServerRoutingScopedPluginFactory<Configuration>() {
 
-            override val key: AttributeKey<RoutingScopedPlugin<Configuration>> = AttributeKey(name)
+            override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
 
             override fun createConfiguration(): Configuration =
                 createConfiguration.invoke()
 
             override fun install(
-                pipeline: ApplicationCallPipeline
+                pipeline: Route
             ): RoutingScopedPlugin<Configuration> {
                 val self = this
                 val pluginInstance = object : RoutingScopedPlugin<Configuration>(self) {

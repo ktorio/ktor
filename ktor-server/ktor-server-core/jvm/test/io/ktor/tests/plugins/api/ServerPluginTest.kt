@@ -356,4 +356,104 @@ class ServerPluginTest {
             }
         }
     }
+
+    @Test
+    fun `test dependent routing scoped plugins`() {
+        val pluginF = createRoutingScopedPlugin("F", {}) {
+            onCallRespond { call ->
+                val data = call.attributes.getOrNull(FConfig.Key)
+                if (data != null) {
+                    transformResponseBody { data }
+                }
+            }
+        }
+
+        val pluginG = createRoutingScopedPlugin("G", {}) {
+            beforePlugins(pluginF) {
+                onCallRespond { call ->
+                    val data = call.request.headers["F"]
+                    if (data != null) {
+                        call.attributes.put(FConfig.Key, data)
+                    }
+                }
+            }
+        }
+
+        fun assertWithPlugin(expectedResponse: String, data: String? = null) = withTestApplication {
+            application.routing {
+                route("a") {
+                    install(pluginF)
+                    route("b") {
+                        install(pluginG)
+
+                        get("/request") {
+                            call.respondText("response")
+                        }
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/a/b/request") {
+                if (data != null) {
+                    addHeader("F", data)
+                }
+            }.let { call ->
+                val content = call.response.content
+                assertEquals(expectedResponse, content)
+            }
+        }
+
+        assertWithPlugin(expectedResponse = "response", data = null)
+        assertWithPlugin(expectedResponse = "custom data", data = "custom data")
+    }
+
+    @Test
+    fun `test dependent routing scoped and application plugins`() {
+        val pluginF = createApplicationPlugin("F", {}) {
+            onCallRespond { call ->
+                val data = call.attributes.getOrNull(FConfig.Key)
+                if (data != null) {
+                    transformResponseBody { data }
+                }
+            }
+        }
+
+        val pluginG = createRoutingScopedPlugin("G", {}) {
+            beforePlugins(pluginF) {
+                onCallRespond { call ->
+                    val data = call.request.headers["F"]
+                    if (data != null) {
+                        call.attributes.put(FConfig.Key, data)
+                    }
+                }
+            }
+        }
+
+        fun assertWithPlugin(expectedResponse: String, data: String? = null) = withTestApplication {
+            application.install(pluginF)
+            application.routing {
+                route("a") {
+                    route("b") {
+                        install(pluginG)
+
+                        get("/request") {
+                            call.respondText("response")
+                        }
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/a/b/request") {
+                if (data != null) {
+                    addHeader("F", data)
+                }
+            }.let { call ->
+                val content = call.response.content
+                assertEquals(expectedResponse, content)
+            }
+        }
+
+        assertWithPlugin(expectedResponse = "response", data = null)
+        assertWithPlugin(expectedResponse = "custom data", data = "custom data")
+    }
 }

@@ -58,16 +58,15 @@ public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
  * @param plugin application plugin to lookup
  * @return an instance of plugin
  */
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.plugin(plugin: Plugin<A, B, F>): F {
-    return pluginRegistry.getOrNull(plugin.key)
-        ?: throw MissingApplicationPluginException(plugin.key)
+public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
+    return pluginOrNull(plugin) ?: throw MissingApplicationPluginException(plugin.key)
 }
 
 /**
  * Returns plugin instance for this pipeline, or null if plugin is not installed
  */
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.pluginOrNull(plugin: Plugin<A, B, F>): F? {
-    return attributes.getOrNull(pluginRegistryKey)?.getOrNull(plugin.key)
+public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.pluginOrNull(plugin: Plugin<*, *, F>): F? {
+    return pluginRegistry.getOrNull(plugin.key)
 }
 
 /**

@@ -433,7 +433,7 @@ class RoutingScopedPluginTest {
 
 class TestPlugin {
 
-    fun install(pipeline: ApplicationCallPipeline) {
+    fun install(pipeline: Route) {
         pipeline.intercept(ApplicationCallPipeline.Plugins) {
             config.pipelineCallback("${config.name} ${config.desc}")
         }
@@ -453,11 +453,11 @@ class TestPlugin {
         var sendPipelineCallback: (String) -> Unit = {},
     )
 
-    companion object Plugin : RoutingScopedPlugin<ApplicationCallPipeline, Config, TestPlugin> {
+    companion object Plugin : RoutingScopedPlugin<Config, TestPlugin> {
 
         override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
 
-        override fun install(pipeline: ApplicationCallPipeline): TestPlugin {
+        override fun install(pipeline: Route): TestPlugin {
             val plugin = TestPlugin()
             return plugin.apply { install(pipeline) }
         }
