@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
@@ -166,8 +167,8 @@ private suspend fun oauth2RequestAccessToken(
     passParamsInURL: Boolean = false,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
-    if (state != null) {
-        nonceManager.verifyNonce(state)
+    if (!nonceManager.verifyNonce(state.orEmpty())) {
+        throw OAuth2Exception.InvalidNonce()
     }
 
     val request = HttpRequestBuilder()
@@ -258,7 +259,7 @@ private suspend fun oauth2RequestAccessToken(
     // will fail if content decode failed but status is OK
     val contentDecoded = contentDecodeResult.getOrThrow()
 
-    // finally extract an access token
+    // finally, extract access token
     return OAuthAccessTokenResponse.OAuth2(
         accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]
             ?: throw OAuth2Exception.MissingAccessToken(),
@@ -369,9 +370,15 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
  */
 public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
-     * OAuth2 server responded error="invalid_grant"
+     * Thrown when OAuth2 server responded error="invalid_grant"
      */
     public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
+
+    /**
+     * Thrown when nonce verification failed
+     */
+    @PublicAPICandidate("2.0.0")
+    internal class InvalidNonce : OAuth2Exception("Nonce verification failed", null)
 
     /**
      * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
