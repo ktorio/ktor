@@ -12,7 +12,7 @@ kotlin.sourceSets {
                 api(project(":ktor-server:ktor-server-netty"))
                 api(project(":ktor-server:ktor-server-tomcat"))
                 api(project(":ktor-server:ktor-server-cio"))
-                api(project(":ktor-server", configuration = "testOutput"))
+                api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             }
         }
     }
