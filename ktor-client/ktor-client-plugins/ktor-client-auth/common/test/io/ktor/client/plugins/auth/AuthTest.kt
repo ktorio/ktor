@@ -292,8 +292,8 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Test
     // The return of refreshTokenFun is null, cause it should not be called at all, if loadTokensFun returns valid tokens
+    @Test
     fun testUnauthorizedBearerAuthWithValidAccessTokenAndInvalidRefreshToken() = clientTests {
         config {
             install(Auth) {

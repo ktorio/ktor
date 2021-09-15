@@ -63,8 +63,12 @@ public fun Application.cookiesTest() {
                 call.respond("OK")
             }
             get("/FOO") {
-                assertTrue(call.request.cookies.rawCookies.isEmpty())
-                call.respond("OK")
+                val cookies = call.request.cookies
+                if (cookies.rawCookies.isNotEmpty()) {
+                    call.respond(HttpStatusCode.BadRequest, "Cookies: ${cookies.rawCookies.entries.joinToString()}")
+                } else {
+                    call.respond("OK")
+                }
             }
             get("/expire") {
                 call.request.cookies.rawCookies.forEach { (name, _) ->

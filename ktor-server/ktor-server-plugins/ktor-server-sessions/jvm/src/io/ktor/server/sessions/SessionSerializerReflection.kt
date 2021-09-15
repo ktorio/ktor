@@ -1,3 +1,4 @@
+// ktlint-disable experimental:argument-list-wrapping
 /*
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
@@ -17,7 +18,7 @@ import kotlin.reflect.jvm.*
 private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
 
 /**
- * Creates the the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for type [T]
  */
 @Suppress("DEPRECATION_ERROR", "UNUSED")
 @Deprecated(

@@ -1,7 +1,7 @@
 val netty_version: String by project.extra
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    val jvmAndNixMain by getting {
         dependencies {
             api(project(":ktor-network"))
             api(project(":ktor-utils"))

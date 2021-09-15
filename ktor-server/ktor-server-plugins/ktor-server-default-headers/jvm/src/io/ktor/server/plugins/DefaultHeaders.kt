@@ -82,10 +82,9 @@ public class DefaultHeaders(config: Configuration) {
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
             val config = Configuration().apply(configure)
             if (config.headers.getAll(HttpHeaders.Server) == null) {
-                val ktorPackageName: String = DefaultHeaders::class.java.`package`.implementationTitle ?: "Ktor"
                 val ktorPackageVersion: String = DefaultHeaders::class.java.`package`.implementationVersion ?: "debug"
 
-                config.headers.append(HttpHeaders.Server, "$ktorPackageName/$ktorPackageVersion")
+                config.headers.append(HttpHeaders.Server, "Ktor/$ktorPackageVersion")
             }
 
             val plugin = DefaultHeaders(config)

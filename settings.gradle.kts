@@ -20,9 +20,6 @@ pluginManagement {
 rootProject.name = "ktor"
 
 val native_targets_enabled = !extra.has("disable_native_targets")
-
-
-
 val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
 
 if (CACHE_USER != null) {

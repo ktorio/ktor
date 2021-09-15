@@ -134,7 +134,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun caseSensitive() = clientTests(listOf("Js")) {
+    fun caseSensitive() = clientTests(listOf("Js", "iOS")) {
         config {
             install(HttpCookies)
         }

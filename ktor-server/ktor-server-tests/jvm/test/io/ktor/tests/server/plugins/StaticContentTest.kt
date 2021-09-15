@@ -192,8 +192,8 @@ class StaticContentTest {
         }
     }
 
-    @Test
     // a.k.a testServeEncodedFileGzWithCompressionNoRecompress
+    @Test
     fun testSuppressCompressionIfAlreadyCompressed() = withTestApplication {
         application.install(Compression)
         val ext = "js"

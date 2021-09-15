@@ -5,13 +5,7 @@ import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import java.io.*
 
-val skipModules = listOf(
-    "ktor-client-cio"
-)
-
-fun Project.configureJsModules() {
-    if (skipModules.contains(project.name)) return
-
+fun Project.configureJs() {
     configureJsTasks()
 
     kotlin {
