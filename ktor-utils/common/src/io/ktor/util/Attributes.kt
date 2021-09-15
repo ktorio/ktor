@@ -9,8 +9,31 @@ package io.ktor.util
  * @param T is type of the value stored in the attribute
  * @param name is a name of the attribute for diagnostic purposes
  */
-public class AttributeKey<T>(public val name: String) {
+public open class AttributeKey<T>(public val name: String) {
     override fun toString(): String = if (name.isEmpty()) super.toString() else "AttributeKey: $name"
+}
+
+/**
+ * Version of [AttributeKey] that overrides [equals] and [hashCode] using [name]
+ * @param T is type of the value stored in the attribute
+ * @param name is a name of the attribute
+ */
+public class EquatableAttributeKey<T>(name: String) : AttributeKey<T>(name) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as EquatableAttributeKey<*>
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }
 
 /**
