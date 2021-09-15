@@ -58,7 +58,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    val plugin = ServerPlugin.createPlugin("F") {
+    val plugin = ServerPlugin.createApplicationPlugin("F") {
         onCall { call ->
             sendEvent("onCall")
 
