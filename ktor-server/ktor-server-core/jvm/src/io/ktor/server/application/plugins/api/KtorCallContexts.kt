@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
  * Every call handler ([ServerPlugin.onCall], [ServerPlugin.onCallReceive], [ServerPlugin.onCallRespond], and so on)
  * of your plugin has a derivative of [CallHandlingContext] as a receiver.
  **/
-public open class CallHandlingContext(private val context: PipelineContext<*, ApplicationCall>) {
+public open class CallHandlingContext(internal open val context: PipelineContext<*, ApplicationCall>) {
     // Internal usage for tests only
     internal fun finish() = context.finish()
 }
@@ -26,7 +26,8 @@ public open class CallHandlingContext(private val context: PipelineContext<*, Ap
  *
  * @see CallHandlingContext
  **/
-public class CallContext(internal val context: PipelineContext<Unit, ApplicationCall>) : CallHandlingContext(context)
+public class CallContext(override val context: PipelineContext<Unit, ApplicationCall>) :
+    CallHandlingContext(context)
 
 /**
  * A context associated with the call.receive() action. Allows you to transform the received body.
@@ -35,7 +36,7 @@ public class CallContext(internal val context: PipelineContext<Unit, Application
  * @see CallHandlingContext
  **/
 public class CallReceiveContext(
-    private val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
+    override val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
 ) : CallHandlingContext(context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
@@ -58,7 +59,7 @@ public class CallReceiveContext(
  * @see CallHandlingContext
  **/
 public class CallRespondContext(
-    private val context: PipelineContext<Any, ApplicationCall>
+    override val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
     /**
      * Specifies how to transform a response body that is being sent to a client.
@@ -75,7 +76,7 @@ public class CallRespondContext(
  * @see CallHandlingContext
  **/
 public class CallRespondAfterTransformContext(
-    private val context: PipelineContext<Any, ApplicationCall>
+    override val context: PipelineContext<Any, ApplicationCall>
 ) : CallHandlingContext(context) {
     /**
      * Specifies how to transform the response body already transformed into [OutgoingContent] before sending it to the
