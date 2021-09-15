@@ -71,7 +71,7 @@ kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-            api(project(":ktor-server:ktor-server-core"))
+            api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
             api(project(":ktor-server:ktor-server-jetty"))
