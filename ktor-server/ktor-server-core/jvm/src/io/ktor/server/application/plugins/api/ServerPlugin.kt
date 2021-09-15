@@ -294,25 +294,25 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
             name: String,
             createConfiguration: () -> Configuration,
             body: RoutingScopedPlugin<Configuration>.() -> Unit
-        ): ServerRoutingScopedPluginFactory<Configuration> = object
-            : ServerRoutingScopedPluginFactory<Configuration>() {
+        ): ServerRoutingScopedPluginFactory<Configuration> =
+            object : ServerRoutingScopedPluginFactory<Configuration>() {
 
-            override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
+                override val key: AttributeKey<ServerPlugin<Configuration>> = AttributeKey(name)
 
-            override fun createConfiguration(): Configuration =
-                createConfiguration.invoke()
+                override fun createConfiguration(): Configuration =
+                    createConfiguration.invoke()
 
-            override fun install(
-                pipeline: Route
-            ): RoutingScopedPlugin<Configuration> {
-                val self = this
-                val pluginInstance = object : RoutingScopedPlugin<Configuration>(self) {
-                    override val pipeline: ApplicationCallPipeline = pipeline
+                override fun install(
+                    pipeline: Route
+                ): RoutingScopedPlugin<Configuration> {
+                    val self = this
+                    val pluginInstance = object : RoutingScopedPlugin<Configuration>(self) {
+                        override val pipeline: ApplicationCallPipeline = pipeline
+                    }
+                    pluginInstance.setupPlugin(body)
+                    return pluginInstance
                 }
-                pluginInstance.setupPlugin(body)
-                return pluginInstance
             }
-        }
 
         /**
          * Creates a [ServerPluginFactory] that can be installed into [Application].
@@ -372,7 +372,9 @@ public sealed class ServerPlugin<Configuration : Any> private constructor(
             body: RoutingScopedPlugin<Unit>.() -> Unit
         ): ServerRoutingScopedPluginFactory<Unit> = createRoutingScopedPlugin(name, {}, body)
 
-        private fun <Configuration : Any, Plugin : ServerPlugin<Configuration>> Plugin.setupPlugin(body: Plugin.() -> Unit) {
+        private fun <Configuration : Any, Plugin : ServerPlugin<Configuration>> Plugin.setupPlugin(
+            body: Plugin.() -> Unit
+        ) {
             apply(body)
 
             pipelineHandlers.forEach { handle ->
