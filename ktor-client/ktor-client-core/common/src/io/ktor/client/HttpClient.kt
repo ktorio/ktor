@@ -157,12 +157,14 @@ public class HttpClient(
             }
 
             config.install(HttpSend)
+            config.install(HttpCallValidator)
 
             if (followRedirects) {
                 config.install(HttpRedirect)
             }
 
             config += this
+            config.install(HttpRequestRetry)
 
             config.addDefaultResponseValidation()
 
