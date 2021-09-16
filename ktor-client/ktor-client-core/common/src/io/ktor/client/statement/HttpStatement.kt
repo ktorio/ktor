@@ -36,7 +36,7 @@ public class HttpStatement(
      * Executes this statement and call the [block] with the streaming [response].
      *
      * The [response] argument holds a network connection until the [block] isn't completed. You can read the body
-     * on-demand or at once with [receive<T>()] method.
+     * on-demand or at once with [body<T>()] method.
      *
      * After [block] finishes, [response] will be completed body will be discarded or released depends on the engine configuration.
      *
@@ -56,7 +56,7 @@ public class HttpStatement(
      * Executes this statement and download the response.
      * After the method finishes, the client downloads the response body in memory and release the connection.
      *
-     * To receive exact type you consider using [receive<T>()] method.
+     * To receive exact type consider using [body<T>()] method.
      */
     public suspend fun execute(): HttpResponse = execute {
         val savedCall = it.call.save()
