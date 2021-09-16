@@ -11,13 +11,12 @@ import io.ktor.client.statement.*
 import io.ktor.events.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import kotlin.math.*
 import kotlin.native.concurrent.*
 import kotlin.random.*
 
 /**
- * Plugin that provides retry functionality. Default retry policy is no retry.
+ * A plugin that enables the client to retry failed requests. The default retry policy is no retry.
  * Typical usages:
  * ```
  * // use predefined retry policies
@@ -38,7 +37,7 @@ import kotlin.random.*
 public class HttpRequestRetry internal constructor(configuration: Configuration) {
 
     /**
-     * Data for [HttpRequestRetryEvent] event. Contains non-null [response] or [cause], but not both
+     * Data for the [HttpRequestRetryEvent] event. Contains non-null [response] or [cause], but not both.
      */
     public class RetryEventData internal constructor(
         public val request: HttpRequestBuilder,
@@ -55,8 +54,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
     private val maxRetries: Int = configuration.maxRetries
 
     /**
-     * Configuration object. Use [retryIf], [retryOnExceptionIf] and [delay] to provide custom
-     * retry and delay policies or use one of the predefined.
+     * Contains [HttpRequestRetry] configurations settings.
      */
     public class Configuration {
         internal lateinit var shouldRetry: (HttpRequest, HttpResponse) -> Boolean
@@ -65,7 +63,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         internal var delay: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
 
         /**
-         * Maximum retries count
+         * The maximum amount of retries to perform for a request.
          */
         public var maxRetries: Int = 0
 
@@ -75,7 +73,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Disables retry
+         * Disables retry.
          */
         public fun noRetry() {
             maxRetries = 0
@@ -84,8 +82,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Custom retry logic for response. The [block] accepts [HttpRequest] and [HttpResponse]
-         * and should return `true` if this plugin need to retry this request of `false` otherwise
+         * Specifies retry logic for a response. The [block] accepts [HttpRequest] and [HttpResponse]
+         * and should return `true` if this request should be retried.
          */
         public fun retryIf(maxRetries: Int = -1, block: (HttpRequest, HttpResponse) -> Boolean) {
             if (maxRetries != -1) this.maxRetries = maxRetries
@@ -93,8 +91,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Custom retry logic for failed requests. The [block] accepts [HttpRequestBuilder] and an [Throwable]
-         * and should return `true` if this plugin need to retry this request of `false` otherwise
+         * Specifies retry logic for failed requests. The [block] accepts [HttpRequestBuilder]
+         * and an [Throwable] and should return true if this request should be retried.
          */
         public fun retryOnExceptionIf(maxRetries: Int = -1, block: (HttpRequestBuilder, Throwable) -> Boolean) {
             if (maxRetries != -1) this.maxRetries = maxRetries
@@ -102,16 +100,16 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Will retry if exception was thrown during [HttpSend] phase.
-         * This method will not retry if the exception is [CancellationException]
+         * Enables retrying a request if an exception is thrown during the [HttpSend] phase
+         * and specifies the number of retries.
          */
         public fun retryOnException(maxRetries: Int = -1) {
             retryOnExceptionIf(maxRetries) { _, cause -> cause !is CancellationException }
         }
 
         /**
-         * Will retry if exceptions was thrown during [HttpSend] phase
-         * or 5XX responses was received
+         * Enables retrying a request if a 5xx response is received from a server
+         * and specifies the number of retries.
          */
         public fun retryOnServerErrors(maxRetries: Int = -1) {
             retryIf(maxRetries) { _, response ->
@@ -120,8 +118,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Will retry if exceptions was thrown during [HttpSend] phase
-         * or 5XX responses was received
+         * Enables retrying a request if an exception is thrown during the [HttpSend] phase
+         * or a 5xx response is received and specifies the number of retries.
          */
         public fun retryOnExceptionOrServerErrors(maxRetries: Int = -1) {
             retryOnServerErrors(maxRetries)
@@ -129,15 +127,16 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Custom delay logic. The [block] accepts retry number
-         * and should return amount of milliseconds to wait before retrying
+         * Specifies delay logic for retries. The [block] accepts the number of retries
+         * and should return the number of milliseconds to wait before retrying.
          */
         public fun delayMillis(block: (retry: Int) -> Long) {
             delayMillis = block
         }
 
         /**
-         * Constant delay of `millis + [0..randomizationMs]` milliseconds
+         * Specifies a constant delay between retries.
+         * This delay equals to `millis + [0..randomizationMs]` milliseconds.
          */
         public fun constantDelay(millis: Long = 1000, randomizationMs: Long = 1000) {
             check(millis > 0)
@@ -149,8 +148,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Delay policy that implements [Exponential Backoff](https://en.wikipedia.org/wiki/Exponential_backoff)
-         * pattern. Retries will be calculated using `base ^ retryCount + [0..randomizationMs]`
+         * Specifies an exponential delay between retries, which is calculated using the Exponential backoff algorithm.
+         * This delay equals to `base ^ retryCount + [0..randomizationMs]`
          */
         public fun exponentialDelay(
             base: Double = 2.0,
@@ -168,7 +167,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * Function that awaits for specified amount of milliseconds. Uses [kotlinx.coroutines.delay] by default.
+         * A function that waits for the specified amount of milliseconds. Uses [kotlinx.coroutines.delay] by default.
          * Useful for tests.
          */
         public fun delay(block: suspend (Long) -> Unit) {
@@ -264,7 +263,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 }
 
 /**
- * Configures [HttpRequestRetry] plugin on per request level
+ * Configures the [HttpRequestRetry] plugin on a per-request level.
  */
 public fun HttpRequestBuilder.retry(block: HttpRequestRetry.Configuration.() -> Unit) {
     val configuration = HttpRequestRetry.Configuration().apply(block)
