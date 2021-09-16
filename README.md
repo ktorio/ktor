@@ -36,7 +36,7 @@ fun main(args: Array<String>) {
 #### Unopinionated
 
 Ktor Framework doesn't impose a lot of constraints on what technology a project is going to use – logging, 
-templating, messaging, persistent, serializing, dependency injection, etc. 
+templating, messaging, persistence, serialization, dependency injection, etc. 
 Sometimes it may be required to implement a simple interface, but usually it is a matter of writing a 
 transforming or intercepting function. Features are installed into the application using a unified *interception* mechanism
 which allows building arbitrary pipelines. 
