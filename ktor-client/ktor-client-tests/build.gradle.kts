@@ -13,7 +13,6 @@ val kotlin_version: String by project.extra
 val logback_version: String by project.extra
 val coroutines_version: String by project
 
-val ideaActive: Boolean by project.extra
 
 plugins {
     id("kotlinx-serialization")
@@ -100,7 +99,6 @@ kotlin.sourceSets {
     }
 
     if (rootProject.ext.get("native_targets_enabled") as Boolean) {
-        if (!ideaActive) {
             listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
                 it.dependencies {
                     api(project(":ktor-client:ktor-client-curl"))
@@ -119,19 +117,6 @@ kotlin.sourceSets {
                     // api(project(":ktor-client:ktor-client-ios"))
                 }
             }
-        } else {
-            val posixTest by getting {
-                dependencies {
-                    val hostname: String by project.ext
-                    // api(project(":ktor-client:ktor-client-ios"))
-                    api(project(":ktor-client:ktor-client-curl"))
-
-                    if (!hostname.startsWith("win")) {
-                        api(project(":ktor-client:ktor-client-cio"))
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -146,7 +131,7 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 val testTasks = mutableListOf(
     "jvmTest",
 
-    // 1.4.x JS tasks
+// 1.4.x JS tasks
     "jsLegacyNodeTest",
     "jsIrNodeTest",
     "jsLegacyBrowserTest",
@@ -156,14 +141,12 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
-if (!ideaActive) {
-    testTasks += listOf(
-        "macosX64Test",
-        "linuxX64Test",
-        "iosX64Test",
-        "mingwX64Test"
-    )
-}
+testTasks += listOf(
+    "macosX64Test",
+    "linuxX64Test",
+    "iosX64Test",
+    "mingwX64Test"
+)
 
 rootProject.allprojects {
     if (path.contains("ktor-client")) {

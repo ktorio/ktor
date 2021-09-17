@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
 description = "Ktor network utilities"
 
-val ideaActive: Boolean by project.extra
 val nativeCompilations: List<KotlinNativeCompilation> by project.extra
 val mockk_version: String by project.extra
 
@@ -29,7 +28,7 @@ kotlin {
             }
         }
 
-        if (!ideaActive && findByName("posixMain") != null) {
+        if (findByName("posixMain") != null) {
             val networkInterop by creating
 
             val posixMain by getting {
@@ -52,9 +51,6 @@ kotlin {
                 dependsOn(posixMain)
             }
 
-            apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
-            val registerInteropAsSourceSetOutput = extra["registerInteropAsSourceSetOutput"] as groovy.lang.Closure<*>
-            registerInteropAsSourceSetOutput.invoke("network", networkInterop)
         }
     }
 }

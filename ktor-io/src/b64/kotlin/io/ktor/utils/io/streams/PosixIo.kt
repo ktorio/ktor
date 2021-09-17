@@ -54,29 +54,3 @@ public actual fun sendto(
     __addr,
     __addr_len as socklen_t
 ).convert()
-
-public actual fun read(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __nbytes: _size_t
-): _ssize_t = platform.posix.read(__fd, __buf, __nbytes.convert()).convert()
-
-public actual fun write(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __n: _size_t
-): _ssize_t = platform.posix.write(__fd, __buf, __n.convert()).convert()
-
-public actual fun fwrite(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t = platform.posix.fwrite(__ptr, __size.convert(), __nitems.convert(), __stream).convert()
-
-public actual fun fread(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t = platform.posix.fread(__ptr, __size.convert(), __nitems.convert(), __stream).convert()

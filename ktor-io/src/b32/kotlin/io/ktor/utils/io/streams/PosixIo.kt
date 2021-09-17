@@ -40,29 +40,3 @@ public actual fun sendto(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: KX_SOCKADDR_LEN
 ): _ssize_t = platform.posix.sendto(__fd, __buf, __n, __flags, __addr, __addr_len)
-
-public actual fun read(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __nbytes: _size_t
-): _ssize_t = platform.posix.read(__fd, __buf, __nbytes)
-
-public actual fun write(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __n: _size_t
-): _ssize_t = platform.posix.write(__fd, __buf, __n)
-
-public actual fun fwrite(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t = platform.posix.fwrite(__ptr, __size, __nitems, __stream)
-
-public actual fun fread(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t = platform.posix.fread(__ptr, __size, __nitems, __stream)

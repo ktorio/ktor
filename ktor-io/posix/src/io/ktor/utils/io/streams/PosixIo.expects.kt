@@ -59,31 +59,6 @@ public expect fun sendto(
     __addr_len: KX_SOCKADDR_LEN
 ): _ssize_t
 
-public expect fun read(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __nbytes: _size_t
-): _ssize_t
-
-public expect fun write(
-    __fd: FileDescriptor,
-    __buf: CValuesRef<*>?,
-    __n: _size_t
-): _ssize_t
-
-public expect fun fwrite(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t
-
-public expect fun fread(
-    __ptr: CValuesRef<*>?,
-    __size: _size_t,
-    __nitems: _size_t,
-    __stream: CValuesRef<FILE>?
-): _size_t
 
 // Used only in test source set. TODO: move to test sourceset
 public expect fun socket(

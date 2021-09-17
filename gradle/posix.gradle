@@ -1,5 +1,3 @@
-apply from: rootProject.file("gradle/ide.gradle")
-
 apply plugin: "kotlinx-atomicfu"
 
 def getHostName() {
@@ -46,59 +44,53 @@ if (host == 'windows' && skipMingw) return
 
 kotlin {
     targets {
-        if (project.ext.ideaActive) {
-            project.ext.hostname = host
-            fromPreset(project.ext.ideaPreset, 'posix')
-            project.ext.nativeTargets = [posix]
-        } else {
-            fromPreset(presets.linuxX64, 'linuxX64')
-            fromPreset(presets.macosX64, 'macosX64')
+        fromPreset(presets.linuxX64, 'linuxX64')
+        fromPreset(presets.macosX64, 'macosX64')
 
-            project.ext.nativeTargets += [macosX64, linuxX64]
+        project.ext.nativeTargets += [macosX64, linuxX64]
 
-            if (!skipMingw) {
-                fromPreset(presets.mingwX64, 'mingwX64')
-                project.ext.nativeTargets += [mingwX64]
-            }
+        if (!skipMingw) {
+            fromPreset(presets.mingwX64, 'mingwX64')
+            project.ext.nativeTargets += [mingwX64]
+        }
 
-            if (project.name != 'ktor-client-curl') {
-                fromPreset(presets.iosArm64, 'iosArm64')
-                fromPreset(presets.iosArm32, 'iosArm32')
-                fromPreset(presets.iosX64, 'iosX64')
-                fromPreset(presets.tvosArm64, 'tvosArm64')
-                fromPreset(presets.tvosX64, 'tvosX64')
-                fromPreset(presets.watchosArm32, 'watchosArm32')
-                fromPreset(presets.watchosArm64, 'watchosArm64')
-                fromPreset(presets.watchosX86, 'watchosX86')
-                fromPreset(presets.watchosX64, 'watchosX64')
+        if (project.name != 'ktor-client-curl') {
+            fromPreset(presets.iosArm64, 'iosArm64')
+            fromPreset(presets.iosArm32, 'iosArm32')
+            fromPreset(presets.iosX64, 'iosX64')
+            fromPreset(presets.tvosArm64, 'tvosArm64')
+            fromPreset(presets.tvosX64, 'tvosX64')
+            fromPreset(presets.watchosArm32, 'watchosArm32')
+            fromPreset(presets.watchosArm64, 'watchosArm64')
+            fromPreset(presets.watchosX86, 'watchosX86')
+            fromPreset(presets.watchosX64, 'watchosX64')
 
-                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86, watchosX64]
-            }
+            project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86, watchosX64]
+        }
 
-            def crossCompileTargets = [linuxX64, macosX64]
+        def crossCompileTargets = [macosX64]
 
-            if (!skipMingw) {
-                crossCompileTargets += [mingwX64]
-            }
+        if (!skipMingw) {
+            crossCompileTargets += [mingwX64]
+        }
 
-            switch (host) {
-                case 'linux':
-                    crossCompileTargets.remove(linuxX64)
-                    break
-                case 'windows':
-                    if (!skipMingw) crossCompileTargets.remove(mingwX64)
-                    break
-                case 'macos':
-                    crossCompileTargets.remove(macosX64)
-                    break
-            }
+        switch (host) {
+            case 'linux':
+                crossCompileTargets.remove(linuxX64)
+                break
+            case 'windows':
+                if (!skipMingw) crossCompileTargets.remove(mingwX64)
+                break
+            case 'macos':
+                crossCompileTargets.remove(macosX64)
+                break
+        }
 
-            disableCompilation(crossCompileTargets)
+        disableCompilation(crossCompileTargets)
 
-            if (!skipMingw) {
-                configure([mingwX64Test]) {
-                    environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
-                }
+        if (!skipMingw) {
+            configure([mingwX64Test]) {
+                environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
             }
         }
 
@@ -117,14 +109,12 @@ kotlin {
         posixTest
         posixMain { dependsOn commonMain }
 
-        if (!project.ext.ideaActive) {
-            configure(project.ext.nativeTargets.collect { getByName(it.name + 'Main') }) {
-                dependsOn posixMain
-            }
+        configure(project.ext.nativeTargets.collect { getByName(it.name + 'Main') }) {
+            dependsOn posixMain
+        }
 
-            configure(project.ext.nativeTargets.collect { getByName(it.name + 'Test') }) {
-                dependsOn posixTest
-            }
+        configure(project.ext.nativeTargets.collect { getByName(it.name + 'Test') }) {
+            dependsOn posixTest
         }
     }
 }
