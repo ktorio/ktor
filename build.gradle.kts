@@ -115,6 +115,7 @@ fun projectNeedsPlatform(project: Project, platform: String): Boolean {
 val disabledExplicitApiModeProjects = listOf(
     "ktor-client-tests",
     "ktor-client-json-tests",
+    "ktor-client-cbor-tests",
     "ktor-server-test-host",
     "ktor-server-test-suites",
     "ktor-server-tests"

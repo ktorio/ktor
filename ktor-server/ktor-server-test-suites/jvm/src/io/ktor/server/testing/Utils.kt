@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import org.junit.Assert.*
 import java.io.*
+import java.util.*
 import java.util.zip.*
 
 internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
@@ -61,7 +62,7 @@ internal fun BufferedReader.parseHeadersAndGetContentLength(): Int {
             break
         }
 
-        when (line.split(" ", ":")[0].toLowerCase()) {
+        when (line.split(" ", ":")[0].lowercase(Locale.getDefault())) {
             "content-length" -> {
                 contentLength = line.drop(16).trim().toInt()
             }

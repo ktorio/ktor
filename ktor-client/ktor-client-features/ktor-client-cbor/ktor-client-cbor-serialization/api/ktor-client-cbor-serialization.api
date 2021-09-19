@@ -1,0 +1,14 @@
+public final class io/ktor/client/features/cbor/serializer/KotlinxSerializer : io/ktor/client/features/cbor/CborSerializer {
+	public static final field Companion Lio/ktor/client/features/cbor/serializer/KotlinxSerializer$Companion;
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/serialization/cbor/Cbor;)V
+	public synthetic fun <init> (Lkotlinx/serialization/cbor/Cbor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun read (Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/core/Input;)Ljava/lang/Object;
+	public fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+	public fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public final class io/ktor/client/features/cbor/serializer/KotlinxSerializer$Companion {
+	public final fun getDefaultCbor ()Lkotlinx/serialization/cbor/Cbor;
+}
+

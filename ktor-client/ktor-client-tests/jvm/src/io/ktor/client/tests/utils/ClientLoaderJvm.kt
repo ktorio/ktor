@@ -18,23 +18,23 @@ import java.util.*
  * Helper interface to test client.
  */
 @RunWith(Parameterized::class)
-public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
+actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
 
     @Parameterized.Parameter
-    public lateinit var engine: HttpClientEngineContainer
+    lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
+    open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
 
     /**
      * Perform test against all clients from dependencies.
      */
-    public actual fun clientTests(
+    actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         for (skipEngine in skipEngines) {
-            val skipEngineArray = skipEngine.toLowerCase().split(":")
+            val skipEngineArray = skipEngine.lowercase(Locale.getDefault()).split(":")
 
             val (platform, engine) = when (skipEngineArray.size) {
                 2 -> skipEngineArray[0] to skipEngineArray[1]
@@ -43,19 +43,22 @@ public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int
             }
 
             val platformShouldBeSkipped = "*" == platform || OS_NAME == platform
-            val engineShouldBeSkipped = "*" == engine || this.engine.toString().toLowerCase() == engine
+            val engineShouldBeSkipped = "*" == engine || this.engine.toString().lowercase(Locale.getDefault()) == engine
 
             if (platformShouldBeSkipped && engineShouldBeSkipped) {
                 return
             }
         }
-        if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
+        if (
+            skipEngines.map { it.lowercase(Locale.getDefault()) }
+                .contains(engine.toString().lowercase(Locale.getDefault()))
+        ) return
 
         testWithEngine(engine.factory, this, block)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    public actual fun dumpCoroutines() {
+    actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
     }
 
@@ -66,7 +69,7 @@ public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int
      */
     // @After
     @OptIn(ExperimentalCoroutinesApi::class)
-    public fun waitForAllCoroutines() {
+    fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {
             "Debug probes isn't installed."
         }
@@ -85,10 +88,10 @@ public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int
         error(message)
     }
 
-    public companion object {
+    companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
-        public fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
+        fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
             ServiceLoader.load(it, it.classLoader).toList()
         }
     }
@@ -96,7 +99,7 @@ public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int
 
 private val OS_NAME: String
     get() {
-        val os = System.getProperty("os.name", "unknown").toLowerCase()
+        val os = System.getProperty("os.name", "unknown").lowercase(Locale.getDefault())
         return when {
             os.contains("win") -> "win"
             os.contains("mac") -> "mac"

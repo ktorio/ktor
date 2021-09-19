@@ -56,6 +56,7 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-cbor:ktor-client-cbor-serialization"))
         }
     }
     val commonTest by getting {

@@ -13,8 +13,9 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
+import kotlinx.serialization.*
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
+@OptIn(ExperimentalWebSocketExtensionApi::class, ExperimentalSerializationApi::class)
 internal fun Application.tests() {
     install(WebSockets) {
         maxFrameSize = 4 * 1024
@@ -23,10 +24,13 @@ internal fun Application.tests() {
             install(WebSocketDeflateExtension)
         }
     }
+//    install(ContentNegotiation) {
+//        json(Json, ContentType.Application.Json)
+//        serialization(ContentType.Application.Cbor, Cbor)
+//    }
 
     authTestServer()
     encodingTestServer()
-    serializationTestServer()
     cacheTestServer()
     loggingTestServer()
     contentTestServer()
@@ -42,6 +46,7 @@ internal fun Application.tests() {
     downloadTest()
     uploadTest()
     jsonTest()
+    cborTest()
     multithreadedTest()
 
     routing {
