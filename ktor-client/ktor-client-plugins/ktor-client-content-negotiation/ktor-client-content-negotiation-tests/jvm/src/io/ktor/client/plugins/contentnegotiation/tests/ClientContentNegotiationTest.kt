@@ -1,13 +1,9 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING")
-
 package io.ktor.client.plugins.contentnegotiation.tests
 
 import com.fasterxml.jackson.annotation.*
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.mock.*
@@ -15,20 +11,19 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.shared.serialization.*
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
 import kotlin.test.*
 
-/** Base class for JSON tests. */
+/** Base class for [ContentNegotiation] tests. */
 @Suppress("KDocMissingDocumentation")
-public abstract class ClientContentNegotiationTest : TestWithKtor() {
+abstract class ClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
     private val users = listOf(
         User("x", 10),
@@ -41,29 +36,58 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
-    private val customContentType = ContentType.parse("application/x-json")
+    protected abstract val defaultContentType: ContentType
+    protected abstract val customContentType: ContentType
+
+    @InternalSerializationApi
+    private suspend inline fun <reified T : Any> ApplicationCall.respond(
+        responseJson: String,
+        contentType: ContentType
+    ): Unit = respond(responseJson, contentType, T::class.serializer())
+
+    protected open suspend fun <T : Any> ApplicationCall.respond(
+        responseJson: String,
+        contentType: ContentType,
+        serializer: KSerializer<T>,
+    ) {
+        respondText(responseJson, contentType)
+    }
+
+    protected open suspend fun ApplicationCall.respondWithRequestBody(contentType: ContentType) {
+        respondText(receiveText(), contentType)
+    }
+
+    protected abstract fun ContentNegotiation.Config.registerSerializer(contentType: ContentType)
+    protected fun TestClientBuilder<*>.configureClient(
+        block: ContentNegotiation.Config.() -> Unit = {}
+    ) {
+        config {
+            install(ContentNegotiation) {
+                registerSerializer(defaultContentType)
+                block()
+            }
+        }
+    }
 
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/echo") {
-            val received = call.receive<String>()
-            println(received)
-            call.respondText(received, call.request.contentType())
+            call.respondWithRequestBody(call.request.contentType())
         }
         post("/widget") {
-            val received = call.receive<String>()
-            assertEquals("""{"name":"Foo","value":1000,"tags":["a","b","c"]}""", received)
-            call.respondText(received, ContentType.Application.Json)
+            call.respondWithRequestBody(defaultContentType)
         }
         get("/users") {
-            call.respondText(
+            call.respond(
                 """{"ok":true,"result":[{"name":"x","age":10},{"name":"y","age":45}]}""",
-                ContentType.Application.Json
+                defaultContentType,
+                Response.serializer(ListSerializer(User.serializer()))
             )
         }
-        get("/users-x") { // route for testing custom content type, namely "application/x-json"
-            call.respondText(
+        get("/users-x") { // route for testing custom content type, namely "application/x-${contentSubtype}"
+            call.respond(
                 """{"ok":true,"result":[{"name":"x","age":10},{"name":"y","age":45}]}""",
-                customContentType
+                customContentType,
+                Response.serializer(ListSerializer(User.serializer()))
             )
         }
         post("/post-x") {
@@ -71,49 +95,27 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
                 "Request body content type should be $customContentType"
             }
 
-            val requestPayload = call.receive<String>()
-            call.respondText(requestPayload, ContentType.Application.Json)
-        }
-    }
-
-    protected abstract val converter: ContentConverter?
-
-    protected fun TestClientBuilder<*>.configClient() {
-        config {
-            configJsonPlugin()
-        }
-    }
-
-    private fun HttpClientConfig<*>.configJsonPlugin(block: ContentNegotiation.Config.() -> Unit = {}) {
-        install(ContentNegotiation) {
-            register(ContentType.Application.Json, converter!!)
-            block()
-        }
-    }
-
-    private fun TestClientBuilder<*>.configCustomContentTypeClient(block: ContentNegotiation.Config.() -> Unit = {}) {
-        config {
-            configJsonPlugin(block)
+            call.respondWithRequestBody(defaultContentType)
         }
     }
 
     @Test
-    public fun testEmptyBody() = testWithEngine(MockEngine) {
+    fun testEmptyBody(): Unit = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->
                     respond(
                         request.body.toByteReadPacket().readText(),
-                        headers = buildHeaders {
-                            append("X-ContentType", request.body.contentType.toString())
-                        }
+                        headers = headersOf("X-ContentType", request.body.contentType.toString())
                     )
                 }
             }
             defaultRequest {
-                contentType(ContentType.Application.Json)
+                contentType(defaultContentType)
             }
-            configJsonPlugin()
+            install(ContentNegotiation) {
+                registerSerializer(defaultContentType)
+            }
         }
 
         test { client ->
@@ -124,14 +126,14 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testSerializeSimple() = testWithEngine(CIO) {
-        configClient()
+    fun testSerializeSimple(): Unit = testWithEngine(CIO) {
+        configureClient()
 
         test { client ->
             val result = client.post {
                 setBody(widget)
                 url(path = "/widget", port = serverPort)
-                contentType(ContentType.Application.Json)
+                contentType(defaultContentType)
             }.body<Widget>()
 
             assertEquals(widget, result)
@@ -139,8 +141,8 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testSerializeNested() = testWithEngine(CIO) {
-        configClient()
+    fun testSerializeNested(): Unit = testWithEngine(CIO) {
+        configureClient()
 
         test { client ->
             val result = client.get { url(path = "/users", port = serverPort) }.body<Response<List<User>>>()
@@ -152,9 +154,9 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testCustomContentTypes() = testWithEngine(CIO) {
-        configCustomContentTypeClient {
-            register(customContentType, converter!!)
+    fun testCustomContentTypes(): Unit = testWithEngine(CIO) {
+        configureClient {
+            registerSerializer(customContentType)
         }
 
         test { client ->
@@ -191,9 +193,9 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testCustomContentTypesMultiple() = testWithEngine(CIO) {
-        configCustomContentTypeClient {
-            register(customContentType, converter!!)
+    fun testCustomContentTypesMultiple(): Unit = testWithEngine(CIO) {
+        configureClient {
+            registerSerializer(customContentType)
         }
 
         test { client ->
@@ -210,9 +212,9 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testCustomContentTypesWildcard() = testWithEngine(CIO) {
-        configCustomContentTypeClient {
-            register(customContentType, converter!!)
+    fun testCustomContentTypesWildcard(): Unit = testWithEngine(CIO) {
+        configureClient {
+            registerSerializer(customContentType)
         }
 
         test { client ->
@@ -223,9 +225,9 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
                 assertNotNull(result.result)
                 assertEquals(users, result.result)
 
-                // json is registered first on server so it should win
+                // defaultContentType is registered first on server so it should win
                 // since Accept header consist of the wildcard
-                assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+                assertEquals(defaultContentType, response.contentType()?.withoutParameters())
             }
         }
 
@@ -243,13 +245,13 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public fun testGeneric() = testWithEngine(CIO) {
-        configClient()
+    fun testGeneric(): Unit = testWithEngine(CIO) {
+        configureClient()
 
         test { client ->
             val result = client.post {
                 url(path = "/echo", port = serverPort)
-                contentType(ContentType.Application.Json)
+                contentType(defaultContentType)
                 setBody(Response(true, users))
             }.body<Response<List<User>>>()
 
@@ -260,13 +262,13 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    public open fun testSealed() = testWithEngine(CIO) {
-        configClient()
+    open fun testSealed(): Unit = testWithEngine(CIO) {
+        configureClient()
 
         test { client ->
             val result = client.post {
                 url(path = "/echo", port = serverPort)
-                contentType(ContentType.Application.Json)
+                contentType(defaultContentType)
                 setBody(listOf(TestSealed.A("A"), TestSealed.B("B")))
             }.body<List<TestSealed>>()
 
@@ -285,20 +287,21 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Serializable
-    public data class Response<T>(
+    data class Response<T>(
         val ok: Boolean,
+        @Contextual
         val result: T?
     )
 
     @Serializable
-    public data class Widget(
+    data class Widget(
         val name: String,
         val value: Int,
         val tags: List<String> = emptyList()
     )
 
     @Serializable
-    public data class User(
+    data class User(
         val name: String,
         val age: Int
     )

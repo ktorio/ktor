@@ -17,12 +17,12 @@ kotlin {
 
         val commonTest by getting {
             dependencies {
-                api(excludingSelf(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization")))
+                api(excludingSelf(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-json-serialization")))
             }
         }
         val jvmTest by getting {
             dependencies {
-                api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-gson"))
+                api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-json-gson"))
             }
         }
     }

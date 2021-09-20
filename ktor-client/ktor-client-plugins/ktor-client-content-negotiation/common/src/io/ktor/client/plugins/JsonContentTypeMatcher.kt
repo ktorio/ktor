@@ -6,6 +6,7 @@ package io.ktor.client.plugins
 
 import io.ktor.http.*
 
+// TODO Should be moved out of content-negotiation module to keep it pure.
 /**
  * Matcher that accepts all extended json content types
  */
