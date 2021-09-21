@@ -18,6 +18,7 @@ public class ExtendedContentTypeMatcher(private val baseContentType: ContentType
         }
 
         val value = contentType.withoutParameters().toString()
-        return value.startsWith("${baseContentType.contentType}/") && value.endsWith("+${baseContentType.contentSubtype}")
+        return value.startsWith("${baseContentType.contentType}/") &&
+            value.endsWith("+${baseContentType.contentSubtype}")
     }
 }
