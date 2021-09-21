@@ -17,7 +17,7 @@ import io.ktor.server.routing.*
 import io.ktor.shared.serializaion.jackson.*
 import kotlin.test.*
 
-class ClientJacksonTest : ClientContentNegotiationTest() {
+class ClientJacksonTest : AbstractClientContentNegotiationTest() {
     private val converter = JacksonConverter()
 
     override val defaultContentType: ContentType = ContentType.Application.Json

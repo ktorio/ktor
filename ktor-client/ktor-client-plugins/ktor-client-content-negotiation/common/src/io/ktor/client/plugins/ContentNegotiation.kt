@@ -45,7 +45,8 @@ public class ContentNegotiation internal constructor(
             configuration: T.() -> Unit
         ) {
             val matcher = when (contentType) {
-                ContentType.Application.Json -> JsonContentTypeMatcher
+                ContentType.Application.Json,
+                ContentType.Application.Cbor -> ExtendedContentTypeMatcher(contentType)
                 else -> defaultMatcher(contentType)
             }
             register(contentType, converter, matcher, configuration)

@@ -20,7 +20,11 @@ import kotlin.jvm.*
  * [defaultCharset] (optional, usually it is UTF-8).
  */
 @OptIn(ExperimentalSerializationApi::class)
-public class KotlinxSerializationConverter(private val format: SerialFormat = DefaultJson) : ContentConverter {
+public class KotlinxSerializationConverter(
+    private val format: SerialFormat,
+    extraSerializerMatchers: Map<KSerializer<*>, (value: Any) -> Boolean> = mutableMapOf()
+) : ContentConverter {
+    private val extraSerializerMatchers = extraSerializerMatchers.toMutableMap()
 
     init {
         require(format is BinaryFormat || format is StringFormat) {
@@ -29,14 +33,21 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
         }
     }
 
+    /**
+     * Registers extra [matcher] for a given [serializer] to be used when guessing serializers
+     */
+    public fun match(serializer: KSerializer<*>, matcher: (value: Any) -> Boolean) {
+        extraSerializerMatchers[serializer] = matcher
+    }
+
     override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any
-    ): OutgoingContent? {
+    ): OutgoingContent {
         val result = try {
-            serializerFromTypeInfo(typeInfo, format.serializersModule)?.let {
+            serializerFromTypeInfo(typeInfo, format.serializersModule).let {
                 serializeContent(it, format, value, contentType, charset)
             }
         } catch (cause: SerializationException) {
@@ -49,7 +60,10 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
             return result
         }
 
-        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
+        val matchedSerializer = extraSerializerMatchers.entries.firstOrNull { (_, matcher) ->
+            matcher(value)
+        }?.key
+        val guessedSearchSerializer = matchedSerializer ?: guessSerializer(value, format.serializersModule)
         return serializeContent(guessedSearchSerializer, format, value, contentType, charset)
     }
 
@@ -75,7 +89,7 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)!!
+        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
         val contentPacket = content.readRemaining()
 
         return when (format) {
@@ -87,4 +101,34 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
             }
         }
     }
+}
+
+/**
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
+ * with the specified [contentType] and binary [format] (such as CBOR, ProtoBuf)
+ */
+@OptIn(ExperimentalSerializationApi::class)
+public fun Configuration.serialization(
+    contentType: ContentType,
+    format: BinaryFormat
+) {
+    register(
+        contentType,
+        KotlinxSerializationConverter(format)
+    )
+}
+
+/**
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
+ * with the specified [contentType] and string [format] (such as Json)
+ */
+@OptIn(ExperimentalSerializationApi::class)
+public fun Configuration.serialization(
+    contentType: ContentType,
+    format: StringFormat
+) {
+    register(
+        contentType,
+        KotlinxSerializationConverter(format)
+    )
 }
