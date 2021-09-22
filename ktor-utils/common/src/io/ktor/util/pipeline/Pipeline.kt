@@ -6,7 +6,6 @@ package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.collections.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
@@ -90,7 +89,15 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     }
 
     /**
-     * Inserts [phase] after the [reference] phase
+     * Inserts [phase] after the [reference] phase. If there are other phases inserted after [reference], then [phase]
+     * will be inserted after them.
+     * Example:
+     * ```
+     * val pipeline = Pipeline<String, String>(a)
+     * pipeline.insertPhaseAfter(a, b)
+     * pipeline.insertPhaseAfter(a, c)
+     * assertEquals(listOf(a, b, c), pipeline.items)
+     * ```
      */
     public fun insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -99,12 +106,29 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         if (index == -1) {
             throw InvalidPhaseException("Phase $reference was not registered for this pipeline")
         }
+        // insert after the last phase that has Relation.After on [reference]
+        var lastRelatedPhaseIndex = index
+        for (i in index + 1..phasesRaw.lastIndex) {
+            val relation = (phasesRaw[i] as? PhaseContent<*, *>)?.relation ?: break
+            val relatedTo = (relation as? PipelinePhaseRelation.After)?.relativeTo ?: continue
+            lastRelatedPhaseIndex = if (relatedTo == reference) i else lastRelatedPhaseIndex
+        }
 
-        phasesRaw.add(index + 1, PhaseContent<TSubject, TContext>(phase, PipelinePhaseRelation.After(reference)))
+        phasesRaw.add(
+            lastRelatedPhaseIndex + 1,
+            PhaseContent<TSubject, TContext>(phase, PipelinePhaseRelation.After(reference))
+        )
     }
 
     /**
-     * Inserts [phase] before the [reference] phase
+     * Inserts [phase] before the [reference] phase.
+     * Example:
+     * ```
+     * val pipeline = Pipeline<String, String>(c)
+     * pipeline.insertPhaseBefore(c, a)
+     * pipeline.insertPhaseBefore(c, b)
+     * assertEquals(listOf(a, b, c), pipeline.items)
+     * ```
      */
     public fun insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -157,37 +181,34 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
         val fromPhases = from.phasesRaw
-        for (index in 0..fromPhases.lastIndex) {
-            val fromPhaseOrContent = fromPhases[index]
+        val toInsert = fromPhases.toMutableList()
+        // the worst case is O(n^2), but it will happen only
+        // when all phases were inserted before each other into the second pipeline
+        // (see test testDependantPhasesLastCommon).
+        // in practice, it will be linear time for most cases
+        while (toInsert.isNotEmpty()) {
+            val iterator = toInsert.iterator()
+            while (iterator.hasNext()) {
+                val fromPhaseOrContent = iterator.next()
 
-            val fromPhase =
-                (fromPhaseOrContent as? PipelinePhase) ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
+                val fromPhase = (fromPhaseOrContent as? PipelinePhase)
+                    ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
 
-            if (!hasPhase(fromPhase)) {
-                val fromPhaseRelation = when {
-                    fromPhaseOrContent === fromPhase -> PipelinePhaseRelation.Last
-                    else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
+                if (hasPhase(fromPhase)) {
+                    iterator.remove()
+                } else {
+                    val inserted = insertRelativePhase(fromPhaseOrContent, fromPhase)
+                    if (!inserted) continue
+                    iterator.remove()
                 }
 
-                when (fromPhaseRelation) {
-                    is PipelinePhaseRelation.Last -> addPhase(fromPhase)
-                    is PipelinePhaseRelation.Before -> insertPhaseBefore(
-                        fromPhaseRelation.relativeTo,
-                        fromPhase
-                    )
-                    is PipelinePhaseRelation.After -> insertPhaseAfter(
-                        fromPhaseRelation.relativeTo,
-                        fromPhase
-                    )
+                if (fromPhaseOrContent is PhaseContent<*, *> && !fromPhaseOrContent.isEmpty) {
+                    @Suppress("UNCHECKED_CAST")
+                    fromPhaseOrContent as PhaseContent<TSubject, TContext>
+
+                    fromPhaseOrContent.addTo(findPhase(fromPhase)!!)
+                    interceptorsQuantity += fromPhaseOrContent.size
                 }
-            }
-
-            if (fromPhaseOrContent is PhaseContent<*, *> && !fromPhaseOrContent.isEmpty) {
-                @Suppress("UNCHECKED_CAST")
-                fromPhaseOrContent as PhaseContent<TSubject, TContext>
-
-                fromPhaseOrContent.addTo(findPhase(fromPhase)!!)
-                interceptorsQuantity += fromPhaseOrContent.size
             }
         }
     }
@@ -382,6 +403,24 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
         return false
+    }
+
+    private fun insertRelativePhase(fromPhaseOrContent: Any, fromPhase: PipelinePhase): Boolean {
+        val fromPhaseRelation = when {
+            fromPhaseOrContent === fromPhase -> PipelinePhaseRelation.Last
+            else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
+        }
+
+        when {
+            fromPhaseRelation is PipelinePhaseRelation.Last ->
+                addPhase(fromPhase)
+            fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
+                insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
+            fromPhaseRelation is PipelinePhaseRelation.After ->
+                insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+            else -> return false
+        }
+        return true
     }
 }
 
