@@ -125,6 +125,11 @@ internal suspend fun parseHeaders(
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
 
+        val host = headers[HttpHeaders.Host]
+        if (host != null && host.matches(".*[/?#@].*".toRegex())) {
+            error("Host cannot contain any of the following symbols: \'/\', \'?\', \'#\', \'@\'")
+        }
+
         return headers
     } catch (t: Throwable) {
         headers.release()
