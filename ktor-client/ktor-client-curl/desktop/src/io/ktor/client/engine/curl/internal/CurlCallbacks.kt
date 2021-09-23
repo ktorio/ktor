@@ -35,11 +35,16 @@ internal fun onBodyChunkReceived(
     if (!wrapper.bodyStartedReceiving.isCompleted) {
         wrapper.bodyStartedReceiving.complete(Unit)
     }
+
+    val body = wrapper.body
+    if (body.isClosedForWrite) {
+        return if (body.closedCause != null) -1 else 0
+    }
+
     val chunkSize = (size * count).toInt()
-    val chunk = buffer.readBytes(chunkSize)
-    val written = wrapper.body.writeAvailable(1) { dst: Buffer ->
+    val written = body.writeAvailable(1) { dst: Buffer ->
         val toWrite = minOf(chunkSize - wrapper.bytesWritten.value, dst.writeRemaining)
-        dst.writeFully(chunk, wrapper.bytesWritten.value, toWrite)
+        dst.writeFully(buffer, wrapper.bytesWritten.value, toWrite)
     }
     if (written > 0) {
         wrapper.bytesWritten += written
@@ -51,7 +56,7 @@ internal fun onBodyChunkReceived(
 
     CoroutineScope(wrapper.callContext).launch {
         try {
-            wrapper.body.awaitFreeSpace()
+            body.awaitFreeSpace()
         } catch (_: Throwable) {
             // no op, error will be handled on next write on cURL thread
         } finally {
