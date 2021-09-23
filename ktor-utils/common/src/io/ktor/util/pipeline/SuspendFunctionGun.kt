@@ -19,20 +19,19 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 
-    
     // this is impossible to inline because of property name clash
     // between PipelineContext.context and Continuation.context
     private val continuation: Continuation<Unit> = object : Continuation<Unit>, CoroutineStackFrame {
         override val callerFrame: CoroutineStackFrame? get() = peekContinuation() as? CoroutineStackFrame
 
-        var currentIndex: Int? = null
+        var currentIndex: Int = Int.MIN_VALUE
 
         override fun getStackTraceElement(): StackTraceElement? = null
 
         private fun peekContinuation(): Continuation<*>? {
-            if (currentIndex == null) currentIndex = lastSuspensionIndex
-            if (currentIndex!! < 0) {
-                currentIndex = null
+            if (currentIndex == Int.MIN_VALUE) currentIndex = lastSuspensionIndex
+            if (currentIndex < 0) {
+                currentIndex = Int.MIN_VALUE
                 return null
             }
             // this is only invoked by debug agent during job state probes
@@ -43,8 +42,8 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             // and simply return StackWalkingFailedFrame on any unfortunate accident
 
             try {
-                val result = suspensions[currentIndex!!] ?: return StackWalkingFailedFrame
-                currentIndex = currentIndex!! - 1
+                val result = suspensions[currentIndex] ?: return StackWalkingFailedFrame
+                currentIndex -= 1
                 return result
             } catch (_: Throwable) {
                 return StackWalkingFailedFrame

@@ -47,10 +47,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
-
-    private val _interceptorsArray: AtomicRef<Array<PipelineInterceptorFunction<TSubject, TContext>>?> =
-        atomic(null)
-
     private val _interceptors: AtomicRef<List<PipelineInterceptorFunction<TSubject, TContext>>?> =
         atomic(null)
 
