@@ -6,9 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.application.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
@@ -19,7 +17,6 @@ import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
-import org.junit.Ignore
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -144,68 +141,6 @@ class CIOHttpsTest : TestWithKtor() {
                     }
                 }
             }
-        }
-    }
-
-    @Test
-    @Ignore
-    fun testExternal() = testWithEngine(CIO) {
-        test { client ->
-            client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
-                assertEquals(HttpStatusCode.OK, response.status)
-            }
-        }
-    }
-
-    @Test
-    fun customDomainsTest() = testWithEngine(CIO) {
-        val domains = listOf(
-            "https://google.com",
-            "https://facebook.com",
-            "https://elster.de",
-            "https://freenode.net",
-            "https://tls-v1-2.badssl.com:1012/"
-        )
-
-        config {
-            expectSuccess = false
-        }
-
-        test { client ->
-            domains.forEach { url ->
-                client.get<String>(url)
-            }
-        }
-    }
-
-    @Test
-    fun repeatRequestTest() = testWithEngine(CIO) {
-        config {
-            followRedirects = false
-
-            engine {
-                maxConnectionsCount = 1_000_000
-                pipelining = true
-                endpoint.apply {
-                    connectAttempts = 1
-                    maxConnectionsPerRoute = 10_000
-                }
-            }
-        }
-
-        test { client ->
-            val testSize = 10
-            var received = 0
-            client.async {
-                repeat(testSize) {
-                    client.get<HttpStatement>("https://www.facebook.com").execute { response ->
-                        assertTrue(response.status.isSuccess())
-                        received++
-                    }
-                }
-            }.await()
-
-            assertEquals(testSize, received)
         }
     }
 }
