@@ -22,7 +22,7 @@ class CookiesMockTest {
                     assertEquals("*/*", request.headers[HttpHeaders.Accept])
                     val rawCookies = request.headers[HttpHeaders.Cookie]!!
                     assertEquals(1, request.headers.getAll(HttpHeaders.Cookie)?.size!!)
-                    assertEquals("first=\"1,2,3,4\";second=abc;", rawCookies)
+                    assertEquals("first=\"1,2,3,4\";second=abc", rawCookies)
 
                     respondOk()
                 }
@@ -46,7 +46,7 @@ class CookiesMockTest {
         config {
             engine {
                 addHandler { request ->
-                    assertEquals("myServer=value:value;", request.headers[HttpHeaders.Cookie])
+                    assertEquals("myServer=value:value", request.headers[HttpHeaders.Cookie])
                     respondOk()
                 }
             }
