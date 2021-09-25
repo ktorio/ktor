@@ -21,10 +21,11 @@ class CookiesTest {
         val plugin = HttpCookies(storage, emptyList())
         val builder = HttpRequestBuilder()
 
+        plugin.captureHeaderCookies(builder)
         plugin.sendCookiesWith(builder)
 
         assertEquals(
-            "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10;",
+            "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10",
             builder.headers[HttpHeaders.Cookie]
         )
     }
@@ -35,6 +36,7 @@ class CookiesTest {
         val builder = HttpRequestBuilder()
 
         builder.cookie("test", "value")
+        feature.captureHeaderCookies(builder)
         feature.sendCookiesWith(builder)
 
         assertEquals("test=value", builder.headers[HttpHeaders.Cookie])
@@ -48,9 +50,12 @@ class CookiesTest {
         val builder = HttpRequestBuilder()
 
         builder.cookie("test", "value")
+        feature.captureHeaderCookies(builder)
         feature.sendCookiesWith(builder)
 
-        assertEquals("test=value; SOMECOOKIE=somevalue;", builder.headers[HttpHeaders.Cookie])
+        val renderedCookies = builder.headers[HttpHeaders.Cookie]!!.split(";")
+        assertContains(renderedCookies, "test=value")
+        assertContains(renderedCookies, "SOMECOOKIE=somevalue")
     }
 
     @Test
@@ -58,6 +63,7 @@ class CookiesTest {
         val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
         val builder = HttpRequestBuilder()
 
+        feature.captureHeaderCookies(builder)
         feature.sendCookiesWith(builder)
 
         assertNull(builder.headers[HttpHeaders.Cookie])
