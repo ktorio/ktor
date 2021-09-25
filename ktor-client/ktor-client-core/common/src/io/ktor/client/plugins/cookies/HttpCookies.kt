@@ -38,6 +38,10 @@ public class HttpCookies(
         return storage.get(requestUrl)
     }
 
+    /**
+     * Add cookies in request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
+     * so to manage their life cycle properly.
+     */
     internal suspend fun captureHeaderCookies(builder: HttpRequestBuilder) {
         with(builder) {
             val url = builder.url.clone().build()

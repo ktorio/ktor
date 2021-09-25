@@ -14,6 +14,11 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlin.test.*
 
+/**
+ * This test class demonstrates how request cookies behave in a client
+ * when expired and redirected by server (session log out);
+ * and how [HttpCookies] feature manages request cookies in this context.
+ */
 class CookiesAndRedirectMockedTest {
     @Test
     fun testRequestCookieIsSentWithoutCookiesFeature() = testWithEngine(MockEngine) {
@@ -31,17 +36,23 @@ class CookiesAndRedirectMockedTest {
         }
     }
 
+    /**
+     * This test shows that without HttpCookies feature installed,
+     * the client will ignore (session) cookie expiration from server in a log-out-and-redirect scenario.
+     * This kinda makes sense due to [HttpRequestBuilder.cookie] being a fairly simple and direct way to add cookie to request;
+     * but this result behaviour may or may not be desirable.
+     */
     @Test
     fun testRequestCookieCannotBeExpiredAndIsSentWhenRedirectedWithoutCookiesFeature() = testWithEngine(MockEngine) {
         config {
             server { request ->
                 when (request.url.fullPath) {
-                    "/example/redirect" -> {
-                        val expiredCookie = Cookie("test", "", expires = GMTDate.START)
+                    "/example/logout" -> {
+                        val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
                     "/example" -> {
-                        assertEquals("test=value", request.headers[HttpHeaders.Cookie])
+                        assertEquals("SID=123", request.headers[HttpHeaders.Cookie])
                         respondOk("redirected")
                     }
                     else -> fail("Unexpected destination")
@@ -51,36 +62,49 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            client.get<String>("/example/redirect") {
-                cookie("test", "value")
+            client.get<String>("/example/logout") {
+                cookie("SID", "123")
             }.let { assertEquals("redirected", it) }
         }
     }
 
+    /**
+     * [HttpCookies] feature should respect (additional) request cookies
+     */
     @Test
     fun testRequestCookieIsSentWithCookiesFeature() = testWithEngine(MockEngine) {
+        val storage = AcceptAllCookiesStorage()
         config {
             server { request ->
-                assertEquals("test=value", request.headers[HttpHeaders.Cookie])
+                val cookies = request.headers[HttpHeaders.Cookie]!!.split(";")
+                assertContains(cookies, "test=value")
+                assertContains(cookies, "other=abc")
                 respondOk()
             }
-            install(HttpCookies)
+            install(HttpCookies) {
+                this.storage = storage
+            }
         }
 
         test { client ->
+            storage.addCookie("/example", Cookie("other", "abc"))
             client.get("/example") {
                 cookie("test", "value")
             }
         }
     }
 
+    /**
+     * [HttpCookies] feature should manage request cookies and its expiration properly,
+     * and not send it in redirection if it's expired by server.
+     */
     @Test
     fun testRequestCookieCanBeExpiredAndIsNotSentWhenRedirectedWithCookiesFeature() = testWithEngine(MockEngine) {
         config {
             server { request ->
                 when (request.url.fullPath) {
-                    "/example/redirect" -> {
-                        val expiredCookie = Cookie("test", "", expires = GMTDate.START)
+                    "/example/logout" -> {
+                        val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
                     "/example" -> {
@@ -95,8 +119,8 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            client.get<String>("/example/redirect") {
-                cookie("test", "value")
+            client.get<String>("/example/logout") {
+                cookie("SID", "123")
             }.let { assertEquals("redirected", it) }
         }
     }
@@ -107,8 +131,8 @@ class CookiesAndRedirectMockedTest {
         config {
             server { request ->
                 when (request.url.fullPath) {
-                    "/example/redirect" -> {
-                        val expiredCookie = Cookie("test", "", expires = GMTDate.START)
+                    "/example/logout" -> {
+                        val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
                     "/example" -> {
@@ -125,8 +149,8 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            storage.addCookie("/example", Cookie("test", "value"))
-            assertEquals("redirected", client.get("/example/redirect"))
+            storage.addCookie("/example", Cookie("SID", "123"))
+            assertEquals("redirected", client.get("/example/logout"))
         }
     }
 
