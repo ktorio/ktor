@@ -42,21 +42,22 @@ class CommonHttpClientTest {
     fun testHttpClientClosesInstalledFeatures() {
         val client = HttpClient(MockEngine) {
             engine { addHandler { respond("") } }
-            install(TestFeature)
+            install(TestPlugin)
         }
         client.close()
-        assertTrue(client.plugin(TestFeature)!!.closed)
+        assertTrue(client.plugin(TestPlugin)!!.closed)
     }
-    class TestFeature : Closeable {
+
+    class TestPlugin : Closeable {
         var closed by shared(false)
         override fun close() {
             closed = true
         }
 
-        companion object : HttpClientPlugin<Unit, TestFeature> {
-            override val key: AttributeKey<TestFeature> = AttributeKey("TestFeature")
-            override fun install(feature: TestFeature, scope: HttpClient) = Unit
-            override fun prepare(block: Unit.() -> Unit): TestFeature = TestFeature()
+        companion object : HttpClientPlugin<Unit, TestPlugin> {
+            override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
+            override fun install(plugin: TestPlugin, scope: HttpClient) = Unit
+            override fun prepare(block: Unit.() -> Unit): TestPlugin = TestPlugin()
         }
     }
 }
