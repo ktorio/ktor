@@ -219,10 +219,9 @@ public class HttpClient(
         val success = closed.compareAndSet(false, true)
         if (!success) return
 
-        val installedFeatures = attributes[FEATURE_INSTALLED_LIST]
-        installedFeatures.allKeys.forEach { key ->
+        attributes.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")
-            val plugin = installedFeatures[key as AttributeKey<Any>]
+            val plugin = attributes[key as AttributeKey<Any>]
 
             if (plugin is Closeable) {
                 plugin.close()
