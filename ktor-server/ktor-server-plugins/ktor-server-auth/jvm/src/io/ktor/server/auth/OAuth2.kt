@@ -7,7 +7,6 @@ package io.ktor.server.auth
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
@@ -379,8 +378,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
     /**
      * Thrown when nonce verification failed
      */
-    @PublicAPICandidate("2.0.0")
-    internal class InvalidNonce : OAuth2Exception("Nonce verification failed", null)
+    public class InvalidNonce : OAuth2Exception("Nonce verification failed", null)
 
     /**
      * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully

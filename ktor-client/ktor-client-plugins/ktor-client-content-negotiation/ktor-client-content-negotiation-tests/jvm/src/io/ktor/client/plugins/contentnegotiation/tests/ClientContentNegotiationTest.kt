@@ -46,7 +46,6 @@ public abstract class ClientContentNegotiationTest : TestWithKtor() {
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/echo") {
             val received = call.receive<String>()
-            println(received)
             call.respondText(received, call.request.contentType())
         }
         post("/widget") {

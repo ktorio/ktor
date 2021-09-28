@@ -68,7 +68,6 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
         onCallReceive { call ->
             sendEvent("onCallReceive")
-            println(call)
 
             call.afterFinish {
                 sendEvent("afterFinish")
@@ -76,7 +75,6 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
         onCallRespond { call ->
             sendEvent("onCallRespond")
-            println(call)
 
             call.afterFinish {
                 sendEvent("afterFinish")
@@ -84,7 +82,6 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
         onCallRespond.afterTransform { call, _ ->
             sendEvent("onCallRespond.afterTransform")
-            println(call)
 
             call.afterFinish {
                 sendEvent("afterFinish")

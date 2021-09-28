@@ -6,7 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
@@ -45,7 +45,7 @@ class CommonHttpClientTest {
             install(TestFeature)
         }
         client.close()
-        assertTrue(client.feature(TestFeature)!!.closed)
+        assertTrue(client.plugin(TestFeature)!!.closed)
     }
     class TestFeature : Closeable {
         var closed by shared(false)
@@ -53,7 +53,7 @@ class CommonHttpClientTest {
             closed = true
         }
 
-        companion object : HttpClientFeature<Unit, TestFeature> {
+        companion object : HttpClientPlugin<Unit, TestFeature> {
             override val key: AttributeKey<TestFeature> = AttributeKey("TestFeature")
             override fun install(feature: TestFeature, scope: HttpClient) = Unit
             override fun prepare(block: Unit.() -> Unit): TestFeature = TestFeature()

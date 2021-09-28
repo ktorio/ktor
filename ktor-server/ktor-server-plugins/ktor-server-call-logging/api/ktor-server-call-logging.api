@@ -6,6 +6,7 @@ public final class io/ktor/server/plugins/CallLogging : io/ktor/server/logging/M
 
 public final class io/ktor/server/plugins/CallLogging$Configuration {
 	public fun <init> ()V
+	public final fun disableDefaultColors ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun format (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLevel ()Lorg/slf4j/event/Level;
