@@ -147,7 +147,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         body = builder.body
         bodyType = builder.bodyType
         url.takeFrom(builder.url)
-        url.encodedPath = url.encodedPath.ifBlank { "/" }
+        url.encodedPathSegments = url.encodedPathSegments
         headers.appendAll(builder.headers)
         attributes.putAll(builder.attributes)
 
