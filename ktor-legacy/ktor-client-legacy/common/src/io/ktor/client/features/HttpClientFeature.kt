@@ -11,12 +11,12 @@ package io.ktor.client.features
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("HttpClientPlugin", "io.ktor.client.plugins.*")
 )
-public interface HttpClientPlugin<out TConfig : Any, TPlugin : Any>
+public interface HttpClientFeature<out TConfig : Any, TFeature : Any>
 
 @Deprecated(
     message = "Moved to io.ktor.client.plugins",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("plugin(plugin)", "io.ktor.client.plugins.*")
 )
-public fun <B : Any, F : Any> plugin(plugin: HttpClientPlugin<B, F>): F? =
+public fun <B : Any, F : Any> feature(feature: HttpClientFeature<B, F>): F? =
     error("Moved to io.ktor.client.plugins")

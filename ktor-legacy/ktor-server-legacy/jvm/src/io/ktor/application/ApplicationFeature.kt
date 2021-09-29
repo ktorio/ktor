@@ -17,17 +17,17 @@ import kotlinx.coroutines.*
     replaceWith = ReplaceWith("ApplicationPlugin", "io.ktor.server.application.*")
 )
 @Suppress("AddVarianceModifier")
-public interface ApplicationPlugin<
+public interface ApplicationFeature<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
-    TPlugin : Any>
+    TFeature : Any>
 
 @Deprecated(
     message = "Moved to io.ktor.server.application",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("plugin(plugin)", "io.ktor.server.application.*")
 )
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.plugin(plugin: ApplicationPlugin<A, B, F>): F =
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F =
     error("Moved to io.ktor.server.application")
 
 @Deprecated(
@@ -35,7 +35,7 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.plugin(plugin:
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("pluginOrNull(plugin)", "io.ktor.server.application.*")
 )
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.pluginOrNull(plugin: ApplicationPlugin<A, B, F>): F? =
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? =
     error("Moved to io.ktor.server.application")
 
 @Deprecated(
@@ -44,7 +44,7 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.pluginOrNull(p
     replaceWith = ReplaceWith("install(plugin, configure)", "io.ktor.server.application.*")
 )
 public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
-    plugin: ApplicationPlugin<P, B, F>,
+    feature: ApplicationFeature<P, B, F>,
     configure: B.() -> Unit = {}
 ): F = error("Moved to io.ktor.server.application")
 
@@ -53,7 +53,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("uninstallAllPlugins()", "io.ktor.server.application.*")
 )
-public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins(): Unit =
+public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures(): Unit =
     error("Moved to io.ktor.server.application")
 
 @Deprecated(
@@ -62,7 +62,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins(): Unit =
     replaceWith = ReplaceWith("uninstall(plugin)", "io.ktor.server.application.*")
 )
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
-    plugin: ApplicationPlugin<A, B, F>
+    feature: ApplicationFeature<A, B, F>
 ): Unit = error("Moved to io.ktor.server.application")
 
 @Deprecated(
@@ -70,7 +70,7 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("uninstallPlugin(key)", "io.ktor.server.application.*")
 )
-public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>): Unit =
+public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>): Unit =
     error("Moved to io.ktor.server.application")
 
 @Deprecated(
@@ -78,13 +78,13 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: At
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("DuplicateApplicationPluginException", "io.ktor.server.application.*")
 )
-public class DuplicateApplicationPluginException(message: String) : Exception(message)
+public class DuplicateApplicationFeatureException(message: String) : Exception(message)
 
 @Deprecated(
     message = "Moved to io.ktor.server.application",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("MissingApplicationPluginException", "io.ktor.server.application.*")
 )
-public class MissingApplicationPluginException(
+public class MissingApplicationFeaatureException(
     public val key: AttributeKey<*>
 )

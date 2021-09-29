@@ -11,7 +11,7 @@ package io.ktor.client.features.json
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("JsonPlugin", "io.ktor.client.plugins.json.*")
 )
-public class JsonPlugin
+public class JsonFeature
 
 @Deprecated(
     message = "Moved to io.ktor.client.plugins.json",
