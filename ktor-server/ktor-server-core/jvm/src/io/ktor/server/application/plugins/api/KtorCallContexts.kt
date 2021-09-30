@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
 
 /**
  * The context associated with the call that is currently being processed by server.
- * Every call handler ([ServerPlugin.onCall], [ServerPlugin.onCallReceive], [ServerPlugin.onCallRespond], and so on)
+ * Every call handler ([PluginBuilder.onCall], [PluginBuilder.onCallReceive], [PluginBuilder.onCallRespond], and so on)
  * of your plugin has a derivative of [CallHandlingContext] as a receiver.
  **/
 public open class CallHandlingContext(internal open val context: PipelineContext<*, ApplicationCall>) {
@@ -21,8 +21,8 @@ public open class CallHandlingContext(internal open val context: PipelineContext
 }
 
 /**
- * A context associated with the call handlng by your application. [CallContext] is a receiver for [ServerPlugin.onCall] handler
- * of your [ServerPlugin].
+ * A context associated with the call handlng by your application. [CallContext] is a receiver for [PluginBuilder.onCall] handler
+ * of your [PluginBuilder].
  *
  * @see CallHandlingContext
  **/
@@ -31,7 +31,7 @@ public class CallContext(override val context: PipelineContext<Unit, Application
 
 /**
  * A context associated with the call.receive() action. Allows you to transform the received body.
- * [CallReceiveContext] is a receiverfor [ServerPlugin.onCallReceive] handler of your [ServerPlugin].
+ * [CallReceiveContext] is a receiverfor [PluginBuilder.onCallReceive] handler of your [PluginBuilder].
  *
  * @see CallHandlingContext
  **/
@@ -54,7 +54,7 @@ public class CallReceiveContext(
 
 /**
  *  A context associated with the call.respond() action. Allows you to transform the response body.
- *  [CallRespondContext] is a receiver for [ServerPlugin.onCallRespond] handler of your [ServerPlugin].
+ *  [CallRespondContext] is a receiver for [PluginBuilder.onCallRespond] handler of your [PluginBuilder].
  *
  * @see CallHandlingContext
  **/
@@ -71,7 +71,7 @@ public class CallRespondContext(
 
 /**
  * A context associated with the onCallRespond.afterTransform {...} handler. Allows you to transform the response binary data.
- * [CallRespondAfterTransformContext] is a receiver for [OnCallRespond.afterTransform] handler of your [ServerPlugin].
+ * [CallRespondAfterTransformContext] is a receiver for [OnCallRespond.afterTransform] handler of your [PluginBuilder].
  *
  * @see CallHandlingContext
  **/

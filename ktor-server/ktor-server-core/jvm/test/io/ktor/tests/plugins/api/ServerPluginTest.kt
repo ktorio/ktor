@@ -2,13 +2,14 @@ package io.ktor.tests.plugins.api
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.application.plugins.api.ServerPlugin.Companion.createApplicationPlugin
-import io.ktor.server.application.plugins.api.ServerPlugin.Companion.createRoutingScopedPlugin
+import io.ktor.server.application.plugins.api.PluginBuilder.Companion.createApplicationPlugin
+import io.ktor.server.application.plugins.api.PluginBuilder.Companion.createRoutePlugin
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import org.graalvm.compiler.hotspot.debug.BenchmarkCounters.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -296,7 +297,7 @@ class ServerPluginTest {
     fun `test routing scoped install`() {
         class Config(var data: String)
 
-        val plugin = createRoutingScopedPlugin("F", { Config("default") }) {
+        val plugin = createRoutePlugin("F", { Config("default") }) {
             onCall {
                 context.call.respond(pluginConfig.data)
             }
@@ -355,7 +356,7 @@ class ServerPluginTest {
 
     @Test
     fun `test dependent routing scoped plugins`() {
-        val pluginF = createRoutingScopedPlugin("F", {}) {
+        val pluginF = createRoutePlugin("F", {}) {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
@@ -364,7 +365,7 @@ class ServerPluginTest {
             }
         }
 
-        val pluginG = createRoutingScopedPlugin("G", {}) {
+        val pluginG = createRoutePlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]
@@ -414,7 +415,7 @@ class ServerPluginTest {
             }
         }
 
-        val pluginG = createRoutingScopedPlugin("G", {}) {
+        val pluginG = createRoutePlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]

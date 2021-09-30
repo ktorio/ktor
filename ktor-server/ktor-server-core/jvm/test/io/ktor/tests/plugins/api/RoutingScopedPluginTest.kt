@@ -453,7 +453,7 @@ class TestPlugin {
         var sendPipelineCallback: (String) -> Unit = {},
     )
 
-    companion object Plugin : RoutingScopedPlugin<Config, TestPlugin> {
+    companion object Plugin : SubroutePlugin<Config, TestPlugin> {
 
         override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
 

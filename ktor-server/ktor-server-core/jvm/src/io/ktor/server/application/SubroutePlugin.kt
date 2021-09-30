@@ -14,7 +14,7 @@ import io.ktor.util.pipeline.*
  * @param TConfiguration is the type for the configuration object for this Plugin
  * @param TPlugin is the type for the instance of the Plugin object
  */
-public interface RoutingScopedPlugin<TConfiguration : Any, TPlugin : Any> :
+public interface SubroutePlugin<TConfiguration : Any, TPlugin : Any> :
     Plugin<Route, TConfiguration, TPlugin> {
 
     /**
@@ -44,7 +44,7 @@ public interface RoutingScopedPlugin<TConfiguration : Any, TPlugin : Any> :
  * Installs [plugin] into this pipeline, if it is not yet installed
  */
 public fun <P : ApplicationCallPipeline, B : Any, F : Any> P.install(
-    plugin: RoutingScopedPlugin<B, F>,
+    plugin: SubroutePlugin<B, F>,
     configure: B.() -> Unit = {}
 ): F {
     intercept(ApplicationCallPipeline.Setup) {
