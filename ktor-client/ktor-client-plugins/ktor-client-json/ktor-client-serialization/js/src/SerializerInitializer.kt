@@ -7,6 +7,8 @@ import io.ktor.client.plugins.json.serializer.*
 import io.ktor.util.*
 
 @InternalAPI
+@OptIn(ExperimentalStdlibApi::class)
+@EagerInitialization
 @Suppress("unused")
 public val initializer: SerializerInitializer = SerializerInitializer
 
