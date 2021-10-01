@@ -42,8 +42,5 @@ public fun Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
 ) {
-    register(
-        contentType,
-        KotlinxSerializationConverter(json, mapOf(JsonElement.serializer() to { it is JsonElement }))
-    )
+    serialization(contentType, json)
 }

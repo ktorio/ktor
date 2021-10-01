@@ -22,22 +22,12 @@ import kotlin.jvm.*
 @OptIn(ExperimentalSerializationApi::class)
 public class KotlinxSerializationConverter(
     private val format: SerialFormat,
-    extraSerializerMatchers: Map<KSerializer<*>, (value: Any) -> Boolean> = mutableMapOf()
 ) : ContentConverter {
-    private val extraSerializerMatchers = extraSerializerMatchers.toMutableMap()
-
     init {
         require(format is BinaryFormat || format is StringFormat) {
             "Only binary and string formats are supported, " +
                 "$format is not supported."
         }
-    }
-
-    /**
-     * Registers extra [matcher] for a given [serializer] to be used when guessing serializers
-     */
-    public fun match(serializer: KSerializer<*>, matcher: (value: Any) -> Boolean) {
-        extraSerializerMatchers[serializer] = matcher
     }
 
     override suspend fun serialize(
@@ -59,11 +49,7 @@ public class KotlinxSerializationConverter(
         if (result != null) {
             return result
         }
-
-        val matchedSerializer = extraSerializerMatchers.entries.firstOrNull { (_, matcher) ->
-            matcher(value)
-        }?.key
-        val guessedSearchSerializer = matchedSerializer ?: guessSerializer(value, format.serializersModule)
+        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
         return serializeContent(guessedSearchSerializer, format, value, contentType, charset)
     }
 
