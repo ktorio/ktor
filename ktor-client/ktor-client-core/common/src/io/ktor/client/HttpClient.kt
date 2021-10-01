@@ -157,12 +157,14 @@ public class HttpClient(
             }
 
             config.install(HttpSend)
+            config.install(HttpCallValidator)
 
             if (followRedirects) {
                 config.install(HttpRedirect)
             }
 
             config += this
+            config.install(HttpRequestRetry)
 
             config.addDefaultResponseValidation()
 
@@ -217,9 +219,10 @@ public class HttpClient(
         val success = closed.compareAndSet(false, true)
         if (!success) return
 
-        attributes.allKeys.forEach { key ->
+        val installedFeatures = attributes[PLUGIN_INSTALLED_LIST]
+        installedFeatures.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")
-            val plugin = attributes[key as AttributeKey<Any>]
+            val plugin = installedFeatures[key as AttributeKey<Any>]
 
             if (plugin is Closeable) {
                 plugin.close()

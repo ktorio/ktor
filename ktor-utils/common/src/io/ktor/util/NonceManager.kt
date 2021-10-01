@@ -5,7 +5,7 @@
 package io.ktor.util
 
 /**
- * Represents a nonce manager. It's responsibility is to produce nonce values
+ * Represents a nonce manager. Its responsibility is to produce nonce values
  * and verify nonce values from untrusted sources that they are provided by this manager.
  * This is usually required in web environment to mitigate CSRF attacks.
  * Depending on it's underlying implementation it could be stateful or stateless.

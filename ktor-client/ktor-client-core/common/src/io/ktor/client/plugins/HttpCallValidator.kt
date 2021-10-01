@@ -131,7 +131,8 @@ public class HttpCallValidator internal constructor(
                 }
             }
 
-            scope[HttpSend].intercept { call, _ ->
+            scope[HttpSend].intercept { request ->
+                val call = execute(request)
                 plugin.validateResponse(call.response)
                 call
             }

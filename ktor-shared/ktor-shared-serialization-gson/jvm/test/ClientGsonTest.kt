@@ -12,9 +12,9 @@ class ClientGsonTest : AbstractClientContentNegotiationTest() {
 
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
-
-    override fun testSealed() {}
-    override fun ContentNegotiation.Config.registerSerializer(contentType: ContentType) {
+    override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)
     }
+
+    override fun testSealed() {}
 }

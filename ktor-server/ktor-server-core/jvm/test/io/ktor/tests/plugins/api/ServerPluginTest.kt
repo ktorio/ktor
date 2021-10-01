@@ -234,7 +234,6 @@ class ServerPluginTest {
         val plugin = createApplicationPlugin("F") {
             onCall { call ->
                 eventsList.add("onCall")
-                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")
@@ -242,7 +241,6 @@ class ServerPluginTest {
             }
             onCallReceive { call ->
                 eventsList.add("onCallReceive")
-                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")
@@ -250,7 +248,6 @@ class ServerPluginTest {
             }
             onCallRespond { call ->
                 eventsList.add("onCallRespond")
-                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")
@@ -258,7 +255,6 @@ class ServerPluginTest {
             }
             onCallRespond.afterTransform { call, _ ->
                 eventsList.add("onCallRespond.afterTransform")
-                println(call)
 
                 call.afterFinish {
                     eventsList.add("afterFinish")

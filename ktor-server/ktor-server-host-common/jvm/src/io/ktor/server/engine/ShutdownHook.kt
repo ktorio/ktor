@@ -29,7 +29,7 @@ public fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
     }
 }
 
-private class ShutdownHook(private val stopFunction: () -> Unit) : Thread() {
+private class ShutdownHook(private val stopFunction: () -> Unit) : Thread("KtorShutdownHook") {
     private val shouldStop = AtomicBoolean(true)
 
     override fun run() {

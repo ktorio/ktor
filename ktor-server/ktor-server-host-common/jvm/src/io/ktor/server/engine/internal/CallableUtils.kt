@@ -18,13 +18,13 @@ internal fun ApplicationEnvironment.executeModuleFunction(
     val name = fqName.lastIndexOfAny(".#".toCharArray())
 
     if (name == -1) {
-        throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
+        throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
     }
 
     val className = fqName.substring(0, name)
     val functionName = fqName.substring(name + 1)
     val clazz = classLoader.loadClassOrNull(className)
-        ?: throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
+        ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
     val staticFunctions = clazz.methods
         .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }

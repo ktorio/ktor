@@ -215,7 +215,6 @@ private val rawMimes: String
 .dump,application/octet-stream
 .dvi,application/x-dvi
 .dv,video/x-dv
-.dwf,drawing/x-dwf (old)
 .dwf,model/vnd.dwf
 .dwg,application/acad
 .dwg,image/vnd.dwg
@@ -233,7 +232,6 @@ private val rawMimes: String
 .edx,application/vnd.novadigm.edx
 .efif,application/vnd.picsel
 .ei6,application/vnd.pg.osasli
-.elc,application/x-bytecode.elisp (compiled elisp)
 .elc,application/x-elc
 .el,text/x-script.elisp
 .eml,message/rfc822

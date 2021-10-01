@@ -279,7 +279,7 @@ public class ApplicationEngineEnvironmentReloading(
             } catch (cause: Throwable) {
                 destroyApplication()
                 if (watchPatterns.isNotEmpty()) {
-                    watcher?.close()
+                    cleanupWatcher()
                 }
 
                 throw cause
@@ -294,7 +294,7 @@ public class ApplicationEngineEnvironmentReloading(
             destroyApplication()
         }
         if (watchPatterns.isNotEmpty()) {
-            watcher?.close()
+            cleanupWatcher()
         }
     }
 
@@ -357,6 +357,13 @@ public class ApplicationEngineEnvironmentReloading(
             block()
         } finally {
             modules.remove(fqName)
+        }
+    }
+
+    private fun cleanupWatcher() {
+        try {
+            watcher?.close()
+        } catch (_: NoClassDefFoundError) {
         }
     }
 

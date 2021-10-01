@@ -593,6 +593,49 @@ class OAuth2Test {
     }
 
     @Test
+    fun testFailedNonce(): Unit = withApplication(createTestEnvironment()) {
+        application.apply {
+            install(Authentication) {
+                oauth("login") {
+                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
+                    urlProvider = { "http://localhost/login" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "oauth2",
+                            authorizeUrl = "http://localhost/authorize",
+                            accessTokenUrl = "http://localhost/oauth/access_token",
+                            clientId = "clientId1",
+                            clientSecret = "clientSecret1",
+                            requestMethod = HttpMethod.Post,
+                            nonceManager = object : NonceManager {
+                                override suspend fun newNonce(): String = "some_nonce"
+                                override suspend fun verifyNonce(nonce: String): Boolean = false
+                            }
+                        )
+                    }
+                }
+            }
+            routing {
+                post("/oauth/access_token") {
+                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                }
+                authenticate("login") {
+                    get("/login") {
+                        call.respond("We're in.")
+                    }
+                }
+            }
+        }
+
+        val authorizeResponse = handleRequest { uri = "/login" }
+        val redirectUrl = Url(authorizeResponse.response.headers[HttpHeaders.Location]!!)
+        val state = redirectUrl.parameters["state"]!!
+        assertEquals("some_nonce", state)
+        val failedNonceResponse = handleRequest { uri = "/login?code=some_code&state=$state" }
+        assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.response.status())
+    }
+
+    @Test
     fun testRemoveStateFromAccessTokenRequest(): Unit = withApplication(createTestEnvironment()) {
         with(application) {
             routing {

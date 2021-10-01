@@ -17,12 +17,7 @@ import kotlinx.coroutines.*
 /**
  * HttpSend pipeline interceptor function
  */
-public typealias HttpSendInterceptor = suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall
-
-/**
- * HttpSend pipeline interceptor function backward compatible with previous implementation.
- */
-public typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpClientCall) -> HttpClientCall
+public typealias HttpSendInterceptor = suspend Sender.(HttpRequestBuilder) -> HttpClientCall
 
 /**
  * This interface represents a request send pipeline interceptor chain
@@ -52,21 +47,24 @@ public class HttpSend(
     /**
      * Install send pipeline starter interceptor
      */
-    public fun intercept(block: HttpSendInterceptor) {
-        interceptors += block
+    @Deprecated(
+        "This interceptors do not allow to intercept first network call. " +
+            "Please use another overload and replace HttpClientCall parameter using `val call = execute(request)`",
+        level = DeprecationLevel.ERROR
+    )
+    @Suppress("UNUSED_PARAMETER")
+    public fun intercept(block: suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall) {
+        error(
+            "This interceptors do not allow to intercept original call. " +
+                "Please use another overload and call `this.execute(request)` manually"
+        )
     }
 
     /**
-     * Install send pipeline starter interceptor (backward compatible function).
+     * Install send pipeline starter interceptor
      */
-    @Deprecated(
-        "Intercept with one parameter is deprecated, use both call and request builder as parameters.",
-        level = DeprecationLevel.ERROR
-    )
-    public fun intercept(block: HttpSendInterceptorBackwardCompatible) {
-        interceptors += { call, _ ->
-            block(call)
-        }
+    public fun intercept(block: HttpSendInterceptor) {
+        interceptors += block
     }
 
     /**
@@ -88,25 +86,25 @@ public class HttpSend(
                 }
                 context.setBody(content)
 
-                val sender = DefaultSender(plugin.maxSendCount, scope)
-                var currentCall = sender.execute(context)
-                var callChanged: Boolean
-
-                do {
-                    callChanged = false
-
-                    passInterceptors@ for (interceptor in plugin.interceptors) {
-                        val transformed = interceptor(sender, currentCall, context)
-                        if (transformed === currentCall) continue@passInterceptors
-
-                        currentCall = transformed
-                        callChanged = true
-                        break@passInterceptors
-                    }
-                } while (callChanged)
-
-                proceedWith(currentCall)
+                val realSender: Sender = DefaultSender(plugin.maxSendCount, scope)
+                var interceptedSender = realSender
+                (plugin.interceptors.lastIndex downTo 0).forEach {
+                    val interceptor = plugin.interceptors[it]
+                    interceptedSender = InterceptedSender(interceptor, interceptedSender)
+                }
+                val call = interceptedSender.execute(context)
+                proceedWith(call)
             }
+        }
+    }
+
+    private class InterceptedSender(
+        private val interceptor: HttpSendInterceptor,
+        private val nextSender: Sender
+    ) : Sender {
+
+        override suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall {
+            return interceptor.invoke(nextSender, requestBuilder)
         }
     }
 
