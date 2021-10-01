@@ -23,7 +23,6 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-
     override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)
     }
