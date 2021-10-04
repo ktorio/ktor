@@ -1,3 +1,20 @@
+# 1.6.4
+> Published 30 September 2021
+
+* [Auth] [Interceptors] Phase Phase('Challenge') was not registered for this pipeline ([KTOR-3156](https://youtrack.jetbrains.com/issue/KTOR-3156))
+* insertPhaseBefore and insertPhaseAfter lead to different order ([KTOR-438](https://youtrack.jetbrains.com/issue/KTOR-438))
+* Ktor 1.6.3 crashes on restart due to java.lang.ClassNotFoundException: Didn't find class "java.nio.file.WatchService" on Android 24 ([KTOR-3166](https://youtrack.jetbrains.com/issue/KTOR-3166))
+* GraalVM binary using CIO fails on start "Module function cannot be found" ([KTOR-2987](https://youtrack.jetbrains.com/issue/KTOR-2987))
+* Logging in Shutdown thread looks not informative ([KTOR-3175](https://youtrack.jetbrains.com/issue/KTOR-3175))
+* Installed Closeable features not closed when closing HttpClient ([KTOR-3116](https://youtrack.jetbrains.com/issue/KTOR-3116))
+* Explain method(HttpMethod.Options) in docs for CORS ([KTOR-2913](https://youtrack.jetbrains.com/issue/KTOR-2913))
+* ContentType.parse("text/html qqq") must fail with error ([KTOR-3080](https://youtrack.jetbrains.com/issue/KTOR-3080))
+* Update JSON topics using code snippets from the 'codeSnippets' project ([KTOR-2955](https://youtrack.jetbrains.com/issue/KTOR-2955))
+* Could not find artifact org.jetbrains.kotlinx:kotlinx-html-jvm:pom:0.7.2 ([KTOR-2481](https://youtrack.jetbrains.com/issue/KTOR-2481))
+* Update the 'Modules' topic ([KTOR-1861](https://youtrack.jetbrains.com/issue/KTOR-1861))
+* Native engines tests are not run outside of the ` ktor-client-tests` module ([KTOR-3069](https://youtrack.jetbrains.com/issue/KTOR-3069))
+* MultiPartData.readAllParts throws IOException when the epilogue is omitted ([KTOR-3173](https://youtrack.jetbrains.com/issue/KTOR-3173))
+
 # 1.6.3
 > Published 26 August 2021
 

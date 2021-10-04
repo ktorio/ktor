@@ -398,6 +398,27 @@ class MultipartTest {
         }
     }
 
+    @Test
+    fun testNoCRLFAfterBoundaryDelimiter() {
+        val body = "--boundary\r\n" +
+            "Content-Disposition: form-data; name=\"key\"\r\n\r\n" +
+            "value\r\n" +
+            "--boundary--"
+
+        val input = ByteReadChannel(body.toByteArray())
+
+        runBlocking {
+            val events = parseMultipart(
+                input,
+                "multipart/form-data; boundary=boundary",
+                body.length.toLong()
+            ).toList()
+
+            assertEquals(1, events.size)
+            assertEquals("value", (events[0] as MultipartEvent.MultipartPart).body.readRemaining().readText())
+        }
+    }
+
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
         val boundary = parseBoundaryInternal(headerValue)
         val actualBoundary = String(

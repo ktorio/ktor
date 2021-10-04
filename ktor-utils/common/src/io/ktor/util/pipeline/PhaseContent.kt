@@ -10,15 +10,15 @@ import io.ktor.utils.io.concurrent.*
 internal class PhaseContent<TSubject : Any, Call : Any>(
     val phase: PipelinePhase,
     val relation: PipelinePhaseRelation,
-    interceptors: MutableList<PipelineInterceptor<TSubject, Call>>
+    interceptors: MutableList<PipelineInterceptorFunction<TSubject, Call>>
 ) {
-    private var interceptors: MutableList<PipelineInterceptor<TSubject, Call>> by shared(interceptors)
+    private var interceptors: MutableList<PipelineInterceptorFunction<TSubject, Call>> by shared(interceptors)
 
     @Suppress("UNCHECKED_CAST")
     constructor(
         phase: PipelinePhase,
         relation: PipelinePhaseRelation
-    ) : this(phase, relation, SharedArrayList as MutableList<PipelineInterceptor<TSubject, Call>>) {
+    ) : this(phase, relation, SharedArrayList as MutableList<PipelineInterceptorFunction<TSubject, Call>>) {
         check(SharedArrayList.isEmpty()) { "The shared empty array list has been modified" }
     }
 
@@ -27,7 +27,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     val isEmpty: Boolean get() = interceptors.isEmpty()
     val size: Int get() = interceptors.size
 
-    fun addInterceptor(interceptor: PipelineInterceptor<TSubject, Call>) {
+    fun addInterceptor(interceptor: PipelineInterceptorFunction<TSubject, Call>) {
         if (shared) {
             copyInterceptors()
         }
@@ -35,7 +35,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         interceptors.add(interceptor)
     }
 
-    fun addTo(destination: MutableList<PipelineInterceptor<TSubject, Call>>) {
+    fun addTo(destination: MutableList<PipelineInterceptorFunction<TSubject, Call>>) {
         val interceptors = interceptors
 
         if (destination is ArrayList) {
@@ -63,13 +63,13 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         addTo(destination.interceptors)
     }
 
-    fun sharedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> {
+    fun sharedInterceptors(): MutableList<PipelineInterceptorFunction<TSubject, Call>> {
         shared = true
         return interceptors
     }
 
-    fun copiedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> =
-        sharedListOf<PipelineInterceptor<TSubject, Call>>().apply {
+    fun copiedInterceptors(): MutableList<PipelineInterceptorFunction<TSubject, Call>> =
+        sharedListOf<PipelineInterceptorFunction<TSubject, Call>>().apply {
             addAll(interceptors)
         }
 
