@@ -11,6 +11,7 @@ description = "Common tests for client"
 val junit_version: String by project.extra
 val kotlin_version: String by project.extra
 val logback_version: String by project.extra
+val serialization_version: String by project.extra
 val coroutines_version: String by project
 
 plugins {
@@ -70,6 +71,7 @@ kotlin.sourceSets {
     }
     val jvmMain by getting {
         dependencies {
+            api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-cio"))

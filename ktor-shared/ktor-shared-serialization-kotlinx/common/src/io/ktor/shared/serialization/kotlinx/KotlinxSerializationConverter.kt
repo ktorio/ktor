@@ -20,8 +20,9 @@ import kotlin.jvm.*
  * [defaultCharset] (optional, usually it is UTF-8).
  */
 @OptIn(ExperimentalSerializationApi::class)
-public class KotlinxSerializationConverter(private val format: SerialFormat = DefaultJson) : ContentConverter {
-
+public class KotlinxSerializationConverter(
+    private val format: SerialFormat,
+) : ContentConverter {
     init {
         require(format is BinaryFormat || format is StringFormat) {
             "Only binary and string formats are supported, " +
@@ -34,9 +35,9 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any
-    ): OutgoingContent? {
+    ): OutgoingContent {
         val result = try {
-            serializerFromTypeInfo(typeInfo, format.serializersModule)?.let {
+            serializerFromTypeInfo(typeInfo, format.serializersModule).let {
                 serializeContent(it, format, value, contentType, charset)
             }
         } catch (cause: SerializationException) {
@@ -48,7 +49,6 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
         if (result != null) {
             return result
         }
-
         val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
         return serializeContent(guessedSearchSerializer, format, value, contentType, charset)
     }
@@ -75,7 +75,7 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)!!
+        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
         val contentPacket = content.readRemaining()
 
         return when (format) {
@@ -87,4 +87,34 @@ public class KotlinxSerializationConverter(private val format: SerialFormat = De
             }
         }
     }
+}
+
+/**
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
+ * with the specified [contentType] and binary [format] (such as CBOR, ProtoBuf)
+ */
+@OptIn(ExperimentalSerializationApi::class)
+public fun Configuration.serialization(
+    contentType: ContentType,
+    format: BinaryFormat
+) {
+    register(
+        contentType,
+        KotlinxSerializationConverter(format)
+    )
+}
+
+/**
+ * Register kotlinx.serialization converter into [ContentNegotiation] plugin
+ * with the specified [contentType] and string [format] (such as Json)
+ */
+@OptIn(ExperimentalSerializationApi::class)
+public fun Configuration.serialization(
+    contentType: ContentType,
+    format: StringFormat
+) {
+    register(
+        contentType,
+        KotlinxSerializationConverter(format)
+    )
 }

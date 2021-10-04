@@ -5,6 +5,7 @@
 import com.fasterxml.jackson.annotation.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -16,8 +17,15 @@ import io.ktor.server.routing.*
 import io.ktor.shared.serializaion.jackson.*
 import kotlin.test.*
 
-class ClientJacksonTest : ClientContentNegotiationTest() {
-    override val converter = JacksonConverter()
+class ClientJacksonTest : AbstractClientContentNegotiationTest() {
+    private val converter = JacksonConverter()
+
+    override val defaultContentType: ContentType = ContentType.Application.Json
+    override val customContentType: ContentType = ContentType.parse("application/x-json")
+
+    override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
+        register(contentType, converter)
+    }
 
     override fun createRoutes(routing: Routing): Unit = with(routing) {
         super.createRoutes(routing)
@@ -33,7 +41,7 @@ class ClientJacksonTest : ClientContentNegotiationTest() {
 
     @Test
     fun testJackson() = testWithEngine(CIO) {
-        configClient()
+        configureClient()
 
         test { client ->
             val response = client.post {

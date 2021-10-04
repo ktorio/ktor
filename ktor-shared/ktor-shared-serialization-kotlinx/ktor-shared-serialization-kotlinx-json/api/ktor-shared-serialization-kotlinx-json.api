@@ -1,0 +1,6 @@
+public final class io/ktor/shared/serialization/kotlinx/json/JsonSupportKt {
+	public static final fun getDefaultJson ()Lkotlinx/serialization/json/Json;
+	public static final fun json (Lio/ktor/shared/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;)V
+	public static synthetic fun json$default (Lio/ktor/shared/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
+}
+

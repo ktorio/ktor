@@ -1,6 +1,7 @@
 /*
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
+package io.ktor.shared.serialization.kotlinx.test
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,11 +14,12 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-abstract class AbstractServerSerializationTest {
-    protected val serializer = TestEntity.serializer()
+public abstract class AbstractServerSerializationTest {
+    protected val serializer: KSerializer<TestEntity> = TestEntity.serializer()
 
-    protected abstract val testContentType: ContentType
-    protected abstract fun ContentNegotiation.Configuration.configureContentNegotiation()
+    protected abstract val defaultContentType: ContentType
+    protected abstract val customContentType: ContentType
+    protected abstract fun ContentNegotiation.Configuration.configureContentNegotiation(contentType: ContentType)
 
     protected abstract fun simpleSerialize(any: TestEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): TestEntity
@@ -25,7 +27,7 @@ abstract class AbstractServerSerializationTest {
     protected fun withTestSerializingApplication(block: suspend TestApplicationEngine.() -> Unit): Unit =
         withTestApplication {
             application.install(ContentNegotiation) {
-                configureContentNegotiation()
+                configureContentNegotiation(defaultContentType)
             }
 
             application.routing {
@@ -45,7 +47,7 @@ abstract class AbstractServerSerializationTest {
         }
 
     @Test
-    fun testDumpNoAccept(): Unit = withTestSerializingApplication {
+    public fun testDumpNoAccept(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/dump").let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             val bytes = call.response.byteContent
@@ -56,9 +58,9 @@ abstract class AbstractServerSerializationTest {
     }
 
     @Test
-    fun testDumpWithAccept(): Unit = withTestSerializingApplication {
+    public fun testDumpWithAccept(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/dump") {
-            addHeader(HttpHeaders.Accept, testContentType.toString())
+            addHeader(HttpHeaders.Accept, defaultContentType.toString())
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             val bytes = call.response.byteContent
@@ -69,9 +71,9 @@ abstract class AbstractServerSerializationTest {
     }
 
     @Test
-    fun testDumpWithMultipleAccept(): Unit = withTestSerializingApplication {
+    public fun testDumpWithMultipleAccept(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/dump") {
-            addHeader(HttpHeaders.Accept, "$testContentType;q=1,text/plain;q=0.9")
+            addHeader(HttpHeaders.Accept, "$defaultContentType;q=1,text/plain;q=0.9")
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             val bytes = call.response.byteContent
@@ -82,9 +84,9 @@ abstract class AbstractServerSerializationTest {
     }
 
     @Test
-    fun testParseWithContentType(): Unit = withTestSerializingApplication {
+    public fun testParseWithContentType(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Put, "/parse") {
-            addHeader(HttpHeaders.ContentType, testContentType.toString())
+            addHeader(HttpHeaders.ContentType, defaultContentType.toString())
             setBody(simpleSerialize(TestEntity(999)))
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
@@ -93,5 +95,5 @@ abstract class AbstractServerSerializationTest {
     }
 
     @Serializable
-    data class TestEntity(val x: Int)
+    public data class TestEntity(val x: Int)
 }

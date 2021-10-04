@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.shared.serialization.kotlinx
+package io.ktor.shared.serialization.kotlinx.json
 
 import io.ktor.http.*
 import io.ktor.shared.serialization.*
+import io.ktor.shared.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
@@ -41,35 +42,5 @@ public fun Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
 ) {
-    serialization(contentType, json as StringFormat)
-}
-
-/**
- * Register kotlinx.serialization converter into [ContentNegotiation] plugin
- * with the specified [contentType] and binary [format] (such as CBOR, ProtoBuf)
- */
-@OptIn(ExperimentalSerializationApi::class)
-public fun Configuration.serialization(
-    contentType: ContentType,
-    format: BinaryFormat
-) {
-    register(
-        contentType,
-        KotlinxSerializationConverter(format)
-    )
-}
-
-/**
- * Register kotlinx.serialization converter into [ContentNegotiation] plugin
- * with the specified [contentType] and string [format] (such as Json)
- */
-@OptIn(ExperimentalSerializationApi::class)
-public fun Configuration.serialization(
-    contentType: ContentType,
-    format: StringFormat
-) {
-    register(
-        contentType,
-        KotlinxSerializationConverter(format)
-    )
+    serialization(contentType, json)
 }
