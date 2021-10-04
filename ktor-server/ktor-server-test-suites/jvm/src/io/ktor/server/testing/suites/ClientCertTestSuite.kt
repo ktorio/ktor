@@ -14,13 +14,15 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.network.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 /**
  * This tests uses a CA, which creates server and client certificates.
  */
-public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
+abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
     val engine: ApplicationEngineFactory<Engine, Configuration>
 ) {
     open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
@@ -30,14 +32,15 @@ public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configurat
         privateKeyPassword = { "changeit".toCharArray() },
     ).apply {
         trustStore = ca.trustStore()
+        port = 0
     }
 
-    public companion object {
-        public val ca = generateCertificate(keyType = KeyType.CA)
+    companion object {
+        val ca = generateCertificate(keyType = KeyType.CA)
     }
 
     @Test
-    public open fun `Server requesting Client Certificate from CIO Client`() {
+    open fun `Server requesting Client Certificate from CIO Client`() {
         val clientKeys = ca.generateCertificate(keyType = KeyType.Client)
 
         val client = HttpClient(CIO) {
@@ -48,6 +51,7 @@ public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configurat
                 }
             }
         }
+
         runBlocking {
             launch {
                 val server = embeddedServer(factory = engine, connectors = arrayOf(sslConnectorBuilder())) {
@@ -58,7 +62,10 @@ public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configurat
                     }
                 }
                 server.start()
-                assertEquals("Hello World", client.get("https://0.0.0.0:443").body())
+
+                val port = server.networkAddresses().first().port
+
+                assertEquals("Hello World", client.get("https://0.0.0.0:$port").body())
                 server.stop(1000, 1000)
             }
         }
