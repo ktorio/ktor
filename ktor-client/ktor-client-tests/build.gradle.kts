@@ -67,6 +67,7 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
             api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
+            api(project(":ktor-shared:ktor-shared-serialization-kotlinx:ktor-shared-serialization-kotlinx-json"))
         }
     }
     val jvmMain by getting {
