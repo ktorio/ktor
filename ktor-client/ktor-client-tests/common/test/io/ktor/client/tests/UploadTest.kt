@@ -14,7 +14,7 @@ import kotlin.test.*
 class UploadTest : ClientLoader() {
 
     @Test
-    fun testUploadWithByteArrayContent() = clientTests(listOf("Android", "Curl")) {
+    fun testUploadWithByteArrayContent() = clientTests(listOf("Android", "Curl", "iOS")) {
         test { client ->
             val result = client.post("$TEST_SERVER/upload/content") {
                 setBody(ByteArrayContent(ByteArray(1024)))
