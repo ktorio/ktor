@@ -6,74 +6,51 @@ package io.ktor.util.pipeline
 
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.jvm.*
 
 /**
  * Represents running execution of a pipeline
+ *
+ * @param context: object representing context in which pipeline executes
  */
 @ContextDsl
-public interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScope {
-    /**
-     * Object representing context in which pipeline executes
-     */
+public abstract class PipelineContext<TSubject : Any, TContext : Any>(
     public val context: TContext
+) : CoroutineScope {
 
     /**
      * Subject of this pipeline execution that goes along the pipeline
      */
-    public var subject: TSubject
+    public abstract var subject: TSubject
 
     /**
      * Finishes current pipeline execution
      */
-    public fun finish()
+    public abstract fun finish()
 
     /**
      * Continues execution of the pipeline with the given subject
      */
-    public suspend fun proceedWith(subject: TSubject): TSubject
+    public abstract suspend fun proceedWith(subject: TSubject): TSubject
 
     /**
      * Continues execution of the pipeline with the same subject
      */
-    public suspend fun proceed(): TSubject
-}
+    public abstract suspend fun proceed(): TSubject
 
-/**
- * Represent an object that launches pipeline execution
- */
-@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
-public interface PipelineExecutor<R> {
-    /**
-     * Start pipeline execution or fail if already running and not yet completed.
-     * It should not be invoked concurrently.
-     */
-    public suspend fun execute(initial: R): R
+    internal abstract suspend fun execute(initial: TSubject): TSubject
 }
 
 /**
  * Build a pipeline of the specified [interceptors] and create executor.
  */
-@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
-public fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
+internal fun <TSubject : Any, TContext : Any> pipelineContextFor(
     context: TContext,
-    interceptors: List<PipelineInterceptor<TSubject, TContext>>,
-    subject: TSubject,
-):
-    @Suppress("DEPRECATION")
-    PipelineExecutor<TSubject> = SuspendFunctionGun(subject, context, interceptors)
-
-/**
- * Build a pipeline of the specified [interceptors] and create executor.
- */
-internal fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
-    context: TContext,
-    interceptors: List<PipelineInterceptor<TSubject, TContext>>,
+    interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>,
     subject: TSubject,
     coroutineContext: CoroutineContext,
     debugMode: Boolean = false
-):
-    @Suppress("DEPRECATION")
-    PipelineExecutor<TSubject> = if (debugMode) {
+): PipelineContext<TSubject, TContext> = if (debugMode) {
         DebugPipelineContext(context, interceptors, subject, coroutineContext)
     } else {
         SuspendFunctionGun(subject, context, interceptors)
