@@ -35,8 +35,9 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(featur
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("pluginOrNull(plugin)", "io.ktor.server.application.*")
 )
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? =
-    error("Moved to io.ktor.server.application")
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(
+    feature: ApplicationFeature<A, B, F>
+): F? = error("Moved to io.ktor.server.application")
 
 @Deprecated(
     message = "Moved to io.ktor.server.application",
