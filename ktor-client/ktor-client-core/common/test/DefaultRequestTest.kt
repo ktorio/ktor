@@ -3,6 +3,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import kotlin.test.*
 
@@ -66,10 +67,10 @@ class DefaultRequestTest {
             defaultRequest {}
         }
 
-        assertEquals("http://localhost/", client.get {}.bodyAsText())
-        assertEquals("http://localhost/", client.get("/").bodyAsText())
-        assertEquals("http://localhost/file", client.get("file").bodyAsText())
-        assertEquals("http://localhost/other_path", client.get("/other_path").bodyAsText())
+        assertEquals("${URLBuilder.Companion.origin}/", client.get {}.bodyAsText())
+        assertEquals("${URLBuilder.Companion.origin}/", client.get("/").bodyAsText())
+        assertEquals("${URLBuilder.Companion.origin}/file", client.get("file").bodyAsText())
+        assertEquals("${URLBuilder.Companion.origin}/other_path", client.get("/other_path").bodyAsText())
         assertEquals("http://other.host/other_path", client.get("//other.host/other_path").bodyAsText())
     }
 
