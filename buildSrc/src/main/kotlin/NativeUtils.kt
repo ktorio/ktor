@@ -19,16 +19,20 @@ fun KotlinMultiplatformExtension.darwinTargets(): Set<KotlinNativeTarget> = setO
     iosX64(),
     iosArm64(),
     iosArm32(),
+    iosSimulatorArm64(),
 
     watchosX86(),
     watchosX64(),
     watchosArm32(),
     watchosArm64(),
+    watchosSimulatorArm64(),
 
     tvosX64(),
     tvosArm64(),
+    tvosSimulatorArm64(),
 
-    macosX64()
+    macosX64(),
+    macosArm64()
 )
 
 fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = setOf(

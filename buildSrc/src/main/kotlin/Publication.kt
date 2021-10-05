@@ -29,15 +29,22 @@ fun isAvailableForPublication(publication: Publication): Boolean {
     result = result || (HOST_NAME == "windows" && name == "mingwX64")
     val macPublications = setOf(
         "iosX64",
-        "iosArm32",
         "iosArm64",
-        "macosX64",
-        "watchosArm32",
-        "watchosArm64",
+        "iosArm32",
+        "iosSimulatorArm64",
+
         "watchosX86",
         "watchosX64",
+        "watchosArm32",
+        "watchosArm64",
+        "watchosSimulatorArm64",
+
+        "tvosX64",
         "tvosArm64",
-        "tvosX64"
+        "tvosSimulatorArm64",
+
+        "macosX64",
+        "macosArm64"
     )
 
     result = result || (HOST_NAME == "macos" && name in macPublications)
