@@ -1,5 +1,3 @@
-apply from: rootProject.file("gradle/ide.gradle")
-
 apply plugin: "kotlinx-atomicfu"
 
 def getHostName() {
@@ -71,8 +69,12 @@ kotlin {
                 fromPreset(presets.watchosArm64, 'watchosArm64')
                 fromPreset(presets.watchosX86, 'watchosX86')
                 fromPreset(presets.watchosX64, 'watchosX64')
+                fromPreset(presets.iosSimulatorArm64, 'iosSimulatorArm64')
+                fromPreset(presets.watchosSimulatorArm64, 'watchosSimulatorArm64')
+                fromPreset(presets.tvosSimulatorArm64, 'tvosSimulatorArm64')
+                fromPreset(presets.macosArm64, 'macosArm64')
 
-                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86, watchosX64]
+                project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86, watchosX64, iosSimulatorArm64, watchosSimulatorArm64, tvosSimulatorArm64, macosArm64]
             }
 
             def crossCompileTargets = [linuxX64, macosX64]

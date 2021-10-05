@@ -38,7 +38,22 @@ def isAvailableForPublication(publication) {
     result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'jsLegacy', 'metadata', 'kotlinMultiplatform'])
     result = result | (project.ext.isLinuxHost && name == 'linuxX64')
     result = result | (project.ext.isWinHost && name == 'mingwX64')
-    result = result | (project.ext.isMacosHost && name in ['iosX64', 'iosArm32', 'iosArm64', 'macosX64', 'watchosArm32', 'watchosArm64', 'watchosX86', 'watchosX64', 'tvosArm64', 'tvosX64'])
+    result = result | (project.ext.isMacosHost && name in [
+        'iosX64',
+        'iosArm32',
+        'iosArm64',
+        'macosX64',
+        'watchosArm32',
+        'watchosArm64',
+        'watchosX86',
+        'watchosX64',
+        'tvosArm64',
+        'tvosX64',
+        'iosSimulatorArm64',
+        'watchosSimulatorArm64',
+        'tvosSimulatorArm64',
+        'macosArm64'
+    ])
 
     return result
 }
