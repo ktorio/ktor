@@ -11,17 +11,17 @@ import kotlin.test.*
 internal class URLBuilderTest {
     @Test
     fun testParseSchemeWithDigits() {
-        testBuildString("a123://google.com")
+        testBuildString("a123://google.com/")
     }
 
     @Test
     fun testParseSchemeWithDotsPlusAndMinusSigns() {
-        testBuildString("a.+-://google.com")
+        testBuildString("a.+-://google.com/")
     }
 
     @Test
     fun testParseSchemeWithCapitalCharacters() {
-        testBuildString("HTTP://google.com")
+        testBuildString("HTTP://google.com/")
     }
 
     @Test
@@ -30,10 +30,10 @@ internal class URLBuilderTest {
             val char = index.toChar()
 
             if (char in 'a'..'z' || char in 'A'..'Z') {
-                testBuildString("${char}http://google.com")
+                testBuildString("${char}http://google.com/")
             } else {
                 assertFails("Character $char is not allowed at the first position in the scheme.") {
-                    testBuildString("${char}http://google.com")
+                    testBuildString("${char}http://google.com/")
                 }
             }
         }
@@ -102,7 +102,7 @@ internal class URLBuilderTest {
         val url = URLBuilder("https://httpstat.us/301")
         url.takeFrom("https://httpstats.us")
 
-        assertEquals("", url.encodedPath)
+        assertEquals("/", url.encodedPath)
     }
 
     @Test
@@ -156,7 +156,7 @@ internal class URLBuilderTest {
     fun rewriteHost() {
         val url = URLBuilder("https://example.com/api/v1")
         url.takeFrom("//other.com")
-        assertEquals("https://other.com", url.buildString())
+        assertEquals("https://other.com/", url.buildString())
     }
 
     @Test
@@ -182,9 +182,9 @@ internal class URLBuilderTest {
     }
 
     @Test
-    fun retainEmptyPath() {
+    fun testEmptyPath() {
         val url = URLBuilder("http://www.test.com")
-        assertEquals("", url.encodedPath)
+        assertEquals("/", url.encodedPath)
     }
 
     @Test

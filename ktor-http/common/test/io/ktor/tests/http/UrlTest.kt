@@ -33,7 +33,7 @@ class UrlTest {
 
         assertEquals("http", url.protocol.name)
         assertEquals("google.com", url.host)
-        assertEquals("", url.fullPath)
+        assertEquals("/", url.fullPath)
     }
 
     @Test
@@ -160,22 +160,22 @@ class UrlTest {
     }
 
     @Test
-    fun testRetainEmptyPath() {
+    fun testEmptyPathAndQuery() {
         val urlString = "https://www.test.com?test=ok&authtoken=testToken"
         val url = Url(urlString)
 
         with(url) {
             assertEquals(URLProtocol.HTTPS, protocol)
             assertEquals("www.test.com", host)
-            assertEquals(emptyList(), pathSegments)
-            assertEquals("https://www.test.com?test=ok&authtoken=testToken", url.toString())
+            assertEquals(listOf(""), pathSegments)
+            assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
         }
     }
 
     @Test
-    fun testRetainTrailingSlash() {
+    fun testTrailingSlash() {
         val url1 = Url("http://www.test.com").toString()
-        assertEquals("http://www.test.com", url1)
+        assertEquals("http://www.test.com/", url1)
         val url2 = Url("http://www.test.com/").toString()
         assertEquals("http://www.test.com/", url2)
     }

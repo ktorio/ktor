@@ -57,7 +57,7 @@ public class URLBuilder(
 
     public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPath() }
         set(value) {
-            field = value
+            field = value.ifEmpty { listOf("") }
         }
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
@@ -246,7 +246,7 @@ public val URLBuilder.authority: String
 public var URLBuilder.encodedPath: String
     get() {
         val path = encodedPathSegments.joinToString("/")
-        return if (encodedPathSegments.isEmpty() || path.startsWith('/')) path else "/$path"
+        return if (path.startsWith('/')) path else "/$path"
     }
     set(value) {
         encodedPathSegments = value.split('/').toMutableList()

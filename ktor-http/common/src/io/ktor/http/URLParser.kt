@@ -77,7 +77,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     // Path
     if (startIndex >= endIndex) {
-        encodedPathSegments = if (urlString[endIndex - 1] == '/') listOf("", "") else emptyList()
+        encodedPathSegments = if (urlString[endIndex - 1] == '/') listOf("", "") else listOf("")
         return this
     }
 
@@ -92,9 +92,15 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     if (pathEnd > startIndex) {
         val rawPath = urlString.substring(startIndex, pathEnd)
-        encodedPathSegments = encodedPathSegments +
-            (if (slashCount == 1) listOf("") else emptyList()) +
-            rawPath.split('/')
+        val basePath = when {
+            encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
+            else -> encodedPathSegments
+        }
+        val relativePath = when (slashCount) {
+            1 -> listOf("")
+            else -> emptyList()
+        } + rawPath.split('/')
+        encodedPathSegments = basePath + relativePath
         startIndex = pathEnd
     }
 

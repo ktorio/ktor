@@ -72,4 +72,24 @@ class DefaultRequestTest {
         assertEquals("http://localhost/other_path", client.get("/other_path").bodyAsText())
         assertEquals("http://other.host/other_path", client.get("//other.host/other_path").bodyAsText())
     }
+
+    @Test
+    fun testDefaultHeader() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.headers["header-1"] + " " + it.headers["header-2"] )
+                }
+            }
+
+            defaultRequest {
+                headers["header-1"] = "value-default"
+            }
+        }
+
+        assertEquals(
+            "value-default value-2",
+            client.get { headers["header-2"] = "value-2" }.bodyAsText()
+        )
+    }
 }
