@@ -4,19 +4,20 @@
 
 package io.ktor.shared.serializaion.jackson
 
+import com.fasterxml.jackson.core.*
 import com.fasterxml.jackson.core.util.*
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.plugins.*
 import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlin.reflect.*
-import kotlin.reflect.jvm.*
 import kotlin.text.Charsets
 
 public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
@@ -44,9 +45,20 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        return withContext(Dispatchers.IO) {
-            val reader = content.toInputStream().reader(charset)
-            objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+        try {
+            return withContext(Dispatchers.IO) {
+                val reader = content.toInputStream().reader(charset)
+                objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+            }
+        } catch (deserializeFailure: Exception) {
+            val badRequestException = BadRequestException("Illegal json parameter found", deserializeFailure)
+
+            when (deserializeFailure) {
+                is JsonParseException -> throw badRequestException
+                is IOException -> throw badRequestException
+                is JsonMappingException -> throw badRequestException
+                else -> throw deserializeFailure
+            }
         }
     }
 }

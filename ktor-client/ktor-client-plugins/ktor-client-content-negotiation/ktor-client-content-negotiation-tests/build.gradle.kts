@@ -17,6 +17,7 @@ kotlin.sourceSets.jvmMain {
         api(project(":ktor-server:ktor-server-cio"))
         api(project(":ktor-client:ktor-client-cio"))
         api(project(":ktor-client:ktor-client-tests"))
+        api(project(":ktor-server:ktor-server-test-host"))
         api("com.fasterxml.jackson.core:jackson-annotations:$jackson_version")
     }
 }
