@@ -7,14 +7,13 @@ package io.ktor.shared.serialization.kotlinx
 import io.ktor.util.reflect.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
-import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 internal fun serializerFromTypeInfo(
     typeInfo: TypeInfo,
     module: SerializersModule
-): KSerializer<*>? {
+): KSerializer<*> {
     return module.getContextual(typeInfo.type)
         ?: typeInfo.kotlinType?.let { module.serializerOrNull(it) }
         ?: typeInfo.type.serializer()
@@ -22,7 +21,6 @@ internal fun serializerFromTypeInfo(
 
 @Suppress("UNCHECKED_CAST")
 internal fun guessSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
-    is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
     is Array<*> -> value.firstOrNull()?.let { guessSerializer(it, module) } ?: ListSerializer(String.serializer())
     is Set<*> -> SetSerializer(value.elementSerializer(module))

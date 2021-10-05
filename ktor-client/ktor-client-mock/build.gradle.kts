@@ -18,6 +18,7 @@ kotlin.sourceSets {
             api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
             api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
+            api(project(":ktor-shared:ktor-shared-serialization-kotlinx:ktor-shared-serialization-kotlinx-json"))
         }
     }
 }

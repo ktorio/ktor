@@ -14,7 +14,7 @@ import io.ktor.server.testing.*
 import io.ktor.shared.serializaion.jackson.*
 import kotlin.test.*
 
-class JacksonTest {
+class ServerJacksonTest {
     @Test
     fun testMap() = withTestApplication {
         val uc = "\u0422"

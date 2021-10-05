@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.shared.serialization.kotlinx.*
+import io.ktor.shared.serialization.kotlinx.json.*
 import kotlinx.serialization.*
 import kotlin.test.*
 

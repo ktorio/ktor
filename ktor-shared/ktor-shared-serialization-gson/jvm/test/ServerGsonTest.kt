@@ -13,7 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.shared.serializaion.gson.*
 import kotlin.test.*
 
-class GsonTest {
+class ServerGsonTest {
     @Test
     fun testMap() = withTestApplication {
         val uc = "\u0422"
