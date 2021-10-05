@@ -1,8 +1,5 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
-val nativeTargets: List<KotlinNativeTarget> by extra
 kotlin {
-    nativeTargets.forEach {
+    posixTargets().forEach {
         it.compilations {
             val main by getting {
                 cinterops {
@@ -23,24 +20,6 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
-            }
-        }
-
-// Hack: register the Native interop klibs as outputs of Kotlin source sets:
-        val bitsMain by creating { dependsOn(commonMain) }
-        val socketsMain by creating { dependsOn(commonMain) }
-
-        val posixMain by getting {
-            dependsOn(bitsMain)
-            dependsOn(socketsMain)
-        }
-
-        if (!KtorBuildProperties.ideaActive) {
-            apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
-            val registerInteropAsSourceSetOutput: groovy.lang.Closure<*> by extra
-            afterEvaluate {
-                registerInteropAsSourceSetOutput("bits", bitsMain)
-                registerInteropAsSourceSetOutput("sockets", socketsMain)
             }
         }
     }

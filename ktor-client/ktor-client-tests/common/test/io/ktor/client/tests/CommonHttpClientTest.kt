@@ -34,7 +34,7 @@ class CommonHttpClientTest {
         val engine = client.engine
         client.close()
 
-        // When the engine is provided by Ktor factory is should be closed together with the client.
+        // When the engine is provided by Ktor factory it should be closed together with the client.
         assertFalse { engine.isActive }
     }
 

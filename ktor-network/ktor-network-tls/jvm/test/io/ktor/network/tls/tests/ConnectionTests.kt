@@ -1,3 +1,4 @@
+// ktlint-disable experimental:argument-list-wrapping
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -57,29 +58,6 @@ class ConnectionTests {
     }
 
     @Test
-    fun certificateTest(): Unit = runBlocking {
-        val keyStore = generateCertificate(
-            File.createTempFile("test", "certificate"),
-            algorithm = "SHA256withRSA",
-            keySizeInBits = 4096
-        )
-
-        val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-        factory.init(keyStore, "changeit".toCharArray())
-
-        val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
-            .connect(InetSocketAddress("chat.freenode.net", 6697))
-            .tls(Dispatchers.IO) {
-                addKeyStore(keyStore, "changeit".toCharArray())
-            }
-
-        socket.openReadChannel()
-        val output = socket.openWriteChannel(autoFlush = true)
-        output.close()
-        socket.close()
-    }
-
-    @Test
     @Ignore
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
@@ -118,7 +96,8 @@ class ConnectionTests {
             try {
                 tryToConnect(port, trustManagerFactory)
                 fail("TLSException was expected because client has no certificate to authenticate")
-            } catch (expected: TLSException) {}
+            } catch (expected: TLSException) {
+            }
         } finally {
             workerGroup.shutdownGracefully()
         }
@@ -151,7 +130,8 @@ class ConnectionTests {
                 val port = socket.localPort
                 socket.close()
                 return port
-            } catch (ignore: IOException) { }
+            } catch (ignore: IOException) {
+            }
         }
     }
 }

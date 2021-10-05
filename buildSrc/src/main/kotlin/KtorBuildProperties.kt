@@ -1,5 +1,9 @@
-import KtorBuildProperties.jdk8Modules
+/*
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.gradle.api.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
@@ -13,8 +17,18 @@ private val versionComponents = java_version
     .filter { it.isNotBlank() }
     .map { Integer.parseInt(it) }
 
-object KtorBuildProperties {
+val IDEA_ACTIVE: Boolean = System.getProperty("idea.active") == "true"
 
+val OS_NAME = System.getProperty("os.name").toLowerCase()
+
+val HOST_NAME = when {
+    OS_NAME.startsWith("linux") -> "linux"
+    OS_NAME.startsWith("windows") -> "windows"
+    OS_NAME.startsWith("mac") -> "macos"
+    else -> error("Unknown os name `$OS_NAME`")
+}
+
+object KtorBuildProperties {
     val jettyAlpnBootVersion: String? = when (java_version) {
         "1.8.0_191",
         "1.8.0_192",
@@ -32,7 +46,7 @@ object KtorBuildProperties {
     }
 
     @JvmStatic
-    val ideaActive: Boolean = System.getProperty("idea.active") == "true"
+    fun posixTargets(project: Project): Set<KotlinNativeTarget> = project.kotlin.posixTargets()
 
     @JvmStatic
     val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
@@ -58,12 +72,4 @@ object KtorBuildProperties {
     val jdk11Modules = listOf(
         "ktor-client-java"
     )
-
-    @JvmStatic
-    fun projectJdk(name: String): Int = when (name) {
-        in jdk8Modules -> 8
-        in jdk11Modules -> 11
-        in jdk7Modules -> 7
-        else -> 6
-    }
 }

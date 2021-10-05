@@ -302,7 +302,7 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/")
         }
 
-        assertTrue("TRACE: 404 Not Found: GET - /" in messages)
+        assertTrue("INFO: 404 Not Found: GET - /" in messages)
     }
 
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)

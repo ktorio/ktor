@@ -11,8 +11,8 @@ plugins {
 kotlin {
     targets.apply {
         val current = mutableListOf<KotlinTarget>()
-        if (KtorBuildProperties.ideaActive) {
-            current.add(getByName("posix"))
+        if (IDEA_ACTIVE) {
+            current.add(getByName("desktop"))
         } else {
             current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("mingwX64")))
         }
@@ -25,7 +25,7 @@ kotlin {
         current.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
             platform.compilations.getByName("main") {
                 val libcurl by cinterops.creating {
-                    defFile = File(projectDir, "posix/interop/libcurl.def")
+                    defFile = File(projectDir, "desktop/interop/libcurl.def")
 
                     if (platform.name == "mingwX64") {
                         includeDirs.headerFilterOnly(paths)
@@ -61,28 +61,17 @@ kotlin {
     }
 
     sourceSets {
-        val posixMain by getting {
+        val desktopMain by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-http:ktor-http-cio"))
             }
         }
-        val posixTest by getting {
+        val desktopTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
                 api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
             }
-        }
-
-        // Hack: register the Native interop klibs as outputs of Kotlin source sets:
-        if (!KtorBuildProperties.ideaActive) {
-            val libcurlInterop by creating
-            getByName("posixMain").dependsOn(libcurlInterop)
-            apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
-            (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
-                "libcurl",
-                libcurlInterop
-            )
         }
     }
 }

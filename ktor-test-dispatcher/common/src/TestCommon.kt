@@ -10,7 +10,6 @@ import kotlin.coroutines.*
 /**
  * Test runner for common suspend tests.
  */
-@Suppress("NO_ACTUAL_FOR_EXPECT")
 public expect fun testSuspend(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit

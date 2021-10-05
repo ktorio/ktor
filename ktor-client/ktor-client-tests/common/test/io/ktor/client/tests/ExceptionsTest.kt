@@ -130,7 +130,7 @@ class ExceptionsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl", "CIO")) {
+    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl", "CIO", "iOS")) {
         test { client ->
             val requestBuilder = HttpRequestBuilder()
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")

@@ -57,7 +57,9 @@ class DefaultHeadersTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue { "ktor" in call.response.headers[HttpHeaders.Server]!! }
+            val serverHeader = call.response.headers[HttpHeaders.Server]
+            assertNotNull(serverHeader)
+            assertTrue("Server header invalid: $serverHeader") { "Ktor" in serverHeader }
         }
     }
 
