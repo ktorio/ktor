@@ -11,7 +11,7 @@ import kotlinx.atomicfu.*
 import kotlin.coroutines.*
 
 internal typealias PipelineInterceptorFunction<TSubject, TContext> =
-        (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
+    (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
@@ -387,7 +387,10 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         interceptorsListSharedPhase = null
     }
 
-    private fun tryAddToPhaseFastPath(phase: PipelinePhase, block: PipelineInterceptorFunction<TSubject, TContext>): Boolean {
+    private fun tryAddToPhaseFastPath(
+        phase: PipelinePhase,
+        block: PipelineInterceptorFunction<TSubject, TContext>
+    ): Boolean {
         val currentInterceptors = interceptors
         if (phasesRaw.isEmpty() || currentInterceptors == null) {
             return false

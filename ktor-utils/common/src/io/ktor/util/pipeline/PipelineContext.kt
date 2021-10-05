@@ -51,7 +51,7 @@ internal fun <TSubject : Any, TContext : Any> pipelineContextFor(
     coroutineContext: CoroutineContext,
     debugMode: Boolean = false
 ): PipelineContext<TSubject, TContext> = if (debugMode) {
-        DebugPipelineContext(context, interceptors, subject, coroutineContext)
-    } else {
-        SuspendFunctionGun(subject, context, interceptors)
-    }
+    DebugPipelineContext(context, interceptors, subject, coroutineContext)
+} else {
+    SuspendFunctionGun(subject, context, interceptors)
+}
