@@ -14,6 +14,7 @@
 * Update the 'Modules' topic ([KTOR-1861](https://youtrack.jetbrains.com/issue/KTOR-1861))
 * Native engines tests are not run outside of the ` ktor-client-tests` module ([KTOR-3069](https://youtrack.jetbrains.com/issue/KTOR-3069))
 * MultiPartData.readAllParts throws IOException when the epilogue is omitted ([KTOR-3173](https://youtrack.jetbrains.com/issue/KTOR-3173))
+* Update Kotlin and Coroutines Versions ([KTOR-3103](https://youtrack.jetbrains.com/issue/KTOR-3103))
 
 # 1.6.3
 > Published 26 August 2021
