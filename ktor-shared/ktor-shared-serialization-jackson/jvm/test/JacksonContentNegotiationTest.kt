@@ -7,8 +7,5 @@ import io.ktor.shared.serializaion.jackson.*
  */
 
 class JacksonContentNegotiationTest : JsonContentNegotiationTest(JacksonConverter()) {
-    override fun testValidJsonWithExtraFields() {
-        super.extraFieldResult = HttpStatusCode.BadRequest
-        super.testValidJsonWithExtraFields()
-    }
+    override val extraFieldResult = HttpStatusCode.BadRequest
 }

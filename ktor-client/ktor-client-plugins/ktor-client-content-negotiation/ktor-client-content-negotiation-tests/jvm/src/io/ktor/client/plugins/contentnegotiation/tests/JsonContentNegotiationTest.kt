@@ -15,7 +15,7 @@ import io.ktor.shared.serialization.*
 import kotlin.test.*
 
 abstract class JsonContentNegotiationTest(private val converter: ContentConverter) {
-    protected var extraFieldResult = HttpStatusCode.OK
+    protected open val extraFieldResult = HttpStatusCode.OK
 
     data class Wrapper(val value: String)
 
