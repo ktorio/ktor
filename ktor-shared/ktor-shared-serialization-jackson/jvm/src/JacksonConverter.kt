@@ -4,6 +4,7 @@
 
 package io.ktor.shared.serializaion.jackson
 
+import com.fasterxml.jackson.core.*
 import com.fasterxml.jackson.core.util.*
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
@@ -15,8 +16,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlin.reflect.*
-import kotlin.reflect.jvm.*
 import kotlin.text.Charsets
 
 public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
@@ -44,9 +43,19 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        return withContext(Dispatchers.IO) {
-            val reader = content.toInputStream().reader(charset)
-            objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+        try {
+            return withContext(Dispatchers.IO) {
+                val reader = content.toInputStream().reader(charset)
+                objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+            }
+        } catch (deserializeFailure: Exception) {
+            val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
+
+            when (deserializeFailure) {
+                is JsonParseException -> throw convertException
+                is JsonMappingException -> throw convertException
+                else -> throw deserializeFailure
+            }
         }
     }
 }
