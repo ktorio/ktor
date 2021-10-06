@@ -87,11 +87,15 @@ public class URLBuilder(
      */
     public fun build(): Url {
         applyOrigin()
+        val pathSegments = when {
+            pathSegments.size > 1 && pathSegments.first().isEmpty() -> pathSegments.drop(1)
+            else -> pathSegments
+        }
         return Url(
             protocol = protocol,
             host = host,
             specifiedPort = port,
-            pathSegments = pathSegments.let { if (it.size > 1 && it.first().isEmpty()) it.drop(1) else it },
+            pathSegments = pathSegments,
             parameters = parameters.build(),
             fragment = fragment,
             user = user,

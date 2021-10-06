@@ -5,7 +5,6 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
-import io.ktor.client.plugins.DefaultRequest.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -57,24 +56,25 @@ public class DefaultRequest private constructor(private val block: HttpRequestBu
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
             val defaultRequest = HttpRequestBuilder().apply(plugin.block).build()
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val newUrl = with(context.url) {
-                    if (host.isEmpty()) {
-                        val url = URLBuilder(defaultRequest.url)
-                        if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
-                            // path starts from "/"
-                            url.encodedPathSegments = encodedPathSegments
-                        } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
-                            url.encodedPathSegments = url.encodedPathSegments.dropLast(1) + encodedPathSegments
-                        }
-                        url.encodedFragment = encodedFragment
-                        url.encodedParameters = encodedParameters
-                        url
-                    } else {
-                        URLBuilder().takeFrom(context.url)
-                    }
+                if (context.url.host.isEmpty()) {
+                    mergeUrls(defaultRequest.url, context.url)
                 }
                 context.headers.appendMissing(defaultRequest.headers)
-                context.url.takeFrom(newUrl)
+            }
+        }
+
+        private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
+            val url = URLBuilder(baseUrl)
+            with(requestUrl) {
+                if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
+                    // path starts from "/"
+                    url.encodedPathSegments = encodedPathSegments
+                } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
+                    url.encodedPathSegments = url.encodedPathSegments.dropLast(1) + encodedPathSegments
+                }
+                url.encodedFragment = encodedFragment
+                url.encodedParameters = encodedParameters
+                takeFrom(url)
             }
         }
     }
