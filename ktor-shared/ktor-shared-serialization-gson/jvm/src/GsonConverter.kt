@@ -7,7 +7,6 @@ package io.ktor.shared.serializaion.gson
 import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -42,7 +41,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
                 gson.fromJson(reader, typeInfo.reifiedType)
             }
         } catch (deserializeFailure: JsonSyntaxException) {
-            throw BadRequestException("Illegal json parameter found", deserializeFailure)
+            throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
     }
 }

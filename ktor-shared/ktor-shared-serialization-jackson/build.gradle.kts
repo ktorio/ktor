@@ -8,7 +8,6 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                api(project(":ktor-server"))
                 api(project(":ktor-shared:ktor-shared-serialization"))
                 api("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
                 api("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_kotlin_version")

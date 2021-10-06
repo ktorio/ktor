@@ -10,12 +10,10 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.text.Charsets
@@ -51,12 +49,11 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
                 objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
             }
         } catch (deserializeFailure: Exception) {
-            val badRequestException = BadRequestException("Illegal json parameter found", deserializeFailure)
+            val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
 
             when (deserializeFailure) {
-                is JsonParseException -> throw badRequestException
-                is IOException -> throw badRequestException
-                is JsonMappingException -> throw badRequestException
+                is JsonParseException -> throw convertException
+                is JsonMappingException -> throw convertException
                 else -> throw deserializeFailure
             }
         }

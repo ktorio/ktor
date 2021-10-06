@@ -15,6 +15,8 @@ import io.ktor.shared.serialization.*
 import kotlin.test.*
 
 abstract class JsonContentNegotiationTest(private val converter: ContentConverter) {
+    protected var extraFieldResult = HttpStatusCode.OK
+
     data class Wrapper(val value: String)
 
     fun startServer(testApplicationEngine: Application) {
@@ -75,7 +77,7 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             addHeader("Content-Type", "application/json")
             setBody(""" {"value" : "value", "val" : "bad_json" } """)
         }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals(extraFieldResult, call.response.status())
         }
     }
 }

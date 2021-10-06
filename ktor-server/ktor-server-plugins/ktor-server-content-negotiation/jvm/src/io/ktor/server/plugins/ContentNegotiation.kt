@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.http.content.HttpStatusCodeContent
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.shared.serialization.*
@@ -216,11 +215,15 @@ public class ContentNegotiation internal constructor(
                     plugin.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
                         ?: throw UnsupportedMediaTypeException(requestContentType)
 
-                val converted = suitableConverter.converter.deserialize(
-                    charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                    typeInfo = subject.typeInfo,
-                    content = subject.value as ByteReadChannel
-                ) ?: throw UnsupportedMediaTypeException(requestContentType)
+                val converted = try {
+                    suitableConverter.converter.deserialize(
+                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
+                        typeInfo = subject.typeInfo,
+                        content = subject.value as ByteReadChannel
+                    ) ?: throw UnsupportedMediaTypeException(requestContentType)
+                } catch (convertException: ContentConvertException) {
+                    throw BadRequestException(convertException.message ?: "Can't convert parameters", convertException.cause)
+                }
 
                 proceedWith(ApplicationReceiveRequest(receive.typeInfo, converted, reusableValue = true))
             }
