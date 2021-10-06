@@ -222,7 +222,10 @@ public class ContentNegotiation internal constructor(
                         content = subject.value as ByteReadChannel
                     ) ?: throw UnsupportedMediaTypeException(requestContentType)
                 } catch (convertException: ContentConvertException) {
-                    throw BadRequestException(convertException.message ?: "Can't convert parameters", convertException.cause)
+                    throw BadRequestException(
+                        convertException.message ?: "Can't convert parameters",
+                        convertException.cause
+                    )
                 }
 
                 proceedWith(ApplicationReceiveRequest(receive.typeInfo, converted, reusableValue = true))

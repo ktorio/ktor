@@ -4,4 +4,4 @@
 
 package io.ktor.shared.serialization
 
-public open class ContentConvertException (message: String, cause: Throwable? = null) : Exception(message, cause)
+public open class ContentConvertException(message: String, cause: Throwable? = null) : Exception(message, cause)
