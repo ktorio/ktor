@@ -77,36 +77,32 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     // Path
     if (startIndex >= endIndex) {
-        encodedPath = if (urlString[endIndex - 1] == '/') "/" else ""
+        encodedPathSegments = if (urlString[endIndex - 1] == '/') listOf("", "") else listOf("")
         return this
     }
 
-    encodedPath = if (slashCount == 0) {
+    encodedPathSegments = if (slashCount == 0) {
         // Relative path
-        val encodedPath = encodedPath
-        val lastSlashIndex = encodedPath.lastIndexOf('/')
-
-        if (lastSlashIndex != encodedPath.length - 1) {
-            // Current path does not end in slash, get rid of last path segment.
-            if (lastSlashIndex != -1) {
-                encodedPath.substring(0, lastSlashIndex + 1)
-            } else {
-                "/"
-            }
-        } else {
-            // keep the whole path
-            encodedPath
-        }
+        // last item is either file name or empty string for directories
+        encodedPathSegments.dropLast(1)
     } else {
-        // overwrite the path
-        ""
+        emptyList()
     }
 
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
-    val rawPath = urlString.substring(startIndex, pathEnd)
-
-    encodedPath += rawPath
-    startIndex = pathEnd
+    if (pathEnd > startIndex) {
+        val rawPath = urlString.substring(startIndex, pathEnd)
+        val basePath = when {
+            encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
+            else -> encodedPathSegments
+        }
+        val relativePath = when (slashCount) {
+            1 -> listOf("")
+            else -> emptyList()
+        } + rawPath.split('/')
+        encodedPathSegments = basePath + relativePath
+        startIndex = pathEnd
+    }
 
     // Query
     if (startIndex < endIndex && urlString[startIndex] == '?') {

@@ -56,8 +56,8 @@ class URLBuilderTestJvm {
             takeFrom(URI.create(urlStr2))
         }
 
-        assertEquals(urlStr1, url1.buildString())
-        assertEquals(urlStr2, url2.buildString())
+        assertEquals("http://localhost/", url1.buildString())
+        assertEquals("http://localhost/?param1=foo", url2.buildString())
     }
 
     @Test

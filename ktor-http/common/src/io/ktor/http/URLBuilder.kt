@@ -56,6 +56,9 @@ public class URLBuilder(
         }
 
     public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPath() }
+        set(value) {
+            field = value.ifEmpty { listOf("") }
+        }
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
         set(value) {
@@ -84,6 +87,10 @@ public class URLBuilder(
      */
     public fun build(): Url {
         applyOrigin()
+        val pathSegments = when {
+            pathSegments.size > 1 && pathSegments.first().isEmpty() -> pathSegments.drop(1)
+            else -> pathSegments
+        }
         return Url(
             protocol = protocol,
             host = host,
@@ -100,14 +107,15 @@ public class URLBuilder(
 
     private fun applyOrigin() {
         if (host.isNotEmpty() || protocol.name == "file") return
-        val originUrl = Url(origin)
         host = originUrl.host
         if (protocol == URLProtocol.HTTP) protocol = originUrl.protocol
         if (port == DEFAULT_PORT) port = originUrl.specifiedPort
     }
 
     // Required to write external extension function
-    public companion object
+    public companion object {
+        private val originUrl = Url(origin)
+    }
 }
 
 private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
@@ -242,16 +250,8 @@ public val URLBuilder.authority: String
 public var URLBuilder.encodedPath: String
     get() {
         val path = encodedPathSegments.joinToString("/")
-        return if (encodedPathSegments.isEmpty() || path.startsWith('/')) path else "/$path"
+        return if (path.startsWith('/')) path else "/$path"
     }
     set(value) {
-        encodedPathSegments = when (value) {
-            "" -> mutableListOf()
-            "/" -> mutableListOf("")
-            else -> value.split('/').toMutableList().apply {
-                if (size > 1 && first().isEmpty()) {
-                    removeAt(0)
-                }
-            }
-        }
+        encodedPathSegments = value.split('/').toMutableList()
     }
