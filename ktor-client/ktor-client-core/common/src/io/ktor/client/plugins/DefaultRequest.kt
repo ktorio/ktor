@@ -60,10 +60,6 @@ public class DefaultRequest private constructor(private val block: HttpRequestBu
                 val newUrl = with(context.url) {
                     if (host.isEmpty()) {
                         val url = URLBuilder(defaultRequest.url)
-                        if (protocol != URLProtocol.HTTP) url.protocol = protocol
-                        if (port != DEFAULT_PORT) url.port = port
-                        if (user != null) url.encodedUser = encodedUser
-                        if (password != null) url.encodedPassword = encodedPassword
                         if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
                             // path starts from "/"
                             url.encodedPathSegments = encodedPathSegments
