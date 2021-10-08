@@ -9,7 +9,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 private val NEWLINE = "\r\n".toByteArray(Charsets.ISO_8859_1)
-private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + HttpHeaders.ContentRange.length
+private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentType.length + HttpHeaders.ContentRange.length
 
 /**
  * Start multirange response writer coroutine
@@ -59,4 +59,36 @@ private suspend fun ByteWriteChannel.writeHeaders(
     }.toByteArray(Charsets.ISO_8859_1)
 
     writeFully(headers)
+}
+
+internal fun calculateMultipleRangesBodyLength(
+    ranges: List<LongRange>,
+    fullLength: Long?,
+    boundary: String,
+    contentType: String
+): Long {
+    var contentLength = 0L
+
+    //header length + range size + newline
+    for (range in ranges)
+        contentLength += calculateHeadersLength(
+            range,
+            boundary,
+            contentType,
+            fullLength
+        ) + range.endInclusive - range.start + 3
+
+    //-- + boundary + -- + newline
+    contentLength += boundary.length + 6
+    return contentLength
+}
+
+private fun calculateHeadersLength(
+    range: LongRange,
+    boundary: String,
+    contentType: String,
+    fullLength: Long?
+): Int {
+    val contentRangeHeaderValue = contentRangeHeaderValue(range, fullLength, RangeUnits.Bytes)
+    return boundary.length + contentType.length + contentRangeHeaderValue.length + FIXED_HEADERS_PART_LENGTH
 }
