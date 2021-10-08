@@ -69,7 +69,7 @@ internal fun calculateMultipleRangesBodyLength(
 ): Long {
     var contentLength = 0L
 
-    //header length + range size + newline
+    // header length + range size + newline
     for (range in ranges)
         contentLength += calculateHeadersLength(
             range,
@@ -78,7 +78,7 @@ internal fun calculateMultipleRangesBodyLength(
             fullLength
         ) + range.endInclusive - range.start + 3
 
-    //-- + boundary + -- + newline
+    // -- + boundary + -- + newline
     contentLength += boundary.length + 6
     return contentLength
 }
