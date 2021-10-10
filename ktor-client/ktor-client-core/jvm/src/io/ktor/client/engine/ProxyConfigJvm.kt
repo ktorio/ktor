@@ -39,7 +39,7 @@ public actual fun ProxyConfig.resolveAddress(): NetworkAddress = address()
  */
 public actual val ProxyConfig.type: ProxyType
     get() = when (type()) {
-        Proxy.Type.DIRECT -> ProxyType.SOCKS
+        Proxy.Type.SOCKS -> ProxyType.SOCKS
         Proxy.Type.HTTP -> ProxyType.HTTP
         else -> ProxyType.UNKNOWN
     }
