@@ -124,6 +124,19 @@ class StaticContentTest {
     }
 
     @Test
+    fun testNullJarFile() = withTestApplication {
+        application.routing {
+            static {
+                resources()
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { result ->
+            assertEquals(result.response.status(), HttpStatusCode.NotFound)
+        }
+    }
+
+    @Test
     fun testStaticContentWrongPath() = withTestApplication {
         application.routing {
             static {

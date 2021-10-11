@@ -6,6 +6,7 @@ package io.ktor.server.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.plugins.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -39,6 +40,8 @@ public class JarFileContent(
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
+        if (jarEntry == null)
+            throw NotFoundException("Jar file not found")
         versions += LastModifiedVersion(jarEntry.lastModifiedTime)
     }
 
