@@ -208,7 +208,6 @@ public abstract interface class io/ktor/server/application/plugins/api/PluginBui
 }
 
 public final class io/ktor/server/application/plugins/api/PluginInstance {
-	public fun <init> ()V
 }
 
 public abstract class io/ktor/server/application/plugins/api/RelativePluginBuilder : io/ktor/server/application/plugins/api/PluginBuilderBase {

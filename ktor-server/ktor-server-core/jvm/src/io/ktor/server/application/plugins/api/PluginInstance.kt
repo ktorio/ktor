@@ -7,4 +7,4 @@ package io.ktor.server.application.plugins.api
 /**
  * An instance of the plugin installed to your application
  * */
-public class PluginInstance(internal val builder: PluginBuilder<*>)
+public class PluginInstance internal constructor(internal val builder: PluginBuilder<*>)
