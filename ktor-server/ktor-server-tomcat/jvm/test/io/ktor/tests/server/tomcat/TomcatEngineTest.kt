@@ -156,6 +156,7 @@ class TomcatClientCertTest :
             privateKeyPassword = { "changeit".toCharArray() },
         ).apply {
             keyStorePath = serverKeyStorePath
+            port = 0
 
             val trustStorePath = File.createTempFile("trustStore", "jks")
             trustStore = ca.trustStore(trustStorePath)
