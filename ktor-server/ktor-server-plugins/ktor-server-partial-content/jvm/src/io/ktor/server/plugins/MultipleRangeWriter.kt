@@ -67,20 +67,17 @@ internal fun calculateMultipleRangesBodyLength(
     boundary: String,
     contentType: String
 ): Long {
-    var contentLength = 0L
-
     // header length + range size + newline
-    for (range in ranges)
-        contentLength += calculateHeadersLength(
-            range,
+    val contentLength = ranges.sumOf {
+        calculateHeadersLength(
+            it,
             boundary,
             contentType,
             fullLength
-        ) + range.endInclusive - range.start + 3
-
+        ) + it.last - it.first + 3L
+    }
     // -- + boundary + -- + newline
-    contentLength += boundary.length + 6
-    return contentLength
+    return contentLength + boundary.length + 6
 }
 
 private fun calculateHeadersLength(

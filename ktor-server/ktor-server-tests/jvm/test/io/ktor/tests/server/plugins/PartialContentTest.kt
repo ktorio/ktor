@@ -23,6 +23,7 @@ class PartialContentTest {
 
     private val localPath = "plugins/StaticContentTest.kt"
     private val fileEtag = "etag-99"
+    private val contentType = "Content-Type: application/octet-stream"
 
     private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.(File) -> Unit): Unit =
         withTestApplication {
@@ -92,6 +93,8 @@ class PartialContentTest {
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 0), result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
+            assertTrue(contentType.match(ContentType.Application.OctetStream))
             checkContentLength(result)
         }
     }
@@ -105,6 +108,8 @@ class PartialContentTest {
             assertEquals(file.readChars(1, 2), result.response.content)
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
+            assertTrue(contentType.match(ContentType.Application.OctetStream))
             checkContentLength(result)
         }
     }
@@ -207,6 +212,8 @@ class PartialContentTest {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
         }.let { result ->
             checkContentLength(result)
+            val lines = String(result.response.byteContent!!).lines()
+            assertTrue(lines[0] == contentType || lines[1] == contentType)
 
             assertMultipart(result) { parts ->
                 assertEquals(listOf(file.readChars(0), file.readChars(2)), parts)
