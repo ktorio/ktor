@@ -30,7 +30,6 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
                 call.respond(wrapper.value)
             }
         }
-
     }
 
     @Test
