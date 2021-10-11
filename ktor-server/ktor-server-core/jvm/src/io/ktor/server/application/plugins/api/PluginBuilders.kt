@@ -7,10 +7,12 @@
 package io.ktor.server.application.plugins.api
 
 import io.ktor.server.application.*
+import io.ktor.server.application.plugins.api.debug.*
 import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.debug.*
 import io.ktor.util.pipeline.*
 import kotlin.random.*
 
@@ -118,6 +120,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
     private fun <T : Any, ContextT : CallHandlingContext> onDefaultPhaseWithMessage(
         interceptions: MutableList<Interception<T>>,
         phase: PipelinePhase,
+        handlerName: String,
         contextInit: (PipelineContext<T, ApplicationCall>) -> ContextT,
         block: suspend ContextT.(ApplicationCall, Any) -> Unit
     ) {
@@ -125,7 +128,17 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             Interception(
                 phase,
                 action = { pipeline ->
-                    pipeline.intercept(phase) { contextInit(this).block(call, subject) }
+                    pipeline.intercept(phase) {
+                        // Information about the plugin name is needed for Intellij Idea debugger.
+                        addToContextInDebugMode(PluginName(key.name)) {
+                            ijDebugReportHandlerStarted(pluginName = key.name, handler = handlerName)
+
+                            // Perform current plugin's handler
+                            contextInit(this@intercept).block(call, subject)
+
+                            ijDebugReportHandlerFinished(pluginName = key.name, handler = handlerName)
+                        }
+                    }
                 }
             )
         )
@@ -134,10 +147,11 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
     private fun <T : Any, ContextT : CallHandlingContext> onDefaultPhase(
         interceptions: MutableList<Interception<T>>,
         phase: PipelinePhase,
+        handlerName: String,
         contextInit: (PipelineContext<T, ApplicationCall>) -> ContextT,
         block: suspend ContextT.(ApplicationCall) -> Unit
     ) {
-        onDefaultPhaseWithMessage(interceptions, phase, contextInit) { call, _ -> block(call) }
+        onDefaultPhaseWithMessage(interceptions, phase, handlerName, contextInit) { call, _ -> block(call) }
     }
 
     /**
@@ -151,6 +165,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             plugin.onDefaultPhase(
                 plugin.callInterceptions,
                 ApplicationCallPipeline.Plugins,
+                PHASE_ON_CALL,
                 ::CallContext
             ) { call ->
                 block(call)
@@ -169,6 +184,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             plugin.onDefaultPhase(
                 plugin.onReceiveInterceptions,
                 ApplicationReceivePipeline.Transform,
+                PHASE_ON_CALL_RECEIVE,
                 ::CallReceiveContext,
                 block
             )
@@ -186,6 +202,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             plugin.onDefaultPhase(
                 plugin.onResponseInterceptions,
                 ApplicationSendPipeline.Transform,
+                PHASE_ON_CALL_RESPOND,
                 ::CallRespondContext,
                 block
             )
@@ -195,6 +212,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             plugin.onDefaultPhaseWithMessage(
                 plugin.afterResponseInterceptions,
                 ApplicationSendPipeline.After,
+                PHASE_ON_CALL_RESPOND_AFTER,
                 ::CallRespondAfterTransformContext,
                 block
             )
