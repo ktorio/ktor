@@ -8,9 +8,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.graalvm.compiler.hotspot.debug.BenchmarkCounters.*
 import org.junit.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 class ServerPluginTest {
     @Test
