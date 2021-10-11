@@ -54,7 +54,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
                 override val pluginConfig: PluginConfigT = config
             }
             pluginBuilder.setupPlugin(body)
-            return PluginInstance()
+            return PluginInstance(pluginBuilder)
         }
     }
 
@@ -104,7 +104,7 @@ public fun <PluginConfigT : Any> createSubroutePlugin(
                 override val pipeline: ApplicationCallPipeline = pipeline
             }
             pluginBuilder.setupPlugin(body)
-            return PluginInstance()
+            return PluginInstance(pluginBuilder)
         }
     }
 
