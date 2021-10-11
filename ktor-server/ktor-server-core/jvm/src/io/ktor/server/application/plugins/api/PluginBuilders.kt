@@ -230,11 +230,11 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
      * by the given [plugin] were already executed in the same stage.
      **/
     public fun afterPlugins(
-        vararg targetPlugins: Plugin<*, *, PluginBuilder<*>>,
+        vararg targetPlugins: Plugin<*, *, PluginInstance>,
         build: AfterPluginBuilder.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
-            AfterPluginBuilder(this, targetPlugins.map { pipeline.plugin(it) }).build()
+            AfterPluginBuilder(this, targetPlugins.map { pipeline.plugin(it).builder }).build()
         }
     }
 
@@ -249,11 +249,11 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
      * by the given [targetPlugins] were already executed in the same stage.
      **/
     public fun beforePlugins(
-        vararg targetPlugins: Plugin<*, *, PluginBuilder<*>>,
+        vararg targetPlugins: Plugin<*, *, PluginInstance>,
         build: BeforePluginsBuilder.() -> Unit
     ) {
         pipelineHandlers.add { pipeline ->
-            BeforePluginsBuilder(this, targetPlugins.map { pipeline.plugin(it) }).build()
+            BeforePluginsBuilder(this, targetPlugins.map { pipeline.plugin(it).builder }).build()
         }
     }
 

@@ -2,6 +2,7 @@ package io.ktor.tests.plugins.api
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.plugins.api.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -295,7 +296,7 @@ class ServerPluginTest {
     fun `test routing scoped install`() {
         class Config(var data: String)
 
-        val plugin = ("F", { Config("default") }) {
+        val plugin = createSubroutePlugin("F", { Config("default") }) {
             onCall {
                 context.call.respond(pluginConfig.data)
             }
@@ -354,7 +355,7 @@ class ServerPluginTest {
 
     @Test
     fun `test dependent routing scoped plugins`() {
-        val pluginF = ("F", {}) {
+        val pluginF = createSubroutePlugin("F", {}) {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
@@ -363,7 +364,7 @@ class ServerPluginTest {
             }
         }
 
-        val pluginG = ("G", {}) {
+        val pluginG = createSubroutePlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]
@@ -413,7 +414,7 @@ class ServerPluginTest {
             }
         }
 
-        val pluginG = ("G", {}) {
+        val pluginG = createSubroutePlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]
