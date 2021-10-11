@@ -4,6 +4,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.core.*
@@ -53,13 +54,17 @@ public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
     get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
 
 /**
- * Gets plugin instance for this pipeline, or fails with [MissingApplicationPluginException] if the plugin is not installed
+ * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
+ * if the plugin is not installed.
  * @throws MissingApplicationPluginException
- * @param plugin application plugin to lookup
+ * @param plugin plugin to lookup
  * @return an instance of plugin
  */
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
-    return pluginOrNull(plugin) ?: throw MissingApplicationPluginException(plugin.key)
+    return when (this) {
+        is Route -> findPluginInRoute(plugin)
+        else -> pluginOrNull(plugin)
+    } ?: throw MissingApplicationPluginException(plugin.key)
 }
 
 /**
