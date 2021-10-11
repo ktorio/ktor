@@ -134,7 +134,7 @@ internal expect class HttpClientCallState() {
 }
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
@@ -142,7 +142,7 @@ internal expect class HttpClientCallState() {
 public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T>()) as T
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
@@ -150,7 +150,7 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T
 public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInfo<T>()) as T
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T] described in [typeInfo].
+ * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type info [typeInfo].
  * @throws DoubleReceiveException If already called [body].

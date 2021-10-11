@@ -36,7 +36,7 @@ public expect interface ByteWriteChannel {
     public val totalBytesWritten: Long
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure cause exception or `null` if closed successfully or not yet closed
      */
     public val closedCause: Throwable?
 

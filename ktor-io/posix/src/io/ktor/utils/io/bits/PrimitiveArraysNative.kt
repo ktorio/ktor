@@ -285,7 +285,7 @@ public actual fun Memory.loadDoubleArray(
 }
 
 /**
- * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -299,7 +299,7 @@ public actual fun Memory.storeShortArray(
 }
 
 /**
- * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -330,7 +330,7 @@ public actual fun Memory.storeShortArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -344,7 +344,7 @@ public actual fun Memory.storeIntArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -375,7 +375,7 @@ public actual fun Memory.storeIntArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -389,7 +389,7 @@ public actual fun Memory.storeLongArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -420,7 +420,7 @@ public actual fun Memory.storeLongArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -434,7 +434,7 @@ public actual fun Memory.storeFloatArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -465,7 +465,7 @@ public actual fun Memory.storeFloatArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -479,7 +479,7 @@ public actual fun Memory.storeDoubleArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */

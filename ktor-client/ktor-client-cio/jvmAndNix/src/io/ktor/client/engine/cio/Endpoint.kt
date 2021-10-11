@@ -238,7 +238,7 @@ internal class Endpoint(
         }
 
     /**
-     * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns pair of
+     * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
      * connect timeout and socket timeout to be applied.
      */
     private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Long, Long> {

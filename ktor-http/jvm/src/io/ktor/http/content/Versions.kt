@@ -79,7 +79,7 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 
     /**
-     *  @return [VersionCheckResult.OK] if all header pass or there was no headers in the request,
+     *  @return [VersionCheckResult.OK] if all header pass or there were no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
      *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
      */

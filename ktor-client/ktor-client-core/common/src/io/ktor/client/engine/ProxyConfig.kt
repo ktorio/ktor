@@ -28,7 +28,7 @@ public enum class ProxyType {
 /**
  * Resolve remote address of [ProxyConfig].
  *
- * This operations can block.
+ * This operation can block.
  */
 public expect fun ProxyConfig.resolveAddress(): NetworkAddress
 

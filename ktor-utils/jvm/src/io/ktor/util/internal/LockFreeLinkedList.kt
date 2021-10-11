@@ -686,7 +686,7 @@ public open class LockFreeLinkedListNode {
                 next = nextNext.ref
                 continue
             }
-            // move the the left until first non-removed node
+            // move the left until first non-removed node
             val prevNext = prev.next
             if (prevNext is Removed) {
                 if (last != null) {
@@ -719,7 +719,7 @@ public open class LockFreeLinkedListNode {
 
         var last: Node? = null // will be set so that last.next === prev
         while (true) {
-            // move the the left until first non-removed node
+            // move the left until first non-removed node
             val prevNext = prev._next.value
             if (prevNext === op) return prev // part of the same op -- don't recurse, didn't correct prev
             if (prevNext is OpDescriptor) { // help & retry

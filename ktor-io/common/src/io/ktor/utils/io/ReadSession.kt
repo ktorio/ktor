@@ -37,7 +37,7 @@ public suspend inline fun ByteReadChannel.read(
 @Deprecated("Use read { } instead.")
 public interface ReadSession {
     /**
-     * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
+     * Number of bytes available for read. However it doesn't necessarily mean that all available bytes could be
      * requested at once
      */
     public val availableForRead: Int
@@ -72,7 +72,7 @@ public interface SuspendableReadSession : ReadSession {
      * @return true if there are [atLeast] bytes available or false if end of stream encountered (there still could be
      * bytes available but less than [atLeast])
      * @throws Throwable if the channel has been closed with an exception or cancelled
-     * @throws IllegalArgumentException if [atLeast] is negative to too big (usually bigger that 4088)
+     * @throws IllegalArgumentException if [atLeast] is negative to too big (usually bigger than 4088)
      */
     public suspend fun await(atLeast: Int = 1): Boolean
 }

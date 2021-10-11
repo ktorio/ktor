@@ -30,7 +30,7 @@ public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflect
     defaultSessionSerializer<T>() as SessionSerializerReflection<T>
 
 /**
- * Creates the the default [SessionSerializer] for class [type]
+ * Creates the default [SessionSerializer] for class [type]
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated(
