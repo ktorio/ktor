@@ -236,6 +236,21 @@ public abstract class io/ktor/server/application/plugins/api/ServerRoutingScoped
 	public fun getConfigKey ()Lio/ktor/util/AttributeKey;
 }
 
+public final class io/ktor/server/application/plugins/api/debug/PluginName : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lio/ktor/server/application/plugins/api/debug/PluginName$Key;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/ktor/server/application/plugins/api/debug/PluginName;
+	public static synthetic fun copy$default (Lio/ktor/server/application/plugins/api/debug/PluginName;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/application/plugins/api/debug/PluginName;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPluginName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/application/plugins/api/debug/PluginName$Key : kotlin/coroutines/CoroutineContext$Key {
+}
+
 public abstract interface class io/ktor/server/config/ApplicationConfig {
 	public abstract fun config (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public abstract fun configList (Ljava/lang/String;)Ljava/util/List;
