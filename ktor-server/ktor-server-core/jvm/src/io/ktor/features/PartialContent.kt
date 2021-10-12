@@ -230,7 +230,8 @@ public class PartialContent(private val maxRangeCount: Int) {
         ) : PartialOutgoingContent(original) {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
-            override val contentLength: Long? get() = null
+
+            override val contentLength: Long? get() = range.endInclusive - range.start + 1
 
             override fun readFrom(): ByteReadChannel = original.readFrom(range)
 
@@ -253,7 +254,14 @@ public class PartialContent(private val maxRangeCount: Int) {
         ) : PartialOutgoingContent(original), CoroutineScope {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
-            override val contentLength: Long? get() = null
+
+            override val contentLength: Long? = calculateMultipleRangesBodyLength(
+                ranges,
+                length,
+                boundary,
+                original.contentType.toString()
+            )
+
             override val contentType: ContentType?
                 get() = ContentType.MultiPart.ByteRanges.withParameter(
                     "boundary",
@@ -265,7 +273,7 @@ public class PartialContent(private val maxRangeCount: Int) {
                 ranges,
                 length,
                 boundary,
-                contentType.toString()
+                original.contentType.toString()
             )
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {

@@ -23,6 +23,7 @@ class PartialContentTest {
 
     private val localPath = "features/StaticContentTest.kt"
     private val fileEtag = "etag-99"
+    private val contentType = "Content-Type: application/octet-stream"
 
     private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.(File) -> Unit): Unit =
         withTestApplication {
@@ -66,6 +67,7 @@ class PartialContentTest {
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            checkContentLength(result)
         }
     }
 
@@ -78,6 +80,7 @@ class PartialContentTest {
             assertEquals("bytes 0-4/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 4), result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            checkContentLength(result)
         }
     }
 
@@ -90,6 +93,9 @@ class PartialContentTest {
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 0), result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
+            assertTrue(contentType.match(ContentType.Application.OctetStream))
+            checkContentLength(result)
         }
     }
 
@@ -102,6 +108,9 @@ class PartialContentTest {
             assertEquals(file.readChars(1, 2), result.response.content)
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
+            assertTrue(contentType.match(ContentType.Application.OctetStream))
+            checkContentLength(result)
         }
     }
 
@@ -143,6 +152,7 @@ class PartialContentTest {
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            checkContentLength(result)
         }
     }
 
@@ -155,6 +165,7 @@ class PartialContentTest {
             assertEquals(file.readChars(0), result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            checkContentLength(result)
         }
     }
 
@@ -200,7 +211,9 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
         }.let { result ->
-            assertNull(result.response.headers[HttpHeaders.ContentLength])
+            checkContentLength(result)
+            val lines = String(result.response.byteContent!!).lines()
+            assertTrue(lines[0] == contentType || lines[1] == contentType)
 
             assertMultipart(result) { parts ->
                 assertEquals(listOf(file.readChars(0), file.readChars(2)), parts)
@@ -226,6 +239,7 @@ class PartialContentTest {
             assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 2), result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            checkContentLength(result)
         }
     }
 
@@ -237,6 +251,7 @@ class PartialContentTest {
         }.let { result ->
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+            checkContentLength(result)
         }
     }
 
@@ -256,6 +271,7 @@ class PartialContentTest {
         }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
+            checkContentLength(result)
         }
     }
 
@@ -269,6 +285,7 @@ class PartialContentTest {
         }.let { result ->
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+            checkContentLength(result)
         }
 
         handleRequest(HttpMethod.Get, localPath) {
@@ -277,6 +294,7 @@ class PartialContentTest {
         }.let { result ->
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+            checkContentLength(result)
         }
 
         handleRequest(HttpMethod.Get, localPath) {
@@ -312,6 +330,13 @@ class PartialContentTest {
         assertTrue { parts.isNotEmpty() }
 
         block(parts)
+    }
+
+    private fun checkContentLength(result : TestApplicationCall) {
+        assertEquals(
+            result.response.byteContent!!.size.toLong(),
+            result.response.headers[HttpHeaders.ContentLength]!!.toLong()
+        )
     }
 
     private fun BufferedReader.parseMultipart(boundary: String): List<String> {
