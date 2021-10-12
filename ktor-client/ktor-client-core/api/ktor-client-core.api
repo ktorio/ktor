@@ -272,6 +272,19 @@ public final class io/ktor/client/plugins/DefaultRequest {
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder : io/ktor/http/HttpMessageBuilder {
+	public fun getHeaders ()Lio/ktor/http/HeadersBuilder;
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getPort ()I
+	public final fun getUrl ()Lio/ktor/http/URLBuilder;
+	public final fun setHost (Ljava/lang/String;)V
+	public final fun setPort (I)V
+	public final fun url (Ljava/lang/String;)V
+	public final fun url (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun url (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun url$default (Lio/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
 public final class io/ktor/client/plugins/DefaultRequest$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/plugins/DefaultRequest;Lio/ktor/client/HttpClient;)V
@@ -982,7 +995,7 @@ public final class io/ktor/client/request/HttpRequestJvmKt {
 }
 
 public final class io/ktor/client/request/HttpRequestKt {
-	public static final fun headers (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/HeadersBuilder;
+	public static final fun headers (Lio/ktor/http/HttpMessageBuilder;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/HeadersBuilder;
 	public static final fun invoke (Lio/ktor/client/request/HttpRequestBuilder$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/request/HttpRequestBuilder;
 	public static final fun invoke (Lio/ktor/client/request/HttpRequestBuilder$Companion;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/request/HttpRequestBuilder;
 	public static synthetic fun invoke$default (Lio/ktor/client/request/HttpRequestBuilder$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/request/HttpRequestBuilder;
@@ -1040,14 +1053,14 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 }
 
 public final class io/ktor/client/request/UtilsKt {
-	public static final fun accept (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/ContentType;)V
-	public static final fun basicAuth (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;)V
-	public static final fun bearerAuth (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
-	public static final fun cookie (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
-	public static synthetic fun cookie$default (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
+	public static final fun accept (Lio/ktor/http/HttpMessageBuilder;Lio/ktor/http/ContentType;)V
+	public static final fun basicAuth (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun bearerAuth (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;)V
+	public static final fun cookie (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
+	public static synthetic fun cookie$default (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/String;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
 	public static final fun getHost (Lio/ktor/client/request/HttpRequestBuilder;)Ljava/lang/String;
 	public static final fun getPort (Lio/ktor/client/request/HttpRequestBuilder;)I
-	public static final fun header (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/Object;)V
+	public static final fun header (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/Object;)V
 	public static final fun parameter (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;Ljava/lang/Object;)V
 	public static final fun setHost (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 	public static final fun setPort (Lio/ktor/client/request/HttpRequestBuilder;I)V
