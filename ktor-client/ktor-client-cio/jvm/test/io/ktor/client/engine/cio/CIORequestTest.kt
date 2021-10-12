@@ -15,6 +15,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -22,6 +23,7 @@ import java.nio.channels.*
 import kotlin.test.*
 import kotlin.test.Test
 
+@OptIn(InternalAPI::class)
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
 
@@ -67,15 +69,15 @@ class CIORequestTest : TestWithKtor() {
     }
 
     @Test
-    fun requestTimeoutFromHttpTimeoutFeatureIsUsedAndHasHigherPriorityThanFromConfiguration() {
+    fun testTimeoutPriority() {
         testWithEngine(CIO) {
             config {
                 engine {
-                    requestTimeout = 10
+                    requestTimeout = 2000
                 }
 
                 install(HttpTimeout) {
-                    requestTimeoutMillis = 200
+                    requestTimeoutMillis = 1
                 }
             }
 
@@ -83,6 +85,22 @@ class CIORequestTest : TestWithKtor() {
                 assertFailsWith<HttpRequestTimeoutException> {
                     client.get<HttpStatement>(path = "/delay", port = serverPort).execute()
                 }
+            }
+        }
+
+        testWithEngine(CIO) {
+            config {
+                engine {
+                    requestTimeout = 1
+                }
+
+                install(HttpTimeout) {
+                    requestTimeoutMillis = 2000
+                }
+            }
+
+            test { client ->
+                client.get<HttpStatement> { url(path = "/delay", port = serverPort) }.execute()
             }
         }
     }
