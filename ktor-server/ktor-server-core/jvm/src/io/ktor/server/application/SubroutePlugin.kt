@@ -11,8 +11,8 @@ import io.ktor.util.pipeline.*
 /**
  * Defines a Plugin that can be installed into [Routing]
  * @param TPipeline is the type of the pipeline this plugin is compatible with
- * @param TConfiguration is the type for the configuration object for this Plugin
- * @param TPlugin is the type for the instance of the Plugin object
+ * @param TConfiguration is the configuration object type for this Plugin
+ * @param TPlugin is the instance type of the Plugin object
  */
 public interface SubroutePlugin<TConfiguration : Any, TPlugin : Any> :
     Plugin<Route, TConfiguration, TPlugin> {

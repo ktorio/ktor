@@ -43,7 +43,7 @@ public interface OnCallReceive {
     /**
      * Defines how current [PluginBuilder] needs to transform data received from a client.
      *
-     * @param block An action that needs to be executed when your server receives data from a client.
+     * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public operator fun invoke(block: suspend CallReceiveContext.(ApplicationCall) -> Unit): Unit
 }

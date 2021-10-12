@@ -10,10 +10,9 @@ import io.ktor.util.*
 
 
 /**
- * Creates a [ServerPluginFactory] that can be installed into [Application].
+ * Creates an [ApplicationPlugin] that can be installed into [Application].
  *
- * @param name A name of your new plugin that will be used if you need find an instance of
- * your plugin when it is installed to an [Application].
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
  * note that it may be modified later when a user of your plugin calls [Application.install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
@@ -48,8 +47,8 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
             val config = createConfiguration()
             config.configure()
 
-            val self = this
-            val pluginBuilder = object : PluginBuilder.ApplicationPluginBuilder<PluginConfigT>(self) {
+            val currentPlugin = this
+            val pluginBuilder = object : PluginBuilder.ApplicationPluginBuilder<PluginConfigT>(currentPlugin) {
                 override val pipeline: ApplicationCallPipeline = pipeline
                 override val pluginConfig: PluginConfigT = config
             }
@@ -99,8 +98,8 @@ public fun <PluginConfigT : Any> createSubroutePlugin(
         override fun install(
             pipeline: Route
         ): PluginInstance {
-            val self = this
-            val pluginBuilder = object : PluginBuilder.SubroutePluginBuilder<PluginConfigT>(self) {
+            val currentPlugin = this
+            val pluginBuilder = object : PluginBuilder.SubroutePluginBuilder<PluginConfigT>(currentPlugin) {
                 override val pipeline: ApplicationCallPipeline = pipeline
             }
             pluginBuilder.setupPlugin(body)
@@ -109,11 +108,9 @@ public fun <PluginConfigT : Any> createSubroutePlugin(
     }
 
 /**
- * Creates a [ServerPluginFactory] that can be installed into [Application].
- * A canonical way to create a [PluginBuilder] without any configuration.
+ * Creates a [ApplicationPlugin] that can be installed into [Application].
  *
- * @param name A name of your new plugin that will be used if you need find an instance of
- * your plugin when it is installed to an [Application].
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
  *
@@ -138,11 +135,9 @@ public fun createApplicationPlugin(
     createApplicationPlugin(name, {}, body)
 
 /**
- * Creates a [ServerPluginFactory] that can be installed into [Application].
- * A canonical way to create a [PluginBuilder] without any configuration.
+ * Creates a [SubroutePlugin] that can be installed into [Application].
  *
- * @param name A name of your new plugin that will be used if you need find an instance of
- * your plugin when it is installed to an [Application].
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
  *

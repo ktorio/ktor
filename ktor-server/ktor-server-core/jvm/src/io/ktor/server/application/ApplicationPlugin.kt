@@ -13,8 +13,8 @@ import kotlinx.coroutines.*
 /**
  * Defines an installable Plugin
  * @param TPipeline is the type of the pipeline this plugin is compatible with
- * @param TConfiguration is the type for the configuration object for this Plugin
- * @param TPlugin is the type for the instance of the Plugin object
+ * @param TConfiguration is the configuration object type for this Plugin
+ * @param TPlugin is the instance type of the Plugin object
  */
 @Suppress("AddVarianceModifier")
 public interface Plugin<
@@ -30,8 +30,8 @@ public interface Plugin<
 /**
  * Defines a Plugin that is installed into Application
  * @param TPipeline is the type of the pipeline this plugin is compatible with
- * @param TConfiguration is the type for the configuration object for this Plugin
- * @param TPlugin is the type for the instance of the Plugin object
+ * @param TConfiguration is the configuration object type for this Plugin
+ * @param TPlugin is the instance type of the Plugin object
  */
 @Suppress("AddVarianceModifier")
 public interface ApplicationPlugin<
@@ -57,8 +57,8 @@ public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
  * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
  * if the plugin is not installed.
  * @throws MissingApplicationPluginException
- * @param plugin plugin to lookup
- * @return an instance of plugin
+ * @param plugin [Plugin] to lookup
+ * @return an instance of a plugin
  */
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
     return when (this) {

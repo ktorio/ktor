@@ -443,8 +443,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
     context: TContext
 ) {
-    // List of executed plugins with their handlers must be attached to the call's coroutine context in order
-    // to be available from Intellij debugger any time inside the call.
+    // A list of executed plugins with their handlers must be attached to the call's coroutine context
+    // in order to be available from the IntelliJ debugger any time inside the call.
     addToContextInDebugMode(PluginsTrace()) {
         execute(context, Unit)
     }

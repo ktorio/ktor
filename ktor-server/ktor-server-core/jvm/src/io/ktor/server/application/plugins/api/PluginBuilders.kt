@@ -84,13 +84,13 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
             get() = context.pluginConfig
 
         /**
-         * Unique key that identifies a plugin PluginConfigT
+         * A unique key that identifies a plugin PluginConfigT
          */
         public val configKey: AttributeKey<PluginConfigT> = pluginFactory.configKey
     }
 
     /**
-     * A pipeline PluginConfigT for the current plugin. See [ktor.io/docs/pipelines.html](https://ktor.io/docs/pipelines.html)
+     * A pipeline PluginConfigT for the current plugin. See [Pipelines](https://ktor.io/docs/pipelines.html)
      * for more information.
      **/
     internal abstract val pipeline: ApplicationCallPipeline
@@ -101,7 +101,7 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
     public val environment: ApplicationEnvironment? get() = pipeline.environment
 
     /**
-     * PluginConfigT of your current application (incl. host, port and anything else you can define in application.conf).
+     * Configuration of your current application (incl. host, port and anything else you can define in application.conf).
      **/
     public val applicationConfig: ApplicationConfig? get() = environment?.config
 
@@ -226,8 +226,8 @@ public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
      * @param build Defines the code of your plugin that needs to be executed after [targetPlugins].
      *
      * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
-     * (such as [onCall], [onCallRespond], and so on) and each of these actions will be executed right after all actions defined
-     * by the given [plugin] were already executed in the same stage.
+     * (such as [onCall], [onCallRespond], and so on). These actions are executed right after all actions defined
+     * by the given [plugin] are already executed in the same stage.
      **/
     public fun afterPlugins(
         vararg targetPlugins: Plugin<*, *, PluginInstance>,

@@ -11,7 +11,7 @@ import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
-class ServerPluginTest {
+class ApplicationPluginTest {
     @Test
     fun `test empty plugin does not break pipeline`(): Unit = withTestApplication {
         val plugin = createApplicationPlugin("F", createConfiguration = {}) {

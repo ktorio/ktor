@@ -31,7 +31,7 @@ public class CallContext(override val context: PipelineContext<Unit, Application
 
 /**
  * A context associated with the call.receive() action. Allows you to transform the received body.
- * [CallReceiveContext] is a receiverfor [PluginBuilder.onCallReceive] handler of your [PluginBuilder].
+ * [CallReceiveContext] is a receiver for [PluginBuilder.onCallReceive] handler of your [PluginBuilder].
  *
  * @see CallHandlingContext
  **/
