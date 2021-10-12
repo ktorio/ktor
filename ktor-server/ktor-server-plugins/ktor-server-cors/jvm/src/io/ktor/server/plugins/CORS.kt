@@ -176,14 +176,19 @@ public class CORS(configuration: Configuration) {
     }
 
     private fun ApplicationCall.methodOverride() {
-        if (!allHeaders.contains(HttpHeaders.XHttpMethodOverride))
+        if (!allHeaders.contains(HttpHeaders.XHttpMethodOverride)) {
             return
+        }
+        if (!request.headers.contains(HttpHeaders.XHttpMethodOverride)) {
+            return
+        }
+
         val method = request.headers[HttpHeaders.XHttpMethodOverride]?.let { HttpMethod.parse(it) }
             ?: request.httpMethod
 
-        if (attributes.contains(MutableOriginConnectionPointKey))
+        if (attributes.contains(MutableOriginConnectionPointKey)) {
             attributes[MutableOriginConnectionPointKey].method = method
-        else {
+        } else {
             mutableOriginConnectionPoint.method = method
             attributes.put(MutableOriginConnectionPointKey, mutableOriginConnectionPoint)
         }

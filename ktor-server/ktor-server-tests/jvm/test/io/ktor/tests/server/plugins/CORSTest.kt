@@ -917,6 +917,27 @@ class CORSTest {
     }
 
     @Test
+    fun testMethodOverrideWithWrongMethod() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, "NOEXISTSMETHOD")
+            }.let { call ->
+                assertEquals(HttpStatusCode.MethodNotAllowed, call.response.status())
+            }
+        }
+    }
+
+    @Test
     fun testMethodOverrideWithForwardedFor() {
         withTestApplication {
             application.install(CORS) {
