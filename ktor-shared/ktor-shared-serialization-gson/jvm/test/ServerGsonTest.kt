@@ -224,13 +224,16 @@ class ServerGsonTest {
                 val json = call.receive<JsonObject>()
 
                 val expected = JsonObject().apply {
-                    add("hello", JsonObject().apply {
-                        addProperty("ktor", "world")
-                    })
+                    add(
+                        "hello",
+                        JsonObject().apply {
+                            addProperty("ktor", "world")
+                        }
+                    )
                 }
 
                 assertEquals(expected, json)
-                call.respond(HttpStatusCode.OK)
+                call.respondText("OK")
             }
         }
 
