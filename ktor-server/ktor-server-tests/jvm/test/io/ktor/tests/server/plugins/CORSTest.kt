@@ -894,4 +894,153 @@ class CORSTest {
             }
         }
     }
+
+    @Test
+    fun testMethodOverride() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Head, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, HttpMethod.Get.value)
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testMethodOverrideWithForwardedFor() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.install(XForwardedHeaderSupport)
+
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals("localhost", host)
+                        assertEquals(80, port)
+                        assertEquals("client", remoteHost)
+                        assertEquals("http", scheme)
+                        assertEquals("HTTP/1.1", version)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Head, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, HttpMethod.Get.value)
+                addHeader(HttpHeaders.XForwardedFor, "client, proxy")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testMethodOverrideWithForwardedPort() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.install(XForwardedHeaderSupport)
+
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals("host", host)
+                        assertEquals(90, port)
+                        assertEquals("localhost", remoteHost)
+                        assertEquals("http", scheme)
+                        assertEquals("HTTP/1.1", version)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Head, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, HttpMethod.Get.value)
+                addHeader(HttpHeaders.XForwardedHost, "host:90")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testMethodOverrideWithForwardedNoPort() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.install(XForwardedHeaderSupport)
+
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals("host", host)
+                        assertEquals(80, port)
+                        assertEquals("localhost", remoteHost)
+                        assertEquals("http", scheme)
+                        assertEquals("HTTP/1.1", version)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Head, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, HttpMethod.Get.value)
+                addHeader(HttpHeaders.XForwardedHost, "host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testMethodOverrideWithForwarded() {
+        withTestApplication {
+            application.install(CORS) {
+                allowXHttpMethodOverride()
+            }
+
+            application.install(ForwardedHeaderSupport)
+
+            application.routing {
+                get("/") {
+                    with(call.request.origin) {
+                        assertEquals("host", host)
+                        assertEquals(443, port)
+                        assertEquals("client", remoteHost)
+                        assertEquals("https", scheme)
+                        assertEquals("HTTP/1.1", version)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Head, "/") {
+                addHeader(HttpHeaders.XHttpMethodOverride, HttpMethod.Get.value)
+                addHeader(HttpHeaders.Forwarded, "for=client;proto=https;host=host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
 }
