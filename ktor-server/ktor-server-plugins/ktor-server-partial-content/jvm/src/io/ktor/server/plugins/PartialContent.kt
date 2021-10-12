@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.http.content.HttpStatusCodeContent
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -232,7 +231,8 @@ public class PartialContent(private val maxRangeCount: Int) {
         ) : PartialOutgoingContent(original) {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
-            override val contentLength: Long? get() = null
+
+            override val contentLength: Long? get() = range.endInclusive - range.start + 1
 
             override fun readFrom(): ByteReadChannel = original.readFrom(range)
 
@@ -255,7 +255,14 @@ public class PartialContent(private val maxRangeCount: Int) {
         ) : PartialOutgoingContent(original), CoroutineScope {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
-            override val contentLength: Long? get() = null
+
+            override val contentLength: Long? = calculateMultipleRangesBodyLength(
+                ranges,
+                length,
+                boundary,
+                original.contentType.toString()
+            )
+
             override val contentType: ContentType?
                 get() = ContentType.MultiPart.ByteRanges.withParameter(
                     "boundary",
@@ -267,7 +274,7 @@ public class PartialContent(private val maxRangeCount: Int) {
                 ranges,
                 length,
                 boundary,
-                contentType.toString()
+                original.contentType.toString()
             )
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {
