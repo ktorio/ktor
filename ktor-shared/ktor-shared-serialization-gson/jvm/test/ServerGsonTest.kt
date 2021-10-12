@@ -2,7 +2,6 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import com.fasterxml.jackson.annotation.*
 import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -195,6 +194,33 @@ class ServerGsonTest {
 
         application.routing {
             post("/") {
+                val result = try {
+                    call.receive<NullValues>().toString()
+                } catch (expected: ContentTransformationException) {
+                    "OK"
+                }
+                call.respondText(result)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("null")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+    }
+
+    @Test
+    fun testReceiveValuesMap() = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson()
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
                 val json = call.receive<JsonObject>()
 
                 val expected = JsonObject().apply {
@@ -211,33 +237,6 @@ class ServerGsonTest {
         handleRequest(HttpMethod.Post, "/") {
             addHeader(HttpHeaders.ContentType, "application/json")
             setBody("{ hello: { ktor : world } }")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
-        }
-    }
-
-    @Test
-    fun testReceiveValuesMap() = withTestApplication {
-        application.install(ContentNegotiation) {
-            gson()
-            register(contentType = ContentType.Text.Any, converter = GsonConverter())
-        }
-
-        application.routing {
-            post("/") {
-                val result = try {
-                    call.receive<NullValues>().toString()
-                } catch (expected: ContentTransformationException) {
-                    "OK"
-                }
-                call.respondText(result)
-            }
-        }
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader(HttpHeaders.ContentType, "application/json")
-            setBody("null")
         }.let {
             assertEquals(HttpStatusCode.OK, it.response.status())
             assertEquals("OK", it.response.content)
