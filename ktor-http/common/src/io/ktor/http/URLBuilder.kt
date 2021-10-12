@@ -255,3 +255,21 @@ public var URLBuilder.encodedPath: String
     set(value) {
         encodedPathSegments = value.split('/').toMutableList()
     }
+
+/**
+ * Sets the url parts using the specified [scheme], [host], [port] and [path].
+ * Pass `null` to keep existing value in the [URLBuilder].
+ */
+public fun URLBuilder.set(
+    scheme: String? = null,
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
+    block: URLBuilder.() -> Unit = {}
+) {
+    if (scheme != null) protocol = URLProtocol.createOrDefault(scheme)
+    if (host != null) this.host = host
+    if (port != null) this.port = port
+    if (path != null) encodedPath = path
+    block(this)
+}

@@ -221,7 +221,7 @@ public class HttpResponseData constructor(
 /**
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
  */
-public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
+public fun HttpMessageBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
@@ -273,14 +273,8 @@ public fun HttpRequestBuilder.url(
     port: Int? = null,
     path: String? = null,
     block: URLBuilder.() -> Unit = {}
-): Unit { // ktlint-disable filename no-unit-return
-    url.apply {
-        if (scheme != null) protocol = URLProtocol.createOrDefault(scheme)
-        if (host != null) this.host = host
-        if (port != null) this.port = port
-        if (path != null) encodedPath = path
-        block(url)
-    }
+) {
+    url.set(scheme, host, port, path, block)
 }
 
 /**
