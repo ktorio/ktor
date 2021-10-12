@@ -1,3 +1,11 @@
+public final class io/ktor/shared/serialization/kotlinx/JsonSupportKt {
+	public static final fun getDefaultJson ()Lkotlinx/serialization/json/Json;
+	public static final fun json (Lio/ktor/shared/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;)V
+	public static synthetic fun json$default (Lio/ktor/shared/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
+	public static final fun serialization (Lio/ktor/shared/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlinx/serialization/BinaryFormat;)V
+	public static final fun serialization (Lio/ktor/shared/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlinx/serialization/StringFormat;)V
+}
+
 public final class io/ktor/shared/serialization/kotlinx/KotlinxSerializationConverter : io/ktor/shared/serialization/ContentConverter {
 	public fun <init> (Lkotlinx/serialization/SerialFormat;)V
 	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
