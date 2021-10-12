@@ -93,8 +93,7 @@ public class CORS(configuration: Configuration) {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
         when (checkOrigin(origin, call.request.origin)) {
-            OriginCheckResult.OK -> {
-            }
+            OriginCheckResult.OK -> {}
             OriginCheckResult.SkipCORS -> return
             OriginCheckResult.Failed -> {
                 context.respondCorsFailed()
@@ -176,22 +175,15 @@ public class CORS(configuration: Configuration) {
     }
 
     private fun ApplicationCall.methodOverride() {
-        if (!allHeaders.contains(HttpHeaders.XHttpMethodOverride)) {
+        val methodOverrideHeader = request.headers[HttpHeaders.XHttpMethodOverride]
+
+        if (!allHeaders.contains(HttpHeaders.XHttpMethodOverride) || methodOverrideHeader == null) {
             return
         }
-        if (!request.headers.contains(HttpHeaders.XHttpMethodOverride)) {
-            return
-        }
+        val attribute = mutableOriginConnectionPoint
+        attribute.method = HttpMethod.parse(methodOverrideHeader)
 
-        val method = request.headers[HttpHeaders.XHttpMethodOverride]?.let { HttpMethod.parse(it) }
-            ?: request.httpMethod
-
-        if (attributes.contains(MutableOriginConnectionPointKey)) {
-            attributes[MutableOriginConnectionPointKey].method = method
-        } else {
-            mutableOriginConnectionPoint.method = method
-            attributes.put(MutableOriginConnectionPointKey, mutableOriginConnectionPoint)
-        }
+        attributes.put(MutableOriginConnectionPointKey, attribute)
     }
 
     private fun ApplicationCall.corsVary() {
