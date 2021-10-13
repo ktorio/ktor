@@ -131,8 +131,13 @@ class StaticContentTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/").let { result ->
-            assertEquals(result.response.status(), HttpStatusCode.NotFound)
+        listOf(
+            "/",
+            "../build.gradle"
+        ).forEach { path ->
+            handleRequest(HttpMethod.Get, path).let { result ->
+                assertEquals(result.response.status(), HttpStatusCode.NotFound)
+            }
         }
     }
 

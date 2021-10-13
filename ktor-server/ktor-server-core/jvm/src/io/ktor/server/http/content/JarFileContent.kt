@@ -27,10 +27,10 @@ public class JarFileContent(
 ) : OutgoingContent.ReadChannelContent() {
 
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
-    private val jarEntry by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
+    private val jarEntry : JarEntry? by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
     private val jar by lazy(LazyThreadSafetyMode.NONE) { JarFile(jarFile) }
 
-    public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { if(jarEntry == null) false else !jarEntry.isDirectory }
+    public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { jarEntry?.isDirectory?.not() ?: false }
 
     public constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType) : this(
         zipFilePath.toFile(),
