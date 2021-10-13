@@ -20,7 +20,7 @@ import io.ktor.server.application.*
  **/
 public interface OnCall {
     /**
-     * Defines how processing an HTTP call needs to be modified by the current [ServerPlugin].
+     * Defines how processing an HTTP call needs to be modified by the current [PluginBuilder].
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
@@ -41,9 +41,9 @@ public interface OnCall {
  **/
 public interface OnCallReceive {
     /**
-     * Defines how current [ServerPlugin] needs to transform data received from a client.
+     * Defines how current [PluginBuilder] needs to transform data received from a client.
      *
-     * @param block An action that needs to be executed when your server receives data from a client.
+     * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public operator fun invoke(block: suspend CallReceiveContext.(ApplicationCall) -> Unit): Unit
 }
@@ -81,21 +81,4 @@ public interface OnCallRespond {
      * @param block An action that needs to be executed after transformation of the response body.
      **/
     public fun afterTransform(block: suspend CallRespondAfterTransformContext.(ApplicationCall, Any) -> Unit): Unit
-}
-
-/**
- * A context that is available inside a plugin creation block. It allows you to define handlers for different stages
- * (a.k.a. phases) of the HTTP pipeline.
- **/
-public interface PluginContext {
-    public val onCall: OnCall
-    public val onCallReceive: OnCallReceive
-    public val onCallRespond: OnCallRespond
-
-    /**
-     * Specifies a shutdown hook. This method is useful for closing resources allocated by the plugin.
-     *
-     * @param hook An action that needs to be executed when the application shuts down.
-     **/
-    public fun applicationShutdownHook(hook: (Application) -> Unit)
 }

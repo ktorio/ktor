@@ -8,16 +8,16 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * A [PluginContext] context that allows you to insert the [currentPlugin] actions before/after [otherPlugins].
+ * A [PluginBuilderBase] that allows you to insert the [currentPlugin] actions before/after [otherPlugins].
  **/
-public abstract class RelativePluginContext(
-    private val currentPlugin: ServerPlugin<*>,
-    private val otherPlugins: List<ServerPlugin<*>>
-) : PluginContext {
+public abstract class RelativePluginBuilder(
+    private val currentPlugin: PluginBuilder<*>,
+    private val otherPlugins: List<PluginBuilder<*>>
+) : PluginBuilderBase {
     private fun <T : Any> sortedPhases(
         interceptions: List<Interception<T>>,
         pipeline: Pipeline<*, ApplicationCall>,
-        otherPlugin: ServerPlugin<*>
+        otherPlugin: PluginBuilder<*>
     ): List<PipelinePhase> =
         interceptions
             .map { it.phase }
@@ -132,7 +132,7 @@ public abstract class RelativePluginContext(
         message = "Please note that applicationShutdownHook is not guaranteed to be executed before " +
             "or after another plugin"
     )
-    override fun applicationShutdownHook(hook: (Application) -> Unit) {
+    public override fun applicationShutdownHook(hook: (Application) -> Unit) {
         currentPlugin.environment?.monitor?.subscribe(ApplicationStopped) { app ->
             hook(app)
         }
@@ -142,10 +142,10 @@ public abstract class RelativePluginContext(
 /**
  * Contains handlers executed after the same handler is finished for all [otherPlugins].
  **/
-public class AfterPluginContext(
-    currentPlugin: ServerPlugin<*>,
-    otherPlugins: List<ServerPlugin<*>>
-) : RelativePluginContext(currentPlugin, otherPlugins) {
+public class AfterPluginBuilder(
+    currentPlugin: PluginBuilder<*>,
+    otherPlugins: List<PluginBuilder<*>>
+) : RelativePluginBuilder(currentPlugin, otherPlugins) {
     override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.lastOrNull()
 
     override fun insertPhase(
@@ -160,10 +160,10 @@ public class AfterPluginContext(
 /**
  * Contains handlers executed before the same handler is finished for all [otherPlugins].
  **/
-public class BeforePluginsContext(
-    currentPlugin: ServerPlugin<*>,
-    otherPlugins: List<ServerPlugin<*>>
-) : RelativePluginContext(currentPlugin, otherPlugins) {
+public class BeforePluginsBuilder(
+    currentPlugin: PluginBuilder<*>,
+    otherPlugins: List<PluginBuilder<*>>
+) : RelativePluginBuilder(currentPlugin, otherPlugins) {
     override fun selectPhase(phases: List<PipelinePhase>): PipelinePhase? = phases.firstOrNull()
 
     override fun insertPhase(
