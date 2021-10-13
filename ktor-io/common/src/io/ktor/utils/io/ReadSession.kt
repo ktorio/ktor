@@ -37,7 +37,7 @@ public suspend inline fun ByteReadChannel.read(
 @Deprecated("Use read { } instead.")
 public interface ReadSession {
     /**
-     * Number of bytes available for read. However it doesn't necessarily mean that all available bytes could be
+     * Number of bytes available for read. However it does not necessarily mean that all available bytes could be
      * requested at once
      */
     public val availableForRead: Int

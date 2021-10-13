@@ -33,7 +33,7 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
-     * A closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 
