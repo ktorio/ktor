@@ -25,9 +25,12 @@ class XHttpMethodOverrideTest {
                 call.respondText(call.request.origin.method.value)
             }
 
-            assertEquals("GET", handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
-            }.response.content)
+            assertEquals(
+                "GET",
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
+                }.response.content
+            )
         }
     }
 
@@ -43,9 +46,12 @@ class XHttpMethodOverrideTest {
                 call.respondText(call.request.origin.method.value)
             }
 
-            assertEquals("DELETE", handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
-            }.response.content)
+            assertEquals(
+                "DELETE",
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
+                }.response.content
+            )
         }
     }
 
@@ -63,11 +69,17 @@ class XHttpMethodOverrideTest {
                 }
             }
 
-            assertEquals("1", handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
-            }.response.content)
+            assertEquals(
+                "1",
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
+                }.response.content
+            )
 
-            assertEquals("2", handleRequest(HttpMethod.Get, "/").response.content)
+            assertEquals(
+                "2",
+                handleRequest(HttpMethod.Get, "/").response.content
+            )
         }
     }
 
@@ -83,9 +95,12 @@ class XHttpMethodOverrideTest {
                 call.respondText(call.request.origin.method.value)
             }
 
-            assertEquals("PATCH", handleRequest(HttpMethod.Post, "/") {
-                addHeader(HttpHeaders.XHttpMethodOverride, "PATCH")
-            }.response.content)
+            assertEquals(
+                "PATCH",
+                handleRequest(HttpMethod.Post, "/") {
+                    addHeader(HttpHeaders.XHttpMethodOverride, "PATCH")
+                }.response.content
+            )
         }
     }
 
@@ -103,10 +118,13 @@ class XHttpMethodOverrideTest {
                 call.respondText(call.request.origin.method.value)
             }
 
-            assertEquals("GET", handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
-                addHeader("X-My-Header", "GET")
-            }.response.content)
+            assertEquals(
+                "GET",
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.XHttpMethodOverride, "DELETE")
+                    addHeader("X-My-Header", "GET")
+                }.response.content
+            )
         }
     }
 
