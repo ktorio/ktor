@@ -12,6 +12,7 @@ import kotlin.reflect.*
 
 /**
  * `X-Forwarded-*` headers support
+ * See http://ktor.io/servers/features/forward-headers.html for details
  */
 public object XForwardedHeaderSupport :
     ApplicationPlugin<ApplicationCallPipeline, XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
