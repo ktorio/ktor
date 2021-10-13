@@ -794,6 +794,7 @@ public final class io/ktor/http/ParametersKt {
 	public static final fun parametersOf ()Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/Parameters;
+	public static final fun parametersOf (Ljava/util/Map;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf ([Lkotlin/Pair;)Lio/ktor/http/Parameters;
 	public static final fun plus (Lio/ktor/http/Parameters;Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
