@@ -88,8 +88,6 @@ public class CORS(configuration: Configuration) {
             call.corsVary()
         }
 
-        call.methodOverride()
-
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
         when (checkOrigin(origin, call.request.origin)) {
@@ -172,18 +170,6 @@ public class CORS(configuration: Configuration) {
         } else {
             response.header(HttpHeaders.AccessControlAllowOrigin, origin)
         }
-    }
-
-    private fun ApplicationCall.methodOverride() {
-        val methodOverrideHeader = request.headers[HttpHeaders.XHttpMethodOverride]
-
-        if (!allHeaders.contains(HttpHeaders.XHttpMethodOverride) || methodOverrideHeader == null) {
-            return
-        }
-        val attribute = mutableOriginConnectionPoint
-        attribute.method = HttpMethod.parse(methodOverrideHeader)
-
-        attributes.put(MutableOriginConnectionPointKey, attribute)
     }
 
     private fun ApplicationCall.corsVary() {
@@ -440,6 +426,7 @@ public class CORS(configuration: Configuration) {
         /**
          * Allow to send `X-Http-Method-Override` header
          */
+        @Suppress("unused")
         public fun allowXHttpMethodOverride() {
             header(HttpHeaders.XHttpMethodOverride)
         }
