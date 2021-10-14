@@ -29,6 +29,21 @@ class CORSTest {
         assertEquals(OriginCheckResult.SkipCORS, plugin.checkOrigin("1abc://host", dummyPoint()))
     }
 
+    @Test
+    fun originWithWildcardSubdomain() {
+        val plugin = CORS(
+            CORS.Configuration().apply {
+                allowSameOrigin = true
+                host("domain.com")
+                host("*.domain.com")
+            }
+        )
+
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://www.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("http://domain.net", dummyPoint()))
+    }
+
     private fun dummyPoint(): RequestConnectionPoint {
         return getConnectionPoint("scheme", "host", 12345)
     }
