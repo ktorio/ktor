@@ -76,15 +76,17 @@ public class CORS(configuration: Configuration) {
     }
 
     private val hostsNormalized =
-        HashSet<String>(configuration.hosts
-            .filterNot { it.contains('*') }
-            .map { normalizeOrigin(it) }
+        HashSet<String>(
+            configuration.hosts
+                .filterNot { it.contains('*') }
+                .map { normalizeOrigin(it) }
         )
 
     private val hostsWithWildcard =
-        HashSet<String>(configuration.hosts
-            .filter { it.contains('*') }
-            .map { normalizeOrigin(it) }
+        HashSet<String>(
+            configuration.hosts
+                .filter { it.contains('*') }
+                .map { normalizeOrigin(it) }
         )
 
     /**
