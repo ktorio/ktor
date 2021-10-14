@@ -10,7 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 
 /**
- * Support for overriding HTTP method by `X-Http-Method-Override` header.
+ * Supports overriding HTTP method by the `X-Http-Method-Override` header.
  */
 public object XHttpMethodOverrideSupport :
     ApplicationPlugin<ApplicationCallPipeline, XHttpMethodOverrideSupport.Configuration, XHttpMethodOverrideSupport.Configuration> {
@@ -32,7 +32,7 @@ public object XHttpMethodOverrideSupport :
 
     public class Configuration {
         /**
-         * Header name overriding HTTP method. `X-Http-Method-Override` by default.
+         * A header name overriding the HTTP method.
          */
         public var headerName: String = HttpHeaders.XHttpMethodOverride
     }
