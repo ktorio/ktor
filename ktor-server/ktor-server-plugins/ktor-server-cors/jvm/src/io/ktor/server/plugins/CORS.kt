@@ -77,11 +77,13 @@ public class CORS(configuration: Configuration) {
 
     private val hostsNormalized = HashSet<String>(configuration.hosts
         .filterNot { it.contains('*') }
-        .map { normalizeOrigin(it) })
+        .map { normalizeOrigin(it) }
+    )
 
     private val hostsWithWildcard = HashSet<String>(configuration.hosts
         .filter { it.contains('*') }
-        .map { normalizeOrigin(it) })
+        .map { normalizeOrigin(it) }
+    )
 
     /**
      * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
