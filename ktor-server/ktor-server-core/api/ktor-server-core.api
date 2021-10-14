@@ -672,6 +672,7 @@ public abstract class io/ktor/server/response/ResponseHeaders {
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	protected abstract fun getEngineHeaderNames ()Ljava/util/List;
 	protected abstract fun getEngineHeaderValues (Ljava/lang/String;)Ljava/util/List;
+	protected fun getManagedByEngineHeaders ()Ljava/util/Set;
 	public final fun values (Ljava/lang/String;)Ljava/util/List;
 }
 

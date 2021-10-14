@@ -4,6 +4,7 @@
 
 package io.ktor.server.tomcat
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
@@ -48,6 +49,8 @@ public class TomcatApplicationEngine(
     private var cancellationDeferred: CompletableJob? = null
 
     private val ktorServlet = object : KtorServlet() {
+        override val managedByEngineHeaders: Set<String>
+            get() = setOf(HttpHeaders.TransferEncoding)
         override val enginePipeline: EnginePipeline
             get() = this@TomcatApplicationEngine.pipeline
         override val application: Application
