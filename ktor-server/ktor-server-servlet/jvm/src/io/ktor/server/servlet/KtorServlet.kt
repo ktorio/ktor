@@ -26,6 +26,11 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
     /**
+     * Set of headers that will be managed my the engine and should not be added manually
+     */
+    protected open val managedByEngineHeaders: Set<String> = emptySet()
+
+    /**
      * Current application instance. Could be lazy
      */
     protected abstract val application: Application
@@ -115,7 +120,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,
-                parentCoroutineContext = coroutineContext
+                parentCoroutineContext = coroutineContext,
+                managedByEngineHeaders
             )
 
             try {
@@ -138,7 +144,13 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     private fun blockingService(request: HttpServletRequest, response: HttpServletResponse) {
         runBlocking(coroutineContext) {
-            val call = BlockingServletApplicationCall(application, request, response, this@runBlocking.coroutineContext)
+            val call = BlockingServletApplicationCall(
+                application,
+                request,
+                response,
+                this@runBlocking.coroutineContext,
+                managedByEngineHeaders
+            )
             enginePipeline.execute(call)
         }
     }
