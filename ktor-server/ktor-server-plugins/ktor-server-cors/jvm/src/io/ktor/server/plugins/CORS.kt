@@ -75,9 +75,13 @@ public class CORS(configuration: Configuration) {
         else -> null
     }
 
-    private val hostsNormalized = HashSet<String>(configuration.hosts.filterNot { it.contains('*') }.map { normalizeOrigin(it) })
+    private val hostsNormalized = HashSet<String>(configuration.hosts
+        .filterNot { it.contains('*') }
+        .map { normalizeOrigin(it) })
 
-    private val hostsWithWildcard = HashSet<String>(configuration.hosts.filter { it.contains('*') }.map { normalizeOrigin(it) })
+    private val hostsWithWildcard = HashSet<String>(configuration.hosts
+        .filter { it.contains('*') }
+        .map { normalizeOrigin(it) })
 
     /**
      * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
@@ -93,7 +97,8 @@ public class CORS(configuration: Configuration) {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
         when (checkOrigin(origin, call.request.origin)) {
-            OriginCheckResult.OK -> {}
+            OriginCheckResult.OK -> {
+            }
             OriginCheckResult.SkipCORS -> return
             OriginCheckResult.Failed -> {
                 context.respondCorsFailed()
