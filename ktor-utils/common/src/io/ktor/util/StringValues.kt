@@ -388,6 +388,22 @@ public fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringVa
     }
 }
 
+/**
+ * Appends [name] [value] pair if there are no values associated with [name]
+ */
+public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): StringValuesBuilder = apply {
+    if (!contains(name)) return@apply
+    append(name, value)
+}
+
+/**
+ * Appends [name] [value] pair if there is no existing [name] [value] pair
+ */
+public fun StringValuesBuilder.appendIfNameAndValueAbsent(name: String, value: String): StringValuesBuilder = apply {
+    if (!contains(name, value)) return@apply
+    append(name, value)
+}
+
 private fun entriesEquals(a: Set<Map.Entry<String, List<String>>>, b: Set<Map.Entry<String, List<String>>>): Boolean {
     return a == b
 }

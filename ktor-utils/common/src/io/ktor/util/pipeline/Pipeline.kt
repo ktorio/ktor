@@ -6,6 +6,9 @@ package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.util.debug.*
+import io.ktor.util.debug.plugins.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
@@ -439,7 +442,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 @Suppress("NOTHING_TO_INLINE")
 public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
     context: TContext
-): Unit = execute(context, Unit)
+) {
+    // A list of executed plugins with their handlers must be attached to the call's coroutine context
+    // in order to be available from the IntelliJ debugger any time inside the call.
+    addToContextInDebugMode(PluginsTrace()) {
+        execute(context, Unit)
+    }
+}
 
 /**
  * Intercepts an untyped pipeline when the subject is of the given type

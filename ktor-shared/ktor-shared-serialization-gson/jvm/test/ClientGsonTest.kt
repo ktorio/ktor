@@ -6,6 +6,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
 import io.ktor.shared.serializaion.gson.*
+import org.junit.*
 
 class ClientGsonTest : AbstractClientContentNegotiationTest() {
     private val converter = GsonConverter()
@@ -16,5 +17,7 @@ class ClientGsonTest : AbstractClientContentNegotiationTest() {
         register(contentType, converter)
     }
 
+    @Test
+    @Ignore
     override fun testSealed() {}
 }

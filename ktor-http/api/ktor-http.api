@@ -794,6 +794,7 @@ public final class io/ktor/http/ParametersKt {
 	public static final fun parametersOf ()Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/Parameters;
+	public static final fun parametersOf (Ljava/util/Map;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf ([Lkotlin/Pair;)Lio/ktor/http/Parameters;
 	public static final fun plus (Lio/ktor/http/Parameters;Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
@@ -907,6 +908,8 @@ public final class io/ktor/http/URLBuilderKt {
 	public static final fun path (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)V
 	public static final fun pathComponents (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun pathComponents (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final fun set (Lio/ktor/http/URLBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun set$default (Lio/ktor/http/URLBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun setEncodedPath (Lio/ktor/http/URLBuilder;Ljava/lang/String;)V
 }
 
