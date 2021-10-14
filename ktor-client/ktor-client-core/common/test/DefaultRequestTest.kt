@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import kotlin.test.*
 
 /*
@@ -79,18 +80,22 @@ class DefaultRequestTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
-                    respond(it.headers["header-1"] + " " + it.headers["header-2"])
+                    respond(it.headers.getAll("header-1")!!.joinToString() + ", " + it.headers["header-2"])
                 }
             }
 
             defaultRequest {
-                headers["header-1"] = "value-default"
+                headers.append("header-1", "value-default-1")
+                headers.appendIfNameAbsent("header-2", "value-default-2")
             }
         }
 
         assertEquals(
-            "value-default value-2",
-            client.get { headers["header-2"] = "value-2" }.bodyAsText()
+            "value-1, value-default-1, value-2",
+            client.get {
+                headers["header-1"] = "value-1" // appends
+                headers["header-2"] = "value-2" // sets
+            }.bodyAsText()
         )
     }
 }

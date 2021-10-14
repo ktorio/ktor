@@ -32,34 +32,47 @@ import io.ktor.util.*
  *   request = `/root/file.html`,
  *   result = `https://example.com/root/file.html`
  *
+ * Headers of the builder will be pre-populated with request headers.
+ * You can use [HeadersBuilder.contains], [HeadersBuilder.appendIfNameMissing]
+ * and [HeadersBuilder.appendIfNameAndValueMissing] to avoid appending some header twice.
+ *
  * Usage:
  * ```
  * val client = HttpClient {
  *   defaultRequest {
  *     url("https://base.url/dir/")
- *     headers.append(HttpHeaders.ContentType, ContentType.Application.Json)
+ *     headers.appendIfNameMissing(HttpHeaders.ContentType, ContentType.Application.Json)
  *   }
  * }
- * client.get("file") // <- requests "https://base.url/dir/file"
- * client.get("/other_root/file") // <- requests "https://base.url/other_root/file"
- * client.get("//other.host/path") // <- requests "https://other.host/path"
+ * client.get("file")
+ *   // <- requests "https://base.url/dir/file", ContentType = Application.Json
+ * client.get("/other_root/file")
+ *   // <- requests "https://base.url/other_root/file", ContentType = Application.Json
+ * client.get("//other.host/path")
+ *   // <- requests "https://other.host/path", ContentType = Application.Json
+ * client.get("https://some.url") { HttpHeaders.ContentType = ContentType.Application.Xml }
+ *   // <- requests "https://some.url/", ContentType = Application.Xml
  * ```
  */
-public class DefaultRequest private constructor(private val block: HttpRequestBuilder.() -> Unit) {
+public class DefaultRequest private constructor(private val block: DefaultRequestBuilder.() -> Unit) {
 
-    public companion object Plugin : HttpClientPlugin<HttpRequestBuilder, DefaultRequest> {
+    public companion object Plugin : HttpClientPlugin<DefaultRequestBuilder, DefaultRequest> {
         override val key: AttributeKey<DefaultRequest> = AttributeKey("DefaultRequest")
 
-        override fun prepare(block: HttpRequestBuilder.() -> Unit): DefaultRequest =
+        override fun prepare(block: DefaultRequestBuilder.() -> Unit): DefaultRequest =
             DefaultRequest(block)
 
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
-            val defaultRequest = HttpRequestBuilder().apply(plugin.block).build()
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                if (context.url.host.isEmpty()) {
-                    mergeUrls(defaultRequest.url, context.url)
+                val defaultRequest = DefaultRequestBuilder().apply {
+                    headers.appendAll(context.headers)
+                    plugin.block(this)
                 }
-                context.headers.appendMissing(defaultRequest.headers)
+                val defaultUrl = defaultRequest.url.build()
+                if (context.url.host.isEmpty()) {
+                    mergeUrls(defaultUrl, context.url)
+                }
+                context.headers.appendMissing(defaultRequest.headers.build())
             }
         }
 
@@ -78,12 +91,65 @@ public class DefaultRequest private constructor(private val block: HttpRequestBu
             }
         }
     }
+
+    /**
+     * Configuration object for [DefaultRequestBuilder] plugin
+     */
+    public class DefaultRequestBuilder internal constructor() : HttpMessageBuilder {
+
+        override val headers: HeadersBuilder = HeadersBuilder()
+        public val url: URLBuilder = URLBuilder()
+
+        /**
+         * Executes a [block] that configures the [URLBuilder] associated to this request.
+         */
+        public fun url(block: URLBuilder.() -> Unit): Unit = block(url)
+
+        /**
+         * Sets the [url] using the specified [scheme], [host], [port] and [path].
+         * Pass `null` to keep existing value in the [URLBuilder].
+         */
+        public fun url(
+            scheme: String? = null,
+            host: String? = null,
+            port: Int? = null,
+            path: String? = null,
+            block: URLBuilder.() -> Unit = {}
+        ) {
+            url.set(scheme, host, port, path, block)
+        }
+
+        /**
+         * Sets the [HttpRequestBuilder.url] from [urlString].
+         */
+        public fun url(urlString: String) {
+            url.takeFrom(urlString)
+        }
+
+        /**
+         * Gets the associated URL's host.
+         */
+        public var host: String
+            get() = url.host
+            set(value) {
+                url.host = value
+            }
+
+        /**
+         * Gets the associated URL's port.
+         */
+        public var port: Int
+            get() = url.port
+            set(value) {
+                url.port = value
+            }
+    }
 }
 
 /**
  * Set default request parameters. See [DefaultRequest]
  */
-public fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.DefaultRequestBuilder.() -> Unit) {
     install(DefaultRequest) {
         block()
     }

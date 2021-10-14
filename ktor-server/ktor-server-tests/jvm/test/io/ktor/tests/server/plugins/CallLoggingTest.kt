@@ -311,5 +311,4 @@ class CallLoggingTest {
 
     private fun colored(value: Any, color: Ansi.Color): String =
         Ansi.ansi().fg(color).a(value).reset().toString()
-
 }

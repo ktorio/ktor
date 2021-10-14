@@ -67,15 +67,15 @@ class CIORequestTest : TestWithKtor() {
     }
 
     @Test
-    fun requestTimeoutFromHttpTimeoutPluginIsUsedAndHasHigherPriorityThanFromConfiguration() {
+    fun testTimeoutPriority() {
         testWithEngine(CIO) {
             config {
                 engine {
-                    requestTimeout = 10
+                    requestTimeout = 2000
                 }
 
                 install(HttpTimeout) {
-                    requestTimeoutMillis = 200
+                    requestTimeoutMillis = 1
                 }
             }
 
@@ -83,6 +83,22 @@ class CIORequestTest : TestWithKtor() {
                 assertFailsWith<HttpRequestTimeoutException> {
                     client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
                 }
+            }
+        }
+
+        testWithEngine(CIO) {
+            config {
+                engine {
+                    requestTimeout = 1
+                }
+
+                install(HttpTimeout) {
+                    requestTimeoutMillis = 2000
+                }
+            }
+
+            test { client ->
+                client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
             }
         }
     }
