@@ -83,10 +83,14 @@ public class CORS(configuration: Configuration) {
         )
 
     private val hostsWithWildcard =
-        HashSet<String>(
+        HashSet<Pair<String, String>>(
             configuration.hosts
                 .filter { it.contains('*') }
-                .map { normalizeOrigin(it) }
+                .map {
+                    val normalizedOrigin = normalizeOrigin(it)
+                    val (prefix, suffix) = normalizedOrigin.split('*')
+                    prefix to suffix
+                }
         )
 
     /**
@@ -213,8 +217,7 @@ public class CORS(configuration: Configuration) {
 
     private fun corsCheckOrigins(origin: String): Boolean {
         val normalizedOrigin = normalizeOrigin(origin)
-        return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { hostWithWildcard ->
-            val (prefix, suffix) = hostWithWildcard.split('*')
+        return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
             normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
         }
     }
