@@ -139,9 +139,10 @@ public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingCo
 public suspend fun ApplicationCall.respondTextWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
-    writer: suspend Writer.() -> Unit
+    contentLength: Long? = null,
+    writer: suspend Writer.() -> Unit,
 ) {
-    val message = WriterContent(writer, defaultTextContentType(contentType), status)
+    val message = WriterContent(writer, defaultTextContentType(contentType), status, contentLength)
     respond(message)
 }
 
@@ -154,9 +155,11 @@ public suspend fun ApplicationCall.respondTextWriter(
 public suspend fun ApplicationCall.respondOutputStream(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
+    contentLength: Long? = null,
     producer: suspend OutputStream.() -> Unit
 ) {
-    val message = OutputStreamContent(producer, contentType ?: ContentType.Application.OctetStream, status)
+    val message =
+        OutputStreamContent(producer, contentType ?: ContentType.Application.OctetStream, status, contentLength)
     respond(message)
 }
 
@@ -169,9 +172,10 @@ public suspend fun ApplicationCall.respondOutputStream(
 public suspend fun ApplicationCall.respondBytesWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
+    contentLength: Long? = null,
     producer: suspend ByteWriteChannel.() -> Unit
 ) {
-    respond(ChannelWriterContent(producer, contentType ?: ContentType.Application.OctetStream, status))
+    respond(ChannelWriterContent(producer, contentType ?: ContentType.Application.OctetStream, status, contentLength))
 }
 
 /**

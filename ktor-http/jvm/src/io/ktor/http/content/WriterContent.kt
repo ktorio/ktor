@@ -15,7 +15,8 @@ import java.io.*
 public class WriterContent(
     private val body: suspend Writer.() -> Unit,
     override val contentType: ContentType,
-    override val status: HttpStatusCode? = null
+    override val status: HttpStatusCode? = null,
+    override val contentLength: Long? = null
 ) : OutgoingContent.WriteChannelContent() {
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
