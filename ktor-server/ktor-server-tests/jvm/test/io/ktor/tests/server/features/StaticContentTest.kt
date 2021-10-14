@@ -124,6 +124,24 @@ class StaticContentTest {
     }
 
     @Test
+    fun testNullJarFile() = withTestApplication {
+        application.routing {
+            static {
+                resources()
+            }
+        }
+
+        listOf(
+            "/",
+            "../build.gradle"
+        ).forEach { path ->
+            handleRequest(HttpMethod.Get, path).let { result ->
+                assertEquals(result.response.status(), HttpStatusCode.NotFound)
+            }
+        }
+    }
+
+    @Test
     fun testStaticContentWrongPath() = withTestApplication {
         application.routing {
             static {

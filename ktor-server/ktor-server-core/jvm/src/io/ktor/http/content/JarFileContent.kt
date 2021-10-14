@@ -5,6 +5,7 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -25,10 +26,10 @@ public class JarFileContent(
 ) : OutgoingContent.ReadChannelContent() {
 
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
-    private val jarEntry by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
+    private val jarEntry: JarEntry? by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
     private val jar by lazy(LazyThreadSafetyMode.NONE) { JarFile(jarFile) }
 
-    public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { !jarEntry.isDirectory }
+    public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { jarEntry?.isDirectory?.not() ?: false }
 
     public constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType) : this(
         zipFilePath.toFile(),
@@ -38,7 +39,7 @@ public class JarFileContent(
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
-        versions += LastModifiedVersion(jarEntry.lastModifiedTime)
+        jarEntry?.let { versions += LastModifiedVersion(it.lastModifiedTime) }
     }
 
     override val contentLength: Long? get() = jarEntry?.size
