@@ -422,6 +422,10 @@ public class CORS(configuration: Configuration) {
             if (host == "*") {
                 return anyHost()
             }
+            if ('*' in host) {
+                validateWildcardRequirements(host)
+            }
+
             require("://" !in host) { "scheme should be specified as a separate parameter schemes" }
 
             for (schema in schemes) {
@@ -431,6 +435,20 @@ public class CORS(configuration: Configuration) {
                     hosts.add("$schema://$subDomain.$host")
                 }
             }
+        }
+
+        private fun validateWildcardRequirements(host: String) {
+            fun String.countMatches(subString: String): Int =
+                windowed(subString.length) {
+                    if (it == subString) 1 else 0
+                }.sum()
+
+            val wildcardWithDot = "*."
+
+            require(wildcardWithDot in host && !host.endsWith(wildcardWithDot)) {
+                "wildcard must appear in front of a domain, e.g. *.domain.com"
+            }
+            require(host.countMatches(wildcardWithDot) == 1) { "wildcard cannot appear more than once" }
         }
 
         /**
