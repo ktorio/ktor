@@ -23,7 +23,7 @@ import kotlin.text.toByteArray
  * any time characteristics.
  *
  * It provides two modes: when [highPressure] is `false` then it parses response stream, counts status codes and
- * enqueues new requests (in other words it means that is is waiting for responses but uses pipelining).
+ * enqueues new requests (in other words it means that it is waiting for responses but uses pipelining).
  *
  * In [highPressure] mode the load generator only produces requests as much as possible
  * and discards all server responses. In this mode it generates too high pressure so server could fail or get stuck

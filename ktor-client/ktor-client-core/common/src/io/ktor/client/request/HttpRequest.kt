@@ -175,7 +175,7 @@ public class HttpRequestData @InternalAPI constructor(
     public val attributes: Attributes
 ) {
     /**
-     * Retrieve extension by it's key.
+     * Retrieve extension by its key.
      */
     public fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")

@@ -58,7 +58,7 @@ public inline fun Memory.loadUByteArray(
 }
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies short integers from this memory range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
@@ -70,7 +70,7 @@ public expect fun Memory.loadShortArray(
 )
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies short integers from this memory range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
@@ -318,7 +318,7 @@ public inline fun Memory.storeUByteArray(
 }
 
 /**
- * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies short integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
@@ -330,7 +330,7 @@ public expect fun Memory.storeShortArray(
 )
 
 /**
- * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies short integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */

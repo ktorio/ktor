@@ -71,7 +71,7 @@ public open class Buffer(public val memory: Memory) {
     public inline val endGap: Int get() = capacity - limit
 
     /**
-     * Buffer's capacity (including reserved [startGap] and [endGap]. Value for released buffer is unspecified.
+     * Buffer's capacity (including reserved [startGap] and [endGap]). Value for released buffer is unspecified.
      */
     public val capacity: Int = memory.size32
 

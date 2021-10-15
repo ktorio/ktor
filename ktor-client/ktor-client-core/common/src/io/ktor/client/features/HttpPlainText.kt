@@ -84,7 +84,7 @@ public class HttpPlainText internal constructor(
         /**
          * Explicit [Charset] for sending content.
          *
-         * Use first with highest quality from [register] charset if null.
+         * Use first with the highest quality from [register] charset if null.
          */
         public var sendCharset: Charset? = null
 

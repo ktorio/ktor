@@ -30,7 +30,7 @@ public actual object ProxyBuilder {
 /**
  * Resolve remote address of [ProxyConfig].
  *
- * This operations can block.
+ * This operation can block.
  */
 public actual fun ProxyConfig.resolveAddress(): NetworkAddress = address()
 

@@ -62,7 +62,7 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
     protected abstract fun produceInstance(): T
 
     /**
-     * Dispose [instance] and release it's resources
+     * Dispose [instance] and release its resources
      */
     protected abstract fun disposeInstance(instance: T)
 
@@ -123,7 +123,7 @@ public expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T>
     protected abstract fun produceInstance(): T
 
     /**
-     * Dispose [instance] and release it's resources
+     * Dispose [instance] and release its resources
      */
     protected open fun disposeInstance(instance: T)
 

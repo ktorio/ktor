@@ -162,7 +162,7 @@ public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit 
     error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
@@ -170,7 +170,7 @@ public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit 
 public suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].

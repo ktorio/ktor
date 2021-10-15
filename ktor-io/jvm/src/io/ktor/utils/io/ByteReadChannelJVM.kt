@@ -28,7 +28,7 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 
@@ -44,7 +44,7 @@ public actual interface ByteReadChannel {
 
     /**
      * Number of bytes read from the channel.
-     * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
+     * It is not guaranteed to be atomic so could be updated in the middle of long-running read operation.
      */
     public actual val totalBytesRead: Long
 

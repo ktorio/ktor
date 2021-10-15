@@ -16,7 +16,7 @@ public data class CloseReason(val code: Short, val message: String) {
     public constructor(code: Codes, message: String) : this(code.code, message)
 
     /**
-     * A enum value for this [code] or `null` if the [code] is not listed in [Codes]
+     * An enum value for this [code] or `null` if the [code] is not listed in [Codes]
      */
     val knownReason: Codes?
         get() = Codes.byCode(code)

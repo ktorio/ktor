@@ -46,7 +46,7 @@ public actual interface ByteWriteChannel {
     public actual val totalBytesWritten: Long
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 

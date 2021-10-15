@@ -23,7 +23,7 @@ internal object CacheControl {
 }
 
 /**
- * This feature allow to use HTTP cache.
+ * This feature allows using HTTP cache.
  *
  * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
  */

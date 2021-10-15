@@ -59,7 +59,7 @@ public fun ReadableByteChannel.readPacketExact(n: Long): ByteReadPacket = readPa
 public fun ReadableByteChannel.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
 
 /**
- * Read a packet of at most [n] bytes. Resulting packet could be empty however this function does always reads
+ * Read a packet of at most [n] bytes. Resulting packet could be empty however this function always reads
  * as much bytes as possible. You also can use it with non-blocking channels
  */
 public fun ReadableByteChannel.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)

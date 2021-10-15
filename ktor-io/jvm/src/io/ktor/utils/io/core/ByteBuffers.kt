@@ -6,13 +6,13 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
- * Read at most `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
+ * Read at most `dst.remaining()` bytes to the specified [dst] byte buffer and change its position accordingly
  * @return number of bytes copied
  */
 public fun ByteReadPacket.readAvailable(dst: ByteBuffer): Int = readAsMuchAsPossible(dst, 0)
 
 /**
- * Read exactly `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
+ * Read exactly `dst.remaining()` bytes to the specified [dst] byte buffer and change its position accordingly
  * @return number of bytes copied
  */
 public fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
@@ -51,7 +51,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  *
  * @param size minimal number of bytes should be available in a buffer provided to the lambda. Should be as small as
  * possible. If [size] is too large then the function may fail because the segments size is not guaranteed to be fixed
- * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
+ * and not guaranteed that it will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
 public inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
@@ -71,7 +71,7 @@ public inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -
  *
  * @param size minimal number of bytes should be available in a buffer provided to the lambda. Should be as small as
  * possible. If [size] is too large then the function may fail because the segments size is not guaranteed to be fixed
- * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
+ * and not guaranteed that it will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
 public inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer) -> Unit): Int {

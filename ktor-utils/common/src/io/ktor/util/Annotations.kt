@@ -5,16 +5,14 @@
 package io.ktor.util
 
 /**
- * API marked with this annotation is ktor internal and it is not intended to be used outside.
- * It could be modified or removed without any notice. Using it outside of ktor could cause undefined behaviour and/or
- * any strange effects.
- *
- * We are strongly recommend to not use such API.
+ * API marked with this annotation is internal, and it is not intended to be used outside Ktor.
+ * It could be modified or removed without any notice. Using it outside Ktor could cause undefined behaviour and/or
+ * any unexpected effects.
  */
 @Suppress("DEPRECATION")
 @RequiresOptIn(
     level = RequiresOptIn.Level.ERROR,
-    message = "This API is internal in ktor and should not be used. It could be removed or changed without notice."
+    message = "This API is internal in Ktor and should not be used. It could be removed or changed without notice."
 )
 @Experimental(level = Experimental.Level.ERROR)
 @Target(
