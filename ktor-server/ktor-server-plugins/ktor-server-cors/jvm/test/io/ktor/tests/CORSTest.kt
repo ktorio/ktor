@@ -5,39 +5,62 @@
 package io.ktor.tests.plugins
 
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.mockk.*
+import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CORSTest {
 
     @Test
-    fun originValidation() {
-        val plugin = CORS(
-            CORS.Configuration().apply {
+    fun allowAnyOrigin() = runBlocking {
+        val pipeline = ApplicationCallPipeline().apply {
+            install(CORS) {
                 allowSameOrigin = false
                 anyHost()
             }
-        )
+        }
 
-        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("hyp-hen://host", dummyPoint()))
-        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("plus+://host", dummyPoint()))
-        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("do.t://host", dummyPoint()))
-        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("digits11://host", dummyPoint()))
-
-        assertEquals(OriginCheckResult.SkipCORS, plugin.checkOrigin("a()://host", dummyPoint()))
-        assertEquals(OriginCheckResult.SkipCORS, plugin.checkOrigin("1abc://host", dummyPoint()))
+        for (origin in listOf(
+            "hyp-hen://host",
+            "plus+://host",
+            "do.t://host",
+            "digits11://host",
+        )) {
+            val call = pipeline.executeWith(HeadersBuilder().apply { append("Origin", origin) })
+            assertEquals(
+                HeadersBuilder().apply { append(HttpHeaders.AccessControlAllowOrigin, "*") }.build(),
+                call.response.headers.allValues()
+            )
+        }
     }
 
-    private fun dummyPoint(): RequestConnectionPoint {
-        return getConnectionPoint("scheme", "host", 12345)
+    @Test
+    fun corsSkipped() = runBlocking {
+        val pipeline = ApplicationCallPipeline().apply {
+            install(CORS) {
+                allowSameOrigin = false
+                anyHost()
+            }
+        }
+
+        for (origin in listOf(
+            "a()://host",
+            "1abc://host",
+        )) {
+            val call = pipeline.executeWith(HeadersBuilder().apply { append("Origin", origin) })
+            assertEquals(Headers.Empty.entries(), call.response.headers.allValues().entries())
+        }
     }
 
-    private fun getConnectionPoint(scheme: String, host: String, port: Int): RequestConnectionPoint {
-        val point = mockk<RequestConnectionPoint>()
-        every { point.scheme } returns scheme
-        every { point.host } returns host
-        every { point.port } returns port
-        return point
+    private suspend fun ApplicationCallPipeline.executeWith(headersBuilder: HeadersBuilder): ApplicationCall {
+        val call = FakeCall().apply {
+            request.local = FakeConnectionPoint(scheme = "scheme", host = "host", port = 123)
+            request.headers = headersBuilder.build()
+        }
+
+        execute(call, Unit)
+        return call
     }
 }

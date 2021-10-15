@@ -11,7 +11,6 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.reflect.*
 import kotlin.test.*
 
 class CallTest {
