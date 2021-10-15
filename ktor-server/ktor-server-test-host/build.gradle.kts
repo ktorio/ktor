@@ -41,6 +41,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
         }
     }
 }
