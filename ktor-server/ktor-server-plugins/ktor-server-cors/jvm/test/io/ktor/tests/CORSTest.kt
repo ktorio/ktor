@@ -41,7 +41,11 @@ class CORSTest {
 
         assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://domain.com", dummyPoint()))
         assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://www.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://foo.bar.domain.com", dummyPoint()))
         assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("http://domain.net", dummyPoint()))
+        assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("https://domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("https://www.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("https://foo.bar.domain.com", dummyPoint()))
     }
 
     private fun dummyPoint(): RequestConnectionPoint {
