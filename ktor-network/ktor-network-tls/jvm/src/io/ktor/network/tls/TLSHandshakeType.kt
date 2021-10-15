@@ -27,7 +27,7 @@ public enum class TLSHandshakeType(public val code: Int) {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
-         * Find handshake type instance by it's numeric [code] or fail
+         * Find handshake type instance by its numeric [code] or fail
          */
         public fun byCode(code: Int): TLSHandshakeType = when (code) {
             in 0..0xff -> byCode[code]
@@ -50,7 +50,7 @@ public enum class ServerKeyExchangeType(public val code: Int) {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
-         * Find an instance of [ServerKeyExchangeType] by it's numeric code or fail
+         * Find an instance of [ServerKeyExchangeType] by its numeric code or fail
          */
         public fun byCode(code: Int): ServerKeyExchangeType {
             val result = if (code in 0..0xff) byCode[code] else null

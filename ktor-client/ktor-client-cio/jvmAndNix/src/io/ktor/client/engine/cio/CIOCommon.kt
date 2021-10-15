@@ -10,7 +10,7 @@ import io.ktor.util.*
 
 /**
  * [HttpClientEngineFactory] using a Coroutine based I/O implementation without additional dependencies
- * with the the associated configuration [CIOEngineConfig].
+ * with the associated configuration [CIOEngineConfig].
  *
  * Just supports HTTP/1.x and HTTPS requests.
  */

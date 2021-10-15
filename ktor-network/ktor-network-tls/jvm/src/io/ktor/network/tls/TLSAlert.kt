@@ -23,7 +23,7 @@ public enum class TLSAlertLevel(public val code: Int) {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
-         * Find alert level by it's numeric [code] or fail
+         * Find alert level by its numeric [code] or fail
          */
         public fun byCode(code: Int): TLSAlertLevel = when (code) {
             in 0..255 -> byCode[code]
@@ -69,7 +69,7 @@ public enum class TLSAlertType(public val code: Int) {
         private val byCode = Array(256) { idx -> TLSAlertType.values().firstOrNull { it.code == idx } }
 
         /**
-         * Find TLS alert instance by it's numeric [code] or fail
+         * Find TLS alert instance by its numeric [code] or fail
          */
         public fun byCode(code: Int): TLSAlertType = when (code) {
             in 0..255 -> byCode[code]

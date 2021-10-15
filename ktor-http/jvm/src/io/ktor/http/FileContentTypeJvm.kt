@@ -9,13 +9,13 @@ import java.io.*
 import java.nio.file.*
 
 /**
- * @return default content type for [file] by it's extension
+ * @return default content type for [file] by its extension
  */
 public fun ContentType.Companion.defaultForFile(file: File): ContentType =
     ContentType.fromFileExtension(file.extension).selectDefault()
 
 /**
- * @return default content type for [file] by it's extension
+ * @return default content type for [file] by its extension
  */
 public fun ContentType.Companion.defaultForFile(file: Path): ContentType =
     ContentType.fromFileExtension(file.extension).selectDefault()

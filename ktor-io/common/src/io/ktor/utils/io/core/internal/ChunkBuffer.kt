@@ -183,7 +183,7 @@ public open class ChunkBuffer(
 }
 
 /**
- * @return `true` if and only if the are no buffer views that share the same actual buffer. This actually does
+ * @return `true` if and only if there are no buffer views that share the same actual buffer. This actually does
  * refcount and only work guaranteed if other views created/not created via [Buffer.duplicate] function.
  * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
  * the fact that the buffer is actually shared.

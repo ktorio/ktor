@@ -4,7 +4,7 @@ import io.ktor.utils.io.bits.*
 import java.nio.*
 
 /**
- * Read buffer's content to the [destination] buffer moving it's position.
+ * Read buffer's content to the [destination] buffer moving its position.
  */
 public fun Buffer.readFully(destination: ByteBuffer) {
     val size = destination.remaining()
@@ -14,7 +14,7 @@ public fun Buffer.readFully(destination: ByteBuffer) {
 }
 
 /**
- * Write [source] buffer content moving it's position.
+ * Write [source] buffer content moving its position.
  */
 public fun Buffer.writeFully(source: ByteBuffer) {
     val size = source.remaining()
