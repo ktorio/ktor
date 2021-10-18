@@ -143,12 +143,12 @@ public final class io/ktor/server/application/plugins/api/CallReceiveContext : i
 
 public final class io/ktor/server/application/plugins/api/CallRespondAfterTransformContext : io/ktor/server/application/plugins/api/CallHandlingContext {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
-	public final fun transformResponseBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun transformBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/CallRespondContext : io/ktor/server/application/plugins/api/CallHandlingContext {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
-	public final fun transformResponseBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun transformBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/CreatePluginUtilsKt {

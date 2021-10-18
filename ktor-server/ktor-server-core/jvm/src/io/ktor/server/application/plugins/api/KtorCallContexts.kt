@@ -99,7 +99,7 @@ public class CallRespondAfterTransformContext(
      *
      * @param transform An action that modifies [OutgoingContent] that needs to be sent to a client.
      **/
-    public suspend fun transformResponseBody(transform: suspend TransformContext.(OutgoingContent) -> OutgoingContent) {
+    public suspend fun transformBody(transform: suspend TransformContext.(OutgoingContent) -> OutgoingContent) {
         val transformContext = TransformContext(context.call.response.responseType)
 
         val newContent =
