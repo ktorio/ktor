@@ -473,10 +473,11 @@ class ApplicationPluginTest {
         val plugin = createApplicationPlugin("F") {
             onCallReceive { _ ->
                 transformBody { data ->
-                    if (requestedType?.type == MyInt::class)
+                    if (requestedType?.type == MyInt::class) {
                         MyInt(data.readInt())
-                    else
+                    } else {
                         data
+                    }
                 }
             }
         }
@@ -487,7 +488,7 @@ class ApplicationPluginTest {
             application.routing {
                 post("/receive") {
                     val data = call.receive<MyInt>()
-                    call.respond(data.x)
+                    call.respondText(data.x.toString())
                 }
             }
 
