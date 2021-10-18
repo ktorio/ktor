@@ -1,3 +1,9 @@
+public final class io/ktor/shared/serialization/kotlinx/xml/XmlSupportKt {
+	public static final fun getDefaultXml ()Lnl/adaptivity/xmlutil/serialization/XML;
+	public static final fun xml (Lio/ktor/shared/serialization/Configuration;Lnl/adaptivity/xmlutil/serialization/XML;Lio/ktor/http/ContentType;)V
+	public static synthetic fun xml$default (Lio/ktor/shared/serialization/Configuration;Lnl/adaptivity/xmlutil/serialization/XML;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
+}
+
 public final class io/ktor/shared/serialization/xml/XmlSupportKt {
 	public static final fun getDefaultXml ()Lnl/adaptivity/xmlutil/serialization/XML;
 	public static final fun xml (Lio/ktor/shared/serialization/Configuration;Lnl/adaptivity/xmlutil/serialization/XML;Lio/ktor/http/ContentType;)V
