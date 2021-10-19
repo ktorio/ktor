@@ -4,8 +4,16 @@
 
 package io.ktor.server.websocket
 
+import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.shared.serialization.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * Represents a server-side web socket session
@@ -28,6 +36,44 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
  * An application that started this web socket session
  */
 public val WebSocketServerSession.application: Application get() = call.application
+
+public suspend inline fun <reified T> WebSocketServerSession.send(data: Any) {
+    val data = application.plugin(WebSockets).contentConverter?.serialize(
+        contentType = ContentType.Any,
+        charset = call.request.headers.suitableCharset(),
+        typeInfo = typeInfo<T>(),
+        value = data
+    ) ?: throw Exception("No converter")
+
+    val body = when(data) {
+        is OutgoingContent.ByteArrayContent -> data.bytes()
+        is OutgoingContent.ReadChannelContent -> data.readFrom().readRemaining().readBytes()
+        is OutgoingContent.WriteChannelContent -> null
+        else -> null
+    }?. let { String(it) }
+        ?: throw Exception("Can't convert")
+
+    outgoing.send(Frame.Text(body))
+}
+
+public suspend inline fun <reified T> WebSocketServerSession.receive(): Any? {
+    val frame = incoming.receive()
+    if(frame.frameType.controlFrame)
+        throw Exception("Control frame")
+
+    val data = when(frame) {
+        is Frame.Text -> frame.data
+        else -> null
+    } ?: throw Exception("null data frame")
+
+    val  byteReadChannel = ByteReadChannel(data)
+
+    return application.plugin(WebSockets).contentConverter?.deserialize(
+        charset = call.request.headers.suitableCharset(),
+        typeInfo = typeInfo<T>(),
+        content = byteReadChannel
+    )
+}
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)

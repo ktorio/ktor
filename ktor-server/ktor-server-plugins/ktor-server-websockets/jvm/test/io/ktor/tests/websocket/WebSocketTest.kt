@@ -4,12 +4,19 @@
 
 package io.ktor.tests.websocket
 
+import com.google.gson.*
+import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.shared.serializaion.gson.*
+import io.ktor.shared.serialization.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -18,6 +25,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.Test
 import java.nio.*
+import java.nio.charset.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.CancellationException
@@ -53,12 +61,73 @@ class WebSocketTest {
         }
     }
 
+    class Data(val string: String, val count : Int) {}
+
+    @Test
+    fun testJsonConverter() {
+        withTestApplication {
+            application.install(WebSockets) {
+                contentConverter = GsonConverter()
+            }
+
+            application.routing {
+                webSocket("/echo") {
+                    val data = receive<Data>()
+                    send<Data>(data!!)
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            val jsonData = "{\"string\":\"hello\",\"count\":123}"
+
+            val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(jsonData))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let { call ->
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {
+                        val reader = WebSocketReader(
+                            call.response.websocketChannel()!!,
+                            coroutineContext,
+                            Int.MAX_VALUE.toLong()
+                        )
+
+                        val frame = reader.incoming.receive()
+                        val receivedContent = frame.buffer.moveToByteArray()
+
+                        conversation.complete()
+
+                        assertEquals(FrameType.TEXT, frame.frameType)
+                        assertEquals(jsonData.length, receivedContent.size)
+
+                        assertTrue { receivedContent.contentEquals(jsonData.toByteArray()) }
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun testFrameSize() {
         withTestApplication {
             application.install(WebSockets)
+
             application.routing {
                 webSocketRaw("/echo") {
+                    application.plugin(WebSockets).maxFrameSize
+
                     outgoing.send(Frame.Text("+".repeat(0xc123)))
                     outgoing.send(Frame.Close())
                 }

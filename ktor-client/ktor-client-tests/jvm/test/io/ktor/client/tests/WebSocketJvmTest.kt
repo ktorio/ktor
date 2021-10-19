@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
@@ -25,6 +26,8 @@ class WebSocketJvmTest : ClientLoader(100000) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                client.plugin(WebSockets)
+
                 repeat(TEST_SIZE) { size ->
                     val data = generateRandomByteArray(size, size * 10 + 1)
                     send(Frame.Binary(fin = true, data))
