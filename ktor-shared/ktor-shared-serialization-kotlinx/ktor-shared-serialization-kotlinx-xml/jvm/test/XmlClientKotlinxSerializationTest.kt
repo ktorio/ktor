@@ -4,9 +4,8 @@
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
-import io.ktor.server.routing.*
 import io.ktor.shared.serialization.kotlinx.*
-import io.ktor.shared.serialization.xml.*
+import io.ktor.shared.serialization.kotlinx.xml.*
 import org.junit.*
 
 class XmlClientKotlinxSerializationTest : AbstractClientContentNegotiationTest() {
