@@ -54,7 +54,7 @@ public final class io/ktor/client/HttpClientKt {
 }
 
 public final class io/ktor/client/call/CompatibilityKt {
-	public static final fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun receive (Lio/ktor/client/call/HttpClientCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/call/DoubleReceiveException : java/lang/IllegalStateException {
