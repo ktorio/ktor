@@ -21,6 +21,15 @@ class RespondFunctionsTest {
             get("/provider") {
                 call.respondBytes { ByteArray(10) { it.toByte() } }
             }
+            get("/output-stream") {
+                call.respondOutputStream(contentLength = 2) { write(1); write(2) }
+            }
+            get("/text-writer") {
+                call.respondTextWriter(contentLength = 2) { write(1); write(2) }
+            }
+            get("/bytes-writer") {
+                call.respondBytesWriter(contentLength = 2) { writeByte(1); writeByte(2) }
+            }
         }
 
         handleRequest(HttpMethod.Get, "/").let { call ->
@@ -30,6 +39,18 @@ class RespondFunctionsTest {
         handleRequest(HttpMethod.Get, "/provider").let { call ->
             assertEquals("0, 1, 2, 3, 4, 5, 6, 7, 8, 9", call.response.byteContent?.joinToString())
             assertFalse(call.response.headers.contains(HttpHeaders.ContentType))
+        }
+        handleRequest(HttpMethod.Get, "/output-stream").let { call ->
+            assertEquals("1, 2", call.response.byteContent?.joinToString())
+            assertEquals("2", call.response.headers[HttpHeaders.ContentLength])
+        }
+        handleRequest(HttpMethod.Get, "/bytes-writer").let { call ->
+            assertEquals("1, 2", call.response.byteContent?.joinToString())
+            assertEquals("2", call.response.headers[HttpHeaders.ContentLength])
+        }
+        handleRequest(HttpMethod.Get, "/text-writer").let { call ->
+            assertEquals("1, 2", call.response.byteContent?.joinToString())
+            assertEquals("2", call.response.headers[HttpHeaders.ContentLength])
         }
     }
 }
