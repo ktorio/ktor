@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
  * Client HTTP plugin that sets up [HttpRequestBuilder.executionContext] and completes it when the pipeline is fully
  * processed.
  */
-internal class HttpRequestLifecycle {
+internal class HttpRequestLifecycle private constructor() {
     /**
      * Companion object for plugin installation.
      */

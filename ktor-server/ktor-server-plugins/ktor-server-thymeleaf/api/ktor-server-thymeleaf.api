@@ -5,7 +5,7 @@ public final class io/ktor/server/thymeleaf/RespondTemplateKt {
 
 public final class io/ktor/server/thymeleaf/Thymeleaf {
 	public static final field Plugin Lio/ktor/server/thymeleaf/Thymeleaf$Plugin;
-	public fun <init> (Lorg/thymeleaf/TemplateEngine;)V
+	public synthetic fun <init> (Lorg/thymeleaf/TemplateEngine;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/thymeleaf/Thymeleaf$Plugin : io/ktor/server/application/ApplicationPlugin {

@@ -13,7 +13,7 @@ import io.ktor.util.*
  * See http://ktor.io/servers/features/hsts.html for details
  * See RFC 6797 https://tools.ietf.org/html/rfc6797
  */
-public class HSTS(config: Configuration) {
+public class HSTS private constructor(config: Configuration) {
     /**
      * HSTS configuration
      */
@@ -81,7 +81,7 @@ public class HSTS(config: Configuration) {
     /**
      * Plugin installation object
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, HSTS> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, HSTS> {
         public const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
 
         override val key: AttributeKey<HSTS> = AttributeKey("HSTS")

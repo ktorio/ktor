@@ -5,6 +5,7 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
@@ -47,6 +48,45 @@ class HSTSTest {
                     call.response.headers[HttpHeaders.StrictTransportSecurity]
                 )
             }
+        }
+    }
+
+    @Test
+    fun testSubrouteInstall() = withTestApplication {
+        application.install(XForwardedHeaderSupport)
+        application.routing {
+            route("/1") {
+                install(HSTS) {
+                    maxAgeInSeconds = 10
+                    includeSubDomains = true
+                    preload = true
+                    customDirectives["some"] = "va=lue"
+                }
+                get {
+                    call.respondText("test") {
+                        caching = CachingOptions(CacheControl.NoCache(null))
+                    }
+                }
+            }
+            get("/2") {
+                call.respondText("test") {
+                    caching = CachingOptions(CacheControl.NoCache(null))
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/1") {
+            addHeader(HttpHeaders.XForwardedProto, "https")
+            addHeader(HttpHeaders.XForwardedHost, "some")
+        }.let { call ->
+            assertEquals(
+                "max-age=10; includeSubDomains; preload; some=\"va=lue\"",
+                call.response.headers[HttpHeaders.StrictTransportSecurity]
+            )
+        }
+
+        handleRequest(HttpMethod.Get, "/2").let { call ->
+            assertNull(call.response.headers[HttpHeaders.StrictTransportSecurity])
         }
     }
 

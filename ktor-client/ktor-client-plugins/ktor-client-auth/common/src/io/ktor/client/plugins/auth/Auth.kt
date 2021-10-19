@@ -16,7 +16,7 @@ import kotlin.native.concurrent.*
  * Client authentication plugin.
  * [providers] - list of auth providers to use.
  */
-public class Auth(
+public class Auth private constructor(
     public val providers: MutableList<AuthProvider> = mutableListOf()
 ) {
 

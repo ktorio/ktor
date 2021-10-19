@@ -30,7 +30,7 @@ public class FreeMarkerContent(
 /**
  * Freemarker support plugin. Provides ability to respond with [FreeMarkerContent]
  */
-public class FreeMarker(private val config: Configuration) {
+public class FreeMarker private constructor(private val config: Configuration) {
     /**
      * A plugin installing companion object
      */

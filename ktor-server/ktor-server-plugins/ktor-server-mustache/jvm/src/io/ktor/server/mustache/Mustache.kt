@@ -32,7 +32,7 @@ public class MustacheContent(
 /**
  * Plugin for providing Mustache templates as [MustacheContent]
  */
-public class Mustache(configuration: Configuration) {
+public class Mustache private constructor(configuration: Configuration) {
 
     private val mustacheFactory = configuration.mustacheFactory
 

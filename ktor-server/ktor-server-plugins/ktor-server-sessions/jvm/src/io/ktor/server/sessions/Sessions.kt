@@ -13,7 +13,7 @@ import kotlin.reflect.*
  * Sessions plugin that provides a mechanism to persist information between requests.
  * @property providers list of session providers
  */
-public class Sessions(public val providers: List<SessionProvider<*>>) {
+public class Sessions private constructor(public val providers: List<SessionProvider<*>>) {
     /**
      * Sessions configuration builder
      */

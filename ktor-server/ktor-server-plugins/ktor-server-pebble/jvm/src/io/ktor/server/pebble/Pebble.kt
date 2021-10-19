@@ -36,7 +36,7 @@ public class PebbleContent(
 /**
  * Plugin for providing Pebble templates as [PebbleContent]
  */
-public class Pebble(private val engine: PebbleEngine) {
+public class Pebble private constructor(private val engine: PebbleEngine) {
 
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
         override val key: AttributeKey<Pebble> = AttributeKey<Pebble>("pebble")

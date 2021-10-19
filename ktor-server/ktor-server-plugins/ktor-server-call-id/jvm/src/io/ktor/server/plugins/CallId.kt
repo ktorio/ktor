@@ -180,7 +180,7 @@ public class CallId private constructor(
     /**
      * Installable plugin for [CallId]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, CallId> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, CallId> {
         /**
          * [ApplicationCallPipeline]'s phase which this plugin will be installed to
          */

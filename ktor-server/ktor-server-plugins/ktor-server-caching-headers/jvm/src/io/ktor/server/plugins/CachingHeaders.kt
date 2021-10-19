@@ -15,7 +15,9 @@ import io.ktor.util.pipeline.*
  * Plugin that set [CachingOptions] headers for every response.
  * It invokes [optionsProviders] for every response and use first non null caching options
  */
-public class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>) {
+public class CachingHeaders private constructor(
+    private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>
+) {
     /**
      * Configuration for [CachingHeaders] plugin
      */

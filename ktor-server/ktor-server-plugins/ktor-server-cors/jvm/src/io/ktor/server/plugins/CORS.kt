@@ -16,7 +16,7 @@ import io.ktor.util.pipeline.*
 /**
  * CORS plugin. Please read http://ktor.io/servers/features/cors.html first before using it.
  */
-public class CORS(configuration: Configuration) {
+public class CORS internal constructor(configuration: Configuration) {
     private val numberRegex = "[0-9]+".toRegex()
 
     /**

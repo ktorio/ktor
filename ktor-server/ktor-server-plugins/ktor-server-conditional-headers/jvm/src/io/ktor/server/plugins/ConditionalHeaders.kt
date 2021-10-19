@@ -16,7 +16,9 @@ import io.ktor.util.pipeline.*
 /**
  * Plugin to check modified/match conditional headers and avoid sending contents if it was not changed
  */
-public class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>) {
+public class ConditionalHeaders private constructor(
+    private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>
+) {
 
     /**
      * Configuration for [ConditionalHeaders] plugin
@@ -82,7 +84,7 @@ public class ConditionalHeaders(private val versionProviders: List<suspend (Outg
      * `ApplicationPlugin` implementation for [ConditionalHeaders]
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, ConditionalHeaders> {
-        override val key: AttributeKey<ConditionalHeaders> = AttributeKey<ConditionalHeaders>("Conditional Headers")
+        override val key: AttributeKey<ConditionalHeaders> = AttributeKey("Conditional Headers")
 
         override fun install(
             pipeline: ApplicationCallPipeline,

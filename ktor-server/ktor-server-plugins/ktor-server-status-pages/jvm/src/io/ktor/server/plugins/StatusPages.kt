@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
 /**
  * Status pages plugin that handles exceptions and status codes. Useful to configure default error pages.
  */
-public class StatusPages(config: Configuration) {
+public class StatusPages private constructor(config: Configuration) {
     private val exceptions = HashMap(config.exceptions)
     private val statuses = HashMap(config.statuses)
 

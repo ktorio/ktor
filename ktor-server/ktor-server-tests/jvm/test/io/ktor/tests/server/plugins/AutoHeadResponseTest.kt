@@ -14,7 +14,7 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
-class HeadTest {
+class AutoHeadResponseTest {
 
     @Test
     fun testSimple() {
@@ -175,8 +175,7 @@ class HeadTest {
 
     private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
         withTestApplication {
-            application.install(io.ktor.server.plugins.AutoHeadResponse)
-
+            application.install(AutoHeadResponse)
             block()
         }
     }

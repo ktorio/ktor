@@ -48,7 +48,7 @@ internal fun velocityOutgoingContent(
 /**
  * Velocity ktor plugin. Provides ability to respond with [VelocityContent] and [respondTemplate].
  */
-public class Velocity(private val engine: VelocityEngine) {
+public class Velocity private constructor(private val engine: VelocityEngine) {
     init {
         engine.init()
     }

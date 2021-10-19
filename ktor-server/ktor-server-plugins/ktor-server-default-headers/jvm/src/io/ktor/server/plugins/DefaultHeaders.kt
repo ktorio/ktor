@@ -16,7 +16,7 @@ import java.util.*
  * Adds standard HTTP headers `Date` and `Server` and provides ability to specify other headers
  * that are included in responses.
  */
-public class DefaultHeaders(config: Configuration) {
+public class DefaultHeaders private constructor(config: Configuration) {
     private val headers = config.headers.build()
     @OptIn(InternalAPI::class)
     private val clock = config.clock
@@ -66,7 +66,7 @@ public class DefaultHeaders(config: Configuration) {
     /**
      * Installable plugin for [DefaultHeaders].
      */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, DefaultHeaders> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, DefaultHeaders> {
         private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
 
         private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
@@ -79,7 +79,7 @@ public class DefaultHeaders(config: Configuration) {
 
         override val key: AttributeKey<DefaultHeaders> = AttributeKey("Default Headers")
 
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): DefaultHeaders {
             val config = Configuration().apply(configure)
             if (config.headers.getAll(HttpHeaders.Server) == null) {
                 val ktorPackageVersion: String = DefaultHeaders::class.java.`package`.implementationVersion ?: "debug"

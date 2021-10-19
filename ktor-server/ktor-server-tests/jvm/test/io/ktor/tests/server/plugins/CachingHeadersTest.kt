@@ -60,6 +60,39 @@ class CachingHeadersTest {
         }
     )
 
+    @Test
+    fun testSubrouteInstall() = withTestApplication {
+        application.routing {
+            route("/1") {
+                install(CachingHeaders) {
+                    options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                    options { CachingOptions(CacheControl.MaxAge(15)) }
+                }
+                get {
+                    call.respondText("test") {
+                        caching = CachingOptions(CacheControl.NoCache(null))
+                    }
+                }
+            }
+            get("/2") {
+                call.respondText("test") {
+                    caching = CachingOptions(CacheControl.NoCache(null))
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/1").let { call ->
+            assertEquals(
+                "no-cache, no-store, max-age=15, private",
+                call.response.headers[HttpHeaders.CacheControl]
+            )
+        }
+
+        handleRequest(HttpMethod.Get, "/2").let { call ->
+            assertNull(call.response.headers[HttpHeaders.CacheControl])
+        }
+    }
+
     private fun test(
         configure: Application.() -> Unit,
         test: (ApplicationCall) -> Unit

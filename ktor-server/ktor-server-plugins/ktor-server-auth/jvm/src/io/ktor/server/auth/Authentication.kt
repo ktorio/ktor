@@ -16,7 +16,7 @@ import org.slf4j.*
  *
  * @param config initial authentication configuration
  */
-public class Authentication(config: Configuration) {
+public class Authentication private constructor(config: Configuration) {
     /**
      * @param providers list of registered instances of [AuthenticationProvider]
      */

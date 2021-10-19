@@ -14,7 +14,7 @@ import io.ktor.util.*
  *
  * @property agent: value of user-agent header to set.
  */
-public class UserAgent(public val agent: String) {
+public class UserAgent private constructor(public val agent: String) {
 
     public class Config(public var agent: String = "Ktor http-client")
 

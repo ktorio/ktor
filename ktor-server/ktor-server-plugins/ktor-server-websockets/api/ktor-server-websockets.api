@@ -77,7 +77,7 @@ public final class io/ktor/server/websocket/WebSocketUpgrade$Companion {
 public final class io/ktor/server/websocket/WebSockets : kotlinx/coroutines/CoroutineScope {
 	public static final field Plugin Lio/ktor/server/websocket/WebSockets$Plugin;
 	public fun <init> (JJJZ)V
-	public fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;)V
+	public synthetic fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getExtensionsConfig ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
 	public final fun getMasking ()Z

@@ -61,7 +61,7 @@ public data class CompressionEncoderConfig(
 /**
  * Plugin to compress a response based on conditions and ability of client to decompress it
  */
-public class Compression(compression: Configuration) {
+public class Compression private constructor(compression: Configuration) {
     private val options = compression.buildOptions()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
         { it.second.quality },

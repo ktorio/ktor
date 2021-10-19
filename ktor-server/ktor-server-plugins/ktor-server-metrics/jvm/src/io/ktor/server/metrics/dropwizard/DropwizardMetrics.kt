@@ -17,7 +17,7 @@ import java.util.concurrent.*
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
  */
-public class DropwizardMetrics(
+public class DropwizardMetrics private constructor(
     public val registry: MetricRegistry,
     public val baseName: String = MetricRegistry.name("ktor.calls")
 ) {

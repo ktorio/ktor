@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 import kotlin.native.concurrent.*
 
 @ThreadLocal
@@ -20,32 +19,28 @@ private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMe
 /**
  * [HttpClient] plugin that handles http redirect
  */
-public class HttpRedirect {
-    private val _checkHttpMethod = atomic(true)
-    private val _allowHttpsDowngrade = atomic(false)
+public class HttpRedirect private constructor(
+    private val checkHttpMethod: Boolean,
+    private val allowHttpsDowngrade: Boolean
+) {
 
-    /**
-     * Check if the HTTP method is allowed for redirect.
-     * Only [HttpMethod.Get] and [HttpMethod.Head] is allowed for implicit redirect.
-     *
-     * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
-     */
-    public var checkHttpMethod: Boolean
-        get() = _checkHttpMethod.value
-        set(value) {
-            _checkHttpMethod.value = value
-        }
+    public class Config {
 
-    /**
-     * `true` value allows client redirect with downgrade from https to plain http.
-     */
-    public var allowHttpsDowngrade: Boolean
-        get() = _allowHttpsDowngrade.value
-        set(value) {
-            _allowHttpsDowngrade.value = value
-        }
+        /**
+         * Check if the HTTP method is allowed for redirect.
+         * Only [HttpMethod.Get] and [HttpMethod.Head] is allowed for implicit redirect.
+         *
+         * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
+         */
+        public var checkHttpMethod: Boolean = true
 
-    public companion object Plugin : HttpClientPlugin<HttpRedirect, HttpRedirect> {
+        /**
+         * `true` value allows client redirect with downgrade from https to plain http.
+         */
+        public var allowHttpsDowngrade: Boolean = false
+    }
+
+    public companion object Plugin : HttpClientPlugin<Config, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
         /**
@@ -53,7 +48,13 @@ public class HttpRedirect {
          */
         public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
 
-        override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
+        override fun prepare(block: Config.() -> Unit): HttpRedirect {
+            val config = Config().apply(block)
+            return HttpRedirect(
+                checkHttpMethod = config.checkHttpMethod,
+                allowHttpsDowngrade = config.allowHttpsDowngrade
+            )
+        }
 
         override fun install(plugin: HttpRedirect, scope: HttpClient) {
             scope[HttpSend].intercept { context ->
