@@ -422,19 +422,23 @@ public class CORS(configuration: Configuration) {
             if (host == "*") {
                 return anyHost()
             }
-            if ('*' in host) {
-                validateWildcardRequirements(host)
-            }
 
             require("://" !in host) { "scheme should be specified as a separate parameter schemes" }
 
             for (schema in schemes) {
-                hosts.add("$schema://$host")
+                addHost("$schema://$host")
 
                 for (subDomain in subDomains) {
-                    hosts.add("$schema://$subDomain.$host")
+                    addHost("$schema://$subDomain.$host")
                 }
             }
+        }
+
+        private fun addHost(host: String) {
+            if ('*' in host) {
+                validateWildcardRequirements(host)
+            }
+            hosts.add(host)
         }
 
         private fun validateWildcardRequirements(host: String) {
