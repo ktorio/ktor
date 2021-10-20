@@ -10,23 +10,6 @@ import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
 
-fun Project.selectArtifactId(type: String, defaultName: String): String {
-    val isCommon = extra.has("commonStructure")
-    val commonIsRoot = extra.has("commonStructure") && extra.has("commonStructure")
-    val hasNative = extra.has("hasNative") && extra.has("hasNative")
-
-    return when (type) {
-        "metadata" -> {
-            if (!isCommon) "$name-$type" else "$name-metadata"
-        }
-        "kotlinMultiplatform" -> {
-            if (!hasNative) "$name-kotlinMultiplatform" else name
-        }
-        "jvm" -> if (commonIsRoot) "$name-jvm" else name
-        else -> if (isCommon || hasNative) defaultName else name
-    }
-}
-
 fun isAvailableForPublication(publication: Publication): Boolean {
     val name = publication.name
     if (name == "maven") return true
@@ -131,15 +114,6 @@ fun Project.configurePublication() {
                 root.appendNode("scm").apply {
                     appendNode("url", "https://github.com/ktorio/ktor.git")
                 }
-            }
-
-            val type = publication.name
-            val id = selectArtifactId(type, it.artifactId)
-            publication.artifactId = id
-
-            if (name == "kotlinMultiplatform") {
-                it.artifact(emptyJar) { classifier = "javadoc" }
-                it.artifact(emptyJar) { classifier = "kdoc" }
             }
         }
 
