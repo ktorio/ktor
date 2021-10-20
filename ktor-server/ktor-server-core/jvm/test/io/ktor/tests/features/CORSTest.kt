@@ -12,6 +12,17 @@ import kotlin.test.*
 class CORSTest {
 
     @Test
+    fun anyHostWithAllowCredentialsShouldFail() {
+        val config = CORS.Configuration().apply {
+            allowCredentials = true
+            anyHost()
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CORS(config)
+        }
+    }
+
+    @Test
     fun originValidation() {
         val feature = CORS(
             CORS.Configuration().apply {

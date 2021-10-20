@@ -19,7 +19,6 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                allowCredentials = true
             }
 
             application.routing {
@@ -41,7 +40,6 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                allowCredentials = true
             }
 
             application.routing {
@@ -65,7 +63,6 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                allowCredentials = true
             }
 
             application.routing {
@@ -306,32 +303,6 @@ class CORSTest {
     }
 
     @Test
-    fun testSimpleStarCredentials() {
-        withTestApplication {
-            application.install(CORS) {
-                anyHost()
-                allowCredentials = true
-            }
-
-            application.routing {
-                get("/") {
-                    call.respond("OK")
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.Origin, "http://my-host")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
-                assertEquals("true", call.response.headers[HttpHeaders.AccessControlAllowCredentials])
-                assertEquals(HttpHeaders.Origin, call.response.headers[HttpHeaders.Vary])
-                assertEquals("OK", call.response.content)
-            }
-        }
-    }
-
-    @Test
     fun testSimpleNull() {
         withTestApplication {
             application.install(CORS) {
@@ -349,30 +320,6 @@ class CORSTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
-                assertEquals("OK", call.response.content)
-            }
-        }
-    }
-
-    @Test
-    fun testSimpleNullAllowCredentials() {
-        withTestApplication {
-            application.install(CORS) {
-                anyHost()
-                allowCredentials = true
-            }
-
-            application.routing {
-                get("/") {
-                    call.respond("OK")
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.Origin, "null")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("null", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
             }
         }
@@ -449,7 +396,6 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                allowCredentials = true
             }
 
             application.routing {
