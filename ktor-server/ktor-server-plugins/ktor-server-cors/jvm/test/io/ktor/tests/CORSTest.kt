@@ -7,7 +7,6 @@ package io.ktor.tests.plugins
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.mockk.*
-import org.junit.Assert.*
 import kotlin.test.*
 
 class CORSTest {
@@ -63,9 +62,8 @@ class CORSTest {
             ("*.*.domain.com" to messageWildcardOnlyOnce),
             ("*.foo*.domain.com" to messageWildcardOnlyOnce),
         ).forEach { (host, expectedMessage) ->
-            val exception = assertThrows(
-                "Expected this message: '$expectedMessage' for this host '$host'",
-                IllegalArgumentException::class.java
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message: '$expectedMessage' for this host '$host'"
             ) {
                 CORS(CORS.Configuration().apply { host(host) })
             }
