@@ -4,16 +4,11 @@
 
 package io.ktor.server.websocket
 
-import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
 
 /**
  * Represents a server-side web socket session
@@ -37,42 +32,37 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
  */
 public val WebSocketServerSession.application: Application get() = call.application
 
-public suspend inline fun <reified T> WebSocketServerSession.send(data: Any) {
-    val data = application.plugin(WebSockets).contentConverter?.serialize(
-        contentType = ContentType.Any,
+/**
+ *
+ */
+public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerializedByWebsocketConverter(data: T) {
+    val serializedData = application.plugin(WebSockets).contentConverter?.serialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
         value = data
-    ) ?: throw Exception("No converter")
+    ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    val body = when(data) {
-        is OutgoingContent.ByteArrayContent -> data.bytes()
-        is OutgoingContent.ReadChannelContent -> data.readFrom().readRemaining().readBytes()
-        is OutgoingContent.WriteChannelContent -> null
-        else -> null
-    }?. let { String(it) }
-        ?: throw Exception("Can't convert")
-
-    outgoing.send(Frame.Text(body))
+    outgoing.send(Frame.Text(serializedData))
 }
 
-public suspend inline fun <reified T> WebSocketServerSession.receive(): Any? {
-    val frame = incoming.receive()
-    if(frame.frameType.controlFrame)
-        throw Exception("Control frame")
-
-    val data = when(frame) {
+/**
+ *
+ */
+public suspend inline fun <reified T: Any> WebSocketServerSession.receiveDeserialized(): T {
+    val data = when(val frame = incoming.receive()) {
         is Frame.Text -> frame.data
-        else -> null
-    } ?: throw Exception("null data frame")
+        is Frame.Binary -> frame.data
+        else -> throw WebsocketDeserializeException("Frame type is not Frame.Text or Frame.Binary")
+    }
 
-    val  byteReadChannel = ByteReadChannel(data)
-
-    return application.plugin(WebSockets).contentConverter?.deserialize(
+    val result = application.plugin(WebSockets).contentConverter?.deserialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
-        content = byteReadChannel
+        content = ByteReadChannel(data)
     )
+
+    return if (result is T) result
+        else throw WebsocketDeserializeException("Can't convert value from json")
 }
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =

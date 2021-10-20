@@ -8,6 +8,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.shared.serializaion.gson.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
@@ -62,6 +63,29 @@ class WebSocketJvmTest : ClientLoader(100000) {
                     val actual = incoming.receive()
                     assertTrue(actual is Frame.Binary)
                     assertTrue { data.contentEquals(actual.data) }
+                }
+            }
+        }
+    }
+
+    data class Data(val stringValue: String, val count: Int)
+
+    @Test
+    fun testWebSocketSerialization() = clientTests(listOf("Android", "Apache")) {
+        config {
+            WebSockets {
+                contentConverter = GsonWebsocketConverter()
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(TEST_SIZE) { size ->
+                    val originalData = Data("hello", 100)
+                    sendSerializedByWebsocketConverter(originalData)
+
+                    val actual = receiveDeserialized<Data>()
+                    assertTrue { actual == originalData }
                 }
             }
         }

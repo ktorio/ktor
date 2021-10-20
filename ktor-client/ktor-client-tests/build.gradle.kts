@@ -91,6 +91,7 @@ kotlin.sourceSets {
     val jvmTest by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
+            api(project(":ktor-shared:ktor-shared-serialization-gson"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
