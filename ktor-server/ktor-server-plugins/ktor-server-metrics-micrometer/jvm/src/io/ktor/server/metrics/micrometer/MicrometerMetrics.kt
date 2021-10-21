@@ -230,13 +230,14 @@ public class MicrometerMetrics private constructor(
                 )
             }
 
+            baseName = configuration.baseName
+
             if (configuration.metricName?.isBlank() == true) {
                 throw IllegalArgumentException(
                     "Metric name should be defined if not null"
                 )
             }
 
-            baseName = configuration.baseName
             metricName = configuration.metricName
 
             val plugin = MicrometerMetrics(
