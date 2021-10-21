@@ -78,6 +78,8 @@ public class MicrometerMetrics private constructor(
     /**
      * Configures this Plugin
      * @property baseName The base prefix for metrics. Default: [Plugin.defaultBaseName]
+     * @property metricName The name for metrics. Can be null. baseName is always added before metricName
+     * Default: [Plugin.defaultMetricName]
      * @property registry The meter registry where the meters are registered. Mandatory
      * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
      * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
