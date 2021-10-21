@@ -232,7 +232,7 @@ public class MicrometerMetrics private constructor(
 
             if (configuration.metricName?.isBlank() == true) {
                 throw IllegalArgumentException(
-                    "Metric name should be defined"
+                    "Metric name should be defined if not null"
                 )
             }
 
