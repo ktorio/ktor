@@ -175,6 +175,14 @@ public class MicrometerMetrics private constructor(
         private lateinit var baseName: String
         private var metricName: String? = null
 
+        private fun resolveMetricName(): String {
+            return if (metricName == null) {
+                ""
+            } else {
+                ".$metricName"
+            }
+        }
+
         /**
          * Request time timer name
          */
@@ -186,18 +194,11 @@ public class MicrometerMetrics private constructor(
         public const val requestTimerName: String = "$defaultBaseName.$defaultMetricName"
 
         /**
-         * Request time timer name with configurable base name
+         * Request time timer name with configurable base name and metric name
          */
         public val requestTimeTimerName: String
             get() = "$baseName${resolveMetricName()}"
 
-        private fun resolveMetricName(): String {
-            return if (metricName == null) {
-                ""
-            } else {
-                ".$metricName"
-            }
-        }
         /**
          * Active requests gauge name
          */
@@ -209,7 +210,7 @@ public class MicrometerMetrics private constructor(
         public const val activeGaugeName: String = "$defaultBaseName.$defaultMetricName.active"
 
         /**
-         * Active requests gauge name with configurable base name
+         * Active requests gauge name with configurable base name and metric name
          */
         public val activeRequestsGaugeName: String
             get() = "$baseName${resolveMetricName()}.active"
