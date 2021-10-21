@@ -335,15 +335,39 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
+    fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
+        assertFailsWith<IllegalArgumentException> {
+            application.install(MicrometerMetrics) {
+                metricName = "   "
+            }
+        }
+    }
+
+    @Test
+    fun `timer and gauge base metric names and metric names are configurable`(): Unit = withTestApplication {
+        val newBaseName = "custom.http.server"
+        val newMetricName = "custom.metric.name"
+        application.install(MicrometerMetrics) {
+            registry = SimpleMeterRegistry()
+            baseName = newBaseName
+            metricName = newMetricName
+        }
+
+        assertEquals("$newBaseName.$newMetricName", requestTimeTimerName)
+        assertEquals("$newBaseName.$newMetricName.active", activeRequestsGaugeName)
+    }
+
+    @Test
+    fun `timer and gauge metric names can be null`(): Unit = withTestApplication {
         val newBaseName = "custom.http.server"
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
             baseName = newBaseName
+            metricName = null
         }
 
-        assertEquals("$newBaseName.requests", requestTimeTimerName)
-        assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
+        assertEquals(newBaseName, requestTimeTimerName)
+        assertEquals("$newBaseName.active", activeRequestsGaugeName)
     }
 
     @Test
