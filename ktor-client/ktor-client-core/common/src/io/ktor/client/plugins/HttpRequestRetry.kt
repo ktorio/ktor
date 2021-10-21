@@ -28,7 +28,7 @@ import kotlin.random.*
  * // use custom policies
  * install(HttpRequestRetry) {
  *      maxRetries = 5
- *      retryIf { request, response -> !response.status().isSuccess() }
+ *      retryIf { request, response -> !response.status.isSuccess() }
  *      retryOnExceptionIf { request, cause -> cause is NetworkError }
  *      delayMillis { retry -> retry * 3000 } // will retry in 3, 6, 9, etc. seconds
  * }
