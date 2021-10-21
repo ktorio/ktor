@@ -48,11 +48,11 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
 /**
  *
  */
-public suspend inline fun <reified T: Any> WebSocketServerSession.receiveDeserialized(): T {
+public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeserialized(): T {
     val data = when(val frame = incoming.receive()) {
         is Frame.Text -> frame.data
         is Frame.Binary -> frame.data
-        else -> throw WebsocketDeserializeException("Frame type is not Frame.Text or Frame.Binary")
+        else -> throw WebsocketDeserializeException("Frame type is not Frame.Text or Frame.Binary or websocket was closed")
     }
 
     val result = application.plugin(WebSockets).contentConverter?.deserialize(

@@ -90,7 +90,7 @@ public class WebSockets constructor(
         /**
          *
          */
-        public var contentConverter : WebsocketContentConverter? = null
+        public var contentConverter: WebsocketContentConverter? = null
 
         /**
          * Configure WebSocket extensions.

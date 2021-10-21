@@ -54,7 +54,7 @@ class WebSocketTest {
         }
     }
 
-    class Data(val string: String, val count : Int) {}
+    class Data(val string: String, val count: Int)
 
     @Test
     fun testJsonConverter() {
