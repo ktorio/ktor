@@ -23,7 +23,7 @@ public object XForwardedHeaderSupport :
         val config = Config()
         configure(config)
 
-        pipeline.intercept(ApplicationCallPipeline.Plugins) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
             call.forEachHeader(config.protoHeaders) { value ->
                 call.mutableOriginConnectionPoint.let { route ->
                     route.scheme = value
@@ -126,7 +126,7 @@ public object ForwardedHeaderSupport : ApplicationPlugin<ApplicationCallPipeline
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        pipeline.intercept(ApplicationCallPipeline.Plugins) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
             val forwarded = call.request.forwarded() ?: return@intercept
             call.attributes.put(ForwardedParsedKey, forwarded)
             val firstForward = forwarded.firstOrNull() ?: return@intercept
