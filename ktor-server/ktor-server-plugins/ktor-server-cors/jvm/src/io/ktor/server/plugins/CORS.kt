@@ -306,11 +306,12 @@ public class CORS(configuration: Configuration) {
                 }
             }
         }.toString()
-
     /**
      * CORS plugin configuration
      */
     public class Configuration {
+        private val wildcardWithDot = "*."
+
         public companion object {
             /**
              * Default HTTP methods that are always allowed by CORS
@@ -429,30 +430,34 @@ public class CORS(configuration: Configuration) {
                 addHost("$schema://$host")
 
                 for (subDomain in subDomains) {
+                    validateWildcardRequirements(subDomain)
                     addHost("$schema://$subDomain.$host")
                 }
             }
         }
 
         private fun addHost(host: String) {
-            if ('*' in host) {
-                validateWildcardRequirements(host)
-            }
+            validateWildcardRequirements(host)
             hosts.add(host)
         }
 
         private fun validateWildcardRequirements(host: String) {
+            if ('*' !in host) {
+                return
+            }
+
             fun String.countMatches(subString: String): Int =
                 windowed(subString.length) {
                     if (it == subString) 1 else 0
                 }.sum()
 
-            val wildcardWithDot = "*."
-
-            require(wildcardWithDot in host && !host.endsWith(wildcardWithDot)) {
-                "wildcard must appear in front of a domain, e.g. *.domain.com"
-            }
+            require(wildcardInFrontOfDomain(host)) { "wildcard must appear in front of the domain, e.g. *.domain.com" }
             require(host.countMatches(wildcardWithDot) == 1) { "wildcard cannot appear more than once" }
+        }
+
+        private fun wildcardInFrontOfDomain(host: String): Boolean {
+            val indexOfWildcard = host.indexOf(wildcardWithDot)
+            return wildcardWithDot in host && !host.endsWith(wildcardWithDot) && (indexOfWildcard <= 0 || host.substringBefore(wildcardWithDot).endsWith("://"))
         }
 
         /**
@@ -513,6 +518,7 @@ public class CORS(configuration: Configuration) {
             }
         }
     }
+
 
     /**
      * Plugin object for installation

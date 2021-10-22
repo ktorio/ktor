@@ -30,7 +30,7 @@ class CORSTest {
     }
 
     @Test
-    fun originWithWildcardSubdomain() {
+    fun originWithWildcard() {
         val plugin = CORS(
             CORS.Configuration().apply {
                 allowSameOrigin = true
@@ -49,8 +49,24 @@ class CORSTest {
     }
 
     @Test
+    fun originWithWildcardAndSubdomain() {
+        val plugin = CORS(
+            CORS.Configuration().apply {
+                allowSameOrigin = true
+                host("domain.com", subDomains = listOf("foo", "*.bar"))
+            }
+        )
+
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://foo.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://foo.bar.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.OK, plugin.checkOrigin("http://anything.bar.domain.com", dummyPoint()))
+        assertEquals(OriginCheckResult.Failed, plugin.checkOrigin("http://invalid.foo.domain.com", dummyPoint()))
+    }
+
+    @Test
     fun invalidOriginWithWildcard() {
-        val messageWildcardInFrontOfDomain = "wildcard must appear in front of a domain, e.g. *.domain.com"
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
         val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
 
         listOf(
@@ -63,9 +79,48 @@ class CORSTest {
             ("*.foo*.domain.com" to messageWildcardOnlyOnce),
         ).forEach { (host, expectedMessage) ->
             val exception = assertFailsWith<IllegalArgumentException>(
-                "Expected this message: '$expectedMessage' for this host '$host'"
+                "Expected this message '$expectedMessage' for this host '$host'"
             ) {
                 CORS(CORS.Configuration().apply { host(host) })
+            }
+
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun originWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("foo*.") to messageWildcardInFrontOfDomain),
+            (listOf("*.foo*.bar") to messageWildcardOnlyOnce),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                CORS(CORS.Configuration().apply { host("domain.com", subDomains = subDomains) })
+            }
+
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun invalidOriginWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("*.foo") to messageWildcardOnlyOnce),
+            (listOf("*") to messageWildcardInFrontOfDomain),
+            (listOf("foo") to messageWildcardInFrontOfDomain),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                CORS(CORS.Configuration().apply { host("*.domain.com", subDomains = subDomains) })
             }
 
             assertEquals(expectedMessage, exception.message)
