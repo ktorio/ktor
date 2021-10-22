@@ -34,6 +34,10 @@ class ContentNegotiationTest {
             return TextContent("[${value.value}]", contentType.withCharset(charset))
         }
 
+        override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+            TODO("Not yet implemented")
+        }
+
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             if (typeInfo.type != Wrapper::class) return null
             return Wrapper(content.readRemaining().readText().removeSurrounding("[", "]"))
@@ -51,6 +55,10 @@ class ContentNegotiationTest {
             return TextContent(value.value, contentType.withCharset(charset))
         }
 
+        override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+            TODO("Not yet implemented")
+        }
+
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             if (typeInfo.type != Wrapper::class) return null
             return Wrapper(content.readRemaining().readText())
@@ -65,6 +73,10 @@ class ContentNegotiationTest {
             value: Any
         ): OutgoingContent? {
             fail("This converter should be never started for send")
+        }
+
+        override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+            TODO("Not yet implemented")
         }
 
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
