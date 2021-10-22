@@ -34,7 +34,7 @@ public class Url internal constructor(
         require(
             specifiedPort in 0..65535 ||
                 specifiedPort == DEFAULT_PORT
-        ) { "port must be between 1 and 65535, or $DEFAULT_PORT if not set" }
+        ) { "port must be between 0 and 65535, or $DEFAULT_PORT if not set" }
     }
 
     public val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
