@@ -7,10 +7,12 @@ package io.ktor.server.thymeleaf
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.thymeleaf.templateresolver.*
+import java.util.*
 import java.util.zip.*
 import kotlin.test.*
 
@@ -145,6 +147,48 @@ class ThymeleafTest {
                 val lines = response.content!!.lines()
                 assertEquals("<p>Hello, 1</p>", lines[0])
                 assertEquals("<h1>Hello, World!</h1>", lines[1])
+            }
+        }
+    }
+
+    @Test
+    fun testI18nHtmlTemplate() {
+        val testCases = mapOf(
+            "en" to "Hello, world!",
+            "es;q=0.3,en-us;q=0.7" to "Hello, world!",
+            "es" to "Hola, mundo!",
+            "es-419" to "Hola, mundo!",
+            "default" to "Hello, world!"
+        )
+        withTestApplication {
+            application.install(Thymeleaf) {
+                val resolver = ClassLoaderTemplateResolver()
+                resolver.setTemplateMode("HTML")
+                resolver.prefix = "templates/"
+                resolver.suffix = ".html"
+                setTemplateResolver(resolver)
+            }
+            application.install(ConditionalHeaders)
+            application.routing {
+                get("/") {
+                    if (call.request.acceptLanguage() == "default") {
+                        Locale.setDefault(Locale("en"))
+                        call.respond(ThymeleafContent("i18n_test", mapOf()))
+                    } else {
+                        val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
+                        val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
+                        call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+                    }
+                }
+            }
+            testCases.forEach { (language, result) ->
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.AcceptLanguage, language)
+                }.response.let { response ->
+                    assertNotNull(response.content)
+                    val lines = response.content!!.lines()
+                    assertEquals("<h1>$result</h1>", lines[0])
+                }
             }
         }
     }
