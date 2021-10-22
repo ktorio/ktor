@@ -83,7 +83,6 @@ class WebSocketJvmTest : ClientLoader(100000) {
                 repeat(TEST_SIZE) { size ->
                     val originalData = Data("hello", 100)
                     sendSerializedByWebsocketConverter(originalData)
-                    
                     val actual = receiveDeserialized<Data>()
                     assertTrue { actual == originalData }
                 }

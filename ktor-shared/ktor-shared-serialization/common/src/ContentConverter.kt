@@ -19,7 +19,7 @@ import kotlin.reflect.*
  * One of the most typical examples of content converter is a json content converter that provides both
  * serialization and deserialization
  */
-public interface ContentConverter {
+public interface ContentConverter : BaseConverter {
 
     /**
      * Serializes a [value] to the specified [contentType] to a [OutgoingContent].
@@ -40,24 +40,6 @@ public interface ContentConverter {
         typeInfo: TypeInfo,
         value: Any
     ): OutgoingContent?
-
-    /**
-     * Deserializes [content] to the value of type [typeInfo]
-     *
-     * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
-     */
-    public suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any?
-}
-
-/**
- * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
- */
-public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
-    for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) when {
-        charset == "*" -> return defaultCharset
-        Charset.isSupported(charset) -> return Charset.forName(charset)
-    }
-    return defaultCharset
 }
 
 /**
@@ -70,4 +52,15 @@ public interface Configuration {
         converter: T,
         configuration: T.() -> Unit = {}
     )
+}
+
+/**
+ * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
+ */
+public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+    for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) when {
+        charset == "*" -> return defaultCharset
+        Charset.isSupported(charset) -> return Charset.forName(charset)
+    }
+    return defaultCharset
 }

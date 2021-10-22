@@ -23,6 +23,8 @@ import kotlin.jvm.*
 public class KotlinxSerializationConverter(
     private val format: SerialFormat,
 ) : ContentConverter {
+    private val baseConverter = KotlinxBaseSerialization(format)
+
     init {
         require(format is BinaryFormat || format is StringFormat) {
             "Only binary and string formats are supported, " +
@@ -35,22 +37,19 @@ public class KotlinxSerializationConverter(
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any
-    ): OutgoingContent {
-        val result = try {
-            serializerFromTypeInfo(typeInfo, format.serializersModule).let {
-                serializeContent(it, format, value, contentType, charset)
-            }
-        } catch (cause: SerializationException) {
-            // can fail due to
-            // 1. https://github.com/Kotlin/kotlinx.serialization/issues/1163)
-            // 2. mismatching between compile-time and runtime types of the response.
-            null
+    ): OutgoingContent? {
+        @Suppress("UNCHECKED_CAST")
+        val content = baseConverter.serialize(charset, typeInfo, value)?.toByteArray()
+            ?: return null
+
+        return when (format) {
+            is StringFormat -> TextContent(
+                String(content, charset = charset),
+                contentType.withCharset(charset)
+            )
+            is BinaryFormat -> ByteArrayContent(content, contentType)
+            else -> error("Unsupported format $format")
         }
-        if (result != null) {
-            return result
-        }
-        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
-        return serializeContent(guessedSearchSerializer, format, value, contentType, charset)
     }
 
     private fun serializeContent(
@@ -74,19 +73,11 @@ public class KotlinxSerializationConverter(
         }
     }
 
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
-        val contentPacket = content.readRemaining()
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+        baseConverter.serialize(charset, typeInfo, value)
 
-        return when (format) {
-            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
-            else -> {
-                contentPacket.discard()
-                error("Unsupported format $format")
-            }
-        }
-    }
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =
+        baseConverter.deserialize(charset, typeInfo, content)
 }
 
 /**

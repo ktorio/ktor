@@ -16,9 +16,10 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlin.text.Charsets
 
 public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
+
+    private val baseConverter = JacksonBaseConverter(objectmapper)
 
     override suspend fun serialize(
         contentType: ContentType,
@@ -28,36 +29,19 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
     ): OutgoingContent {
         return OutputStreamContent(
             {
-                if (charset == Charsets.UTF_8) {
-                    /*
-                    Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
-                    InputStream instead of a writer to let Jackson do it's thing.
-                     */
-                    objectmapper.writeValue(this, value)
-                } else {
-                    objectmapper.writeValue(this.writer(charset = charset), value)
+                baseConverter.serialize(charset, typeInfo, value)?.toByteArray()?.let {
+                    this.write(it)
                 }
             },
             contentType.withCharset(charset)
         )
     }
 
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        try {
-            return withContext(Dispatchers.IO) {
-                val reader = content.toInputStream().reader(charset)
-                objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
-            }
-        } catch (deserializeFailure: Exception) {
-            val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+        baseConverter.serialize(charset, typeInfo, value)
 
-            when (deserializeFailure) {
-                is JsonParseException -> throw convertException
-                is JsonMappingException -> throw convertException
-                else -> throw deserializeFailure
-            }
-        }
-    }
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =
+        baseConverter.deserialize(charset, typeInfo, content)
 }
 
 /**

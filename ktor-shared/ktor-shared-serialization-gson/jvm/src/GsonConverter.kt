@@ -21,43 +21,28 @@ import kotlin.reflect.jvm.*
  */
 public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
+    private val baseConverter = GsonBaseConverter(gson)
+
     override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any
-    ): OutgoingContent {
-        return TextContent(gson.toJson(value), contentType.withCharset(charset))
+    ): OutgoingContent? {
+        val data = serialize(charset, typeInfo, value)?.toByteArray()
+            ?: return null
+
+        return TextContent(
+            String(data, charset),
+            contentType.withCharset(charset)
+        )
     }
 
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        if (gson.isExcluded(typeInfo.type)) {
-            throw ExcludedTypeGsonException(typeInfo.type)
-        }
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+        baseConverter.serialize(charset, typeInfo, value)
 
-        try {
-            return withContext(Dispatchers.IO) {
-                val reader = content.toInputStream().reader(charset)
-                gson.fromJson(reader, typeInfo.reifiedType)
-            }
-        } catch (deserializeFailure: JsonSyntaxException) {
-            throw JsonConvertException("Illegal json parameter found", deserializeFailure)
-        }
-    }
-}
-
-private fun Gson.isExcluded(type: KClass<*>) =
-    excluder().excludeClass(type.java, false)
-
-@OptIn(ExperimentalCoroutinesApi::class)
-internal class ExcludedTypeGsonException(
-    private val type: KClass<*>
-) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),
-    CopyableThrowable<ExcludedTypeGsonException> {
-
-    override fun createCopy(): ExcludedTypeGsonException = ExcludedTypeGsonException(type).also {
-        it.initCause(this)
-    }
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =
+        baseConverter.deserialize(charset, typeInfo, content)
 }
 
 /**
