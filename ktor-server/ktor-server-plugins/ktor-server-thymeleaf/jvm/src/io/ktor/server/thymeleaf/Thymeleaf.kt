@@ -12,6 +12,7 @@ import io.ktor.util.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
 import java.io.*
+import java.util.*
 
 /**
  * Represents a content handled by [Thymeleaf] plugin.
@@ -25,7 +26,8 @@ public class ThymeleafContent(
     public val template: String,
     public val model: Map<String, Any>,
     public val etag: String? = null,
-    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
+    public val locale: Locale = Locale.getDefault()
 )
 
 /**
@@ -53,7 +55,7 @@ public class Thymeleaf(private val engine: TemplateEngine) {
 
     private fun process(content: ThymeleafContent): OutgoingContent = with(content) {
         val writer = StringWriter()
-        val context = Context().apply { setVariables(model) }
+        val context = Context(locale).apply { setVariables(model) }
         engine.process(template, context, writer)
 
         val result = TextContent(text = writer.toString(), contentType)
