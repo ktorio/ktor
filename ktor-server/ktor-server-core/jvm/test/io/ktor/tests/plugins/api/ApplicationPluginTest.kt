@@ -8,6 +8,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -467,7 +468,7 @@ class ApplicationPluginTest {
     }
 
     @Test
-    fun testTransformRequestBody() {
+    fun testTransformBody() {
         class MyInt(val x: Int)
 
         val plugin = createApplicationPlugin("F") {
@@ -475,6 +476,17 @@ class ApplicationPluginTest {
                 transformBody { data ->
                     if (requestedType?.type == MyInt::class) {
                         MyInt(data.readInt())
+                    } else {
+                        data
+                    }
+                }
+            }
+            onCallRespond { _ ->
+                transformBody { data ->
+                    if (data is MyInt) {
+                        val bc = ByteChannel(false)
+                        bc.writeInt(data.x)
+                        bc
                     } else {
                         data
                     }

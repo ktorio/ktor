@@ -24,7 +24,7 @@ public interface OnCall {
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
-    public operator fun invoke(block: suspend CallContext.(ApplicationCall) -> Unit): Unit
+    public operator fun invoke(block: suspend CallContext.(call: ApplicationCall) -> Unit): Unit
 }
 
 /**
@@ -45,7 +45,7 @@ public interface OnCallReceive {
      *
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
-    public operator fun invoke(block: suspend CallReceiveContext.(ApplicationCall) -> Unit): Unit
+    public operator fun invoke(block: suspend CallReceiveContext.(call: ApplicationCall) -> Unit): Unit
 }
 
 /**
@@ -72,7 +72,7 @@ public interface OnCallRespond {
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
-    public operator fun invoke(block: suspend CallRespondContext.(ApplicationCall) -> Unit): Unit
+    public operator fun invoke(block: suspend CallRespondContext.(call: ApplicationCall) -> Unit): Unit
 
     /**
      * Allows you to execute your code after response transformation has been made.
@@ -80,5 +80,5 @@ public interface OnCallRespond {
      *
      * @param block An action that needs to be executed after transformation of the response body.
      **/
-    public fun afterTransform(block: suspend CallRespondAfterTransformContext.(ApplicationCall, Any) -> Unit): Unit
+    public fun afterTransform(block: suspend CallRespondAfterTransformContext.(call: ApplicationCall, responseBody: Any) -> Unit): Unit
 }

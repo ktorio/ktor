@@ -32,7 +32,7 @@ public class CallContext(override val context: PipelineContext<Unit, Application
     CallHandlingContext(context)
 
 /**
- * A context that describes type information about the current request or response body when performing a transformation.
+ * Contains type information about the current request or response body when performing a transformation.
  * */
 public class TransformContext(public val requestedType: TypeInfo?)
 
@@ -47,10 +47,9 @@ public class CallReceiveContext(
 ) : CallHandlingContext(context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
-     * If the transformation has already been made by some other plugin or if the requested receive body type is
-     * [ByteReadChannel] then your [transformBody] handler will not be executed.
+     * If another plugin has already made the transformation, then your [transformBody] handler is not executed.
      **/
-    public suspend fun transformBody(transform: suspend TransformContext.(ByteReadChannel) -> Any) {
+    public suspend fun transformBody(transform: suspend TransformContext.(body: ByteReadChannel) -> Any) {
         val receiveBody = context.subject.value as? ByteReadChannel ?: return
         val typeInfo = context.subject.typeInfo
         if (typeInfo.type == ByteReadChannel::class) return
@@ -77,7 +76,7 @@ public class CallRespondContext(
     /**
      * Specifies how to transform a response body that is being sent to a client.
      **/
-    public suspend fun transformBody(transform: suspend TransformContext.(Any) -> Any) {
+    public suspend fun transformBody(transform: suspend TransformContext.(body: Any) -> Any) {
         val transformContext = TransformContext(context.call.response.responseType)
 
         context.subject = transformContext.transform(context.subject)
@@ -99,7 +98,7 @@ public class CallRespondAfterTransformContext(
      *
      * @param transform An action that modifies [OutgoingContent] that needs to be sent to a client.
      **/
-    public suspend fun transformBody(transform: suspend TransformContext.(OutgoingContent) -> OutgoingContent) {
+    public suspend fun transformBody(transform: suspend TransformContext.(body: OutgoingContent) -> OutgoingContent) {
         val transformContext = TransformContext(context.call.response.responseType)
 
         val newContent =
