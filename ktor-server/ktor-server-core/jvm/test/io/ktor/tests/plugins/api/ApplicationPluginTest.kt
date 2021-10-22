@@ -295,15 +295,13 @@ class ApplicationPluginTest {
     fun `test routing scoped install`() {
         class Config(var data: String)
 
-        val plugin = createSubroutePlugin("F", { Config("default") }) {
+        val plugin = createRouteScopedPlugin("F", { Config("default") }) {
             onCall {
                 context.call.respond(pluginConfig.data)
             }
         }
 
         withTestApplication {
-            application.install(plugin)
-
             application.routing {
                 get { }
                 route("/top") {
@@ -330,10 +328,6 @@ class ApplicationPluginTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/").let {
-                assertEquals("default", it.response.content)
-            }
-
             handleRequest(HttpMethod.Get, "/top").let {
                 assertEquals("/top", it.response.content)
             }
@@ -354,7 +348,7 @@ class ApplicationPluginTest {
 
     @Test
     fun `test dependent routing scoped plugins`() {
-        val pluginF = createSubroutePlugin("F", {}) {
+        val pluginF = createRouteScopedPlugin("F", {}) {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
@@ -363,7 +357,7 @@ class ApplicationPluginTest {
             }
         }
 
-        val pluginG = createSubroutePlugin("G", {}) {
+        val pluginG = createRouteScopedPlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]
@@ -413,7 +407,7 @@ class ApplicationPluginTest {
             }
         }
 
-        val pluginG = createSubroutePlugin("G", {}) {
+        val pluginG = createRouteScopedPlugin("G", {}) {
             beforePlugins(pluginF) {
                 onCallRespond { call ->
                     val data = call.request.headers["F"]

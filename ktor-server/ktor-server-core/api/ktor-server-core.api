@@ -61,13 +61,14 @@ public final class io/ktor/server/application/ApplicationKt {
 }
 
 public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/Plugin {
-	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun getPluginRegistry (Lio/ktor/util/pipeline/Pipeline;)Lio/ktor/util/Attributes;
-	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun install (Lio/ktor/server/routing/Route;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun plugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static final fun pluginOrNull (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)V
@@ -83,7 +84,11 @@ public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationStopping ()Lio/ktor/events/EventDefinition;
 }
 
-public final class io/ktor/server/application/DuplicateApplicationPluginException : java/lang/Exception {
+public class io/ktor/server/application/DuplicateApplicationPluginException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/application/DuplicatePluginException : io/ktor/server/application/DuplicateApplicationPluginException {
 	public fun <init> (Ljava/lang/String;)V
 }
 
@@ -97,24 +102,16 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 
 public abstract interface class io/ktor/server/application/Plugin {
 	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
+	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/server/application/SubroutePlugin : io/ktor/server/application/Plugin {
-	public abstract fun createConfiguration ()Ljava/lang/Object;
-	public abstract fun getConfig (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
-	public abstract fun getConfigKey ()Lio/ktor/util/AttributeKey;
-	public abstract fun install (Lio/ktor/server/routing/Route;)Ljava/lang/Object;
+public abstract interface class io/ktor/server/application/RouteScopedPlugin : io/ktor/server/application/Plugin {
 }
 
-public final class io/ktor/server/application/SubroutePlugin$DefaultImpls {
-	public static fun getConfig (Lio/ktor/server/application/SubroutePlugin;Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
-	public static fun getConfigKey (Lio/ktor/server/application/SubroutePlugin;)Lio/ktor/util/AttributeKey;
-}
-
-public final class io/ktor/server/application/SubroutePluginKt {
+public final class io/ktor/server/application/RouteScopedPluginKt {
 	public static final fun findPluginInRoute (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
-	public static final fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/SubroutePlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun install$default (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/SubroutePlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/RouteScopedPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/RouteScopedPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/AfterPluginBuilder : io/ktor/server/application/plugins/api/RelativePluginBuilder {
@@ -156,8 +153,8 @@ public final class io/ktor/server/application/plugins/api/CallRespondContext : i
 public final class io/ktor/server/application/plugins/api/CreatePluginUtilsKt {
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
-	public static final fun createSubroutePlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/SubroutePlugin;
-	public static final fun createSubroutePlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/SubroutePlugin;
+	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
+	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 }
 
 public final class io/ktor/server/application/plugins/api/InvalidBodyException : java/lang/Exception {
@@ -179,7 +176,6 @@ public abstract interface class io/ktor/server/application/plugins/api/OnCallRes
 }
 
 public abstract class io/ktor/server/application/plugins/api/PluginBuilder : io/ktor/server/application/plugins/api/PluginBuilderBase {
-	public synthetic fun <init> (Lio/ktor/util/AttributeKey;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun afterPlugins ([Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
 	public fun applicationShutdownHook (Lkotlin/jvm/functions/Function1;)V
 	public final fun beforePlugins ([Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
@@ -188,16 +184,7 @@ public abstract class io/ktor/server/application/plugins/api/PluginBuilder : io/
 	public fun getOnCall ()Lio/ktor/server/application/plugins/api/OnCall;
 	public fun getOnCallReceive ()Lio/ktor/server/application/plugins/api/OnCallReceive;
 	public fun getOnCallRespond ()Lio/ktor/server/application/plugins/api/OnCallRespond;
-}
-
-public abstract class io/ktor/server/application/plugins/api/PluginBuilder$ApplicationPluginBuilder : io/ktor/server/application/plugins/api/PluginBuilder {
 	public abstract fun getPluginConfig ()Ljava/lang/Object;
-}
-
-public abstract class io/ktor/server/application/plugins/api/PluginBuilder$SubroutePluginBuilder : io/ktor/server/application/plugins/api/PluginBuilder {
-	public final fun getConfigKey ()Lio/ktor/util/AttributeKey;
-	public final fun getPluginConfig (Lio/ktor/server/application/plugins/api/CallHandlingContext;)Ljava/lang/Object;
-	public final fun getPluginConfig (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/application/plugins/api/PluginBuilderBase {

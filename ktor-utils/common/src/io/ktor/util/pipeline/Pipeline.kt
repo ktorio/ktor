@@ -8,7 +8,6 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.debug.*
 import io.ktor.util.debug.plugins.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
@@ -174,20 +173,15 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     public open fun afterIntercepted() {
     }
 
-    /**
-     * Merges another pipeline into this pipeline, maintaining relative phases order
-     */
-    public fun merge(from: Pipeline<TSubject, TContext>) {
-        if (fastPathMerge(from)) {
-            return
-        }
+    public fun interceptorsForPhase(phase: PipelinePhase): List<PipelineInterceptor<TSubject, TContext>> {
+        @Suppress("UNCHECKED_CAST")
+        return phasesRaw.filterIsInstance<PhaseContent<*, *>>()
+            .firstOrNull { phaseOrContent -> phaseOrContent.phase == phase }
+            ?.sharedInterceptors() as List<PipelineInterceptor<TSubject, TContext>>?
+            ?: emptyList()
+    }
 
-        if (interceptorsQuantity == 0) {
-            setInterceptorsListFromAnotherPipeline(from)
-        } else {
-            resetInterceptorsList()
-        }
-
+    public fun mergePhases(from: Pipeline<TSubject, TContext>) {
         val fromPhases = from.phasesRaw
         val toInsert = fromPhases.toMutableList()
         // the worst case is O(n^2), but it will happen only
@@ -206,19 +200,46 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
                     iterator.remove()
                 } else {
                     val inserted = insertRelativePhase(fromPhaseOrContent, fromPhase)
-                    if (!inserted) continue
-                    iterator.remove()
-                }
-
-                if (fromPhaseOrContent is PhaseContent<*, *> && !fromPhaseOrContent.isEmpty) {
-                    @Suppress("UNCHECKED_CAST")
-                    fromPhaseOrContent as PhaseContent<TSubject, TContext>
-
-                    fromPhaseOrContent.addTo(findPhase(fromPhase)!!)
-                    interceptorsQuantity += fromPhaseOrContent.size
+                    if (inserted) {
+                        iterator.remove()
+                    }
                 }
             }
         }
+    }
+
+    private fun mergeInterceptors(from: Pipeline<TSubject, TContext>) {
+        if (interceptorsQuantity == 0) {
+            setInterceptorsListFromAnotherPipeline(from)
+        } else {
+            resetInterceptorsList()
+        }
+
+        val fromPhases = from.phasesRaw
+        fromPhases.forEach { fromPhaseOrContent ->
+            val fromPhase = (fromPhaseOrContent as? PipelinePhase)
+                ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
+
+            if (fromPhaseOrContent is PhaseContent<*, *> && !fromPhaseOrContent.isEmpty) {
+                @Suppress("UNCHECKED_CAST")
+                fromPhaseOrContent as PhaseContent<TSubject, TContext>
+
+                fromPhaseOrContent.addTo(findPhase(fromPhase)!!)
+                interceptorsQuantity += fromPhaseOrContent.size
+            }
+        }
+    }
+
+    /**
+     * Merges another pipeline into this pipeline, maintaining relative phases order
+     */
+    public fun merge(from: Pipeline<TSubject, TContext>) {
+        if (fastPathMerge(from)) {
+            return
+        }
+
+        mergePhases(from)
+        mergeInterceptors(from)
     }
 
     internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptorFunction<TSubject, TContext>> =

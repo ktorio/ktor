@@ -175,7 +175,7 @@ public class Compression(compression: Configuration) {
     /**
      * `ApplicationPlugin` implementation for [Compression]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, Compression> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, Compression> {
 
         override val key: AttributeKey<Compression> = AttributeKey("Compression")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {

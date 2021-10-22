@@ -84,7 +84,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
     @Test
     open fun testHeadRequest() {
         createAndStartServer {
-            install(io.ktor.server.plugins.AutoHeadResponse)
+            application.install(AutoHeadResponse)
             handle {
                 call.respondText("Hello")
             }
@@ -429,7 +429,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaderSupport)
             get("/") {
                 call.respond(call.url { })
             }

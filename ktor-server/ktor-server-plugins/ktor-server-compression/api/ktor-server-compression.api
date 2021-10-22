@@ -13,7 +13,7 @@ public final class io/ktor/server/plugins/Compression$Configuration : io/ktor/se
 	public final fun getEncoders ()Ljava/util/Map;
 }
 
-public final class io/ktor/server/plugins/Compression$Plugin : io/ktor/server/application/ApplicationPlugin {
+public final class io/ktor/server/plugins/Compression$Plugin : io/ktor/server/application/RouteScopedPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/Compression;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;

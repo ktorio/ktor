@@ -7,6 +7,7 @@ package io.ktor.server.application.plugins.api
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 
 
 /**
@@ -20,7 +21,7 @@ import io.ktor.util.*
  *
  * Usage example:
  * ```
- * val MyPlugin = createPlugin("MyPlugin") {
+ * val MyPlugin = createApplicationPlugin("MyPlugin") {
  *      // This block will be executed when you call install(MyPlugin)
  *
  *      onCall { call ->
@@ -35,7 +36,7 @@ import io.ktor.util.*
 public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
-    body: PluginBuilder.ApplicationPluginBuilder<PluginConfigT>.() -> Unit
+    body: PluginBuilder<PluginConfigT>.() -> Unit
 ): ApplicationPlugin<Application, PluginConfigT, PluginInstance> =
     object : ApplicationPlugin<Application, PluginConfigT, PluginInstance> {
         override val key: AttributeKey<PluginInstance> = AttributeKey(name)
@@ -44,23 +45,14 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
             pipeline: Application,
             configure: PluginConfigT.() -> Unit
         ): PluginInstance {
-            val config = createConfiguration()
-            config.configure()
-
-            val currentPlugin = this
-            val pluginBuilder = object : PluginBuilder.ApplicationPluginBuilder<PluginConfigT>(currentPlugin) {
-                override val pipeline: ApplicationCallPipeline = pipeline
-                override val pluginConfig: PluginConfigT = config
-            }
-            pluginBuilder.setupPlugin(body)
-            return PluginInstance(pluginBuilder)
+            return createPluginInstance(pipeline, body, createConfiguration, configure)
         }
     }
 
 /**
- * Creates a [SubroutePlugin] that can be installed into [io.ktor.server.routing.Routing].
+ * Creates a [RouteScopedPlugin] that can be installed into [io.ktor.server.routing.Route].
  *
- * @param name A name of your new plugin that will be used if you need find an instance of
+ * @param name A name of your new plugin that is used if you need find an instance of
  * your plugin when it is installed to an [io.ktor.server.routing.Routing].
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
  * note that it may be modified later when a user of your plugin calls [install].
@@ -69,7 +61,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  *
  * Usage example:
  * ```
- * val MyPlugin = createPlugin("MyPlugin") {
+ * val MyPlugin = createRouteScopedPlugin("MyPlugin") {
  *      // This block will be executed when you call install(MyPlugin)
  *
  *      onCall { call ->
@@ -83,27 +75,17 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * }
  * ```
  **/
-public fun <PluginConfigT : Any> createSubroutePlugin(
+public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
-    body: PluginBuilder.SubroutePluginBuilder<PluginConfigT>.() -> Unit
-): SubroutePlugin<PluginConfigT, PluginInstance> =
-    object : SubroutePlugin<PluginConfigT, PluginInstance> {
+    body: PluginBuilder<PluginConfigT>.() -> Unit
+): RouteScopedPlugin<PluginConfigT, PluginInstance> =
+    object : RouteScopedPlugin<PluginConfigT, PluginInstance> {
 
         override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
-        override fun createConfiguration(): PluginConfigT =
-            createConfiguration.invoke()
-
-        override fun install(
-            pipeline: Route
-        ): PluginInstance {
-            val currentPlugin = this
-            val pluginBuilder = object : PluginBuilder.SubroutePluginBuilder<PluginConfigT>(currentPlugin) {
-                override val pipeline: ApplicationCallPipeline = pipeline
-            }
-            pluginBuilder.setupPlugin(body)
-            return PluginInstance(pluginBuilder)
+        override fun install(pipeline: ApplicationCallPipeline, configure: PluginConfigT.() -> Unit): PluginInstance {
+            return createPluginInstance(pipeline, body, createConfiguration, configure)
         }
     }
 
@@ -116,7 +98,7 @@ public fun <PluginConfigT : Any> createSubroutePlugin(
  *
  * Usage example:
  * ```
- * val MyPlugin = createPlugin("MyPlugin") {
+ * val MyPlugin = createApplicationPlugin("MyPlugin") {
  *      // This block will be executed when you call install(MyPlugin)
  *
  *      onCall { call ->
@@ -135,7 +117,7 @@ public fun createApplicationPlugin(
     createApplicationPlugin(name, {}, body)
 
 /**
- * Creates a [SubroutePlugin] that can be installed into [Application].
+ * Creates a [RouteScopedPlugin] that can be installed into [Application].
  *
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
@@ -143,7 +125,7 @@ public fun createApplicationPlugin(
  *
  * Usage example:
  * ```
- * val MyPlugin = createPlugin("MyPlugin") {
+ * val MyPlugin = createRouteScopedPlugin("MyPlugin") {
  *      // This block will be executed when you call install(MyPlugin)
  *
  *      onCall { call ->
@@ -157,10 +139,27 @@ public fun createApplicationPlugin(
  * }
  * ```
  **/
-public fun createSubroutePlugin(
+public fun createRouteScopedPlugin(
     name: String,
-    body: PluginBuilder.SubroutePluginBuilder<Unit>.() -> Unit
-): SubroutePlugin<Unit, PluginInstance> = createSubroutePlugin(name, {}, body)
+    body: PluginBuilder<Unit>.() -> Unit
+): RouteScopedPlugin<Unit, PluginInstance> = createRouteScopedPlugin(name, {}, body)
+
+private fun <PipelineT : ApplicationCallPipeline, PluginConfigT : Any> Plugin<PipelineT, PluginConfigT, PluginInstance>.createPluginInstance( // ktlint-disable max-line-length
+    pipeline: PipelineT,
+    body: PluginBuilder<PluginConfigT>.() -> Unit,
+    createConfiguration: () -> PluginConfigT,
+    configure: PluginConfigT.() -> Unit
+): PluginInstance {
+    val config = createConfiguration().apply(configure)
+
+    val currentPlugin = this
+    val pluginBuilder = object : PluginBuilder<PluginConfigT>(currentPlugin.key) {
+        override val pipeline: ApplicationCallPipeline = pipeline
+        override val pluginConfig: PluginConfigT = config
+    }
+    pluginBuilder.setupPlugin(body)
+    return PluginInstance(pluginBuilder)
+}
 
 private fun <Configuration : Any, Plugin : PluginBuilder<Configuration>> Plugin.setupPlugin(
     body: Plugin.() -> Unit
