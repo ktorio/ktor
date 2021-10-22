@@ -63,8 +63,8 @@ public interface OnCallReceive {
  * }
  * ```
  *
- * This will print you a URL once you execute call.respond() in your server and also print you a raw content that is going
- * to be sent to the client..
+ * This will print you a URL once you execute call.respond() in your server and also print you a raw content that
+ * is goingto be sent to the client..
  **/
 public interface OnCallRespond {
     /**
@@ -80,5 +80,7 @@ public interface OnCallRespond {
      *
      * @param block An action that needs to be executed after transformation of the response body.
      **/
-    public fun afterTransform(block: suspend CallRespondAfterTransformContext.(call: ApplicationCall, responseBody: Any) -> Unit): Unit
+    public fun afterTransform(
+        block: suspend CallRespondAfterTransformContext.(call: ApplicationCall, responseBody: Any) -> Unit
+    ): Unit
 }

@@ -230,10 +230,3 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
         }
     }
 }
-
-
-private fun f() {
-    val p = createApplicationPlugin("ContNeg") {
-
-    }
-}
