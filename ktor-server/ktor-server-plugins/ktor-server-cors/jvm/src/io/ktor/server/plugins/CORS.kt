@@ -306,6 +306,7 @@ public class CORS(configuration: Configuration) {
                 }
             }
         }.toString()
+
     /**
      * CORS plugin configuration
      */
@@ -457,7 +458,8 @@ public class CORS(configuration: Configuration) {
 
         private fun wildcardInFrontOfDomain(host: String): Boolean {
             val indexOfWildcard = host.indexOf(wildcardWithDot)
-            return wildcardWithDot in host && !host.endsWith(wildcardWithDot) && (indexOfWildcard <= 0 || host.substringBefore(wildcardWithDot).endsWith("://"))
+            return wildcardWithDot in host && !host.endsWith(wildcardWithDot) &&
+                (indexOfWildcard <= 0 || host.substringBefore(wildcardWithDot).endsWith("://"))
         }
 
         /**
