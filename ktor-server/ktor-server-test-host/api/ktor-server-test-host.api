@@ -144,8 +144,8 @@ public final class io/ktor/server/testing/TestApplicationEngineKt {
 }
 
 public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZLio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZLio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZLio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZLio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun addHeader (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getBodyChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
@@ -153,6 +153,7 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public final fun getMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getPort ()Ljava/lang/Integer;
 	public final fun getProtocol ()Ljava/lang/String;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public final fun getUri ()Ljava/lang/String;
@@ -160,6 +161,7 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun setBodyChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 	public final fun setMethod (Lio/ktor/http/HttpMethod;)V
+	public final fun setPort (Ljava/lang/Integer;)V
 	public final fun setProtocol (Ljava/lang/String;)V
 	public final fun setUri (Ljava/lang/String;)V
 	public final fun setVersion (Ljava/lang/String;)V
