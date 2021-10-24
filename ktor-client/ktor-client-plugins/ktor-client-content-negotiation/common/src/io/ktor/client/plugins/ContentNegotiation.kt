@@ -120,11 +120,14 @@ public class ContentNegotiation internal constructor(
 
                 val contentType = context.response.contentType() ?: return@intercept
                 val registrations = plugin.registrations
-                val registration = registrations
-                    .firstOrNull { it.contentTypeMatcher.contains(contentType) } ?: return@intercept
+                val matchingRegistrations = registrations
+                    .filter { it.contentTypeMatcher.contains(contentType) }
+                    .takeIf { it.isNotEmpty() }?: return@intercept
 
-                val parsedBody = registration.converter
-                    .deserialize(context.request.headers.suitableCharset(), info, body) ?: return@intercept
+                val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
+                    registration.converter
+                        .deserialize(context.request.headers.suitableCharset(), info, body)
+                }?: return@intercept
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }
