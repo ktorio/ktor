@@ -142,4 +142,9 @@ public class TestApplicationResponse(
      * Websocket session's channel
      */
     public fun websocketChannel(): ByteReadChannel? = responseChannel
+
+    /**
+     * Server-sent event sessions' channel
+     */
+    public fun serverSentEventsChannel(): ByteReadChannel? = responseChannel
 }

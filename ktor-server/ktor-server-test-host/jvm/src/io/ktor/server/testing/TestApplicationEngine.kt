@@ -265,6 +265,59 @@ class TestApplicationEngine(
         return call
     }
 
+    private fun createServerSentEventsCall(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
+        createCall(closeRequest = false) {
+            this.uri = uri
+            addHeader(HttpHeaders.Accept, ContentType.Text.EventStream.toString())
+
+            processRequest(setup)
+        }
+
+    /**
+     * Make a test request that sets up an SSE session and invokes [callback] function
+     * with a channel that streams incoming data from the server.
+     */
+    fun handleServerSentEventsStream(
+        uri: String,
+        setup: TestApplicationRequest.() -> Unit = {},
+        callback: suspend TestApplicationCall.(incoming: ByteReadChannel) -> Unit
+    ): TestApplicationCall {
+        val call = createServerSentEventsCall(uri) {
+            setup()
+            bodyChannel = ByteChannel(true)
+        }
+
+        // we need this to wait for response channel appearance
+        // otherwise we get NPE when reading from channel
+        val responseSent: CompletableJob = Job()
+        call.response.responseChannelDeferred.invokeOnCompletion { cause ->
+            when (cause) {
+                null -> responseSent.complete()
+                else -> responseSent.completeExceptionally(cause)
+            }
+        }
+
+        launch(configuration.dispatcher) {
+            try {
+                // execute server-side
+                pipeline.execute(call)
+            } catch (t: Throwable) {
+                responseSent.completeExceptionally(t)
+                throw t
+            }
+        }
+
+        runBlocking(configuration.dispatcher) {
+            responseSent.join()
+            processResponse(call)
+
+            // execute client side
+            call.callback(call.response.serverSentEventsChannel()!!)
+        }
+
+        return call
+    }
+
     /**
      * Creates an instance of test call but doesn't start request processing
      */
