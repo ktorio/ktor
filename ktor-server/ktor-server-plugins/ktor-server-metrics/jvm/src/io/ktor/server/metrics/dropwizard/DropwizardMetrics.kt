@@ -93,8 +93,8 @@ public class DropwizardMetrics(
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
                 val name = call.route.toString()
-                val meter = plugin.registry.meter(name(configuration.baseName, name, "meter"))
-                val timer = plugin.registry.timer(name(configuration.baseName, name, "timer"))
+                val meter = plugin.registry.meter(name(plugin.baseName, name, "meter"))
+                val timer = plugin.registry.timer(name(plugin.baseName, name, "timer"))
                 meter.mark()
                 val context = timer.time()
                 call.attributes.put(
@@ -106,9 +106,7 @@ public class DropwizardMetrics(
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
                 val routingMetrics = call.attributes.take(routingMetricsKey)
                 val status = call.response.status()?.value ?: 0
-                val statusMeter = plugin.registry.meter(
-                    name(configuration.baseName, routingMetrics.name, status.toString())
-                )
+                val statusMeter = plugin.registry.meter(name(plugin.baseName, routingMetrics.name, status.toString()))
                 statusMeter.mark()
                 routingMetrics.context.stop()
             }

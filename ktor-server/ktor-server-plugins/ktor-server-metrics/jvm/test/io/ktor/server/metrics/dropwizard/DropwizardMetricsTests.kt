@@ -5,14 +5,14 @@
 package io.ktor.server.metrics.dropwizard
 
 import com.codahale.metrics.*
-import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.hamcrest.CoreMatchers.*
-import org.junit.*
-import org.junit.Assert.*
+import org.hamcrest.MatcherAssert.*
+import org.junit.Test
+import kotlin.test.*
 
 class DropwizardMetricsTests {
 
