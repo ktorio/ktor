@@ -17,6 +17,7 @@ public class ParserException(message: String) : Exception(message)
 private const val HTTP_LINE_LIMIT = 8192
 private const val HTTP_STATUS_CODE_MIN_RANGE = 100
 private const val HTTP_STATUS_CODE_MAX_RANGE = 999
+private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
 
 /**
  * Parse an HTTP request line and headers
@@ -123,6 +124,11 @@ internal suspend fun parseHeaders(
             range.start = headerEnd
 
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
+        }
+
+        val host = headers[HttpHeaders.Host]
+        if (host != null && host.any { hostForbiddenSymbols.contains(it) }) {
+            error("Host cannot contain any of the following symbols: $hostForbiddenSymbols")
         }
 
         return headers
