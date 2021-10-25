@@ -80,7 +80,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                repeat(TEST_SIZE) { size ->
+                repeat(TEST_SIZE) {
                     val originalData = Data("hello", 100)
                     sendSerializedByWebsocketConverter(originalData)
                     val actual = receiveDeserialized<Data>()
