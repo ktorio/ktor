@@ -418,7 +418,10 @@ public class CORS(configuration: Configuration) {
         }
 
         /**
-         * Allow requests from the specified domains and schemes
+         * Allow requests from the specified domains and schemes. A wildcard is supported for either the host or any
+         * subdomain. If you specify a wildcard in the host, you cannot add specific subdomains. Otherwise you can mix
+         * wildcard and non-wildcard subdomains as long as the wildcard is always in front of the domain,
+         * e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
          */
         public fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
             if (host == "*") {
