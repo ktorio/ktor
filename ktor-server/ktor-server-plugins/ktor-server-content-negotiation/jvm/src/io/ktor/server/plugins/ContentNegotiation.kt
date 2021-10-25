@@ -114,7 +114,7 @@ public class ContentNegotiation internal constructor(
     /**
      * Implementation of an [ApplicationPlugin] for the [ContentNegotiation]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, ContentNegotiation> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, ContentNegotiation> {
         override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 
         override fun install(

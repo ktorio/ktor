@@ -241,6 +241,37 @@ class ContentNegotiationTest {
     }
 
     @Test
+    fun testSubrouteInstall() {
+        withTestApplication {
+            application.routing {
+                application.routing {
+                    route("1") {
+                        install(ContentNegotiation) {
+                            register(customContentType, customContentConverter)
+                        }
+                        get { call.respond(Wrapper("OK")) }
+                    }
+                    get("2") { call.respond(Wrapper("OK")) }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/1") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            assertFails {
+                handleRequest(HttpMethod.Get, "/2") {
+                    addHeader(HttpHeaders.Accept, customContentType.toString())
+                }
+            }
+        }
+    }
+
+    @Test
     fun testMultiple() {
         val textContentConverter: ContentConverter = textContentConverter
 
