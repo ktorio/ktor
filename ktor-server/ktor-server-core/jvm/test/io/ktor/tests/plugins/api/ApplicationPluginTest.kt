@@ -445,4 +445,24 @@ class ApplicationPluginTest {
         assertWithPlugin(expectedResponse = "response", data = null)
         assertWithPlugin(expectedResponse = "custom data", data = "custom data")
     }
+
+    @Test
+    fun `test side effect of install called on every installation`() {
+        var globalSideEffect = ""
+
+        val TestPlugin = createRouteScopedPlugin("P") {
+            globalSideEffect += "Called!"
+        }
+
+        withTestApplication {
+            application.routing {
+                route("/1") {
+                    install(TestPlugin)
+                }
+                route("/2") {
+                    install(TestPlugin)
+                }
+            }
+        }
+    }
 }
