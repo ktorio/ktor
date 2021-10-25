@@ -60,7 +60,7 @@ class WebSocketTest {
     fun testJsonConverter() {
         withTestApplication {
             application.install(WebSockets) {
-                contentConverter = GsonWebsocketConverter()
+                contentConverter = GsonBaseConverter()
             }
 
             application.routing {

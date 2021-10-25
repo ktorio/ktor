@@ -4,7 +4,6 @@
 
 package io.ktor.shared.serialization
 
-import io.ktor.http.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*

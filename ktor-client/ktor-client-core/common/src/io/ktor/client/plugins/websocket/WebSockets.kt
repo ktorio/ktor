@@ -45,7 +45,7 @@ public class WebSockets internal constructor(
     public val pingInterval: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter? = null
+    public val contentConverter: BaseConverter? = null
 ) {
     /**
      * Client WebSocket plugin.
@@ -123,7 +123,7 @@ public class WebSockets internal constructor(
         /**
          *
          */
-        public var contentConverter: WebsocketContentConverter? = null
+        public var contentConverter: BaseConverter? = null
 
         /**
          * Configure WebSocket extensions.

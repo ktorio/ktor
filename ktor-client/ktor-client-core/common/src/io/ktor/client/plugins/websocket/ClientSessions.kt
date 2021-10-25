@@ -38,13 +38,21 @@ internal class DelegatingClientWebSocketSession(
  *
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSerializedByWebsocketConverter(data: T) {
+    val charset = call.request.headers.suitableCharset()
     val serializedData = call.client?.plugin(WebSockets)?.contentConverter?.serialize(
-        charset = call.request.headers.suitableCharset(),
+        charset = charset,
         typeInfo = typeInfo<T>(),
         value = data
     ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    outgoing.send(Frame.Text(serializedData))
+    outgoing.send(
+        Frame.Text(
+            io.ktor.utils.io.core.String(
+                serializedData.toByteArray(),
+                charset = charset
+            )
+        )
+    )
 }
 
 /**

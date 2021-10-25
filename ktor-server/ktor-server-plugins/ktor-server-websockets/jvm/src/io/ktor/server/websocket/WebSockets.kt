@@ -37,7 +37,7 @@ public class WebSockets constructor(
     public val maxFrameSize: Long,
     public val masking: Boolean,
     public val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter?
+    public val contentConverter: BaseConverter?
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -90,7 +90,7 @@ public class WebSockets constructor(
         /**
          *
          */
-        public var contentConverter: WebsocketContentConverter? = null
+        public var contentConverter: BaseConverter? = null
 
         /**
          * Configure WebSocket extensions.

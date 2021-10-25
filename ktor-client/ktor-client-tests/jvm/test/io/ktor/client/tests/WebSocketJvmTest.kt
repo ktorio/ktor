@@ -74,7 +74,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
     fun testWebSocketSerialization() = clientTests(listOf("Android", "Apache")) {
         config {
             WebSockets {
-                contentConverter = GsonWebsocketConverter()
+                contentConverter = GsonBaseConverter()
             }
         }
 
