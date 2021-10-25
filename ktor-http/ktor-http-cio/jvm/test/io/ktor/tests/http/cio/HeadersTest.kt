@@ -248,4 +248,40 @@ class HeadersTest {
             }
         }
     }
+
+    @Test
+    fun `Host header with invalid character (slash)`() = runBlocking<Unit> {
+        ch.writeStringUtf8("Host: www/exam/ple.com\n\n")
+
+        assertFailsWith<IllegalStateException> {
+            parseHeaders(ch, builder)
+        }
+    }
+
+    @Test
+    fun `Host header with invalid character (question mark)`() = runBlocking<Unit> {
+        ch.writeStringUtf8("Host: www.example?com\n\n")
+
+        assertFailsWith<IllegalStateException> {
+            parseHeaders(ch, builder)
+        }
+    }
+
+    @Test
+    fun `Host header with invalid '#' character`() = runBlocking<Unit> {
+        ch.writeStringUtf8("Host: www.ex#mple.com\n\n")
+
+        assertFailsWith<IllegalStateException> {
+            parseHeaders(ch, builder)
+        }
+    }
+
+    @Test
+    fun `Host header with invalid '@' character`() = runBlocking<Unit> {
+        ch.writeStringUtf8("Host: www.ex@mple.com\n\n")
+
+        assertFailsWith<IllegalStateException> {
+            parseHeaders(ch, builder)
+        }
+    }
 }
