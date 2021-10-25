@@ -129,7 +129,7 @@ public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
  * @property password password part of URL
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
-public data class Url(
+public data class Url internal constructor(
     val protocol: URLProtocol,
     val host: String,
     val specifiedPort: Int,
@@ -142,9 +142,9 @@ public data class Url(
 ) {
     init {
         require(
-            specifiedPort in 1..65536 ||
+            specifiedPort in 0..65535 ||
                 specifiedPort == DEFAULT_PORT
-        ) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
+        ) { "port must be between 0 and 65535, or $DEFAULT_PORT if not set" }
     }
 
     val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
