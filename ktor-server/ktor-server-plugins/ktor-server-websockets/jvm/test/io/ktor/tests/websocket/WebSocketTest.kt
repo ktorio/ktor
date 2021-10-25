@@ -10,6 +10,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.shared.serializaion.gson.*
+import io.ktor.shared.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -107,6 +108,85 @@ class WebSocketTest {
 
                         assertTrue { receivedContent.contentEquals(jsonData.toByteArray()) }
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSerializationWithNoConverter() {
+        withTestApplication {
+            application.install(WebSockets) {}
+
+            application.routing {
+                webSocket("/echo") {
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        receiveDeserialized<Data>()
+                    }
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        sendSerializedByWebsocketConverter(Data("hello", 12))
+                    }
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            val jsonData = "{\"string\":\"hello\",\"count\":123}"
+            val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(jsonData))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let { call ->
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {}
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDeserializationWithOnClosedChannel() {
+        withTestApplication {
+            application.install(WebSockets) {
+                contentConverter = GsonBaseConverter()
+            }
+
+            application.routing {
+                webSocket("/echo") {
+                    assertFailsWith<ClosedReceiveChannelException> {
+                        receiveDeserialized<Data>()
+                    }
+                    outgoing.send(Frame.Close())
+                }
+            }
+            val sendBuffer = ByteBuffer.allocate(100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(""))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let { call ->
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {}
                 }
             }
         }

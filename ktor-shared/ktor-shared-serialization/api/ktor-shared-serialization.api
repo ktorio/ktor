@@ -1,3 +1,8 @@
+public abstract interface class io/ktor/shared/serialization/BaseConverter {
+	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class io/ktor/shared/serialization/Configuration {
 	public abstract fun register (Lio/ktor/http/ContentType;Lio/ktor/shared/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 }
@@ -11,8 +16,7 @@ public class io/ktor/shared/serialization/ContentConvertException : java/lang/Ex
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public abstract interface class io/ktor/shared/serialization/ContentConverter {
-	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class io/ktor/shared/serialization/ContentConverter : io/ktor/shared/serialization/BaseConverter {
 	public abstract fun serialize (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -22,6 +26,40 @@ public final class io/ktor/shared/serialization/ContentConverterKt {
 }
 
 public final class io/ktor/shared/serialization/JsonConvertException : io/ktor/shared/serialization/ContentConvertException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/shared/serialization/SerializedData {
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;I)V
+	public final fun component1 ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun component2 ()I
+	public final fun copy (Lio/ktor/utils/io/ByteReadChannel;I)Lio/ktor/shared/serialization/SerializedData;
+	public static synthetic fun copy$default (Lio/ktor/shared/serialization/SerializedData;Lio/ktor/utils/io/ByteReadChannel;IILjava/lang/Object;)Lio/ktor/shared/serialization/SerializedData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getDataLength ()I
+	public fun hashCode ()I
+	public final fun toByteArray (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+}
+
+public class io/ktor/shared/serialization/WebsocketContentConvertException : io/ktor/shared/serialization/ContentConvertException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public abstract interface class io/ktor/shared/serialization/WebsocketContentConverter {
+	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/shared/serialization/WebsocketConverterNotFoundException : io/ktor/shared/serialization/WebsocketContentConvertException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/shared/serialization/WebsocketDeserializeException : io/ktor/shared/serialization/WebsocketContentConvertException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }

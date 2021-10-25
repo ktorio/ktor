@@ -9,6 +9,8 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.shared.serializaion.gson.*
+import io.ktor.shared.serialization.*
+import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
@@ -89,4 +91,50 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
+
+    @Test
+    fun testSerializationWithNoConverter() = clientTests(listOf("Android", "Apache")) {
+        config {
+            WebSockets {
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(TEST_SIZE) {
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        sendSerializedByWebsocketConverter(Data("hello", 100))
+                    }
+
+                    outgoing.send(Frame.Text("{\"stringValue\":\"value\", \"count\":12}"))
+
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        receiveDeserialized<Data>()
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDeserializationWithOnClosedChannel() = clientTests(listOf("Android", "Apache")) {
+        config {
+            WebSockets {
+                contentConverter = GsonBaseConverter()
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(TEST_SIZE) {
+                    outgoing.send(Frame.Close("close".toByteArray()))
+
+                    assertFailsWith<ClosedReceiveChannelException> {
+                        receiveDeserialized<Data>()
+                    }
+                }
+            }
+        }
+    }
 }
+

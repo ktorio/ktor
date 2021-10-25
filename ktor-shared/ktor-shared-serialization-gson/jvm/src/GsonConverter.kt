@@ -38,7 +38,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         )
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData =
         baseConverter.serialize(charset, typeInfo, value)
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =
