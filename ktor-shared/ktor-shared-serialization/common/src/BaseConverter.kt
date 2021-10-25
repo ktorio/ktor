@@ -52,7 +52,7 @@ public interface BaseConverter {
  */
 public data class SerializedData(
     val data: ByteReadChannel,
-    val dataLength: Int
+    val dataLength: Int?
 ) {
     /**
      * Reads serialized object from [data] to a [ByteArray]
@@ -60,7 +60,7 @@ public data class SerializedData(
      * @return converted [ByteArray] value
      */
     public suspend fun toByteArray(): ByteArray {
-        val resultByteArray = ByteArray(dataLength)
+        val resultByteArray = ByteArray(dataLength ?: 0)
         data.readFully(resultByteArray)
         return resultByteArray
     }
