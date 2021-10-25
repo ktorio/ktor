@@ -29,7 +29,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
     ): OutgoingContent {
         return OutputStreamContent(
             {
-                baseConverter.serialize(charset, typeInfo, value)?.toByteArray()?.let {
+                baseConverter.serialize(charset, typeInfo, value).toByteArray().let {
                     this.write(it)
                 }
             },
@@ -37,7 +37,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         )
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData =
         baseConverter.serialize(charset, typeInfo, value)
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =

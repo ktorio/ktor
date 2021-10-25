@@ -21,7 +21,7 @@ public class KotlinxBaseSerialization(
         }
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData {
         val result = try {
             serializerFromTypeInfo(typeInfo, format.serializersModule).let {
                 serializeContent(it, format, value, charset)
@@ -44,7 +44,7 @@ public class KotlinxBaseSerialization(
         format: SerialFormat,
         value: Any,
         charset: Charset
-    ): SerializedData? {
+    ): SerializedData {
         @Suppress("UNCHECKED_CAST")
         return when (format) {
             is StringFormat -> {

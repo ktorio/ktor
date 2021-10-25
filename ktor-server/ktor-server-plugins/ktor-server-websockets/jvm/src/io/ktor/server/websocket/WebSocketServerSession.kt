@@ -33,7 +33,14 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
 public val WebSocketServerSession.application: Application get() = call.application
 
 /**
+ * Serializes [data] of type [T] to frame using websocket content converter and enqueue this frame,
+ * may suspend if outgoing queue is full.
+ * May throw an exception if outgoing channel is already closed, so it is impossible to transfer any message.
+ * Frames that were sent after close frame could be silently ignored.
+ * Please note that close frame could be sent automatically in reply to a peer close frame unless it is
+ * raw websocket session.
  *
+ * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
 public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerializedByWebsocketConverter(data: T) {
     val charset = call.request.headers.suitableCharset()
@@ -54,7 +61,12 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
 }
 
 /**
+ * Dequeue frame and deserializes to type [T] using websocket content converter.
+ * Please note that you don't need to use this method with raw websocket session
+ * or if you're expecting ping, pong, close frames.
  *
+ * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeserialized(): T {
     val data = when (val frame = incoming.receive()) {
@@ -69,7 +81,7 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeseri
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
         content = ByteReadChannel(data)
-    )
+    ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
     return if (result is T) result
     else throw WebsocketDeserializeException("Can't convert value from json")

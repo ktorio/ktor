@@ -16,7 +16,7 @@ import kotlin.reflect.jvm.*
 
 public open class GsonBaseConverter(private val gson: Gson = Gson()) : BaseConverter {
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData {
         val text = gson.toJson(value, typeInfo.reifiedType)
             .toByteArray(charset)
 

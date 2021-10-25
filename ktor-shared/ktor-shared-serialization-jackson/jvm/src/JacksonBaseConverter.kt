@@ -18,7 +18,7 @@ import kotlin.text.Charsets
 
 public class JacksonBaseConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : BaseConverter {
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? {
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData {
         val outputStream = ByteArrayOutputStream()
 
         if (charset == Charsets.UTF_8) {

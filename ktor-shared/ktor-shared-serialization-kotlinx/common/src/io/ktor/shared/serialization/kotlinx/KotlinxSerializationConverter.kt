@@ -39,8 +39,7 @@ public class KotlinxSerializationConverter(
         value: Any
     ): OutgoingContent? {
         @Suppress("UNCHECKED_CAST")
-        val content = baseConverter.serialize(charset, typeInfo, value)?.toByteArray()
-            ?: return null
+        val content = baseConverter.serialize(charset, typeInfo, value).toByteArray()
 
         return when (format) {
             is StringFormat -> TextContent(
@@ -73,7 +72,7 @@ public class KotlinxSerializationConverter(
         }
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData? =
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData =
         baseConverter.serialize(charset, typeInfo, value)
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =

@@ -759,6 +759,7 @@ public final class io/ktor/client/plugins/websocket/WebSockets {
 	public fun <init> ()V
 	public fun <init> (JJ)V
 	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentConverter ()Lio/ktor/shared/serialization/BaseConverter;
 	public final fun getMaxFrameSize ()J
 	public final fun getPingInterval ()J
 }
@@ -766,8 +767,10 @@ public final class io/ktor/client/plugins/websocket/WebSockets {
 public final class io/ktor/client/plugins/websocket/WebSockets$Config {
 	public fun <init> ()V
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getContentConverter ()Lio/ktor/shared/serialization/BaseConverter;
 	public final fun getMaxFrameSize ()J
 	public final fun getPingInterval ()J
+	public final fun setContentConverter (Lio/ktor/shared/serialization/BaseConverter;)V
 	public final fun setMaxFrameSize (J)V
 	public final fun setPingInterval (J)V
 }
