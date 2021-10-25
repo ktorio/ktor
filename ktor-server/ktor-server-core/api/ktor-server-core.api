@@ -16,11 +16,12 @@ public abstract interface class io/ktor/application/ApplicationCall {
 public class io/ktor/application/ApplicationCallPipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field ApplicationPhase Lio/ktor/application/ApplicationCallPipeline$ApplicationPhase;
 	public fun <init> ()V
-	public fun <init> (Z)V
-	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZLio/ktor/server/application/ApplicationEnvironment;)V
+	public synthetic fun <init> (ZLio/ktor/server/application/ApplicationEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getDevelopmentMode ()Z
-	public final fun getReceivePipeline ()Lio/ktor/request/ApplicationReceivePipeline;
-	public final fun getSendPipeline ()Lio/ktor/response/ApplicationSendPipeline;
+	public fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun getReceivePipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
+	public final fun getSendPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 }
 
 public final class io/ktor/application/ApplicationCallPipeline$ApplicationPhase {
@@ -1397,7 +1398,7 @@ public final class io/ktor/routing/RootRouteSelector : io/ktor/routing/RouteSele
 }
 
 public class io/ktor/routing/Route : io/ktor/application/ApplicationCallPipeline {
-	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;)V
+	public synthetic fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;)V
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;Z)V
 	public synthetic fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun afterIntercepted ()V

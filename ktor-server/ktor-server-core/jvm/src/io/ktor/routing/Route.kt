@@ -18,7 +18,7 @@ import io.ktor.util.pipeline.*
 public open class Route(
     public val parent: Route?,
     public val selector: RouteSelector,
-    developmentMode: Boolean,
+    developmentMode: Boolean = false,
 ) : ApplicationCallPipeline(developmentMode) {
 
     /**
@@ -27,6 +27,7 @@ public open class Route(
      * @param parent is a parent node in the tree, or null for root node.
      * @param selector is an instance of [RouteSelector] for this node.
      */
+    @Deprecated(message = "Please use constructor with developmentMode parameter", level = DeprecationLevel.HIDDEN)
     public constructor(
         parent: Route?,
         selector: RouteSelector,
@@ -50,7 +51,7 @@ public open class Route(
     public fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
-            val entry = Route(this, selector)
+            val entry = Route(this, selector, developmentMode)
             childList.add(entry)
             return entry
         }
