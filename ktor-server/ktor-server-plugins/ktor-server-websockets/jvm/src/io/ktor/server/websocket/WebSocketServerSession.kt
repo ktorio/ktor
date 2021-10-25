@@ -49,7 +49,7 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
  *
  */
 public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeserialized(): T {
-    val data = when(val frame = incoming.receive()) {
+    val data = when (val frame = incoming.receive()) {
         is Frame.Text -> frame.data
         is Frame.Binary -> frame.data
         else -> throw WebsocketDeserializeException(
@@ -64,7 +64,7 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeseri
     )
 
     return if (result is T) result
-        else throw WebsocketDeserializeException("Can't convert value from json")
+    else throw WebsocketDeserializeException("Can't convert value from json")
 }
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =

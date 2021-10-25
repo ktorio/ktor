@@ -141,7 +141,12 @@ public class WebSockets internal constructor(
 
         override fun prepare(block: Config.() -> Unit): WebSockets {
             val config = Config().apply(block)
-            return WebSockets(config.pingInterval, config.maxFrameSize, config.extensionsConfig, config.contentConverter)
+            return WebSockets(
+                config.pingInterval,
+                config.maxFrameSize,
+                config.extensionsConfig,
+                config.contentConverter
+            )
         }
 
         @OptIn(InternalAPI::class)

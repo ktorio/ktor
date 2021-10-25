@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 
-
 /**
  * Creates an [ApplicationPlugin] that can be installed into [Application].
  *

@@ -32,7 +32,7 @@ public data class SerializedData(
     val data: ByteReadChannel,
     val dataLength: Int
 ) {
-    public suspend fun toByteArray() : ByteArray {
+    public suspend fun toByteArray(): ByteArray {
         val resultByteArray = ByteArray(dataLength)
         data.readFully(resultByteArray)
         return resultByteArray
