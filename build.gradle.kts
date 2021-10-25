@@ -65,10 +65,19 @@ buildscript {
     CacheRedirector.configureBuildScript(rootProject, this)
 }
 
-val releaseVersion: String by extra
+val releaseVersion: String? by extra
+val eapVersion: String? by extra
 val native_targets_enabled: Boolean by extra
+val version = (project.version as String).dropLast("-SNAPSHOT".length)
 
-extra["configuredVersion"] = if (project.hasProperty("releaseVersion")) releaseVersion else project.version
+extra["configuredVersion"] = when {
+    releaseVersion != null -> releaseVersion
+    eapVersion != null -> "$version-eap-$eapVersion"
+    else -> project.version
+}
+
+println("The build version is ${extra["configuredVersion"]}")
+
 extra["globalM2"] = "$buildDir/m2"
 extra["publishLocal"] = project.hasProperty("publishLocal")
 
