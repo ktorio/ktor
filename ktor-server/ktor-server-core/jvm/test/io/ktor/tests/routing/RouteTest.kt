@@ -29,4 +29,12 @@ class RouteTest {
         assertEquals("/root/simpleChildInSlash", simpleChildInSlash.toString())
         assertEquals("/root/simpleChildInSlash/", slashChildInSimpleChild.toString())
     }
+
+    @Test
+    fun testCreateChildKeepsDevelopmentMode() {
+        val root = Route(parent = null, selector = PathSegmentConstantRouteSelector("root"), developmentMode = true)
+        val simpleChild = root.createChild(PathSegmentConstantRouteSelector("simpleChild"))
+        assertTrue(root.developmentMode)
+        assertTrue(simpleChild.developmentMode)
+    }
 }
