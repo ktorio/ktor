@@ -75,7 +75,23 @@ public class CORS(configuration: Configuration) {
         else -> null
     }
 
-    private val hostsNormalized = HashSet<String>(configuration.hosts.map { normalizeOrigin(it) })
+    private val hostsNormalized =
+        HashSet<String>(
+            configuration.hosts
+                .filterNot { it.contains('*') }
+                .map { normalizeOrigin(it) }
+        )
+
+    private val hostsWithWildcard =
+        HashSet<Pair<String, String>>(
+            configuration.hosts
+                .filter { it.contains('*') }
+                .map {
+                    val normalizedOrigin = normalizeOrigin(it)
+                    val (prefix, suffix) = normalizedOrigin.split('*')
+                    prefix to suffix
+                }
+        )
 
     init {
         if (configuration.allowCredentials) {
@@ -209,7 +225,10 @@ public class CORS(configuration: Configuration) {
     }
 
     private fun corsCheckOrigins(origin: String): Boolean {
-        return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
+        val normalizedOrigin = normalizeOrigin(origin)
+        return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
+            normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
+        }
     }
 
     private fun corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
@@ -301,6 +320,8 @@ public class CORS(configuration: Configuration) {
      * CORS feature configuration
      */
     public class Configuration {
+        private val wildcardWithDot = "*."
+
         public companion object {
             /**
              * Default HTTP methods that are always allowed by CORS
@@ -433,21 +454,51 @@ public class CORS(configuration: Configuration) {
         }
 
         /**
-         * Allow requests from the specified domains and schemes
+         * Allow requests from the specified domains and schemes. A wildcard is supported for either the host or any
+         * subdomain. If you specify a wildcard in the host, you cannot add specific subdomains. Otherwise you can mix
+         * wildcard and non-wildcard subdomains as long as the wildcard is always in front of the domain,
+         * e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
          */
         public fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
             if (host == "*") {
                 return anyHost()
             }
+
             require("://" !in host) { "scheme should be specified as a separate parameter schemes" }
 
             for (schema in schemes) {
-                hosts.add("$schema://$host")
+                addHost("$schema://$host")
 
                 for (subDomain in subDomains) {
-                    hosts.add("$schema://$subDomain.$host")
+                    validateWildcardRequirements(subDomain)
+                    addHost("$schema://$subDomain.$host")
                 }
             }
+        }
+
+        private fun addHost(host: String) {
+            validateWildcardRequirements(host)
+            hosts.add(host)
+        }
+
+        private fun validateWildcardRequirements(host: String) {
+            if ('*' !in host) {
+                return
+            }
+
+            fun String.countMatches(subString: String): Int =
+                windowed(subString.length) {
+                    if (it == subString) 1 else 0
+                }.sum()
+
+            require(wildcardInFrontOfDomain(host)) { "wildcard must appear in front of the domain, e.g. *.domain.com" }
+            require(host.countMatches(wildcardWithDot) == 1) { "wildcard cannot appear more than once" }
+        }
+
+        private fun wildcardInFrontOfDomain(host: String): Boolean {
+            val indexOfWildcard = host.indexOf(wildcardWithDot)
+            return wildcardWithDot in host && !host.endsWith(wildcardWithDot) &&
+                (indexOfWildcard <= 0 || host.substringBefore(wildcardWithDot).endsWith("://"))
         }
 
         /**
@@ -520,6 +571,7 @@ public class CORS(configuration: Configuration) {
             }
         }
     }
+
 
     /**
      * Feature object for installation
