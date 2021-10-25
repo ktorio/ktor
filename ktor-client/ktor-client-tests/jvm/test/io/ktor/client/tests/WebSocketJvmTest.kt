@@ -137,4 +137,3 @@ class WebSocketJvmTest : ClientLoader(100000) {
         }
     }
 }
-

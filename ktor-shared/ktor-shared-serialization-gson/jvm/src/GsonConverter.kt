@@ -29,8 +29,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         typeInfo: TypeInfo,
         value: Any
     ): OutgoingContent? {
-        val data = serialize(charset, typeInfo, value)?.toByteArray()
-            ?: return null
+        val data = serialize(charset, typeInfo, value).toByteArray()
 
         return TextContent(
             String(data, charset),
