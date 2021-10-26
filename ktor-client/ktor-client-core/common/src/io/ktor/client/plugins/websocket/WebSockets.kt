@@ -121,7 +121,7 @@ public class WebSockets internal constructor(
         public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
 
         /**
-         *
+         * Converter for serialization/deserialization
          */
         public var contentConverter: BaseConverter? = null
 

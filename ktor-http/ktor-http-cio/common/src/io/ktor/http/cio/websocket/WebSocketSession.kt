@@ -83,14 +83,14 @@ public fun <T : WebSocketExtension<*>> WebSocketSession.extensionOrNull(
  *
  * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
  */
-public suspend fun WebSocketSession.sendSerialized(content: String): Unit = send(Frame.Text(content))
+public suspend fun WebSocketSession.send(content: String): Unit = send(Frame.Text(content))
 
 /**
  * Enqueues a final binary frame for sending with the specified [content].
  *
  * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
  */
-public suspend fun WebSocketSession.sendSerialized(content: ByteArray): Unit = send(Frame.Binary(true, content))
+public suspend fun WebSocketSession.send(content: ByteArray): Unit = send(Frame.Binary(true, content))
 
 /**
  * Send a close frame with the specified [reason]. May suspend if outgoing channel is full.

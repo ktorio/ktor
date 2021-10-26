@@ -88,7 +88,7 @@ public class WebSockets constructor(
         public var masking: Boolean = false
 
         /**
-         *
+         * Converter for serialization/deserialization
          */
         public var contentConverter: BaseConverter? = null
 
