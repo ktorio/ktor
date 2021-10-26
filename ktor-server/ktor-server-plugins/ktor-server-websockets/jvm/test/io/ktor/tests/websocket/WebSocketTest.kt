@@ -146,7 +146,7 @@ class WebSocketTest {
                     channel.flush()
                     conversation.join()
                 }.channel
-            }.let { call ->
+            }.let {
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {}
                 }
@@ -184,7 +184,7 @@ class WebSocketTest {
                     channel.flush()
                     conversation.join()
                 }.channel
-            }.let { call ->
+            }.let {
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {}
                 }
