@@ -10,6 +10,7 @@ import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.server.util.*
 import io.ktor.util.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
@@ -70,13 +71,15 @@ public class CIOApplicationEngine(
                 environment.start()
             }
 
-            environment.connectors.forEach { connectorSpec ->
-                val connector = startConnector(connectorSpec.host, connectorSpec.port)
-                connectors.add(connector)
+            val connectorsAndServers = environment.connectors.map { connectorSpec ->
+                connectorSpec to startConnector(connectorSpec.host, connectorSpec.port)
             }
+            connectors.addAll(connectorsAndServers.map { it.second })
 
-            val sockets = connectors.map { it.serverSocket }.awaitAll()
-            networkAddresses.complete(sockets.map { it.localAddress })
+            val resolvedConnectors = connectorsAndServers
+                .map { (connector, server) -> connector to server.serverSocket.await() }
+                .map { (connector, socket) -> connector.withPort(socket.localAddress.port) }
+            this@CIOApplicationEngine.resolvedConnectors.complete(resolvedConnectors)
         } catch (cause: Throwable) {
             connectors.forEach { it.rootServerJob.cancel() }
             stopRequest.completeExceptionally(cause)

@@ -14,8 +14,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.network.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -63,7 +61,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
                 }
                 server.start()
 
-                val port = server.networkAddresses().first().port
+                val port = server.resolvedConnectors().first().port
 
                 assertEquals("Hello World", client.get("https://0.0.0.0:$port").body())
                 server.stop(1000, 1000)

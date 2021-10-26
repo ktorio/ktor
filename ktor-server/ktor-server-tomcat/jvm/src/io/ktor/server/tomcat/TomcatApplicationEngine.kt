@@ -18,7 +18,6 @@ import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.slf4j.*
-import java.net.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
@@ -141,10 +140,9 @@ public class TomcatApplicationEngine(
         environment.start()
         server.start()
 
-        val addresses = server.service.findConnectors().map {
-            InetSocketAddress(server.host.name, it.localPort)
-        }
-        networkAddresses.complete(addresses)
+        val connectors = server.service.findConnectors().zip(environment.connectors)
+            .map { it.second.withPort(it.first.localPort) }
+        resolvedConnectors.complete(connectors)
 
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
