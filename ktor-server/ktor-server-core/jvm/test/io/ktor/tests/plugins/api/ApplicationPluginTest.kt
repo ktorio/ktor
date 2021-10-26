@@ -500,18 +500,19 @@ class ApplicationPluginTest {
             application.routing {
                 post("/receive") {
                     val data = call.receive<MyInt>()
-                    call.respondText(data.x.toString())
+                    val newData = MyInt(data.x + 1)
+                    call.respond(newData)
                 }
             }
 
             handleRequest(HttpMethod.Post, "/receive") {
-                setBody(100500.toString().toByteArray())
+                setBody(100500)
             }.let { call ->
                 val content = call.response.content?.toInt()
                 assertEquals(expectedResponse, content)
             }
         }
 
-        assertWithPlugin(expectedResponse = 100500)
+        assertWithPlugin(expectedResponse = 100501)
     }
 }

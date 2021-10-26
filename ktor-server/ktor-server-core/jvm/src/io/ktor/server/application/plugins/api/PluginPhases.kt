@@ -63,8 +63,8 @@ public interface OnCallReceive {
  * }
  * ```
  *
- * This will print you a URL once you execute call.respond() in your server and also print you a raw content that
- * is goingto be sent to the client..
+ * This prints a URL once you execute call.respond() on your server
+ * and also prints raw content that is going to be sent to the client.
  **/
 public interface OnCallRespond {
     /**
