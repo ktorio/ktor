@@ -8,7 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.shared.serialization.kotlinx.json.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.*
 import kotlin.test.*
 

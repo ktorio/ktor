@@ -17,13 +17,13 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.serializaion.gson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.shared.serializaion.gson.*
 import kotlinx.serialization.*
 import kotlin.test.*
 

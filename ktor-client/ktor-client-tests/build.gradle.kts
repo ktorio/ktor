@@ -66,8 +66,8 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
-            api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
-            api(project(":ktor-shared:ktor-shared-serialization-kotlinx:ktor-shared-serialization-kotlinx-json"))
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
         }
     }
     val jvmMain by getting {
@@ -80,7 +80,7 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
-            api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
             api("ch.qos.logback:logback-classic:$logback_version")
             api("junit:junit:$junit_version")
             api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
