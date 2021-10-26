@@ -138,17 +138,17 @@ public class io/ktor/server/application/plugins/api/CallHandlingContext {
 
 public final class io/ktor/server/application/plugins/api/CallReceiveContext : io/ktor/server/application/plugins/api/CallHandlingContext {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
-	public final fun transformRequestBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/CallRespondAfterTransformContext : io/ktor/server/application/plugins/api/CallHandlingContext {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
-	public final fun transformResponseBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/CallRespondContext : io/ktor/server/application/plugins/api/CallHandlingContext {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
-	public final fun transformResponseBody (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/plugins/api/CreatePluginUtilsKt {
@@ -206,6 +206,11 @@ public abstract class io/ktor/server/application/plugins/api/RelativePluginBuild
 	public fun getOnCallRespond ()Lio/ktor/server/application/plugins/api/OnCallRespond;
 	protected abstract fun insertPhase (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	protected abstract fun selectPhase (Ljava/util/List;)Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/server/application/plugins/api/TransformContext {
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;)V
+	public final fun getRequestedType ()Lio/ktor/util/reflect/TypeInfo;
 }
 
 public final class io/ktor/server/application/plugins/api/debug/PluginName : kotlin/coroutines/AbstractCoroutineContextElement {

@@ -8,7 +8,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import org.junit.Test
+import java.math.*
 import kotlin.test.*
 
 class ApplicationPluginTest {
@@ -76,7 +78,7 @@ class ApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(key)
                 if (data != null) {
-                    transformResponseBody {
+                    transformBody {
                         data
                     }
                 }
@@ -118,7 +120,7 @@ class ApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
-                    transformResponseBody { data }
+                    transformBody { data }
                 }
             }
         }
@@ -352,7 +354,7 @@ class ApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
-                    transformResponseBody { data }
+                    transformBody { data }
                 }
             }
         }
@@ -402,7 +404,7 @@ class ApplicationPluginTest {
             onCallRespond { call ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
-                    transformResponseBody { data }
+                    transformBody { data }
                 }
             }
         }
@@ -464,5 +466,54 @@ class ApplicationPluginTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun testTransformBody() {
+        class MyInt(val x: Int)
+
+        val plugin = createApplicationPlugin("F") {
+            onCallReceive { _ ->
+                transformBody { data ->
+                    if (requestedType?.type == MyInt::class) {
+                        MyInt(data.readInt())
+                    } else {
+                        data
+                    }
+                }
+            }
+            onCallRespond { _ ->
+                transformBody { data ->
+                    if (data is MyInt) {
+                        val bc = ByteChannel(false)
+                        bc.writeInt(data.x)
+                        bc
+                    } else {
+                        data
+                    }
+                }
+            }
+        }
+
+        fun assertWithPlugin(expectedResponse: Int) = withTestApplication {
+            application.install(plugin)
+
+            application.routing {
+                post("/receive") {
+                    val data = call.receive<MyInt>()
+                    val newData = MyInt(data.x + 1)
+                    call.respond(newData)
+                }
+            }
+
+            handleRequest(HttpMethod.Post, "/receive") {
+                setBody(BigInteger.valueOf(100500).toByteArray()) // sending bytes of 100500
+            }.let { call ->
+                val content = call.response.content?.toInt()
+                assertEquals(expectedResponse, content)
+            }
+        }
+
+        assertWithPlugin(expectedResponse = 100501)
     }
 }
