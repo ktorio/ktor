@@ -38,6 +38,20 @@ public class HttpCookies(
         return storage.get(requestUrl)
     }
 
+    /**
+     * Add cookies in request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
+     * so to manage their life cycle properly.
+     */
+    internal suspend fun captureHeaderCookies(builder: HttpRequestBuilder) {
+        with(builder) {
+            val url = builder.url.clone().build()
+            val cookies = headers[HttpHeaders.Cookie]?.let { cookieHeader ->
+                parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) -> Cookie(name, encodedValue) }
+            }
+            cookies?.forEach { storage.addCookie(url, it) }
+        }
+    }
+
     internal suspend fun sendCookiesWith(builder: HttpRequestBuilder) {
         val cookies = get(builder.url.clone().build())
 
@@ -90,6 +104,9 @@ public class HttpCookies(
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
 
         override fun install(plugin: HttpCookies, scope: HttpClient) {
+            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
+                plugin.captureHeaderCookies(context)
+            }
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
                 plugin.sendCookiesWith(context)
             }
@@ -101,14 +118,8 @@ public class HttpCookies(
     }
 }
 
-private fun renderClientCookies(cookies: List<Cookie>): String = buildString {
-    cookies.forEach {
-        append(it.name)
-        append('=')
-        append(encodeCookieValue(it.value, it.encoding))
-        append(';')
-    }
-}
+private fun renderClientCookies(cookies: List<Cookie>): String =
+    cookies.joinToString(";", transform = ::renderCookieHeader)
 
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
