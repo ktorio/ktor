@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.shared.serialization.*
+import io.ktor.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*

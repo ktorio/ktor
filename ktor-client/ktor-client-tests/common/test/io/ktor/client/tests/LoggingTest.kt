@@ -12,7 +12,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.shared.serialization.kotlinx.json.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
