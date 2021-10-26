@@ -26,6 +26,7 @@ public open class AsyncServletApplicationCall(
     userContext: CoroutineContext,
     upgrade: ServletUpgrade,
     parentCoroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
 ) : BaseApplicationCall(application), ApplicationCallWithContext {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
@@ -41,7 +42,8 @@ public open class AsyncServletApplicationCall(
             engineContext,
             userContext,
             upgrade,
-            parentCoroutineContext + engineContext
+            parentCoroutineContext + engineContext,
+            managedByEngineHeaders
         ).also {
             putResponseAttribute(it)
         }
@@ -78,8 +80,9 @@ public open class AsyncServletApplicationResponse(
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val servletUpgradeImpl: ServletUpgrade,
-    override val coroutineContext: CoroutineContext
-) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 

@@ -1,5 +1,6 @@
 public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, io/ktor/server/application/ApplicationCallWithContext {
-	public fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
+	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
@@ -18,7 +19,8 @@ public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/kt
 
 public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/server/servlet/AsyncServletApplicationResponse$Companion;
-	public fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
+	public synthetic fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	protected fun createResponseJob ()Lio/ktor/utils/io/ReaderJob;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected final fun getServletRequest ()Ljavax/servlet/http/HttpServletRequest;
@@ -50,6 +52,7 @@ public abstract class io/ktor/server/servlet/KtorServlet : javax/servlet/http/Ht
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected abstract fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
 	protected fun getLogger ()Lorg/slf4j/Logger;
+	protected fun getManagedByEngineHeaders ()Ljava/util/Set;
 	protected abstract fun getUpgrade ()Lio/ktor/server/servlet/ServletUpgrade;
 	public fun init ()V
 	protected fun service (Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V
@@ -103,7 +106,7 @@ public final class io/ktor/server/servlet/ServletApplicationRequestHeaders : io/
 }
 
 public abstract class io/ktor/server/servlet/ServletApplicationResponse : io/ktor/server/engine/BaseApplicationResponse {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletResponse;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletResponse;Ljava/util/Set;)V
 	protected abstract fun createResponseJob ()Lio/ktor/utils/io/ReaderJob;
 	protected final fun getCompleted ()Z
 	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;

@@ -10,7 +10,7 @@ import io.ktor.util.*
 
 /**
  * [HttpClientEngineFactory] using a [Java] based backend implementation
- * with the the associated configuration [JavaHttpConfig].
+ * with the associated configuration [JavaHttpConfig].
  */
 public object Java : HttpClientEngineFactory<JavaHttpConfig> {
     @OptIn(InternalAPI::class)

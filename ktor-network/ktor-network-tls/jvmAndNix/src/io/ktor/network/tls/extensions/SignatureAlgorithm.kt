@@ -31,7 +31,7 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
 
     public companion object {
         /**
-         * Find hash algorithm instance by it's numeric [code]
+         * Find hash algorithm instance by its numeric [code]
          * @throws TLSExtension if no hash algorithm found by code
          */
         public fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
@@ -55,7 +55,7 @@ public enum class SignatureAlgorithm(public val code: Byte) {
 
     public companion object {
         /**
-         * Find signature algorithm instance by it's numeric [code]
+         * Find signature algorithm instance by its numeric [code]
          * @throws TLSExtension if no hash algorithm found by code
          */
         public fun byCode(code: Byte): SignatureAlgorithm? = values().find { it.code == code }

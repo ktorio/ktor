@@ -10,6 +10,12 @@ import io.ktor.http.*
  * Server's response headers
  */
 public abstract class ResponseHeaders {
+
+    /**
+     * Set of headers that will be managed my the engine and should not be added manually
+     */
+    protected open val managedByEngineHeaders: Set<String> = emptySet()
+
     /**
      * Check if there is response HTTP header with [name] set
      */
@@ -39,6 +45,9 @@ public abstract class ResponseHeaders {
      * @param safeOnly `true` by default, prevents from setting unsafe headers
      */
     public fun append(name: String, value: String, safeOnly: Boolean = true) {
+        if (managedByEngineHeaders.contains(name)) {
+            return
+        }
         if (safeOnly && HttpHeaders.isUnsafe(name)) {
             throw UnsafeHeaderException(name)
         }

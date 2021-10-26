@@ -19,11 +19,12 @@ internal class BlockingServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
 ) : BaseApplicationCall(application), ApplicationCallWithContext {
     override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
     override val response: BlockingServletApplicationResponse =
-        BlockingServletApplicationResponse(this, servletResponse, coroutineContext)
+        BlockingServletApplicationResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
 
     init {
         putResponseAttribute()
@@ -46,8 +47,9 @@ private class BlockingServletApplicationRequest(
 internal class BlockingServletApplicationResponse(
     call: ApplicationCall,
     servletResponse: HttpServletResponse,
-    override val coroutineContext: CoroutineContext
-) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         reader(UnsafeBlockingTrampoline, autoFlush = false) {
             val buffer = ArrayPool.borrow()

@@ -157,7 +157,7 @@ internal inline fun String.tryParseMonth(success: (Month) -> Unit) {
     }
 
     // Note that if this is ever updated to receive a StringLexer instead of a String,
-    // we are suppose to consume all octets after the month
+    // we are supposed to consume all octets after the month
 }
 
 /**

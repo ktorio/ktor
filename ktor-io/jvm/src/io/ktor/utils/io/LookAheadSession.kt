@@ -16,7 +16,7 @@ public interface LookAheadSession {
      *
      * There are the following reasons for this function to return `null`:
      * - not enough bytes available yet (should be at least `skip + atLeast` bytes available)
-     * - due to buffer fragmentation is is impossible to represent the requested range as a single byte buffer
+     * - due to buffer fragmentation it is impossible to represent the requested range as a single byte buffer
      * - end of stream encountered and all bytes were consumed
      * - channel has been closed with an exception so buffer has been recycled
      */

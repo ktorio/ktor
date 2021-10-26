@@ -14,13 +14,16 @@ import javax.servlet.http.*
 
 public abstract class ServletApplicationResponse(
     call: ApplicationCall,
-    protected val servletResponse: HttpServletResponse
+    protected val servletResponse: HttpServletResponse,
+    private val managedByEngineHeaders: Set<String>
 ) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
+        override val managedByEngineHeaders = this@ServletApplicationResponse.managedByEngineHeaders
+
         override fun engineAppendHeader(name: String, value: String) {
             servletResponse.addHeader(name, value)
         }

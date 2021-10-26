@@ -39,21 +39,21 @@ public expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
 
 /**
  * Creates channel for reading from the specified byte array. Please note that it could use [content] directly
- * or copy it's bytes depending on the platform.
+ * or copy its bytes depending on the platform.
  */
 public fun ByteReadChannel(content: ByteArray): ByteReadChannel =
     ByteReadChannel(content, 0, content.size)
 
 /**
  * Creates channel for reading from the specified byte array. Please note that it could use [content] directly
- * or copy it's bytes depending on the platform.
+ * or copy its bytes depending on the platform.
  */
 public fun ByteReadChannel(content: ByteArray, offset: Int): ByteReadChannel =
     ByteReadChannel(content, offset, content.size)
 
 /**
  * Creates channel for reading from the specified byte array. Please note that it could use [content] directly
- * or copy it's bytes depending on the platform
+ * or copy its bytes depending on the platform
  */
 public expect fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel
 

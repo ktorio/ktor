@@ -32,7 +32,7 @@ public actual class ProxyConfig(public val url: Url) {
 /**
  * Resolve remote address of [ProxyConfig].
  *
- * This operations can block.
+ * This operation can block.
  */
 public actual fun ProxyConfig.resolveAddress(): NetworkAddress = NetworkAddress(url.host, url.port)
 

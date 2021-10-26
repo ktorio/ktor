@@ -219,6 +219,9 @@ class SessionTest {
     @Test
     fun testRoutes() {
         withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName)
+            }
             application.routing {
                 route("/") {
                     install(Sessions) {

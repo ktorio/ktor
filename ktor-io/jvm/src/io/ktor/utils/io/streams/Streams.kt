@@ -40,7 +40,7 @@ public fun InputStream.readPacketExact(n: Long): ByteReadPacket = readPacketImpl
 public fun InputStream.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
 
 /**
- * Read a packet of at most [n] bytes. Resulting packet could be empty however this function does always reads
+ * Read a packet of at most [n] bytes. Resulting packet could be empty however this function always reads
  * as much bytes as possible.
  */
 public fun InputStream.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)

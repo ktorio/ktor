@@ -7,6 +7,7 @@ package io.ktor.server.thymeleaf
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
+import java.util.*
 
 /**
  * Respond with [template] applying [model]
@@ -15,5 +16,6 @@ public suspend fun ApplicationCall.respondTemplate(
     template: String,
     model: Map<String, Any> = emptyMap(),
     etag: String? = null,
-    contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
-): Unit = respond(ThymeleafContent(template, model, etag, contentType))
+    contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
+    locale: Locale = Locale.getDefault()
+): Unit = respond(ThymeleafContent(template, model, etag, contentType, locale))

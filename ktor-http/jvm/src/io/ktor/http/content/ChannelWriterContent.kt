@@ -5,7 +5,6 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 
 /**
@@ -15,7 +14,8 @@ import io.ktor.utils.io.*
 public class ChannelWriterContent(
     private val body: suspend ByteWriteChannel.() -> Unit,
     override val contentType: ContentType?,
-    override val status: HttpStatusCode? = null
+    override val status: HttpStatusCode? = null,
+    override val contentLength: Long? = null
 ) : OutgoingContent.WriteChannelContent() {
     override suspend fun writeTo(channel: ByteWriteChannel) {
         body(channel)

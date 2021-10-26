@@ -8,7 +8,7 @@ import io.ktor.client.statement.*
 import io.ktor.util.reflect.*
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
@@ -17,7 +17,7 @@ import io.ktor.util.reflect.*
 public suspend inline fun <reified T> HttpClientCall.receive(): T = error("Use `body` method instead")
 
 /**
- * Tries to receive the payload of the [response] as an specific type [T].
+ * Tries to receive the payload of the [response] as a specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
@@ -34,4 +34,4 @@ public suspend inline fun <reified T> HttpResponse.receive(): T = error("Use `bo
  */
 @Suppress("UNUSED_PARAMETER")
 @Deprecated("Use `body` method instead", replaceWith = ReplaceWith("this.body(info)"), level = DeprecationLevel.ERROR)
-public suspend fun receive(info: TypeInfo): Any = error("Use `body` method instead")
+public suspend fun HttpClientCall.receive(info: TypeInfo): Any = error("Use `body` method instead")

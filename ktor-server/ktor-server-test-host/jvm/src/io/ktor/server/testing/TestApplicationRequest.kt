@@ -21,6 +21,7 @@ import kotlinx.coroutines.*
  * @property method HTTP method to be sent or executed
  * @property uri HTTP url to sent request to or was sent to
  * @property version HTTP version to sent or executed
+ * @property port (Optional) HTTP port to send request to
  * @property protocol HTTP protocol to be used or was used
  */
 public class TestApplicationRequest constructor(
@@ -28,6 +29,7 @@ public class TestApplicationRequest constructor(
     closeRequest: Boolean,
     var method: HttpMethod = HttpMethod.Get,
     var uri: String = "/",
+    var port: Int? = null,
     var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
     var protocol: String = "http"
@@ -43,7 +45,9 @@ public class TestApplicationRequest constructor(
             get() = protocol
 
         override val port: Int
-            get() = header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
+            get() = this@TestApplicationRequest.port
+                ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt()
+                ?: 80
 
         override val host: String
             get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"

@@ -12,8 +12,7 @@ kotlin.sourceSets {
     jvmMain {
         dependencies {
             api(project(":ktor-shared:ktor-shared-serialization-kotlinx"))
-
-            implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutil_version")
+            api("io.github.pdvrieze.xmlutil:serialization:$xmlutil_version")
         }
     }
     jvmTest {

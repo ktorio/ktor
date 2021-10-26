@@ -153,6 +153,7 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getAtom ()Lio/ktor/http/ContentType;
 	public final fun getCbor ()Lio/ktor/http/ContentType;
+	public final fun getDocx ()Lio/ktor/http/ContentType;
 	public final fun getFontWoff ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
@@ -161,11 +162,13 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getJson ()Lio/ktor/http/ContentType;
 	public final fun getOctetStream ()Lio/ktor/http/ContentType;
 	public final fun getPdf ()Lio/ktor/http/ContentType;
+	public final fun getPptx ()Lio/ktor/http/ContentType;
 	public final fun getProblemJson ()Lio/ktor/http/ContentType;
 	public final fun getProblemXml ()Lio/ktor/http/ContentType;
 	public final fun getProtoBuf ()Lio/ktor/http/ContentType;
 	public final fun getRss ()Lio/ktor/http/ContentType;
 	public final fun getWasm ()Lio/ktor/http/ContentType;
+	public final fun getXlsx ()Lio/ktor/http/ContentType;
 	public final fun getXml ()Lio/ktor/http/ContentType;
 	public final fun getXml_Dtd ()Lio/ktor/http/ContentType;
 	public final fun getZip ()Lio/ktor/http/ContentType;
@@ -1119,8 +1122,9 @@ public final class io/ktor/http/content/CachingOptionsKt {
 }
 
 public final class io/ktor/http/content/ChannelWriterContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1222,8 +1226,9 @@ public abstract class io/ktor/http/content/OutgoingContent$WriteChannelContent :
 }
 
 public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1268,10 +1273,11 @@ public final class io/ktor/http/content/TextContent : io/ktor/http/content/Outgo
 }
 
 public final class io/ktor/http/content/URIFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
-	public fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;)V
-	public synthetic fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/net/URL;Lio/ktor/http/ContentType;)V
 	public synthetic fun <init> (Ljava/net/URL;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getUri ()Ljava/net/URI;
 	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
@@ -1299,8 +1305,9 @@ public final class io/ktor/http/content/VersionsKt {
 }
 
 public final class io/ktor/http/content/WriterContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

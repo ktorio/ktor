@@ -934,8 +934,10 @@ public class io/ktor/util/pipeline/Pipeline {
 	public final fun insertPhaseAfter (Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public final fun insertPhaseBefore (Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public final fun intercept (Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V
+	public final fun interceptorsForPhase (Lio/ktor/util/pipeline/PipelinePhase;)Ljava/util/List;
 	public final fun isEmpty ()Z
 	public final fun merge (Lio/ktor/util/pipeline/Pipeline;)V
+	public final fun mergePhases (Lio/ktor/util/pipeline/Pipeline;)V
 }
 
 public abstract class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {

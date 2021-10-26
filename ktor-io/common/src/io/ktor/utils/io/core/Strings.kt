@@ -39,9 +39,9 @@ public fun Input.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE): S
 }
 
 /**
- * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
+ * Reads UTF-8 line and append all line characters to [out] except line endings. Supports CR, LF and CR+LF
  * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
- * if empty
+ * is empty
  */
 public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
     var decoded = 0

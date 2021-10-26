@@ -67,7 +67,7 @@ public class CachingHeaders(private val optionsProviders: List<(OutgoingContent)
     /**
      * `ApplicationPlugin` implementation for [ConditionalHeaders]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, CachingHeaders> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, CachingHeaders> {
         override val key: AttributeKey<CachingHeaders> = AttributeKey("Caching Headers")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CachingHeaders {
             val configuration = Configuration().apply(configure)

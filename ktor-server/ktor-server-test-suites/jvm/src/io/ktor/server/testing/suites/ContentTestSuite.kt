@@ -341,37 +341,40 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/array") {
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertArrayEquals(data, call.response.readBytes())
         }
 
         withUrl("/array-chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
+            assertArrayEquals(data, call.response.readBytes())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
+            assertArrayEquals(data, call.response.readBytes())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/fixed-read-channel") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertArrayEquals(data, call.response.readBytes())
         }
 
         withUrl("/pseudo-chunked") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertArrayEquals(data, call.response.readBytes())
         }
 
         withUrl("/read-channel") {
             assertNull(headers[HttpHeaders.ContentLength])
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
+            assertArrayEquals(data, call.response.readBytes())
         }
     }
 

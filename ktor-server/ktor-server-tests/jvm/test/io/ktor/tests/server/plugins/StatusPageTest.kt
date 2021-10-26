@@ -41,15 +41,15 @@ class StatusPageTest {
     @Test
     fun testStatusMappingWithRoutes() {
         withTestApplication {
+            application.install(StatusPages) {
+                statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
+            }
             application.routing {
                 route("/foo") {
                     route("/wee") {
                         handle {
                             call.respond(HttpStatusCode.InternalServerError)
                         }
-                    }
-                    install(StatusPages) {
-                        statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
                     }
                     route("{...}") {
                         handle {
