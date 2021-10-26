@@ -115,24 +115,6 @@ public final class io/ktor/server/application/RouteScopedPluginKt {
 	public static synthetic fun install$default (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/RouteScopedPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/server/application/SubroutePlugin : io/ktor/server/application/Plugin {
-	public abstract fun createConfiguration ()Ljava/lang/Object;
-	public abstract fun getConfig (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
-	public abstract fun getConfigKey ()Lio/ktor/util/AttributeKey;
-	public abstract fun install (Lio/ktor/server/routing/Route;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/application/SubroutePlugin$DefaultImpls {
-	public static fun getConfig (Lio/ktor/server/application/SubroutePlugin;Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
-	public static fun getConfigKey (Lio/ktor/server/application/SubroutePlugin;)Lio/ktor/util/AttributeKey;
-}
-
-public final class io/ktor/server/application/SubroutePluginKt {
-	public static final fun findPluginInRoute (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
-	public static final fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/SubroutePlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun install$default (Lio/ktor/server/application/ApplicationCallPipeline;Lio/ktor/server/application/SubroutePlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/application/plugins/api/AfterPluginBuilder : io/ktor/server/application/plugins/api/RelativePluginBuilder {
 	public fun <init> (Lio/ktor/server/application/plugins/api/PluginBuilder;Ljava/util/List;)V
 }
@@ -204,16 +186,6 @@ public abstract class io/ktor/server/application/plugins/api/PluginBuilder : io/
 	public fun getOnCallReceive ()Lio/ktor/server/application/plugins/api/OnCallReceive;
 	public fun getOnCallRespond ()Lio/ktor/server/application/plugins/api/OnCallRespond;
 	public abstract fun getPluginConfig ()Ljava/lang/Object;
-}
-
-public abstract class io/ktor/server/application/plugins/api/PluginBuilder$ApplicationPluginBuilder : io/ktor/server/application/plugins/api/PluginBuilder {
-	public abstract fun getPluginConfig ()Ljava/lang/Object;
-}
-
-public abstract class io/ktor/server/application/plugins/api/PluginBuilder$SubroutePluginBuilder : io/ktor/server/application/plugins/api/PluginBuilder {
-	public final fun getConfigKey ()Lio/ktor/util/AttributeKey;
-	public final fun getPluginConfig (Lio/ktor/server/application/plugins/api/CallHandlingContext;)Ljava/lang/Object;
-	public final fun getPluginConfig (Lio/ktor/util/pipeline/PipelineContext;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/application/plugins/api/PluginBuilderBase {

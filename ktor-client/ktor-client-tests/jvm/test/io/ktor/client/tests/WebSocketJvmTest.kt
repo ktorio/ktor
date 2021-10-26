@@ -115,25 +115,4 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
-
-    @Test
-    fun testDeserializationWithOnClosedChannel() = clientTests(listOf("Android", "Apache")) {
-        config {
-            WebSockets {
-                contentConverter = GsonBaseConverter()
-            }
-        }
-
-        test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                repeat(TEST_SIZE) {
-                    outgoing.send(Frame.Close("close".toByteArray()))
-
-                    assertFailsWith<ClosedReceiveChannelException> {
-                        receiveDeserialized<Data>()
-                    }
-                }
-            }
-        }
-    }
 }
