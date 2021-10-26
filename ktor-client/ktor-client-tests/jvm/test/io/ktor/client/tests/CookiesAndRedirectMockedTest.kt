@@ -6,7 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -30,7 +30,7 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("/example") {
+            client.get("/example") {
                 cookie("test", "value")
             }
         }
@@ -62,9 +62,9 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            client.get<String>("/example/logout") {
+            client.get("/example/logout") {
                 cookie("SID", "123")
-            }.let { assertEquals("redirected", it) }
+            }.let { assertEquals("redirected", it.bodyAsText()) }
         }
     }
 
@@ -119,9 +119,9 @@ class CookiesAndRedirectMockedTest {
         }
 
         test { client ->
-            client.get<String>("/example/logout") {
+            client.get("/example/logout") {
                 cookie("SID", "123")
-            }.let { assertEquals("redirected", it) }
+            }.let { assertEquals("redirected", it.bodyAsText()) }
         }
     }
 
@@ -150,7 +150,7 @@ class CookiesAndRedirectMockedTest {
 
         test { client ->
             storage.addCookie("/example", Cookie("SID", "123"))
-            assertEquals("redirected", client.get("/example/logout"))
+            assertEquals("redirected", client.get("/example/logout").bodyAsText())
         }
     }
 
