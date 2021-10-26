@@ -18,11 +18,11 @@ class CookiesTest {
         )
         storage.addCookie("http://localhost/", cookie)
 
-        val feature = HttpCookies(storage, emptyList())
+        val plugin = HttpCookies(storage, emptyList())
         val builder = HttpRequestBuilder()
 
-        feature.captureHeaderCookies(builder)
-        feature.sendCookiesWith(builder)
+        plugin.captureHeaderCookies(builder)
+        plugin.sendCookiesWith(builder)
 
         assertEquals(
             "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10",

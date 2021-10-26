@@ -12,7 +12,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.test.*
 
@@ -21,7 +20,6 @@ import kotlin.test.*
  * when expired and redirected by server (session log out);
  * and how [HttpCookies] feature manages request cookies in this context.
  */
-@OptIn(InternalAPI::class)
 class CookiesAndRedirectMockedTest {
     @Test
     fun testRequestCookieIsSentWithoutCookiesFeature() = testWithEngine(MockEngine) {

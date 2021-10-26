@@ -15,7 +15,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * [HttpClient] feature that handles sent `Cookie`, and received `Set-Cookie` headers,
+ * [HttpClient] plugin that handles sent `Cookie`, and received `Set-Cookie` headers,
  * using a specific [storage] for storing and retrieving cookies.
  *
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
@@ -25,6 +25,7 @@ public class HttpCookies(
     private val storage: CookiesStorage,
     private val defaults: List<suspend CookiesStorage.() -> Unit>
 ) : Closeable {
+    @OptIn(DelicateCoroutinesApi::class)
     private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
         defaults.forEach { it(storage) }
     }
@@ -81,7 +82,7 @@ public class HttpCookies(
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
-         * [CookiesStorage] that will be used at this feature.
+         * [CookiesStorage] that will be used at this plugin.
          * By default it just uses an initially empty in-memory [AcceptAllCookiesStorage].
          */
         public var storage: CookiesStorage = AcceptAllCookiesStorage()
@@ -102,16 +103,16 @@ public class HttpCookies(
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
 
-        override fun install(feature: HttpCookies, scope: HttpClient) {
+        override fun install(plugin: HttpCookies, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                feature.captureHeaderCookies(context)
+                plugin.captureHeaderCookies(context)
             }
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
-                feature.sendCookiesWith(context)
+                plugin.sendCookiesWith(context)
             }
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                feature.saveCookiesFrom(response)
+                plugin.saveCookiesFrom(response)
             }
         }
     }
