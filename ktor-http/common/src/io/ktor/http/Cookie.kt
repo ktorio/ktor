@@ -132,7 +132,7 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
  * Format `Cookie` header value
  */
 public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
-    "${name}=${encodeCookieValue(value, encoding)}"
+    "$name=${encodeCookieValue(value, encoding)}"
 }
 
 /**
