@@ -224,7 +224,6 @@ class SessionTest {
                     install(Sessions) {
                         cookie<TestUserSession>(cookieName)
                     }
-
                     get("/0") {
                         assertNull(call.sessions.get<TestUserSession>())
                         call.respondText("No session")
