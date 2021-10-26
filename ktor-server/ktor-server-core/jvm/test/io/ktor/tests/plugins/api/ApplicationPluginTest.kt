@@ -10,6 +10,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import org.junit.Test
+import java.math.*
 import kotlin.test.*
 
 class ApplicationPluginTest {
@@ -506,7 +507,7 @@ class ApplicationPluginTest {
             }
 
             handleRequest(HttpMethod.Post, "/receive") {
-                setBody(100500)
+                setBody(BigInteger.valueOf(100500).toByteArray()) // sending bytes of 100500
             }.let { call ->
                 val content = call.response.content?.toInt()
                 assertEquals(expectedResponse, content)

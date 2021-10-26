@@ -16,8 +16,7 @@ import io.ktor.util.pipeline.*
  * @param TPlugin is the instance type of the Plugin object
  */
 public interface RouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
-    Plugin<ApplicationCallPipeline, TConfiguration, TPlugin> {
-}
+    Plugin<ApplicationCallPipeline, TConfiguration, TPlugin>
 
 /**
  * Installs [plugin] into this pipeline, if it is not yet installed

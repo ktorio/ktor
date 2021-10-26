@@ -224,7 +224,6 @@ class SessionTest {
             }
             application.routing {
                 route("/") {
-
                     get("/0") {
                         assertNull(call.sessions.get<TestUserSession>())
                         call.respondText("No session")
