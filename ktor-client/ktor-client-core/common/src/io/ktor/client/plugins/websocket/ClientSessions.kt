@@ -85,6 +85,3 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiv
     return if (result is T) result
     else throw WebsocketDeserializeException("Can't convert value from json")
 }
-
-
-
