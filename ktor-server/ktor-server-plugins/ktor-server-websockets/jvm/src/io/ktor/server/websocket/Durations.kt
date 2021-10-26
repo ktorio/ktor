@@ -15,7 +15,7 @@ import java.nio.*
 import java.time.*
 
 /**
- * Ping interval or `null` to disable pinger. Please note that pongs will be handled despite of this setting.
+ * Ping interval or `null` to disable pinger. Please note that pongs will be handled despite this setting.
  */
 public inline var DefaultWebSocketServerSession.pingInterval: Duration?
     get() = pingIntervalMillis.takeIf { it >= 0L }?.let { Duration.ofMillis(it) }

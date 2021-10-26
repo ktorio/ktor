@@ -21,7 +21,7 @@ public object XHttpMethodOverrideSupport :
         val config = Configuration()
         configure(config)
 
-        pipeline.intercept(ApplicationCallPipeline.Plugins) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
             call.request.header(config.headerName)?.takeIf { it.isNotBlank() }?.let { methodOverride ->
                 call.mutableOriginConnectionPoint.method = HttpMethod.parse(methodOverride)
             }

@@ -26,7 +26,7 @@ public actual fun DefaultWebSocketSession(
 public actual interface DefaultWebSocketSession : WebSocketSession {
 
     /**
-     * Ping interval or `-1L` to disable pinger. Please note that pongs will be handled despite of this setting.
+     * Ping interval or `-1L` to disable pinger. Please note that pongs will be handled despite this setting.
      */
     public var pingIntervalMillis: Long
 

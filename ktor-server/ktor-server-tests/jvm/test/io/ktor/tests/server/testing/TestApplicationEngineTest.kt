@@ -126,6 +126,29 @@ class TestApplicationEngineTest {
     }
 
     @Test
+    fun testResponseAwaitWithCustomPort() {
+        withTestApplication {
+            application.install(Routing) {
+                port(7070) {
+                    get("/good") {
+                        call.respond(HttpStatusCode.OK, "The Response")
+                    }
+                }
+            }
+
+            with(handleRequest(HttpMethod.Get, "/good") { port = 7070 }) {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals("The Response", response.content)
+            }
+
+            with(handleRequest(HttpMethod.Get, "/good") { addHeader(HttpHeaders.Host, "localhost:7070") }) {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals("The Response", response.content)
+            }
+        }
+    }
+
+    @Test
     fun testHookRequests() {
         val numberOfRequestsProcessed = AtomicInteger(0)
         val numberOfResponsesProcessed = AtomicInteger(0)

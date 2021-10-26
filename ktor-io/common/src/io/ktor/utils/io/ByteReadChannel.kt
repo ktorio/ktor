@@ -26,13 +26,13 @@ public expect interface ByteReadChannel {
     public val isClosedForWrite: Boolean
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public val closedCause: Throwable?
 
     /**
      * Number of bytes read from the channel.
-     * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
+     * It is not guaranteed to be atomic so could be updated in the middle of long-running read operation.
      */
     public val totalBytesRead: Long
 

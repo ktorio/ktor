@@ -24,7 +24,7 @@ internal object CacheControl {
 }
 
 /**
- * This plugin allow to use HTTP cache.
+ * This plugin allows using HTTP cache.
  *
  * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
  */

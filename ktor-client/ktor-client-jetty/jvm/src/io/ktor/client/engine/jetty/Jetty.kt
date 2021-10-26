@@ -10,7 +10,7 @@ import io.ktor.util.*
 
 /**
  * [HttpClientEngineFactory] using `org.eclipse.jetty.http2:http2-client`
- * with the the associated configuration [JettyEngineConfig].
+ * with the associated configuration [JettyEngineConfig].
  *
  * Just supports HTTP/2 requests.
  */

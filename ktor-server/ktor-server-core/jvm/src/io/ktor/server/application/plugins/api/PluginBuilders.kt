@@ -50,47 +50,14 @@ public interface PluginBuilderBase {
 /**
  * A plugin that embeds into the HTTP pipeline and extends Ktor functionality.
  **/
-public sealed class PluginBuilder<PluginConfigT : Any> private constructor(
+public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     internal val key: AttributeKey<PluginInstance>
 ) : PluginBuilderBase {
 
-    /**
-     * An implementation of [PluginBuilder] that can be installed into [Application]
-     **/
-    public abstract class ApplicationPluginBuilder<PluginConfigT : Any> internal constructor(
-        pluginFactory: ApplicationPlugin<Application, PluginConfigT, PluginInstance>
-    ) : PluginBuilder<PluginConfigT>(pluginFactory.key) {
-        public abstract val pluginConfig: PluginConfigT
-    }
+    public abstract val pluginConfig: PluginConfig
 
     /**
-     * An implementation of [PluginBuilder] that can be installed into [io.ktor.server.routing.Routing]
-     **/
-    public abstract class SubroutePluginBuilder<PluginConfigT : Any> internal constructor(
-        pluginFactory: SubroutePlugin<PluginConfigT, PluginInstance>
-    ) : PluginBuilder<PluginConfigT>(pluginFactory.key) {
-        /**
-         * A PluginConfigT for the current plugin for this pipeline. It may hold required data and any
-         * functionality that can be used by your plugin.
-         **/
-        public val PipelineContext<*, ApplicationCall>.pluginConfig: PluginConfigT
-            get() = call.attributes[configKey]
-
-        /**
-         * A PluginConfigT for the current plugin for this pipeline. It may hold required data and any
-         * functionality that can be used by your plugin.
-         **/
-        public val CallHandlingContext.pluginConfig: PluginConfigT
-            get() = context.pluginConfig
-
-        /**
-         * A unique key that identifies a plugin PluginConfigT
-         */
-        public val configKey: AttributeKey<PluginConfigT> = pluginFactory.configKey
-    }
-
-    /**
-     * A pipeline PluginConfigT for the current plugin. See [Pipelines](https://ktor.io/docs/pipelines.html)
+     * A pipeline PluginConfig for the current plugin. See [Pipelines](https://ktor.io/docs/pipelines.html)
      * for more information.
      **/
     internal abstract val pipeline: ApplicationCallPipeline

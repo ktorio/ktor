@@ -30,7 +30,7 @@ public actual object ProxyBuilder {
 /**
  * Resolve remote address of [ProxyConfig].
  *
- * This operations can block.
+ * This operation can block.
  */
 public actual fun ProxyConfig.resolveAddress(): NetworkAddress = address()
 
@@ -39,7 +39,7 @@ public actual fun ProxyConfig.resolveAddress(): NetworkAddress = address()
  */
 public actual val ProxyConfig.type: ProxyType
     get() = when (type()) {
-        Proxy.Type.DIRECT -> ProxyType.SOCKS
+        Proxy.Type.SOCKS -> ProxyType.SOCKS
         Proxy.Type.HTTP -> ProxyType.HTTP
         else -> ProxyType.UNKNOWN
     }

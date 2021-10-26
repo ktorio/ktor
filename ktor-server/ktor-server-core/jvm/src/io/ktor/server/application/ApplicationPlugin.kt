@@ -22,9 +22,14 @@ public interface Plugin<
     out TConfiguration : Any,
     TPlugin : Any> {
     /**
-     * Unique key that identifies a plugin
+     * A unique key that identifies a plugin
      */
     public val key: AttributeKey<TPlugin>
+
+    /**
+     * A plugin's installation script
+     */
+    public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TPlugin
 }
 
 /**
@@ -37,13 +42,7 @@ public interface Plugin<
 public interface ApplicationPlugin<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
-    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin> {
-
-    /**
-     * Plugin installation script
-     */
-    public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TPlugin
-}
+    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
 
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
@@ -78,12 +77,11 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.pluginOrNull(plugin: Pl
  * Installs [plugin] into this pipeline, if it is not yet installed
  */
 public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
-    plugin: ApplicationPlugin<P, B, F>,
+    plugin: Plugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
     val registry = pluginRegistry
-    val installedPlugin = registry.getOrNull(plugin.key)
-    when (installedPlugin) {
+    when (val installedPlugin = registry.getOrNull(plugin.key)) {
         null -> {
             try {
                 val installed = plugin.install(this, configure)
@@ -100,11 +98,26 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
             return installedPlugin
         }
         else -> {
-            throw DuplicateApplicationPluginException(
+            throw DuplicatePluginException(
                 "Conflicting application plugin is already installed with the same key as `${plugin.key.name}`"
             )
         }
     }
+}
+
+/**
+ * Installs [plugin] into this pipeline, if it is not yet installed
+ */
+@Deprecated(
+    "Installing ApplicationPlugin into routing may lead to unexpected behaviour. " +
+        "Consider moving installation to the application level " +
+        "or migrate this plugin to `RouteScopedPlugin` to support installing into route."
+)
+public fun <P : Route, B : Any, F : Any> P.install(
+    plugin: ApplicationPlugin<P, B, F>,
+    configure: B.() -> Unit = {}
+): F {
+    return install(plugin as Plugin<P, B, F>, configure)
 }
 
 /**
@@ -150,12 +163,22 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: At
 }
 
 /**
- * Thrown when Application Plugin has been attempted to be installed with the same key as already installed Plugin
+ * Thrown on an attempt to install the plugin with the same key as for the already installed plugin
  */
-public class DuplicateApplicationPluginException(message: String) : Exception(message)
+@Deprecated(
+    message = "Please use DuplicatePluginException instead",
+    replaceWith = ReplaceWith("DuplicatePluginException")
+)
+public open class DuplicateApplicationPluginException(message: String) : Exception(message)
 
 /**
- * Thrown when Application Plugin has been attempted to be accessed but has not been installed before
+ * Thrown on an attempt to install the plugin with the same key as for the already installed plugin
+ */
+@Suppress("DEPRECATION")
+public class DuplicatePluginException(message: String) : DuplicateApplicationPluginException(message)
+
+/**
+ * Thrown on an attempt to access the plugin that is not yet installed
  * @param key application plugin's attribute key
  */
 @OptIn(ExperimentalCoroutinesApi::class)

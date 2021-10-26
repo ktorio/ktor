@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 
 /**
  * [HttpClientEngineFactory] using a [OkHttp] based backend implementation
- * with the the associated configuration [OkHttpConfig].
+ * with the associated configuration [OkHttpConfig].
  */
 public object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
     override fun create(block: OkHttpConfig.() -> Unit): HttpClientEngine =

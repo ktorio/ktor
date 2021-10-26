@@ -19,7 +19,7 @@ public enum class TLSRecordType(public val code: Int) {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
-         * Find an instance of [TLSRecordType] by it's numeric code or fail
+         * Find an instance of [TLSRecordType] by its numeric code or fail
          */
         public fun byCode(code: Int): TLSRecordType = when (code) {
             in 0..255 -> byCode[code]

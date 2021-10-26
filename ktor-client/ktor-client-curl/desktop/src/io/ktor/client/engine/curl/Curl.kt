@@ -23,7 +23,7 @@ private val initHook = Curl
 
 /**
  * [HttpClientEngineFactory] using a curl library in implementation
- * with the the associated configuration [HttpClientEngineConfig].
+ * with the associated configuration [HttpClientEngineConfig].
  */
 @OptIn(InternalAPI::class)
 public object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {

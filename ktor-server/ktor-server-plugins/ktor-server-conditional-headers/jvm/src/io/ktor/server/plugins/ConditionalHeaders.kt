@@ -81,7 +81,7 @@ public class ConditionalHeaders(private val versionProviders: List<suspend (Outg
     /**
      * `ApplicationPlugin` implementation for [ConditionalHeaders]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, ConditionalHeaders> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, ConditionalHeaders> {
         override val key: AttributeKey<ConditionalHeaders> = AttributeKey<ConditionalHeaders>("Conditional Headers")
 
         override fun install(

@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.shared.serialization.*
 import io.ktor.shared.serialization.kotlinx.*
-import io.ktor.shared.serialization.xml.*
+import io.ktor.shared.serialization.kotlinx.xml.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import kotlinx.serialization.Serializable

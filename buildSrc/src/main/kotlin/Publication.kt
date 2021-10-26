@@ -10,23 +10,6 @@ import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
 
-fun Project.selectArtifactId(type: String, defaultName: String): String {
-    val isCommon = extra.has("commonStructure")
-    val commonIsRoot = extra.has("commonStructure") && extra.has("commonStructure")
-    val hasNative = extra.has("hasNative") && extra.has("hasNative")
-
-    return when (type) {
-        "metadata" -> {
-            if (!isCommon) "$name-$type" else "$name-metadata"
-        }
-        "kotlinMultiplatform" -> {
-            if (!hasNative) "$name-kotlinMultiplatform" else name
-        }
-        "jvm" -> if (commonIsRoot) "$name-jvm" else name
-        else -> if (isCommon || hasNative) defaultName else name
-    }
-}
-
 fun isAvailableForPublication(publication: Publication): Boolean {
     val name = publication.name
     if (name == "maven") return true
@@ -46,15 +29,22 @@ fun isAvailableForPublication(publication: Publication): Boolean {
     result = result || (HOST_NAME == "windows" && name == "mingwX64")
     val macPublications = setOf(
         "iosX64",
-        "iosArm32",
         "iosArm64",
-        "macosX64",
-        "watchosArm32",
-        "watchosArm64",
+        "iosArm32",
+        "iosSimulatorArm64",
+
         "watchosX86",
         "watchosX64",
+        "watchosArm32",
+        "watchosArm64",
+        "watchosSimulatorArm64",
+
+        "tvosX64",
         "tvosArm64",
-        "tvosX64"
+        "tvosSimulatorArm64",
+
+        "macosX64",
+        "macosArm64"
     )
 
     result = result || (HOST_NAME == "macos" && name in macPublications)
@@ -131,15 +121,6 @@ fun Project.configurePublication() {
                 root.appendNode("scm").apply {
                     appendNode("url", "https://github.com/ktorio/ktor.git")
                 }
-            }
-
-            val type = publication.name
-            val id = selectArtifactId(type, it.artifactId)
-            publication.artifactId = id
-
-            if (name == "kotlinMultiplatform") {
-                it.artifact(emptyJar) { classifier = "javadoc" }
-                it.artifact(emptyJar) { classifier = "kdoc" }
             }
         }
 
