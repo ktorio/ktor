@@ -165,7 +165,8 @@ public final class io/ktor/server/engine/BaseApplicationResponse$ResponseAlready
 }
 
 public final class io/ktor/server/engine/CommandLineKt {
-	public static final fun commandLineEnvironment ([Ljava/lang/String;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public static final fun commandLineEnvironment ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public static synthetic fun commandLineEnvironment$default ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public static final fun loadCommonConfiguration (Lio/ktor/server/engine/BaseApplicationEngine$Configuration;Lio/ktor/server/config/ApplicationConfig;)V
 }
 
