@@ -144,3 +144,15 @@ public class EngineSSLConnectorBuilder(
     override var trustStorePath: File? = null
     override var port: Int = 443
 }
+
+/**
+ * Returns new instance of [EngineConnectorConfig] based on [this] with modified port
+ */
+public fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnectorConfig = when (this) {
+    is EngineSSLConnectorBuilder -> object : EngineSSLConnectorConfig by this {
+        override val port: Int = otherPort
+    }
+    else -> object : EngineConnectorConfig by this {
+        override val port: Int = otherPort
+    }
+}

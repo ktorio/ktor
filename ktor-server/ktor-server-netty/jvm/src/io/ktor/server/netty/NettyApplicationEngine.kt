@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.util.*
 import io.ktor.util.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
@@ -185,7 +186,9 @@ public class NettyApplicationEngine(
             channels = bootstraps.zip(environment.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
-            networkAddresses.complete(channels?.map { it.localAddress() }.orEmpty())
+            val connectors = channels!!.zip(environment.connectors)
+                .map { it.second.withPort(it.first.localAddress().port) }
+            resolvedConnectors.complete(connectors)
         } catch (cause: BindException) {
             terminate()
             throw cause

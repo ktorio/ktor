@@ -44,7 +44,7 @@ public interface ApplicationEngine {
      * for these connectors.
      * Available after server was started.
      */
-    public suspend fun networkAddresses(): List<NetworkAddress>
+    public suspend fun resolvedConnectors(): List<EngineConnectorConfig>
 
     /**
      * Environment with which this engine is running
