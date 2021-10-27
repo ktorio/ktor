@@ -44,21 +44,22 @@ fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = set
 fun Project.disableCompilation(target: KotlinNativeTarget) {
     target.apply {
 
-        compilations.forEach {
-            it.cinterops.forEach { cInterop ->
-                tasks.getByName(cInterop.interopProcessingTaskName).enabled = false
+        compilations.all {
+            cinterops.all {
+                tasks.named(interopProcessingTaskName) { enabled = false }
             }
+            compileKotlinTaskProvider.configure { enabled = false }
         }
 
-        binaries.forEach {
-            it.linkTask.enabled = false
+        binaries.all {
+            linkTaskProvider.configure { enabled = false }
         }
 
         mavenPublication {
-            tasks.withType<AbstractPublishToMaven>().all {
+            tasks.withType<AbstractPublishToMaven>().configureEach {
                 onlyIf { publication != this@mavenPublication }
             }
-            tasks.withType<GenerateModuleMetadata>().all {
+            tasks.withType<GenerateModuleMetadata>().configureEach {
                 onlyIf { publication.get() != this@mavenPublication }
             }
         }
