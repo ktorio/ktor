@@ -71,7 +71,8 @@ internal suspend fun simpleOAuth1aStep1(
     callbackUrl,
     settings.consumerKey,
     nonce,
-    extraParameters
+    extraParameters,
+    settings.httpMethod
 )
 
 private suspend fun simpleOAuth1aStep1(
@@ -81,17 +82,19 @@ private suspend fun simpleOAuth1aStep1(
     callback: String,
     consumerKey: String,
     nonce: String = generateNonce(),
-    extraParameters: List<Pair<String, String>> = emptyList()
+    extraParameters: List<Pair<String, String>> = emptyList(),
+    httpMethod: HttpMethod
 ): OAuthCallback.TokenPair {
     val authHeader = createObtainRequestTokenHeaderInternal(
         callback = callback,
         consumerKey = consumerKey,
         nonce = nonce
-    ).signInternal(HttpMethod.Post, baseUrl, secretKey, extraParameters)
+    ).signInternal(httpMethod, baseUrl, secretKey, extraParameters)
 
     val url = baseUrl.appendUrlParameters(extraParameters.formUrlEncode())
 
-    val response = client.post(url) {
+    val response = client.request(url) {
+        method = httpMethod
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
@@ -145,7 +148,8 @@ internal suspend fun requestOAuth1aAccessToken(
     verifier = callbackResponse.tokenSecret,
     nonce = nonce,
     extraParameters = extraParameters,
-    accessTokenInterceptor = settings.accessTokenInterceptor
+    accessTokenInterceptor = settings.accessTokenInterceptor,
+    httpMethod = settings.httpMethod
 )
 
 private suspend fun requestOAuth1aAccessToken(
@@ -157,14 +161,16 @@ private suspend fun requestOAuth1aAccessToken(
     verifier: String,
     nonce: String = generateNonce(),
     extraParameters: Map<String, String> = emptyMap(),
-    accessTokenInterceptor: (HttpRequestBuilder.() -> Unit)?
+    accessTokenInterceptor: (HttpRequestBuilder.() -> Unit)?,
+    httpMethod: HttpMethod
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()
     val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
-        .signInternal(HttpMethod.Post, baseUrl, secretKey, params)
+        .signInternal(httpMethod, baseUrl, secretKey, params)
 
     // some of really existing OAuth servers don't support other accept header values so keep it
-    val body = client.post(baseUrl) {
+    val body = client.request(baseUrl) {
+        method = httpMethod
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, "*/*")
         // some of really existing OAuth servers don't support other accept header values so keep it

@@ -38,6 +38,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property accessTokenUrl OAuth server access token request URL
      * @property consumerKey consumer key parameter (provided by OAuth server vendor)
      * @property consumerSecret a secret key parameter (provided by OAuth server vendor)
+     * @property httpMethod HTTP method to use for requests
      */
     public class OAuth1aServerSettings(
         name: String,
@@ -48,7 +49,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val consumerKey: String,
         public val consumerSecret: String,
 
-        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+        public val httpMethod: HttpMethod = HttpMethod.Post
     ) : OAuthServerSettings(name, OAuthVersion.V10a)
 
     /**
