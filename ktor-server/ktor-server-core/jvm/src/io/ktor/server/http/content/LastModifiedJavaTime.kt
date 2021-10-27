@@ -23,3 +23,9 @@ public fun LastModifiedVersion(lastModified: ZonedDateTime): LastModifiedVersion
  */
 public fun LastModifiedVersion(lastModified: FileTime): LastModifiedVersion =
     LastModifiedVersion(GMTDate(lastModified.toMillis()))
+
+/**
+ * Construct [LastModifiedVersion] version from a [Long] instance
+ */
+public fun LastModifiedVersion(lastModified: Long): LastModifiedVersion =
+    LastModifiedVersion(GMTDate(lastModified))

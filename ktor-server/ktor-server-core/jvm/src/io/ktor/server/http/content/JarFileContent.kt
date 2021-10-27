@@ -26,7 +26,7 @@ public class JarFileContent(
     override val contentType: ContentType
 ) : OutgoingContent.ReadChannelContent() {
 
-    private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
+    private val normalized = File(resourcePath).normalize().toString().replace(File.separatorChar, '/')
     private val jarEntry: JarEntry? by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
     private val jar by lazy(LazyThreadSafetyMode.NONE) { JarFile(jarFile) }
 

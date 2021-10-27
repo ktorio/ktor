@@ -25,7 +25,12 @@ public class LocalFileContent(
     override val contentLength: Long get() = file.length()
 
     init {
-        versions += LastModifiedVersion(Files.getLastModifiedTime(file.toPath()))
+        val lastModifiedVersion = file.lastModified()
+        versions += LastModifiedVersion(
+            if (lastModifiedVersion == 0L)
+                throw IOException("No such file ${file.absolutePath}")
+            else lastModifiedVersion
+        )
     }
 
     // TODO: consider using WriteChannelContent to avoid piping

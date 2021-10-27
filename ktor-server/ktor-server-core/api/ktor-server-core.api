@@ -343,6 +343,7 @@ public final class io/ktor/server/http/content/JarFileContent : io/ktor/http/con
 }
 
 public final class io/ktor/server/http/content/LastModifiedJavaTimeKt {
+	public static final fun LastModifiedVersion (J)Lio/ktor/http/content/LastModifiedVersion;
 	public static final fun LastModifiedVersion (Ljava/nio/file/attribute/FileTime;)Lio/ktor/http/content/LastModifiedVersion;
 	public static final fun LastModifiedVersion (Ljava/time/ZonedDateTime;)Lio/ktor/http/content/LastModifiedVersion;
 }
