@@ -177,7 +177,7 @@ public class ContentNegotiation internal constructor(
                 }
 
                 // Pick the first one that can convert the subject successfully
-                val converted = suitableConverters.mapFirstNotNull {
+                val converted = suitableConverters.firstNotNullOfOrNull {
                     it.converter.serialize(
                         contentType = it.contentType,
                         charset = call.request.headers.suitableCharset(),
@@ -264,15 +264,4 @@ public fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQ
             asterisks
         }.thenByDescending { it.contentType.parameters.size }
     )
-}
-
-private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
-    @Suppress("LoopToCallChain")
-    for (element in this) {
-        val mapped = block(element)
-        if (mapped != null) {
-            return mapped
-        }
-    }
-    return null
 }
