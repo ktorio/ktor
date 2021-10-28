@@ -5,12 +5,14 @@
 package io.ktor.server.metrics.dropwizard
 
 import com.codahale.metrics.*
+import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.*
+import org.junit.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -35,6 +37,29 @@ class DropwizardMetricsTests {
         }
 
         assertEquals(1, testRegistry.meter("ktor.calls./uri/(method:GET).200").count)
+    }
+
+    @Test
+    fun `should not throw exception if metric already registered`(): Unit = withTestApplication {
+        val testRegistry = MetricRegistry()
+        testRegistry.register("jvm.memory", MemoryUsageGaugeSet())
+
+        application.install(DropwizardMetrics) {
+            registry = testRegistry
+            baseName = ""
+        }
+
+        application.routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+        }
+
+        handleRequest {
+            uri = "/uri"
+        }
+
+        assertEquals(1, testRegistry.meter("/uri/(method:GET).200").count)
     }
 
     @Test
