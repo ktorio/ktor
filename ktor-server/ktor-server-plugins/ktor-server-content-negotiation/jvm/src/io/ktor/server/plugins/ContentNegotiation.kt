@@ -211,16 +211,19 @@ public class ContentNegotiation internal constructor(
                         parseFailure
                     )
                 }
-                val suitableConverter =
-                    plugin.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
-                        ?: throw UnsupportedMediaTypeException(requestContentType)
+                val suitableConverters =
+                    plugin.registrations.filter { converter -> requestContentType.match(converter.contentType) }
+                        .takeIf { it.isNotEmpty() } ?: throw UnsupportedMediaTypeException(requestContentType)
 
                 val converted = try {
-                    suitableConverter.converter.deserialize(
-                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                        typeInfo = subject.typeInfo,
-                        content = subject.value as ByteReadChannel
-                    ) ?: throw UnsupportedMediaTypeException(requestContentType)
+                    // Pick the first one that can convert the subject successfully
+                    suitableConverters.firstNotNullOfOrNull { registration ->
+                        registration.converter.deserialize(
+                            charset = call.request.contentCharset() ?: Charsets.UTF_8,
+                            typeInfo = subject.typeInfo,
+                            content = subject.value as ByteReadChannel
+                        )
+                    } ?: throw UnsupportedMediaTypeException(requestContentType)
                 } catch (convertException: ContentConvertException) {
                     throw BadRequestException(
                         convertException.message ?: "Can't convert parameters",
