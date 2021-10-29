@@ -7,6 +7,7 @@ package io.ktor.client.plugins.websocket
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.serialization.*
 
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -41,24 +42,13 @@ internal class DelegatingClientWebSocketSession(
  * raw websocket session.
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSerializedByWebsocketConverter(data: T) {
-    /*
-    val charset = call.request.headers.suitableCharset()
     val serializedData = call.client?.plugin(WebSockets)?.contentConverter?.serialize(
-        charset = charset,
+        charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
         value = data
     ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    outgoing.send(
-        Frame.Text(
-            io.ktor.utils.io.core.String(
-                serializedData.toByteArray(),
-                charset = charset
-            )
-        )
-    )
-
-     */
+    outgoing.send(serializedData)
 }
 
 /**
@@ -71,11 +61,9 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSe
  * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiveDeserialized(): T {
-    TODO()
-    /*
     val data = when (val frame = incoming.receive()) {
-        is Frame.Text -> frame.data
-        is Frame.Binary -> frame.data
+        is Frame.Text -> frame
+        is Frame.Binary -> frame
         else -> throw WebsocketDeserializeException(
             "Frame type is not Frame.Text or Frame.Binary"
         )
@@ -84,11 +72,9 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiv
     val result = call.client?.plugin(WebSockets)?.contentConverter?.deserialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
-        content = ByteReadChannel(data)
+        content = data
     ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
     return if (result is T) result
     else throw WebsocketDeserializeException("Can't convert value from json")
-
-     */
 }

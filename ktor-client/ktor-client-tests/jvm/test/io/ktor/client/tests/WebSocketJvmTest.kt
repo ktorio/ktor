@@ -8,6 +8,8 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.serializaion.gson.*
+import io.ktor.serialization.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
@@ -39,7 +41,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
-/*
+
     @Test
     fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache")) {
         config {
@@ -73,7 +75,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
     fun testWebSocketSerialization() = clientTests(listOf("Android", "Apache")) {
         config {
             WebSockets {
-                contentConverter = GsonBaseConverter()
+                contentConverter = GsonWebsocketContentConverter()
             }
         }
 
@@ -112,6 +114,4 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
-
- */
 }

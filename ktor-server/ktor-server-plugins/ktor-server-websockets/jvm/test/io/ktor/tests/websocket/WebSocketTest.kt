@@ -5,6 +5,8 @@
 package io.ktor.tests.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.serializaion.gson.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -54,12 +56,12 @@ class WebSocketTest {
     }
 
     class Data(val string: String, val count: Int)
-/*
+
     @Test
     fun testJsonConverter() {
         withTestApplication {
             application.install(WebSockets) {
-                contentConverter = GsonBaseConverter()
+                contentConverter = GsonWebsocketContentConverter()
             }
 
             application.routing {
@@ -156,7 +158,7 @@ class WebSocketTest {
     fun testDeserializationWithOnClosedChannel() {
         withTestApplication {
             application.install(WebSockets) {
-                contentConverter = GsonBaseConverter()
+                contentConverter = GsonWebsocketContentConverter()
             }
 
             application.routing {
@@ -189,7 +191,7 @@ class WebSocketTest {
             }
         }
     }
-*/
+
     @Test
     fun testFrameSize() {
         withTestApplication {
