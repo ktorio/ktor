@@ -56,8 +56,7 @@ public class KotlinxWebsocketSerializationConverter(
             is StringFormat -> {
                 if (content is Frame.Text) {
                     format.decodeFromString(serializer, content.readText())
-                }
-                else {
+                } else {
                     throw WebsocketConverterNotFoundException(
                         "Unsupported format $format for ${content.frameType.name}"
                     )
@@ -66,8 +65,7 @@ public class KotlinxWebsocketSerializationConverter(
             is BinaryFormat -> {
                 if (content is Frame.Binary) {
                     format.decodeFromByteArray(serializer, content.readBytes())
-                }
-                else {
+                } else {
                     throw WebsocketConverterNotFoundException(
                         "Unsupported format $format for ${content.frameType.name}"
                     )

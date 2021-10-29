@@ -29,8 +29,7 @@ public class LocalFileContent(
         versions += LastModifiedVersion(
             if (lastModifiedVersion == 0L) {
                 throw IOException("No such file ${file.absolutePath}")
-            }
-            else lastModifiedVersion
+            } else lastModifiedVersion
         )
     }
 
