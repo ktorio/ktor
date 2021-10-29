@@ -958,6 +958,7 @@ public class io/ktor/server/routing/Route : io/ktor/server/application/Applicati
 	public synthetic fun <init> (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RouteSelector;ZLio/ktor/server/application/ApplicationEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun afterIntercepted ()V
 	public final fun createChild (Lio/ktor/server/routing/RouteSelector;)Lio/ktor/server/routing/Route;
+	public final fun getAllHttpMethodRoutes ()Ljava/util/List;
 	public final fun getChildren ()Ljava/util/List;
 	public final fun getParent ()Lio/ktor/server/routing/Route;
 	public final fun getSelector ()Lio/ktor/server/routing/RouteSelector;

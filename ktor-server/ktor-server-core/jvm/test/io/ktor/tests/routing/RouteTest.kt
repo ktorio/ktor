@@ -4,6 +4,7 @@
 
 package io.ktor.tests.routing
 
+import io.ktor.http.*
 import io.ktor.server.routing.*
 import kotlin.test.*
 
@@ -36,5 +37,47 @@ class RouteTest {
         val simpleChild = root.createChild(PathSegmentConstantRouteSelector("simpleChild"))
         assertTrue(root.developmentMode)
         assertTrue(simpleChild.developmentMode)
+    }
+
+    @Test
+    fun `test empty http method routes`() {
+        val root = Route(parent = null, selector = RootRouteSelector())
+        val methodRoutes = root.getAllHttpMethodRoutes()
+        assertTrue(methodRoutes.isEmpty())
+    }
+
+    @Test
+    fun `test find a few http method routes`() {
+        val root = Route(parent = null, selector = RootRouteSelector())
+        val firstChild = root.createChild(PathSegmentConstantRouteSelector("firstChild"))
+        val firstGrandChild = firstChild.createChild(PathSegmentConstantRouteSelector("firstGrandChild"))
+        val lastPathChild = firstGrandChild.createChild(PathSegmentConstantRouteSelector("lastPathChild"))
+
+        val firstMethod = firstChild.createChild(HttpMethodRouteSelector(HttpMethod.Get))
+        val secondMethod = lastPathChild.createChild(HttpMethodRouteSelector(HttpMethod.Post))
+        val thirdMethod = lastPathChild.createChild(HttpMethodRouteSelector(HttpMethod.Put))
+
+        val methodRoutes = root.getAllHttpMethodRoutes()
+        assertEquals(3, methodRoutes.size)
+        assertTrue(methodRoutes.contains(firstMethod))
+        assertTrue(methodRoutes.contains(secondMethod))
+        assertTrue(methodRoutes.contains(thirdMethod))
+    }
+
+    @Test
+    fun `test find http method routes from a non root route`() {
+        val root = Route(parent = null, selector = RootRouteSelector())
+        val firstChild = root.createChild(PathSegmentConstantRouteSelector("firstChild"))
+        val firstGrandChild = firstChild.createChild(PathSegmentConstantRouteSelector("firstGrandChild"))
+        val lastPathChild = firstGrandChild.createChild(PathSegmentConstantRouteSelector("lastPathChild"))
+
+        firstChild.createChild(HttpMethodRouteSelector(HttpMethod.Get))
+        val secondMethod = lastPathChild.createChild(HttpMethodRouteSelector(HttpMethod.Post))
+        val thirdMethod = lastPathChild.createChild(HttpMethodRouteSelector(HttpMethod.Put))
+
+        val methodRoutes = firstGrandChild.getAllHttpMethodRoutes()
+        assertEquals(2, methodRoutes.size)
+        assertTrue(methodRoutes.contains(secondMethod))
+        assertTrue(methodRoutes.contains(thirdMethod))
     }
 }

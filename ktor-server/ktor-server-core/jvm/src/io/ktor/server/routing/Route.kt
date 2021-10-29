@@ -75,6 +75,21 @@ public open class Route(
         cachedPipeline = null
     }
 
+    public fun getAllHttpMethodRoutes(): List<Route> {
+        val methodRoutes = mutableListOf<Route>()
+        fillHttpMethodRouteListRecursively(this, methodRoutes)
+
+        return methodRoutes
+    }
+
+    private fun fillHttpMethodRouteListRecursively(route: Route, methodRoutes: MutableList<Route>) {
+        if (route.selector is HttpMethodRouteSelector) {
+            methodRoutes.add(route)
+        } else {
+            route.children.forEach { fillHttpMethodRouteListRecursively(it, methodRoutes) }
+        }
+    }
+
     override fun afterIntercepted() {
         // Adding an interceptor invalidates pipelines for all children
         // We don't need synchronisation here, because order of intercepting and acquiring pipeline is indeterminate
