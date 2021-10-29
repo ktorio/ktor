@@ -572,7 +572,6 @@ public class CORS(configuration: Configuration) {
         }
     }
 
-
     /**
      * Feature object for installation
      */

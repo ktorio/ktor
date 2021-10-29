@@ -49,7 +49,7 @@ class PartialContentTest {
             }
 
             test(File(basedir, localPath))
-        }
+        }.let { }
 
     @Test
     fun testCustomMaxRangeCountAccepted(): Unit = withRangeApplication(maxRangeCount = 10) {
@@ -332,7 +332,7 @@ class PartialContentTest {
         block(parts)
     }
 
-    private fun checkContentLength(result : TestApplicationCall) {
+    private fun checkContentLength(result: TestApplicationCall) {
         assertEquals(
             result.response.byteContent!!.size.toLong(),
             result.response.headers[HttpHeaders.ContentLength]!!.toLong()

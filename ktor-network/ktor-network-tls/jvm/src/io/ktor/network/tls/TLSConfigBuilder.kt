@@ -119,7 +119,7 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, a
     loop@ for (certAlias in aliases) {
         val chain: Array<Certificate>? = store.getCertificateChain(certAlias)
         checkNotNull(chain) { "Fail to get the certificate chain for this alias: $certAlias" }
-        
+
         val allX509 = chain.all { it is X509Certificate }
         check(allX509) { "Fail to add key store $store. Only X509 certificate format supported." }
 
