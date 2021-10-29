@@ -9,8 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
-import io.ktor.shared.serializaion.gson.*
-import io.ktor.shared.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -56,7 +54,7 @@ class WebSocketTest {
     }
 
     class Data(val string: String, val count: Int)
-
+/*
     @Test
     fun testJsonConverter() {
         withTestApplication {
@@ -191,7 +189,7 @@ class WebSocketTest {
             }
         }
     }
-
+*/
     @Test
     fun testFrameSize() {
         withTestApplication {

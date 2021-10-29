@@ -6,7 +6,6 @@ package io.ktor.server.websocket
 
 import io.ktor.http.cio.websocket.*
 import io.ktor.server.application.*
-import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
@@ -43,6 +42,7 @@ public val WebSocketServerSession.application: Application get() = call.applicat
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
 public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerializedByWebsocketConverter(data: T) {
+    /*
     val charset = call.request.headers.suitableCharset()
     val serializedData = application.plugin(WebSockets).contentConverter?.serialize(
         charset = charset,
@@ -58,6 +58,8 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
             )
         )
     )
+
+     */
 }
 
 /**
@@ -70,6 +72,8 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
  * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeserialized(): T {
+    TODO()
+    /*
     val data = when (val frame = incoming.receive()) {
         is Frame.Text -> frame.data
         is Frame.Binary -> frame.data
@@ -86,6 +90,8 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeseri
 
     return if (result is T) result
     else throw WebsocketDeserializeException("Can't convert value from json")
+
+     */
 }
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =

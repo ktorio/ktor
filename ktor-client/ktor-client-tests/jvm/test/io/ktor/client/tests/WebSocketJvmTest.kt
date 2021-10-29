@@ -8,9 +8,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.shared.serializaion.gson.*
-import io.ktor.shared.serialization.*
-import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
@@ -42,7 +39,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
-
+/*
     @Test
     fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache")) {
         config {
@@ -115,4 +112,6 @@ class WebSocketJvmTest : ClientLoader(100000) {
             }
         }
     }
+
+ */
 }
