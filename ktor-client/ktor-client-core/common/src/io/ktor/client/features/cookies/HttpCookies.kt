@@ -104,7 +104,7 @@ public class HttpCookies(
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                plugin.captureHeaderCookies(context)
+                feature.captureHeaderCookies(context)
             }
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
                 feature.sendCookiesWith(context)
