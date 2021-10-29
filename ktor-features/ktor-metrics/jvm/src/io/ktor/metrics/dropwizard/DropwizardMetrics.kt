@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.metrics.dropwizard
 
 import com.codahale.metrics.*
+import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.application.*
 import io.ktor.routing.*
@@ -13,27 +14,27 @@ import io.ktor.util.pipeline.*
 import java.util.concurrent.*
 
 /**
- * Dropwizard metrics support feature. See https://ktor.io/servers/features/metrics.html for details.
+ * Dropwizard metrics support plugin. See https://ktor.io/servers/features/metrics.html for details.
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
  */
 public class DropwizardMetrics(
     public val registry: MetricRegistry,
-    public val baseName: String = MetricRegistry.name("ktor.calls")
+    public val baseName: String = name("ktor.calls")
 ) {
-    private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
-    private val active = registry.counter(MetricRegistry.name(baseName, "active"))
-    private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
+    private val duration = registry.timer(name(baseName, "duration"))
+    private val active = registry.counter(name(baseName, "active"))
+    private val exceptions = registry.meter(name(baseName, "exceptions"))
     private val httpStatus = ConcurrentHashMap<Int, Meter>()
 
     /**
-     * Metrics feature configuration object that is used during feature installation.
+     * Metrics plugin configuration object that is used during plugin installation.
      */
     public class Configuration {
         /**
          * Dropwizard metrics base name (prefix)
          */
-        public var baseName: String = MetricRegistry.name("ktor.calls")
+        public var baseName: String = name("ktor.calls")
 
         /**
          * Dropwizard metric registry.
@@ -41,7 +42,7 @@ public class DropwizardMetrics(
         public var registry: MetricRegistry = MetricRegistry()
 
         /**
-         * By default, this feature will register `MetricSet`s from
+         * By default, this plugin will register `MetricSet`s from
          * [metrics-jvm](https://metrics.dropwizard.io/4.1.2/manual/jvm.html) in the configured [MetricRegistry].
          * Set this to false to not register them.
          */
@@ -49,7 +50,7 @@ public class DropwizardMetrics(
     }
 
     /**
-     * Metrics feature companion
+     * Metrics plugin companion
      */
     public companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
         override val key: AttributeKey<DropwizardMetrics> = AttributeKey("metrics")
@@ -92,8 +93,8 @@ public class DropwizardMetrics(
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
                 val name = call.route.toString()
-                val meter = feature.registry.meter(MetricRegistry.name(name, "meter"))
-                val timer = feature.registry.timer(MetricRegistry.name(name, "timer"))
+                val meter = feature.registry.meter(name(feature.baseName, name, "meter"))
+                val timer = feature.registry.timer(name(feature.baseName, name, "timer"))
                 meter.mark()
                 val context = timer.time()
                 call.attributes.put(
@@ -105,7 +106,7 @@ public class DropwizardMetrics(
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
                 val routingMetrics = call.attributes.take(routingMetricsKey)
                 val status = call.response.status()?.value ?: 0
-                val statusMeter = feature.registry.meter(MetricRegistry.name(routingMetrics.name, status.toString()))
+                val statusMeter = feature.registry.meter(name(feature.baseName, routingMetrics.name, status.toString()))
                 statusMeter.mark()
                 routingMetrics.context.stop()
             }
@@ -126,7 +127,7 @@ public class DropwizardMetrics(
     private fun after(call: ApplicationCall) {
         active.dec()
         val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
-            registry.meter(MetricRegistry.name(baseName, "status", it.toString()))
+            registry.meter(name(baseName, "status", it.toString()))
         }
         meter.mark()
         call.attributes.getOrNull(measureKey)?.apply {

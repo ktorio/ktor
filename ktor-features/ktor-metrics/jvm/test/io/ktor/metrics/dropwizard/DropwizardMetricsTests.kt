@@ -10,8 +10,9 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.*
-import org.junit.Assert.*
+import org.hamcrest.CoreMatchers.*
+import org.hamcrest.MatcherAssert.*
+import kotlin.test.*
 
 class DropwizardMetricsTests {
 
@@ -33,16 +34,17 @@ class DropwizardMetricsTests {
             uri = "/uri"
         }
 
-        assertEquals(1, testRegistry.meter("/uri/(method:GET).200").count)
+        assertEquals(1, testRegistry.meter("ktor.calls./uri/(method:GET).200").count)
     }
 
     @Test
-    fun testUsePreconfiguredRegistry(): Unit = withTestApplication {
+    fun `should not throw exception if metric already registered`(): Unit = withTestApplication {
         val testRegistry = MetricRegistry()
         testRegistry.register("jvm.memory", MemoryUsageGaugeSet())
 
         application.install(DropwizardMetrics) {
             registry = testRegistry
+            baseName = ""
         }
 
         application.routing {
@@ -68,5 +70,24 @@ class DropwizardMetricsTests {
         }
 
         assertEquals(setOf("ktor.calls.active", "ktor.calls.duration", "ktor.calls.exceptions"), testRegistry.names)
+    }
+
+    @Test
+    fun `should prefix all metrics with baseName`(): Unit = withTestApplication {
+        val prefix = "foo.bar"
+        val registry = application.install(DropwizardMetrics) {
+            baseName = prefix
+            registerJvmMetricSets = false
+        }.registry
+
+        application.routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+        }
+
+        handleRequest { uri = "/uri" }
+
+        assertThat(registry.names, everyItem(startsWith(prefix)))
     }
 }
