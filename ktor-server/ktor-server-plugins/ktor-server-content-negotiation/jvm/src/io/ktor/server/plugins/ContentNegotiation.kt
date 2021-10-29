@@ -6,11 +6,11 @@ package io.ktor.server.plugins
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.shared.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -75,7 +75,7 @@ public class ContentNegotiation internal constructor(
     /**
      * Configuration type for [ContentNegotiation] plugin
      */
-    public class Configuration : io.ktor.shared.serialization.Configuration {
+    public class Configuration : io.ktor.serialization.Configuration {
         internal val registrations = mutableListOf<ConverterRegistration>()
         internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
 

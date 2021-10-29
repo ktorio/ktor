@@ -7,7 +7,9 @@ package io.ktor.server.application.plugins.api
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
 /**
@@ -30,6 +32,11 @@ public class CallContext(override val context: PipelineContext<Unit, Application
     CallHandlingContext(context)
 
 /**
+ * Contains type information about the current request or response body when performing a transformation.
+ * */
+public class TransformContext(public val requestedType: TypeInfo?)
+
+/**
  * A context associated with the call.receive() action. Allows you to transform the received body.
  * [CallReceiveContext] is a receiver for [PluginBuilder.onCallReceive] handler of your [PluginBuilder].
  *
@@ -40,13 +47,18 @@ public class CallReceiveContext(
 ) : CallHandlingContext(context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
+     * If another plugin has already made the transformation, then your [transformBody] handler is not executed.
      **/
-    public suspend fun transformRequestBody(transform: suspend (ByteReadChannel) -> Any) {
-        val receiveBody = context.subject.value as? ByteReadChannel
-            ?: throw noBinaryDataException("ByteReadChannel", context.subject.value)
+    public suspend fun transformBody(transform: suspend TransformContext.(body: ByteReadChannel) -> Any) {
+        val receiveBody = context.subject.value as? ByteReadChannel ?: return
+        val typeInfo = context.subject.typeInfo
+        if (typeInfo.type == ByteReadChannel::class) return
+
+        val transformContext = TransformContext(typeInfo)
+
         context.subject = ApplicationReceiveRequest(
             context.subject.typeInfo,
-            transform(receiveBody),
+            transformContext.transform(receiveBody),
             context.subject.reusableValue
         )
     }
@@ -64,8 +76,10 @@ public class CallRespondContext(
     /**
      * Specifies how to transform a response body that is being sent to a client.
      **/
-    public suspend fun transformResponseBody(transform: suspend (Any) -> Any) {
-        context.subject = transform(context.subject)
+    public suspend fun transformBody(transform: suspend TransformContext.(body: Any) -> Any) {
+        val transformContext = TransformContext(context.call.response.responseType)
+
+        context.subject = transformContext.transform(context.subject)
     }
 }
 
@@ -84,9 +98,11 @@ public class CallRespondAfterTransformContext(
      *
      * @param transform An action that modifies [OutgoingContent] that needs to be sent to a client.
      **/
-    public suspend fun transformResponseBody(transform: suspend (OutgoingContent) -> OutgoingContent) {
+    public suspend fun transformBody(transform: suspend TransformContext.(body: OutgoingContent) -> OutgoingContent) {
+        val transformContext = TransformContext(context.call.response.responseType)
+
         val newContent =
             context.subject as? OutgoingContent ?: throw noBinaryDataException("OutgoingContent", context.subject)
-        context.subject = transform(newContent)
+        context.subject = transformContext.transform(newContent)
     }
 }

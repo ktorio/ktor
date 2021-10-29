@@ -533,7 +533,6 @@ public class CORS(configuration: Configuration) {
         }
     }
 
-
     /**
      * Plugin object for installation
      */

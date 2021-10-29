@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -33,7 +32,7 @@ public abstract class BaseApplicationEngine(
      */
     public open class Configuration : ApplicationEngine.Configuration()
 
-    protected val networkAddresses: CompletableDeferred<List<NetworkAddress>> = CompletableDeferred()
+    protected val resolvedConnectors: CompletableDeferred<List<EngineConnectorConfig>> = CompletableDeferred()
 
     init {
         var isFirstLoading = true
@@ -51,18 +50,20 @@ public abstract class BaseApplicationEngine(
         }
         environment.monitor.subscribe(ApplicationStarted) {
             val finishedAt = System.currentTimeMillis()
-            environment.connectors.forEach {
-                environment.log.info(
-                    "Responding at ${it.type.name.lowercase(Locale.getDefault())}://${it.host}:${it.port}"
-                )
-            }
-
             val elapsedTimeInSeconds = (finishedAt - initializedStartAt) / 1_000.0
             if (isFirstLoading) {
                 environment.log.info("Application started in $elapsedTimeInSeconds seconds.")
                 isFirstLoading = false
             } else {
                 environment.log.info("Application auto-reloaded in $elapsedTimeInSeconds seconds.")
+            }
+        }
+
+        CoroutineScope(environment.application.coroutineContext).launch {
+            resolvedConnectors.await().forEach {
+                environment.log.info(
+                    "Responding at ${it.type.name.lowercase(Locale.getDefault())}://${it.host}:${it.port}"
+                )
             }
         }
     }
@@ -90,8 +91,8 @@ public abstract class BaseApplicationEngine(
         }
     }
 
-    override suspend fun networkAddresses(): List<NetworkAddress> {
-        return networkAddresses.await()
+    override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
+        return resolvedConnectors.await()
     }
 }
 

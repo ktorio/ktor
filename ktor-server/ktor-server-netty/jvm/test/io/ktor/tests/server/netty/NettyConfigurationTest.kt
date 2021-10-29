@@ -5,6 +5,7 @@
 package io.ktor.tests.server.netty
 
 import io.ktor.events.*
+import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -28,6 +29,9 @@ class NettyConfigurationTest {
         every { env.start() } just Runs
         every { env.connectors } returns listOf(EngineConnectorBuilder())
         every { env.parentCoroutineContext } returns Dispatchers.Default
+        every { env.application } returns mockk<Application>().apply {
+            every { coroutineContext } returns Job()
+        }
         return env
     }
 

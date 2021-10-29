@@ -13,7 +13,7 @@ import io.ktor.util.*
  * Supports overriding HTTP method by the `X-Http-Method-Override` header.
  */
 public object XHttpMethodOverrideSupport :
-    ApplicationPlugin<ApplicationCallPipeline, XHttpMethodOverrideSupport.Configuration, XHttpMethodOverrideSupport.Configuration> {
+    ApplicationPlugin<ApplicationCallPipeline, XHttpMethodOverrideSupport.Configuration, XHttpMethodOverrideSupport.Configuration> { // ktlint-disable max-line-length
 
     override val key: AttributeKey<Configuration> = AttributeKey("XHttpMethodOverrideSupport")
 

@@ -15,7 +15,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-json-tests"))
-            api(project(":ktor-shared:ktor-shared-serialization-gson"))
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-gson"))
         }
     }
 }

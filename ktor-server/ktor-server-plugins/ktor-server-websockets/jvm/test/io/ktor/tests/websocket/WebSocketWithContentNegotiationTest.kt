@@ -7,12 +7,12 @@ package io.ktor.tests.websocket
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
-import io.ktor.shared.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -30,7 +30,7 @@ class WebSocketWithContentNegotiationTest {
                     charset: Charset,
                     typeInfo: TypeInfo,
                     value: Any
-                ): OutgoingContent? = fail("convertForSend shouldn't be invoked")
+                ): OutgoingContent = fail("convertForSend shouldn't be invoked")
 
                 override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): SerializedData {
                     TODO("Not yet implemented")

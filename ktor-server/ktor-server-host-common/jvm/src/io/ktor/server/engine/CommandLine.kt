@@ -17,7 +17,10 @@ import kotlin.text.toCharArray
 /**
  * Creates an [ApplicationEngineEnvironment] instance from command line arguments
  */
-public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
+public fun commandLineEnvironment(
+    args: Array<String>,
+    environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+): ApplicationEngineEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let {
@@ -148,6 +151,8 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
         (argsMap["-watch"]?.split(",") ?: combinedConfig.tryGetStringList(hostWatchPaths))?.let {
             watchPaths = it
         }
+
+        environmentBuilder()
     }
 
     return environment

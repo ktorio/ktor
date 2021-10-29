@@ -5,7 +5,6 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.server.engine.*
-import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Assert.*
@@ -30,7 +29,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         }
 
         val addresses = withTimeout(15000) {
-            server.networkAddresses()
+            server.resolvedConnectors()
         }
 
         assertEquals(2, addresses.size)

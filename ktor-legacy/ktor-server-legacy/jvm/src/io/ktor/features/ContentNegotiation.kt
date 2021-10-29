@@ -11,7 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.shared.serialization.*
+import io.ktor.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
