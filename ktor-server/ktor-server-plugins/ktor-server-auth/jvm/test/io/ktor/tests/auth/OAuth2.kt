@@ -184,9 +184,11 @@ class OAuth2Test {
         }
         routing {
             authenticate("login") {
-                get("/login") {
-                    val principal = call.authentication.principal as? OAuthAccessTokenResponse.OAuth2
-                    call.respondText("Hej, $principal")
+                route("/login") {
+                    handle {
+                        val principal = call.authentication.principal as? OAuthAccessTokenResponse.OAuth2
+                        call.respondText("Hej, $principal")
+                    }
                 }
             }
             authenticate("resource") {
@@ -292,6 +294,25 @@ class OAuth2Test {
                 OAuth2RequestParameters.Code to "code1",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
+        }
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.OK, result.response.status())
+    }
+
+    @Test
+    fun testRequestTokenFormPost() = withTestApplication({ module() }) {
+        val result = handleRequest {
+            method = HttpMethod.Post
+            uri = "/login"
+            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody(
+                listOf(
+                    OAuth2RequestParameters.Code to "code1",
+                    OAuth2RequestParameters.State to "state1"
+                ).formUrlEncode()
+            )
         }
 
         waitExecutor()
