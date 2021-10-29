@@ -12,8 +12,8 @@ kotlin.sourceSets {
             api(project(":ktor-http"))
             api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-shared:ktor-events"))
+            api(project(":ktor-shared:ktor-serialization"))
             api(project(":ktor-legacy:ktor-client-legacy"))
-            api(project(":ktor-shared:ktor-shared-serialization"))
         }
     }
 

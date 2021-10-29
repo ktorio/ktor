@@ -14,7 +14,6 @@ kotlin.sourceSets {
                 api(project(":ktor-server:ktor-server-tomcat"))
                 api(project(":ktor-server:ktor-server-cio"))
                 api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-                api(project(":ktor-shared:ktor-shared-serialization-gson"))
             }
         }
     }

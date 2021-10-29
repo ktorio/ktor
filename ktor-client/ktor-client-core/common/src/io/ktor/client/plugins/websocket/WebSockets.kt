@@ -12,7 +12,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.shared.serialization.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
@@ -45,7 +44,7 @@ public class WebSockets internal constructor(
     public val pingInterval: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: BaseConverter? = null
+    //public val contentConverter: BaseConverter? = null
 ) {
     /**
      * Client WebSocket plugin.
@@ -123,7 +122,7 @@ public class WebSockets internal constructor(
         /**
          * Converter for serialization/deserialization
          */
-        public var contentConverter: BaseConverter? = null
+        //public var contentConverter: BaseConverter? = null
 
         /**
          * Configure WebSocket extensions.
@@ -145,7 +144,7 @@ public class WebSockets internal constructor(
                 config.pingInterval,
                 config.maxFrameSize,
                 config.extensionsConfig,
-                config.contentConverter
+                //config.contentConverter
             )
         }
 
