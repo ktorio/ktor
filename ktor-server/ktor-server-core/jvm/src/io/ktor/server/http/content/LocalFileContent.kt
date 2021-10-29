@@ -27,8 +27,9 @@ public class LocalFileContent(
     init {
         val lastModifiedVersion = file.lastModified()
         versions += LastModifiedVersion(
-            if (lastModifiedVersion == 0L)
+            if (lastModifiedVersion == 0L) {
                 throw IOException("No such file ${file.absolutePath}")
+            }
             else lastModifiedVersion
         )
     }
