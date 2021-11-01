@@ -52,9 +52,11 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSe
 
 /**
  * Dequeue frame and deserializes to type [T] using websocket content converter.
- * May throw an exception if converter can't deserialize frame data.
+ * May throw an exception [WebsocketDeserializeException] if converter can't deserialize frame data to type [T].
+ * May throw [WebsocketDeserializeException] if received frame type is not [Frame.Text] or [Frame.Binary].
+ * In this case [WebsocketDeserializeException.frame] contains received frame.
+ *
  * May throw [ClosedReceiveChannelException] if channel was closed
- * Please note that you don't need to use this method with raw websocket session.
  *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
