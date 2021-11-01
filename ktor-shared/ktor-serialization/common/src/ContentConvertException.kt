@@ -29,5 +29,5 @@ public class WebsocketConverterNotFoundException(
 public class WebsocketDeserializeException(
     message: String,
     cause: Throwable? = null,
-    frame: Frame
+    public val frame: Frame
 ) : WebsocketContentConvertException(message, cause)
