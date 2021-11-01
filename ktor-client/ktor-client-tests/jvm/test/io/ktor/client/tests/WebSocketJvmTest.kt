@@ -28,8 +28,6 @@ class WebSocketJvmTest : ClientLoader(100000) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                client.plugin(WebSockets)
-
                 repeat(TEST_SIZE) { size ->
                     val data = generateRandomByteArray(size, size * 10 + 1)
                     send(Frame.Binary(fin = true, data))
@@ -83,7 +81,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 repeat(TEST_SIZE) {
                     val originalData = Data("hello", 100)
-                    sendSerializedByWebsocketConverter(originalData)
+                    sendSerialized(originalData)
                     val actual = receiveDeserialized<Data>()
                     assertTrue { actual == originalData }
                 }
@@ -102,7 +100,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 repeat(TEST_SIZE) {
                     assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                        sendSerializedByWebsocketConverter(Data("hello", 100))
+                        sendSerialized(Data("hello", 100))
                     }
 
                     outgoing.send(Frame.Text("{\"stringValue\":\"value\", \"count\":12}"))

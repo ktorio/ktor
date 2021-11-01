@@ -40,7 +40,7 @@ internal class DelegatingClientWebSocketSession(
  * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
  * raw websocket session.
  */
-public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSerializedByWebsocketConverter(data: T) {
+public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSerialized(data: T) {
     val serializedData = call.client?.plugin(WebSockets)?.contentConverter?.serialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
@@ -60,11 +60,13 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSe
  * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiveDeserialized(): T {
-    val data = when (val frame = incoming.receive()) {
+    val frame = incoming.receive()
+    val data = when (frame) {
         is Frame.Text -> frame
         is Frame.Binary -> frame
         else -> throw WebsocketDeserializeException(
-            "Frame type is not Frame.Text or Frame.Binary"
+            "Frame type is ${frame.frameType.name}, expected types: Frame.Text, Frame.Binary",
+            frame = frame
         )
     }
 
@@ -75,5 +77,9 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiv
     ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
     return if (result is T) result
-    else throw WebsocketDeserializeException("Can't convert value from json")
+    else throw WebsocketDeserializeException(
+        "Can't deserialize value : expected value of type ${T::class.qualifiedName}," +
+            " got ${result::class.qualifiedName}",
+        frame = frame
+    )
 }

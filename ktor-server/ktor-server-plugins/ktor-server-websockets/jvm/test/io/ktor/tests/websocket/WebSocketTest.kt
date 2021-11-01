@@ -67,7 +67,7 @@ class WebSocketTest {
             application.routing {
                 webSocket("/echo") {
                     val data = receiveDeserialized<Data>()
-                    sendSerializedByWebsocketConverter(data)
+                    sendSerialized(data)
                     outgoing.send(Frame.Close())
                 }
             }
@@ -124,7 +124,7 @@ class WebSocketTest {
                         receiveDeserialized<Data>()
                     }
                     assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                        sendSerializedByWebsocketConverter(Data("hello", 12))
+                        sendSerialized(Data("hello", 12))
                     }
                     outgoing.send(Frame.Close())
                 }

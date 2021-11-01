@@ -4,6 +4,8 @@
 
 package io.ktor.serialization
 
+import io.ktor.http.cio.websocket.*
+
 public open class ContentConvertException(
     message: String,
     cause: Throwable? = null
@@ -26,5 +28,6 @@ public class WebsocketConverterNotFoundException(
 
 public class WebsocketDeserializeException(
     message: String,
-    cause: Throwable? = null
+    cause: Throwable? = null,
+    frame: Frame
 ) : WebsocketContentConvertException(message, cause)
