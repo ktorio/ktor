@@ -6,7 +6,7 @@ package io.ktor.client
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
-import io.ktor.client.utils.sharedMap
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.collections.set
@@ -17,7 +17,7 @@ import kotlin.collections.set
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
     private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
-    private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
+    private val pluginConfigurations: MutableMap<AttributeKey<*>, HttpClientPlugin.Config.() -> Unit> = sharedMap()
 
     private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = sharedMap()
 
@@ -57,16 +57,18 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     /**
      * Installs a specific [plugin] and optionally [configure] it.
      */
-    public fun <TBuilder : Any, TPlugin : Any> install(
+    @HttpClientDsl
+    public fun <TBuilder : HttpClientPlugin.Config, TPlugin : Any> install(
         plugin: HttpClientPlugin<TBuilder, TPlugin>,
         configure: TBuilder.() -> Unit = {}
     ) {
         val previousConfigBlock = pluginConfigurations[plugin.key]
         pluginConfigurations[plugin.key] = {
+            @Suppress("UNCHECKED_CAST")
+            this as TBuilder
             previousConfigBlock?.invoke(this)
 
-            @Suppress("UNCHECKED_CAST")
-            (this as TBuilder).configure()
+            configure()
         }
 
         if (plugins.containsKey(plugin.key)) return

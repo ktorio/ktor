@@ -35,7 +35,7 @@ public class HttpCache(
     /**
      * [HttpCache] configuration.
      */
-    public class Config {
+    public class Config: HttpClientPlugin.Config {
         /**
          * Storage for public cache entries.
          *

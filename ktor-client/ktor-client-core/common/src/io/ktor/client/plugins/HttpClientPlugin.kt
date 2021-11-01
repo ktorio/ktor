@@ -14,7 +14,7 @@ internal val PLUGIN_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationPlugin
 /**
  * Base interface representing a [HttpClient] plugin.
  */
-public interface HttpClientPlugin<out TConfig : Any, TPlugin : Any> {
+public interface HttpClientPlugin<out TConfig : HttpClientPlugin.Config, TPlugin : Any> {
     /**
      * The [AttributeKey] for this plugin.
      */
@@ -29,12 +29,15 @@ public interface HttpClientPlugin<out TConfig : Any, TPlugin : Any> {
      * Installs the [plugin] class for a [HttpClient] defined at [scope].
      */
     public fun install(plugin: TPlugin, scope: HttpClient)
+
+    @HttpClientDsl
+    public interface Config
 }
 
 /**
  * Try to get the [plugin] installed in this client. Returns `null` if the plugin was not previously installed.
  */
-public fun <B : Any, F : Any> HttpClient.plugin(plugin: HttpClientPlugin<B, F>): F? =
+public fun <B : HttpClientPlugin.Config, F : Any> HttpClient.plugin(plugin: HttpClientPlugin<B, F>): F? =
     attributes.getOrNull(PLUGIN_INSTALLED_LIST)?.getOrNull(plugin.key)
 
 /**
@@ -42,7 +45,7 @@ public fun <B : Any, F : Any> HttpClient.plugin(plugin: HttpClientPlugin<B, F>):
  *
  * @throws [IllegalStateException] if [plugin] is not installed.
  */
-public operator fun <B : Any, F : Any> HttpClient.get(plugin: HttpClientPlugin<B, F>): F {
+public operator fun <B : HttpClientPlugin.Config, F : Any> HttpClient.get(plugin: HttpClientPlugin<B, F>): F {
     val requestedPlugin = plugin(plugin)
     if (requestedPlugin != null) {
         return requestedPlugin
