@@ -42,7 +42,7 @@ public final class io/ktor/serialization/WebsocketConverterNotFoundException : i
 }
 
 public final class io/ktor/serialization/WebsocketDeserializeException : io/ktor/serialization/WebsocketContentConvertException {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/http/cio/websocket/Frame;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/http/cio/websocket/Frame;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
