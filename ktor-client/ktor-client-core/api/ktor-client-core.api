@@ -710,6 +710,10 @@ public final class io/ktor/client/plugins/websocket/BuildersKt {
 	public static synthetic fun wss$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/plugins/websocket/ClientSessionsKt {
+	public static final fun getConverter (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Lio/ktor/serialization/WebsocketContentConverter;
+}
+
 public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocketSession : io/ktor/http/cio/websocket/WebSocketSession {
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 }
