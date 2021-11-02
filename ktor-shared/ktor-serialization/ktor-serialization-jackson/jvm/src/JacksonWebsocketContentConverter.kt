@@ -19,7 +19,9 @@ import java.io.*
 /**
  * A jackson converter for the [WebSockets] plugin
  */
-public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) :
+public class JacksonWebsocketContentConverter(
+    private val objectmapper: ObjectMapper = jacksonObjectMapper()
+) :
     WebsocketContentConverter {
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
         val convertedValue = objectmapper.writeValueAsString(value).toByteArray(charset = charset)
