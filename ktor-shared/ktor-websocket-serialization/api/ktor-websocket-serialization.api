@@ -1,0 +1,4 @@
+public final class WebsocketChannelSerialization {
+	public static final field INSTANCE LWebsocketChannelSerialization;
+}
+

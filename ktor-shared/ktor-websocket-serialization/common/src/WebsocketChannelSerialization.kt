@@ -23,7 +23,7 @@ public object WebsocketChannelSerialization {
      */
     public suspend inline fun <reified T : Any> sendSerialized(
         data: T,
-        converter : WebsocketContentConverter,
+        converter: WebsocketContentConverter,
         charset: Charset,
         outgoing: SendChannel<Frame>
     ) {
@@ -49,7 +49,7 @@ public object WebsocketChannelSerialization {
      * can't deserialize frame data to type [T]
      */
     public suspend inline fun <reified T : Any> receiveDeserialized(
-        converter : WebsocketContentConverter,
+        converter: WebsocketContentConverter,
         charset: Charset,
         incoming: ReceiveChannel<Frame>
     ): T {
