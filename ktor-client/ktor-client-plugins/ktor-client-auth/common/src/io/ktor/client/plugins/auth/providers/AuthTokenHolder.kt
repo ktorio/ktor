@@ -5,32 +5,41 @@
 package io.ktor.client.plugins.auth.providers
 
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
 
 internal class AuthTokenHolder<T>(
     private val loadTokens: suspend () -> T?
 ) {
-    private val initialized = atomic(false)
-
-    private val cachedBearerTokens: AtomicRef<T?> = atomic(null)
+    private val refreshTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
+    private val loadTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
 
     internal fun clearToken() {
-        cachedBearerTokens.value = null
-        initialized.value = false
+        loadTokensDeferred.value = null
+        refreshTokensDeferred.value = null
     }
 
     internal suspend fun loadToken(): T? {
-        if (initialized.compareAndSet(false, true)) {
-            val token = loadTokens()
-            cachedBearerTokens.value = token
-            return token
+        val deferred = loadTokensDeferred.getAndUpdate { it ?: CompletableDeferred() }
+        return if (deferred == null) {
+            val newTokens = loadTokens()
+            loadTokensDeferred.value!!.complete(newTokens)
+            newTokens
+        } else {
+            deferred.await()
         }
-
-        return cachedBearerTokens.value
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
-        val token = block()
-        cachedBearerTokens.value = token
-        return token
+        val deferred = refreshTokensDeferred.getAndUpdate { it ?: CompletableDeferred() }
+        val newToken = if (deferred == null) {
+            val newTokens = block()
+            refreshTokensDeferred.value!!.complete(newTokens)
+            refreshTokensDeferred.value = null
+            newTokens
+        } else {
+            deferred.await()
+        }
+        loadTokensDeferred.value = CompletableDeferred(newToken)
+        return newToken
     }
 }

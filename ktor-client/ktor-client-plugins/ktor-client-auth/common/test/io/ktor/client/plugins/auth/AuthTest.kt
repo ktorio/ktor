@@ -362,10 +362,7 @@ class AuthTest : ClientLoader() {
 
                 install(Auth) {
                     bearer {
-                        loadTokens {
-                            val token = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/token/first").bodyAsText()
-                            BearerTokens(token, token)
-                        }
+                        loadTokens { BearerTokens("first", "first") }
 
                         refreshTokens {
                             val token = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
@@ -403,6 +400,46 @@ class AuthTest : ClientLoader() {
 
             assertEquals("OK", first)
             assertEquals("OK", second)
+        }
+    }
+
+    private var refreshRequestsCount by shared(0)
+
+    @Test
+    @OptIn(DelicateCoroutinesApi::class)
+    fun testMultipleRefreshShouldMakeSingleCall() = clientTests {
+        refreshRequestsCount = 0
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("first", "first") }
+
+                    refreshTokens {
+                        refreshRequestsCount++
+                        val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
+                        BearerTokens(token, token)
+                    }
+                }
+            }
+        }
+        test { client ->
+            client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+
+            val jobs = mutableListOf<Job>()
+            jobs += GlobalScope.launch {
+                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                assertEquals("OK", second)
+            }
+            jobs += GlobalScope.launch {
+                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                assertEquals("OK", second)
+            }
+            jobs += GlobalScope.launch {
+                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                assertEquals("OK", second)
+            }
+            jobs.joinAll()
+            assertEquals(1, refreshRequestsCount)
         }
     }
 

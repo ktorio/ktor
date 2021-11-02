@@ -10,10 +10,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import kotlin.jvm.*
+import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
 
 /**
- * Add [BearerAuthProvider] to client [Auth] providers.
+ * Adds [BearerAuthProvider] to the client's [Auth] providers.
  */
 public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
@@ -45,10 +46,17 @@ public class BearerAuthConfig {
 
     public var realm: String? = null
 
+    /**
+     * Configures a callback that refreshes a token when the 401 status code is received.
+     */
     public fun refreshTokens(block: suspend RefreshTokensParams.() -> BearerTokens?) {
         _refreshTokens = block
     }
 
+    /**
+     * Configures a callback that loads a cached token from a local storage.
+     * Note: Using the same client instance here to make a request will result in a deadlock.
+     */
     public fun loadTokens(block: suspend () -> BearerTokens?) {
         _loadTokens = block
     }
@@ -70,6 +78,8 @@ public class BearerAuthProvider(
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
     private val realm: String?
 ) : AuthProvider {
+
+    private val refreshTokensDeferred = atomic<CompletableDeferred<BearerTokens?>?>(null)
 
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
