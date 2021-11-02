@@ -29,7 +29,7 @@ public interface Sender {
 }
 
 /**
- * This is internal plugin that is always installed.
+ * This is an internal plugin that is always installed.
  */
 public class HttpSend private constructor(
     private val maxSendCount: Int = 20
@@ -72,7 +72,7 @@ public class HttpSend private constructor(
     }
 
     /**
-     * Plugin installation object
+     * A plugin's installation object
      */
     public companion object Plugin : HttpClientPlugin<Config, HttpSend> {
         override val key: AttributeKey<HttpSend> = AttributeKey("HttpSend")

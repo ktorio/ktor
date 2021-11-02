@@ -13,11 +13,12 @@ import kotlinx.atomicfu.*
 import java.util.*
 
 /**
- * Adds standard HTTP headers `Date` and `Server` and provides ability to specify other headers
- * that are included in responses.
+ * Adds the standard `Date` and `Server` HTTP headers and provides the ability
+ * to add additional default headers into each response.
  */
 public class DefaultHeaders private constructor(config: Configuration) {
     private val headers = config.headers.build()
+
     @OptIn(InternalAPI::class)
     private val clock = config.clock
 
@@ -64,7 +65,7 @@ public class DefaultHeaders private constructor(config: Configuration) {
     }
 
     /**
-     * Installable plugin for [DefaultHeaders].
+     * An installable plugin for [DefaultHeaders].
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, DefaultHeaders> {
         private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000

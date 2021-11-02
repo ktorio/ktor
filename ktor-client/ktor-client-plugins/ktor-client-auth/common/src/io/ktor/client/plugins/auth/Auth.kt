@@ -13,7 +13,7 @@ import io.ktor.util.*
 import kotlin.native.concurrent.*
 
 /**
- * Client authentication plugin.
+ * A client's authentication plugin.
  * [providers] - list of auth providers to use.
  */
 public class Auth private constructor(

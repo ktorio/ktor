@@ -46,7 +46,8 @@ internal fun velocityOutgoingContent(
 }
 
 /**
- * Velocity ktor plugin. Provides ability to respond with [VelocityContent] and [respondTemplate].
+ * A plugin that allows you to use Velocity templates as views within your application.
+ * Provides the ability to respond with [VelocityContent].
  */
 public class Velocity private constructor(private val engine: VelocityEngine) {
     init {

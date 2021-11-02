@@ -20,7 +20,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 
 /**
- * [HttpClient] logging plugin.
+ * A client's logging plugin.
  */
 public class Logging private constructor(
     public val logger: Logger,

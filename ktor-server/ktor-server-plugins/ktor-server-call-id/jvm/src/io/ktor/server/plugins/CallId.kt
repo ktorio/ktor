@@ -178,11 +178,11 @@ public class CallId private constructor(
     }
 
     /**
-     * Installable plugin for [CallId]
+     * An installable plugin for [CallId]
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, CallId> {
         /**
-         * [ApplicationCallPipeline]'s phase which this plugin will be installed to
+         * An [ApplicationCallPipeline]'s phase to which this plugin is installed
          */
         public val phase: PipelinePhase = PipelinePhase("CallId")
 

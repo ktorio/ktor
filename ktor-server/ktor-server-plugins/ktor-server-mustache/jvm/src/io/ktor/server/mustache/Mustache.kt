@@ -30,7 +30,8 @@ public class MustacheContent(
 )
 
 /**
- * Plugin for providing Mustache templates as [MustacheContent]
+ * A plugin that allows you to use Mustache templates as views within your application.
+ * Provides the ability to respond with [MustacheContent]
  */
 public class Mustache private constructor(configuration: Configuration) {
 

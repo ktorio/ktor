@@ -17,7 +17,7 @@ import kotlin.native.concurrent.*
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 
 /**
- * [HttpClient] plugin that handles http redirect
+ * An [HttpClient] plugin that handles HTTP redirects
  */
 public class HttpRedirect private constructor(
     private val checkHttpMethod: Boolean,
@@ -27,15 +27,15 @@ public class HttpRedirect private constructor(
     public class Config {
 
         /**
-         * Check if the HTTP method is allowed for redirect.
-         * Only [HttpMethod.Get] and [HttpMethod.Head] is allowed for implicit redirect.
+         * Checks whether the HTTP method is allowed for the redirect.
+         * Only [HttpMethod.Get] and [HttpMethod.Head] are allowed for implicit redirection.
          *
          * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
          */
         public var checkHttpMethod: Boolean = true
 
         /**
-         * `true` value allows client redirect with downgrade from https to plain http.
+         * `true` allows a client to make a redirect with downgrading from HTTPS to plain HTTP.
          */
         public var allowHttpsDowngrade: Boolean = false
     }
@@ -44,7 +44,7 @@ public class HttpRedirect private constructor(
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
         /**
-         * Occurs when received response with redirect message.
+         * Occurs when receiving a response with a redirect message.
          */
         public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
 

@@ -59,7 +59,7 @@ public data class CompressionEncoderConfig(
 )
 
 /**
- * Plugin to compress a response based on conditions and ability of client to decompress it
+ * A plugin for compressing a response based on specific conditions and the ability of the client to decompress it
  */
 public class Compression private constructor(compression: Configuration) {
     private val options = compression.buildOptions()

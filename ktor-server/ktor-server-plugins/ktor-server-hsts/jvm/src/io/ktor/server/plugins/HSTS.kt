@@ -79,7 +79,7 @@ public class HSTS private constructor(config: Configuration) {
     }
 
     /**
-     * Plugin installation object
+     * A plugin installation object
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, HSTS> {
         public const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days

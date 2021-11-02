@@ -14,7 +14,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * CORS plugin. Please read http://ktor.io/servers/features/cors.html first before using it.
+ * A CORS plugin that allows you to configure allowed hosts, HTTP methods, headers set by the client, and so on.
  */
 public class CORS internal constructor(configuration: Configuration) {
     private val numberRegex = "[0-9]+".toRegex()

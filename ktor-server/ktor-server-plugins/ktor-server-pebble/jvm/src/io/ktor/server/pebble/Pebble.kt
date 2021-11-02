@@ -34,7 +34,8 @@ public class PebbleContent(
 )
 
 /**
- * Plugin for providing Pebble templates as [PebbleContent]
+ * A plugin that allows you to use Pebble templates as views within your application.
+ * Provides the ability to respond with [PebbleContent]
  */
 public class Pebble private constructor(private val engine: PebbleEngine) {
 

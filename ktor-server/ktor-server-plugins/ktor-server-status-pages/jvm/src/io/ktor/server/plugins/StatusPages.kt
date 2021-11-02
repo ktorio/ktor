@@ -14,7 +14,7 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
 /**
- * Status pages plugin that handles exceptions and status codes. Useful to configure default error pages.
+ * A plugin that handles exceptions and status codes. Useful to configure default error pages.
  */
 public class StatusPages private constructor(config: Configuration) {
     private val exceptions = HashMap(config.exceptions)

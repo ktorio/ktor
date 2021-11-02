@@ -14,14 +14,14 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * Plugin to check modified/match conditional headers and avoid sending contents if it was not changed
+ * A plugin that avoids sending the body of content if it has not changed since the last request.
  */
 public class ConditionalHeaders private constructor(
     private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>
 ) {
 
     /**
-     * Configuration for [ConditionalHeaders] plugin
+     * A configuration for the [ConditionalHeaders] plugin
      */
     public class Configuration {
         internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()

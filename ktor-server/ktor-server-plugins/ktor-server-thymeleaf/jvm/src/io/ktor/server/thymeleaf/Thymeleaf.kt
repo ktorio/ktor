@@ -31,7 +31,8 @@ public class ThymeleafContent(
 )
 
 /**
- * Thymeleaf support plugin. Provides ability to respond with [Thymeleaf]
+ * A plugin that allows you to use Thymeleaf templates as views within your application.
+ * Provides the ability to respond with [Thymeleaf]
  */
 public class Thymeleaf private constructor(private val engine: TemplateEngine) {
     /**

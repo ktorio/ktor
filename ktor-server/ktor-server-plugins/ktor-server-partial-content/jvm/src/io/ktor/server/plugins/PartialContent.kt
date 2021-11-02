@@ -27,7 +27,7 @@ import kotlin.properties.*
 public class PartialContent private constructor(private val maxRangeCount: Int) {
 
     /**
-     * Configuration for [PartialContent].
+     * A configuration for [PartialContent].
      */
     public class Configuration {
         /**
