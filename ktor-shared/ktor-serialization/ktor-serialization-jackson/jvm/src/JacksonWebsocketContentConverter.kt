@@ -20,7 +20,8 @@ import kotlin.text.Charsets
 /**
  * Jackson converter for [WebSockets] plugin
  */
-public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : WebsocketContentConverter {
+public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) :
+    WebsocketContentConverter {
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
         val outputStream = ByteArrayOutputStream()
 
@@ -33,11 +34,11 @@ public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMa
         } else {
             objectmapper.writeValue(outputStream.writer(charset = charset), value)
         }
-        return Frame.Binary(true, outputStream.toByteArray())
+        return Frame.Text(true, outputStream.toByteArray())
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
-        if(content !is Frame.Text && content !is Frame.Binary) {
+        if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
         try {
@@ -54,5 +55,9 @@ public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMa
                 else -> throw deserializeFailure
             }
         }
+    }
+
+    override fun isApplicable(frame: Frame): Boolean {
+        return frame is Frame.Text || frame is Frame.Binary
     }
 }

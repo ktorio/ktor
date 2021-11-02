@@ -199,8 +199,6 @@ class WebSocketTest {
 
             application.routing {
                 webSocketRaw("/echo") {
-                    application.plugin(WebSockets).maxFrameSize
-
                     outgoing.send(Frame.Text("+".repeat(0xc123)))
                     outgoing.send(Frame.Close())
                 }

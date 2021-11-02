@@ -42,4 +42,14 @@ public interface WebsocketContentConverter {
      * subject is not suitable for this converter
      */
     public suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any
+
+    /**
+     * Checks if content converter could deserialize [frame]
+     *
+     * @param websocket frame
+     *
+     * @return true if content converter can deserialize [frame] type or false if type of [frame]
+     * is not supported by converter
+     */
+    public fun isApplicable(frame: Frame): Boolean
 }

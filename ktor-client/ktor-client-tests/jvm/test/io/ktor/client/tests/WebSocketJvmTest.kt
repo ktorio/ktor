@@ -4,17 +4,41 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.serializaion.gson.*
 import io.ktor.serialization.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
 
 class WebSocketJvmTest : ClientLoader(100000) {
+    data class Data(val stringValue: String)
+
+    private val customContentConverter = object : WebsocketContentConverter {
+        override suspend fun serialize(
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any
+        ): Frame {
+            if (value !is Data) return Frame.Text("")
+            return Frame.Text("[${value.stringValue}]")
+        }
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+            if (typeInfo.type != Data::class)
+                return Data("")
+            if (content !is Frame.Text)
+                return Data("")
+            return Data(content.readText().removeSurrounding("[", "]"))
+        }
+
+        override fun isApplicable(frame: Frame): Boolean {
+            return frame is Frame.Text
+        }
+    }
 
     @Test
     fun testWebSocketDeflateBinary() = clientTests(listOf("Android", "Apache")) {
@@ -67,20 +91,18 @@ class WebSocketJvmTest : ClientLoader(100000) {
         }
     }
 
-    data class Data(val stringValue: String, val count: Int)
-
     @Test
     fun testWebSocketSerialization() = clientTests(listOf("Android", "Apache")) {
         config {
             WebSockets {
-                contentConverter = GsonWebsocketContentConverter()
+                contentConverter = customContentConverter
             }
         }
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 repeat(TEST_SIZE) {
-                    val originalData = Data("hello", 100)
+                    val originalData = Data("hello")
                     sendSerialized(originalData)
                     val actual = receiveDeserialized<Data>()
                     assertTrue { actual == originalData }
@@ -98,16 +120,14 @@ class WebSocketJvmTest : ClientLoader(100000) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                repeat(TEST_SIZE) {
-                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                        sendSerialized(Data("hello", 100))
-                    }
+                assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                    sendSerialized(Data("hello"))
+                }
 
-                    outgoing.send(Frame.Text("{\"stringValue\":\"value\", \"count\":12}"))
+                outgoing.send(Frame.Text("[hello]"))
 
-                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                        receiveDeserialized<Data>()
-                    }
+                assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                    receiveDeserialized<Data>()
                 }
             }
         }

@@ -7,6 +7,7 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.shared.serialization.kotlinx.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -36,21 +37,47 @@ public class KotlinxSerializationConverter(
         typeInfo: TypeInfo,
         value: Any
     ): OutgoingContent {
-        val result = try {
-            serializerFromTypeInfo(typeInfo, format.serializersModule).let {
-                serializeContent(it, format, value, contentType, charset)
+        return serializationBase.serialize(
+            SerializationNegotiationParameters(
+                format,
+                value,
+                typeInfo,
+                charset,
+                contentType
+            )
+        )
+    }
+
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        val contentPacket = content.readRemaining()
+
+        return when (format) {
+            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
+            else -> {
+                contentPacket.discard()
+                error("Unsupported format $format")
             }
-        } catch (cause: SerializationException) {
-            // can fail due to
-            // 1. https://github.com/Kotlin/kotlinx.serialization/issues/1163)
-            // 2. mismatching between compile-time and runtime types of the response.
-            null
         }
-        if (result != null) {
-            return result
+    }
+
+    private val serializationBase = object : KotlinxSerializationBase<OutgoingContent.ByteArrayContent>(format) {
+        override suspend fun serializeContent(parameters: SerializationParameters): OutgoingContent.ByteArrayContent {
+            if (parameters !is SerializationNegotiationParameters) {
+                error(
+                    "parameters type is ${parameters::class.qualifiedName}," +
+                        " but expected ${SerializationNegotiationParameters::class.qualifiedName}"
+                )
+            }
+            return serializeContent(
+                parameters.serializer,
+                parameters.format,
+                parameters.value,
+                parameters.contentType,
+                parameters.charset
+            )
         }
-        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
-        return serializeContent(guessedSearchSerializer, format, value, contentType, charset)
     }
 
     private fun serializeContent(
@@ -71,20 +98,6 @@ public class KotlinxSerializationConverter(
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")
-        }
-    }
-
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
-        val contentPacket = content.readRemaining()
-
-        return when (format) {
-            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
-            else -> {
-                contentPacket.discard()
-                error("Unsupported format $format")
-            }
         }
     }
 }

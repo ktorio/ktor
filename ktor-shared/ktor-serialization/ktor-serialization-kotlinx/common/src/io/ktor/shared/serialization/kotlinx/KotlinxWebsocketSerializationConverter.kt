@@ -32,21 +32,14 @@ public class KotlinxWebsocketSerializationConverter(
     }
 
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
-        val result = try {
-            serializerFromTypeInfo(typeInfo, format.serializersModule).let {
-                serializeContent(it, format, value)
-            }
-        } catch (cause: SerializationException) {
-            // can fail due to
-            // 1. https://github.com/Kotlin/kotlinx.serialization/issues/1163)
-            // 2. mismatching between compile-time and runtime types of the response.
-            null
-        }
-        if (result != null) {
-            return result
-        }
-        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
-        return serializeContent(guessedSearchSerializer, format, value)
+        return serializationBase.serialize(
+            SerializationParameters(
+                format,
+                value,
+                typeInfo,
+                charset
+            )
+        )
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
@@ -75,6 +68,20 @@ public class KotlinxWebsocketSerializationConverter(
                 error("Unsupported format $format")
             }
         } ?: throw WebsocketConverterNotFoundException("Unsupported format $format for ${content.frameType.name}")
+    }
+
+    override fun isApplicable(frame: Frame): Boolean {
+        return frame is Frame.Text || frame is Frame.Binary
+    }
+
+    private val serializationBase = object : KotlinxSerializationBase<Frame>(format) {
+        override suspend fun serializeContent(parameters: SerializationParameters): Frame {
+            return serializeContent(
+                parameters.serializer,
+                parameters.format,
+                parameters.value
+            )
+        }
     }
 
     private fun serializeContent(

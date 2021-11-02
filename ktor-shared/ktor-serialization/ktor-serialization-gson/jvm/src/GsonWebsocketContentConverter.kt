@@ -21,7 +21,7 @@ public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : We
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
-        if(content !is Frame.Text) {
+        if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
         if (gson.isExcluded(typeInfo.type)) {
@@ -36,5 +36,9 @@ public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : We
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
+    }
+
+    override fun isApplicable(frame: Frame): Boolean {
+        return frame is Frame.Text
     }
 }

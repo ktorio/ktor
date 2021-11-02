@@ -35,18 +35,27 @@ internal class DelegatingClientWebSocketSession(
 ) : ClientWebSocketSession, WebSocketSession by session
 
 /**
+ * Converter for web socket session
+ */
+public val DefaultClientWebSocketSession.converter: WebsocketContentConverter?
+    get() =
+        call.client?.plugin(WebSockets)?.contentConverter
+
+/**
  * Serializes [data] to frame and enqueue this frame, may suspend if outgoing queue is full. May throw an exception if outgoing channel is already
  * closed, so it is impossible to transfer any message. Frames that were sent after close frame could be silently
  * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
  * raw websocket session.
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSerialized(data: T) {
-    val serializedData = call.client?.plugin(WebSockets)?.contentConverter?.serialize(
+    val converter = converter
+        ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
+
+    val serializedData = converter.serialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
         value = data
-    ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
-
+    )
     outgoing.send(serializedData)
 }
 
@@ -62,21 +71,23 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSe
  * @throws WebsocketDeserializeException if received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiveDeserialized(): T {
+    val converter = converter
+        ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
+
     val frame = incoming.receive()
-    val data = when (frame) {
-        is Frame.Text -> frame
-        is Frame.Binary -> frame
-        else -> throw WebsocketDeserializeException(
+
+    if (!converter.isApplicable(frame)) {
+        throw WebsocketDeserializeException(
             "Frame type is ${frame.frameType.name}, expected types: Frame.Text, Frame.Binary",
             frame = frame
         )
     }
 
-    val result = call.client?.plugin(WebSockets)?.contentConverter?.deserialize(
+    val result = converter.deserialize(
         charset = call.request.headers.suitableCharset(),
         typeInfo = typeInfo<T>(),
-        content = data
-    ) ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
+        content = frame
+    )
 
     return if (result is T) result
     else throw WebsocketDeserializeException(
