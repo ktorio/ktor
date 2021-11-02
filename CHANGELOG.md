@@ -1,3 +1,34 @@
+# 1.6.5
+> Published 2 November 2021
+
+* Bump kotlin from 1.5.30 to 1.5.31
+* Bump tomcat from 9.0.58 to 9.0.54
+* Bump logback from 1.2.3 to 1.2.6
+* Bump slf4j from 1.7.32 to 1.7.32
+* Bump gson from 2.8.6 to 2.8.9
+* Bump okhttp from 4.6.0 to 4.9.2
+* Bump jackson from 2.12.3 to 2.13.0
+* Bump mockk from 1.10.6 to 1.12.0
+* Add Apple Silicon targets ([KTOR-3082](https://youtrack.jetbrains.com/issue/KTOR-3082))
+* Fix HttpCookies feature overwriting request cookies ([KTOR-3105](https://youtrack.jetbrains.com/issue/KTOR-3105))
+* Change EAP version scheme ([KTOR-3319](https://youtrack.jetbrains.com/issue/KTOR-3319))
+* Update Netty to 4.1.69.Final ([KTOR-472](https://youtrack.jetbrains.com/issue/KTOR-472))
+* Allow wildcard origins for CORS requests ([KTOR-316](https://youtrack.jetbrains.com/issue/KTOR-316))
+* Add a host check for illegal symbols ([KTOR-384](https://youtrack.jetbrains.com/issue/KTOR-384))
+* Add check to prevent anyHost with allowCredentials ([KTOR-2872](https://youtrack.jetbrains.com/issue/KTOR-2872))
+* Bump metrics-core from 4.2.3 to 4.2.4
+* Bump webjars-locator-core from 0.47 to 0.48
+* Bump metrics-jvm from 4.2.3 to 4.2.4 
+* Fix ProxyType.SOCKS being mapped to Proxy.Type.DIRECT
+* fix grammar ([KTOR-3237](https://youtrack.jetbrains.com/issue/KTOR-3237))
+* Bump micrometer-core from 1.7.4 to 1.7.5
+* Ignore flaky testTimeoutPriority ([KTOR-3243](https://youtrack.jetbrains.com/issue/KTOR-3243))
+* Fix npe if static file not found ([KTOR-2811](https://youtrack.jetbrains.com/issue/KTOR-2811))
+* Fix flaky timeoutPriorityTest ([KTOR-3243](https://youtrack.jetbrains.com/issue/KTOR-3243))
+* Fill Content-Length for PartialContent ([KTOR-308](https://youtrack.jetbrains.com/issue/KTOR-308))
+* Change default log-level to INFO ([KTOR-806](https://youtrack.jetbrains.com/issue/KTOR-806))
+* Use require from the stdlib instead of internal require ([KTOR-2626](https://youtrack.jetbrains.com/issue/KTOR-2626))
+
 # 1.6.4
 > Published 30 September 2021
 
