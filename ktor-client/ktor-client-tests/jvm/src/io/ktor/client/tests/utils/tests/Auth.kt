@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.*
 import java.security.*
 
 internal fun Application.authTestServer() {
@@ -113,6 +114,7 @@ internal fun Application.authTestServer() {
                         call.respond("first")
                     }
                     get("second") {
+                        delay(call.parameters["delay"]?.toLong() ?: 0)
                         call.respond("second")
                     }
                 }
