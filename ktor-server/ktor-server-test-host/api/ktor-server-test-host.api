@@ -156,6 +156,7 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public final fun getPort ()Ljava/lang/Integer;
 	public final fun getProtocol ()Ljava/lang/String;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
+	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public final fun getUri ()Ljava/lang/String;
 	public final fun getVersion ()Ljava/lang/String;
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;

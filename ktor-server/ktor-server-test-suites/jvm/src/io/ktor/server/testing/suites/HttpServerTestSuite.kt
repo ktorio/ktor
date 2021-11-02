@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.application.plugins.api.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
 import io.ktor.server.plugins.*
@@ -19,7 +18,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
-import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
@@ -793,6 +791,7 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
         createAndStartServer {
             handle {
                 assertEquals("01;21", call.request.queryParameters["code"])
+                assertEquals("01;21", call.request.rawQueryParameters["code"])
                 call.respond(HttpStatusCode.OK)
             }
         }
@@ -803,6 +802,26 @@ abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfiguration :
                 url {
                     encodedParameters.append("code", "01;21")
                 }
+            }
+        ) {
+            assertEquals(200, status.value)
+        }
+    }
+
+    @Test
+    fun testRawAndDecodedQueryParameter() {
+        createAndStartServer {
+            handle {
+                assertEquals("value&1+2 3", call.request.queryParameters["key"])
+                assertEquals("value%261%2B2+3", call.request.rawQueryParameters["key"])
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        withUrl(
+            "/",
+            {
+                url { parameters.append("key", "value&1+2 3") }
             }
         ) {
             assertEquals(200, status.value)

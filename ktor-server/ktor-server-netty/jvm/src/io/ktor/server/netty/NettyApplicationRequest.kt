@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -33,6 +32,11 @@ public abstract class NettyApplicationRequest(
         override fun names() = decoder.parameters().keys
         override fun entries() = decoder.parameters().entries
         override fun isEmpty() = decoder.parameters().isEmpty()
+    }
+
+    override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        val queryStartIndex = uri.indexOf('?').takeIf { it != -1 } ?: return@lazy Parameters.Empty
+        parseQueryString(uri, startIndex = queryStartIndex + 1, decode = false)
     }
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)

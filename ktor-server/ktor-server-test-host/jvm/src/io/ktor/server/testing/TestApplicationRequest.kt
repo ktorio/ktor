@@ -65,7 +65,11 @@ public class TestApplicationRequest constructor(
     @Volatile
     var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
-    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
+    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) { encodeParameters(rawQueryParameters) }
+
+    override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        parseQueryString(queryString(), decode = false)
+    }
 
     override val cookies: RequestCookies = RequestCookies(this)
 
