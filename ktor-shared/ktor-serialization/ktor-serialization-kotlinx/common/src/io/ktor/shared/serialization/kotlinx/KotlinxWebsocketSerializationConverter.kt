@@ -16,7 +16,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 
 /**
- * Creates a converter for websocket serializing with the specified string [format] and
+ * Creates a converter for WebSocket serializing with the specified string [format] and
  * [defaultCharset] (optional, usually it is UTF-8).
  */
 @OptIn(ExperimentalSerializationApi::class)

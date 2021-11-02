@@ -13,7 +13,7 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 
 /**
- * GSON converter for [WebSockets] plugin
+ * GSON converter for the [WebSockets] plugin
  */
 public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : WebsocketContentConverter {
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {

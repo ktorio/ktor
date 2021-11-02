@@ -18,7 +18,7 @@ import java.io.*
 import kotlin.text.Charsets
 
 /**
- * Jackson converter for [WebSockets] plugin
+ * A jackson converter for the [WebSockets] plugin
  */
 public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) :
     WebsocketContentConverter {

@@ -37,7 +37,7 @@ public object WebSocketExtensionsCapability : HttpClientEngineCapability<Unit> {
  * Client WebSocket plugin.
  *
  * @property pingInterval - interval between [FrameType.PING] messages.
- * @property maxFrameSize - max size of single websocket frame.
+ * @property maxFrameSize - max size of a single websocket frame.
  * @property extensionsConfig - extensions configuration
  * @property contentConverter - converter for serialization/deserialization
  */
@@ -121,7 +121,7 @@ public class WebSockets internal constructor(
         public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
 
         /**
-         * Converter for serialization/deserialization
+         * A converter for serialization/deserialization
          */
         public var contentConverter: WebsocketContentConverter? = null
 
