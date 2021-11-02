@@ -4,6 +4,7 @@ kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-shared:ktor-websocket-serialization"))
         }
 
         val jvmTest by getting {
@@ -14,7 +15,6 @@ kotlin.sourceSets {
                 api(project(":ktor-server:ktor-server-tomcat"))
                 api(project(":ktor-server:ktor-server-cio"))
                 api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-                api(project(":ktor-shared:ktor-serialization:ktor-serialization-gson"))
             }
         }
     }

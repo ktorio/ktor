@@ -4,6 +4,7 @@
 
 package io.ktor.server.websocket
 
+import WebsocketChannelSerialization
 import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
@@ -52,12 +53,12 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    val serializedData = converter.serialize(
-        charset = call.request.headers.suitableCharset(),
-        typeInfo = typeInfo<T>(),
-        value = data
+    WebsocketChannelSerialization.sendSerialized(
+        data,
+        converter,
+        call.request.headers.suitableCharset(),
+        outgoing
     )
-    outgoing.send(serializedData)
 }
 
 /**
@@ -74,26 +75,10 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeseri
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    val frame = incoming.receive()
-
-    if (!converter.isApplicable(frame)) {
-        throw WebsocketDeserializeException(
-            "Frame type is ${frame.frameType.name}, expected types: Frame.Text, Frame.Binary",
-            frame = frame
-        )
-    }
-
-    val result = converter.deserialize(
-        charset = call.request.headers.suitableCharset(),
-        typeInfo = typeInfo<T>(),
-        content = frame
-    )
-
-    return if (result is T) result
-    else throw WebsocketDeserializeException(
-        "Can't deserialize value : expected value of type ${T::class.qualifiedName}," +
-            " got ${result::class.qualifiedName}",
-        frame = frame
+    return WebsocketChannelSerialization.receiveDeserialized(
+        converter,
+        call.request.headers.suitableCharset(),
+        incoming
     )
 }
 

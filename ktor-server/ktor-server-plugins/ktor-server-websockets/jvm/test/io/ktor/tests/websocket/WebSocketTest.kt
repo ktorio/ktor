@@ -5,13 +5,13 @@
 package io.ktor.tests.websocket
 
 import io.ktor.http.cio.websocket.*
-import io.ktor.serializaion.gson.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -20,6 +20,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.Test
 import java.nio.*
+import java.nio.charset.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.CancellationException
@@ -29,6 +30,31 @@ import kotlin.test.*
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)
+
+    class Data(val string: String)
+
+    private val customContentConverter = object : WebsocketContentConverter {
+        override suspend fun serialize(
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any
+        ): Frame {
+            if (value !is Data) return Frame.Text("")
+            return Frame.Text("[${value.string}]")
+        }
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+            if (typeInfo.type != Data::class)
+                return Data("")
+            if (content !is Frame.Text)
+                return Data("")
+            return Data(content.readText().removeSurrounding("[", "]"))
+        }
+
+        override fun isApplicable(frame: Frame): Boolean {
+            return frame is Frame.Text
+        }
+    }
 
     @Test
     fun testSingleEcho() {
@@ -55,13 +81,11 @@ class WebSocketTest {
         }
     }
 
-    class Data(val string: String, val count: Int)
-
     @Test
     fun testJsonConverter() {
         withTestApplication {
             application.install(WebSockets) {
-                contentConverter = GsonWebsocketContentConverter()
+                contentConverter = customContentConverter
             }
 
             application.routing {
@@ -72,7 +96,7 @@ class WebSocketTest {
                 }
             }
 
-            val jsonData = "{\"string\":\"hello\",\"count\":123}"
+            val jsonData = "[hello]"
 
             val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
 
@@ -124,13 +148,13 @@ class WebSocketTest {
                         receiveDeserialized<Data>()
                     }
                     assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                        sendSerialized(Data("hello", 12))
+                        sendSerialized(Data("hello"))
                     }
                     outgoing.send(Frame.Close())
                 }
             }
 
-            val jsonData = "{\"string\":\"hello\",\"count\":123}"
+            val jsonData = "[hello]"
             val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
 
             Serializer().apply {
@@ -158,7 +182,7 @@ class WebSocketTest {
     fun testDeserializationWithOnClosedChannel() {
         withTestApplication {
             application.install(WebSockets) {
-                contentConverter = GsonWebsocketContentConverter()
+                contentConverter = customContentConverter
             }
 
             application.routing {
