@@ -1,6 +1,6 @@
 public final class io/ktor/server/plugins/Compression {
 	public static final field Plugin Lio/ktor/server/plugins/Compression$Plugin;
-	public fun <init> (Lio/ktor/server/plugins/Compression$Configuration;)V
+	public synthetic fun <init> (Lio/ktor/server/plugins/Compression$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/plugins/Compression$Configuration : io/ktor/server/plugins/ConditionsHolderBuilder {

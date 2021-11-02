@@ -7,7 +7,7 @@ package io.ktor.tests.server.plugins
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.http.content.LocalFileContent
+import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -68,6 +68,49 @@ class PartialContentTest {
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
             checkContentLength(result)
+        }
+    }
+
+    @Test
+    fun testSubrouteInstall(): Unit = withTestApplication {
+        application.install(AutoHeadResponse)
+        application.routing {
+            application.routing {
+                suspend fun respond(applicationCall: ApplicationCall) {
+                    val file = basedir.resolve(localPath)
+                    if (file.isFile) {
+                        applicationCall.respond(
+                            LocalFileContent(file).apply {
+                                versions += EntityTagVersion(fileEtag)
+                            }
+                        )
+                    }
+                }
+
+                route("1") {
+                    install(ConditionalHeaders)
+                    install(CachingHeaders)
+                    install(PartialContent)
+                    get {
+                        respond(call)
+                    }
+                }
+                get("2") {
+                    respond(call)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "1") {
+            addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
+        }.let { result ->
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "2") {
+            addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
         }
     }
 

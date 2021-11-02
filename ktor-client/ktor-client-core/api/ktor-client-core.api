@@ -307,7 +307,6 @@ public final class io/ktor/client/plugins/DefaultTransformKt {
 
 public final class io/ktor/client/plugins/HttpCallValidator {
 	public static final field Companion Lio/ktor/client/plugins/HttpCallValidator$Companion;
-	public fun <init> (Ljava/util/List;Ljava/util/List;)V
 }
 
 public final class io/ktor/client/plugins/HttpCallValidator$Companion : io/ktor/client/plugins/HttpClientPlugin {
@@ -375,6 +374,10 @@ public final class io/ktor/client/plugins/HttpPlainTextKt {
 
 public final class io/ktor/client/plugins/HttpRedirect {
 	public static final field Plugin Lio/ktor/client/plugins/HttpRedirect$Plugin;
+	public synthetic fun <init> (ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/client/plugins/HttpRedirect$Config {
 	public fun <init> ()V
 	public final fun getAllowHttpsDowngrade ()Z
 	public final fun getCheckHttpMethod ()Z
@@ -444,12 +447,14 @@ public final class io/ktor/client/plugins/HttpRequestTimeoutException : java/uti
 
 public final class io/ktor/client/plugins/HttpSend {
 	public static final field Plugin Lio/ktor/client/plugins/HttpSend$Plugin;
-	public fun <init> ()V
-	public fun <init> (I)V
-	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getMaxSendCount ()I
+	public synthetic fun <init> (ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun intercept (Lkotlin/jvm/functions/Function3;)V
 	public final fun intercept (Lkotlin/jvm/functions/Function4;)V
+}
+
+public final class io/ktor/client/plugins/HttpSend$Config {
+	public fun <init> ()V
+	public final fun getMaxSendCount ()I
 	public final fun setMaxSendCount (I)V
 }
 
@@ -464,7 +469,7 @@ public final class io/ktor/client/plugins/HttpSend$Plugin : io/ktor/client/plugi
 public final class io/ktor/client/plugins/HttpTimeout {
 	public static final field INFINITE_TIMEOUT_MS J
 	public static final field Plugin Lio/ktor/client/plugins/HttpTimeout$Plugin;
-	public fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/HttpTimeout$HttpTimeoutCapabilityConfiguration {
@@ -533,7 +538,7 @@ public final class io/ktor/client/plugins/ServerResponseException : io/ktor/clie
 
 public final class io/ktor/client/plugins/UserAgent {
 	public static final field Plugin Lio/ktor/client/plugins/UserAgent$Plugin;
-	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAgent ()Ljava/lang/String;
 }
 
@@ -560,7 +565,7 @@ public final class io/ktor/client/plugins/UserAgentKt {
 
 public final class io/ktor/client/plugins/cache/HttpCache {
 	public static final field Companion Lio/ktor/client/plugins/cache/HttpCache$Companion;
-	public fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;)V
+	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getPrivateStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 	public final fun getPublicStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 }
@@ -633,7 +638,6 @@ public final class io/ktor/client/plugins/cookies/CookiesStorageKt {
 
 public final class io/ktor/client/plugins/cookies/HttpCookies : java/io/Closeable {
 	public static final field Companion Lio/ktor/client/plugins/cookies/HttpCookies$Companion;
-	public fun <init> (Lio/ktor/client/plugins/cookies/CookiesStorage;Ljava/util/List;)V
 	public fun close ()V
 	public final fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

@@ -1,6 +1,6 @@
 public final class io/ktor/server/plugins/CachingHeaders {
 	public static final field Plugin Lio/ktor/server/plugins/CachingHeaders$Plugin;
-	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun optionsFor (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
 }
 

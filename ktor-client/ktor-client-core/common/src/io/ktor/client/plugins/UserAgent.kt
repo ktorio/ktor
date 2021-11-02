@@ -12,9 +12,9 @@ import io.ktor.util.*
 /**
  * Default user-agent plugin for [HttpClient].
  *
- * @property agent: value of user-agent header to set.
+ * @property agent: value of the `User-Agent` header to set.
  */
-public class UserAgent(public val agent: String) {
+public class UserAgent private constructor(public val agent: String) {
 
     public class Config(public var agent: String = "Ktor http-client")
 

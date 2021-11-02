@@ -11,7 +11,6 @@ import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
@@ -30,13 +29,18 @@ public interface Sender {
 }
 
 /**
- * This is internal plugin that is always installed.
- * @property maxSendCount is a maximum number of requests that can be sent during a call
+ * This is an internal plugin that is always installed.
  */
-public class HttpSend(
-    maxSendCount: Int = 20
+public class HttpSend private constructor(
+    private val maxSendCount: Int = 20
 ) {
-    public var maxSendCount: Int by shared(maxSendCount)
+
+    public class Config {
+        /**
+         * Maximum number of requests that can be sent during a call
+         */
+        public var maxSendCount: Int = 20
+    }
 
     private val interceptors: MutableList<HttpSendInterceptor> = sharedList()
 
@@ -68,12 +72,15 @@ public class HttpSend(
     }
 
     /**
-     * Plugin installation object
+     * A plugin's installation object
      */
-    public companion object Plugin : HttpClientPlugin<HttpSend, HttpSend> {
+    public companion object Plugin : HttpClientPlugin<Config, HttpSend> {
         override val key: AttributeKey<HttpSend> = AttributeKey("HttpSend")
 
-        override fun prepare(block: HttpSend.() -> Unit): HttpSend = HttpSend().apply(block)
+        override fun prepare(block: Config.() -> Unit): HttpSend {
+            val config = Config().apply(block)
+            return HttpSend(config.maxSendCount)
+        }
 
         override fun install(plugin: HttpSend, scope: HttpClient) {
             // default send scenario

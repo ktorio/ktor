@@ -11,12 +11,12 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * Client HTTP plugin that sets up [HttpRequestBuilder.executionContext] and completes it when the pipeline is fully
+ * A client's HTTP plugin that sets up [HttpRequestBuilder.executionContext] and completes it when the pipeline is fully
  * processed.
  */
-internal class HttpRequestLifecycle {
+internal class HttpRequestLifecycle private constructor() {
     /**
-     * Companion object for plugin installation.
+     * A companion object for a plugin installation.
      */
     companion object Plugin : HttpClientPlugin<Unit, HttpRequestLifecycle> {
 

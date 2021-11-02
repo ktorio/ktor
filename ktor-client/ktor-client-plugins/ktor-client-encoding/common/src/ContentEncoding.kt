@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
  *
  * See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
  */
-public class ContentEncoding(
+public class ContentEncoding private constructor(
     private val encoders: Map<String, ContentEncoder>,
     private val qualityValues: Map<String, Float>
 ) {

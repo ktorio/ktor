@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import kotlin.test.*
@@ -205,6 +206,26 @@ class CallIdTest {
         handleRequest(HttpMethod.Get, "/invalid").let { call ->
             assertEquals("null", call.response.content)
         }
+    }
+
+    @Test
+    fun testSubrouteInstall(): Unit = withTestApplication {
+        application.routing {
+            route("1") {
+                install(CallId) {
+                    generate { "test-id" }
+                }
+                get {
+                    call.respond(call.callId.toString())
+                }
+            }
+            get("2") {
+                call.respond(call.callId.toString())
+            }
+        }
+
+        assertEquals("test-id", handleRequest(HttpMethod.Get, "/1").response.content)
+        assertEquals("null", handleRequest(HttpMethod.Get, "/2").response.content)
     }
 
     @Test

@@ -1,8 +1,5 @@
 public final class io/ktor/client/plugins/auth/Auth {
 	public static final field Plugin Lio/ktor/client/plugins/auth/Auth$Plugin;
-	public fun <init> ()V
-	public fun <init> (Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getProviders ()Ljava/util/List;
 }
 

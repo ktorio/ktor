@@ -28,7 +28,7 @@ internal object CacheControl {
  *
  * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
  */
-public class HttpCache(
+public class HttpCache private constructor(
     public val publicStorage: HttpCacheStorage,
     public val privateStorage: HttpCacheStorage
 ) {

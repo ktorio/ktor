@@ -36,20 +36,6 @@ public class HttpCallValidator internal constructor(
     private val expectSuccess: Boolean
 ) {
 
-    /**
-     * Response validator plugin is used for validate response and handle response exceptions.
-     *
-     * See also [Config] for additional details.
-     */
-    @Deprecated(
-        "This is going to become internal. " +
-            "Please file a ticket and clarify, why do you need it."
-    )
-    public constructor(
-        responseValidators: List<ResponseValidator>,
-        callExceptionHandlers: List<CallExceptionHandler>
-    ) : this(responseValidators, callExceptionHandlers, true)
-
     private suspend fun validateResponse(response: HttpResponse) {
         responseValidators.forEach { it(response) }
     }

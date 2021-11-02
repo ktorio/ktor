@@ -1,6 +1,6 @@
 public final class io/ktor/server/freemarker/FreeMarker {
 	public static final field Plugin Lio/ktor/server/freemarker/FreeMarker$Plugin;
-	public fun <init> (Lfreemarker/template/Configuration;)V
+	public synthetic fun <init> (Lfreemarker/template/Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/freemarker/FreeMarker$Plugin : io/ktor/server/application/ApplicationPlugin {

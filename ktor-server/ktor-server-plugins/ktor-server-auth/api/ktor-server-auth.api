@@ -1,7 +1,6 @@
 public final class io/ktor/server/auth/Authentication {
 	public static final field Plugin Lio/ktor/server/auth/Authentication$Plugin;
 	public fun <init> ()V
-	public fun <init> (Lio/ktor/server/auth/Authentication$Configuration;)V
 	public fun <init> (Ljava/util/List;)V
 	public final fun configure (Lkotlin/jvm/functions/Function1;)V
 	public final fun interceptPipeline (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/util/List;Z)V

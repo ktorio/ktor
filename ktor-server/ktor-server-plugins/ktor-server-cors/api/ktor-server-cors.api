@@ -1,7 +1,6 @@
 public final class io/ktor/server/plugins/CORS {
 	public static final field CORS_DEFAULT_MAX_AGE J
 	public static final field Plugin Lio/ktor/server/plugins/CORS$Plugin;
-	public fun <init> (Lio/ktor/server/plugins/CORS$Configuration;)V
 	public final fun getAllHeaders ()Ljava/util/Set;
 	public final fun getAllHeadersSet ()Ljava/util/Set;
 	public final fun getAllowCredentials ()Z

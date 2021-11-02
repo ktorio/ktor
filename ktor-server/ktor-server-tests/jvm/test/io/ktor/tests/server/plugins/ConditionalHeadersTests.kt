@@ -183,6 +183,32 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 
     @Test
+    fun testSubrouteInstall(): Unit = withTestApplication {
+        application.routing {
+            route("1") {
+                install(ConditionalHeaders) {
+                    version { listOf(LastModifiedVersion(date)) }
+                }
+                get { call.respond("response") }
+            }
+            get("2") { call.respond("response") }
+        }
+
+        handleRequest(HttpMethod.Get, "/1") {
+            addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
+        }
+        handleRequest(HttpMethod.Get, "/2") {
+            addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+    }
+
+    @Test
     fun testIfModifiedSinceEq(): Unit = withConditionalApplication {
         handleRequest(HttpMethod.Get, "/") {
             addHeader(
