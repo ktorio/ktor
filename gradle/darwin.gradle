@@ -31,11 +31,17 @@ kotlin {
         darwinTest
 
         if (!project.ext.ideaActive) {
-            configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main, tvosArm64Main, tvosX64Main, watchosArm32Main, watchosArm64Main, watchosX86Main, watchosX64Main]) {
+            configure([iosArm32Main, iosArm64Main, iosX64Main, iosSimulatorArm64Main,
+                       macosX64Main, macosArm64Main,
+                       tvosArm64Main, tvosX64Main, tvosSimulatorArm64Main,
+                       watchosArm32Main, watchosArm64Main, watchosX86Main, watchosX64Main, watchosSimulatorArm64Main]) {
                 dependsOn darwinMain
             }
 
-            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, tvosArm64Test, tvosX64Test, watchosArm32Test, watchosArm64Test, watchosX86Test, watchosX64Test]) {
+            configure([iosArm32Test, iosArm64Test, iosX64Test, iosSimulatorArm64Test,
+                       macosX64Test, macosArm64Test,
+                       tvosArm64Test, tvosX64Test, tvosSimulatorArm64Test,
+                       watchosArm32Test, watchosArm64Test, watchosX86Test, watchosX64Test, watchosSimulatorArm64Test]) {
                 dependsOn darwinTest
             }
         }
