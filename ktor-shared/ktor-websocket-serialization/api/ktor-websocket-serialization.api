@@ -2,3 +2,7 @@ public final class WebsocketChannelSerialization {
 	public static final field INSTANCE LWebsocketChannelSerialization;
 }
 
+public final class io/ktor/websocket/serialization/WebsocketChannelSerialization {
+	public static final field INSTANCE Lio/ktor/websocket/serialization/WebsocketChannelSerialization;
+}
+
