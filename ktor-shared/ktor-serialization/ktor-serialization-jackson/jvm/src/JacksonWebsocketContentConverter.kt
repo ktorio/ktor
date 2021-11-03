@@ -15,7 +15,6 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import java.io.*
-import kotlin.text.Charsets
 
 /**
  * A jackson converter for the [WebSockets] plugin
@@ -23,18 +22,8 @@ import kotlin.text.Charsets
 public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) :
     WebsocketContentConverter {
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
-        val outputStream = ByteArrayOutputStream()
-
-        if (charset == Charsets.UTF_8) {
-            /*
-            Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
-            InputStream instead of a writer to let Jackson do it's thing.
-             */
-            objectmapper.writeValue(outputStream, value)
-        } else {
-            objectmapper.writeValue(outputStream.writer(charset = charset), value)
-        }
-        return Frame.Text(true, outputStream.toByteArray())
+        val convertedValue = objectmapper.writeValueAsString(value).toByteArray(charset = charset)
+        return Frame.Text(true, convertedValue)
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
@@ -43,8 +32,8 @@ public class JacksonWebsocketContentConverter(private val objectmapper: ObjectMa
         }
         try {
             return withContext(Dispatchers.IO) {
-                val reader = content.readBytes().inputStream().reader(charset)
-                objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+                val data = charset.newDecoder().decode(buildPacket { content.readBytes() })
+                objectmapper.readValue(data, objectmapper.constructType(typeInfo.reifiedType))
             }
         } catch (deserializeFailure: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)

@@ -4,13 +4,13 @@
 
 package io.ktor.client.plugins.websocket
 
-import WebsocketChannelSerialization
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.serialization.*
 
 /**
  * Client specific [WebSocketSession].
@@ -39,8 +39,7 @@ internal class DelegatingClientWebSocketSession(
  * Converter for web socket session
  */
 public val DefaultClientWebSocketSession.converter: WebsocketContentConverter?
-    get() =
-        call.client?.plugin(WebSockets)?.contentConverter
+    get() = call.client?.plugin(WebSockets)?.contentConverter
 
 /**
  * Serializes [data] to a frame and enqueues this frame.
@@ -55,11 +54,10 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.sendSe
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    WebsocketChannelSerialization.sendSerialized(
+    sendSerializedBase(
         data,
         converter,
-        call.request.headers.suitableCharset(),
-        outgoing
+        call.request.headers.suitableCharset()
     )
 }
 
@@ -77,9 +75,8 @@ public suspend inline fun <reified T : Any> DefaultClientWebSocketSession.receiv
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    return WebsocketChannelSerialization.receiveDeserialized(
+    return receiveDeserializedBase(
         converter,
-        call.request.headers.suitableCharset(),
-        incoming
+        call.request.headers.suitableCharset()
     )
 }

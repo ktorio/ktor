@@ -43,6 +43,9 @@ public class KotlinxWebsocketSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+        if (!isApplicable(content)) {
+            throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
+        }
         val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
 
         return when (format) {
@@ -50,8 +53,9 @@ public class KotlinxWebsocketSerializationConverter(
                 if (content is Frame.Text) {
                     format.decodeFromString(serializer, content.readText())
                 } else {
-                    throw WebsocketConverterNotFoundException(
-                        "Unsupported format $format for ${content.frameType.name}"
+                    throw WebsocketDeserializeException(
+                        "Unsupported format $format for ${content.frameType.name}",
+                        frame = content
                     )
                 }
             }
@@ -59,15 +63,19 @@ public class KotlinxWebsocketSerializationConverter(
                 if (content is Frame.Binary) {
                     format.decodeFromByteArray(serializer, content.readBytes())
                 } else {
-                    throw WebsocketConverterNotFoundException(
-                        "Unsupported format $format for ${content.frameType.name}"
+                    throw WebsocketDeserializeException(
+                        "Unsupported format $format for ${content.frameType.name}",
+                        frame = content
                     )
                 }
             }
             else -> {
                 error("Unsupported format $format")
             }
-        } ?: throw WebsocketConverterNotFoundException("Unsupported format $format for ${content.frameType.name}")
+        } ?: throw WebsocketDeserializeException(
+            "Unsupported format $format for ${content.frameType.name}",
+            frame = content
+        )
     }
 
     override fun isApplicable(frame: Frame): Boolean {
