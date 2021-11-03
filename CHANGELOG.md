@@ -4,7 +4,7 @@
 * Bump kotlin from 1.5.30 to 1.5.31
 * Bump tomcat from 9.0.48 to 9.0.54
 * Bump logback from 1.2.3 to 1.2.6
-* Bump slf4j from 1.7.32 to 1.7.32
+* Bump slf4j from 1.7.30 to 1.7.32
 * Bump gson from 2.8.6 to 2.8.9
 * Bump okhttp from 4.6.0 to 4.9.2
 * Bump jackson from 2.12.3 to 2.13.0
