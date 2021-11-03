@@ -138,6 +138,7 @@ include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-seriali
 include(":ktor-shared:ktor-serialization:ktor-serialization-gson")
 include(":ktor-shared:ktor-serialization:ktor-serialization-jackson")
 include(":ktor-shared:ktor-events")
+include(":ktor-shared:ktor-websocket-serialization")
 include(":ktor-legacy")
 include(":ktor-legacy:ktor-client-legacy")
 include(":ktor-legacy:ktor-server-legacy")

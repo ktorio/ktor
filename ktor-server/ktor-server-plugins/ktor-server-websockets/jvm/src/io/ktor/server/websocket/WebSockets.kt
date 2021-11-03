@@ -5,6 +5,7 @@
 package io.ktor.server.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -35,7 +36,8 @@ public class WebSockets private constructor(
     public val timeoutMillis: Long,
     public val maxFrameSize: Long,
     public val masking: Boolean,
-    public val extensionsConfig: WebSocketExtensionsConfig
+    public val extensionsConfig: WebSocketExtensionsConfig,
+    public val contentConverter: WebsocketContentConverter?
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -44,7 +46,7 @@ public class WebSockets private constructor(
         timeoutMillis: Long,
         maxFrameSize: Long,
         masking: Boolean
-    ) : this(pingIntervalMillis, timeoutMillis, maxFrameSize, masking, WebSocketExtensionsConfig())
+    ) : this(pingIntervalMillis, timeoutMillis, maxFrameSize, masking, WebSocketExtensionsConfig(), null)
 
     override val coroutineContext: CoroutineContext
         get() = parent
@@ -86,6 +88,11 @@ public class WebSockets private constructor(
         public var masking: Boolean = false
 
         /**
+         * A converter for serialization/deserialization
+         */
+        public var contentConverter: WebsocketContentConverter? = null
+
+        /**
          * Configure WebSocket extensions.
          */
         public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
@@ -113,7 +120,8 @@ public class WebSockets private constructor(
                     timeoutMillis,
                     maxFrameSize,
                     masking,
-                    extensionsConfig
+                    extensionsConfig,
+                    contentConverter
                 )
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {

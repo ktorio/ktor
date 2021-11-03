@@ -5,11 +5,13 @@
 package io.ktor.tests.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -18,6 +20,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.Test
 import java.nio.*
+import java.nio.charset.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.CancellationException
@@ -27,6 +30,33 @@ import kotlin.test.*
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)
+
+    class Data(val string: String)
+
+    private val customContentConverter = object : WebsocketContentConverter {
+        override suspend fun serialize(
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any
+        ): Frame {
+            if (value !is Data) return Frame.Text("")
+            return Frame.Text("[${value.string}]")
+        }
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+            if (typeInfo.type != Data::class) {
+                return Data("")
+            }
+            if (content !is Frame.Text) {
+                return Data("")
+            }
+            return Data(content.readText().removeSurrounding("[", "]"))
+        }
+
+        override fun isApplicable(frame: Frame): Boolean {
+            return frame is Frame.Text
+        }
+    }
 
     @Test
     fun testSingleEcho() {
@@ -54,9 +84,145 @@ class WebSocketTest {
     }
 
     @Test
+    fun testJsonConverter() {
+        withTestApplication {
+            application.install(WebSockets) {
+                contentConverter = customContentConverter
+            }
+
+            application.routing {
+                webSocket("/echo") {
+                    val data = receiveDeserialized<Data>()
+                    sendSerialized(data)
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            val jsonData = "[hello]"
+
+            val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(jsonData))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let { call ->
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {
+                        val reader = WebSocketReader(
+                            call.response.websocketChannel()!!,
+                            coroutineContext,
+                            Int.MAX_VALUE.toLong()
+                        )
+
+                        val frame = reader.incoming.receive()
+                        val receivedContent = frame.buffer.moveToByteArray()
+
+                        conversation.complete()
+
+                        assertEquals(FrameType.TEXT, frame.frameType)
+                        assertEquals(jsonData.length, receivedContent.size)
+
+                        assertTrue { receivedContent.contentEquals(jsonData.toByteArray()) }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSerializationWithNoConverter() {
+        withTestApplication {
+            application.install(WebSockets) {}
+
+            application.routing {
+                webSocket("/echo") {
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        receiveDeserialized<Data>()
+                    }
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        sendSerialized(Data("hello"))
+                    }
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            val jsonData = "[hello]"
+            val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(jsonData))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let {
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {}
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDeserializationWithOnClosedChannel() {
+        withTestApplication {
+            application.install(WebSockets) {
+                contentConverter = customContentConverter
+            }
+
+            application.routing {
+                webSocket("/echo") {
+                    assertFailsWith<ClosedReceiveChannelException> {
+                        receiveDeserialized<Data>()
+                    }
+                    outgoing.send(Frame.Close())
+                }
+            }
+            val sendBuffer = ByteBuffer.allocate(100)
+
+            Serializer().apply {
+                enqueue(Frame.Text(""))
+                serialize(sendBuffer)
+            }
+
+            val conversation = Job()
+
+            handleWebSocket("/echo") {
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
+            }.let {
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {}
+                }
+            }
+        }
+    }
+
+    @Test
     fun testFrameSize() {
         withTestApplication {
             application.install(WebSockets)
+
             application.routing {
                 webSocketRaw("/echo") {
                     outgoing.send(Frame.Text("+".repeat(0xc123)))

@@ -46,7 +46,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
     }
 }
 
-private fun Gson.isExcluded(type: KClass<*>) =
+internal fun Gson.isExcluded(type: KClass<*>) =
     excluder().excludeClass(type.java, false)
 
 @OptIn(ExperimentalCoroutinesApi::class)

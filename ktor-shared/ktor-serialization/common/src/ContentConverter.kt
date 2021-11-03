@@ -14,9 +14,9 @@ import io.ktor.utils.io.core.*
 import kotlin.reflect.*
 
 /**
- * A custom content converted that could be registered in [ContentNegotiation] plugin for any particular content type
+ * A custom content converter that could be registered in [ContentNegotiation] plugin for any particular content type
  * Could provide bi-directional conversion implementation.
- * One of the most typical examples of content converter is a json content converter that provides both
+ * One of the most typical examples of content converter is a JSON content converter that provides both
  * serialization and deserialization
  */
 public interface ContentConverter {
@@ -29,7 +29,7 @@ public interface ContentConverter {
      *
      * @param charset response charset
      * @param typeInfo response body typeInfo
-     * @param contentType to which this data converted has been registered and that matches client's accept header
+     * @param contentType to which this data converter has been registered and that matches the client's [Accept] header
      * @param value to be converted
      *
      * @return a converted [OutgoingContent] value, or null if [value] isn't suitable for this converter

@@ -12,6 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.serialization.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
@@ -36,13 +37,15 @@ public object WebSocketExtensionsCapability : HttpClientEngineCapability<Unit> {
  * Client WebSocket plugin.
  *
  * @property pingInterval - interval between [FrameType.PING] messages.
- * @property maxFrameSize - max size of single websocket frame.
+ * @property maxFrameSize - max size of a single websocket frame.
  * @property extensionsConfig - extensions configuration
+ * @property contentConverter - converter for serialization/deserialization
  */
 public class WebSockets internal constructor(
     public val pingInterval: Long,
     public val maxFrameSize: Long,
-    private val extensionsConfig: WebSocketExtensionsConfig
+    private val extensionsConfig: WebSocketExtensionsConfig,
+    public val contentConverter: WebsocketContentConverter? = null
 ) {
     /**
      * Client WebSocket plugin.
@@ -118,6 +121,11 @@ public class WebSockets internal constructor(
         public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
 
         /**
+         * A converter for serialization/deserialization
+         */
+        public var contentConverter: WebsocketContentConverter? = null
+
+        /**
          * Configure WebSocket extensions.
          */
         public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
@@ -133,7 +141,12 @@ public class WebSockets internal constructor(
 
         override fun prepare(block: Config.() -> Unit): WebSockets {
             val config = Config().apply(block)
-            return WebSockets(config.pingInterval, config.maxFrameSize, config.extensionsConfig)
+            return WebSockets(
+                config.pingInterval,
+                config.maxFrameSize,
+                config.extensionsConfig,
+                config.contentConverter
+            )
         }
 
         @OptIn(InternalAPI::class)

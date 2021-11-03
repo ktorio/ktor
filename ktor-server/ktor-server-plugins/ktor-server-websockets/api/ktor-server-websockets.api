@@ -56,6 +56,7 @@ public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls 
 
 public final class io/ktor/server/websocket/WebSocketServerSessionKt {
 	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/Application;
+	public static final fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
 }
 
 public final class io/ktor/server/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {
@@ -77,7 +78,8 @@ public final class io/ktor/server/websocket/WebSocketUpgrade$Companion {
 public final class io/ktor/server/websocket/WebSockets : kotlinx/coroutines/CoroutineScope {
 	public static final field Plugin Lio/ktor/server/websocket/WebSockets$Plugin;
 	public fun <init> (JJJZ)V
-	public synthetic fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;Lio/ktor/serialization/WebsocketContentConverter;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getExtensionsConfig ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
 	public final fun getMasking ()Z
@@ -96,10 +98,12 @@ public final class io/ktor/server/websocket/WebSockets$Plugin : io/ktor/server/a
 public final class io/ktor/server/websocket/WebSockets$WebSocketOptions {
 	public fun <init> ()V
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getContentConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 	public final fun getMasking ()Z
 	public final fun getMaxFrameSize ()J
 	public final fun getPingPeriodMillis ()J
 	public final fun getTimeoutMillis ()J
+	public final fun setContentConverter (Lio/ktor/serialization/WebsocketContentConverter;)V
 	public final fun setMasking (Z)V
 	public final fun setMaxFrameSize (J)V
 	public final fun setPingPeriodMillis (J)V

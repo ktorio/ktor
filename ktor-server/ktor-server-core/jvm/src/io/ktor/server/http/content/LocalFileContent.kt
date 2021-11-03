@@ -28,8 +28,9 @@ public class LocalFileContent(
         val lastModifiedVersion = file.lastModified()
         if (lastModifiedVersion == 0L) {
             throw IOException("No such file ${file.absolutePath}")
+        } else {
+            versions += LastModifiedVersion(lastModifiedVersion)
         }
-        versions += LastModifiedVersion(lastModifiedVersion)
     }
 
     // TODO: consider using WriteChannelContent to avoid piping
