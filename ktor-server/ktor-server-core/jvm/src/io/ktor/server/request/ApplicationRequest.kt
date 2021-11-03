@@ -23,9 +23,14 @@ public interface ApplicationRequest {
     public val pipeline: ApplicationReceivePipeline
 
     /**
-     * Parameters provided in an URL
+     * Decoded parameters provided in a URL
      */
     public val queryParameters: Parameters
+
+    /**
+     * Parameters provided in a URL
+     */
+    public val rawQueryParameters: Parameters
 
     /**
      * Headers for this request
@@ -47,4 +52,16 @@ public interface ApplicationRequest {
      * Request's body channel (for content only)
      */
     public fun receiveChannel(): ByteReadChannel
+}
+
+/**
+ * Internal helper function to encode raw parameters. Should not be used directly.
+ */
+public fun ApplicationRequest.encodeParameters(parameters: Parameters): Parameters {
+    return ParametersBuilder().apply {
+        rawQueryParameters.names().forEach { key ->
+            val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()
+            appendAll(key.decodeURLQueryComponent(), values)
+        }
+    }.build()
 }

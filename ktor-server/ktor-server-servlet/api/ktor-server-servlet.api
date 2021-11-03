@@ -85,6 +85,7 @@ public abstract class io/ktor/server/servlet/ServletApplicationRequest : io/ktor
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
+	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public final fun getServletRequest ()Ljavax/servlet/http/HttpServletRequest;
 }
 

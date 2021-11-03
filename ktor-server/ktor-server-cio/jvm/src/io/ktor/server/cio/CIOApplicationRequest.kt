@@ -27,12 +27,12 @@ internal class CIOApplicationRequest(
     @OptIn(InternalAPI::class)
     override val headers: Headers = CIOHeaders(request.headers)
 
-    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
-        val uri = request.uri
-        val qIdx = uri.indexOf('?')
-        if (qIdx == -1 || qIdx == uri.lastIndex) return@lazy Parameters.Empty
+    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) { encodeParameters(rawQueryParameters) }
 
-        parseQueryString(uri.substring(qIdx + 1))
+    override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        val uri = request.uri.toString()
+        val queryStartIndex = uri.indexOf('?').takeIf { it != -1 } ?: return@lazy Parameters.Empty
+        parseQueryString(uri, startIndex = queryStartIndex + 1, decode = false)
     }
 
     override val local: RequestConnectionPoint = object : RequestConnectionPoint {

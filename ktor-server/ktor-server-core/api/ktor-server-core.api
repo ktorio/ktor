@@ -512,7 +512,12 @@ public abstract interface class io/ktor/server/request/ApplicationRequest {
 	public abstract fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public abstract fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 	public abstract fun getQueryParameters ()Lio/ktor/http/Parameters;
+	public abstract fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public abstract fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+}
+
+public final class io/ktor/server/request/ApplicationRequestKt {
+	public static final fun encodeParameters (Lio/ktor/server/request/ApplicationRequest;Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
 
 public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
@@ -1074,6 +1079,7 @@ public final class io/ktor/server/routing/RoutingApplicationRequest : io/ktor/se
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
+	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
