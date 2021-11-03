@@ -9,7 +9,7 @@ public final class io/ktor/serialization/kotlinx/KotlinxSerializationConverterKt
 	public static final fun serialization (Lio/ktor/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlinx/serialization/StringFormat;)V
 }
 
-public final class io/ktor/shared/serialization/kotlinx/KotlinxWebsocketSerializationConverter : io/ktor/serialization/WebsocketContentConverter {
+public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationConverter : io/ktor/serialization/WebsocketContentConverter {
 	public fun <init> (Lkotlinx/serialization/SerialFormat;)V
 	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun isApplicable (Lio/ktor/http/cio/websocket/Frame;)Z
