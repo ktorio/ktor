@@ -13,10 +13,10 @@ import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
- * Client HTTP timeout plugin. There are no default values, so default timeouts will be taken from engine configuration
- * or considered as infinite time if engine doesn't provide them.
+ * A client's HTTP timeout plugin. There are no default values, so default timeouts are taken from the
+ * engine configuration or considered as infinite time if the engine doesn't provide them.
  */
-public class HttpTimeout(
+public class HttpTimeout private constructor(
     private val requestTimeoutMillis: Long?,
     private val connectTimeoutMillis: Long?,
     private val socketTimeoutMillis: Long?

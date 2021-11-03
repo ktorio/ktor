@@ -11,9 +11,9 @@ import io.ktor.server.util.*
 import io.ktor.util.*
 
 /**
- * Redirect non-secure requests to HTTPS
+ * A plugin that redirects non-secure HTTP calls to HTTPS
  */
-public class HttpsRedirect(config: Configuration) {
+public class HttpsRedirect private constructor(config: Configuration) {
     /**
      * HTTPS port to redirect to
      */

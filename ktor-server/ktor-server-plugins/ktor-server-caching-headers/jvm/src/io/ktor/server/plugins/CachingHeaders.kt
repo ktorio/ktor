@@ -12,12 +12,14 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * Plugin that set [CachingOptions] headers for every response.
- * It invokes [optionsProviders] for every response and use first non null caching options
+ * A plugin that adds the capability to configure the Cache-Control and Expires headers using [CachingOptions].
+ * It invokes [optionsProviders] for every response and use first non-null [CachingOptions]
  */
-public class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>) {
+public class CachingHeaders private constructor(
+    private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>
+) {
     /**
-     * Configuration for [CachingHeaders] plugin
+     * A configuration for the [CachingHeaders] plugin
      */
     public class Configuration {
         internal val optionsProviders = mutableListOf<(OutgoingContent) -> CachingOptions?>()

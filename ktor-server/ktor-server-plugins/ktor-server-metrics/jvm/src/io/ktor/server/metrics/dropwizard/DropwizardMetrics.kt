@@ -5,6 +5,7 @@
 package io.ktor.server.metrics.dropwizard
 
 import com.codahale.metrics.*
+import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -17,13 +18,13 @@ import java.util.concurrent.*
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
  */
-public class DropwizardMetrics(
+public class DropwizardMetrics private constructor(
     public val registry: MetricRegistry,
-    public val baseName: String = MetricRegistry.name("ktor.calls")
+    public val baseName: String = name("ktor.calls")
 ) {
-    private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
-    private val active = registry.counter(MetricRegistry.name(baseName, "active"))
-    private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
+    private val duration = registry.timer(name(baseName, "duration"))
+    private val active = registry.counter(name(baseName, "active"))
+    private val exceptions = registry.meter(name(baseName, "exceptions"))
     private val httpStatus = ConcurrentHashMap<Int, Meter>()
 
     /**
@@ -33,7 +34,7 @@ public class DropwizardMetrics(
         /**
          * Dropwizard metrics base name (prefix)
          */
-        public var baseName: String = MetricRegistry.name("ktor.calls")
+        public var baseName: String = name("ktor.calls")
 
         /**
          * Dropwizard metric registry.
@@ -92,8 +93,8 @@ public class DropwizardMetrics(
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
                 val name = call.route.toString()
-                val meter = plugin.registry.meter(MetricRegistry.name(name, "meter"))
-                val timer = plugin.registry.timer(MetricRegistry.name(name, "timer"))
+                val meter = plugin.registry.meter(name(plugin.baseName, name, "meter"))
+                val timer = plugin.registry.timer(name(plugin.baseName, name, "timer"))
                 meter.mark()
                 val context = timer.time()
                 call.attributes.put(
@@ -105,7 +106,7 @@ public class DropwizardMetrics(
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
                 val routingMetrics = call.attributes.take(routingMetricsKey)
                 val status = call.response.status()?.value ?: 0
-                val statusMeter = plugin.registry.meter(MetricRegistry.name(routingMetrics.name, status.toString()))
+                val statusMeter = plugin.registry.meter(name(plugin.baseName, routingMetrics.name, status.toString()))
                 statusMeter.mark()
                 routingMetrics.context.stop()
             }
@@ -126,7 +127,7 @@ public class DropwizardMetrics(
     private fun after(call: ApplicationCall) {
         active.dec()
         val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
-            registry.meter(MetricRegistry.name(baseName, "status", it.toString()))
+            registry.meter(name(baseName, "status", it.toString()))
         }
         meter.mark()
         call.attributes.getOrNull(measureKey)?.apply {

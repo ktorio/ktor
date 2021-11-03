@@ -109,6 +109,10 @@ fun Project.configureTargets() {
                 posixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(posixMain)
                     getByName("${it.name}Test").dependsOn(posixTest)
+
+                    if (!it.name.startsWith(HOST_NAME)) {
+                        disableCompilation(it)
+                    }
                 }
             }
             if (hasNix) {
@@ -124,6 +128,10 @@ fun Project.configureTargets() {
                 nixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(nixMain)
                     getByName("${it.name}Test").dependsOn(nixTest)
+
+                    if (!it.name.startsWith(HOST_NAME)) {
+                        disableCompilation(it)
+                    }
                 }
             }
             if (hasDarwin) {
@@ -136,6 +144,10 @@ fun Project.configureTargets() {
                 darwinTargets().forEach {
                     getByName("${it.name}Main").dependsOn(darwinMain)
                     getByName("${it.name}Test").dependsOn(darwinTest)
+
+                    if (!it.name.startsWith(HOST_NAME)) {
+                        disableCompilation(it)
+                    }
                 }
             }
             if (hasDesktop) {

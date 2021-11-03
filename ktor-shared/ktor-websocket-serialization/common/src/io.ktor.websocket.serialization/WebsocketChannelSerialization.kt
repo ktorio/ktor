@@ -4,7 +4,6 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.channels.*
 
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.

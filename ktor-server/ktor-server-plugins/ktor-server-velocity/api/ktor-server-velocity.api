@@ -5,7 +5,7 @@ public final class io/ktor/server/velocity/RespondTemplateKt {
 
 public final class io/ktor/server/velocity/Velocity {
 	public static final field Plugin Lio/ktor/server/velocity/Velocity$Plugin;
-	public fun <init> (Lorg/apache/velocity/app/VelocityEngine;)V
+	public synthetic fun <init> (Lorg/apache/velocity/app/VelocityEngine;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/velocity/Velocity$Plugin : io/ktor/server/application/ApplicationPlugin {

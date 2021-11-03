@@ -633,6 +633,22 @@ class CompressionTest {
         }
     }
 
+    @Test
+    fun testSubrouteInstall(): Unit = withTestApplication {
+        application.routing {
+            route("1") {
+                install(Compression) {
+                    deflate()
+                }
+                get { call.respond(textToCompress) }
+            }
+            get("2") { call.respond(textToCompress) }
+        }
+
+        handleAndAssert("/1", "*", "deflate", textToCompress)
+        handleAndAssert("/2", "*", null, textToCompress)
+    }
+
     private fun TestApplicationEngine.handleAndAssert(
         url: String,
         acceptHeader: String?,
@@ -675,5 +691,6 @@ class CompressionTest {
     private fun TestApplicationResponse.readIdentity() = byteContent!!.inputStream().reader().readText()
     private fun TestApplicationResponse.readDeflate() =
         InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
+
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }

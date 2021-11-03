@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -60,9 +61,13 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
     }
 }
 
-internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
-    val code = parameters[OAuth2RequestParameters.Code]
-    val state = parameters[OAuth2RequestParameters.State]
+internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
+    val params = when (request.contentType()) {
+        ContentType.Application.FormUrlEncoded -> receiveParameters()
+        else -> parameters
+    }
+    val code = params[OAuth2RequestParameters.Code]
+    val state = params[OAuth2RequestParameters.State]
 
     return when {
         code != null && state != null -> OAuthCallback.TokenSingle(code, state)

@@ -24,10 +24,10 @@ import kotlin.properties.*
  * It is essential for streaming video and restarting downloads.
  *
  */
-public class PartialContent(private val maxRangeCount: Int) {
+public class PartialContent private constructor(private val maxRangeCount: Int) {
 
     /**
-     * Configuration for [PartialContent].
+     * A configuration for [PartialContent].
      */
     public class Configuration {
         /**
@@ -43,7 +43,7 @@ public class PartialContent(private val maxRangeCount: Int) {
     /**
      * `ApplicationPlugin` implementation for [PartialContent]
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, PartialContent> {
+    public companion object Plugin : RouteScopedPlugin<Configuration, PartialContent> {
         private val PartialContentPhase = PipelinePhase("PartialContent")
 
         override val key: AttributeKey<PartialContent> = AttributeKey("Partial Content")

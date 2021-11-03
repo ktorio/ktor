@@ -20,15 +20,13 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 
 /**
- * [HttpClient] logging plugin.
+ * A client's logging plugin.
  */
-public class Logging(
+public class Logging private constructor(
     public val logger: Logger,
     public var level: LogLevel,
     public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
 ) {
-
-    public constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
 
     private val mutex = Mutex()
 

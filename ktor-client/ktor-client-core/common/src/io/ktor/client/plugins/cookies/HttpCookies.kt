@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
  * cookies when installing.
  */
-public class HttpCookies(
+public class HttpCookies internal constructor(
     private val storage: CookiesStorage,
     private val defaults: List<suspend CookiesStorage.() -> Unit>
 ) : Closeable {

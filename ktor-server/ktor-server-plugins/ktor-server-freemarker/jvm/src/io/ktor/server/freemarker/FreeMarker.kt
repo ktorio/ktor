@@ -28,9 +28,10 @@ public class FreeMarkerContent(
 )
 
 /**
- * Freemarker support plugin. Provides ability to respond with [FreeMarkerContent]
+ * A plugin that allows you to use FreeMarker templates as views within your application.
+ * Provides the ability to respond with [FreeMarkerContent]
  */
-public class FreeMarker(private val config: Configuration) {
+public class FreeMarker private constructor(private val config: Configuration) {
     /**
      * A plugin installing companion object
      */

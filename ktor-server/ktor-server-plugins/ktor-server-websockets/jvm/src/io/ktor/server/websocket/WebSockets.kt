@@ -31,7 +31,7 @@ import kotlin.coroutines.*
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
  */
-public class WebSockets constructor(
+public class WebSockets private constructor(
     public val pingIntervalMillis: Long,
     public val timeoutMillis: Long,
     public val maxFrameSize: Long,
