@@ -7,7 +7,6 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.serialization.kotlinx.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
