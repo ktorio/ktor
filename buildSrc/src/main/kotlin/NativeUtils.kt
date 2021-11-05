@@ -61,27 +61,3 @@ fun KotlinMultiplatformExtension.nix64Targets(): Set<KotlinNativeTarget> = setOf
     macosX64(),
     macosArm64()
 )
-
-fun Project.disableCompilation(target: KotlinNativeTarget) {
-//    target.apply {
-//        compilations.all {
-//            cinterops.all {
-//                tasks.named(interopProcessingTaskName) { enabled = false }
-//            }
-//            compileKotlinTaskProvider.configure { enabled = false }
-//        }
-//
-//        binaries.all {
-//            linkTaskProvider.configure { enabled = false }
-//        }
-//
-//        mavenPublication {
-//            tasks.withType<AbstractPublishToMaven>().configureEach {
-//                onlyIf { publication != this@mavenPublication }
-//            }
-//            tasks.withType<GenerateModuleMetadata>().configureEach {
-//                onlyIf { publication.get() != this@mavenPublication }
-//            }
-//        }
-//    }
-}

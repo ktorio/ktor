@@ -116,10 +116,6 @@ fun Project.configureTargets() {
                 posixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(posixMain)
                     getByName("${it.name}Test").dependsOn(posixTest)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
             }
 
@@ -147,28 +143,16 @@ fun Project.configureTargets() {
                 nixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(nixMain)
                     getByName("${it.name}Test").dependsOn(nixTest)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
 
                 nix32Targets().forEach {
                     getByName("${it.name}Main").dependsOn(nix32Main)
                     getByName("${it.name}Test").dependsOn(nix32Test)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
 
                 nix64Targets().forEach {
                     getByName("${it.name}Main").dependsOn(nix64Main)
                     getByName("${it.name}Test").dependsOn(nix64Test)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
             }
             if (hasDarwin) {
@@ -181,10 +165,6 @@ fun Project.configureTargets() {
                 darwinTargets().forEach {
                     getByName("${it.name}Main").dependsOn(darwinMain)
                     getByName("${it.name}Test").dependsOn(darwinTest)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
             }
             if (hasDesktop) {
@@ -197,10 +177,6 @@ fun Project.configureTargets() {
                 desktopTargets().forEach {
                     getByName("${it.name}Main").dependsOn(desktopMain)
                     getByName("${it.name}Test").dependsOn(desktopTest)
-
-                    if (it.name in EXCLUDE_MAP[HOST_NAME]!!) {
-                        disableCompilation(it)
-                    }
                 }
             }
 
