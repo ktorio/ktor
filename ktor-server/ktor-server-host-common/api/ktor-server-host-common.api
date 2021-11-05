@@ -150,7 +150,7 @@ public final class io/ktor/server/engine/BaseApplicationResponse$BodyLengthIsToo
 }
 
 public final class io/ktor/server/engine/BaseApplicationResponse$Companion {
-	public final fun getEngineResponseAtributeKey ()Lio/ktor/util/AttributeKey;
+	public final fun getEngineResponseAttributeKey ()Lio/ktor/util/AttributeKey;
 	public final fun setupSendPipeline (Lio/ktor/server/response/ApplicationSendPipeline;)V
 }
 
@@ -164,9 +164,13 @@ public final class io/ktor/server/engine/BaseApplicationResponse$ResponseAlready
 	public fun <init> ()V
 }
 
-public final class io/ktor/server/engine/CommandLineKt {
+public final class io/ktor/server/engine/CommandLineJvmKt {
 	public static final fun commandLineEnvironment ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public static synthetic fun commandLineEnvironment$default ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+}
+
+public final class io/ktor/server/engine/CommandLineKt {
+	public static final fun commandLineEnvironment ([Ljava/lang/String;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public static final fun loadCommonConfiguration (Lio/ktor/server/engine/BaseApplicationEngine$Configuration;Lio/ktor/server/config/ApplicationConfig;)V
 }
 
@@ -239,10 +243,13 @@ public abstract interface class io/ktor/server/engine/EngineConnectorConfig {
 	public abstract fun getType ()Lio/ktor/server/engine/ConnectorType;
 }
 
-public final class io/ktor/server/engine/EngineConnectorConfigKt {
-	public static final fun connector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
+public final class io/ktor/server/engine/EngineConnectorConfigJvmKt {
 	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
 	public static final fun withPort (Lio/ktor/server/engine/EngineConnectorConfig;I)Lio/ktor/server/engine/EngineConnectorConfig;
+}
+
+public final class io/ktor/server/engine/EngineConnectorConfigKt {
+	public static final fun connector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/engine/EngineContextCancellationHelperKt {
@@ -324,7 +331,7 @@ public final class io/ktor/server/engine/ShutDownUrl$EnginePlugin : io/ktor/serv
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/engine/ShutdownHookKt {
+public final class io/ktor/server/engine/ShutdownHookJvmKt {
 	public static final fun addShutdownHook (Lio/ktor/server/engine/ApplicationEngine;Lkotlin/jvm/functions/Function0;)V
 }
 

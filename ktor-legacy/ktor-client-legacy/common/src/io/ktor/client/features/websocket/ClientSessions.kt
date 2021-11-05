@@ -21,6 +21,6 @@ public interface ClientWebSocketSession : WebSocketSession
     replaceWith = ReplaceWith("DefaultClientWebSocketSession", "io.ktor.client.plugins.websocket.*")
 )
 public class DefaultClientWebSocketSession(
-    call: Any,
+    @Suppress("UNUSED_PARAMETER") call: Any,
     delegate: DefaultWebSocketSession
 ) : ClientWebSocketSession, DefaultWebSocketSession by delegate

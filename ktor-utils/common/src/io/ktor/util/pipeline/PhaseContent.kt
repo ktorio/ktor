@@ -4,6 +4,7 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.concurrent.*
 
@@ -68,6 +69,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         return interceptors
     }
 
+    @OptIn(InternalAPI::class)
     fun copiedInterceptors(): MutableList<PipelineInterceptorFunction<TSubject, Call>> =
         sharedListOf<PipelineInterceptorFunction<TSubject, Call>>().apply {
             addAll(interceptors)
@@ -81,6 +83,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     }
 
     companion object {
+        @OptIn(InternalAPI::class)
         val SharedArrayList: MutableList<Any?> = sharedListOf()
     }
 }

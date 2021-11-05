@@ -1,22 +1,18 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.application
 
 import io.ktor.events.*
 import io.ktor.server.config.*
-import org.slf4j.*
+import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
 /**
  * Represents an environment in which [Application] runs
  */
-public interface ApplicationEnvironment {
-    /**
-     * Parent coroutine context for an application
-     */
-    public val parentCoroutineContext: CoroutineContext
+public actual interface ApplicationEnvironment {
 
     /**
      * [ClassLoader] used to load application.
@@ -26,27 +22,32 @@ public interface ApplicationEnvironment {
     public val classLoader: ClassLoader
 
     /**
+     * Parent coroutine context for an application
+     */
+    public actual val parentCoroutineContext: CoroutineContext
+
+    /**
      * Instance of [Logger] to be used for logging.
      */
-    public val log: Logger
+    public actual val log: Logger
 
     /**
      * Configuration for the [Application]
      */
-    public val config: ApplicationConfig
+    public actual val config: ApplicationConfig
 
     /**
      * Provides events on Application lifecycle
      */
-    public val monitor: Events
+    public actual val monitor: Events
 
     /**
      * Application's root path (prefix, context path in servlet container).
      */
-    public val rootPath: String
+    public actual val rootPath: String
 
     /**
      * Indicates if development mode is enabled.
      */
-    public val developmentMode: Boolean
+    public actual val developmentMode: Boolean
 }

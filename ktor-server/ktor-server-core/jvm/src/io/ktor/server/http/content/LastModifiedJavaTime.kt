@@ -7,7 +7,7 @@
 package io.ktor.server.http.content
 
 import io.ktor.http.content.*
-import io.ktor.server.util.date.*
+import io.ktor.server.util.*
 import io.ktor.util.date.*
 import java.nio.file.attribute.*
 import java.time.*

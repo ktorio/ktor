@@ -11,7 +11,7 @@ package io.ktor.util.network
  *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
-public expect class NetworkAddress
+public expect abstract class NetworkAddress
 
 /**
  * Represents remote endpoint with [hostname] and [port].

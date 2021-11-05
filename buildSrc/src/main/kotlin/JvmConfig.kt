@@ -1,6 +1,8 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:Suppress("UNUSED_VARIABLE")
+
 import org.gradle.api.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.jvm.tasks.*
@@ -58,7 +60,7 @@ fun Project.configureJvm() {
 
     tasks.register<Jar>("jarTest") {
         dependsOn(tasks.getByName("jvmTestClasses"))
-        classifier = "test"
+        archiveClassifier.set("test")
         from(kotlin.targets.getByName("jvm").compilations.getByName("test").output)
     }
 
@@ -84,6 +86,7 @@ fun Project.configureJvm() {
 
         ignoreFailures = true
         maxHeapSize = "2g"
+        jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")

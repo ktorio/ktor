@@ -4,7 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.lang.ref.*
 import java.util.*
@@ -14,7 +13,6 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public interface Cache<in K : Any, V : Any> {
     public suspend fun getOrCompute(key: K): V
     public fun peek(key: K): V?
@@ -27,7 +25,7 @@ internal interface CacheReference<out K> {
     val key: K
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 
@@ -77,7 +75,6 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
     }
 }
 
-@OptIn(InternalAPI::class)
 internal open class ReferenceCache<K : Any, V : Any, out R>(
     val calc: suspend (K) -> V,
     val wrapFunction: (K, V, ReferenceQueue<V>) -> R
@@ -125,7 +122,6 @@ internal open class ReferenceCache<K : Any, V : Any, out R>(
     }
 }
 
-@OptIn(InternalAPI::class)
 private class ReferenceWorker<out K : Any, R : CacheReference<K>> constructor(
     owner: Cache<K, R>,
     val queue: ReferenceQueue<*>
@@ -155,16 +151,15 @@ internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue
 internal class SoftReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
     ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
 
-internal class WeakReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) :
-    ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
+internal class WeakReferenceCache<K : Any, V : Any>(
+    calc: suspend (K) -> V
+) : ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
 
-@OptIn(InternalAPI::class)
 internal class BaseTimeoutCache<in K : Any, V : Any> constructor(
-    val timeoutValue: Long,
-    val touchOnGet: Boolean,
-    val delegate: Cache<K, V>
+    private val timeoutValue: Long,
+    private val touchOnGet: Boolean,
+    private val delegate: Cache<K, V>
 ) : Cache<K, V> {
-
     private val lock = ReentrantLock()
     private val cond = lock.newCondition()
 
@@ -246,7 +241,7 @@ private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>(
         lastAccess = System.currentTimeMillis()
     }
 
-    fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
+    fun timeToWait() = 0L.coerceAtLeast(lastAccess + timeout - System.currentTimeMillis())
 }
 
 private class TimeoutWorker<K : Any>(

@@ -31,9 +31,9 @@ internal class DatagramSocketImpl(
         get() = _context
 
     override val localAddress: NetworkAddress
-        get() = getLocalAddress(descriptor).let { NetworkAddress(it.address, it.port, it) }
+        get() = getLocalAddress(descriptor).let { ResolvedNetworkAddress(it.address, it.port, it) }
     override val remoteAddress: NetworkAddress
-        get() = getRemoteAddress(descriptor).let { NetworkAddress(it.address, it.port, it) }
+        get() = getRemoteAddress(descriptor).let { ResolvedNetworkAddress(it.address, it.port, it) }
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this)
 
@@ -116,7 +116,7 @@ internal class DatagramSocketImpl(
                 val address = clientAddress.reinterpret<sockaddr>().toSocketAddress()
                 val datagram = Datagram(
                     buildPacket { writeFully(buffer) },
-                    NetworkAddress(address.address, address.port, address)
+                    ResolvedNetworkAddress(address.address, address.port, address)
                 )
                 buffer.release(DefaultDatagramChunkBufferPool)
                 return datagram

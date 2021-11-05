@@ -5,6 +5,7 @@
 package io.ktor.tests.server.jetty.http2
 
 import io.ktor.server.jetty.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
@@ -14,8 +15,15 @@ class JettyHttp2BlockingServletContainerCompressionTest :
 class JettyHttp2BlockingServletContainerContentTest :
     ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
 
-class JettyHttp2BlockingServletContainerHttpServerTest :
-    HttpServerTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
+class JettyHttp2BlockingServletContainerHttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    )
+
+class JettyHttp2BlockingServletContainerHttpServerJvmTest :
+    HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
 
     @Ignore
     override fun testUpgrade() {

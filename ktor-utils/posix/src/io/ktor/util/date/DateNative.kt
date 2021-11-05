@@ -6,7 +6,6 @@ package io.ktor.util.date
 
 import kotlinx.cinterop.*
 import platform.posix.*
-import utils.*
 
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
@@ -57,10 +56,12 @@ public actual fun GMTDate(
         tm_isdst = 0
     }
 
-    val timestamp = ktor_time(dateInfo.ptr)
+    val timestamp = system_time(dateInfo.ptr)
 
     return GMTDate(timestamp * 1000L)
 }
+
+internal expect fun system_time(tm: CValuesRef<tm>?): Int
 
 /**
  * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.

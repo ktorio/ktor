@@ -1,11 +1,11 @@
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.math.*
 import kotlin.test.*
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 class PrimitiveCodecTest {
     val pool = VerifyingChunkBufferPool()
     val builder = BytePacketBuilder(0, pool)
@@ -765,8 +765,8 @@ class PrimitiveCodecTest {
     }
 
     private fun StringBuilder.appendDigit(d: Int) {
-        kotlin.require(d < 16) { "digit $d should be in [0..15]" }
-        kotlin.require(d >= 0) { "digit $d should be in [0..15]" }
+        require(d < 16) { "digit $d should be in [0..15]" }
+        require(d >= 0) { "digit $d should be in [0..15]" }
 
         if (d < 10) append('0' + d)
         else append('a' + (d - 10))

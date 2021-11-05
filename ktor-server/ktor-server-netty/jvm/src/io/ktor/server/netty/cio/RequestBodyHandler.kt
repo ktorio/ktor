@@ -10,7 +10,6 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
@@ -77,16 +76,18 @@ internal class RequestBodyHandler(
         return bc
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun tryOfferChannelOrToken(token: Any) {
-        try {
-            if (!queue.trySend(token).isSuccess) {
-                throw IllegalStateException(
-                    "Unable to start request processing: failed to offer $token to the HTTP pipeline queue"
-                )
-            }
-        } catch (closedCause: ClosedSendChannelException) {
-            throw CancellationException("HTTP pipeline has been terminated.", closedCause)
+        val result = queue.trySend(token)
+        if (result.isSuccess) return
+
+        if (queue.isClosedForSend) {
+            throw CancellationException("HTTP pipeline has been terminated.", result.exceptionOrNull())
         }
+
+        throw IllegalStateException(
+            "Unable to start request processing: failed to offer $token to the HTTP pipeline queue. Queue closed: ${queue.isClosedForSend}"
+        )
     }
 
     fun close() {

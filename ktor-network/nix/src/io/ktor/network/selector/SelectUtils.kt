@@ -16,6 +16,15 @@ import kotlin.coroutines.*
 import kotlin.math.*
 import kotlin.native.concurrent.*
 
+internal expect fun pselectBridge(
+    descriptor: Int,
+    readSet: CPointer<fd_set>,
+    writeSet: CPointer<fd_set>,
+    errorSet: CPointer<fd_set>
+): Int
+
+internal expect fun inetNtopBridge(type: Int, address: CPointer<*>, addressOf: CPointer<*>, size: Int)
+
 @OptIn(InternalAPI::class)
 internal class SelectorHelper {
     private val wakeupSignal = SignalPoint()
@@ -80,7 +89,7 @@ internal class SelectorHelper {
                 continue
             }
 
-            pselect(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr, null, null)
+            pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr)
                 .check()
 
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)

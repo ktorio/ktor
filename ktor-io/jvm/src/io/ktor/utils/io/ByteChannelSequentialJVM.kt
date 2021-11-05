@@ -148,9 +148,11 @@ public class ByteChannelSequentialJVM(
         return count
     }
 
+    @Deprecated("Use read { } instead.")
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R =
         visitor(Session(this))
 
+    @Deprecated("Use read { } instead.")
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R =
         visitor(Session(this))
 

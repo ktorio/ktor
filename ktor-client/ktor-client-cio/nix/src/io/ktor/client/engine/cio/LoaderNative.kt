@@ -7,6 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import io.ktor.util.*
 
+@SharedImmutable
 private val initHook = CIO
 
 @OptIn(InternalAPI::class)

@@ -6,8 +6,8 @@ package io.ktor.client
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
-import io.ktor.client.utils.sharedMap
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.collections.set
 
@@ -16,9 +16,12 @@ import kotlin.collections.set
  */
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
+    @OptIn(InternalAPI::class)
     private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
+    @OptIn(InternalAPI::class)
     private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
 
+    @OptIn(InternalAPI::class)
     private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = sharedMap()
 
     internal var engineConfig: T.() -> Unit by shared {}

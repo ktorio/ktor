@@ -13,15 +13,3 @@ fun Project.kotlin(block: KotlinMultiplatformExtension.() -> Unit) {
 
 val Project.kotlin: KotlinMultiplatformExtension get() = the()
 val Project.kotlinter: KotlinterExtension get() = the()
-
-val NamedDomainObjectContainer<KotlinSourceSet>.jvmMain: NamedDomainObjectProvider<KotlinSourceSet>
-    get() = named<KotlinSourceSet>("jvmMain")
-
-val NamedDomainObjectContainer<KotlinSourceSet>.jvmTest: NamedDomainObjectProvider<KotlinSourceSet>
-    get() = named<KotlinSourceSet>("jvmTest")
-
-val NamedDomainObjectContainer<KotlinSourceSet>.commonMain: NamedDomainObjectProvider<KotlinSourceSet>
-    get() = named<KotlinSourceSet>("commonMain")
-
-val NamedDomainObjectContainer<KotlinSourceSet>.commonTest: NamedDomainObjectProvider<KotlinSourceSet>
-    get() = named<KotlinSourceSet>("commonTest")

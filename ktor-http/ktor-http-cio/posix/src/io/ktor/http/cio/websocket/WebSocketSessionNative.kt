@@ -5,7 +5,6 @@
 
 package io.ktor.http.cio.websocket
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
@@ -30,10 +29,7 @@ public actual interface WebSocketSession : CoroutineScope {
      * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
      * raw websocket session.
      */
-    @Suppress("ACTUAL_WITHOUT_EXPECT")
-    public suspend fun send(frame: Frame) {
-        outgoing.send(frame)
-    }
+    public actual suspend fun send(frame: Frame)
 
     /**
      * Flush all outstanding messages and suspend until all earlier sent messages will be written. Could be called

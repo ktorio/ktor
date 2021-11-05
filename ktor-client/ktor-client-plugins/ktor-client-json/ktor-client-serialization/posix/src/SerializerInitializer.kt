@@ -8,6 +8,7 @@ import io.ktor.client.plugins.json.*
 import io.ktor.util.*
 
 @Suppress("unused")
+@SharedImmutable
 private val InitHook = SerializerInitializer
 
 @Suppress("DEPRECATION")

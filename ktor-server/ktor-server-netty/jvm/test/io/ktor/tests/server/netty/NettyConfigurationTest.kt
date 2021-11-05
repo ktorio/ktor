@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.logging.*
 import io.mockk.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
@@ -32,6 +33,7 @@ class NettyConfigurationTest {
         every { env.application } returns mockk<Application>().apply {
             every { coroutineContext } returns Job()
         }
+        every { env.log } returns KtorSimpleLogger("test-logger")
         return env
     }
 

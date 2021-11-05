@@ -35,6 +35,7 @@ public class HttpResponseReceiveFail(public val response: HttpResponse, public v
 /**
  * Occurs when an exception is thrown during receiving of body.
  */
+@SharedImmutable
 public val HttpResponseReceiveFailed: EventDefinition<HttpResponseReceiveFail> = EventDefinition()
 
 /**

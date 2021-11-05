@@ -45,7 +45,7 @@ internal class JettyKtorHandler(
     ) { r ->
         Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
     }
-    private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
+    private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private val handlerJob = SupervisorJob(environment.parentCoroutineContext[Job])
@@ -54,13 +54,11 @@ internal class JettyKtorHandler(
         environment.parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
-        dispatcher.prepareShutdown()
         try {
             super.destroy()
             executor.shutdownNow()
         } finally {
             handlerJob.cancel()
-            dispatcher.completeShutdown()
         }
     }
 

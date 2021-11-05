@@ -22,7 +22,6 @@ import kotlin.reflect.*
     level = RequiresOptIn.Level.WARNING,
     message = "This locations API is experimental. It could be changed or removed in future releases."
 )
-@Experimental(level = Experimental.Level.WARNING)
 public annotation class KtorExperimentalLocationsAPI
 
 /**

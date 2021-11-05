@@ -5,7 +5,7 @@ val mockk_version: String by project.extra
 kotlin {
     nixTargets().forEach {
         it.compilations.getByName("main").cinterops {
-            val network by creating {
+            create("network") {
                 defFile = projectDir.resolve("nix/interop/network.def")
             }
         }

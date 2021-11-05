@@ -81,6 +81,8 @@ public class BearerAuthProvider(
 
     private val refreshTokensDeferred = atomic<CompletableDeferred<BearerTokens?>?>(null)
 
+    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Please use sendWithoutRequest function instead")
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 

@@ -4,11 +4,9 @@
 
 package io.ktor.network.util
 
-import io.ktor.network.interop.*
+import io.ktor.network.selector.*
 import kotlinx.cinterop.*
 import platform.posix.*
-import platform.posix.sockaddr_in
-import platform.posix.sockaddr_in6
 
 /**
  * Represents pair of network ip and port.
@@ -46,7 +44,7 @@ internal class IPv4Address(
         get() {
             val address = ByteArray(INET_ADDRSTRLEN)
             address.usePinned { addressBuf ->
-                ktor_inet_ntop(
+                inetNtopBridge(
                     AF_INET,
                     nativeAddress.ptr,
                     addressBuf.addressOf(0),
@@ -85,7 +83,12 @@ internal class IPv6Address(
         get() {
             val address = ByteArray(INET6_ADDRSTRLEN)
             address.usePinned { addressBuf ->
-                ktor_inet_ntop(AF_INET, rawAddress.ptr, addressBuf.addressOf(0), address.size.convert())
+                inetNtopBridge(
+                    AF_INET,
+                    rawAddress.ptr as CPointer<in_addr>,
+                    addressBuf.addressOf(0),
+                    address.size.convert()
+                )
             }
             return address.toKString()
         }

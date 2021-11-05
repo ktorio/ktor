@@ -4,7 +4,6 @@
 
 package io.ktor.server.netty.cio
 
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import io.ktor.util.internal.*

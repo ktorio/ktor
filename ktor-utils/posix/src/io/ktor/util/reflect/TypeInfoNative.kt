@@ -24,5 +24,5 @@ internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): T
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = this

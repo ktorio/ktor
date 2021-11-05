@@ -2,7 +2,7 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("DEPRECATION_ERROR")
+@file:Suppress("DEPRECATION_ERROR", "unused", "KDocMissingDocumentation", "UNUSED_PARAMETER")
 
 package io.ktor.client.features
 

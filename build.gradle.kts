@@ -47,6 +47,7 @@ buildscript {
         mavenCentral()
         google()
         gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 
     val kotlin_version: String by extra
@@ -114,6 +115,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 
     CacheRedirector.configure(this)

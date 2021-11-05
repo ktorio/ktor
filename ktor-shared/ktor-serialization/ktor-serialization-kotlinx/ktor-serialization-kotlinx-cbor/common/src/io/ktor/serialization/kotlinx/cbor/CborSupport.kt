@@ -10,6 +10,7 @@ import io.ktor.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
 import kotlinx.serialization.modules.*
+import kotlin.native.concurrent.*
 
 /**
  * The default cbor configuration used in [KotlinxSerializationConverter]. The settings are:
@@ -18,6 +19,7 @@ import kotlinx.serialization.modules.*
  * See [Cbor] for more details.
  */
 @OptIn(ExperimentalSerializationApi::class)
+@SharedImmutable
 public val DefaultCbor: Cbor = Cbor {
     encodeDefaults = true
 }

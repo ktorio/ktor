@@ -11,6 +11,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -157,6 +158,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Set capability configuration.
      */
+    @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
         val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
         capabilities[key] = capability

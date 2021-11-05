@@ -6,11 +6,17 @@ package io.ktor.util.network
 
 import java.net.*
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
+/**
+ * Represents remote endpoint with [hostname] and [port].
+ *
+ * The address will be resolved after construction.
+ *
+ * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
+ */
 public actual typealias NetworkAddress = SocketAddress
 
 public actual val NetworkAddress.hostname: String
-    get() = (this as? InetSocketAddress)?.hostName ?: ""
+    get() = (this as? InetSocketAddress)?.hostName ?: (this as? InetSocketAddress)?.address?.hostName ?: ""
 
 public actual val NetworkAddress.port: Int
     get() = (this as? InetSocketAddress)?.port ?: 0

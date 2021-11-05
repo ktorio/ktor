@@ -640,6 +640,10 @@ public final class io/ktor/utils/io/concurrent/SharedJvmKt {
 	public static final fun threadLocal (Ljava/lang/Object;)Lkotlin/properties/ReadOnlyProperty;
 }
 
+public final class io/ktor/utils/io/concurrent/SharedKt {
+	public static final fun sharedLazy (Lkotlin/jvm/functions/Function0;)Lkotlin/properties/ReadOnlyProperty;
+}
+
 public class io/ktor/utils/io/core/Buffer {
 	public static final field Companion Lio/ktor/utils/io/core/Buffer$Companion;
 	public static final field ReservedSize I
@@ -1403,7 +1407,6 @@ public final class io/ktor/utils/io/core/internal/UTF8Kt {
 }
 
 public final class io/ktor/utils/io/core/internal/UnsafeKt {
-	public static final fun $unsafeAppend$ (Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/utils/io/core/BytePacketBuilder;)V
 	public static final fun completeReadHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
 	public static final fun prepareReadFirstHead (Lio/ktor/utils/io/core/Input;I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public static final fun prepareReadNextHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;

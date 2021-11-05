@@ -59,7 +59,7 @@ public object DefaultConversionService : ConversionService {
             return null
         }
 
-        if (type.type == List::class) {
+        if (type.type == List::class || type.type == MutableList::class) {
             val argumentType = type.kotlinType?.arguments?.single()?.type?.classifier as? KClass<*>
             if (argumentType != null) {
                 return values.map { fromValue(it, argumentType) }

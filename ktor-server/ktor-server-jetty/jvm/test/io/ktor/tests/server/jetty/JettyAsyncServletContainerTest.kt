@@ -5,6 +5,7 @@
 package io.ktor.tests.server.jetty
 
 import io.ktor.server.jetty.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 
 class JettyAsyncServletContainerCompressionTest :
@@ -13,8 +14,13 @@ class JettyAsyncServletContainerCompressionTest :
 class JettyAsyncServletContainerContentTest :
     ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
 
-class JettyAsyncServletContainerHttpServerTest :
-    HttpServerTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+class JettyAsyncServletContainerHttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    )
+
+class JettyAsyncServletContainerHttpServerJvmTest :
+    HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
 
 class JettyAsyncServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))

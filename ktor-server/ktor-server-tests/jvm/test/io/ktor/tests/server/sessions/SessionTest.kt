@@ -17,6 +17,9 @@ import kotlinx.coroutines.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.*
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("ReplaceSingleLineLet")
 @OptIn(ExperimentalTime::class)
@@ -50,7 +53,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     cookie.domain = "foo.bar"
-                    cookie.maxAge = Duration.hours(1)
+                    cookie.maxAge = 1.hours
                 }
             }
 
@@ -476,7 +479,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
-                    cookie.maxAge = Duration.seconds(durationSeconds)
+                    cookie.maxAge = durationSeconds.seconds
                     identity { (id++).toString() }
                 }
             }
@@ -602,7 +605,7 @@ class SessionTest {
         val transport = SessionTransportCookie(
             "test",
             CookieConfiguration().apply {
-                maxAge = Duration.days((365 * 100))
+                maxAge = (365 * 100).days
             },
             emptyList()
         )
@@ -620,7 +623,7 @@ class SessionTest {
         val transport = SessionTransportCookie(
             "test",
             CookieConfiguration().apply {
-                maxAge = Duration.seconds(Long.MAX_VALUE)
+                maxAge = Long.MAX_VALUE.seconds
             },
             emptyList()
         )

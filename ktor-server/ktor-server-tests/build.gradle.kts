@@ -11,9 +11,9 @@ kotlin.sourceSets {
     }
     val jvmTest by getting {
         dependencies {
+            implementation("org.fusesource.jansi:jansi:$jansi_version")
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
         }
     }
 }

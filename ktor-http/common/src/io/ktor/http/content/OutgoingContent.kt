@@ -116,7 +116,7 @@ public sealed class OutgoingContent {
      * Variant of a [OutgoingContent] for upgrading an HTTP connection
      */
     public abstract class ProtocolUpgrade : OutgoingContent() {
-        final override val status: HttpStatusCode?
+        final override val status: HttpStatusCode
             get() = HttpStatusCode.SwitchingProtocols
 
         /**

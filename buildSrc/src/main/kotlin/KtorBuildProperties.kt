@@ -28,6 +28,33 @@ val HOST_NAME = when {
     else -> error("Unknown os name `$OS_NAME`")
 }
 
+val MAC_TARGETS = setOf(
+    "macosX64",
+    "macosArm64",
+    "iosX64",
+    "iosArm64",
+    "iosArm32",
+    "iosSimulatorArm64",
+    "watchosX86",
+    "watchosX64",
+    "watchosArm32",
+    "watchosArm64",
+    "watchosSimulatorArm64",
+    "tvosX64",
+    "tvosArm64",
+    "tvosSimulatorArm64",
+)
+
+val WIN_TARGETS = setOf("mingwX64")
+
+val LINUX_TARGETS = setOf("linuxX64")
+
+val EXCLUDE_MAP = mapOf(
+    "linux" to MAC_TARGETS + WIN_TARGETS,
+    "windows" to MAC_TARGETS + LINUX_TARGETS,
+    "macos" to WIN_TARGETS + LINUX_TARGETS
+)
+
 object KtorBuildProperties {
     val jettyAlpnBootVersion: String? = when (java_version) {
         "1.8.0_191",

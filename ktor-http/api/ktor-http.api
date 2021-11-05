@@ -1157,7 +1157,6 @@ public final class io/ktor/http/content/EntityTagVersion$Companion {
 
 public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/content/Version {
 	public fun <init> (Lio/ktor/util/date/GMTDate;)V
-	public fun <init> (Ljava/util/Date;)V
 	public fun appendHeadersTo (Lio/ktor/http/HeadersBuilder;)V
 	public fun check (Lio/ktor/http/Headers;)Lio/ktor/http/content/VersionCheckResult;
 	public final fun component1 ()Lio/ktor/util/date/GMTDate;
@@ -1295,6 +1294,10 @@ public final class io/ktor/http/content/VersionCheckResult : java/lang/Enum {
 	public final fun getStatusCode ()Lio/ktor/http/HttpStatusCode;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/content/VersionCheckResult;
 	public static fun values ()[Lio/ktor/http/content/VersionCheckResult;
+}
+
+public final class io/ktor/http/content/VersionsJvmKt {
+	public static final fun LastModifiedVersion (Ljava/util/Date;)Lio/ktor/http/content/LastModifiedVersion;
 }
 
 public final class io/ktor/http/content/VersionsKt {

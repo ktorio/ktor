@@ -33,12 +33,12 @@ internal actual suspend fun connect(
             return TCPSocketNative(
                 descriptor,
                 selector,
-                remoteAddress = NetworkAddress(
+                remoteAddress = ResolvedNetworkAddress(
                     networkAddress.hostname,
                     networkAddress.port,
                     remote
                 ),
-                localAddress = NetworkAddress("0.0.0.0", localAddress.port, localAddress)
+                localAddress = ResolvedNetworkAddress("0.0.0.0", localAddress.port, localAddress)
             )
         } catch (_: Throwable) {
         }
@@ -64,10 +64,12 @@ internal actual fun bind(
 
     listen(descriptor, DEFAULT_BACKLOG_SIZE).check()
 
+    val localAddress = getLocalAddress(descriptor)
+
     return TCPServerSocketNative(
         descriptor,
         selector,
-        localAddress = localAddress ?: NetworkAddress("0.0.0.0", address.port, address),
+        localAddress = NetworkAddress(localAddress.address, localAddress.port),
         parent = selector.coroutineContext
     )
 }

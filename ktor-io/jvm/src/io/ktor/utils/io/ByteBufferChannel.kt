@@ -1595,6 +1595,7 @@ internal open class ByteBufferChannel(
         writeSession.complete()
     }
 
+    @Deprecated("Use read { } instead.")
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
             try {
@@ -1605,6 +1606,7 @@ internal open class ByteBufferChannel(
         }
     }
 
+    @Deprecated("Use read { } instead.")
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             try {
@@ -1745,6 +1747,7 @@ internal open class ByteBufferChannel(
         return copied
     }
 
+    @Deprecated("Use read { } instead.")
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
         closedCause?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
@@ -1765,6 +1768,7 @@ internal open class ByteBufferChannel(
         return result!!
     }
 
+    @Deprecated("Use read { } instead.")
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
         closedCause?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
@@ -1805,6 +1809,7 @@ internal open class ByteBufferChannel(
 
     private val writeSession = WriteSessionImpl(this)
 
+    @Deprecated("Use write { } instead.")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = writeSession
 
@@ -2069,7 +2074,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket = if (isClosedForWrite) {
-        closedCause?.let { throw rethrowClosed(it) }
+        closedCause?.let { rethrowClosed(it) }
         remainingPacket(limit, headerSizeHint)
     } else {
         readRemainingSuspend(limit, headerSizeHint)
@@ -2308,23 +2313,27 @@ internal open class ByteBufferChannel(
     private suspend fun writeSuspend(size: Int) {
         while (writeSuspendPredicate(size)) {
             suspendCancellableCoroutine<Unit> { c ->
-                do {
-                    closed?.sendException?.let { rethrowClosed(it) }
-                    if (!writeSuspendPredicate(size)) {
-                        c.resume(Unit)
-                        break
-                    }
-                } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
-
-                flushImpl(minWriteSize = size)
-
-                if (shouldResumeReadOp()) {
-                    resumeReadOp()
-                }
+                writeSuspendBlock(size, c)
             }
         }
 
         closed?.sendException?.let { rethrowClosed(it) }
+    }
+
+    private fun writeSuspendBlock(size: Int, c: CancellableContinuation<Unit>) {
+        do {
+            closed?.sendException?.let { rethrowClosed(it) }
+            if (!writeSuspendPredicate(size)) {
+                c.resume(Unit)
+                break
+            }
+        } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
+
+        flushImpl(minWriteSize = size)
+
+        if (shouldResumeReadOp()) {
+            resumeReadOp()
+        }
     }
 
     private inline fun <T, C : Continuation<T>> setContinuation(

@@ -1,7 +1,5 @@
 description = ""
 
-extra["commonStructure"] = false
-
 val coroutines_version: String by extra
 
 kotlin.sourceSets {

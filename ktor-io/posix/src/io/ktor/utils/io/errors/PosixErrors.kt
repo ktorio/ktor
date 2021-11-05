@@ -1,17 +1,12 @@
 package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.internal.utils.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
-@Suppress("unused")
 @SharedImmutable
-private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
-
-@SharedImmutable
-private val KnownPosixErrors = mapOf<Int, String>(
+private val KnownPosixErrors = mapOf(
     EBADF to "EBADF",
     EWOULDBLOCK to "EWOULDBLOCK",
     EAGAIN to "EAGAIN",
@@ -89,8 +84,8 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
             }
 
             val message = when {
-                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + strerror(errno)
-                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${strerror(errno)}"
+                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + posixErrorToString(errno)
+                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${posixErrorToString(errno)}"
             }
 
             when (errno) {
@@ -123,14 +118,4 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
 internal fun PosixException.wrapIO(): IOException =
     IOException("I/O operation failed due to posix error code $errno", this)
 
-private tailrec fun MemScope.strerror(errno: Int, size: size_t = 8192.convert()): String {
-    val message = allocArray<ByteVar>(size.toLong())
-    val result = strerror_r(errno, message, size)
-    if (result == ERANGE) {
-        return strerror(errno, size * 2.convert())
-    }
-    if (result != 0) {
-        return "Unknown error ($errno)"
-    }
-    return message.toKString()
-}
+private fun posixErrorToString(errno: Int): String = strerror(errno)?.toKString() ?: "Unknown error code: $errno"
