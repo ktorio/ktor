@@ -107,40 +107,22 @@ kotlin.sourceSets {
     }
 
     if (rootProject.ext.get("native_targets_enabled") as Boolean) {
-        if (!IDEA_ACTIVE) {
-            listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
-                it.dependencies {
-                    api(project(":ktor-client:ktor-client-curl"))
-                }
+        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                api(project(":ktor-client:ktor-client-curl"))
             }
+        }
 
-            if (!osName.startsWith("Windows")) {
-                listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
-                    it.dependencies {
-                        api(project(":ktor-client:ktor-client-cio"))
-                    }
-                }
-            }
-            listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
+        if (!osName.startsWith("Windows")) {
+            listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
                 it.dependencies {
-                    api(project(":ktor-client:ktor-client-ios"))
-                }
-            }
-        } else {
-            val posixTest by getting {
-                dependencies {
-                    api(project(":ktor-client:ktor-client-curl"))
-                }
-            }
-            val nixTest by getting {
-                dependencies {
                     api(project(":ktor-client:ktor-client-cio"))
                 }
             }
-            val darwinTest by getting {
-                dependencies {
-                    api(project(":ktor-client:ktor-client-ios"))
-                }
+        }
+        listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                api(project(":ktor-client:ktor-client-ios"))
             }
         }
     }
@@ -167,14 +149,12 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
-if (!IDEA_ACTIVE) {
-    testTasks += listOf(
-        "macosX64Test",
-        "linuxX64Test",
-        "iosX64Test",
-        "mingwX64Test"
-    )
-}
+testTasks += listOf(
+    "macosX64Test",
+    "linuxX64Test",
+    "iosX64Test",
+    "mingwX64Test"
+)
 
 rootProject.allprojects {
     if (!path.contains("ktor-client") || path.contains("ktor-shared")) {
@@ -185,16 +165,6 @@ rootProject.allprojects {
         dependsOn(startTestServer)
         kotlin.sourceSets {
             if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) {
-                return@sourceSets
-            }
-            if (IDEA_ACTIVE) {
-                if (name == "nixTest") {
-                    getByName(name) {
-                        dependencies {
-                            api(project(":ktor-client:ktor-client-curl"))
-                        }
-                    }
-                }
                 return@sourceSets
             }
             if (name in listOf("macosX64Test", "linuxX64Test")) {

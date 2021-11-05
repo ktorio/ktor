@@ -4,6 +4,8 @@
 
 package io.ktor.network.tls.extensions
 
+import kotlin.native.concurrent.*
+
 /**
  * Named curves for Elliptic Curves.
  * @property code curve numeric code
@@ -49,6 +51,7 @@ public enum class NamedCurve(public val code: Short, public val fieldSize: Int) 
 /**
  * List of supported named curves
  */
+@SharedImmutable
 public val SupportedNamedCurves: List<NamedCurve> = listOf(
     NamedCurve.secp256r1,
     NamedCurve.secp384r1

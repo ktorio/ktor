@@ -30,6 +30,11 @@ class WebSocketTest {
                 TODO("Not yet implemented")
             }
 
+            @Deprecated(
+                "Use cancel() instead.",
+                ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+                level = DeprecationLevel.ERROR
+            )
             override fun terminate() {
                 TODO("Not yet implemented")
             }

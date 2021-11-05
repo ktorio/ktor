@@ -64,8 +64,8 @@ internal class TCPServerSocketNative(
         TCPSocketNative(
             clientDescriptor,
             selectorManager,
-            remoteAddress = io.ktor.util.network.NetworkAddress("", remoteAddress.port, remoteAddress),
-            localAddress = io.ktor.util.network.NetworkAddress("", localAddress.port, localAddress),
+            remoteAddress = ResolvedNetworkAddress(remoteAddress.address, remoteAddress.port, remoteAddress),
+            localAddress = ResolvedNetworkAddress(localAddress.address, localAddress.port, localAddress),
             parent = selfContext() + coroutineContext
         )
     }

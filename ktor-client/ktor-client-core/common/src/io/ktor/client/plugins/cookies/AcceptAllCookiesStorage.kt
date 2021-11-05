@@ -4,8 +4,9 @@
 
 package io.ktor.client.plugins.cookies
 
-import io.ktor.client.utils.sharedList
 import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.sync.*
@@ -15,6 +16,7 @@ import kotlin.math.*
  * [CookiesStorage] that stores all the cookies in an in-memory map.
  */
 public class AcceptAllCookiesStorage : CookiesStorage {
+    @OptIn(InternalAPI::class)
     private val container: MutableList<Cookie> = sharedList()
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Mutex()

@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import io.ktor.util.collections.*
+
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
  */
@@ -196,7 +198,7 @@ public open class StringValuesBuilderImpl(
 ) : StringValuesBuilder {
 
     protected val values: MutableMap<String, MutableList<String>> =
-        if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
+        if (caseInsensitiveName) caseInsensitiveMap() else sharedMap(size)
 
     override fun getAll(name: String): List<String>? = values[name]
 
@@ -212,7 +214,7 @@ public open class StringValuesBuilderImpl(
 
     override operator fun set(name: String, value: String) {
         validateValue(value)
-        val list = ensureListForKey(name, 1)
+        val list = ensureListForKey(name)
         list.clear()
         list.add(value)
     }
@@ -221,7 +223,7 @@ public open class StringValuesBuilderImpl(
 
     override fun append(name: String, value: String) {
         validateValue(value)
-        ensureListForKey(name, 1).add(value)
+        ensureListForKey(name).add(value)
     }
 
     override fun appendAll(stringValues: StringValues) {
@@ -237,7 +239,7 @@ public open class StringValuesBuilderImpl(
     }
 
     override fun appendAll(name: String, values: Iterable<String>) {
-        ensureListForKey(name, (values as? Collection)?.size ?: 2).let { list ->
+        ensureListForKey(name).let { list ->
             values.forEach { value ->
                 validateValue(value)
                 list.add(value)
@@ -277,8 +279,8 @@ public open class StringValuesBuilderImpl(
     protected open fun validateValue(value: String) {
     }
 
-    private fun ensureListForKey(name: String, size: Int): MutableList<String> {
-        return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }
+    private fun ensureListForKey(name: String): MutableList<String> {
+        return values[name] ?: sharedList<String>().also { validateName(name); values[name] = it }
     }
 }
 

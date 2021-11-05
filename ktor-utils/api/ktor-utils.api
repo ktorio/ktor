@@ -213,10 +213,6 @@ public final class io/ktor/util/LockKt {
 	public static final fun withLock (Lio/ktor/util/Lock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 }
 
-public final class io/ktor/util/LoggingKt {
-	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
-}
-
 public final class io/ktor/util/NIOKt {
 	public static final fun copy (Ljava/nio/ByteBuffer;I)Ljava/nio/ByteBuffer;
 	public static final fun copy (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;I)Ljava/nio/ByteBuffer;
@@ -490,6 +486,13 @@ public final class io/ktor/util/cio/Semaphore {
 	public final fun getLimit ()I
 	public final fun leave ()V
 	public final fun release ()V
+}
+
+public final class io/ktor/util/collections/CollectionUtilsKt {
+	public static final fun sharedList ()Ljava/util/List;
+	public static final fun sharedListOf ([Ljava/lang/Object;)Ljava/util/List;
+	public static final fun sharedMap (I)Ljava/util/Map;
+	public static synthetic fun sharedMap$default (IILjava/lang/Object;)Ljava/util/Map;
 }
 
 public class io/ktor/util/collections/ConcurrentCollection : java/util/Collection, kotlin/jvm/internal/markers/KMutableCollection {
@@ -907,6 +910,14 @@ public class io/ktor/util/internal/LockFreeLinkedListNode$RemoveFirstDesc : io/k
 public abstract class io/ktor/util/internal/OpDescriptor {
 	public fun <init> ()V
 	public abstract fun perform (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/util/logging/KtorSimpleLoggerJvmKt {
+	public static final fun KtorSimpleLogger (Ljava/lang/String;)Lorg/slf4j/Logger;
+}
+
+public final class io/ktor/util/logging/LoggerKt {
+	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 }
 
 public final class io/ktor/util/network/NetworkAddressJvmKt {

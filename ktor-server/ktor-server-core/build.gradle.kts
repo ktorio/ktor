@@ -10,23 +10,34 @@ val mockk_version: String by extra
 val jansi_version: String by project.extra
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    val jvmAndNixMain by getting {
         dependencies {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
             api(project(":ktor-shared:ktor-serialization"))
             api(project(":ktor-shared:ktor-events"))
 
-            api("com.typesafe:config:$typesafe_config_version")
             api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+        }
+    }
+
+    val jvmMain by getting {
+        dependencies {
+            api("com.typesafe:config:$typesafe_config_version")
             implementation("org.fusesource.jansi:jansi:$jansi_version")
         }
     }
-    val jvmTest by getting {
+
+    val jvmAndNixTest by getting {
         dependencies {
+            api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-network"))
-            api(project(":ktor-server:ktor-server-test-host"))
+        }
+    }
+
+    val jvmTest by getting {
+        dependencies {
             implementation("io.mockk:mockk:$mockk_version")
         }
     }

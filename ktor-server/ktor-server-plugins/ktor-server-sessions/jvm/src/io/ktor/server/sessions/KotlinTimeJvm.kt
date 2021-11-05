@@ -6,6 +6,7 @@ package io.ktor.server.sessions
 
 import kotlin.math.*
 import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Cookie time to live duration or `null` for session cookies.
@@ -14,7 +15,7 @@ import kotlin.time.*
  */
 @ExperimentalTime
 public var CookieConfiguration.maxAge: Duration?
-    get() = Duration.seconds(maxAgeInSeconds)
+    get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
         require(newMaxAge == null || !newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
         maxAgeInSeconds = newMaxAge?.toDouble(DurationUnit.SECONDS)?.roundToLong() ?: 0L

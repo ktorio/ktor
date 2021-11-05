@@ -41,27 +41,23 @@ fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = set
     mingwX64()
 )
 
-fun Project.disableCompilation(target: KotlinNativeTarget) {
-    target.apply {
+fun KotlinMultiplatformExtension.nix32Targets(): Set<KotlinNativeTarget> = setOf(
+    iosArm32(),
+    watchosX86(),
+    watchosArm32()
+)
 
-        compilations.all {
-            cinterops.all {
-                tasks.named(interopProcessingTaskName) { enabled = false }
-            }
-            compileKotlinTaskProvider.configure { enabled = false }
-        }
-
-        binaries.all {
-            linkTaskProvider.configure { enabled = false }
-        }
-
-        mavenPublication {
-            tasks.withType<AbstractPublishToMaven>().configureEach {
-                onlyIf { publication != this@mavenPublication }
-            }
-            tasks.withType<GenerateModuleMetadata>().configureEach {
-                onlyIf { publication.get() != this@mavenPublication }
-            }
-        }
-    }
-}
+fun KotlinMultiplatformExtension.nix64Targets(): Set<KotlinNativeTarget> = setOf(
+    iosArm64(),
+    iosX64(),
+    linuxX64(),
+    iosSimulatorArm64(),
+    watchosX64(),
+    watchosArm64(),
+    watchosSimulatorArm64(),
+    tvosX64(),
+    tvosArm64(),
+    tvosSimulatorArm64(),
+    macosX64(),
+    macosArm64()
+)

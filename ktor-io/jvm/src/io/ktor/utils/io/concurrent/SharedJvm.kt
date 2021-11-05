@@ -19,6 +19,7 @@ import kotlin.reflect.*
  */
 @Suppress("NOTHING_TO_INLINE")
 public actual inline fun <T> shared(value: T): ReadWriteProperty<Any, T> = object : ReadWriteProperty<Any, T> {
+    @Volatile
     private var value: T = value
 
     override fun getValue(thisRef: Any, property: KProperty<*>): T {

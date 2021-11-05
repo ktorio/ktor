@@ -20,7 +20,7 @@ public actual fun Throwable.printStack() {
 
 /**
  * This file is a copy of the [kotlinx.coroutines.internal.ExceptionConstructor] with a single difference:
- * [tryCopyException] takes additional argument with cause to use in recovered exception.
+ * [tryCopyException] takes additional argument with cause using in recovered exception.
  */
 
 private val throwableFields = Throwable::class.java.fieldsCountOrDefault(-1)

@@ -18,20 +18,11 @@ public class JettyApplicationEngine(
     configure: Configuration.() -> Unit
 ) : JettyApplicationEngineBase(environment, configure) {
 
-    private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())
+    private val dispatcher = server.threadPool.asCoroutineDispatcher()
 
     override fun start(wait: Boolean): JettyApplicationEngine {
         server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher, configuration)
         super.start(wait)
         return this
-    }
-
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        dispatcher.prepareShutdown()
-        try {
-            super.stop(gracePeriodMillis, timeoutMillis)
-        } finally {
-            dispatcher.completeShutdown()
-        }
     }
 }

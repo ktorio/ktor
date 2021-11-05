@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.utils
 
-import io.ktor.server.util.date.*
+import io.ktor.server.util.*
 import io.ktor.util.date.*
 import java.text.SimpleDateFormat
 import java.time.OffsetDateTime

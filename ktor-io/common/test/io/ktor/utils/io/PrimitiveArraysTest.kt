@@ -1,11 +1,11 @@
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.require
 import kotlin.test.*
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 class PrimitiveArraysTest {
     private val pool = VerifyingChunkBufferPool()
     private val view = pool.borrow()

@@ -103,6 +103,8 @@ public class BasicAuthProvider(
 
     private val tokensHolder = AuthTokenHolder(credentials)
 
+    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Please use sendWithoutRequest function instead")
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 

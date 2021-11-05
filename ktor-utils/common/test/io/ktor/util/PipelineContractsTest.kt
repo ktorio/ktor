@@ -14,6 +14,7 @@ import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 class PipelineContractsTest {
+    @OptIn(InternalAPI::class)
     private val checkList = sharedListOf<String>()
     private var v by shared(0)
     private val caught = atomic(false)

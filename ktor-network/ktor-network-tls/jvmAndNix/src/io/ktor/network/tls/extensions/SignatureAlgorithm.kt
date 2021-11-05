@@ -7,6 +7,7 @@ package io.ktor.network.tls.extensions
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlin.native.concurrent.*
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
@@ -91,6 +92,7 @@ internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = n
 /**
  * List of supported combinations of hash and signature algorithms
  */
+@SharedImmutable
 public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA384Encryption),
     HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA256Encryption),

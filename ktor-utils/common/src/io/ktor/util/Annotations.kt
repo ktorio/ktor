@@ -14,7 +14,6 @@ package io.ktor.util
     level = RequiresOptIn.Level.ERROR,
     message = "This API is internal in Ktor and should not be used. It could be removed or changed without notice."
 )
-@Experimental(level = Experimental.Level.ERROR)
 @Target(
     AnnotationTarget.CLASS,
     AnnotationTarget.TYPEALIAS,
@@ -36,7 +35,6 @@ public annotation class InternalAPI
     message = "This API is experimental. " +
         "It could be removed or changed in future releases, or its behaviour may be different."
 )
-@Experimental(level = Experimental.Level.WARNING)
 @Target(
     AnnotationTarget.CLASS,
     AnnotationTarget.TYPEALIAS,

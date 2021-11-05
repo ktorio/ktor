@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.hosts
 
-import com.typesafe.config.*
 import io.ktor.server.engine.*
 import org.junit.*
 import org.junit.rules.*
@@ -34,24 +33,6 @@ class CommandLineTest {
     @Test
     fun testAmendConfig() {
         assertEquals(13698, commandLineEnvironment(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
-    }
-
-    @Test
-    fun testPropertyConfig() {
-        System.setProperty("ktor.deployment.port", "1333")
-        ConfigFactory.invalidateCaches()
-        assertEquals(1333, commandLineEnvironment(emptyArray()).connectors.single().port)
-        System.clearProperty("ktor.deployment.port")
-        ConfigFactory.invalidateCaches()
-    }
-
-    @Test
-    fun testPropertyConfigOverride() {
-        System.setProperty("ktor.deployment.port", "1333")
-        ConfigFactory.invalidateCaches()
-        assertEquals(13698, commandLineEnvironment(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
-        System.clearProperty("ktor.deployment.port")
-        ConfigFactory.invalidateCaches()
     }
 
     @Test

@@ -19,18 +19,30 @@ internal class AuthTokenHolder<T>(
     }
 
     internal suspend fun loadToken(): T? {
-        val deferred = loadTokensDeferred.getAndUpdate { it ?: CompletableDeferred() }
-        return if (deferred == null) {
-            val newTokens = loadTokens()
-            loadTokensDeferred.value!!.complete(newTokens)
-            newTokens
-        } else {
-            deferred.await()
+        var deferred: CompletableDeferred<T?>?
+        while (true) {
+            deferred = loadTokensDeferred.value
+            val newValue = deferred ?: CompletableDeferred()
+            if (loadTokensDeferred.compareAndSet(deferred, newValue)) break
         }
+
+        if (deferred != null) {
+            return deferred.await()
+        }
+
+        val newTokens = loadTokens()
+        loadTokensDeferred.value!!.complete(newTokens)
+        return newTokens
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
-        val deferred = refreshTokensDeferred.getAndUpdate { it ?: CompletableDeferred() }
+        var deferred: CompletableDeferred<T?>?
+        while (true) {
+            deferred = refreshTokensDeferred.value
+            val newValue = deferred ?: CompletableDeferred()
+            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) break
+        }
+
         val newToken = if (deferred == null) {
             val newTokens = block()
             refreshTokensDeferred.value!!.complete(newTokens)

@@ -16,9 +16,12 @@ import kotlin.native.SharedImmutable
 // it should not called while any other thread is running.
 // See the curl_global_init(3) man page for details.
 @SharedImmutable
-private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.convert())
+private val curlGlobalInitReturnCode = curlInitBridge()
+
+internal expect fun curlInitBridge(): Int
 
 @Suppress("unused")
+@SharedImmutable
 private val initHook = Curl
 
 /**
@@ -33,7 +36,7 @@ public object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {
 
     override fun create(block: CurlClientEngineConfig.() -> Unit): HttpClientEngine {
         @Suppress("DEPRECATION")
-        if (curlGlobalInitReturnCode != 0U) {
+        if (curlGlobalInitReturnCode != 0) {
             throw CurlRuntimeException("curl_global_init() returned non-zero verify: $curlGlobalInitReturnCode")
         }
 

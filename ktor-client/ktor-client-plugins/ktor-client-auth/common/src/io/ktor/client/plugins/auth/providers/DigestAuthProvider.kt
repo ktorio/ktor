@@ -100,6 +100,8 @@ public class DigestAuthProvider(
     public val password: String
         get() = error("Static username is not supported anymore")
 
+    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Please use sendWithoutRequest function instead")
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 

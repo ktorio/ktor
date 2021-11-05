@@ -10,7 +10,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.content.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.test.*

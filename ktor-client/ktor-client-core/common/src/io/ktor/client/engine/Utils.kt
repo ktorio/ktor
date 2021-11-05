@@ -10,11 +10,13 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.native.concurrent.*
 
 /**
  * Default user agent to use in ktor client.
  */
 @InternalAPI
+@SharedImmutable
 public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
 
 /**

@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*

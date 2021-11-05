@@ -129,7 +129,6 @@ public final class io/ktor/http/cio/PipelineKt {
 	public static final fun getHttpPipelineCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
-	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function6;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/http/cio/Request : io/ktor/http/cio/HttpMessage {
@@ -158,6 +157,28 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 	public final fun getVersion ()Ljava/lang/CharSequence;
 }
 
+public final class io/ktor/http/cio/backend/ServerIncomingConnection {
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
+	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
+	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
+	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
+}
+
+public final class io/ktor/http/cio/backend/ServerPipelineKt {
+	public static final fun startServerConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/http/cio/backend/ServerIncomingConnection;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+}
+
+public final class io/ktor/http/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
+	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
+	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
+	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
+	public final fun withContext (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/http/cio/backend/ServerRequestScope;
+}
+
 public final class io/ktor/http/cio/internals/MutableRange {
 	public fun <init> (II)V
 	public final fun getEnd ()I
@@ -173,16 +194,7 @@ public final class io/ktor/http/cio/internals/WeakTimeoutQueue {
 	public final fun cancel ()V
 	public final fun getTimeoutMillis ()J
 	public final fun process ()V
-	public final fun register (Lkotlinx/coroutines/Job;)Lio/ktor/http/cio/internals/WeakTimeoutQueue$Registration;
 	public final fun withTimeout (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public abstract interface class io/ktor/http/cio/internals/WeakTimeoutQueue$Registration : kotlin/jvm/functions/Function1, kotlinx/coroutines/DisposableHandle {
-	public abstract fun invoke (Ljava/lang/Throwable;)V
-}
-
-public final class io/ktor/http/cio/internals/WeakTimeoutQueue$Registration$DefaultImpls {
-	public static fun invoke (Lio/ktor/http/cio/internals/WeakTimeoutQueue$Registration;Ljava/lang/Throwable;)V
 }
 
 public final class io/ktor/http/cio/websocket/CloseReason {
@@ -552,27 +564,5 @@ public final class io/ktor/http/cio/websocket/WebSocketWriter : kotlinx/coroutin
 	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setMasking (Z)V
-}
-
-public final class io/ktor/server/cio/backend/ServerIncomingConnection {
-	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
-	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
-	public final fun getLocalAddress ()Ljava/net/SocketAddress;
-	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
-	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
-}
-
-public final class io/ktor/server/cio/backend/ServerPipelineKt {
-	public static final fun startServerConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
-}
-
-public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
-	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
-	public final fun getLocalAddress ()Ljava/net/SocketAddress;
-	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
-	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
-	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
-	public final fun withContext (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/server/cio/backend/ServerRequestScope;
 }
 

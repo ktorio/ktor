@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import kotlin.native.concurrent.*
+
 /**
  * Represents an HTTP status code and description.
  * @param value is a numeric code.

@@ -22,7 +22,6 @@ public final class io/ktor/server/jetty/JettyApplicationEngine : io/ktor/server/
 	public synthetic fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
 	public fun start (Z)Lio/ktor/server/jetty/JettyApplicationEngine;
 	public synthetic fun start (Z)Lio/ktor/server/jetty/JettyApplicationEngineBase;
-	public fun stop (JJ)V
 }
 
 public class io/ktor/server/jetty/JettyApplicationEngineBase : io/ktor/server/engine/BaseApplicationEngine {

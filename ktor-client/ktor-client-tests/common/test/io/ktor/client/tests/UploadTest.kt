@@ -7,8 +7,8 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import kotlin.test.*
 
 class UploadTest : ClientLoader() {

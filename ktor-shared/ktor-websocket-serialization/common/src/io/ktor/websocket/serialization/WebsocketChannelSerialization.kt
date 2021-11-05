@@ -64,10 +64,11 @@ public suspend inline fun <reified T : Any> WebSocketSession.receiveDeserialized
         content = frame
     )
 
-    return if (result is T) result
-    else throw WebsocketDeserializeException(
-        "Can't deserialize value : expected value of type ${T::class.qualifiedName}," +
-            " got ${result::class.qualifiedName}",
+    if (result is T) return result
+
+    throw WebsocketDeserializeException(
+        "Can't deserialize value : expected value of type ${T::class.simpleName}," +
+            " got ${result::class.simpleName}",
         frame = frame
     )
 }

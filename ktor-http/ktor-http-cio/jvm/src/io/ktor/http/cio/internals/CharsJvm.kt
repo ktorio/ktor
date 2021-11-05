@@ -4,7 +4,6 @@
 
 package io.ktor.http.cio.internals
 
-import io.ktor.utils.io.*
 import java.nio.*
 
 internal fun ByteBuffer.writeIntHex(value: Int): Int {

@@ -7,6 +7,7 @@
 package io.ktor.client.plugins.json
 
 import io.ktor.util.*
+import io.ktor.util.collections.*
 
 /**
  * Platform default serializer.
@@ -17,6 +18,5 @@ public actual fun defaultSerializer(): JsonSerializer = serializers.first()
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public val serializers: MutableList<JsonSerializer> by lazy {
-    mutableListOf()
-}
+@SharedImmutable
+public val serializers: MutableList<JsonSerializer> = sharedList()

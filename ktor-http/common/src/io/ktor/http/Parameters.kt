@@ -34,7 +34,9 @@ public interface ParametersBuilder : StringValuesBuilder {
 public fun ParametersBuilder(size: Int = 8): ParametersBuilder = ParametersBuilderImpl(size)
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilderImpl(size: Int = 8) : StringValuesBuilderImpl(true, size), ParametersBuilder {
+public class ParametersBuilderImpl(
+    size: Int = 8
+) : StringValuesBuilderImpl(true, size), ParametersBuilder {
     override fun build(): Parameters {
         return ParametersImpl(values)
     }
@@ -66,8 +68,9 @@ public fun parametersOf(map: Map<String, List<String>>): Parameters = Parameters
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters,
-    StringValuesImpl(true, values) {
+public class ParametersImpl(
+    values: Map<String, List<String>> = emptyMap()
+) : Parameters, StringValuesImpl(true, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 

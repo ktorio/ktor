@@ -11,7 +11,7 @@ import kotlin.reflect.*
  */
 public expect interface Type
 
-internal expect val KType.platformType: Type
+public expect val KType.platformType: Type
 
 /**
  * Ktor type information.

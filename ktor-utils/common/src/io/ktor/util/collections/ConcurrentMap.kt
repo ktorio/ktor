@@ -66,6 +66,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     override fun clear(): Unit = locked {
         table = SharedList(INITIAL_CAPACITY)
         insertionOrder = SharedForwardList()
+        _size.value = 0
     }
 
     override fun put(key: Key, value: Value): Value? = locked {

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.cio
 
@@ -17,8 +17,10 @@ import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
 import kotlin.time.*
+import io.ktor.client.engine.cio.CIO as CioClient
+import io.ktor.server.cio.CIO as CioServer
 
-class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CioServer) {
     init {
         enableSsl = false
     }
@@ -33,7 +35,11 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
         val exceptionHandler = CoroutineExceptionHandler { _, cause ->
             cancel("Uncaught failure", cause)
         }
-        val server = embeddedServer(CIO, port = port, parentCoroutineContext = coroutineContext + exceptionHandler) {
+        val server = embeddedServer(
+            CioServer,
+            port = port,
+            parentCoroutineContext = coroutineContext + exceptionHandler
+        ) {
             install(WebSockets)
 
             routing {
@@ -48,7 +54,7 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
             delay(1000L)
 
             launch {
-                HttpClient(io.ktor.client.engine.cio.CIO).use { client ->
+                HttpClient(CioClient).use { client ->
                     try {
                         client.get { url(port = port, path = "/hang") }.body<String>()
                     } catch (e: Throwable) {

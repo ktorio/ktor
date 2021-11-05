@@ -10,6 +10,7 @@ import io.ktor.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
+import kotlin.native.concurrent.*
 
 /**
  * The default json configuration used in [KotlinxSerializationConverter]. The settings are:
@@ -21,6 +22,7 @@ import kotlinx.serialization.modules.*
  *
  * See [Json] for more details.
  */
+@SharedImmutable
 public val DefaultJson: Json = Json {
     encodeDefaults = true
     isLenient = true

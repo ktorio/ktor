@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.util.*
 import platform.Foundation.*
 
+@SharedImmutable
 private val initHook = Ios
 
 /**

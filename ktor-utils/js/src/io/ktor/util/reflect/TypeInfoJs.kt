@@ -21,5 +21,5 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): Ty
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = JsType

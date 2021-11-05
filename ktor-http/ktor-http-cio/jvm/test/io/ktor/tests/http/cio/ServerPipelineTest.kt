@@ -5,8 +5,8 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.*
+import io.ktor.http.cio.backend.*
 import io.ktor.http.cio.internals.*
-import io.ktor.server.cio.backend.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*

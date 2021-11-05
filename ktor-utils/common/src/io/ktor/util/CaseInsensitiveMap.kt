@@ -4,11 +4,13 @@
 
 package io.ktor.util
 
+import io.ktor.util.collections.*
+
 /**
  * A map with case insensitive [String] keys
  */
-public class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
-    private val delegate = mutableMapOf<CaseInsensitiveString, Value>()
+public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
+    private val delegate = sharedMap<CaseInsensitiveString, Value>()
 
     override val size: Int get() = delegate.size
 

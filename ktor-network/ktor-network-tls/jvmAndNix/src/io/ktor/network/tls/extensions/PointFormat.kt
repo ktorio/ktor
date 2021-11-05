@@ -4,6 +4,8 @@
 
 package io.ktor.network.tls.extensions
 
+import kotlin.native.concurrent.*
+
 /**
  * Elliptic curve point format
  * @property code numeric point format code
@@ -28,6 +30,7 @@ public enum class PointFormat(public val code: Byte) {
 /**
  * List of supported curve point formats
  */
+@SharedImmutable
 public val SupportedPointFormats: List<PointFormat> = listOf(
     PointFormat.UNCOMPRESSED,
     PointFormat.ANSIX962_COMPRESSED_PRIME,

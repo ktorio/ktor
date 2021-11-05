@@ -10,11 +10,13 @@ import io.ktor.server.jetty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.component.*
 import javax.servlet.http.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class JettyCompressionTest :
@@ -22,7 +24,10 @@ class JettyCompressionTest :
 
 class JettyContentTest : ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
-class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+class JettyHttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
 ) {
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
@@ -42,7 +47,7 @@ class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApp
             }
         }
 
-        withUrl("/tomcat/attributes") {
+        withUrl("/tomcat/attributes", {}) {
             assertEquals("135", call.response.bodyAsText())
         }
     }

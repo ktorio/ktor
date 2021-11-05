@@ -5,6 +5,7 @@
 package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
@@ -27,7 +28,11 @@ class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicati
     }
 }
 
-class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyHttpServerCommonTest :
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyHttpServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
@@ -38,7 +43,11 @@ class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApp
     }
 }
 
-class NettyHttp2ServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyHttp2ServerCommonTest :
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyHttp2ServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
         enableHttp2 = true

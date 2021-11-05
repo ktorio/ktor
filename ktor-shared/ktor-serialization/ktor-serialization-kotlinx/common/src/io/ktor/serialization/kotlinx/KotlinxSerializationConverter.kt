@@ -65,8 +65,8 @@ public class KotlinxSerializationConverter(
         override suspend fun serializeContent(parameters: SerializationParameters): OutgoingContent.ByteArrayContent {
             if (parameters !is SerializationNegotiationParameters) {
                 error(
-                    "parameters type is ${parameters::class.qualifiedName}," +
-                        " but expected ${SerializationNegotiationParameters::class.qualifiedName}"
+                    "parameters type is ${parameters::class.simpleName}," +
+                        " but expected ${SerializationNegotiationParameters::class.simpleName}"
                 )
             }
             return serializeContent(

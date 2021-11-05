@@ -248,6 +248,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     @Suppress("DEPRECATION")
+    @Deprecated("Use write { } instead.")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = beginWriteSession()
         visitor(session)
