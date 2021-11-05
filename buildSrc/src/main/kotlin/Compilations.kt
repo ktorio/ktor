@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.plugin.*
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
     kotlinOptions {
         if (platformType == KotlinPlatformType.jvm && !IDEA_ACTIVE) {
-            allWarningsAsErrors = true
+//            allWarningsAsErrors = true
         }
 
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
