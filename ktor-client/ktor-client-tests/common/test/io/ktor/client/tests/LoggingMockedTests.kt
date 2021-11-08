@@ -309,4 +309,94 @@ class LoggingMockedTests {
             testLogger.verify()
         }
     }
+
+    @Test
+    fun testStatusAtLeastBadRequestStrategyEmpty() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler { respondOk() }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+                strategy = StatusAtLeastStrategy(HttpStatusCode.BadRequest)
+            }
+        }
+
+        test { client ->
+            client.get(urlString = "http://somewhere/any")
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testStatusAtLeastBadRequestStrategy() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger(
+            "REQUEST: http://somewhere/any",
+            "METHOD: HttpMethod(value=GET)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "-> Content-Length: 0",
+            "BODY Content-Type: null",
+            "BODY START",
+            "",
+            "BODY END",
+            "RESPONSE: 400 Bad Request",
+            "METHOD: HttpMethod(value=GET)",
+            "FROM: http://somewhere/any",
+            "COMMON HEADERS",
+            "BODY Content-Type: null",
+            "BODY START",
+            "Bad Request",
+            "BODY END",
+            "REQUEST: http://somewhere/any",
+            "METHOD: HttpMethod(value=GET)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "-> Content-Length: 0",
+            "BODY Content-Type: null",
+            "BODY START",
+            "",
+            "BODY END",
+            "RESPONSE: 500 Internal Server Error",
+            "METHOD: HttpMethod(value=GET)",
+            "FROM: http://somewhere/any",
+            "COMMON HEADERS",
+            "BODY Content-Type: null",
+            "BODY START",
+            "Internal Server Error",
+            "BODY END"
+        )
+
+        config {
+            expectSuccess = false
+            engine {
+                addHandler { respondError(HttpStatusCode.BadRequest) }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+                strategy = StatusAtLeastStrategy(HttpStatusCode.BadRequest)
+            }
+        }
+
+        test { client ->
+            client.get(urlString = "http://somewhere/any")
+            client.get(urlString = "http://somewhere/any")
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
 }
