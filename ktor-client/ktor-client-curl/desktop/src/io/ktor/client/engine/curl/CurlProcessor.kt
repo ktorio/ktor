@@ -6,6 +6,7 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.util.collections.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -25,16 +26,16 @@ internal class CurlProcessor(
     private val activeRequests = atomic(0)
 
     init {
-        worker.execute(TransferMode.SAFE, { Unit }) {
+        worker.execute(TransferMode.SAFE, { }) {
             curlApi = CurlMultiApiHandler()
-        }
+        }.consume { }
     }
 
-    public suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
+    suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
         val deferred = CompletableDeferred<CurlSuccess>()
         responseConsumers[request] = deferred
 
-        val easyHandle = worker.execute(TransferMode.SAFE, { request.freeze() }, ::curlSchedule).result
+        val easyHandle = worker.execute(TransferMode.SAFE, { request.apply { makeShared() } }, ::curlSchedule).result
 
         val requestCleaner = callContext[Job]!!.invokeOnCompletion { cause ->
             if (cause == null) return@invokeOnCompletion
@@ -56,13 +57,13 @@ internal class CurlProcessor(
         }
     }
 
-    public fun close() {
-        worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
+    fun close() {
+        worker.execute(TransferMode.SAFE, { }) { curlApi.close() }.consume { }
         worker.requestTermination()
     }
 
     private fun poll(): Future<List<CurlResponseData>> =
-        worker.execute(TransferMode.SAFE, { Unit }, { pollCompleted() })
+        worker.execute(TransferMode.SAFE, { }, { pollCompleted() })
 
     private fun processPoll(result: List<CurlResponseData>) {
         result.forEach { response ->
@@ -78,9 +79,9 @@ internal class CurlProcessor(
     }
 
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
-        worker.execute(TransferMode.SAFE, { (easyHandle to cause).freeze() }) {
+        worker.execute(TransferMode.SAFE, { (easyHandle to cause).apply { makeShared() } }) {
             curlApi.cancelRequest(it.first, it.second)
-        }
+        }.consume { }
     }
 }
 
@@ -88,4 +89,4 @@ internal fun curlSchedule(request: CurlRequestData): EasyHandle {
     return curlApi.scheduleRequest(request)
 }
 
-internal fun pollCompleted(): List<CurlResponseData> = curlApi.pollCompleted(100).freeze()
+internal fun pollCompleted(): List<CurlResponseData> = curlApi.pollCompleted(100).apply { makeShared() }

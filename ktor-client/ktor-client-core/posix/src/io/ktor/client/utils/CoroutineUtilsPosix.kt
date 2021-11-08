@@ -5,6 +5,7 @@
 package io.ktor.client.utils
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 
@@ -20,7 +21,7 @@ public actual fun Dispatchers.clientDispatcher(
 internal actual fun checkCoroutinesVersion() {
     try {
         val parent = Job()
-        parent.freeze()
+        parent.makeShared()
         Job(parent)
     } catch (cause: Throwable) {
         val message = "Ktor native HttpClient requires kotlinx.coroutines version with `native-mt` suffix" +

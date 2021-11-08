@@ -23,6 +23,7 @@ import kotlin.jvm.*
  * @property port (Optional) HTTP port to send request to
  * @property protocol HTTP protocol to be used or was used
  */
+@Suppress("DEPRECATION")
 public class TestApplicationRequest constructor(
     call: TestApplicationCall,
     closeRequest: Boolean,

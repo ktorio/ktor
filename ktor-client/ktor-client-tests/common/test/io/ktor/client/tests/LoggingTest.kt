@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
     private val content = "Response data"
@@ -506,7 +507,7 @@ class LoggingTest : ClientLoader() {
 
     @Test
     fun testBodyLoggingKeepsContent() = clientTests {
-        val logs = ConcurrentList<String>()
+        val logs = sharedList<String>()
         val testLogger = object : Logger {
             override fun log(message: String) {
                 logs.add(message)

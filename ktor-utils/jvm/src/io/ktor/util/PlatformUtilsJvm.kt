@@ -14,4 +14,6 @@ public actual object PlatformUtils {
 
     public actual val IS_DEVELOPMENT_MODE: Boolean =
         System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() == true
+
+    public actual val IS_NEW_MM_ENABLED: Boolean = true
 }

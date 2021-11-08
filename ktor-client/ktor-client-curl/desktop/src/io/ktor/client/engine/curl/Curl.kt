@@ -15,13 +15,18 @@ import kotlin.native.SharedImmutable
 // while the program "is still single threaded", explicitly stating that
 // it should not called while any other thread is running.
 // See the curl_global_init(3) man page for details.
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalStdlibApi::class)
 @SharedImmutable
+@EagerInitialization
 private val curlGlobalInitReturnCode = curlInitBridge()
 
 internal expect fun curlInitBridge(): Int
 
-@Suppress("unused")
+@OptIn(ExperimentalStdlibApi::class)
+@Suppress("unused", "DEPRECATION")
 @SharedImmutable
+@EagerInitialization
 private val initHook = Curl
 
 /**

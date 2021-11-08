@@ -9,6 +9,7 @@ import io.ktor.util.collections.*
 /**
  * A map with case insensitive [String] keys
  */
+@Suppress("DEPRECATION")
 public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     private val delegate = sharedMap<CaseInsensitiveString, Value>()
 

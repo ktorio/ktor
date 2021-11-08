@@ -95,7 +95,7 @@ internal class SelectorHelper {
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
         }
 
-        val exception = CancellationException("Selector closed").freeze()
+        val exception = CancellationException("Selector closed").apply { makeShared() }
         while (!interestQueue.isEmpty) {
             interestQueue.removeFirstOrNull()?.fail(exception)
         }

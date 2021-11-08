@@ -12,9 +12,8 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.test.*
 
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "DEPRECATION")
 class PipelineContractsTest {
-    @OptIn(InternalAPI::class)
     private val checkList = sharedListOf<String>()
     private var v by shared(0)
     private val caught = atomic(false)

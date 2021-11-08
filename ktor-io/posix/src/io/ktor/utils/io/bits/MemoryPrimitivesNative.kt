@@ -9,7 +9,7 @@ public actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
     else loadShortSlowAt(pointer)
 }
 
@@ -17,7 +17,7 @@ public actual inline fun Memory.loadShortAt(offset: Long): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
     else loadShortSlowAt(pointer)
 }
 
@@ -25,7 +25,7 @@ public actual inline fun Memory.loadIntAt(offset: Int): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
     else loadIntSlowAt(pointer)
 }
 
@@ -33,7 +33,7 @@ public actual inline fun Memory.loadIntAt(offset: Long): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
     else loadIntSlowAt(pointer)
 }
 
@@ -41,7 +41,7 @@ public actual inline fun Memory.loadLongAt(offset: Int): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
     else loadLongSlowAt(pointer)
 }
 
@@ -49,7 +49,7 @@ public actual inline fun Memory.loadLongAt(offset: Long): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
     else loadLongSlowAt(pointer)
 }
 
@@ -57,7 +57,7 @@ public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
     else loadFloatSlowAt(pointer)
 }
 
@@ -65,7 +65,7 @@ public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
     else loadFloatSlowAt(pointer)
 }
 
@@ -73,7 +73,7 @@ public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
     else loadDoubleSlowAt(pointer)
 }
 
@@ -81,7 +81,7 @@ public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (IS_UNALIGNED_ACCESS_SUPPORTED) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
     else loadDoubleSlowAt(pointer)
 }
 
@@ -92,7 +92,7 @@ public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<IntVar>().pointed.value = value.toBigEndian()
     } else {
         storeIntSlowAt(pointer, value)
@@ -106,7 +106,7 @@ public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<IntVar>().pointed.value = value.toBigEndian()
     } else {
         storeIntSlowAt(pointer, value)
@@ -120,7 +120,7 @@ public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<ShortVar>().pointed.value = value.toBigEndian()
     } else {
         storeShortSlowAt(pointer, value)
@@ -134,7 +134,7 @@ public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<ShortVar>().pointed.value = value.toBigEndian()
     } else {
         storeShortSlowAt(pointer, value)
@@ -148,7 +148,7 @@ public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<LongVar>().pointed.value = value.toBigEndian()
     } else {
         storeLongSlowAt(pointer, value)
@@ -162,7 +162,7 @@ public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<LongVar>().pointed.value = value.toBigEndian()
     } else {
         storeLongSlowAt(pointer, value)
@@ -176,7 +176,7 @@ public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<FloatVar>().pointed.value = value.toBigEndian()
     } else {
         storeFloatSlowAt(pointer, value)
@@ -190,7 +190,7 @@ public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<FloatVar>().pointed.value = value.toBigEndian()
     } else {
         storeFloatSlowAt(pointer, value)
@@ -204,7 +204,7 @@ public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<DoubleVar>().pointed.value = value.toBigEndian()
     } else {
         storeDoubleSlowAt(pointer, value)
@@ -218,7 +218,7 @@ public actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED) {
+    if (Platform.canAccessUnaligned) {
         pointer.reinterpret<DoubleVar>().pointed.value = value.toBigEndian()
     } else {
         storeDoubleSlowAt(pointer, value)

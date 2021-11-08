@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 /**
  * [HttpClientEngine] for writing tests without network.
  */
+@Suppress("DEPRECATION")
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     @OptIn(InternalAPI::class)
     override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
@@ -29,8 +30,8 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     private val mutex = Lock()
     private val contextState: CompletableJob = Job()
 
-    private val _requestsHistory: MutableList<HttpRequestData> = ConcurrentList()
-    private val _responseHistory: MutableList<HttpResponseData> = ConcurrentList()
+    private val _requestsHistory: MutableList<HttpRequestData> = sharedList()
+    private val _responseHistory: MutableList<HttpResponseData> = sharedList()
 
     private var invocationCount: Int by shared(0)
 

@@ -18,6 +18,7 @@ internal typealias PipelineInterceptorFunction<TSubject, TContext> =
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
+@Suppress("DEPRECATION")
 public open class Pipeline<TSubject : Any, TContext : Any>(
     vararg phases: PipelinePhase
 ) {
@@ -31,7 +32,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      */
     public open val developmentMode: Boolean = false
 
-    @OptIn(InternalAPI::class)
     private val phasesRaw: MutableList<Any> = sharedListOf(*phases)
 
     private var interceptorsQuantity by shared(0)
@@ -305,7 +305,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         return false
     }
 
-    @OptIn(InternalAPI::class)
     private fun cacheInterceptors(): List<PipelineInterceptorFunction<TSubject, TContext>> {
         val interceptorsQuantity = interceptorsQuantity
         if (interceptorsQuantity == 0) {

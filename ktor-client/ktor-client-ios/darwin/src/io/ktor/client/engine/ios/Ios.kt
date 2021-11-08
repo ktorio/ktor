@@ -8,7 +8,10 @@ import io.ktor.client.engine.*
 import io.ktor.util.*
 import platform.Foundation.*
 
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalStdlibApi::class)
 @SharedImmutable
+@EagerInitialization
 private val initHook = Ios
 
 /**

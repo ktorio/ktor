@@ -14,6 +14,7 @@ import kotlin.collections.set
 /**
  * Mutable configuration used by [HttpClient].
  */
+@Suppress("DEPRECATION")
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
     @OptIn(InternalAPI::class)

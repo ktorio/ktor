@@ -17,6 +17,7 @@ import io.ktor.utils.io.concurrent.*
  * @param selector is an instance of [RouteSelector] for this node.
  * @param developmentMode is flag to switch report level for stack traces.
  */
+@Suppress("DEPRECATION")
 @ContextDsl
 public open class Route(
     public val parent: Route?,

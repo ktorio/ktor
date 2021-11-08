@@ -191,7 +191,7 @@ public open class StringValuesImpl(
     override fun hashCode(): Int = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
 }
 
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "DEPRECATION")
 public open class StringValuesBuilderImpl(
     final override val caseInsensitiveName: Boolean = false,
     size: Int = 8
@@ -279,6 +279,7 @@ public open class StringValuesBuilderImpl(
     protected open fun validateValue(value: String) {
     }
 
+    @Suppress("DEPRECATION")
     private fun ensureListForKey(name: String): MutableList<String> {
         return values[name] ?: sharedList<String>().also { validateName(name); values[name] = it }
     }
