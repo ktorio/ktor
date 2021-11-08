@@ -335,17 +335,17 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit = withTestApplication {
-        val newBaseName = "custom.http.server"
-        application.install(MicrometerMetrics) {
-            registry = SimpleMeterRegistry()
-            baseName = newBaseName
+    fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit =
+        withTestApplication {
+            val newBaseName = "custom.http.server"
+            application.install(MicrometerMetrics) {
+                registry = SimpleMeterRegistry()
+                baseName = newBaseName
+            }
+
+            assertEquals("$newBaseName.requests", requestTimeTimerName)
+            assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
         }
-
-        assertEquals("$newBaseName.requests", requestTimeTimerName)
-        assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
-    }
-
 
     @Test
     fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
@@ -380,18 +380,18 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `should get metric name for timer and gauge from metricName when both baseName and metricName are defined`(): Unit = withTestApplication {
-        val newMetricName = "custom.metric.name"
-        application.install(MicrometerMetrics) {
-            registry = SimpleMeterRegistry()
-            baseName = "new.base.name"
-            metricName = newMetricName
+    fun `should get metric name from metricName when both baseName and metricName are defined`(): Unit =
+        withTestApplication {
+            val newMetricName = "custom.metric.name"
+            application.install(MicrometerMetrics) {
+                registry = SimpleMeterRegistry()
+                baseName = "new.base.name"
+                metricName = newMetricName
+            }
+
+            assertEquals(newMetricName, requestTimeTimerName)
+            assertEquals("$newMetricName.active", activeRequestsGaugeName)
         }
-
-        assertEquals(newMetricName, requestTimeTimerName)
-        assertEquals("$newMetricName.active", activeRequestsGaugeName)
-    }
-
 
     @Test
     fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {
