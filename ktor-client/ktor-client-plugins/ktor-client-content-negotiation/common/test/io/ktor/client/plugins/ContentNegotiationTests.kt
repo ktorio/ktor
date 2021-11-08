@@ -16,7 +16,9 @@ class ContentNegotiationTests {
     @Suppress("PrivatePropertyName")
     private val XReturnAs = "X-Return-As"
 
-    private fun TestClientBuilder<MockEngineConfig>.setupWithContentNegotiation(block: ContentNegotiation.Config.() -> Unit) {
+    private fun TestClientBuilder<MockEngineConfig>.setupWithContentNegotiation(
+        block: ContentNegotiation.Config.() -> Unit
+    ) {
         config {
             engine {
                 addHandler { request ->
@@ -131,7 +133,6 @@ class ContentNegotiationTests {
             // StringWrapper to avoid string body decoder
             contentType to StringWrapper("Deserialized matching: $contentType")
         }
-
 
         setupWithContentNegotiation {
             responsesPerType.forEach { (contentType, response) ->

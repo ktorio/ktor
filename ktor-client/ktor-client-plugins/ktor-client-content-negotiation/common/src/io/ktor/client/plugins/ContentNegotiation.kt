@@ -110,7 +110,9 @@ public class ContentNegotiation internal constructor(
                         payload
                     )
                 } ?: throw ContentConverterException(
-                    "Can't convert $payload with contentType $contentType using converters ${matchingRegistrations.joinToString { it.converter.toString() }}"
+                    "Can't convert $payload with contentType $contentType using converters ${
+                        matchingRegistrations.joinToString { it.converter.toString() }
+                    }"
                 )
 
                 proceedWith(serializedContent)
@@ -123,13 +125,13 @@ public class ContentNegotiation internal constructor(
                 val registrations = plugin.registrations
                 val matchingRegistrations = registrations
                     .filter { it.contentTypeMatcher.contains(contentType) }
-                    .takeIf { it.isNotEmpty() }?: return@intercept
+                    .takeIf { it.isNotEmpty() } ?: return@intercept
 
                 // Pick the first one that can convert the subject successfully
                 val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
                     registration.converter
                         .deserialize(context.request.headers.suitableCharset(), info, body)
-                }?: return@intercept
+                } ?: return@intercept
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }
