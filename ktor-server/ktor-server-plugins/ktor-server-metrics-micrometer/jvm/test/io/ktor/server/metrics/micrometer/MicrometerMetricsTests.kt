@@ -336,7 +336,7 @@ class MicrometerMetricsTests {
 
     @Test
     fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit = withTestApplication {
-        val newBaseName = "custom.base.name"
+        val newBaseName = "custom.http.server"
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
             baseName = newBaseName
@@ -369,7 +369,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `timer and gauge metric names can be null`(): Unit = withTestApplication {
+    fun `should get default metric name for timer and gauge from metricName is null`(): Unit = withTestApplication {
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
             metricName = null
@@ -378,6 +378,20 @@ class MicrometerMetricsTests {
         assertEquals("ktor.http.server.requests", requestTimeTimerName)
         assertEquals("ktor.http.server.requests.active", activeRequestsGaugeName)
     }
+
+    @Test
+    fun `should get metric name for timer and gauge from metricName when both baseName and metricName are defined`(): Unit = withTestApplication {
+        val newMetricName = "custom.metric.name"
+        application.install(MicrometerMetrics) {
+            registry = SimpleMeterRegistry()
+            baseName = "new.base.name"
+            metricName = newMetricName
+        }
+
+        assertEquals(newMetricName, requestTimeTimerName)
+        assertEquals("$newMetricName.active", activeRequestsGaugeName)
+    }
+
 
     @Test
     fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {
