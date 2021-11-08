@@ -335,6 +335,19 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit = withTestApplication {
+        val newBaseName = "custom.base.name"
+        application.install(MicrometerMetrics) {
+            registry = SimpleMeterRegistry()
+            baseName = newBaseName
+        }
+
+        assertEquals("$newBaseName.requests", requestTimeTimerName)
+        assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
+    }
+
+
+    @Test
     fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
         assertFailsWith<IllegalArgumentException> {
             application.install(MicrometerMetrics) {
@@ -344,30 +357,26 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `timer and gauge base metric names and metric names are configurable`(): Unit = withTestApplication {
-        val newBaseName = "custom.http.server"
+    fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
         val newMetricName = "custom.metric.name"
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
-            baseName = newBaseName
             metricName = newMetricName
         }
 
-        assertEquals("$newBaseName.$newMetricName", requestTimeTimerName)
-        assertEquals("$newBaseName.$newMetricName.active", activeRequestsGaugeName)
+        assertEquals(newMetricName, requestTimeTimerName)
+        assertEquals("$newMetricName.active", activeRequestsGaugeName)
     }
 
     @Test
     fun `timer and gauge metric names can be null`(): Unit = withTestApplication {
-        val newBaseName = "custom.http.server"
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
-            baseName = newBaseName
             metricName = null
         }
 
-        assertEquals(newBaseName, requestTimeTimerName)
-        assertEquals("$newBaseName.active", activeRequestsGaugeName)
+        assertEquals("ktor.http.server.requests", requestTimeTimerName)
+        assertEquals("ktor.http.server.requests.active", activeRequestsGaugeName)
     }
 
     @Test
