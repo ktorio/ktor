@@ -326,6 +326,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `throws exception when base name is not defined`(): Unit = withTestApplication {
         assertFailsWith<IllegalArgumentException> {
             application.install(MicrometerMetrics) {
@@ -335,6 +336,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit =
         withTestApplication {
             val newBaseName = "custom.http.server"
@@ -380,6 +382,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `should get metric name from metricName when both baseName and metricName are defined`(): Unit =
         withTestApplication {
             val newMetricName = "custom.metric.name"
