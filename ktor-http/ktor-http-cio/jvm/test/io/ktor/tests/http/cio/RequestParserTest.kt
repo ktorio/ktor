@@ -42,4 +42,19 @@ class RequestParserTest {
         assertEquals("localhost", request.headers["Host"]?.toString())
         assertEquals("close", request.headers["Connection"]?.toString())
     }
+
+    @Test
+    fun testParseHostMustBePresented() = runBlocking {
+        val requestText = "GET / HTTP/1.1\nConnection:close\n\n"
+        val ch = ByteReadChannel(requestText.toByteArray())
+
+        assertFailsWith<ParserException> {
+            parseRequest(ch)
+        }.let {
+            assertTrue(
+                "A client MUST include a Host header field in all HTTP/1.1 request " +
+                    "messages as per RFC2616." in it.message.orEmpty()
+            )
+        }
+    }
 }

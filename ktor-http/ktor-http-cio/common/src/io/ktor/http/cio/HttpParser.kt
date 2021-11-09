@@ -52,6 +52,14 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
 
             val headers = parseHeaders(input, builder, range) ?: return null
 
+            val host = headers[HttpHeaders.Host]
+            if (host == null && version == "HTTP/1.1") {
+                throw ParserException(
+                    "A client MUST include a Host header field in all HTTP/1.1 " +
+                        "request messages as per RFC2616."
+                )
+            }
+
             return Request(method, uri, version, headers, builder)
         }
     } catch (t: Throwable) {
