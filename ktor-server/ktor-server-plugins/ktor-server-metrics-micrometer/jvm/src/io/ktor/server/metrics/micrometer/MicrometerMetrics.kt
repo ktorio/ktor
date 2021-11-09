@@ -224,12 +224,14 @@ public class MicrometerMetrics private constructor(
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)
 
+            @Suppress("DEPRECATION")
             if (configuration.baseName.isBlank()) {
                 throw IllegalArgumentException(
                     "Base name should be defined"
                 )
             }
 
+            @Suppress("DEPRECATION")
             baseName = configuration.baseName
 
             if (configuration.metricName?.isBlank() == true) {
