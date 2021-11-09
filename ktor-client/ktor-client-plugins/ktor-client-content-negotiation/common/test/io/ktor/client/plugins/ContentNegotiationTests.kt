@@ -137,7 +137,7 @@ class ContentNegotiationTests {
         setupWithContentNegotiation {
             responsesPerType.forEach { (contentType, response) ->
                 register(contentType, TestContentConverter()) {
-                    deserializeFn = { a, b, c -> response }
+                    deserializeFn = { _, _, _ -> response }
                 }
             }
         }
