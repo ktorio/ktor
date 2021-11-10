@@ -10,6 +10,7 @@ import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.pipeline.*
@@ -21,26 +22,112 @@ public interface ClientProvider {
 }
 
 public class TestApplication internal constructor(
-    private val externalServices: Map<String, TestApplication>
-) : ClientProvider {
+    private val builder: ApplicationTestBuilder
+) : ClientProvider by builder {
 
-    internal val config = HoconApplicationConfig(ConfigFactory.load())
-    internal val environment = createTestEnvironment {
-        config = this@TestApplication.config
+    internal val engine by lazy { builder.engine }
+
+    public fun stop() {
+        builder.engine.stop(0, 0)
+        builder.externalServices.externalApplications.values.forEach { it.stop() }
+        client.close()
     }
-    private val engine = TestApplicationEngine(environment = this@TestApplication.environment)
-    internal val application = engine.application
+}
 
-    public override val client by lazy { createClient { } }
+public fun TestApplication(
+    block: TestApplicationBuilder.() -> Unit
+): TestApplication {
+    val builder = ApplicationTestBuilder()
+    val testApplication = TestApplication(builder)
+    builder.block()
+    return testApplication
+}
 
-    public override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
+public class ExternalServicesBuilder {
+    internal val externalApplications = mutableMapOf<String, TestApplication>()
+
+    public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
+        check(hosts.isNotEmpty()) { "hosts can not be empty" }
+
+        val application = TestApplication { applicationModules.add(block) }
+        hosts.forEach {
+            val protocolWithAuthority = Url(it).protocolWithAuthority
+            externalApplications[protocolWithAuthority] = application
+        }
+    }
+}
+
+public open class TestApplicationBuilder {
+
+    private var built = false
+
+    internal val externalServices = ExternalServicesBuilder()
+    internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+
+    internal val environment by lazy {
+        built = true
+        createTestEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.load())
+            modules.addAll(applicationModules)
+            environmentBuilder()
+        }
+    }
+
+    internal val engine by lazy {
+        TestApplicationEngine(environment = environment)
+    }
+
+    public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
+        checkNotBuilt()
+        externalServices.block()
+    }
+
+    public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
+        checkNotBuilt()
+        environmentBuilder = block
+    }
+
+    public fun application(block: Application.() -> Unit) {
+        checkNotBuilt()
+        applicationModules.add(block)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> install(
+        plugin: Plugin<P, B, F>,
+        configure: B.() -> Unit = {}
+    ) {
+        checkNotBuilt()
+        applicationModules.add { install(plugin as Plugin<Application, B, F>, configure) }
+    }
+
+    @ContextDsl
+    public fun routing(configuration: Routing.() -> Unit) {
+        checkNotBuilt()
+        applicationModules.add { routing(configuration) }
+    }
+
+    private fun checkNotBuilt() {
+        check(!built) {
+            "The test application have been already built. " +
+                "Make sure you configure the application before first access to client"
+        }
+    }
+}
+
+public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
+
+    override val client by lazy { createClient { } }
+
+    override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(DelegatingTestClientEngine) {
             engine {
                 mainEngineHostWithPort = runBlocking {
                     engine.resolvedConnectors().first().let { "${it.host}:${it.port}" }
                 }
                 mainEngine = TestHttpClientEngine(TestHttpClientConfig().apply { app = engine })
-                externalServices.forEach { (authority, testApplication) ->
+                externalServices.externalApplications.forEach { (authority, testApplication) ->
                     externalEngines[authority] = TestHttpClientEngine(
                         TestHttpClientConfig().apply { app = testApplication.engine }
                     )
@@ -49,74 +136,14 @@ public class TestApplication internal constructor(
             block()
         }
     }
-
-    public fun start() {
-        engine.start()
-    }
-
-    public fun stop() {
-        engine.stop(0, 0)
-        externalServices.values.forEach { it.stop() }
-    }
 }
-
-public fun TestApplication(
-    externalServices: ExternalServicesBuilder.() -> Unit = {},
-    block: ApplicationTestBuilder.() -> Unit
-): TestApplication {
-    val externalServicesBuilder = ExternalServicesBuilder().apply(externalServices)
-    val testApplication = TestApplication(externalServicesBuilder.externalApplication)
-    val builder = ApplicationTestBuilder(testApplication)
-    builder.block()
-    return testApplication
-}
-
-public class ExternalServicesBuilder {
-    internal val externalApplication = mutableMapOf<String, TestApplication>()
-
-    public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
-        val testApplication = TestApplication {
-            application.block()
-        }
-        hosts.forEach {
-            val protocolWithAuthority = Url(it).protocolWithAuthority
-            externalApplication[protocolWithAuthority] = testApplication
-        }
-    }
-}
-
-public open class ApplicationTestBuilder(testApplication: TestApplication) {
-    public val config: ApplicationConfig = testApplication.config
-    public val environment: ApplicationEnvironment = testApplication.environment
-    public val application: Application = testApplication.application
-}
-
-public class WithApplicationTestBuilder(private val testApplication: TestApplication) :
-    ApplicationTestBuilder(testApplication),
-    ClientProvider by testApplication
 
 public fun withTestApplication1(
-    externalServices: ExternalServicesBuilder.() -> Unit = {},
-    block: suspend WithApplicationTestBuilder.() -> Unit
+    block: suspend ApplicationTestBuilder.() -> Unit
 ) {
-    val externalServicesBuilder = ExternalServicesBuilder().apply(externalServices)
-    val testApplication = TestApplication(externalServicesBuilder.externalApplication)
-    WithApplicationTestBuilder(testApplication)
+    val builder = ApplicationTestBuilder()
         .apply { runBlocking { block() } }
 
+    val testApplication = TestApplication(builder)
     testApplication.stop()
-}
-
-@Suppress("UNCHECKED_CAST")
-public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> ApplicationTestBuilder.install(
-    plugin: Plugin<P, B, F>,
-    configure: B.() -> Unit = {}
-): F = application.install(plugin as Plugin<Application, B, F>, configure)
-
-@ContextDsl
-public fun ApplicationTestBuilder.routing(configuration: Routing.() -> Unit): Routing =
-    application.routing(configuration)
-
-public fun ApplicationTestBuilder.application(block: Application.() -> Unit) {
-    application.block()
 }

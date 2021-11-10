@@ -49,3 +49,8 @@ public fun Config.tryGetString(path: String): String? = if (hasPath(path)) getSt
  * Get list property value for [path] or `null` if missing
  */
 public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null
+
+/**
+ * Returns [ApplicationConfig] by loading configuration from a resource specified by [path]
+ */
+public fun ApplicationConfig(path: String): ApplicationConfig = HoconApplicationConfig(ConfigFactory.load(path))

@@ -2,7 +2,7 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.plugins
+package io.ktor.tests.server.testing
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.application.plugins.api.*
+import io.ktor.server.config.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -38,7 +39,7 @@ class TestApplicationTest {
         install(TestPlugin)
         routing {
             get("a") {
-                call.respond(config.property("ktor.test").getString())
+                call.respond("OK")
             }
         }
     }
@@ -62,13 +63,14 @@ class TestApplicationTest {
     @Test
     fun testTopLevel() = runBlocking {
         val response = testClient.get("a")
-        assertEquals("test_value", response.bodyAsText())
+        assertEquals("OK", response.bodyAsText())
         assertEquals("value_1", response.headers["response_header"])
     }
 
     @Test
     fun testDefaultConfig() = withTestApplication1 {
         application {
+            val config = environment.config
             install(TestPlugin)
             routing {
                 get("a") {
@@ -116,24 +118,9 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testApplicationProperty() = withTestApplication1 {
-        application.install(TestPlugin)
-        application.routing {
-            get("a") {
-                call.respond("OK")
-            }
-        }
-
-        val client = createClient { install(TestClientPlugin) }
-        val response = client.get("a")
-        assertEquals("OK", response.bodyAsText())
-        assertEquals("value_1", response.headers["response_header"])
-    }
-
-    @Test
     fun testWebSockets() = withTestApplication1 {
-        application.install(WebSockets)
-        application.routing {
+        install(WebSockets)
+        routing {
             webSocket("/echo") {
                 for (message in incoming) {
                     outgoing.send(message)
@@ -153,16 +140,16 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testExternalServices() = withTestApplication1(
-        externalServices = {
+    fun testExternalServices() = withTestApplication1 {
+        externalServices {
             hosts("http://www.google.com:123", "https://google.com") {
                 routing {
                     get { call.respond("EXTERNAL OK") }
                 }
             }
         }
-    ) {
-        application.routing {
+
+        routing {
             get { call.respond("OK") }
         }
 
@@ -176,5 +163,53 @@ class TestApplicationTest {
         assertFailsWith<InvalidTestRequestException> { client.get("//google.com:123") }
         assertFailsWith<InvalidTestRequestException> { client.get("//google.com") }
         assertFailsWith<InvalidTestRequestException> { client.get("https://www.google.com") }
+    }
+
+    @Test
+    fun testCustomEnvironmentKeepsDefaultProperties() = withTestApplication1 {
+        environment {
+            rootPath = "root/path"
+        }
+        routing {
+            val config = application.environment.config
+            get("a") {
+                call.respond(config.property("ktor.test").getString())
+            }
+        }
+
+        val response = client.get("root/path/a")
+        assertEquals("test_value", response.bodyAsText())
+    }
+
+    @Test
+    fun testCustomConfig() = withTestApplication1 {
+        environment {
+            config = ApplicationConfig("application-custom.conf")
+        }
+        routing {
+            val config = application.environment.config
+            get {
+                call.respond(config.property("ktor.test").getString())
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("another_test_value", response.bodyAsText())
+    }
+
+    @Test
+    fun testConfigLoadsModules() = withTestApplication1 {
+        environment {
+            config = ApplicationConfig("application-with-modules.conf")
+        }
+
+        val response = client.get("/")
+        assertEquals("OK FROM MODULE", response.bodyAsText())
+    }
+
+    public fun Application.module() {
+        routing {
+            get { call.respond("OK FROM MODULE") }
+        }
     }
 }
