@@ -12,7 +12,7 @@ import kotlinx.atomicfu.*
 import kotlin.math.*
 import kotlin.native.concurrent.*
 
-@Suppress("LoopToCallChain", "ReplaceRangeToWithUntil", "KDocMissingDocumentation")
+@Suppress("LoopToCallChain", "ReplaceRangeToWithUntil", "KDocMissingDocumentation", "DEPRECATION")
 internal actual class CharArrayBuilder actual constructor(pool: ObjectPool<CharArray>) : CharSequence, Appendable {
     private var buffers: MutableList<MutableData>? by shared(null)
     private var current: MutableData? by shared(null)

@@ -61,7 +61,7 @@ public actual fun GMTDate(
     return GMTDate(timestamp * 1000L)
 }
 
-internal expect fun system_time(tm: CValuesRef<tm>?): Int
+internal expect fun system_time(tm: CValuesRef<tm>?): Long
 
 /**
  * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
