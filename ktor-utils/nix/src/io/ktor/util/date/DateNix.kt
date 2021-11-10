@@ -7,4 +7,4 @@ package io.ktor.util.date
 import kotlinx.cinterop.*
 import platform.posix.*
 
-internal actual fun system_time(tm: CValuesRef<tm>?): Int = timegm(tm).convert()
+internal actual fun system_time(tm: CValuesRef<tm>?): Long = timegm(tm).convert()
