@@ -104,7 +104,11 @@ class TestApplicationEngine(
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
-        throw IllegalStateException("TestApplicationEngine does not support network addresses")
+        return listOf(object : EngineConnectorConfig {
+            override val type: ConnectorType = ConnectorType.HTTP
+            override val host: String = environment.connectors.firstOrNull()?.host ?: "localhost"
+            override val port: Int = environment.connectors.firstOrNull()?.port ?: 80
+        })
     }
 
     override fun start(wait: Boolean): ApplicationEngine {

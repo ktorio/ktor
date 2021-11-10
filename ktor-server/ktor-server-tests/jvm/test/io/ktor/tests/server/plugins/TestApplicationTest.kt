@@ -16,6 +16,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.client.*
 import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
 import io.ktor.util.*
@@ -149,5 +150,31 @@ class TestApplicationTest {
                 outgoing.send(Frame.Text(frame.readText() + "."))
             }
         }
+    }
+
+    @Test
+    fun testExternalServices() = withTestApplication1(
+        externalServices = {
+            hosts("http://www.google.com:123", "https://google.com") {
+                routing {
+                    get { call.respond("EXTERNAL OK") }
+                }
+            }
+        }
+    ) {
+        application.routing {
+            get { call.respond("OK") }
+        }
+
+        val internal = client.get("/")
+        assertEquals("OK", internal.bodyAsText())
+
+        val external1 = client.get("//www.google.com:123")
+        assertEquals("EXTERNAL OK", external1.bodyAsText())
+        val external2 = client.get("https://google.com")
+        assertEquals("EXTERNAL OK", external2.bodyAsText())
+        assertFailsWith<InvalidTestRequestException> { client.get("//google.com:123") }
+        assertFailsWith<InvalidTestRequestException> { client.get("//google.com") }
+        assertFailsWith<InvalidTestRequestException> { client.get("https://www.google.com") }
     }
 }

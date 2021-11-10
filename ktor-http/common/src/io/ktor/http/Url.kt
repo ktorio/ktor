@@ -151,6 +151,21 @@ public val Url.authority: String
             append(hostWithPort)
         }
     }
+/**
+ * [Url] protocol and authority.
+ */
+public val Url.protocolWithAuthority: String
+    get() = buildString {
+        append(protocol.name)
+        append("://")
+        append(encodedUserAndPassword)
+
+        if (specifiedPort == DEFAULT_PORT || specifiedPort == protocol.defaultPort) {
+            append(host)
+        } else {
+            append(hostWithPort)
+        }
+    }
 
 internal val Url.encodedUserAndPassword: String
     get() = buildString {

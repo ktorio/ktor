@@ -6,6 +6,8 @@ package io.ktor.server.testing
 
 import com.typesafe.config.*
 import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.routing.*
@@ -15,24 +17,34 @@ import kotlinx.coroutines.*
 
 public interface ClientProvider {
     public val client: HttpClient
-    public fun createClient(block: HttpClientConfig<TestHttpClientConfig>.() -> Unit): HttpClient
+    public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
-public class TestApplication internal constructor() : ClientProvider {
+public class TestApplication internal constructor(
+    private val externalServices: Map<String, TestApplication>
+) : ClientProvider {
 
     internal val config = HoconApplicationConfig(ConfigFactory.load())
     internal val environment = createTestEnvironment {
         config = this@TestApplication.config
     }
     private val engine = TestApplicationEngine(environment = this@TestApplication.environment)
-    public val application = engine.application
+    internal val application = engine.application
 
     public override val client by lazy { createClient { } }
 
-    public override fun createClient(block: HttpClientConfig<TestHttpClientConfig>.() -> Unit): HttpClient {
-        return HttpClient(TestHttpClientEngine) {
+    public override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
+        return HttpClient(DelegatingTestClientEngine) {
             engine {
-                app = engine
+                mainEngineHostWithPort = runBlocking {
+                    engine.resolvedConnectors().first().let { "${it.host}:${it.port}" }
+                }
+                mainEngine = TestHttpClientEngine(TestHttpClientConfig().apply { app = engine })
+                externalServices.forEach { (authority, testApplication) ->
+                    externalEngines[authority] = TestHttpClientEngine(
+                        TestHttpClientConfig().apply { app = testApplication.engine }
+                    )
+                }
             }
             block()
         }
@@ -44,17 +56,36 @@ public class TestApplication internal constructor() : ClientProvider {
 
     public fun stop() {
         engine.stop(0, 0)
+        externalServices.values.forEach { it.stop() }
     }
 }
 
-public fun TestApplication(block: ApplicationTestBuilder.() -> Unit): TestApplication {
-    val testApplication = TestApplication()
+public fun TestApplication(
+    externalServices: ExternalServicesBuilder.() -> Unit = {},
+    block: ApplicationTestBuilder.() -> Unit
+): TestApplication {
+    val externalServicesBuilder = ExternalServicesBuilder().apply(externalServices)
+    val testApplication = TestApplication(externalServicesBuilder.externalApplication)
     val builder = ApplicationTestBuilder(testApplication)
     builder.block()
     return testApplication
 }
 
-public open class ApplicationTestBuilder(private val testApplication: TestApplication) {
+public class ExternalServicesBuilder {
+    internal val externalApplication = mutableMapOf<String, TestApplication>()
+
+    public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
+        val testApplication = TestApplication {
+            application.block()
+        }
+        hosts.forEach {
+            val protocolWithAuthority = Url(it).protocolWithAuthority
+            externalApplication[protocolWithAuthority] = testApplication
+        }
+    }
+}
+
+public open class ApplicationTestBuilder(testApplication: TestApplication) {
     public val config: ApplicationConfig = testApplication.config
     public val environment: ApplicationEnvironment = testApplication.environment
     public val application: Application = testApplication.application
@@ -62,11 +93,14 @@ public open class ApplicationTestBuilder(private val testApplication: TestApplic
 
 public class WithApplicationTestBuilder(private val testApplication: TestApplication) :
     ApplicationTestBuilder(testApplication),
-    ClientProvider by testApplication {
-}
+    ClientProvider by testApplication
 
-public fun withTestApplication1(block: suspend WithApplicationTestBuilder.() -> Unit) {
-    val testApplication = TestApplication()
+public fun withTestApplication1(
+    externalServices: ExternalServicesBuilder.() -> Unit = {},
+    block: suspend WithApplicationTestBuilder.() -> Unit
+) {
+    val externalServicesBuilder = ExternalServicesBuilder().apply(externalServices)
+    val testApplication = TestApplication(externalServicesBuilder.externalApplication)
     WithApplicationTestBuilder(testApplication)
         .apply { runBlocking { block() } }
 
