@@ -38,7 +38,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `adds accept headers`(): Unit = testWithEngine(MockEngine) {
+    fun addAcceptHeaders(): Unit = testWithEngine(MockEngine) {
         val registeredTypesToSend = listOf(
             ContentType("testing", "a"),
             ContentType("testing", "b"),
@@ -65,7 +65,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `replaces content type in request pipeline`(): Unit = testWithEngine(MockEngine) {
+    fun replaceContentTypeInRequestPipeline(): Unit = testWithEngine(MockEngine) {
         val bodyContentType = ContentType("testing", "a")
         val sentContentType = ContentType("testing", "b")
         val serializedOutgoingContent = TextContent("CONTENT", sentContentType)
@@ -91,7 +91,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects matching converter in request pipeline`(): Unit = testWithEngine(MockEngine) {
+    fun selectMatchingConverterInRequestPipeline(): Unit = testWithEngine(MockEngine) {
         val types = listOf(
             ContentType("testing", "a"),
             ContentType("testing", "b"),
@@ -123,7 +123,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects matching converter in response pipeline`(): Unit = testWithEngine(MockEngine) {
+    fun selectMatchingConverterInResponsePipeline(): Unit = testWithEngine(MockEngine) {
         val types = listOf(
             ContentType("testing", "a"),
             ContentType("testing", "b")
@@ -155,7 +155,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects converters in order in request pipeline`() = testWithEngine(MockEngine) {
+    fun selectConvertersInOrderInRequestPipeline() = testWithEngine(MockEngine) {
         val contentTypeToSend = ContentType("testing", "client-to-send")
         val outgoingContents = listOf(
             TextContent("FIRST CONVERTER", contentTypeToSend),
@@ -186,7 +186,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects converters in order in response pipeline`() = testWithEngine(MockEngine) {
+    fun selectConvertersInOrderInResponsePipeline() = testWithEngine(MockEngine) {
         val contentTypeToReceive = ContentType("testing", "client-to-receive")
         val deserializedValues = listOf(
             StringWrapper("FIRST CONVERTER"),
@@ -216,7 +216,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects first non-null converter output in request pipeline`(): Unit = testWithEngine(MockEngine) {
+    fun selectFirstNonNullConverterOutputInRequestPipeline(): Unit = testWithEngine(MockEngine) {
         val contentTypeToSend = ContentType("testing", "client-send")
         val sentOutgoingContent = TextContent("NON-NULL-RESULT", contentTypeToSend)
 
@@ -246,7 +246,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun `selects first non-null converter output in response pipeline`(): Unit = testWithEngine(MockEngine) {
+    fun selectFirstNonNullConverterOutputInResponsePipeline(): Unit = testWithEngine(MockEngine) {
         val contentTypeToReceive = ContentType("testing", "client-send")
         val receivedValue = StringWrapper("NON-NULL-DESERIALIZATION")
 
