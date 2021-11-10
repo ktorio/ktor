@@ -16,8 +16,9 @@ import kotlin.test.*
  * - "!!!" the log entry is flaky: it's required but it's content is changing
  * - "+++" the log entry is required but the exact place is not known
  */
+@Suppress("DEPRECATION")
 internal class TestLogger(private vararg val expectedLog: String) : Logger {
-    private val log = ConcurrentList<String>()
+    private val log = sharedList<String>()
 
     override fun log(message: String) {
         log += message

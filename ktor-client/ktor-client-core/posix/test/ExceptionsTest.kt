@@ -17,7 +17,7 @@ class ExceptionsTest {
     @Test
     fun testResponseExceptionThreadLocal() {
         val exception = createResponseException()
-            .freeze()
+        exception.makeShared()
 
         val worker = Worker.start(errorReporting = true)
 

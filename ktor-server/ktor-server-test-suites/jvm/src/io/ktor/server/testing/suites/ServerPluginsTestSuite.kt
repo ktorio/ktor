@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.*
 import org.junit.*
 import org.junit.Assert.*
 
+@Suppress("DEPRECATION")
 abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
@@ -37,7 +38,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    private val eventsList = ConcurrentList<String>()
+    private val eventsList = sharedList<String>()
     private fun sendEvent(event: String) {
         eventsList.add(event)
         semaphore.release()

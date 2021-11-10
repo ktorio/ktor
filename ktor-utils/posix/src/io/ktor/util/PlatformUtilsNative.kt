@@ -11,4 +11,7 @@ public actual object PlatformUtils {
     public actual val IS_NATIVE: Boolean = true
 
     public actual val IS_DEVELOPMENT_MODE: Boolean = false
+
+    @OptIn(ExperimentalStdlibApi::class)
+    public actual val IS_NEW_MM_ENABLED: Boolean = isExperimentalMM()
 }

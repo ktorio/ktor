@@ -11,4 +11,6 @@ public expect object PlatformUtils {
     public val IS_NATIVE: Boolean
 
     public val IS_DEVELOPMENT_MODE: Boolean
+
+    public val IS_NEW_MM_ENABLED: Boolean
 }

@@ -4,12 +4,12 @@
 
 package io.ktor.utils.io.concurrent
 
+import io.ktor.utils.io.*
 import kotlin.native.ThreadLocal
-import kotlin.native.concurrent.*
 
 internal class ThreadId {
     init {
-        freeze()
+        makeShared()
     }
 
     companion object {

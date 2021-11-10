@@ -31,7 +31,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     private val testJob = Job()
     actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Default
 
-    protected val exceptions = ConcurrentList<Throwable>()
+    protected val exceptions = sharedList<Throwable>()
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention

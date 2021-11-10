@@ -6,10 +6,6 @@ import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@PublishedApi
-@SharedImmutable
-internal expect val IS_PLATFORM_BIG_ENDIAN: Boolean
-
 public actual class Memory constructor(
     public val pointer: CPointer<ByteVar>,
     public actual inline val size: Long
@@ -196,32 +192,32 @@ internal inline fun Memory.assertIndex(offset: Long, valueSize: Long): Long {
 @PublishedApi
 internal inline fun Short.toBigEndian(): Short {
     return when {
-        IS_PLATFORM_BIG_ENDIAN -> this
+        !Platform.isLittleEndian -> this
         else -> reverseByteOrder()
     }
 }
 
 @PublishedApi
 internal inline fun Int.toBigEndian(): Int = when {
-    IS_PLATFORM_BIG_ENDIAN -> this
+    !Platform.isLittleEndian -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Long.toBigEndian(): Long = when {
-    IS_PLATFORM_BIG_ENDIAN -> this
+    !Platform.isLittleEndian -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Float.toBigEndian(): Float = when {
-    IS_PLATFORM_BIG_ENDIAN -> this
+    !Platform.isLittleEndian -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Double.toBigEndian(): Double = when {
-    IS_PLATFORM_BIG_ENDIAN -> this
+    !Platform.isLittleEndian -> this
     else -> reverseByteOrder()
 }
 

@@ -14,6 +14,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class HttpRequestRetryTest {
 
     @Test
@@ -57,7 +58,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testExponentialDelay() = testWithEngine(MockEngine) {
-        val delays = ConcurrentList<Long>()
+        val delays = sharedList<Long>()
         config {
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -80,7 +81,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testConstantDelay() = testWithEngine(MockEngine) {
-        val delays = ConcurrentList<Long>()
+        val delays = sharedList<Long>()
         config {
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -192,7 +193,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testRetryPerRequestConfig() = testWithEngine(MockEngine) {
-        val delays = ConcurrentList<Long>()
+        val delays = sharedList<Long>()
         config {
             engine {
                 addHandler { throw IOException("Network error") }
@@ -235,7 +236,7 @@ class HttpRequestRetryTest {
         }
 
         test { client ->
-            val events = ConcurrentList<HttpRequestRetry.RetryEventData>()
+            val events = sharedList<HttpRequestRetry.RetryEventData>()
             client.monitor.subscribe(HttpRequestRetry.HttpRequestRetryEvent) { events.add(it) }
 
             client.get {}

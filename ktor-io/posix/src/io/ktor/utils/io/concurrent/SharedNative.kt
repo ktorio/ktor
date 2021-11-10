@@ -4,6 +4,7 @@
 
 package io.ktor.utils.io.concurrent
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.atomicfu.*
 import kotlin.native.concurrent.*
@@ -24,7 +25,7 @@ public actual inline fun <T> shared(value: T): ReadWriteProperty<Any, T> = objec
     private var reference = atomic(value)
 
     init {
-        freeze()
+        makeShared()
     }
 
     override fun getValue(thisRef: Any, property: KProperty<*>): T {
@@ -47,7 +48,7 @@ public actual fun <T : Any> threadLocal(value: T): ReadOnlyProperty<Any, T?> {
 
     return object : ReadOnlyProperty<Any, T?> {
         init {
-            freeze()
+            makeShared()
         }
 
         override fun getValue(thisRef: Any, property: KProperty<*>): T? = threadLocal.value

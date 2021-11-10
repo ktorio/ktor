@@ -5,6 +5,7 @@
 package io.ktor.client.engine
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlin.native.concurrent.*
 
 private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
@@ -50,7 +51,7 @@ public object engines : Iterable<T> {
         val next: Node?
     ) {
         init {
-            freeze()
+            makeShared()
         }
     }
 }

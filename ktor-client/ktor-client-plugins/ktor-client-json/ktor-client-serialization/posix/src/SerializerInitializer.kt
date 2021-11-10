@@ -7,9 +7,11 @@ package io.ktor.client.plugins.json.serializer
 import io.ktor.client.plugins.json.*
 import io.ktor.util.*
 
-@Suppress("unused")
+@OptIn(ExperimentalStdlibApi::class)
+@Suppress("unused", "DEPRECATION")
 @SharedImmutable
-private val InitHook = SerializerInitializer
+@EagerInitialization
+private val initHook = SerializerInitializer
 
 @Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)

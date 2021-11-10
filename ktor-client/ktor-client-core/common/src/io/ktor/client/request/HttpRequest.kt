@@ -55,6 +55,7 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
 /**
  * Class for building [HttpRequestData].
  */
+@Suppress("DEPRECATION")
 public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.

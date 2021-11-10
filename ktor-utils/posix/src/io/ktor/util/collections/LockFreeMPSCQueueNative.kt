@@ -4,6 +4,7 @@
 package io.ktor.util.collections
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlin.native.concurrent.*
 
 private typealias Core<E> = LockFreeMPSCQueueCore<E>
@@ -72,7 +73,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private val array = Array<AtomicReference<Any?>>(capacity) { AtomicReference(null) }
 
     init {
-        freeze()
+        makeShared()
     }
 
     private fun setArrayValueHelper(index: Int, value: Any?) {

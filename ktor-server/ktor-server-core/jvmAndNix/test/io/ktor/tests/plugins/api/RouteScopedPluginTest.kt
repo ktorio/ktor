@@ -16,6 +16,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class RouteScopedPluginTest {
 
     @Test

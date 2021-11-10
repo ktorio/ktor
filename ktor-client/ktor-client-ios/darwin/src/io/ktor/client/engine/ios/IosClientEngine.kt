@@ -9,7 +9,9 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import platform.Foundation.*
 import kotlin.native.concurrent.*
 
@@ -49,9 +51,11 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
             config.requestConfig(this)
         }
 
+        responseReader.makeShared()
+
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
-            responseReader.freeze(),
+            responseReader,
             delegateQueue = NSOperationQueue.currentQueue()
         )
 

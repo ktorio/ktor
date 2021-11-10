@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.jvm.*
 
+@Suppress("DEPRECATION")
 internal class CIOApplicationResponse(
     call: CIOApplicationCall,
     private val output: ByteWriteChannel,

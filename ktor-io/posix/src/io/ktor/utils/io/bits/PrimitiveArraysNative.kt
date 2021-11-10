@@ -5,10 +5,6 @@ package io.ktor.utils.io.bits
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@PublishedApi
-@SharedImmutable
-internal expect val IS_UNALIGNED_ACCESS_SUPPORTED: Boolean
-
 /**
  * Copies short integers from this memory range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
@@ -43,11 +39,11 @@ public actual fun Memory.loadShortArray(
     requireRange(destinationOffset, count, destination.size, "destination")
     requireRange(offset, count * 2L, size, "memory")
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         destination.usePinned { pinned ->
             memcpy(pinned.addressOf(destinationOffset), pointer + offset, (count * 2L).convert())
         }
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedShort(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedShort(offset)) {
         val source = pointer.plus(offset)!!.reinterpret<ShortVar>()
 
         for (index in 0 until count) {
@@ -98,14 +94,14 @@ public actual fun Memory.loadIntArray(
     requireRange(destinationOffset, count, destination.size, "destination")
     requireRange(offset, count * 4L, size, "memory")
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         destination.usePinned { pinned ->
             memcpy(pinned.addressOf(destinationOffset), pointer + offset, (count * 4L).convert())
         }
         return
     }
 
-    if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedInt(offset)) {
+    if (Platform.canAccessUnaligned || isAlignedInt(offset)) {
         val source = pointer.plus(offset)!!.reinterpret<IntVar>()
 
         for (index in 0 until count) {
@@ -157,11 +153,11 @@ public actual fun Memory.loadLongArray(
     requireRange(destinationOffset, count, destination.size, "destination")
     requireRange(offset, count * 8L, size, "memory")
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         destination.usePinned { pinned ->
             memcpy(pinned.addressOf(destinationOffset), pointer + offset, (count * 8L).convert())
         }
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedLong(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedLong(offset)) {
         val source = pointer.plus(offset)!!.reinterpret<LongVar>()
 
         for (index in 0 until count) {
@@ -212,11 +208,11 @@ public actual fun Memory.loadFloatArray(
     requireRange(destinationOffset, count, destination.size, "destination")
     requireRange(offset, count * 4L, size, "memory")
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         destination.usePinned { pinned ->
             memcpy(pinned.addressOf(destinationOffset), pointer + offset, (count * 4L).convert())
         }
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedInt(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedInt(offset)) {
         val source = pointer.plus(offset)!!.reinterpret<FloatVar>()
 
         for (index in 0 until count) {
@@ -267,11 +263,11 @@ public actual fun Memory.loadDoubleArray(
     requireRange(destinationOffset, count, destination.size, "destination")
     requireRange(offset, count * 8L, size, "memory")
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         destination.usePinned { pinned ->
             memcpy(pinned.addressOf(destinationOffset), pointer + offset, (count * 8L).convert())
         }
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedLong(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedLong(offset)) {
         val source = pointer.plus(offset)!!.reinterpret<DoubleVar>()
 
         for (index in 0 until count) {
@@ -316,9 +312,9 @@ public actual fun Memory.storeShortArray(
     storeArrayIndicesCheck(offset, sourceOffset, count, 2L, source.size, size)
     if (count == 0) return
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         copy(source, pointer.plus(offset)!!, sourceOffset, count)
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedShort(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedShort(offset)) {
         val destination = pointer.plus(offset)!!.reinterpret<ShortVar>()
 
         for (index in 0 until count) {
@@ -361,9 +357,9 @@ public actual fun Memory.storeIntArray(
     storeArrayIndicesCheck(offset, sourceOffset, count, 4L, source.size, size)
     if (count == 0) return
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         copy(source, pointer.plus(offset)!!, sourceOffset, count)
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedInt(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedInt(offset)) {
         val destination = pointer.plus(offset)!!.reinterpret<IntVar>()
 
         for (index in 0 until count) {
@@ -406,9 +402,9 @@ public actual fun Memory.storeLongArray(
     storeArrayIndicesCheck(offset, sourceOffset, count, 8L, source.size, size)
     if (count == 0) return
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         copy(source, pointer.plus(offset)!!, sourceOffset, count)
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedShort(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedShort(offset)) {
         val destination = pointer.plus(offset)!!.reinterpret<LongVar>()
 
         for (index in 0 until count) {
@@ -451,9 +447,9 @@ public actual fun Memory.storeFloatArray(
     storeArrayIndicesCheck(offset, sourceOffset, count, 4L, source.size, size)
     if (count == 0) return
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         copy(source, pointer.plus(offset)!!, sourceOffset, count)
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedInt(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedInt(offset)) {
         val destination = pointer.plus(offset)!!.reinterpret<FloatVar>()
 
         for (index in 0 until count) {
@@ -496,9 +492,9 @@ public actual fun Memory.storeDoubleArray(
     storeArrayIndicesCheck(offset, sourceOffset, count, 8L, source.size, size)
     if (count == 0) return
 
-    if (IS_PLATFORM_BIG_ENDIAN) {
+    if (!Platform.isLittleEndian) {
         copy(source, pointer.plus(offset)!!, sourceOffset, count)
-    } else if (IS_UNALIGNED_ACCESS_SUPPORTED || isAlignedShort(offset)) {
+    } else if (Platform.canAccessUnaligned || isAlignedShort(offset)) {
         val destination = pointer.plus(offset)!!.reinterpret<DoubleVar>()
 
         for (index in 0 until count) {
