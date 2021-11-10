@@ -202,7 +202,7 @@ internal class NettyResponsePipeline constructor(
         val requestMessageFuture = if (response.isUpgradeResponse()) {
             processUpgrade(responseMessage)
         } else {
-            dst.write(responseMessage)
+            dst.write(responseMessage).also { dst.flush() }
         }
 
         tryFill()
