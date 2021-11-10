@@ -78,6 +78,8 @@ public class MicrometerMetrics private constructor(
     /**
      * Configures this Plugin
      * @property baseName The base prefix for metrics. Default: [Plugin.defaultBaseName]
+     * @property metricName The name for metrics. Can be null due to backward compatible.
+     * When using this property, value of baseName is ignored. Default: [Plugin.defaultMetricName]
      * @property registry The meter registry where the meters are registered. Mandatory
      * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
      * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
@@ -90,7 +92,13 @@ public class MicrometerMetrics private constructor(
      * contain request path or fallback to common `n/a` value. `true` by default
      * */
     public class Configuration {
+        @Deprecated(
+            "baseName is deprecated",
+            ReplaceWith("metricName"),
+            DeprecationLevel.WARNING
+        )
         public var baseName: String = defaultBaseName
+        public var metricName: String? = defaultMetricName
 
         public var registry: MeterRegistry = LoggingMeterRegistry()
 
@@ -169,8 +177,13 @@ public class MicrometerMetrics private constructor(
      */
     public companion object Plugin : ApplicationPlugin<Application, Configuration, MicrometerMetrics> {
         private const val defaultBaseName: String = "ktor.http.server"
+        private val defaultMetricName: String? = null
 
         private lateinit var baseName: String
+        private var metricName: String? = null
+
+        private val resolvedMetricName: String
+            get() = metricName ?: "$baseName.requests"
 
         /**
          * Request time timer name
@@ -183,10 +196,10 @@ public class MicrometerMetrics private constructor(
         public const val requestTimerName: String = "$defaultBaseName.requests"
 
         /**
-         * Request time timer name with configurable base name
+         * Request time timer name with configurable metric name
          */
         public val requestTimeTimerName: String
-            get() = "$baseName.requests"
+            get() = resolvedMetricName
 
         /**
          * Active requests gauge name
@@ -199,10 +212,10 @@ public class MicrometerMetrics private constructor(
         public const val activeGaugeName: String = "$defaultBaseName.requests.active"
 
         /**
-         * Active requests gauge name with configurable base name
+         * Active requests gauge name with configurable metric name
          */
         public val activeRequestsGaugeName: String
-            get() = "$baseName.requests.active"
+            get() = "$resolvedMetricName.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -211,13 +224,23 @@ public class MicrometerMetrics private constructor(
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)
 
+            @Suppress("DEPRECATION")
             if (configuration.baseName.isBlank()) {
                 throw IllegalArgumentException(
                     "Base name should be defined"
                 )
             }
 
+            @Suppress("DEPRECATION")
             baseName = configuration.baseName
+
+            if (configuration.metricName?.isBlank() == true) {
+                throw IllegalArgumentException(
+                    "Metric name should be defined if not null"
+                )
+            }
+
+            metricName = configuration.metricName
 
             val plugin = MicrometerMetrics(
                 configuration.registry,
