@@ -17,7 +17,6 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -223,72 +222,6 @@ class TestApplicationEngine(
 
         runBlocking {
             pipelineExecuted.join()
-        }
-
-        return call
-    }
-
-    /**
-     * Make a test request that setup a websocket session and invoke [callback] function
-     * that does conversation with server
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    fun handleWebSocketConversation(
-        uri: String,
-        setup: TestApplicationRequest.() -> Unit = {},
-        awaitCallback: Boolean = true,
-        callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
-    ): TestApplicationCall {
-        val websocketChannel = ByteChannel(true)
-        val call = createWebSocketCall(uri) {
-            setup()
-            bodyChannel = websocketChannel
-        }
-
-        // we need this to wait for response channel appearance
-        // otherwise we get NPE at websocket reader start attempt
-        val responseSent: CompletableJob = Job()
-        call.response.responseChannelDeferred.invokeOnCompletion { cause ->
-            when (cause) {
-                null -> responseSent.complete()
-                else -> responseSent.completeExceptionally(cause)
-            }
-        }
-
-        launch(configuration.dispatcher) {
-            try {
-                // execute server-side
-                pipeline.execute(call)
-            } catch (t: Throwable) {
-                responseSent.completeExceptionally(t)
-                throw t
-            }
-        }
-
-        val pool = KtorDefaultPool
-        val engineContext = Dispatchers.Unconfined
-        val job = Job()
-        val webSocketContext = engineContext + job
-
-        runBlocking(configuration.dispatcher) {
-            responseSent.join()
-            processResponse(call)
-
-            val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-            val responseChannel = call.response.websocketChannel()!!
-            val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
-
-            val scope = if (awaitCallback) this else GlobalScope
-            scope.launch {
-                try {
-                    // execute client side
-                    call.callback(reader.incoming, writer.outgoing)
-                } finally {
-                    writer.flush()
-                    writer.outgoing.close()
-                    job.cancelAndJoin()
-                }
-            }
         }
 
         return call
