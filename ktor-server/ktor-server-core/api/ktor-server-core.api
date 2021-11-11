@@ -257,6 +257,7 @@ public class io/ktor/server/config/HoconApplicationConfig : io/ktor/server/confi
 }
 
 public final class io/ktor/server/config/HoconApplicationConfigKt {
+	public static final fun ApplicationConfig (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public static final fun tryGetString (Lcom/typesafe/config/Config;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun tryGetStringList (Lcom/typesafe/config/Config;Ljava/lang/String;)Ljava/util/List;
 }

@@ -19,10 +19,10 @@ internal class TestEngineWebsocketSession(
 
     override var masking: Boolean
         get() = true
-        set(value) {}
+        set(_) {}
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(value) {}
+        set(_) {}
 
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()

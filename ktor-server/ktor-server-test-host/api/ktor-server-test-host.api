@@ -1,3 +1,14 @@
+public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/server/testing/TestApplicationBuilder, io/ktor/server/testing/ClientProvider {
+	public fun <init> ()V
+	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
+	public fun getClient ()Lio/ktor/client/HttpClient;
+}
+
+public abstract interface class io/ktor/server/testing/ClientProvider {
+	public abstract fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
+	public abstract fun getClient ()Lio/ktor/client/HttpClient;
+}
+
 public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/server/testing/EngineTestBase$Companion;
 	public static field keyStore Ljava/security/KeyStore;
@@ -60,6 +71,11 @@ protected abstract interface annotation class io/ktor/server/testing/EngineTestB
 protected abstract interface annotation class io/ktor/server/testing/EngineTestBase$NoHttp2 : java/lang/annotation/Annotation {
 }
 
+public final class io/ktor/server/testing/ExternalServicesBuilder {
+	public fun <init> ()V
+	public final fun hosts ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
 public final class io/ktor/server/testing/HighLoadHttpGenerator {
 	public static final field Companion Lio/ktor/server/testing/HighLoadHttpGenerator$Companion;
 	public fun <init> (Ljava/lang/String;IIIZLkotlin/jvm/functions/Function1;)V
@@ -96,6 +112,22 @@ public final class io/ktor/server/testing/StressSuiteRunner : org/junit/runner/R
 	public fun sort (Lorg/junit/runner/manipulation/Sorter;)V
 }
 
+public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
+	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
+	public fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun stop ()V
+}
+
+public class io/ktor/server/testing/TestApplicationBuilder {
+	public fun <init> ()V
+	public final fun application (Lkotlin/jvm/functions/Function1;)V
+	public final fun environment (Lkotlin/jvm/functions/Function1;)V
+	public final fun externalServices (Lkotlin/jvm/functions/Function1;)V
+	public final fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun install$default (Lio/ktor/server/testing/TestApplicationBuilder;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun routing (Lkotlin/jvm/functions/Function1;)V
+}
+
 public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/engine/BaseApplicationCall, io/ktor/server/application/ApplicationCallWithContext {
 	public fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -124,6 +156,8 @@ public final class io/ktor/server/testing/TestApplicationEngine : io/ktor/server
 	public final fun handleRequest (ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
 	public static synthetic fun handleRequest$default (Lio/ktor/server/testing/TestApplicationEngine;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
 	public final fun handleWebSocket (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
+	public final fun handleWebSocketConversation (Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;)Lio/ktor/server/testing/TestApplicationCall;
+	public static synthetic fun handleWebSocketConversation$default (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
 	public final fun hookRequests (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
 	public fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setCallInterceptor (Lkotlin/jvm/functions/Function3;)V
@@ -144,6 +178,11 @@ public final class io/ktor/server/testing/TestApplicationEngineJvmKt {
 
 public final class io/ktor/server/testing/TestApplicationEngineKt {
 	public static final fun cookiesSession (Lio/ktor/server/testing/TestApplicationEngine;Lkotlin/jvm/functions/Function0;)V
+}
+
+public final class io/ktor/server/testing/TestApplicationKt {
+	public static final fun TestApplication (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplication;
+	public static final fun withTestApplication1 (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
@@ -220,6 +259,10 @@ public final class io/ktor/server/testing/UtilsKt {
 	public static final fun contentType (Lio/ktor/server/testing/TestApplicationResponse;)Lio/ktor/http/ContentType;
 	public static final fun it (Lio/ktor/server/testing/On;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun on (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/testing/client/InvalidTestRequestException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/testing/client/TestHttpClientConfig : io/ktor/client/engine/HttpClientEngineConfig {

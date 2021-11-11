@@ -16,11 +16,17 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
+/**
+ * Provides a client attached to [TestApplication].
+ */
 public interface ClientProvider {
     public val client: HttpClient
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
+/**
+ * Represents a configures instance of a test application running locally.
+ */
 public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
 ) : ClientProvider by builder {
@@ -34,6 +40,9 @@ public class TestApplication internal constructor(
     }
 }
 
+/**
+ * Creates an instance of [TestApplication] configured with builder [block].
+ */
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
@@ -43,9 +52,15 @@ public fun TestApplication(
     return testApplication
 }
 
+/**
+ * Registers mocks for external services.
+ */
 public class ExternalServicesBuilder {
     internal val externalApplications = mutableMapOf<String, TestApplication>()
 
+    /**
+     * Registers mock for external service specified by [hosts] and configured with [block].
+     */
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
@@ -57,6 +72,9 @@ public class ExternalServicesBuilder {
     }
 }
 
+/**
+ * Builder for [TestApplication]
+ */
 public open class TestApplicationBuilder {
 
     private var built = false
@@ -80,21 +98,33 @@ public open class TestApplicationBuilder {
         TestApplicationEngine(environment)
     }
 
+    /**
+     * Builds mocks for external services using [ExternalServicesBuilder]
+     */
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
         checkNotBuilt()
         externalServices.block()
     }
 
+    /**
+     * Builds environment using [block]
+     */
     public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         environmentBuilder = block
     }
 
+    /**
+     * Adds module to [TestApplication]
+     */
     public fun application(block: Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
     }
 
+    /**
+     * Installs a [plugin] into [TestApplication]
+     */
     @Suppress("UNCHECKED_CAST")
     public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
@@ -104,6 +134,9 @@ public open class TestApplicationBuilder {
         applicationModules.add { install(plugin as Plugin<Application, B, F>, configure) }
     }
 
+    /**
+     * Installs routing into [TestApplication]
+     */
     @ContextDsl
     public fun routing(configuration: Routing.() -> Unit) {
         checkNotBuilt()
@@ -118,6 +151,9 @@ public open class TestApplicationBuilder {
     }
 }
 
+/**
+ * Builder for test that uses [TestApplication]
+ */
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client by lazy { createClient { } }
@@ -134,6 +170,9 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     }
 }
 
+/**
+ * Creates a test using [TestApplication]
+ */
 public fun withTestApplication1(
     block: suspend ApplicationTestBuilder.() -> Unit
 ) {
