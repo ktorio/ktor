@@ -177,7 +177,7 @@ public class ContentNegotiation internal constructor(
                 }
 
                 // Pick the first one that can convert the subject successfully
-                val converted = suitableConverters.mapFirstNotNull {
+                val converted = suitableConverters.firstNotNullOfOrNull {
                     it.converter.serialize(
                         contentType = it.contentType,
                         charset = call.request.headers.suitableCharset(),
@@ -211,16 +211,19 @@ public class ContentNegotiation internal constructor(
                         parseFailure
                     )
                 }
-                val suitableConverter =
-                    plugin.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
-                        ?: throw UnsupportedMediaTypeException(requestContentType)
+                val suitableConverters =
+                    plugin.registrations.filter { converter -> requestContentType.match(converter.contentType) }
+                        .takeIf { it.isNotEmpty() } ?: throw UnsupportedMediaTypeException(requestContentType)
 
                 val converted = try {
-                    suitableConverter.converter.deserialize(
-                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                        typeInfo = subject.typeInfo,
-                        content = subject.value as ByteReadChannel
-                    ) ?: throw UnsupportedMediaTypeException(requestContentType)
+                    // Pick the first one that can convert the subject successfully
+                    suitableConverters.firstNotNullOfOrNull { registration ->
+                        registration.converter.deserialize(
+                            charset = call.request.contentCharset() ?: Charsets.UTF_8,
+                            typeInfo = subject.typeInfo,
+                            content = subject.value as ByteReadChannel
+                        )
+                    } ?: throw UnsupportedMediaTypeException(requestContentType)
                 } catch (convertException: ContentConvertException) {
                     throw BadRequestException(
                         convertException.message ?: "Can't convert parameters",
@@ -264,15 +267,4 @@ public fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQ
             asterisks
         }.thenByDescending { it.contentType.parameters.size }
     )
-}
-
-private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
-    @Suppress("LoopToCallChain")
-    for (element in this) {
-        val mapped = block(element)
-        if (mapped != null) {
-            return mapped
-        }
-    }
-    return null
 }

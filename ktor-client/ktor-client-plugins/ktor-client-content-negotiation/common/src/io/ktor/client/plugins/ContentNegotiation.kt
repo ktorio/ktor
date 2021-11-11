@@ -97,16 +97,22 @@ public class ContentNegotiation internal constructor(
                     proceedWith(EmptyContent)
                     return@intercept
                 }
-                val registration = registrations
-                    .firstOrNull { it.contentTypeMatcher.contains(contentType) } ?: return@intercept
 
-                val serializedContent = registration.converter.serialize(
-                    contentType,
-                    contentType.charset() ?: Charsets.UTF_8,
-                    context.bodyType!!,
-                    payload
-                ) ?: throw ContentConverterException(
-                    "Can't convert $payload with contentType $contentType using converter ${registration.converter}"
+                val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
+                    .takeIf { it.isNotEmpty() } ?: return@intercept
+
+                // Pick the first one that can convert the subject successfully
+                val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
+                    registration.converter.serialize(
+                        contentType,
+                        contentType.charset() ?: Charsets.UTF_8,
+                        context.bodyType!!,
+                        payload
+                    )
+                } ?: throw ContentConverterException(
+                    "Can't convert $payload with contentType $contentType using converters ${
+                        matchingRegistrations.joinToString { it.converter.toString() }
+                    }"
                 )
 
                 proceedWith(serializedContent)
@@ -117,11 +123,15 @@ public class ContentNegotiation internal constructor(
 
                 val contentType = context.response.contentType() ?: return@intercept
                 val registrations = plugin.registrations
-                val registration = registrations
-                    .firstOrNull { it.contentTypeMatcher.contains(contentType) } ?: return@intercept
+                val matchingRegistrations = registrations
+                    .filter { it.contentTypeMatcher.contains(contentType) }
+                    .takeIf { it.isNotEmpty() } ?: return@intercept
 
-                val parsedBody = registration.converter
-                    .deserialize(context.request.headers.suitableCharset(), info, body) ?: return@intercept
+                // Pick the first one that can convert the subject successfully
+                val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
+                    registration.converter
+                        .deserialize(context.request.headers.suitableCharset(), info, body)
+                } ?: return@intercept
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }
