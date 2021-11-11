@@ -32,11 +32,20 @@ public object EngineMain {
         deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
             requestQueueLimit = it
         }
+        deploymentConfig.propertyOrNull("runningLimit")?.getString()?.toInt()?.let {
+            runningLimit = it
+        }
         deploymentConfig.propertyOrNull("shareWorkGroup")?.getString()?.toBoolean()?.let {
             shareWorkGroup = it
         }
         deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
             responseWriteTimeoutSeconds = it
+        }
+        deploymentConfig.propertyOrNull("requestReadTimeoutSeconds")?.getString()?.toInt()?.let {
+            requestReadTimeoutSeconds = it
+        }
+        deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
+            tcpKeepAlive = it
         }
     }
 }
