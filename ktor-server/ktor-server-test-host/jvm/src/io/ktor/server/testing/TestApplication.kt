@@ -64,6 +64,7 @@ public open class TestApplicationBuilder {
     internal val externalServices = ExternalServicesBuilder()
     internal val applicationModules = mutableListOf<Application.() -> Unit>()
     internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+    internal val job = Job()
 
     internal val environment by lazy {
         built = true
@@ -71,11 +72,12 @@ public open class TestApplicationBuilder {
             config = HoconApplicationConfig(ConfigFactory.load())
             modules.addAll(applicationModules)
             environmentBuilder()
+            parentCoroutineContext += job
         }
     }
 
     internal val engine by lazy {
-        TestApplicationEngine(environment = environment)
+        TestApplicationEngine(environment)
     }
 
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
@@ -123,15 +125,9 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(DelegatingTestClientEngine) {
             engine {
-                mainEngineHostWithPort = runBlocking {
-                    engine.resolvedConnectors().first().let { "${it.host}:${it.port}" }
-                }
-                mainEngine = TestHttpClientEngine(TestHttpClientConfig().apply { app = engine })
-                externalServices.externalApplications.forEach { (authority, testApplication) ->
-                    externalEngines[authority] = TestHttpClientEngine(
-                        TestHttpClientConfig().apply { app = testApplication.engine }
-                    )
-                }
+                parentJob = job
+                appEngineProvider = { engine }
+                externalApplicationsProvider = { externalServices.externalApplications }
             }
             block()
         }

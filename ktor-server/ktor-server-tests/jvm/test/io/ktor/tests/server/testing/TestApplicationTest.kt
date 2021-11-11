@@ -207,6 +207,37 @@ class TestApplicationTest {
         assertEquals("OK FROM MODULE", response.bodyAsText())
     }
 
+    @Test
+    fun testCanAccessClient() = withTestApplication1 {
+        class TestPluginConfig {
+            lateinit var pluginClient: HttpClient
+        }
+
+        val TestPlugin = createApplicationPlugin("test", ::TestPluginConfig) {
+            onCall {
+                val externalValue = client.get("https://test.com").bodyAsText()
+                it.response.headers.append("test", externalValue)
+            }
+        }
+        install(TestPlugin) {
+            pluginClient = client
+        }
+        externalServices {
+            hosts("https://test.com") {
+                routing { get { call.respond("TEST_VALUE")} }
+            }
+        }
+        routing {
+            get {
+                call.respond("OK")
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("OK", response.bodyAsText())
+        assertEquals("TEST_VALUE", response.headers["test"])
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }

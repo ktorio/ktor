@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -16,15 +17,27 @@ internal class DelegatingTestClientEngine(
     override val config: DelegatingTestHttpClientConfig
 ) : HttpClientEngineBase("delegating-test-engine") {
 
-    private val externalEngines = config.externalEngines.toMap()
-    private val mainEngine = config.mainEngine
-    private val mainEngineHostWithPort = config.mainEngineHostWithPort
-
     override val dispatcher = Dispatchers.IO
-
     override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability)
 
-    private val clientJob: CompletableJob = Job()
+    private val appEngine by lazy(config.appEngineProvider)
+    private val externalEngines by lazy {
+        val engines = mutableMapOf<String, TestHttpClientEngine>()
+        config.externalApplicationsProvider().forEach { (authority, testApplication) ->
+            engines[authority] = TestHttpClientEngine(
+                TestHttpClientConfig().apply { app = testApplication.engine }
+            )
+        }
+        engines.toMap()
+    }
+    private val mainEngine by lazy {
+        TestHttpClientEngine(TestHttpClientConfig().apply { app = appEngine })
+    }
+    private val mainEngineHostWithPort by lazy {
+        runBlocking { appEngine.resolvedConnectors().first().let { "${it.host}:${it.port}" } }
+    }
+
+    private val clientJob: CompletableJob = Job(config.parentJob)
 
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
@@ -66,7 +79,7 @@ public class InvalidTestRequestException(
 )
 
 internal class DelegatingTestHttpClientConfig : HttpClientEngineConfig() {
-    lateinit var mainEngineHostWithPort: String
-    lateinit var mainEngine: TestHttpClientEngine
-    val externalEngines = mutableMapOf<String, TestHttpClientEngine>()
+    lateinit var externalApplicationsProvider: () -> Map<String, TestApplication>
+    lateinit var appEngineProvider: () -> TestApplicationEngine
+    lateinit var parentJob: Job
 }
