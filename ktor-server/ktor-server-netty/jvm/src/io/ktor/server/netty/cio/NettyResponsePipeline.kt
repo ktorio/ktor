@@ -5,14 +5,11 @@
 package io.ktor.server.netty.cio
 
 import io.ktor.http.*
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.http2.*
-import io.ktor.server.netty.http2.NettyHttp2ApplicationResponse
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
