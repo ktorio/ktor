@@ -83,6 +83,9 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
+    if (this is Route && plugin is RouteScopedPlugin) {
+        return installIntoRoute(plugin, configure)
+    }
     val registry = pluginRegistry
     return when (val installedPlugin = registry.getOrNull(plugin.key)) {
         null -> {
@@ -105,6 +108,56 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
                 "Conflicting application plugin is already installed with the same key as `${plugin.key.name}`"
             )
         }
+    }
+}
+
+private fun <B : Any, F : Any> Route.installIntoRoute(
+    plugin: RouteScopedPlugin<B, F>,
+    configure: B.() -> Unit = {}
+): F {
+    if (pluginRegistry.getOrNull(plugin.key) != null) {
+        throw DuplicatePluginException(
+            "Plugin `${plugin.key.name}` is already installed to the pipeline $this"
+        )
+    }
+    if (application.pluginRegistry.getOrNull(plugin.key) != null) {
+        throw DuplicatePluginException(
+            "Installing RouteScopedPlugin to application and route is not supported. " +
+                "Consider moving application level install to routing root."
+        )
+    }
+    // we install plugin into fake pipeline and add interceptors manually
+    // to avoid having multiple interceptors after pipelines are merged
+    val fakePipeline = Route(parent, selector, developmentMode, environment)
+    val installed = plugin.install(fakePipeline, configure)
+    pluginRegistry.put(plugin.key, installed)
+
+    mergePhases(fakePipeline)
+    receivePipeline.mergePhases(fakePipeline.receivePipeline)
+    sendPipeline.mergePhases(fakePipeline.sendPipeline)
+
+    addAllInterceptors(fakePipeline, plugin, installed)
+    receivePipeline.addAllInterceptors(fakePipeline.receivePipeline, plugin, installed)
+    sendPipeline.addAllInterceptors(fakePipeline.sendPipeline, plugin, installed)
+
+    return installed
+}
+
+private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
+    fakePipeline: P,
+    plugin: RouteScopedPlugin<B, F>,
+    pluginInstance: F
+) {
+    items.forEach { phase ->
+        fakePipeline.interceptorsForPhase(phase)
+            .forEach { interceptor ->
+                intercept(phase) { subject ->
+                    val call = context
+                    if (call is RoutingApplicationCall && call.route.findPluginInRoute(plugin) == pluginInstance) {
+                        interceptor(this, subject)
+                    }
+                }
+            }
     }
 }
 
