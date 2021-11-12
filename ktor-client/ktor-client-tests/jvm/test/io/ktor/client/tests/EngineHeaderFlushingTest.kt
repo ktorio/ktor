@@ -17,10 +17,10 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
-import junit.framework.Assert.*
 import kotlinx.coroutines.*
-import org.junit.*
+import org.junit.Test
 import java.nio.*
+import kotlin.test.*
 
 // Test checks if headers is flushing immediately before writing body to the channel
 class EngineHeaderFlushingTest : TestWithKtor() {
