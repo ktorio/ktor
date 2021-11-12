@@ -6,7 +6,6 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
@@ -19,13 +18,27 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, app: TestApplicationEngine) {
+
+    val supportedCapabilities: Set<HttpClientEngineCapability<*>>
+
+    suspend fun runWebSocketRequest(
+        url: String,
+        headers: Headers,
+        content: OutgoingContent,
+        coroutineContext: CoroutineContext
+    ): Pair<TestApplicationCall, WebSocketSession>
+}
+
 public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
-    override val dispatcher = Dispatchers.IOBridge
-
-    override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability)
-
     private val app: TestApplicationEngine = config.app
+
+    private val bridge = TestHttpClientEngineBridge(this, app)
+
+    override val supportedCapabilities = bridge.supportedCapabilities
+
+    override val dispatcher = Dispatchers.IOBridge
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
@@ -36,7 +49,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         app.start()
         return if (data.isUpgradeRequest()) {
             val (testServerCall, session) = with(data) {
-                runWebSocketRequest(url.fullPath, headers, body, callContext())
+                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
             }
             with(testServerCall.response) {
                 httpResponseData(session)
@@ -68,26 +81,6 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     }
 
     @OptIn(InternalAPI::class)
-    private suspend fun runWebSocketRequest(
-        url: String,
-        headers: Headers,
-        content: OutgoingContent,
-        coroutineContext: CoroutineContext
-    ): Pair<TestApplicationCall, WebSocketSession> {
-        val sessionDeferred = CompletableDeferred<WebSocketSession>()
-        val call = app.handleWebSocketConversation(
-            url,
-            { appendRequestHeaders(headers, content) },
-            awaitCallback = false,
-        ) { incoming, outgoing ->
-            val session = TestEngineWebsocketSession(coroutineContext, incoming, outgoing)
-            sessionDeferred.complete(session)
-            session.run()
-        }
-        return call to sessionDeferred.await()
-    }
-
-    @OptIn(InternalAPI::class)
     private suspend fun TestApplicationResponse.httpResponseData(body: Any) = HttpResponseData(
         status() ?: HttpStatusCode.NotFound,
         GMTDate(),
@@ -98,7 +91,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         callContext()
     )
 
-    private fun TestApplicationRequest.appendRequestHeaders(
+    internal fun TestApplicationRequest.appendRequestHeaders(
         headers: Headers,
         content: OutgoingContent
     ) {

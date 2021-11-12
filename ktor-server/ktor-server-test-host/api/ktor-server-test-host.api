@@ -156,8 +156,6 @@ public final class io/ktor/server/testing/TestApplicationEngine : io/ktor/server
 	public final fun handleRequest (ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
 	public static synthetic fun handleRequest$default (Lio/ktor/server/testing/TestApplicationEngine;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
 	public final fun handleWebSocket (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
-	public final fun handleWebSocketConversation (Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;)Lio/ktor/server/testing/TestApplicationCall;
-	public static synthetic fun handleWebSocketConversation$default (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
 	public final fun hookRequests (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
 	public fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setCallInterceptor (Lkotlin/jvm/functions/Function3;)V
@@ -172,8 +170,8 @@ public final class io/ktor/server/testing/TestApplicationEngine$Configuration : 
 }
 
 public final class io/ktor/server/testing/TestApplicationEngineJvmKt {
-	public static final fun handleWebSocketConversation (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function4;)Lio/ktor/server/testing/TestApplicationCall;
-	public static synthetic fun handleWebSocketConversation$default (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function4;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
+	public static final fun handleWebSocketConversation (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;)Lio/ktor/server/testing/TestApplicationCall;
+	public static synthetic fun handleWebSocketConversation$default (Lio/ktor/server/testing/TestApplicationEngine;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function4;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
 }
 
 public final class io/ktor/server/testing/TestApplicationEngineKt {
@@ -182,7 +180,7 @@ public final class io/ktor/server/testing/TestApplicationEngineKt {
 
 public final class io/ktor/server/testing/TestApplicationKt {
 	public static final fun TestApplication (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplication;
-	public static final fun withTestApplication1 (Lkotlin/jvm/functions/Function2;)V
+	public static final fun testApplication (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {

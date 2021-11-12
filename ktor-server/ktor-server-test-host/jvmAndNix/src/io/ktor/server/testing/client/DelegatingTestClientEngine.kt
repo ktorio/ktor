@@ -9,7 +9,9 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.internal.*
 import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -17,11 +19,11 @@ internal class DelegatingTestClientEngine(
     override val config: DelegatingTestHttpClientConfig
 ) : HttpClientEngineBase("delegating-test-engine") {
 
-    override val dispatcher = Dispatchers.IO
+    override val dispatcher = Dispatchers.IOBridge
     override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability)
 
-    private val appEngine by lazy(config.appEngineProvider)
-    private val externalEngines by lazy {
+    private val appEngine by sharedLazy(config.appEngineProvider)
+    private val externalEngines by sharedLazy {
         val engines = mutableMapOf<String, TestHttpClientEngine>()
         config.externalApplicationsProvider().forEach { (authority, testApplication) ->
             engines[authority] = TestHttpClientEngine(
@@ -30,10 +32,10 @@ internal class DelegatingTestClientEngine(
         }
         engines.toMap()
     }
-    private val mainEngine by lazy {
+    private val mainEngine by sharedLazy {
         TestHttpClientEngine(TestHttpClientConfig().apply { app = appEngine })
     }
-    private val mainEngineHostWithPort by lazy {
+    private val mainEngineHostWithPort by sharedLazy {
         runBlocking { appEngine.resolvedConnectors().first().let { "${it.host}:${it.port}" } }
     }
 
@@ -53,7 +55,6 @@ internal class DelegatingTestClientEngine(
             throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPort)
         }
     }
-
 
     override fun close() {
         clientJob.complete()

@@ -51,6 +51,8 @@ public fun Config.tryGetString(path: String): String? = if (hasPath(path)) getSt
 public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null
 
 /**
- * Returns [ApplicationConfig] by loading configuration from a resource specified by [path]
+ * Returns [ApplicationConfig] by loading configuration from a resource specified by [configPath]
+ * or a default resource if [configPath] is `null`
  */
-public fun ApplicationConfig(path: String): ApplicationConfig = HoconApplicationConfig(ConfigFactory.load(path))
+public fun ApplicationConfig(configPath: String?): ApplicationConfig =
+    HoconApplicationConfig(if (configPath != null) ConfigFactory.load(configPath) else ConfigFactory.load())

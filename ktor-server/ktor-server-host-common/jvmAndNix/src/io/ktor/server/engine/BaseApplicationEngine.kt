@@ -36,14 +36,16 @@ public abstract class BaseApplicationEngine(
 
     protected val resolvedConnectors: CompletableDeferred<List<EngineConnectorConfig>> = CompletableDeferred()
 
-    private var isFirstLoading by shared(false)
-    private var initializedStartAt by shared(currentTimeMillisBridge())
-
     init {
+        val environment = environment
+        val info = StartupInfo()
+        val pipeline = pipeline
+
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
+
         environment.monitor.subscribe(ApplicationStarting) {
-            if (!isFirstLoading) {
-                initializedStartAt = currentTimeMillisBridge()
+            if (!info.isFirstLoading) {
+                info.initializedStartAt = currentTimeMillisBridge()
             }
             it.receivePipeline.merge(pipeline.receivePipeline)
             it.sendPipeline.merge(pipeline.sendPipeline)
@@ -53,10 +55,10 @@ public abstract class BaseApplicationEngine(
         }
         environment.monitor.subscribe(ApplicationStarted) {
             val finishedAt = currentTimeMillisBridge()
-            val elapsedTimeInSeconds = (finishedAt - initializedStartAt) / 1_000.0
-            if (isFirstLoading) {
+            val elapsedTimeInSeconds = (finishedAt - info.initializedStartAt) / 1_000.0
+            if (info.isFirstLoading) {
                 environment.log.info("Application started in $elapsedTimeInSeconds seconds.")
-                isFirstLoading = false
+                info.isFirstLoading = false
             } else {
                 environment.log.info("Application auto-reloaded in $elapsedTimeInSeconds seconds.")
             }
@@ -73,29 +75,6 @@ public abstract class BaseApplicationEngine(
         }
     }
 
-    @OptIn(InternalAPI::class)
-    private fun Application.installDefaultInterceptors() {
-        intercept(ApplicationCallPipeline.Setup) {
-            call.response.pipeline.intercept(ApplicationSendPipeline.Before) {
-                call.attributes.put(SendPipelineExecutedAttributeKey, Unit)
-            }
-        }
-        intercept(ApplicationCallPipeline.Fallback) {
-            val isResponded = call.attributes.getOrNull(SendPipelineExecutedAttributeKey) != null
-            if (isResponded) {
-                return@intercept
-            }
-            val status = call.response.status()
-                ?: call.attributes.getOrNull(RoutingFailureStatusCode)
-                ?: HttpStatusCode.NotFound
-            call.respond(status)
-        }
-
-        intercept(ApplicationCallPipeline.Call) {
-            verifyHostHeader()
-        }
-    }
-
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
         return resolvedConnectors.await()
     }
@@ -109,5 +88,33 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
     if (hostHeaders.size > 1) {
         call.respond(HttpStatusCode.BadRequest)
         finish()
+    }
+}
+
+private class StartupInfo {
+    var isFirstLoading by shared(false)
+    var initializedStartAt by shared(currentTimeMillisBridge())
+}
+
+@OptIn(InternalAPI::class)
+private fun Application.installDefaultInterceptors() {
+    intercept(ApplicationCallPipeline.Setup) {
+        call.response.pipeline.intercept(ApplicationSendPipeline.Before) {
+            call.attributes.put(SendPipelineExecutedAttributeKey, Unit)
+        }
+    }
+    intercept(ApplicationCallPipeline.Fallback) {
+        val isResponded = call.attributes.getOrNull(SendPipelineExecutedAttributeKey) != null
+        if (isResponded) {
+            return@intercept
+        }
+        val status = call.response.status()
+            ?: call.attributes.getOrNull(RoutingFailureStatusCode)
+            ?: HttpStatusCode.NotFound
+        call.respond(status)
+    }
+
+    intercept(ApplicationCallPipeline.Call) {
+        verifyHostHeader()
     }
 }

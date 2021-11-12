@@ -2,18 +2,20 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.server.testing
 
-import com.typesafe.config.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
+import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
@@ -31,7 +33,7 @@ public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
 ) : ClientProvider by builder {
 
-    internal val engine by lazy { builder.engine }
+    internal val engine by sharedLazy { builder.engine }
 
     public fun stop() {
         builder.engine.stop(0, 0)
@@ -56,7 +58,7 @@ public fun TestApplication(
  * Registers mocks for external services.
  */
 public class ExternalServicesBuilder {
-    internal val externalApplications = mutableMapOf<String, TestApplication>()
+    internal val externalApplications = sharedMap<String, TestApplication>()
 
     /**
      * Registers mock for external service specified by [hosts] and configured with [block].
@@ -77,24 +79,24 @@ public class ExternalServicesBuilder {
  */
 public open class TestApplicationBuilder {
 
-    private var built = false
+    private var built by shared(false)
 
     internal val externalServices = ExternalServicesBuilder()
-    internal val applicationModules = mutableListOf<Application.() -> Unit>()
-    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+    internal val applicationModules = sharedList<Application.() -> Unit>()
+    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit by shared {}
     internal val job = Job()
 
-    internal val environment by lazy {
+    internal val environment by sharedLazy {
         built = true
         createTestEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.load())
+            config = DefaultTestConfig()
             modules.addAll(applicationModules)
             environmentBuilder()
             parentCoroutineContext += job
         }
     }
 
-    internal val engine by lazy {
+    internal val engine by sharedLazy {
         TestApplicationEngine(environment)
     }
 
@@ -156,7 +158,7 @@ public open class TestApplicationBuilder {
  */
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client by lazy { createClient { } }
+    override val client by sharedLazy { createClient { } }
 
     override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(DelegatingTestClientEngine) {
@@ -173,7 +175,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 /**
  * Creates a test using [TestApplication]
  */
-public fun withTestApplication1(
+public fun testApplication(
     block: suspend ApplicationTestBuilder.() -> Unit
 ) {
     val builder = ApplicationTestBuilder()

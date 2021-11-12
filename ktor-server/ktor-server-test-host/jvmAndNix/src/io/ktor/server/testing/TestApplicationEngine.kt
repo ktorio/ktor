@@ -28,12 +28,11 @@ class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
-    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private val testEngineJob by shared(Job(environment.parentCoroutineContext[Job]))
     private var cancellationDeferred: CompletableJob? by shared(null)
     private val isStarted = atomic(false)
 
-    override val coroutineContext: CoroutineContext
-        get() = testEngineJob
+    override val coroutineContext: CoroutineContext = testEngineJob
 
     /**
      * Test application engine configuration
