@@ -165,9 +165,11 @@ public class CORS internal constructor(configuration: Configuration) {
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
         val requestHeaders =
-            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }
+                ?.filter { it.isNotBlank() }
+                ?.map {
+                    it.trim().toLowerCasePreservingASCIIRules()
+                } ?: emptyList()
 
         if (!corsCheckRequestMethod() || (!corsCheckRequestHeaders(requestHeaders))) {
             respond(HttpStatusCode.Forbidden)
