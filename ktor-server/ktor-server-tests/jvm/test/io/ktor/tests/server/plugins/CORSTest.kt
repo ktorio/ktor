@@ -866,7 +866,10 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("Content-Type, X-Forwarded-Proto", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals(
+                    "Content-Type, X-Forwarded-Proto",
+                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                )
             }
         }
     }
