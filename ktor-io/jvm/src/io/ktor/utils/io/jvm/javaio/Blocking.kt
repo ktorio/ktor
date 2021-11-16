@@ -262,25 +262,29 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         result.value = rc
 
         return suspendCoroutineUninterceptedOrReturn { ucont ->
-            var thread: Thread? = null
-
-            state.update { value ->
-                when (value) {
-                    is Thread -> {
-                        thread = value
-                        ucont.intercepted()
-                    }
-                    this -> ucont.intercepted()
-                    else -> throw IllegalStateException("Already suspended or in finished state")
-                }
-            }
-
-            if (thread != null) {
-                parkingImpl.unpark(thread!!)
-            }
-
-            COROUTINE_SUSPENDED
+            rendezvous(ucont)
         }
+    }
+
+    private fun rendezvous(ucont: Continuation<Any>): Any {
+        var thread: Thread? = null
+
+        state.update { value ->
+            when (value) {
+                is Thread -> {
+                    thread = value
+                    ucont.intercepted()
+                }
+                this -> ucont.intercepted()
+                else -> throw IllegalStateException("Already suspended or in finished state")
+            }
+        }
+
+        if (thread != null) {
+            parkingImpl.unpark(thread!!)
+        }
+
+        return COROUTINE_SUSPENDED
     }
 
     protected fun finish(rc: Int) {

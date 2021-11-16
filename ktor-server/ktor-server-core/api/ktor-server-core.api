@@ -1399,6 +1399,7 @@ public final class io/ktor/routing/RootRouteSelector : io/ktor/routing/RouteSele
 public class io/ktor/routing/Route : io/ktor/application/ApplicationCallPipeline {
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;)V
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;Z)V
+	public synthetic fun <init> (Lio/ktor/routing/Route;Lio/ktor/routing/RouteSelector;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun afterIntercepted ()V
 	public final fun createChild (Lio/ktor/routing/RouteSelector;)Lio/ktor/routing/Route;
 	public final fun getChildren ()Ljava/util/List;

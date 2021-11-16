@@ -16,19 +16,6 @@ import kotlin.native.concurrent.*
 @Experimental(level = Experimental.Level.ERROR)
 public annotation class DangerousInternalIoApi
 
-@DangerousInternalIoApi
-public fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
-    val builderHead = builder.stealAll() ?: return
-    val builderSize = builder.size
-
-    if (builderSize <= PACKET_MAX_COPY_SIZE && builderHead.next == null && tryWriteAppend(builderHead)) {
-        builder.afterBytesStolen()
-        return
-    }
-
-    append(builderHead)
-}
-
 internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
     val builderSize = builder.size
     val builderHead = builder.stealAll() ?: return 0

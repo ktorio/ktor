@@ -56,29 +56,6 @@ class ConnectionTests {
     }
 
     @Test
-    fun certificateTest(): Unit = runBlocking {
-        val keyStore = generateCertificate(
-            File.createTempFile("test", "certificate"),
-            algorithm = "SHA256withRSA",
-            keySizeInBits = 4096
-        )
-
-        val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-        factory.init(keyStore, "changeit".toCharArray())
-
-        val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
-            .connect(InetSocketAddress("chat.freenode.net", 6697))
-            .tls(Dispatchers.IO) {
-                addKeyStore(keyStore, "changeit".toCharArray())
-            }
-
-        val input = socket.openReadChannel()
-        val output = socket.openWriteChannel(autoFlush = true)
-        output.close()
-        socket.close()
-    }
-
-    @Test
     @Ignore
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")

@@ -1767,7 +1767,6 @@ public final class io/ktor/utils/io/core/internal/UTF8Kt {
 }
 
 public final class io/ktor/utils/io/core/internal/UnsafeKt {
-	public static final fun $unsafeAppend$ (Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/utils/io/core/BytePacketBuilder;)V
 	public static final synthetic fun afterHeadWrite (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/IoBuffer;)V
 	public static final fun afterHeadWrite (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
 	public static final synthetic fun completeReadHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;)V

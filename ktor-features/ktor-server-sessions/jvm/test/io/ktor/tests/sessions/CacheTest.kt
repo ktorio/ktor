@@ -135,28 +135,6 @@ class CacheTest {
         assertEquals(2, counter.get())
     }
 
-    @Test
-    fun testWeakReferenceCache(): Unit = runBlocking {
-        var ref: D? = null
-        val weak = WeakReferenceCache<Int, D> { ref = D(it); ref!! }
-
-        var value: D? = weak.getOrCompute(1)
-        assertEquals(D(1), value)
-        assertNotNull(ref)
-        assertEquals(D(1), weak.peek(1))
-
-        @Suppress("UNUSED_VALUE")
-        value = null // workaround for coroutine holding reference
-        ref = null
-
-        System.gc()
-        Thread.sleep(100)
-        System.gc()
-        System.gc()
-
-        assertNull(weak.peek(1))
-    }
-
     private data class D(val i: Int)
 
     @Test

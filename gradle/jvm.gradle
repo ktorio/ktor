@@ -4,7 +4,7 @@
 
 apply from: rootProject.file('gradle/jdk.gradle')
 
-def jdk = 6
+def jdk = 7
 
 if (project.name in project.ext.jdk11Modules) {
     jdk = 11
@@ -13,17 +13,6 @@ if (project.name in project.ext.jdk11Modules) {
 } else if (project.name in project.ext.jdk7Modules) {
     jdk = 7
 }
-
-String lookupJdk(int startingFrom) {
-    return (startingFrom..20)
-        .collect { it < 10 ? "JDK_1_$it" : "JDK_$it" }
-        .collect { System.env[it.toString()] }
-        .find { it != null && new File(it).exists() }
-}
-
-def jdkHome = lookupJdk(jdk)
-
-int currentJdk = ext.currentJdk
 
 apply plugin: "kotlinx-atomicfu"
 
@@ -41,19 +30,6 @@ kotlin {
     task jarTest(type: Jar, dependsOn: jvmTestClasses) {
         from targets.jvm.compilations.test.output
         classifier 'test'
-    }
-
-    configure(targets) {
-        compilations.all { compilation ->
-            if (compilation.name == "main") {
-                def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
-                if (!compileTask.name.endsWith("Jvm")) return
-
-                if (jdkHome != null) {
-                    compileTask.kotlinOptions.jdkHome = jdkHome
-                }
-            }
-        }
     }
 
     sourceSets {
