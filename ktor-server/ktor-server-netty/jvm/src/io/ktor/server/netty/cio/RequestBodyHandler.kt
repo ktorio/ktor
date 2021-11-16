@@ -86,7 +86,8 @@ internal class RequestBodyHandler(
         }
 
         throw IllegalStateException(
-            "Unable to start request processing: failed to offer $token to the HTTP pipeline queue. Queue closed: ${queue.isClosedForSend}"
+            "Unable to start request processing: failed to offer $token to the HTTP pipeline queue. " +
+                "Queue closed: ${queue.isClosedForSend}"
         )
     }
 

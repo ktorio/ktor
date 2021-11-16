@@ -151,6 +151,7 @@ public val Url.authority: String
             append(hostWithPort)
         }
     }
+
 /**
  * [Url] protocol and authority.
  */
