@@ -8,10 +8,40 @@ import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
 import io.ktor.util.*
-import io.ktor.resources.common.Resources as ResourcesCore
+import io.ktor.resources.Resources as ResourcesCore
 
 /**
- * Installable feature for [ResourcesCore].
+ * Adds support for type-safe routing using [ResourcesCore].
+ *
+ * Example:
+ * ```kotlin
+ * @Serializable
+ * @Resource("/users")
+ * data class Users {
+ *   @Serializable
+ *   @Resource("/{id}")
+ *   data class ById(val parent: Users = Users(), val id: Long)
+ *
+ *   @Serializable
+ *   @Resource("/add")
+ *   data class Add(val parent: Users = Users(), val name: String)
+ * }
+ *
+ * routing {
+ *   get<Users.ById> { userById ->
+ *     val userId: Long = userById.id
+ *   }
+ *   post<Users.Add> { addUser ->
+ *     val userName: String = addUser.name
+ *   }
+ * }
+ *
+ * // client-side
+ * val newUserId = client.post(Users.Add("new_user"))
+ * val addedUser = client.get(Users.ById(newUserId))
+ * ```
+ *
+ * @see Resource
  */
 public object Resources : ApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
 
@@ -33,7 +63,7 @@ public inline fun <reified T : Any> Application.href(resource: T): String {
 }
 
 /**
- * Constructs the url for [resource].
+ * Constructs the url for [resource] .
  *
  * The class of [resource] instance **must** be annotated with [Resource].
  */

@@ -87,7 +87,7 @@ class PathPatternSerializationTest {
 
     @Test
     fun testMultipleNestedParentsShouldThrow() {
-        assertFailsWith<ResourceRoutingException> {
+        assertFailsWith<ResourceSerializationException> {
             locationsFormat.encodeToPathPattern(Container.serializer())
         }.let {
             assertEquals(

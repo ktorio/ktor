@@ -25,18 +25,11 @@ import io.ktor.client.request.put as putBuilder
 import io.ktor.client.request.request as requestBuilder
 
 /**
- * Executes a [HttpClient] GET request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.get(
-    resource: T,
-): HttpResponse = get(resource) {}
-
-/**
  * Executes a [HttpClient] GET request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.get(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return getBuilder {
@@ -46,18 +39,11 @@ public suspend inline fun <reified T : Any> HttpClient.get(
 }
 
 /**
- * Executes a [HttpClient] POST request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.post(
-    resource: T,
-): HttpResponse = post(resource) {}
-
-/**
  * Executes a [HttpClient] POST request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.post(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return postBuilder {
@@ -67,18 +53,11 @@ public suspend inline fun <reified T : Any> HttpClient.post(
 }
 
 /**
- * Executes a [HttpClient] PUT request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.put(
-    resource: T,
-): HttpResponse = put(resource) {}
-
-/**
  * Executes a [HttpClient] PUT request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.put(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return putBuilder {
@@ -88,18 +67,11 @@ public suspend inline fun <reified T : Any> HttpClient.put(
 }
 
 /**
- * Executes a [HttpClient] DELETE request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.delete(
-    resource: T,
-): HttpResponse = delete(resource) {}
-
-/**
  * Executes a [HttpClient] DELETE request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.delete(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return deleteBuilder {
@@ -109,18 +81,11 @@ public suspend inline fun <reified T : Any> HttpClient.delete(
 }
 
 /**
- * Executes a [HttpClient] OPTIONS request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.options(
-    resource: T,
-): HttpResponse = options(resource) {}
-
-/**
  * Executes a [HttpClient] OPTIONS request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.options(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return optionsBuilder {
@@ -130,18 +95,11 @@ public suspend inline fun <reified T : Any> HttpClient.options(
 }
 
 /**
- * Executes a [HttpClient] HEAD request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.head(
-    resource: T,
-): HttpResponse = head(resource) {}
-
-/**
  * Executes a [HttpClient] HEAD request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.head(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse {
     val resources = resources()
     return headBuilder {
@@ -165,18 +123,11 @@ public suspend inline fun <reified T : Any> HttpClient.request(
 }
 
 /**
- * Prepares a [HttpClient] GET request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.prepareGet(
-    resource: T,
-): HttpStatement = prepareGet(resource) {}
-
-/**
  * Prepares a [HttpClient] GET request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareGet(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return prepareGetBuilder {
@@ -186,18 +137,11 @@ public suspend inline fun <reified T : Any> HttpClient.prepareGet(
 }
 
 /**
- * Prepares a [HttpClient] POST request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.preparePost(
-    resource: T,
-): HttpStatement = preparePost(resource) {}
-
-/**
  * Prepares a [HttpClient] POST request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePost(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return preparePostBuilder {
@@ -207,18 +151,11 @@ public suspend inline fun <reified T : Any> HttpClient.preparePost(
 }
 
 /**
- * Prepares a [HttpClient] PUT request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.preparePut(
-    resource: T,
-): HttpStatement = preparePut(resource) {}
-
-/**
  * Prepares a [HttpClient] PUT request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePut(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return preparePutBuilder {
@@ -228,18 +165,11 @@ public suspend inline fun <reified T : Any> HttpClient.preparePut(
 }
 
 /**
- * Prepares a [HttpClient] DELETE request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
-    resource: T,
-): HttpStatement = prepareDelete(resource) {}
-
-/**
  * Prepares a [HttpClient] DELETE request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return prepareDeleteBuilder {
@@ -249,18 +179,11 @@ public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
 }
 
 /**
- * Prepares a [HttpClient] OPTIONS request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
-    resource: T,
-): HttpStatement = prepareOptions(resource) {}
-
-/**
  * Prepares a [HttpClient] OPTIONS request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return prepareOptionsBuilder {
@@ -270,18 +193,11 @@ public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
 }
 
 /**
- * Prepares a [HttpClient] HEAD request, with url built from [resource]
- */
-public suspend inline fun <reified T : Any> HttpClient.prepareHead(
-    resource: T,
-): HttpStatement = prepareHead(resource) {}
-
-/**
  * Prepares a [HttpClient] HEAD request, with url built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareHead(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return prepareHeadBuilder {
@@ -295,7 +211,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareHead(
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
     resource: T,
-    builder: HttpRequestBuilder.() -> Unit
+    builder: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement {
     val resources = resources()
     return prepareRequestBuilder {
@@ -304,8 +220,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
     }
 }
 
-
 @PublishedApi
-internal fun HttpClient.resources(): io.ktor.resources.common.Resources {
+internal fun HttpClient.resources(): io.ktor.resources.Resources {
     return plugin(Resources) ?: throw IllegalStateException("Resources plugin is not installed")
 }

@@ -7,29 +7,33 @@ public final class io/ktor/resources/Resource$Impl : io/ktor/resources/Resource 
 	public final synthetic fun path ()Ljava/lang/String;
 }
 
-public final class io/ktor/resources/ResourceRoutingException : java/lang/Exception {
+public final class io/ktor/resources/ResourceSerializationException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class io/ktor/resources/common/Resources {
-	public fun <init> (Lio/ktor/resources/common/Resources$Configuration;)V
+public final class io/ktor/resources/Resources {
+	public fun <init> (Lio/ktor/resources/Resources$Configuration;)V
 	public final fun getResourcesFormat ()Lio/ktor/resources/serialisation/ResourcesFormat;
 }
 
-public final class io/ktor/resources/common/Resources$Configuration {
+public final class io/ktor/resources/Resources$Configuration {
 	public fun <init> ()V
 	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
 	public final fun setSerializersModule (Lkotlinx/serialization/modules/SerializersModule;)V
+}
+
+public final class io/ktor/resources/UrlBuilderKt {
+	public static final fun href (Lio/ktor/resources/serialisation/ResourcesFormat;Lkotlinx/serialization/KSerializer;Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
 }
 
 public final class io/ktor/resources/serialisation/ResourcesFormat : kotlinx/serialization/SerialFormat {
 	public fun <init> ()V
 	public fun <init> (Lkotlinx/serialization/modules/SerializersModule;)V
 	public synthetic fun <init> (Lkotlinx/serialization/modules/SerializersModule;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun decodeFromParameters (Lkotlinx/serialization/DeserializationStrategy;Lio/ktor/http/Parameters;)Ljava/lang/Object;
-	public final fun encodeToParameters (Lkotlinx/serialization/SerializationStrategy;Ljava/lang/Object;)Lio/ktor/http/Parameters;
-	public final fun encodeToPathPattern (Lkotlinx/serialization/SerializationStrategy;)Ljava/lang/String;
-	public final fun encodeToQueryParameters (Lkotlinx/serialization/SerializationStrategy;)Ljava/util/Set;
+	public final fun decodeFromParameters (Lkotlinx/serialization/KSerializer;Lio/ktor/http/Parameters;)Ljava/lang/Object;
+	public final fun encodeToParameters (Lkotlinx/serialization/KSerializer;Ljava/lang/Object;)Lio/ktor/http/Parameters;
+	public final fun encodeToPathPattern (Lkotlinx/serialization/KSerializer;)Ljava/lang/String;
+	public final fun encodeToQueryParameters (Lkotlinx/serialization/KSerializer;)Ljava/util/Set;
 	public fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
 }
 

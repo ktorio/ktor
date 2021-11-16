@@ -1,7 +1,12 @@
 public final class io/ktor/server/resources/Resources : io/ktor/server/application/ApplicationPlugin {
 	public static final field INSTANCE Lio/ktor/server/resources/Resources;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/resources/common/Resources;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/resources/Resources;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/resources/RoutingKt {
+	public static final fun handle (Lio/ktor/server/routing/Route;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function3;)V
+	public static final fun resource (Lio/ktor/server/routing/Route;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 }
 

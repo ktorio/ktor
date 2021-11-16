@@ -10,10 +10,31 @@ import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.util.*
 import io.ktor.client.plugins.get as getFeature
-import io.ktor.resources.common.Resources as ResourcesCore
+import io.ktor.resources.Resources as ResourcesCore
 
 /**
- * Installable feature for [ResourcesCore].
+ * Adds support for type-safe requests using [ResourcesCore].
+ *
+ * Example:
+ * ```kotlin
+ * @Serializable
+ * @Resource("/users")
+ * data class Users {
+ *   @Serializable
+ *   @Resource("/{id}")
+ *   data class ById(val parent: Users = Users(), val id: Long)
+ *
+ *   @Serializable
+ *   @Resource("/add")
+ *   data class Add(val parent: Users = Users(), val name: String)
+ * }
+ *
+ * // client-side
+ * val newUserId = client.post(Users.Add("new_user")) // "/users?name=new_user"
+ * val addedUser = client.get(Users.ById(newUserId)) // "/user/123"
+ * ```
+ *
+ * @see Resource
  */
 public object Resources : HttpClientPlugin<ResourcesCore.Configuration, ResourcesCore> {
 

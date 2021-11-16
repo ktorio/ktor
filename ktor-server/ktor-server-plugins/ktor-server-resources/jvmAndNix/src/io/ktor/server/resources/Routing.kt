@@ -12,34 +12,21 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.*
 import kotlin.native.concurrent.*
-import kotlin.reflect.*
 
 /**
  * Registers a route [body] for a resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  */
 public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Unit): Route {
-    val resources = application.plugin(Resources)
     val serializer = serializer<T>()
-    val path = resources.resourcesFormat.encodeToPathPattern(serializer)
-    val queryParameters = resources.resourcesFormat.encodeToQueryParameters(serializer)
-    val route = createRouteFromPath(path)
-
-    return queryParameters.fold(route) { entry, query ->
-        val selector = if (query.isOptional) {
-            OptionalParameterRouteSelector(query.name)
-        } else {
-            ParameterRouteSelector(query.name)
-        }
-        entry.createChild(selector)
-    }.apply(body)
+    return resource(serializer, body)
 }
 
 /**
  * Registers a typed handler [body] for a `GET` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -56,7 +43,7 @@ public inline fun <reified T : Any> Route.get(
 /**
  * Registers a typed handler [body] for a `OPTIONS` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -73,7 +60,7 @@ public inline fun <reified T : Any> Route.options(
 /**
  * Registers a typed handler [body] for a `HEAD` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -90,7 +77,7 @@ public inline fun <reified T : Any> Route.head(
 /**
  * Registers a typed handler [body] for a `POST` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -107,7 +94,7 @@ public inline fun <reified T : Any> Route.post(
 /**
  * Registers a typed handler [body] for a `PUT` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -124,7 +111,7 @@ public inline fun <reified T : Any> Route.put(
 /**
  * Registers a typed handler [body] for a `DELETE` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -141,7 +128,7 @@ public inline fun <reified T : Any> Route.delete(
 /**
  * Registers a typed handler [body] for a `PATCH` resource defined by class [T].
  *
- * Class [T] **must** be annotated with [Resource].
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of typed resource [T] as first parameter.
  */
@@ -156,17 +143,50 @@ public inline fun <reified T : Any> Route.patch(
 }
 
 /**
- * Registers a handler [body] for a resource defined by class [dataClass].
+ * Registers a handler [body] for a resource defined by class [T].
  *
- * @param body receives an instance of typed resource [dataClass] as first parameter.
+ * @param body receives an instance of typed resource [T] as first parameter.
  */
 public inline fun <reified T : Any> Route.handle(
-    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+) {
+    val serializer = serializer<T>()
+    handle(serializer, body)
+}
+
+@SharedImmutable
+@PublishedApi
+internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInstance")
+
+@PublishedApi
+internal fun <T : Any> Route.resource(
+    serializer: KSerializer<T>,
+    body: Route.() -> Unit
+): Route {
+    val resources = application.plugin(Resources)
+    val path = resources.resourcesFormat.encodeToPathPattern(serializer)
+    val queryParameters = resources.resourcesFormat.encodeToQueryParameters(serializer)
+    val route = createRouteFromPath(path)
+
+    return queryParameters.fold(route) { entry, query ->
+        val selector = if (query.isOptional) {
+            OptionalParameterRouteSelector(query.name)
+        } else {
+            ParameterRouteSelector(query.name)
+        }
+        entry.createChild(selector)
+    }.apply(body)
+}
+
+@PublishedApi
+internal fun <T : Any> Route.handle(
+    serializer: KSerializer<T>,
+    body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     intercept(ApplicationCallPipeline.Plugins) {
         val resources = application.plugin(Resources)
         try {
-            val resource = resources.resourcesFormat.decodeFromParameters<T>(serializer(), call.parameters)
+            val resource = resources.resourcesFormat.decodeFromParameters<T>(serializer, call.parameters)
             call.attributes.put(ResourceInstanceKey, resource)
         } catch (cause: Throwable) {
             throw BadRequestException("Can't transform call to resource", cause)
@@ -179,7 +199,3 @@ public inline fun <reified T : Any> Route.handle(
         body(resource)
     }
 }
-
-@SharedImmutable
-@PublishedApi
-internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInstance")

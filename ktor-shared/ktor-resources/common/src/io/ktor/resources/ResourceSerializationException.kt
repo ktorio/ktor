@@ -4,4 +4,7 @@
 
 package io.ktor.resources
 
-public class ResourceRoutingException(message: String) : Exception(message)
+/**
+ * Thrown when [de]serialization of resource failed
+ */
+public class ResourceSerializationException(message: String) : Exception(message)

@@ -109,7 +109,7 @@ class UrlBuilderTest {
     @Test
     fun testResourceWithoutParameter() {
         val resource = ResourceWithoutParameter()
-        assertFailsWith<ResourceRoutingException> {
+        assertFailsWith<ResourceSerializationException> {
             href(resourcesFormat, resource)
         }.let {
             assertEquals("Expect exactly one parameter with name: id, but found 0", it.message)
@@ -125,7 +125,7 @@ class UrlBuilderTest {
     @Test
     fun testResourceWithExtraParameter() {
         val resource = ResourceWithExtraParameter(listOf("1", "2"))
-        assertFailsWith<ResourceRoutingException> {
+        assertFailsWith<ResourceSerializationException> {
             href(resourcesFormat, resource)
         }.let {
             assertEquals("Expect exactly one parameter with name: id, but found 2", it.message)
@@ -141,7 +141,7 @@ class UrlBuilderTest {
     @Test
     fun testResourceWithExtraNullableParameter() {
         val resource = ResourceWithExtraNullableParameter(listOf("1", "2"))
-        assertFailsWith<ResourceRoutingException> {
+        assertFailsWith<ResourceSerializationException> {
             href(resourcesFormat, resource)
         }.let {
             assertEquals("Expect zero or one parameter with name: id, but found 2", it.message)

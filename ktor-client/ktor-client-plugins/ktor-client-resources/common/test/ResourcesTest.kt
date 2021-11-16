@@ -4,6 +4,7 @@
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.resources.*
+import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*

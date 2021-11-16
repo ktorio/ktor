@@ -9,7 +9,7 @@ val serialization_version: String by project.extra
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {
-            api(project(":ktor-shared:ktor-resources-core"))
+            api(project(":ktor-shared:ktor-resources"))
             api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
         }
     }
