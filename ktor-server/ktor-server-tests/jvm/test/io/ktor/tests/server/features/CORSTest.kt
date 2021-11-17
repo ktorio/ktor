@@ -11,6 +11,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
+import kotlin.time.*
 
 class CORSTest {
 
@@ -837,6 +838,38 @@ class CORSTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("custom-matcher-header", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+            }
+        }
+    }
+
+    @Test
+    fun testEmptyAccessControlRequestHeaders() {
+        withTestApplication {
+            application.install(CORS) {
+                method(HttpMethod.Options)
+                header(HttpHeaders.XForwardedProto)
+                host("host")
+                allowSameOrigin = false
+                allowCredentials = true
+                allowNonSimpleContentTypes = true
+            }
+
+            application.routing {
+                post("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "POST")
+                addHeader(HttpHeaders.AccessControlRequestHeaders, "")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(
+                    "Content-Type, X-Forwarded-Proto",
+                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                )
             }
         }
     }
