@@ -27,7 +27,7 @@ public class ResourcesFormat(
     )
 
     /**
-     * Builds a path pattern for given [serializer]
+     * Builds a path pattern for a given [serializer]
      */
     public fun <T> encodeToPathPattern(serializer: KSerializer<T>): String {
         val pathBuilder = StringBuilder()
