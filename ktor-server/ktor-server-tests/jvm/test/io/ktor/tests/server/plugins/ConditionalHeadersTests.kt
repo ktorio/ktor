@@ -25,6 +25,7 @@ import java.time.*
 import java.util.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ETagsTest {
     private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
         application.install(ConditionalHeaders) {
@@ -151,6 +152,7 @@ class ETagsTest {
 }
 
 @RunWith(Parameterized::class)
+@Suppress("DEPRECATION")
 class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId) {
     companion object {
         @JvmStatic

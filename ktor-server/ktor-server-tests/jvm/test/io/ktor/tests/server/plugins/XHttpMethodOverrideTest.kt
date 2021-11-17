@@ -14,6 +14,7 @@ import io.ktor.server.testing.*
 import org.junit.Test
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class XHttpMethodOverrideTest {
     @Test
     fun testNoFeature() {

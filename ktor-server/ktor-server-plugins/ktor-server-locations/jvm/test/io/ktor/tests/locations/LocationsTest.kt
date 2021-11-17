@@ -14,12 +14,14 @@ import io.ktor.server.testing.*
 import java.math.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(KtorExperimentalLocationsAPI::class)
 private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(Locations)
     test()
 }
 
+@Suppress("DEPRECATION")
 @OptIn(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
     @Location("/")

@@ -16,6 +16,7 @@ import io.ktor.util.date.*
 import java.io.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class PartialContentTest {
     private val basedir = listOf(File("jvm/test"), File("ktor-server/ktor-server-tests/jvm/test"))
         .map { File(it, "io/ktor/tests/server") }

@@ -14,6 +14,7 @@ import io.ktor.util.*
 import kotlin.random.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class UserHashedTableAuthTest {
     private val randomSaltPart = Random.nextInt(0, 0x10000)
         .toString(radix = 16)

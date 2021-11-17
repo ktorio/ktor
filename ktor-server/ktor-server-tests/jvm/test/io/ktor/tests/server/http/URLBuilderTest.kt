@@ -11,6 +11,7 @@ import io.ktor.server.testing.*
 import io.ktor.server.util.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class URLBuilderTest {
 
     @Test

@@ -26,6 +26,7 @@ import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule

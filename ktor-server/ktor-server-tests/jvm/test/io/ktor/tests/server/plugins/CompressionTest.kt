@@ -20,6 +20,7 @@ import java.util.zip.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CompressionTest {
     private val textToCompress = "text to be compressed\n".repeat(100)
     private val textToCompressAsBytes = textToCompress.encodeToByteArray()

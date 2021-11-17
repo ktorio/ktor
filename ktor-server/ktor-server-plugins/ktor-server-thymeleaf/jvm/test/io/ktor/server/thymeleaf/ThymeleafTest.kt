@@ -16,6 +16,7 @@ import java.util.*
 import java.util.zip.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ThymeleafTest {
     @Test
     fun testName() {

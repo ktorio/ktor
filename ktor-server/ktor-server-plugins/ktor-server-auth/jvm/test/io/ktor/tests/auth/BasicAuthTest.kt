@@ -16,6 +16,7 @@ import io.ktor.util.*
 import java.nio.charset.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class BasicAuthTest {
     @Test
     fun testBasicAuthNoAuth() {

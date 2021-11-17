@@ -18,6 +18,7 @@ import org.slf4j.event.*
 import java.util.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>

@@ -19,6 +19,7 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ServerGsonBlockingTest {
     private val dispatcher = UnsafeDispatcher()
     private val environment = createTestEnvironment {

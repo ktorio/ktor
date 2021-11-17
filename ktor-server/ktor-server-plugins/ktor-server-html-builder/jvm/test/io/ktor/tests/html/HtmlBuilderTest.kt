@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import kotlinx.html.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class HtmlBuilderTest {
     @Test
     fun testName() = withTestApplication {

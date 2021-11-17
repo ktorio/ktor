@@ -14,6 +14,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class TestEngineMultipartTest {
     private val boundary = "***bbb***"
     private val contentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)

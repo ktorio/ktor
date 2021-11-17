@@ -15,6 +15,7 @@ import io.ktor.server.testing.*
 import java.util.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class AuthBuildersTest {
 
     @Test

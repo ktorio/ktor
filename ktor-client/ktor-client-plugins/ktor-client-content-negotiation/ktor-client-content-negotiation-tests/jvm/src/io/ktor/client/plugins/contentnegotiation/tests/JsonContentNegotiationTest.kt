@@ -14,6 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 abstract class JsonContentNegotiationTest(private val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
 

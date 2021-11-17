@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class DefaultHeadersTest {
 
     @Test

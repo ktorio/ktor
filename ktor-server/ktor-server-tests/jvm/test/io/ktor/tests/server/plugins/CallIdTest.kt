@@ -14,6 +14,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CallIdTest {
     @Test
     fun missingPlugin(): Unit = withTestApplication {
