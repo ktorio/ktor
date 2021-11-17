@@ -14,7 +14,7 @@ import kotlinx.serialization.*
 import kotlin.native.concurrent.*
 
 /**
- * Registers a route [body] for a resource defined by class [T].
+ * Registers a route [body] for a resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  */
@@ -24,11 +24,11 @@ public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Un
 }
 
 /**
- * Registers a typed handler [body] for a `GET` resource defined by class [T].
+ * Registers a typed handler [body] for a `GET` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.get(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -41,11 +41,11 @@ public inline fun <reified T : Any> Route.get(
 }
 
 /**
- * Registers a typed handler [body] for a `OPTIONS` resource defined by class [T].
+ * Registers a typed handler [body] for a `OPTIONS` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.options(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -58,11 +58,11 @@ public inline fun <reified T : Any> Route.options(
 }
 
 /**
- * Registers a typed handler [body] for a `HEAD` resource defined by class [T].
+ * Registers a typed handler [body] for a `HEAD` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.head(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -75,11 +75,11 @@ public inline fun <reified T : Any> Route.head(
 }
 
 /**
- * Registers a typed handler [body] for a `POST` resource defined by class [T].
+ * Registers a typed handler [body] for a `POST` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.post(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -92,11 +92,11 @@ public inline fun <reified T : Any> Route.post(
 }
 
 /**
- * Registers a typed handler [body] for a `PUT` resource defined by class [T].
+ * Registers a typed handler [body] for a `PUT` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.put(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -109,11 +109,11 @@ public inline fun <reified T : Any> Route.put(
 }
 
 /**
- * Registers a typed handler [body] for a `DELETE` resource defined by class [T].
+ * Registers a typed handler [body] for a `DELETE` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.delete(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -126,11 +126,11 @@ public inline fun <reified T : Any> Route.delete(
 }
 
 /**
- * Registers a typed handler [body] for a `PATCH` resource defined by class [T].
+ * Registers a typed handler [body] for a `PATCH` resource defined by the [T] class.
  *
  * Class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.patch(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
@@ -143,9 +143,9 @@ public inline fun <reified T : Any> Route.patch(
 }
 
 /**
- * Registers a handler [body] for a resource defined by class [T].
+ * Registers a handler [body] for a resource defined by the [T] class.
  *
- * @param body receives an instance of typed resource [T] as first parameter.
+ * @param body receives an instance of the typed resource [T] as the first parameter.
  */
 public inline fun <reified T : Any> Route.handle(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit

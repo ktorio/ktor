@@ -51,18 +51,18 @@ public object Resources : HttpClientPlugin<ResourcesCore.Configuration, Resource
 }
 
 /**
- * Constructs the url for [resource].
+ * Constructs a URL for [resource].
  *
- * The class of [resource] instance **must** be annotated with [Resource].
+ * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> HttpClient.href(resource: T): String {
     return href(getFeature(Resources).resourcesFormat, resource)
 }
 
 /**
- * Constructs the url for [resource].
+ * Constructs a URL for [resource].
  *
- * The class of [resource] instance **must** be annotated with [Resource].
+ * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> HttpClient.href(resource: T, urlBuilder: URLBuilder) {
     href(getFeature(Resources).resourcesFormat, resource, urlBuilder)

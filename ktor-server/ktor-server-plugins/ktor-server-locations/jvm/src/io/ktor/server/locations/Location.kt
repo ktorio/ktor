@@ -63,7 +63,7 @@ public fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
 }
 
 /**
- * Registers a route [body] for a location defined by class [T].
+ * Registers a route [body] for a location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  */
@@ -73,7 +73,7 @@ public inline fun <reified T : Any> Route.location(noinline body: Route.() -> Un
 }
 
 /**
- * Registers a typed handler [body] for a `GET` location defined by class [T].
+ * Registers a typed handler [body] for a `GET` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -91,7 +91,7 @@ public inline fun <reified T : Any> Route.get(
 }
 
 /**
- * Registers a typed handler [body] for a `OPTIONS` location defined by class [T].
+ * Registers a typed handler [body] for a `OPTIONS` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -109,7 +109,7 @@ public inline fun <reified T : Any> Route.options(
 }
 
 /**
- * Registers a typed handler [body] for a `HEAD` location defined by class [T].
+ * Registers a typed handler [body] for a `HEAD` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -127,7 +127,7 @@ public inline fun <reified T : Any> Route.head(
 }
 
 /**
- * Registers a typed handler [body] for a `POST` location defined by class [T].
+ * Registers a typed handler [body] for a `POST` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -145,7 +145,7 @@ public inline fun <reified T : Any> Route.post(
 }
 
 /**
- * Registers a typed handler [body] for a `PUT` location defined by class [T].
+ * Registers a typed handler [body] for a `PUT` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -163,7 +163,7 @@ public inline fun <reified T : Any> Route.put(
 }
 
 /**
- * Registers a typed handler [body] for a `DELETE` location defined by class [T].
+ * Registers a typed handler [body] for a `DELETE` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -181,7 +181,7 @@ public inline fun <reified T : Any> Route.delete(
 }
 
 /**
- * Registers a typed handler [body] for a `PATCH` location defined by class [T].
+ * Registers a typed handler [body] for a `PATCH` location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  *
@@ -210,7 +210,7 @@ public fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Ro
 }
 
 /**
- * Registers a handler [body] for a location defined by class [T].
+ * Registers a handler [body] for a location defined by the [T] class.
  *
  * Class [T] **must** be annotated with [Location].
  */

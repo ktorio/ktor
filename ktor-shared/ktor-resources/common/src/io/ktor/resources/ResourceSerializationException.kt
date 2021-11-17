@@ -5,6 +5,6 @@
 package io.ktor.resources
 
 /**
- * Thrown when [de]serialization of resource failed
+ * Thrown when [de]serialization of the resource failed
  */
 public class ResourceSerializationException(message: String) : Exception(message)

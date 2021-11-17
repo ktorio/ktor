@@ -9,23 +9,23 @@ import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 
 /**
- * Resources feature instance.
+ * Resources plugin instance.
  */
 public class Resources(configuration: Configuration) {
 
     /**
-     * Instance of format to (de)serialize resources instances
+     * The format instance used to (de)serialize resources instances
      */
     public val resourcesFormat: ResourcesFormat = ResourcesFormat(configuration.serializersModule)
 
     /**
-     * Configuration for Resources feature instance.
+     * Configuration for the Resources plugin instance.
      */
     @OptIn(ExperimentalSerializationApi::class)
     public class Configuration {
 
         /**
-         * [SerializersModule] to use for (de)serialization of Resource instances.
+         * [SerializersModule] used to (de)serialize the Resource instances.
          */
         public var serializersModule: SerializersModule = EmptySerializersModule
     }

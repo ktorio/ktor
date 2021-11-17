@@ -25,7 +25,7 @@ import io.ktor.client.request.put as putBuilder
 import io.ktor.client.request.request as requestBuilder
 
 /**
- * Executes a [HttpClient] GET request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] GET request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.get(
     resource: T,
@@ -39,7 +39,7 @@ public suspend inline fun <reified T : Any> HttpClient.get(
 }
 
 /**
- * Executes a [HttpClient] POST request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] POST request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.post(
     resource: T,
@@ -53,7 +53,7 @@ public suspend inline fun <reified T : Any> HttpClient.post(
 }
 
 /**
- * Executes a [HttpClient] PUT request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] PUT request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.put(
     resource: T,
@@ -67,7 +67,7 @@ public suspend inline fun <reified T : Any> HttpClient.put(
 }
 
 /**
- * Executes a [HttpClient] DELETE request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] DELETE request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.delete(
     resource: T,
@@ -81,7 +81,7 @@ public suspend inline fun <reified T : Any> HttpClient.delete(
 }
 
 /**
- * Executes a [HttpClient] OPTIONS request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] OPTIONS request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.options(
     resource: T,
@@ -95,7 +95,7 @@ public suspend inline fun <reified T : Any> HttpClient.options(
 }
 
 /**
- * Executes a [HttpClient] HEAD request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] HEAD request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.head(
     resource: T,
@@ -109,7 +109,7 @@ public suspend inline fun <reified T : Any> HttpClient.head(
 }
 
 /**
- * Executes a [HttpClient] request, with url built from [resource] and the information from the [builder]
+ * Executes a [HttpClient] request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.request(
     resource: T,
@@ -123,7 +123,7 @@ public suspend inline fun <reified T : Any> HttpClient.request(
 }
 
 /**
- * Prepares a [HttpClient] GET request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] GET request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareGet(
     resource: T,
@@ -137,7 +137,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareGet(
 }
 
 /**
- * Prepares a [HttpClient] POST request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] POST request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePost(
     resource: T,
@@ -151,7 +151,7 @@ public suspend inline fun <reified T : Any> HttpClient.preparePost(
 }
 
 /**
- * Prepares a [HttpClient] PUT request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] PUT request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePut(
     resource: T,
@@ -165,7 +165,7 @@ public suspend inline fun <reified T : Any> HttpClient.preparePut(
 }
 
 /**
- * Prepares a [HttpClient] DELETE request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] DELETE request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
     resource: T,
@@ -179,7 +179,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
 }
 
 /**
- * Prepares a [HttpClient] OPTIONS request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] OPTIONS request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
     resource: T,
@@ -193,7 +193,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
 }
 
 /**
- * Prepares a [HttpClient] HEAD request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] HEAD request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareHead(
     resource: T,
@@ -207,7 +207,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareHead(
 }
 
 /**
- * Prepares a [HttpClient] request, with url built from [resource] and the information from the [builder]
+ * Prepares a [HttpClient] request, with a URL built from [resource] and the information from the [builder]
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
     resource: T,

@@ -11,7 +11,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
 
 /**
- * Format to (de)serialize resources instances
+ * A format to (de)serialize resources instances
  */
 @OptIn(ExperimentalSerializationApi::class)
 public class ResourcesFormat(
@@ -19,7 +19,7 @@ public class ResourcesFormat(
 ) : SerialFormat {
 
     /**
-     * Represents query parameter
+     * A query parameter description
      */
     public data class Parameter(
         val name: String,
@@ -27,7 +27,7 @@ public class ResourcesFormat(
     )
 
     /**
-     * Builds path pattern for given [serializer]
+     * Builds a path pattern for given [serializer]
      */
     public fun <T> encodeToPathPattern(serializer: KSerializer<T>): String {
         val pathBuilder = StringBuilder()
@@ -55,7 +55,7 @@ public class ResourcesFormat(
     }
 
     /**
-     * Builds description of query parameters for given [serializer]
+     * Builds a description of query parameters for a given [serializer]
      */
     public fun <T> encodeToQueryParameters(serializer: KSerializer<T>): Set<Parameter> {
         val path = encodeToPathPattern(serializer)
@@ -92,7 +92,7 @@ public class ResourcesFormat(
     }
 
     /**
-     * Builds instance of resource [T] from [parameters]
+     * Builds a [T] resource instance from [parameters]
      */
     public fun <T> decodeFromParameters(deserializer: KSerializer<T>, parameters: Parameters): T {
         val input = ParametersDecoder(serializersModule, parameters, emptyList())

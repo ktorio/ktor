@@ -7,10 +7,10 @@ package io.ktor.resources
 import kotlinx.serialization.*
 
 /**
- * Annotation for classes that will act as typed routes. All annotated types should be [Serializable].
+ * An annotation for classes that act as typed routes. All annotated types should be [Serializable].
  *
- * Every property that has a corresponding placeholder inside [path] will be used as a value for this placeholder.
- * Other properties will be put into url query.
+ * Every property that has a corresponding placeholder inside [path] is used as a value for this placeholder.
+ * Other properties are put into the URL query.
  * Example:
  * ```
  * @Serializable
@@ -21,9 +21,9 @@ import kotlinx.serialization.*
  * val url = href(userById)
  * assertEquals("/users/123?properties=name&properties=avatar")
  * ```
- * Properties can be primitives or types annotated with [Serializable] annotation.
+ * Properties can be primitives or types annotated with the [Serializable] annotation.
  *
- * You can nest class for better organization, but all nested classes should have property with a type of outer class.
+ * You can nest class for better organization, but all nested classes should have a property with an outer class type.
  * Example:
  * ```kotlin
  * @Serializable
@@ -41,7 +41,7 @@ import kotlinx.serialization.*
  * val addUser = Users.add("new_name")
  * ```
  *
- * @property path the route path, including class property names wrapped with curly braces.
+ * @property path the route path, including the class property names wrapped with curly braces.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo

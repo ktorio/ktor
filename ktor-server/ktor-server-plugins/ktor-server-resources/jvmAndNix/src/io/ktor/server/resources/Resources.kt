@@ -54,18 +54,18 @@ public object Resources : ApplicationPlugin<Application, ResourcesCore.Configura
 }
 
 /**
- * Constructs the url for [resource].
+ * Constructs a URL for [resource].
  *
- * The class of [resource] instance **must** be annotated with [Resource].
+ * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> Application.href(resource: T): String {
     return href(plugin(Resources).resourcesFormat, resource)
 }
 
 /**
- * Constructs the url for [resource] .
+ * Constructs a URL for [resource].
  *
- * The class of [resource] instance **must** be annotated with [Resource].
+ * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> Application.href(resource: T, urlBuilder: URLBuilder) {
     href(plugin(Resources).resourcesFormat, resource, urlBuilder)
