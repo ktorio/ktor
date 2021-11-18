@@ -5,11 +5,17 @@
 package io.ktor.util.debug
 
 import java.lang.management.*
+import java.lang.ClassNotFoundException
 
 internal actual object IntellijIdeaDebugDetector {
     actual val isDebuggerConnected: Boolean by lazy {
-        ManagementFactory.getRuntimeMXBean()
-            .inputArguments.toString()
-            .contains("jdwp")
+        try {
+            ManagementFactory.getRuntimeMXBean()
+                .inputArguments.toString()
+                .contains("jdwp")
+        } catch (error: ClassNotFoundException) {
+            // Relevant case for Android (KTOR-3426) in tessts. Android does not support ManagementFactory
+            false
+        }
     }
 }
