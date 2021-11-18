@@ -16,9 +16,9 @@ import org.w3c.workers.*
  */
 public actual val URLBuilder.Companion.origin: String
     get() = when {
-        PlatformUtils.IS_BROWSER -> if(window !== undefined){
+        PlatformUtils.IS_BROWSER -> if (window !== undefined) {
             window.location.origin
-        }else{
+        } else {
             js("self.location.origin") as String
         }
         else -> "http://localhost"
