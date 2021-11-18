@@ -20,6 +20,7 @@ import java.io.*
 import kotlin.test.*
 import kotlin.text.Charsets
 
+@Suppress("DEPRECATION")
 class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 

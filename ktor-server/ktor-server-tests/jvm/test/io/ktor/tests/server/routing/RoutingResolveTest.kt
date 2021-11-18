@@ -16,6 +16,7 @@ import kotlin.test.*
 fun routing(rootPath: String = ""): Route =
     Route(parent = null, selector = RootRouteSelector(rootPath))
 
+@Suppress("DEPRECATION")
 fun resolve(
     routing: Route,
     path: String,
@@ -42,6 +43,7 @@ fun resolve(
 
 fun Route.handle(selector: RouteSelector) = createChild(selector).apply { handle {} }
 
+@Suppress("DEPRECATION")
 class RoutingResolveTest {
     @Test
     fun `empty routing`() {

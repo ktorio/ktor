@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import java.security.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class DigestTest {
     @Test
     fun createExampleChallengeFromRFC() {

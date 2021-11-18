@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
-@Suppress("ReplaceSingleLineLet")
+@Suppress("ReplaceSingleLineLet", "DEPRECATION")
 @OptIn(ExperimentalTime::class)
 class SessionTest {
     private val cookieName = "_S" + Random.nextInt(100)

@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 public abstract class AbstractServerSerializationTest {
     protected val serializer: KSerializer<TestEntity> = TestEntity.serializer()
 

@@ -12,6 +12,7 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 @OptIn(UseHttp2Push::class)
+@Suppress("DEPRECATION")
 class DefaultPushTest {
     @Test
     fun testDefaultPush() {

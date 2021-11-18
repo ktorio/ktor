@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 import kotlin.time.*
 
+@Suppress("DEPRECATION")
 class CORSTest {
 
     @Test

@@ -20,6 +20,7 @@ import java.util.concurrent.*
 import kotlin.math.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class OAuth1aSignatureTest {
     @Test
     fun testSignatureBaseString() {
@@ -80,6 +81,7 @@ class OAuth1aSignatureTest {
     }
 }
 
+@Suppress("DEPRECATION")
 class OAuth1aFlowTest {
     private var testClient: HttpClient? = null
 

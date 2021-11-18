@@ -26,6 +26,7 @@ import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
@@ -100,41 +101,12 @@ class WebSocketTest {
 
             val jsonData = "[hello]"
 
-            val sendBuffer = ByteBuffer.allocate(jsonData.length + 100)
+            handleWebSocketConversation("/echo") { incoming, outgoing ->
+                outgoing.send(Frame.Text(jsonData))
 
-            Serializer().apply {
-                enqueue(Frame.Text(jsonData))
-                serialize(sendBuffer)
-            }
-
-            val conversation = Job()
-
-            handleWebSocket("/echo") {
-                bodyChannel = writer {
-                    channel.writeFully(sendBuffer.array())
-                    channel.flush()
-                    conversation.join()
-                }.channel
-            }.let { call ->
-                runBlocking {
-                    withTimeout(Duration.ofSeconds(10).toMillis()) {
-                        val reader = WebSocketReader(
-                            call.response.websocketChannel()!!,
-                            coroutineContext,
-                            Int.MAX_VALUE.toLong()
-                        )
-
-                        val frame = reader.incoming.receive()
-                        val receivedContent = frame.buffer.moveToByteArray()
-
-                        conversation.complete()
-
-                        assertEquals(FrameType.TEXT, frame.frameType)
-                        assertEquals(jsonData.length, receivedContent.size)
-
-                        assertTrue { receivedContent.contentEquals(jsonData.toByteArray()) }
-                    }
-                }
+                val frame = incoming.receive() as Frame.Text
+                assertEquals(FrameType.TEXT, frame.frameType)
+                assertEquals(jsonData, frame.readText())
             }
         }
     }

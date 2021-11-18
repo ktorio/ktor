@@ -17,6 +17,7 @@ import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class SessionAuthTest {
     @Test
     fun testSessionOnly() {

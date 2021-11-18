@@ -18,6 +18,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class WebSocketWithContentNegotiationTest {
 
     @Test

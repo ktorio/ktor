@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.server.testing
 
 import io.ktor.http.*
@@ -10,8 +12,10 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.logging.*
 
+internal expect fun DefaultTestConfig(configPath: String? = null): ApplicationConfig
+
 /**
- * Creates test application engine environment
+ * Creates an engine environment for a test application
  */
 public fun createTestEnvironment(
     configure: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
@@ -36,8 +40,9 @@ public fun TestApplicationEngine.handleRequest(
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
+@Deprecated("Please use new `testApplication` API")
 public fun <R> withApplication(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
@@ -53,15 +58,17 @@ public fun <R> withApplication(
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
+@Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment(), test = test)
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
+@Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
@@ -70,8 +77,9 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
+@Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(
     moduleFunction: Application.() -> Unit,
     configure: TestApplicationEngine.Configuration.() -> Unit = {},

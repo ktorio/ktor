@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import java.net.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(KtorExperimentalLocationsAPI::class)
 class OAuthLocationsTest {
     @Test

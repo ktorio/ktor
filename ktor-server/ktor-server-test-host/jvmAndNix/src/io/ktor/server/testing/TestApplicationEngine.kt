@@ -28,14 +28,14 @@ class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
-    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private val testEngineJob by shared(Job(environment.parentCoroutineContext[Job]))
     private var cancellationDeferred: CompletableJob? by shared(null)
+    private val isStarted = atomic(false)
 
-    override val coroutineContext: CoroutineContext
-        get() = testEngineJob
+    override val coroutineContext: CoroutineContext = testEngineJob
 
     /**
-     * Test application engine configuration
+     * An engine configuration for a test application
      * @property dispatcher to run handlers and interceptors on
      */
     class Configuration : BaseApplicationEngine.Configuration() {
@@ -102,10 +102,17 @@ class TestApplicationEngine(
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
-        throw IllegalStateException("TestApplicationEngine does not support network addresses")
+        return listOf(object : EngineConnectorConfig {
+            override val type: ConnectorType = ConnectorType.HTTP
+            override val host: String = environment.connectors.firstOrNull()?.host ?: "localhost"
+            override val port: Int = environment.connectors.firstOrNull()?.port ?: 80
+        })
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
+        if (isStarted.getAndSet(true)) {
+            return this
+        }
         check(testEngineJob.isActive) { "Test engine is already completed" }
         environment.start()
         cancellationDeferred = stopServerOnCancellation()
@@ -114,6 +121,7 @@ class TestApplicationEngine(
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
+            isStarted.value = false
             cancellationDeferred?.complete()
             client.close()
             engine.close()

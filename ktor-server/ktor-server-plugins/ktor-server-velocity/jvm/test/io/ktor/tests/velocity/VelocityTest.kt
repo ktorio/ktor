@@ -16,6 +16,7 @@ import org.apache.velocity.runtime.resource.util.*
 import java.util.zip.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class VelocityTest {
     @Test
     fun testName() {

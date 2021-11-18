@@ -14,6 +14,7 @@ import io.ktor.server.testing.*
 import java.util.zip.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class PebbleTest {
 
     @Test

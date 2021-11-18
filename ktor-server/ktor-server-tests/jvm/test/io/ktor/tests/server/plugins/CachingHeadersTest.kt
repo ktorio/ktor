@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CachingHeadersTest {
     @Test
     fun testNoPluginInstalled(): Unit = test(

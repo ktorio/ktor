@@ -15,6 +15,7 @@ import java.time.*
 import java.time.format.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CookiesTest {
     @Test
     fun `simple cookies`() {

@@ -29,7 +29,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
-    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Default
+    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Main
 
     protected val exceptions = sharedList<Throwable>()
 

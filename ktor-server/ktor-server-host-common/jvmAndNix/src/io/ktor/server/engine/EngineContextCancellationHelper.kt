@@ -28,7 +28,7 @@ public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val deferred: CompletableJob = Job(parent = this)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    GlobalScope.launch(this + Dispatchers.IOBridge, start = CoroutineStart.UNDISPATCHED) {
+    GlobalScope.launch(this + Dispatchers.IOBridge) {
         var cancelled = false
         try {
             deferred.join()

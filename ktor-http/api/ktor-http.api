@@ -1011,6 +1011,7 @@ public final class io/ktor/http/UrlKt {
 	public static final fun copy (Lio/ktor/http/Url;Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lio/ktor/http/Url;
 	public static synthetic fun copy$default (Lio/ktor/http/Url;Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/Url;
 	public static final fun getAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
+	public static final fun getProtocolWithAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
 }
 
 public final class io/ktor/http/auth/AuthScheme {

@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class RespondWriteTest {
     @Test
     fun smoke() {

@@ -21,6 +21,7 @@ import kotlin.coroutines.*
 import kotlin.system.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {

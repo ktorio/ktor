@@ -15,6 +15,7 @@ import io.ktor.server.testing.*
 import java.util.zip.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class FreeMarkerTest {
     @Test
     fun testName() {

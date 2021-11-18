@@ -12,12 +12,14 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
 /**
- * Make a test request that setup a websocket session and invoke [callback] function
- * that does conversation with server
+ * Makes a test request that sets up a WebSocket session and invokes the [callback] function
+ * that handles conversation with the server
  */
+@OptIn(DelicateCoroutinesApi::class)
 fun TestApplicationEngine.handleWebSocketConversation(
     uri: String,
     setup: TestApplicationRequest.() -> Unit = {},
+    awaitCallback: Boolean = true,
     callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
 ): TestApplicationCall {
     val websocketChannel = ByteChannel(true)
@@ -59,13 +61,16 @@ fun TestApplicationEngine.handleWebSocketConversation(
         val responseChannel = call.response.websocketChannel()!!
         val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
-        try {
-            // execute client side
-            call.callback(reader.incoming, writer.outgoing)
-        } finally {
-            writer.flush()
-            writer.outgoing.close()
-            job.cancelAndJoin()
+        val scope = if (awaitCallback) this else GlobalScope
+        scope.launch {
+            try {
+                // execute client side
+                call.callback(reader.incoming, writer.outgoing)
+            } finally {
+                writer.flush()
+                writer.outgoing.close()
+                job.cancelAndJoin()
+            }
         }
     }
 

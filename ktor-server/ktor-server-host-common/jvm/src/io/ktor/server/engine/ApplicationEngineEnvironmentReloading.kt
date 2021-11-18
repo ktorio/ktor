@@ -34,8 +34,8 @@ public class ApplicationEngineEnvironmentReloading(
     override val log: Logger,
     override val config: ApplicationConfig,
     override val connectors: List<EngineConnectorConfig>,
-    private val modules: List<Application.() -> Unit>,
-    private val watchPaths: List<String> = emptyList(),
+    internal val modules: List<Application.() -> Unit>,
+    internal val watchPaths: List<String> = emptyList(),
     override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     override val rootPath: String = "",
     override val developmentMode: Boolean = true

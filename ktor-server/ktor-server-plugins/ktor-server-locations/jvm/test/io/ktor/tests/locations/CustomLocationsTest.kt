@@ -17,6 +17,7 @@ import io.ktor.util.*
 import kotlin.reflect.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(CustomLocationsPlugin)
     test()
@@ -42,6 +43,7 @@ class entity(val id: EntityID)
 
 data class EntityID(val typeId: Int, val entityId: Int)
 
+@Suppress("DEPRECATION")
 @OptIn(KtorExperimentalLocationsAPI::class)
 class CustomLocationsTest {
 
