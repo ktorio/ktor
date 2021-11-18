@@ -13,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.transformcheck.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -103,6 +104,49 @@ class ContentNegotiationTest {
     }
 
     data class Wrapper(val value: String)
+
+    @Test
+    fun testTransformWithNotAcceptable(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Zip, customContentConverter)
+        }
+        application.install(TransformationChecker) {}
+
+        application.routing {
+            post("/") {
+                call.respond(Wrapper("hello"))
+            }
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            setBody(""" {"value" : "value" }""")
+            addHeader(HttpHeaders.Accept, "application/xml")
+            addHeader(HttpHeaders.ContentType, "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+        }
+    }
+
+    @Test
+    fun testTransformWithUnsupportedMediaType(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Xml, customContentConverter)
+        }
+        application.install(TransformationChecker) {}
+
+        application.routing {
+            post("/") {
+                val wrapper = call.receive<Wrapper>()
+                call.respond(wrapper.value)
+            }
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            setBody(""" {"value" : "value" }""")
+            addHeader(HttpHeaders.Accept, "application/xml")
+            addHeader(HttpHeaders.ContentType, "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.UnsupportedMediaType, call.response.status())
+        }
+    }
 
     @Test
     fun testCustom() {
