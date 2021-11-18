@@ -153,7 +153,7 @@ public val Url.authority: String
     }
 
 /**
- * [Url] protocol and authority.
+ * A [Url] protocol and authority.
  */
 public val Url.protocolWithAuthority: String
     get() = buildString {

@@ -15,7 +15,7 @@ import io.ktor.util.logging.*
 internal expect fun DefaultTestConfig(configPath: String? = null): ApplicationConfig
 
 /**
- * Creates test application engine environment
+ * Creates an engine environment for a test application
  */
 public fun createTestEnvironment(
     configure: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
@@ -40,7 +40,7 @@ public fun TestApplicationEngine.handleRequest(
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
 @Deprecated("Please use new `testApplication` API")
 public fun <R> withApplication(
@@ -58,7 +58,7 @@ public fun <R> withApplication(
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
 @Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
@@ -66,7 +66,7 @@ public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
 @Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
@@ -77,7 +77,7 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 }
 
 /**
- * Start test application engine, pass it to [test] function and stop it
+ * Starts a test application engine, passes it to the [test] function and stops it
  */
 @Deprecated("Please use new `testApplication` API")
 public fun <R> withTestApplication(

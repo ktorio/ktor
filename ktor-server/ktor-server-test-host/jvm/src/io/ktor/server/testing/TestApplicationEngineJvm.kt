@@ -12,8 +12,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
 /**
- * Make a test request that setup a websocket session and invoke [callback] function
- * that does conversation with server
+ * Makes a test request that sets up a WebSocket session and invokes the [callback] function
+ * that handles conversation with the server
  */
 @OptIn(DelicateCoroutinesApi::class)
 fun TestApplicationEngine.handleWebSocketConversation(

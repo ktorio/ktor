@@ -25,6 +25,6 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         content: OutgoingContent,
         coroutineContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
-        throw NotImplementedError()
+        throw NotImplementedError("Websockets for native are not supported")
     }
 }

@@ -41,12 +41,12 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
 }
 
 /**
- * Get string property value for [path] or `null` if missing
+ * Returns a string value for [path] or `null` if missing
  */
 public fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
 
 /**
- * Get list property value for [path] or `null` if missing
+ * Returns a list of values for [path] or `null` if missing
  */
 public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null
 

@@ -71,7 +71,7 @@ internal class DelegatingTestClientEngine(
 }
 
 /**
- * Thrown when request is made to unknown resource
+ * Thrown when a request is made to an unknown resource
  */
 public class InvalidTestRequestException(
     authority: String,

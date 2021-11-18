@@ -22,12 +22,19 @@ import kotlinx.coroutines.*
  * Provides a client attached to [TestApplication].
  */
 public interface ClientProvider {
+    /**
+     * Returns a client with default config
+     */
     public val client: HttpClient
+
+    /**
+     * Creates a client with custom config
+     */
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
 /**
- * Represents a configures instance of a test application running locally.
+ * A configured instance of a test application running locally.
  */
 public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
@@ -43,7 +50,8 @@ public class TestApplication internal constructor(
 }
 
 /**
- * Creates an instance of [TestApplication] configured with builder [block].
+ * Creates an instance of [TestApplication] configured with the builder [block].
+ * Make sure to call [TestApplication.stop] after your tests.
  */
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
@@ -61,7 +69,7 @@ public class ExternalServicesBuilder {
     internal val externalApplications = sharedMap<String, TestApplication>()
 
     /**
-     * Registers mock for external service specified by [hosts] and configured with [block].
+     * Registers a mock for external service specified by [hosts] and configured with [block].
      */
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
@@ -75,7 +83,7 @@ public class ExternalServicesBuilder {
 }
 
 /**
- * Builder for [TestApplication]
+ * A builder for [TestApplication]
  */
 public open class TestApplicationBuilder {
 
@@ -109,7 +117,7 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Builds environment using [block]
+     * Builds an environment using [block]
      */
     public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
@@ -117,7 +125,7 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Adds module to [TestApplication]
+     * Adds a module to [TestApplication]
      */
     public fun application(block: Application.() -> Unit) {
         checkNotBuilt()
@@ -147,14 +155,14 @@ public open class TestApplicationBuilder {
 
     private fun checkNotBuilt() {
         check(!built) {
-            "The test application have been already built. " +
-                "Make sure you configure the application before first access to client"
+            "The test application has already been built. Make sure you configure the application " +
+                "before accessing the client for the first time."
         }
     }
 }
 
 /**
- * Builder for test that uses [TestApplication]
+ * A builder for the test that uses [TestApplication]
  */
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 

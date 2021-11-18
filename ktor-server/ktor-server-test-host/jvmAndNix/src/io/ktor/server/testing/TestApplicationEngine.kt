@@ -35,7 +35,7 @@ class TestApplicationEngine(
     override val coroutineContext: CoroutineContext = testEngineJob
 
     /**
-     * Test application engine configuration
+     * An engine configuration for a test application
      * @property dispatcher to run handlers and interceptors on
      */
     class Configuration : BaseApplicationEngine.Configuration() {
