@@ -10,7 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -130,7 +129,7 @@ private fun Application.installDefaultTransformationChecker() {
     intercept(ApplicationCallPipeline.Plugins) {
         try {
             proceed()
-        } catch (e: UnsupportedMediaTypeException) {
+        } catch (e: CannotTransformContentToTypeException) {
             call.respond(HttpStatusCode.UnsupportedMediaType)
         }
     }
@@ -138,21 +137,6 @@ private fun Application.installDefaultTransformationChecker() {
     sendPipeline.intercept(ApplicationSendPipeline.After) { subject ->
         if (subject !is OutgoingContent) {
             proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
-        }
-    }
-
-    receivePipeline.intercept(ApplicationReceivePipeline.After) { subject ->
-        val requestContentType = try {
-            call.request.contentType().withoutParameters()
-        } catch (parseFailure: BadContentTypeFormatException) {
-            throw BadRequestException(
-                "Illegal Content-Type header format: ${call.request.headers[HttpHeaders.ContentType]}",
-                parseFailure
-            )
-        }
-
-        if (!subject.typeInfo.type.isInstance(subject.value)) {
-            throw UnsupportedMediaTypeException(requestContentType)
         }
     }
 }

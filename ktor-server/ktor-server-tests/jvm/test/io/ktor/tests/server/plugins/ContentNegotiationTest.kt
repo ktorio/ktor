@@ -305,10 +305,10 @@ class ContentNegotiationTest {
                 assertEquals("[OK]", call.response.content)
             }
 
-            assertFails {
-                handleRequest(HttpMethod.Get, "/2") {
-                    addHeader(HttpHeaders.Accept, customContentType.toString())
-                }
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
             }
         }
     }
