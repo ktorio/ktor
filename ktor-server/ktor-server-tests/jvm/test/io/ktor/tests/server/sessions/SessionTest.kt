@@ -134,7 +134,7 @@ class SessionTest {
                 }
                 get("/2") {
                     val session = call.sessions.get<TestUserSession>()
-                    asserNotNull(session)
+                    assertNotNull(session)
                     call.respond(HttpStatusCode.Unauthorized, "Error")
                 }
             }
