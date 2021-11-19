@@ -13,7 +13,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.server.transformcheck.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -110,7 +109,6 @@ class ContentNegotiationTest {
         application.install(ContentNegotiation) {
             register(ContentType.Application.Zip, customContentConverter)
         }
-        application.install(TransformationChecker) {}
 
         application.routing {
             post("/") {
@@ -131,7 +129,6 @@ class ContentNegotiationTest {
         application.install(ContentNegotiation) {
             register(ContentType.Application.Xml, customContentConverter)
         }
-        application.install(TransformationChecker) {}
 
         application.routing {
             post("/") {

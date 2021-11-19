@@ -16,7 +16,6 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-double-receive"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-transformation-check"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-http-redirect"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
