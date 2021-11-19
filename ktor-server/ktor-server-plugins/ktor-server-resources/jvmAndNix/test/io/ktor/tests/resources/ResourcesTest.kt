@@ -15,6 +15,7 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 internal fun withResourcesApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(Resources)
     test()
