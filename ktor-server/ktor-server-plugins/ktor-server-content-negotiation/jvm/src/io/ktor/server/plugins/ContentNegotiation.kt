@@ -128,10 +128,6 @@ public class ContentNegotiation internal constructor(
                 configuration.checkAcceptHeaderCompliance
             )
 
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
-                proceed()
-            }
-
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
                 if (subject is HttpStatusCodeContent) {
                     return@intercept
@@ -188,7 +184,7 @@ public class ContentNegotiation internal constructor(
                 if (plugin.checkAcceptHeader(acceptItems, contentType)) {
                     proceedWith(rendered)
                 } else {
-                    return@intercept
+                    proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
                 }
             }
 
