@@ -128,15 +128,6 @@ public class ContentNegotiation internal constructor(
                 configuration.checkAcceptHeaderCompliance
             )
 
-            // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
-                try {
-                    proceed()
-                } catch (e: UnsupportedMediaTypeException) {
-                    call.respond(HttpStatusCode.UnsupportedMediaType)
-                }
-            }
-
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
                 if (subject is HttpStatusCodeContent) {
                     return@intercept
@@ -187,7 +178,7 @@ public class ContentNegotiation internal constructor(
                 }
 
                 val rendered = converted?.let { transformDefaultContent(it) }
-                    ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
+                    ?: return@intercept
 
                 val contentType = rendered.contentType
                 if (plugin.checkAcceptHeader(acceptItems, contentType)) {
@@ -213,7 +204,7 @@ public class ContentNegotiation internal constructor(
                 }
                 val suitableConverters =
                     plugin.registrations.filter { converter -> requestContentType.match(converter.contentType) }
-                        .takeIf { it.isNotEmpty() } ?: throw UnsupportedMediaTypeException(requestContentType)
+                        .takeIf { it.isNotEmpty() } ?: return@intercept
 
                 val converted = try {
                     // Pick the first one that can convert the subject successfully
@@ -223,7 +214,7 @@ public class ContentNegotiation internal constructor(
                             typeInfo = subject.typeInfo,
                             content = subject.value as ByteReadChannel
                         )
-                    } ?: throw UnsupportedMediaTypeException(requestContentType)
+                    } ?: return@intercept
                 } catch (convertException: ContentConvertException) {
                     throw BadRequestException(
                         convertException.message ?: "Can't convert parameters",

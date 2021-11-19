@@ -5,8 +5,11 @@
 package io.ktor.server.engine
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
+import io.ktor.server.http.content.*
+import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -52,6 +55,7 @@ public abstract class BaseApplicationEngine(
             it.receivePipeline.installDefaultTransformations()
             it.sendPipeline.installDefaultTransformations()
             it.installDefaultInterceptors()
+            it.installDefaultTransformationChecker()
         }
         environment.monitor.subscribe(ApplicationStarted) {
             val finishedAt = currentTimeMillisBridge()
@@ -116,5 +120,25 @@ private fun Application.installDefaultInterceptors() {
 
     intercept(ApplicationCallPipeline.Call) {
         verifyHostHeader()
+    }
+}
+
+@OptIn(InternalAPI::class)
+private fun Application.installDefaultTransformationChecker() {
+    // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
+    intercept(ApplicationCallPipeline.Plugins) {
+        try {
+            proceed()
+        } catch (e: CannotTransformContentToTypeException) {
+            call.respond(HttpStatusCode.UnsupportedMediaType)
+        }
+    }
+
+    val checkBodyPhase = PipelinePhase("BodyTransformationCheckPostRender")
+    sendPipeline.insertPhaseAfter(ApplicationSendPipeline.Render, checkBodyPhase)
+    sendPipeline.intercept(checkBodyPhase) { subject ->
+        if (subject !is OutgoingContent) {
+            proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
+        }
     }
 }

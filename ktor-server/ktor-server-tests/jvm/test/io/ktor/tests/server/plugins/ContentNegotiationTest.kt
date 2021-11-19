@@ -105,6 +105,47 @@ class ContentNegotiationTest {
     data class Wrapper(val value: String)
 
     @Test
+    fun testTransformWithNotAcceptable(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Zip, customContentConverter)
+        }
+
+        application.routing {
+            post("/") {
+                call.respond(Wrapper("hello"))
+            }
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            setBody(""" {"value" : "value" }""")
+            addHeader(HttpHeaders.Accept, "application/xml")
+            addHeader(HttpHeaders.ContentType, "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+        }
+    }
+
+    @Test
+    fun testTransformWithUnsupportedMediaType(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Xml, customContentConverter)
+        }
+
+        application.routing {
+            post("/") {
+                val wrapper = call.receive<Wrapper>()
+                call.respond(wrapper.value)
+            }
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            setBody(""" {"value" : "value" }""")
+            addHeader(HttpHeaders.Accept, "application/xml")
+            addHeader(HttpHeaders.ContentType, "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.UnsupportedMediaType, call.response.status())
+        }
+    }
+
+    @Test
     fun testCustom() {
         withTestApplication {
             application.install(ContentNegotiation) {
@@ -264,10 +305,10 @@ class ContentNegotiationTest {
                 assertEquals("[OK]", call.response.content)
             }
 
-            assertFails {
-                handleRequest(HttpMethod.Get, "/2") {
-                    addHeader(HttpHeaders.Accept, customContentType.toString())
-                }
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
             }
         }
     }
