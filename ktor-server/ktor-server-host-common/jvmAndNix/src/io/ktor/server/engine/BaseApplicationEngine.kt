@@ -135,8 +135,8 @@ private fun Application.installDefaultTransformationChecker() {
     }
 
     val checkBodyPhase = PipelinePhase("BodyTransformationCheckPostRender")
-        sendPipeline.insertPhaseAfter(checkBodyPhase, ApplicationSendPipeline.Render)
-        sendPipeline.intercept(checkBodyPhase) { subject ->
+    sendPipeline.insertPhaseAfter(ApplicationSendPipeline.Render, checkBodyPhase)
+    sendPipeline.intercept(checkBodyPhase) { subject ->
         if (subject !is OutgoingContent) {
             proceedWith(HttpStatusCodeContent(HttpStatusCode.NotAcceptable))
         }
