@@ -135,7 +135,7 @@ class SessionTest {
                 get("/2") {
                     val session = call.sessions.get<TestUserSession>()
                     assertNotNull(session)
-                    call.respond(HttpStatusCode.Unauthorized, "Error")
+                    call.respond(session.userId)
                 }
             }
             var sessionParam: String
