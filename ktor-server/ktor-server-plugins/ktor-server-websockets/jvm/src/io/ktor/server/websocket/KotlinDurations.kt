@@ -6,9 +6,9 @@
 
 package io.ktor.server.websocket
 
-import io.ktor.http.cio.websocket.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.pool.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.nio.*

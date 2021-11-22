@@ -5,11 +5,11 @@
 package io.ktor.serialization
 
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.websocket.*
 
 /**
  * A custom content converter that could be used in the [WebSockets] plugin

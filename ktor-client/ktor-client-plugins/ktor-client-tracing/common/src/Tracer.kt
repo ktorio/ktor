@@ -5,7 +5,7 @@
 package io.ktor.client.plugin.tracing
 
 import io.ktor.client.request.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 /**
  * Tracer interface invoked at crucial points of the request processing to handle important events such as a start of

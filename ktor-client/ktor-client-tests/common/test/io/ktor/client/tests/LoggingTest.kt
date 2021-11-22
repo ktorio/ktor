@@ -382,7 +382,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(listOf("iOS", "native:CIO")) {
+    fun testRequestContentTypeInLog() = clientTests(listOf("Darwin", "native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: HttpMethod(value=POST)",

@@ -3,7 +3,7 @@ description = ""
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
-            api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-shared:ktor-websockets"))
             api(project(":ktor-shared:ktor-websocket-serialization"))
         }
 

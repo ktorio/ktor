@@ -7,13 +7,13 @@ package io.ktor.tests.server.testing
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import kotlin.test.*
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 

@@ -6,9 +6,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.*
 import kotlin.coroutines.*
 
 internal actual fun startWebSocketSession(

@@ -8,10 +8,10 @@ package io.ktor.server.testing.client
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 

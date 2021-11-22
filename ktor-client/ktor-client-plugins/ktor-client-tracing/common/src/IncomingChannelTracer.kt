@@ -4,7 +4,7 @@
 
 package io.ktor.client.plugin.tracing
 
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 

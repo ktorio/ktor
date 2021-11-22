@@ -66,7 +66,10 @@ internal fun CharSequence.parseHexLong(): Long {
     return result
 }
 
-internal fun CharSequence.parseDecLong(): Long {
+/**
+ * Converts [CharSequence] representation in decimal format to [Long]
+ */
+public fun CharSequence.parseDecLong(): Long {
     val length = length
     if (length > 19) numberFormatException(this)
     if (length == 19) return parseDecLongWithCheck()

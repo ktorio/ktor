@@ -17,6 +17,7 @@ apiValidation {
         excludeList += [
             'ktor-client-curl',
             'ktor-client-ios',
+            'ktor-client-darwin',
         ]
     }
 

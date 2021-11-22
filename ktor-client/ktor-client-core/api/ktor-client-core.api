@@ -718,16 +718,16 @@ public final class io/ktor/client/plugins/websocket/ClientSessionsKt {
 	public static final fun getConverter (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Lio/ktor/serialization/WebsocketContentConverter;
 }
 
-public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocketSession : io/ktor/http/cio/websocket/WebSocketSession {
+public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocketSession : io/ktor/websocket/WebSocketSession {
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 }
 
 public final class io/ktor/client/plugins/websocket/ClientWebSocketSession$DefaultImpls {
-	public static fun send (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun send (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSession : io/ktor/client/plugins/websocket/ClientWebSocketSession, io/ktor/http/cio/websocket/DefaultWebSocketSession {
-	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/cio/websocket/DefaultWebSocketSession;)V
+public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSession : io/ktor/client/plugins/websocket/ClientWebSocketSession, io/ktor/websocket/DefaultWebSocketSession {
+	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/websocket/DefaultWebSocketSession;)V
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
@@ -739,7 +739,7 @@ public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSessio
 	public fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
 	public fun getPingIntervalMillis ()J
 	public fun getTimeoutMillis ()J
-	public fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setMasking (Z)V
 	public fun setMaxFrameSize (J)V
 	public fun setPingIntervalMillis (J)V
@@ -1155,7 +1155,9 @@ public final class io/ktor/client/request/forms/InputProvider {
 }
 
 public final class io/ktor/client/request/forms/MultiPartFormDataContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
-	public fun <init> (Ljava/util/List;)V
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBoundary ()Ljava/lang/String;
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

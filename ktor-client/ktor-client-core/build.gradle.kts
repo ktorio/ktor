@@ -10,10 +10,8 @@ kotlin.sourceSets {
     val commonMain by getting {
         dependencies {
             api(project(":ktor-http"))
-            api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-shared:ktor-events"))
             api(project(":ktor-shared:ktor-websocket-serialization"))
-            api(project(":ktor-legacy:ktor-client-legacy"))
         }
     }
 

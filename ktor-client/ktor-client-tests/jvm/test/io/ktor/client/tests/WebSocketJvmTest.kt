@@ -8,10 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 

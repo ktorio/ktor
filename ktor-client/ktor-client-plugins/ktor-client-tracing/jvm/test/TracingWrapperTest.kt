@@ -8,7 +8,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugin.tracing.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*

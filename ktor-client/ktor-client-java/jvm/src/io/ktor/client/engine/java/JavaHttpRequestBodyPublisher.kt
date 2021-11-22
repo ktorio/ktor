@@ -4,15 +4,11 @@
 
 package io.ktor.client.engine.java
 
-import io.ktor.network.util.*
 import io.ktor.utils.io.*
-import jdk.internal.net.http.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import java.io.*
 import java.net.http.*
 import java.nio.*
-import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 

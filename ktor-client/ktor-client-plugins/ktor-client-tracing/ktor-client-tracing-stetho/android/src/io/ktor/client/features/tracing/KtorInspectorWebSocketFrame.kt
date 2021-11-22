@@ -5,7 +5,7 @@
 package io.ktor.client.plugin.tracing
 
 import com.facebook.stetho.inspector.network.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 internal class KtorInspectorWebSocketFrame(
     private val requestId: String,

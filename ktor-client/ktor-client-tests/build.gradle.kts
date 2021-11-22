@@ -122,7 +122,7 @@ kotlin.sourceSets {
         }
         listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
-                api(project(":ktor-client:ktor-client-ios"))
+                api(project(":ktor-client:ktor-client-darwin"))
             }
         }
     }

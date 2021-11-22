@@ -32,8 +32,8 @@ public class io/ktor/serialization/WebsocketContentConvertException : io/ktor/se
 }
 
 public abstract interface class io/ktor/serialization/WebsocketContentConverter {
-	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun isApplicable (Lio/ktor/http/cio/websocket/Frame;)Z
+	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun isApplicable (Lio/ktor/websocket/Frame;)Z
 	public abstract fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -43,8 +43,8 @@ public final class io/ktor/serialization/WebsocketConverterNotFoundException : i
 }
 
 public final class io/ktor/serialization/WebsocketDeserializeException : io/ktor/serialization/WebsocketContentConvertException {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/http/cio/websocket/Frame;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/http/cio/websocket/Frame;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getFrame ()Lio/ktor/http/cio/websocket/Frame;
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/websocket/Frame;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/websocket/Frame;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFrame ()Lio/ktor/websocket/Frame;
 }
 

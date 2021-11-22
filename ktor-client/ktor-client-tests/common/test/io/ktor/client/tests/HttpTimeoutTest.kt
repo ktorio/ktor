@@ -401,7 +401,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "iOS", "CIO")) {
+    fun testConnectTimeout() = clientTests(listOf("Js", "Darwin", "CIO")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -431,7 +431,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "iOS", "CIO")) {
+    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "Darwin", "CIO")) {
         config {
             install(HttpTimeout)
         }

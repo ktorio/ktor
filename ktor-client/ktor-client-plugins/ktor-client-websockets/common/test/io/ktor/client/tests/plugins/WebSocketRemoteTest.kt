@@ -6,8 +6,8 @@ package io.ktor.client.tests.plugins
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.utils.io.core.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 

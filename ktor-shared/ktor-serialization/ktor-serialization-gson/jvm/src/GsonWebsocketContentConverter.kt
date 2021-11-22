@@ -5,11 +5,11 @@
 package io.ktor.serializaion.gson
 
 import com.google.gson.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 /**

@@ -4,7 +4,7 @@
 
 @file:Suppress("FunctionName")
 
-package io.ktor.http.cio.websocket
+package io.ktor.websocket
 
 import io.ktor.server.websocket.*
 import io.ktor.util.cio.*
