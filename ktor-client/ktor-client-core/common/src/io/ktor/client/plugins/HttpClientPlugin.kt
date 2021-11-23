@@ -48,6 +48,8 @@ public operator fun <B : Any, F : Any> HttpClient.get(plugin: HttpClientPlugin<B
         return requestedPlugin
     }
 
-    val message = "Plugin $plugin is not installed. Consider using `install(${plugin.key})` in client config first."
-    error(message)
+    throw IllegalStateException(
+        "Plugin $plugin is not installed. " +
+            "Consider using `install(${plugin.key})` in client config first."
+    )
 }
