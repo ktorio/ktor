@@ -4,12 +4,15 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
@@ -63,6 +66,16 @@ class WebSocketJvmTest : ClientLoader(100000) {
                     assertTrue { data.contentEquals(actual.data) }
                 }
             }
+        }
+    }
+
+    @Test
+    fun testExceptionIfWebsocketIsNotInstalled() = runBlocking {
+        val client = HttpClient()
+        kotlin.test.assertFailsWith<IllegalStateException> {
+            client.webSocketSession()
+        }.let {
+            assertContains(it.message!!, WebSockets.key.name)
         }
     }
 
