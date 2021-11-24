@@ -25,7 +25,7 @@ public class SessionTransportCookie(
 ) : SessionTransport {
 
     override fun receive(call: ApplicationCall): String? {
-        return transformers.transformRead(call.request.cookies[name])
+        return transformers.transformRead(call.request.cookies[name, configuration.encoding])
     }
 
     override fun send(call: ApplicationCall, value: String) {

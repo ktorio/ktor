@@ -111,7 +111,7 @@ public class ContentNegotiation internal constructor(
                     )
                 } ?: throw ContentConverterException(
                     "Can't convert $payload with contentType $contentType using converters " +
-                        "${matchingRegistrations.joinToString { it.converter.toString() }}"
+                        matchingRegistrations.joinToString { it.converter.toString() }
                 )
 
                 proceedWith(serializedContent)

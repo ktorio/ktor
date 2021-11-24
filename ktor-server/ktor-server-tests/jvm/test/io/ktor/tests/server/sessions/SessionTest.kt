@@ -112,6 +112,51 @@ class SessionTest {
     }
 
     @Test
+    fun testSessionWithEncodedCookie() {
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
+                    cookie.encoding = CookieEncoding.BASE64_ENCODING
+                }
+            }
+            application.routing {
+                get("/1") {
+                    var session: TestUserSession? = call.sessions.get()
+                    assertNull(session)
+
+                    session = TestUserSession("id1", emptyList())
+                    call.sessions.set(session)
+
+                    session = call.sessions.get()
+                    assertNotNull(session)
+
+                    call.respond("Ok")
+                }
+                get("/2") {
+                    val session = call.sessions.get<TestUserSession>()
+                    assertNotNull(session)
+                    call.respond(session.userId)
+                }
+            }
+            var sessionParam: String
+            handleRequest(HttpMethod.Get, "/1").let { call ->
+                val sessionCookie = call.response.cookies[cookieName]
+
+                assertNotNull(sessionCookie, "No session cookie found")
+                assertEquals(CookieEncoding.BASE64_ENCODING, sessionCookie.encoding)
+
+                sessionParam = sessionCookie.value.encodeBase64()
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam}")
+            }.let { call ->
+                assertEquals("id1", call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testSessionByValueMac() {
         val key = hex("03515606058610610561058")
         withTestApplication {
