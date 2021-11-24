@@ -64,6 +64,23 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
+    fun testErrorHandling() = clientTests(skipEngines) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            repeat(1000) {
+                assertFailsWith<IllegalStateException> {
+                    client.wss(echoWebsocket) {
+                        error("error")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun testSessionClose() = clientTests(skipEngines) {
         config {
             install(WebSockets)
