@@ -64,23 +64,6 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorHandling() = clientTests(skipEngines) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            repeat(1000) {
-                assertFailsWith<IllegalStateException> {
-                    client.wss(echoWebsocket) {
-                        error("error")
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
     fun testSessionClose() = clientTests(skipEngines) {
         config {
             install(WebSockets)
@@ -133,5 +116,22 @@ class WebSocketRemoteTest : ClientLoader() {
 
         val buffer = binaryFrame.data
         assertEquals(data.contentToString(), buffer.contentToString())
+    }
+
+    @Test
+    fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            repeat(1000) {
+                assertFailsWith<IllegalStateException> {
+                    client.wss(echoWebsocket) {
+                        error("error")
+                    }
+                }
+            }
+        }
     }
 }
