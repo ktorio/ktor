@@ -45,7 +45,7 @@ class ResourcesTestJvm {
         val bd = BigDecimal("123456789012345678901234567890")
         val bi = BigDecimal("123456789012345678901234567890")
 
-        application.routing {
+        routing {
             get<LocationWithBigNumbers> { location ->
                 assertEquals(bd, location.bd)
                 assertEquals(bi, location.bi)

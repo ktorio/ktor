@@ -4,20 +4,22 @@
 
 package io.ktor.tests.resources
 
-import io.ktor.http.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
 import io.ktor.resources.*
+import io.ktor.resources.serialisation.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-internal fun withResourcesApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
-    application.install(Resources)
+internal fun withResourcesApplication(test: ApplicationTestBuilder.() -> Unit) = testApplication {
+    install(Resources)
     test()
 }
 
@@ -27,15 +29,14 @@ class ResourcesTest {
     class index
 
     @Test
-    fun resourceWithoutURL() = withResourcesApplication {
-        val href = application.href(index())
-        assertEquals("/", href)
-        application.routing {
-            get<index> {
-                call.respond(HttpStatusCode.OK)
+    fun resourceWithoutURL() = testApplication {
+        install(Resources)
+        routing {
+            get<index> { index ->
+                call.respond(call.application.href(index))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(index(), "/")
         urlShouldBeUnhandled("/index")
     }
 
@@ -45,14 +46,12 @@ class ResourcesTest {
         @Resource("/")
         class indexLocal
         withResourcesApplication {
-            val href = application.href(indexLocal())
-            assertEquals("/", href)
-            application.routing {
-                get<indexLocal> {
-                    call.respond(HttpStatusCode.OK)
+            routing {
+                get<indexLocal> { indexLocal ->
+                    call.respond(application.href(indexLocal))
                 }
             }
-            urlShouldBeHandled(href)
+            urlShouldBeHandled(indexLocal(), "/")
             urlShouldBeUnhandled("/index")
         }
     }
@@ -63,14 +62,12 @@ class ResourcesTest {
 
     @Test
     fun resourceWithURL() = withResourcesApplication {
-        val href = application.href(about())
-        assertEquals("/about", href)
-        application.routing {
-            get<about> {
-                call.respond(HttpStatusCode.OK)
+        routing {
+            get<about> { about ->
+                call.respond(application.href(about))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(about(), "/about")
         urlShouldBeUnhandled("/about/123")
     }
 
@@ -80,15 +77,14 @@ class ResourcesTest {
 
     @Test
     fun resourceWithPathParam() = withResourcesApplication {
-        val href = application.href(user(123))
-        assertEquals("/user/123", href)
-        application.routing {
+        routing {
             get<user> { user ->
                 assertEquals(123, user.id)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(user))
             }
         }
-        urlShouldBeHandled(href)
+
+        urlShouldBeHandled(user(123), "/user/123")
         urlShouldBeUnhandled("/user?id=123")
     }
 
@@ -98,16 +94,14 @@ class ResourcesTest {
 
     @Test
     fun resourceWithUrlencodedPathParam() = withResourcesApplication {
-        val href = application.href(named(123, "abc def"))
-        assertEquals("/user/123/abc%20def", href)
-        application.routing {
+        routing {
             get<named> { named ->
                 assertEquals(123, named.id)
                 assertEquals("abc def", named.name)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(named))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(named(123, "abc def"), "/user/123/abc%20def")
         urlShouldBeUnhandled("/user?id=123")
         urlShouldBeUnhandled("/user/123")
     }
@@ -118,15 +112,13 @@ class ResourcesTest {
 
     @Test
     fun resourceWithQueryParam() = withResourcesApplication {
-        val href = application.href(favorite(123))
-        assertEquals("/favorite?id=123", href)
-        application.routing {
+        routing {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(favorite))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(favorite(123), "/favorite?id=123")
         urlShouldBeUnhandled("/favorite/123")
         urlShouldBeUnhandled("/favorite")
     }
@@ -142,15 +134,13 @@ class ResourcesTest {
     @Test
     fun resourceWithPathParameterAndNestedData() = withResourcesApplication {
         val c = pathContainer(123)
-        val href = application.href(pathContainer.items(c))
-        assertEquals("/container/123/items", href)
-        application.routing {
+        routing {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(items))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(pathContainer.items(c), "/container/123/items")
         urlShouldBeUnhandled("/container/items")
         urlShouldBeUnhandled("/container/items?id=123")
     }
@@ -166,15 +156,13 @@ class ResourcesTest {
     @Test
     fun resourceWithQueryParameterAndNestedData() = withResourcesApplication {
         val c = queryContainer(123)
-        val href = application.href(queryContainer.items(c))
-        assertEquals("/container/items?id=123", href)
-        application.routing {
+        routing {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(items))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(queryContainer.items(c), "/container/items?id=123")
         urlShouldBeUnhandled("/container/items")
         urlShouldBeUnhandled("/container/123/items")
     }
@@ -185,16 +173,14 @@ class ResourcesTest {
 
     @Test
     fun resourceWithMissingOptionalStringParameter() = withResourcesApplication {
-        val href = application.href(optionalName(123))
-        assertEquals("/container?id=123", href)
-        application.routing {
+        routing {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(optionalName(123), "/container?id=123")
         urlShouldBeUnhandled("/container")
         urlShouldBeUnhandled("/container/123")
     }
@@ -205,32 +191,28 @@ class ResourcesTest {
 
     @Test
     fun resourceWithMissingOptionalIntParameter() = withResourcesApplication {
-        val href = application.href(optionalIndex(123))
-        assertEquals("/container?id=123&optional=42", href)
-        application.routing {
+        routing {
             get<optionalIndex> {
                 assertEquals(123, it.id)
                 assertEquals(42, it.optional)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled("/container?id=123")
+        urlShouldBeHandled(optionalIndex(123), "/container?id=123&optional=42")
         urlShouldBeUnhandled("/container")
         urlShouldBeUnhandled("/container/123")
     }
 
     @Test
     fun resourceWithSpecifiedOptionalQueryParameter() = withResourcesApplication {
-        val href = application.href(optionalName(123, "text"))
-        assertEquals("/container?id=123&optional=text", href)
-        application.routing {
+        routing {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(optionalName(123, "text"), "/container?id=123&optional=text")
         urlShouldBeUnhandled("/container")
         urlShouldBeUnhandled("/container/123")
     }
@@ -245,21 +227,22 @@ class ResourcesTest {
 
     @Test
     fun resourceWithOptionalPathAndQueryParameter() = withResourcesApplication {
-        val href = application.href(optionalContainer())
-        assertEquals("/container", href)
-        application.routing {
+        routing {
             get<optionalContainer> {
                 assertEquals(null, it.id)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
-        urlShouldBeHandled("/container")
-        urlShouldBeHandled("/container/123/items?optional=text")
+
+        urlShouldBeHandled(optionalContainer(), "/container")
+        urlShouldBeHandled(
+            optionalContainer.items(optionalContainer(123), "text"),
+            "/container/123/items?optional=text"
+        )
     }
 
     @Serializable
@@ -272,18 +255,16 @@ class ResourcesTest {
 
     @Test
     fun resourceWithSimplePathContainerAndItems() = withResourcesApplication {
-        val href = application.href(simpleContainer.items(simpleContainer()))
-        assertEquals("/container/items", href)
-        application.routing {
+        routing {
             get<simpleContainer.items> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
             get<simpleContainer> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
-        urlShouldBeHandled("/container")
+        urlShouldBeHandled(simpleContainer.items(simpleContainer()), "/container/items")
+        urlShouldBeHandled(simpleContainer(), "/container")
         urlShouldBeUnhandled("/items")
     }
 
@@ -293,16 +274,14 @@ class ResourcesTest {
 
     @Test
     fun resourceWithTailcard() = withResourcesApplication {
-        val href = application.href(tailCard(emptyList()))
-        assertEquals("/container", href)
-        application.routing {
+        routing {
             get<tailCard> {
-                call.respond(it.path.toString())
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href, "[]")
-        urlShouldBeHandled("/container/some", "[some]")
-        urlShouldBeHandled("/container/123/items?optional=text", "[123, items]")
+        urlShouldBeHandled(tailCard(emptyList()), "/container")
+        urlShouldBeHandled(tailCard(listOf("some")), "/container/some")
+        urlShouldBeHandled(tailCard(listOf("123", "items")), "/container/123/items")
     }
 
     @Serializable
@@ -315,44 +294,38 @@ class ResourcesTest {
 
     @Test
     fun `resource with multiple query values`() = withResourcesApplication {
-        val href = application.href(multiquery(listOf(1, 2, 3)))
-        assertEquals("/?value=1&value=2&value=3", href)
-        application.routing {
+        routing {
             get<multiquery> {
-                call.respond(it.value.toString())
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href, "[1, 2, 3]")
+        urlShouldBeHandled(multiquery(listOf(1, 2, 3)), "/?value=1&value=2&value=3")
     }
 
     @Test
     fun resourceWithMultipleQueryValuesCanSelectByQueryParams() = withResourcesApplication {
-        val href = application.href(multiquery(listOf(1)))
-        assertEquals("/?value=1", href)
-        application.routing {
+        routing {
             get<multiquery> {
-                call.respond("1: ${it.value}")
+                call.respond("1: ${application.href(it)}")
             }
             get<multiquery2> {
-                call.respond("2: ${it.name}")
+                call.respond("2: ${application.href(it)}")
             }
         }
-        urlShouldBeHandled(href, "1: [1]")
+        urlShouldBeHandled(multiquery(listOf(1)), "1: /?value=1")
     }
 
     @Test
     fun resourceWithMultipleQueryValuesCanSelectByQueryParams2() = withResourcesApplication {
-        val href = application.href(multiquery2(listOf("john, mary")))
-        assertEquals("/?name=john%2C+mary", href)
-        application.routing {
+        routing {
             get<multiquery> {
-                call.respond("1: ${it.value}")
+                call.respond("1: ${application.href(it)}")
             }
             get<multiquery2> {
-                call.respond("2: ${it.name}")
+                call.respond("2: ${application.href(it)}")
             }
         }
-        urlShouldBeHandled(href, "2: [john, mary]")
+        urlShouldBeHandled(multiquery2(listOf("john, mary")), "2: /?name=john%2C+mary")
     }
 
     @Serializable
@@ -361,14 +334,12 @@ class ResourcesTest {
 
     @Test
     fun resourceWithMultipleQueryValuesAndDefault() = withResourcesApplication {
-        val href = application.href(multiqueryWithDefault(listOf()))
-        assertEquals("/", href)
-        application.routing {
+        routing {
             get<multiqueryWithDefault> {
-                call.respond(it.value.toString())
+                call.respond("${application.href(it)} ${it.value}")
             }
         }
-        urlShouldBeHandled(href, "[]")
+        urlShouldBeHandled(multiqueryWithDefault(listOf()), "/ []")
     }
 
     @Serializable
@@ -377,14 +348,12 @@ class ResourcesTest {
 
     @Test
     fun resourceRootByClass() = withResourcesApplication {
-        val href = application.href(root())
-        assertEquals("/", href)
-        application.routing {
+        routing {
             get<root> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(root(), "/")
         urlShouldBeUnhandled("/index")
     }
 
@@ -394,14 +363,12 @@ class ResourcesTest {
 
     @Test
     fun resourceByClass() = withResourcesApplication {
-        val href = application.href(help())
-        assertEquals("/help", href)
-        application.routing {
+        routing {
             get<help> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(href)
+        urlShouldBeHandled(help(), "/help")
         urlShouldBeUnhandled("/help/123")
     }
 
@@ -419,24 +386,20 @@ class ResourcesTest {
 
     @Test
     fun resourceByClassInClass() = withResourcesApplication {
-        val hrefMe = application.href(users.me(users()))
-        assertEquals("/users/me", hrefMe)
-        application.routing {
+        routing {
             get<users.me> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
 
-            get<users.user> { user ->
-                assertEquals(123, user.id)
-                call.respond(HttpStatusCode.OK)
+            get<users.user> {
+                assertEquals(123, it.id)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(hrefMe)
+        urlShouldBeHandled(users.me(users()), "/users/me")
         urlShouldBeUnhandled("/users/123")
 
-        val hrefUsers = application.href(users.user(users(), 123))
-        assertEquals("/users/123", hrefUsers)
-        urlShouldBeHandled(hrefUsers)
+        urlShouldBeHandled(users.user(users(), 123), "/users/123")
         urlShouldBeUnhandled("/users/me")
     }
 
@@ -448,7 +411,9 @@ class ResourcesTest {
     fun resourceByClassHasBindArgument() {
         assertFailsWith<IllegalArgumentException> {
             withResourcesApplication {
-                application.href(items)
+                HttpRequestBuilder().apply {
+                    href(ResourcesFormat(), items, url)
+                }
             }
         }
     }
@@ -463,16 +428,17 @@ class ResourcesTest {
 
     @Test
     fun overlappingPathsAreResolvedAsExpected() = withResourcesApplication {
-        application.routing {
+        routing {
             get<OverlappingPath1> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
             get<OverlappingPath2> {
-                call.respond(HttpStatusCode.OK)
+                call.respond(application.href(it))
             }
         }
-        urlShouldBeHandled(application.href(OverlappingPath1(1, "Foo")))
-        urlShouldBeUnhandled(application.href(OverlappingPath2("1-Foo")))
+
+        urlShouldBeHandled(OverlappingPath1(1, "Foo"), "/items/1/Foo")
+        urlShouldBeUnhandled("/items/1-Foo")
     }
 
     enum class resourceEnum {
@@ -485,17 +451,19 @@ class ResourcesTest {
 
     @Test
     fun resourceClassWithEnumValue() = withResourcesApplication {
-        application.routing {
+        routing {
             get<resourceWithEnum> {
-                call.respondText(it.e.name)
+                call.respondText(application.href(it))
             }
         }
 
-        urlShouldBeHandled("/?e=A", "A")
-        urlShouldBeHandled("/?e=B", "B")
+        urlShouldBeHandled(resourceWithEnum(resourceEnum.A), "/?e=A")
+        urlShouldBeHandled(resourceWithEnum(resourceEnum.B), "/?e=B")
 
-        handleRequest(HttpMethod.Get, "/?e=x").let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        runBlocking {
+            assertFailsWith<ClientRequestException> {
+                client.get("/?e=x")
+            }
         }
     }
 
@@ -505,30 +473,34 @@ class ResourcesTest {
         @Resource("/")
         data class L(val text: String, val number: Int, val longNumber: Long)
 
-        application.routing {
-            get<L> { instance ->
+        routing {
+            get<L> {
                 call.respondText(
-                    "text = ${instance.text}, number = ${instance.number}, longNumber = ${instance.longNumber}"
+                    "href = ${application.href(it)} text = ${it.text}, " +
+                        "number = ${it.number}, longNumber = ${it.longNumber}"
                 )
             }
         }
 
-        urlShouldBeHandled("/?text=abc&number=1&longNumber=2", "text = abc, number = 1, longNumber = 2")
+        urlShouldBeHandled(
+            L("abc", 1, 2),
+            "href = /?text=abc&number=1&longNumber=2 text = abc, number = 1, longNumber = 2"
+        )
 
-        // missing parameter text
-        handleRequest(HttpMethod.Get, "/?number=1&longNumber=2").let { call ->
-            // null because missing parameter leads to routing miss
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-
-        // illegal value for numeric property
-        handleRequest(HttpMethod.Get, "/?text=abc&number=z&longNumber=2").let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-
-        // illegal value for numeric property
-        handleRequest(HttpMethod.Get, "/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        runBlocking {
+            assertFailsWith<ClientRequestException> {
+                // missing parameter text
+                // null because missing parameter leads to routing miss
+                client.get("/?number=1&longNumber=2")
+            }
+            assertFailsWith<ClientRequestException> {
+                // illegal value for numeric property
+                client.get("/?text=abc&number=z&longNumber=2")
+            }
+            assertFailsWith<ClientRequestException> {
+                // illegal value for numeric property
+                client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2")
+            }
         }
     }
 }
