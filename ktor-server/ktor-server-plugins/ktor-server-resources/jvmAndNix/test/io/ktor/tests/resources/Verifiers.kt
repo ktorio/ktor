@@ -5,7 +5,6 @@
 package io.ktor.tests.resources
 
 //import io.ktor.client.plugins.resources.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*
@@ -17,7 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 @OptIn(InternalAPI::class)
-inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, href: String? = null) {
+inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
     on("making get request to resource $resource") {
         val result = runBlocking {
             client.get(
@@ -29,10 +28,10 @@ inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, hr
         it("should have a response with OK status") {
             assertEquals(HttpStatusCode.OK, result.status)
         }
-        if (href != null) {
-            it("should have a response with content '$href'") {
+        if (content != null) {
+            it("should have a response with content '$content'") {
                 runBlocking {
-                    assertEquals(href, result.content.readRemaining().readText())
+                    assertEquals(content, result.content.readRemaining().readText())
                 }
             }
         }
