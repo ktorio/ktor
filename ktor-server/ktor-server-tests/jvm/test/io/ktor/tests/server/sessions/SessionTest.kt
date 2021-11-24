@@ -4,24 +4,25 @@
 
 package io.ktor.tests.server.sessions
 
+import io.ktor.http.*
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.route
-import io.ktor.routing.routing
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
+import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.util.hex
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.*
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
-@Suppress("ReplaceSingleLineLet")
+@Suppress("ReplaceSingleLineLet", "DEPRECATION")
 @OptIn(ExperimentalTime::class)
 class SessionTest {
     private val cookieName = "_S" + Random.nextInt(100)
@@ -40,12 +41,10 @@ class SessionTest {
                     call.respondText("No session")
                 }
             }
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertNull(
-                    call.response.cookies[cookieName],
-                    "There should be no session data after setting and clearing"
-                )
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session data after setting and clearing"
+            )
         }
     }
 
@@ -85,9 +84,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertNull(call.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             var sessionParam: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
@@ -113,51 +113,46 @@ class SessionTest {
     }
 
     @Test
-    fun testSessionByValueDigest() {
+    fun testSessionWithEncodedCookie() {
         withTestApplication {
             application.install(Sessions) {
-                cookie<TestUserSession>(cookieName) {
-                    @Suppress("DEPRECATION_ERROR")
-                    // Stop using SessionTransportTransformerDigest
-                    // Never use it and see the deprecation message
-                    transform(SessionTransportTransformerDigest())
+                cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
+                    cookie.encoding = CookieEncoding.BASE64_ENCODING
                 }
             }
-
             application.routing {
                 get("/1") {
-                    call.sessions.set(TestUserSession("id2", emptyList()))
-                    call.respondText("ok")
+                    var session: TestUserSession? = call.sessions.get()
+                    assertNull(session)
+
+                    session = TestUserSession("id1", emptyList())
+                    call.sessions.set(session)
+
+                    session = call.sessions.get()
+                    assertNotNull(session)
+
+                    call.respond("Ok")
                 }
                 get("/2") {
-                    call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
+                    val session = call.sessions.get<TestUserSession>()
+                    assertNotNull(session)
+                    call.respond(session.userId)
                 }
             }
-
-            var sessionId: String
+            var sessionParam: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
+
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionId = sessionCookie.value
+                assertEquals(CookieEncoding.BASE64_ENCODING, sessionCookie.encoding)
+
+                sessionParam = sessionCookie.value.encodeBase64()
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam}")
             }.let { call ->
-                assertEquals("ok, id2", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                //                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
+                assertEquals("id1", call.response.content)
             }
         }
     }
@@ -273,12 +268,11 @@ class SessionTest {
     @Test
     fun testRoutes() {
         withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName)
+            }
             application.routing {
                 route("/") {
-                    install(Sessions) {
-                        cookie<TestUserSession>(cookieName)
-                    }
-
                     get("/0") {
                         assertNull(call.sessions.get<TestUserSession>())
                         call.respondText("No session")
@@ -426,9 +420,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { response ->
@@ -475,9 +470,7 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { call ->
-                assertEquals("There should be no session started", call.response.content)
-            }
+            assertEquals("There should be no session started", handleRequest(HttpMethod.Get, "/0").response.content)
         }
     }
 
@@ -503,9 +496,10 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
-            }
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
 
             handleRequest(HttpMethod.Get, "/1").let { response ->
                 val sessionCookie = response.response.cookies[cookieName]
@@ -557,138 +551,6 @@ class SessionTest {
                 assertTrue("Expires cookie parameter value should be in the specified dates range") {
                     sessionCookie.expires!! in before.plusAndDiscardMillis()..after.plusAndDiscardMillis()
                 }
-            }
-        }
-    }
-
-    @Test
-    fun testSessionByIdDigest() {
-        val sessionStorage = SessionStorageMemory()
-        var id = 666
-        withTestApplication {
-            application.install(Sessions) {
-                cookie<TestUserSession>(cookieName, sessionStorage) {
-                    identity { (id++).toString() }
-                    @Suppress("DEPRECATION_ERROR")
-                    // Stop using SessionTransportTransformerDigest
-                    // Never use it and see the deprecation message
-                    transform(SessionTransportTransformerDigest(algorithm = "SHA-256"))
-                }
-            }
-
-            application.routing {
-                get("/1") {
-                    call.sessions.set(TestUserSession("id2", emptyList()))
-                    call.respondText("ok")
-                }
-                get("/2") {
-                    call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
-                }
-            }
-
-            var sessionId: String
-            handleRequest(HttpMethod.Get, "/1").let { call ->
-                val sessionCookie = call.response.cookies[cookieName]
-                assertNotNull(sessionCookie, "No session cookie found")
-                sessionId = sessionCookie.value
-            }
-
-            assertEquals("666/c2d4eaad4fe0bc6dbd0584cdf36929d79d52d7a748d1cc02835a71131a0963fb", sessionId)
-
-            handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
-            }.let { call ->
-                assertEquals("ok, id2", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                //                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
-            }
-        }
-    }
-
-    @Test
-    fun testMultipleSessions() {
-        val sessionStorage = SessionStorageMemory()
-
-        withTestApplication {
-            application.install(Sessions) {
-                cookie<EmptySession>("EMPTY")
-                header<TestUserSession>(cookieName, sessionStorage) {
-                    @Suppress("DEPRECATION_ERROR")
-                    // Stop using SessionTransportTransformerDigest
-                    // Never use it and see the deprecation message
-                    transform(SessionTransportTransformerDigest())
-                }
-            }
-
-            application.routing {
-                get("/1") {
-                    call.sessions.set(TestUserSession("id2", emptyList()))
-                    call.sessions.set(EmptySession())
-                    assertFailsWith<IllegalArgumentException> {
-                        call.sessions.set("string")
-                    }
-                    call.respondText("ok")
-                }
-                get("/2") {
-                    val userSession = call.sessions.get<TestUserSession>()
-                    val emptySession = call.sessions.get<EmptySession>()
-                    if (userSession != null) {
-                        assertNotNull(call.sessionId)
-                        assertNotNull(call.sessionId<TestUserSession>())
-                    } else {
-                        assertNull(call.sessionId)
-                        assertNull(call.sessionId<TestUserSession>())
-                    }
-
-                    assertFails {
-                        call.sessionId<EmptySession>()
-                    }
-
-                    call.respondText("ok, ${userSession?.userId}, ${emptySession != null}")
-                }
-            }
-
-            var sessionId: String
-            handleRequest(HttpMethod.Get, "/1").let { call ->
-                val header = call.response.headers[cookieName]
-                assertNotNull(header, "No session cookie found")
-                sessionId = header
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                addHeader(cookieName, sessionId)
-                addHeader(HttpHeaders.Cookie, "EMPTY=")
-            }.let { call ->
-                assertEquals("ok, id2, true", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "EMPTY=")
-            }.let { call ->
-                assertEquals("ok, null, true", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-            }.let { call ->
-                assertEquals("ok, null, false", call.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(cookieName, brokenSession)
-            }.let { call ->
-                assertEquals("ok, null, false", call.response.content)
             }
         }
     }
@@ -779,9 +641,7 @@ class SessionTest {
 
         assertFailsWith<TooLateSessionSetException> {
             runBlocking {
-                handleRequest(HttpMethod.Get, "/after-response").let { call ->
-                    call.response.content
-                }
+                handleRequest(HttpMethod.Get, "/after-response").response.content
             }
         }
     }
@@ -846,7 +706,7 @@ class SessionTest {
     }
 
     @Test
-    fun testMissingSessionsFeature(): Unit = withTestApplication {
+    fun testMissingSessionsPlugin(): Unit = withTestApplication {
         application.routing {
             get("/") {
                 val cause = assertFailsWith<MissingApplicationFeatureException> {
@@ -855,9 +715,7 @@ class SessionTest {
                 call.respondText(cause.key.name)
             }
         }
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(Sessions.key.name, call.response.content)
-        }
+        assertEquals(Sessions.key.name, handleRequest(HttpMethod.Get, "/").response.content)
     }
 
     @Test
@@ -877,9 +735,7 @@ class SessionTest {
             cookie<TestUserSession>("name1")
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals("OK", call.response.content)
-        }
+        assertEquals("OK", handleRequest(HttpMethod.Get, "/").response.content)
     }
 
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
