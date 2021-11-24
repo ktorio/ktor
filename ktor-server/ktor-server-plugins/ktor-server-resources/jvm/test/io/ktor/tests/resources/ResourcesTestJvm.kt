@@ -55,7 +55,7 @@ class ResourcesTestJvm {
         }
 
         urlShouldBeHandled(
-            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
+            LocationWithBigNumbers(bd, bi),
             "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890"
         )
     }
