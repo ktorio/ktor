@@ -50,7 +50,7 @@ private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable 
     if (PlatformUtils.IS_NODE) {
         js("eval('require')('crypto')")
     } else {
-        js("(window.crypto ? window.crypto : window.msCrypto)")
+        js("(window ? (window.crypto ? window.crypto : window.msCrypto) : self.crypto)")
     }
 }
 
