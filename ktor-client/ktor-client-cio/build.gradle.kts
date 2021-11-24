@@ -8,6 +8,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-http:ktor-http-cio"))
+                api(project(":ktor-shared:ktor-websockets"))
                 api(project(":ktor-network:ktor-network-tls"))
             }
         }

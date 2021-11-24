@@ -9,10 +9,10 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 /**
- * Install [WebSockets] plugin using the [config] as configuration.
+ * Installs the [WebSockets] plugin using the [config] as configuration.
  */
 public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) {
     install(WebSockets) {

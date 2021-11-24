@@ -5,11 +5,11 @@
 package io.ktor.server.websocket
 
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.cio.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 /**

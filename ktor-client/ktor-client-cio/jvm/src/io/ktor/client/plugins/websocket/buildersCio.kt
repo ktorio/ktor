@@ -8,10 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 /**
- * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
 public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get,
@@ -26,7 +26,7 @@ public suspend fun HttpClient.webSocketRawSession(
 }.body()
 
 /**
- * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
 public suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get,
@@ -53,7 +53,7 @@ public suspend fun HttpClient.webSocketRaw(
 }
 
 /**
- * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
 public suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get,

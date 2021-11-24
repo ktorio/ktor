@@ -49,7 +49,44 @@ public final class io/ktor/server/cio/HttpServerSettings {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/cio/PipelineKt {
+	public static final fun getHttpPipelineCoroutine ()Lkotlinx/coroutines/CoroutineName;
+	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
+	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
+}
+
 public final class io/ktor/server/cio/backend/HttpServerKt {
 	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
+}
+
+public final class io/ktor/server/cio/backend/ServerIncomingConnection {
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
+	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
+	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
+	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
+}
+
+public final class io/ktor/server/cio/backend/ServerPipelineKt {
+	public static final fun startServerConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;Lio/ktor/server/cio/internal/WeakTimeoutQueue;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+}
+
+public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
+	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
+	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
+	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
+	public final fun withContext (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/server/cio/backend/ServerRequestScope;
+}
+
+public final class io/ktor/server/cio/internal/WeakTimeoutQueue {
+	public fun <init> (JLkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun cancel ()V
+	public final fun getTimeoutMillis ()J
+	public final fun process ()V
+	public final fun withTimeout (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

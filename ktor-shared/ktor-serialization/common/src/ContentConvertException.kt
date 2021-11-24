@@ -4,7 +4,7 @@
 
 package io.ktor.serialization
 
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 public open class ContentConvertException(
     message: String,

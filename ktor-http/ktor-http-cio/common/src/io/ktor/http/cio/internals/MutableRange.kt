@@ -4,10 +4,8 @@
 
 package io.ktor.http.cio.internals
 
-import io.ktor.util.*
-
 /**
- * Represents a text range with mutable bounds
+ * A text range with mutable bounds
  * @param start points to the first character
  * @param end points to the next character after the last one
  */

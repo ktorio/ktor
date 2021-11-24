@@ -11,9 +11,9 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.*
+import io.ktor.websocket.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable

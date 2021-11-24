@@ -7,12 +7,12 @@ package io.ktor.serializaion.jackson
 import com.fasterxml.jackson.core.*
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import java.io.*
 

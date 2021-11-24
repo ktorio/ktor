@@ -4,9 +4,9 @@
 
 package io.ktor.tests.websocket
 
-import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*

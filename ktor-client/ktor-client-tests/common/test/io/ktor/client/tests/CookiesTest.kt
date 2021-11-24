@@ -117,7 +117,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLeadingDot() = clientTests(listOf("Js", "iOS", "native:CIO")) {
+    fun testWithLeadingDot() = clientTests(listOf("Js", "Darwin", "native:CIO")) {
         config {
             install(HttpCookies)
         }
@@ -134,7 +134,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun caseSensitive() = clientTests(listOf("Js", "iOS")) {
+    fun caseSensitive() = clientTests(listOf("Js", "Darwin")) {
         config {
             install(HttpCookies)
         }

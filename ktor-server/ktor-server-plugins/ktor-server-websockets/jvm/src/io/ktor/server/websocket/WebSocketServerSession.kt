@@ -4,11 +4,11 @@
 
 package io.ktor.server.websocket
 
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.*
 import io.ktor.websocket.serialization.*
 
 /**

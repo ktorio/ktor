@@ -4,7 +4,7 @@
 
 import io.ktor.client.plugin.tracing.*
 import io.ktor.client.request.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 class TestTracer : Tracer {
     val requestWillBeSentCalls = mutableListOf<RequestWillBeSentCall>()

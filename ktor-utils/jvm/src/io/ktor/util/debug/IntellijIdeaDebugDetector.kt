@@ -4,8 +4,8 @@
 
 package io.ktor.util.debug
 
-import java.lang.management.*
 import java.lang.ClassNotFoundException
+import java.lang.management.*
 
 internal actual object IntellijIdeaDebugDetector {
     actual val isDebuggerConnected: Boolean by lazy {

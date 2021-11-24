@@ -4,7 +4,6 @@
 
 package io.ktor.tests.websocket
 
-import io.ktor.http.cio.websocket.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -14,6 +13,7 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*

@@ -3,7 +3,7 @@
 */
 
 import io.ktor.client.plugins.websocket.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
 import kotlin.test.*

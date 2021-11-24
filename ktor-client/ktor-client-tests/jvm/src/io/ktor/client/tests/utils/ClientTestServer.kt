@@ -6,12 +6,12 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.websocket.*
 
 internal fun Application.tests() {
     install(io.ktor.server.websocket.WebSockets) {

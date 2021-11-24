@@ -15,8 +15,8 @@ public final class io/ktor/serializaion/jackson/JacksonWebsocketContentConverter
 	public fun <init> ()V
 	public fun <init> (Lcom/fasterxml/jackson/databind/ObjectMapper;)V
 	public synthetic fun <init> (Lcom/fasterxml/jackson/databind/ObjectMapper;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun isApplicable (Lio/ktor/http/cio/websocket/Frame;)Z
+	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun isApplicable (Lio/ktor/websocket/Frame;)Z
 	public fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

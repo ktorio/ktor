@@ -11,8 +11,8 @@ public final class io/ktor/serialization/kotlinx/KotlinxSerializationConverterKt
 
 public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationConverter : io/ktor/serialization/WebsocketContentConverter {
 	public fun <init> (Lkotlinx/serialization/SerialFormat;)V
-	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun isApplicable (Lio/ktor/http/cio/websocket/Frame;)Z
+	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun isApplicable (Lio/ktor/websocket/Frame;)Z
 	public fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

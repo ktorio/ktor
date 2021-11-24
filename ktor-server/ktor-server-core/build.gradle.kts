@@ -31,7 +31,6 @@ kotlin.sourceSets {
     val jvmAndNixTest by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-network"))
         }
     }
