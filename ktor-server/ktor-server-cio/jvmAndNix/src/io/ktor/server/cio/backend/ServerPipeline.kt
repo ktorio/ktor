@@ -32,7 +32,7 @@ import kotlin.native.concurrent.*
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
-    timeout: io.ktor.server.cio.internal.WeakTimeoutQueue,
+    timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
