@@ -111,7 +111,7 @@ public class BasicAuthProvider(
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
-        if (auth.authScheme != AuthScheme.Basic) return false
+        if (!AuthScheme.Basic.equals(auth.authScheme, ignoreCase = true)) return false
 
         if (realm != null) {
             if (auth !is HttpAuthHeader.Parameterized) return false
