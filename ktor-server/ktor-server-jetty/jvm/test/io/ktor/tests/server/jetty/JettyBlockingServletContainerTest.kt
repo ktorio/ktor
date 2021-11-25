@@ -18,7 +18,11 @@ class JettyBlockingServletContainerContentTest :
 class JettyBlockingServletContainerHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
-    )
+    ) {
+    override fun testFlushingHeaders() {
+        // no op
+    }
+}
 
 class JettyBlockingServletContainerHttpServerJvmTest :
     HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

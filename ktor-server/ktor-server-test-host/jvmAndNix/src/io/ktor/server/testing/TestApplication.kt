@@ -99,6 +99,7 @@ public open class TestApplicationBuilder {
         createTestEnvironment {
             config = DefaultTestConfig()
             modules.addAll(applicationModules)
+            developmentMode = true
             environmentBuilder()
             parentCoroutineContext += job
         }

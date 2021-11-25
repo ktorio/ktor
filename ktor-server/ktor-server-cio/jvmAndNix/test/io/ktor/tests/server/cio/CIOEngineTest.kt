@@ -7,10 +7,16 @@ package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
+    }
+
+    override fun testFlushingHeaders() {
+        if (PlatformUtils.IS_NATIVE) return
+        super.testFlushingHeaders()
     }
 }
