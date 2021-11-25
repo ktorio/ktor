@@ -118,6 +118,8 @@ class WebSocketRemoteTest : ClientLoader() {
         assertEquals(data.contentToString(), buffer.contentToString())
     }
 
+    private class CustomException: Exception()
+
     @Test
     fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
         config {
@@ -126,9 +128,13 @@ class WebSocketRemoteTest : ClientLoader() {
 
         test { client ->
             repeat(1000) {
-                assertFailsWith<IllegalStateException> {
+                assertFailsWith<CustomException> {
                     client.wss(echoWebsocket) {
-                        error("error")
+                        outgoing.send(Frame.Text("Hello"))
+                        val frame = incoming.receive()
+                        check(frame is Frame.Text)
+
+                        throw CustomException()
                     }
                 }
             }
