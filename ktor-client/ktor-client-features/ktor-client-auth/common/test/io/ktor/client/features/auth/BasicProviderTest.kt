@@ -5,6 +5,7 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.features.auth.providers.*
+import io.ktor.http.auth.*
 import kotlin.test.*
 
 class BasicProviderTest {
@@ -30,6 +31,17 @@ class BasicProviderTest {
             "Basic YWRtaW46YWRtaW4=",
             buildAuthString("admin", "admin")
         )
+    }
+
+    @Test
+    fun testCapitalizedSchemeIsApplicable() {
+        val provider = BasicAuthProvider(credentials = {
+            BasicAuthCredentials("user", "password")
+        })
+        val header = parseAuthorizationHeader("BASIC realm=\"ktor\"")
+        assertNotNull(header)
+
+        assertTrue(provider.isApplicable(header), "Provider with capitalized scheme should be applicable")
     }
 
     private fun buildAuthString(username: String, password: String): String =
