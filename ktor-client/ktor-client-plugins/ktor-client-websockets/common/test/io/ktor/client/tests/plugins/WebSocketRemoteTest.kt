@@ -117,4 +117,25 @@ class WebSocketRemoteTest : ClientLoader() {
         val buffer = binaryFrame.data
         assertEquals(data.contentToString(), buffer.contentToString())
     }
+
+    private class CustomException : Exception()
+
+    @Test
+    fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFailsWith<CustomException> {
+                client.wss(echoWebsocket) {
+                    outgoing.send(Frame.Text("Hello"))
+                    val frame = incoming.receive()
+                    check(frame is Frame.Text)
+
+                    throw CustomException()
+                }
+            }
+        }
+    }
 }

@@ -4,12 +4,10 @@
 
 package io.ktor.server.cio.backend
 
-import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.*
+import io.ktor.server.cio.internal.WeakTimeoutQueue
 import io.ktor.server.engine.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
