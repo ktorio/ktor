@@ -118,7 +118,7 @@ class WebSocketRemoteTest : ClientLoader() {
         assertEquals(data.contentToString(), buffer.contentToString())
     }
 
-    private class CustomException: Exception()
+    private class CustomException : Exception()
 
     @Test
     fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
@@ -127,15 +127,13 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            repeat(1000) {
-                assertFailsWith<CustomException> {
-                    client.wss(echoWebsocket) {
-                        outgoing.send(Frame.Text("Hello"))
-                        val frame = incoming.receive()
-                        check(frame is Frame.Text)
+            assertFailsWith<CustomException> {
+                client.wss(echoWebsocket) {
+                    outgoing.send(Frame.Text("Hello"))
+                    val frame = incoming.receive()
+                    check(frame is Frame.Text)
 
-                        throw CustomException()
-                    }
+                    throw CustomException()
                 }
             }
         }
