@@ -19,14 +19,14 @@ class HooksTest {
             var executed: Boolean by shared(false)
         }
 
-        val handler = HookHandler()
+        val currentHandler = HookHandler()
 
         val myHook = object : Hook<HookHandler.() -> Unit> {
-            override fun install(application: Application, config: HookHandler.() -> Unit) {
-                handler.apply(config)
+            override fun install(application: Application, handler: HookHandler.() -> Unit) {
+                currentHandler.apply(handler)
 
                 application.intercept(ApplicationCallPipeline.Call) {
-                    handler.executed = true
+                    currentHandler.executed = true
                 }
             }
         }
@@ -37,7 +37,7 @@ class HooksTest {
             }
         }
 
-        assertFalse(handler.called)
+        assertFalse(currentHandler.called)
 
         testApplication {
             install(testPlugin)
@@ -48,13 +48,13 @@ class HooksTest {
                 }
             }
 
-            assertFalse(handler.executed)
+            assertFalse(currentHandler.executed)
             client.get("/")
 
-            assertTrue(handler.executed)
+            assertTrue(currentHandler.executed)
         }
 
-        assertTrue(handler.called)
+        assertTrue(currentHandler.called)
     }
 
     @Test
