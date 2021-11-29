@@ -15,8 +15,8 @@ import io.ktor.util.pipeline.*
  * @param code vararg list of status codes handled by this configuration
  * @param filePattern path to status file with optional `#` character(s) that will be replaced with numeric status code
  */
-public fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePattern: String) {
-    status(*code) { status ->
+public fun StatusPagesConfig.statusFile(vararg code: HttpStatusCode, filePattern: String) {
+    status(*code) { call, status ->
         val path = filePattern.replace("#", status.value.toString())
         val message = call.resolveResource(path)
         if (message == null) {
@@ -29,14 +29,14 @@ public fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, fil
 }
 
 /**
- * Register exception [handler] for exception class [klass] and it's children
+ * Register an exception [handler] for the exception class [klass] and its children
  */
-public fun <T : Throwable> StatusPages.Configuration.exception(
+public fun <T : Throwable> StatusPagesConfig.exception(
     klass: Class<T>,
     handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     @Suppress("UNCHECKED_CAST")
-    val cast = handler as suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit
+    val cast = handler as suspend (ApplicationCall, Throwable) -> Unit
 
     exceptions[klass.kotlin] = cast
 }

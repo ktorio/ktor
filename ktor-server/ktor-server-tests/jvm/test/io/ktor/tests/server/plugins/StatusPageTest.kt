@@ -27,9 +27,11 @@ class StatusPageTest {
             application.install(StatusPages) {
                 statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
             }
+
             application.intercept(ApplicationCallPipeline.Call) {
                 call.respond(HttpStatusCode.NotFound)
             }
+
             handleRequest(HttpMethod.Get, "/foo").let { call ->
                 assertEquals(HttpStatusCode.NotFound, call.response.status(), "Actual status must be kept")
                 assertEquals("<html><body>error 404</body></html>", call.response.content)
@@ -73,8 +75,8 @@ class StatusPageTest {
     fun testStatus404() {
         withTestApplication {
             application.install(StatusPages) {
-                status(HttpStatusCode.NotFound) {
-                    call.respondText("${it.value} ${it.description}", status = it)
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
                 }
             }
 
@@ -110,8 +112,8 @@ class StatusPageTest {
     fun testStatus404CustomObject() {
         withTestApplication {
             application.install(StatusPages) {
-                status(HttpStatusCode.NotFound) {
-                    call.respondText("${it.value} ${it.description}", status = it)
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
                 }
             }
 
@@ -138,8 +140,8 @@ class StatusPageTest {
 
         withTestApplication {
             application.install(StatusPages) {
-                status(HttpStatusCode.NotFound) {
-                    call.respondText("${it.value} ${it.description}", status = it)
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
                 }
             }
 
@@ -166,7 +168,7 @@ class StatusPageTest {
     fun testFailPage() {
         withTestApplication {
             application.install(StatusPages) {
-                exception<Throwable> { cause ->
+                exception<Throwable> { call, cause ->
                     call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
@@ -206,7 +208,7 @@ class StatusPageTest {
             }
 
             application.install(StatusPages) {
-                exception<IllegalStateException> { cause ->
+                exception<IllegalStateException> { call, cause ->
                     call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
@@ -228,10 +230,10 @@ class StatusPageTest {
     fun testErrorDuringStatus() {
         withTestApplication {
             application.install(StatusPages) {
-                status(HttpStatusCode.NotFound) {
+                status(HttpStatusCode.NotFound) { _, _ ->
                     throw IllegalStateException("")
                 }
-                exception<Throwable> { cause ->
+                exception<Throwable> { call, cause ->
                     call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
@@ -247,7 +249,7 @@ class StatusPageTest {
     fun testErrorShouldNotRecurse() {
         withTestApplication {
             application.install(StatusPages) {
-                exception<IllegalStateException> {
+                exception<IllegalStateException> { _, _ ->
                     throw IllegalStateException()
                 }
             }
@@ -268,7 +270,7 @@ class StatusPageTest {
 
         withTestApplication {
             application.install(StatusPages) {
-                exception<ValidationException> { cause ->
+                exception<ValidationException> { call, cause ->
                     // Can access `cause.code` without casting
                     call.respondText(cause.code, status = HttpStatusCode.InternalServerError)
                 }
@@ -293,10 +295,10 @@ class StatusPageTest {
         class AsyncFailedException : Exception()
 
         application.install(StatusPages) {
-            exception<AsyncFailedException> {
+            exception<AsyncFailedException> { call, _ ->
                 call.respondText("Async failed")
             }
-            exception<CancellationException> {
+            exception<CancellationException> { call, _ ->
                 call.respondText("Cancelled")
             }
         }
@@ -352,13 +354,13 @@ class StatusPageTest {
     @Test
     fun testDefaultKtorExceptionWithPluginHandlingExceptions(): Unit = withTestApplication {
         application.install(StatusPages) {
-            exception<BadRequestException> {
+            exception<BadRequestException> { call, _ ->
                 call.respondText("BadRequestException")
             }
-            exception<UnsupportedMediaTypeException> {
+            exception<UnsupportedMediaTypeException> { call, _ ->
                 call.respondText("UnsupportedMediaTypeException")
             }
-            exception<NotFoundException> {
+            exception<NotFoundException> { call, _ ->
                 call.respondText("NotFoundException")
             }
         }
@@ -392,13 +394,13 @@ class StatusPageTest {
     @Test
     fun testDefaultKtorExceptionWithPluginCustomStatusPages(): Unit = withTestApplication {
         application.install(StatusPages) {
-            status(HttpStatusCode.BadRequest) {
+            status(HttpStatusCode.BadRequest) { call, _ ->
                 call.respondText("BadRequest")
             }
-            status(HttpStatusCode.UnsupportedMediaType) {
+            status(HttpStatusCode.UnsupportedMediaType) { call, _ ->
                 call.respondText("UnsupportedMediaType")
             }
-            status(HttpStatusCode.NotFound) {
+            status(HttpStatusCode.NotFound) { call, _ ->
                 call.respondText("NotFound")
             }
         }
