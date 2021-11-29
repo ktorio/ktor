@@ -74,9 +74,12 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
      * A plugin to install into application call pipeline
      */
     public object ApplicationCallPlugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, ShutDownUrl> {
-        override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
+        override val key: AttributeKey<ShutDownUrl> = AttributeKey("shutdown.url")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ShutDownUrl {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): ShutDownUrl {
             val config = Configuration()
             configure(config)
 

@@ -17,7 +17,10 @@ public object XHttpMethodOverrideSupport :
 
     override val key: AttributeKey<Configuration> = AttributeKey("XHttpMethodOverrideSupport")
 
-    override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Configuration {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        configure: Configuration.() -> Unit
+    ): Configuration {
         val config = Configuration()
         configure(config)
 

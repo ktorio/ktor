@@ -31,6 +31,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     private val testJob = Job()
     actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Main
 
+    @Suppress("DEPRECATION")
     protected val exceptions = sharedList<Throwable>()
 
     @Target(AnnotationTarget.FUNCTION)

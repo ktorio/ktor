@@ -44,7 +44,10 @@ public class Mustache private constructor(configuration: Configuration) {
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, Mustache> {
         override val key: AttributeKey<Mustache> = AttributeKey<Mustache>("mustache")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Mustache {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): Mustache {
             val configuration = Configuration().apply(configure)
             val plugin = Mustache(configuration)
 

@@ -545,7 +545,10 @@ public class CORS internal constructor(configuration: Configuration) {
         public const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
 
         override val key: AttributeKey<CORS> = AttributeKey("CORS")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): CORS {
             val cors = CORS(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Plugins) { cors.intercept(this) }
             return cors

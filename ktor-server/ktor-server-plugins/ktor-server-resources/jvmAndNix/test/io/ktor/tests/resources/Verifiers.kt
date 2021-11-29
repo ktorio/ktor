@@ -4,7 +4,6 @@
 
 package io.ktor.tests.resources
 
-//import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*

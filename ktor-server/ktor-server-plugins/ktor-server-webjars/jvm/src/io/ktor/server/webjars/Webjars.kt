@@ -106,7 +106,10 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
 
         override val key: AttributeKey<Webjars> = AttributeKey("Webjars")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Webjars {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): Webjars {
             val configuration = Configuration().apply(configure)
 
             val plugin = Webjars(configuration.path)

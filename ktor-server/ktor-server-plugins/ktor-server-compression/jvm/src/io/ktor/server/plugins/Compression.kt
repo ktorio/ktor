@@ -178,7 +178,10 @@ public class Compression private constructor(compression: Configuration) {
     public companion object Plugin : RouteScopedPlugin<Configuration, Compression> {
 
         override val key: AttributeKey<Compression> = AttributeKey("Compression")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): Compression {
             val config = Configuration().apply(configure)
             if (config.encoders.none()) {
                 config.default()

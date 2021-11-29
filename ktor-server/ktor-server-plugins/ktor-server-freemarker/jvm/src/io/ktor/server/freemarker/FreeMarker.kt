@@ -38,7 +38,10 @@ public class FreeMarker private constructor(private val config: Configuration) {
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, FreeMarker> {
         override val key: AttributeKey<FreeMarker> = AttributeKey("freemarker")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): FreeMarker {
             val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
             val plugin = FreeMarker(config)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->

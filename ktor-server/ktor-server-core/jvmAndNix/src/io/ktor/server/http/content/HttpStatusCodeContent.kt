@@ -14,4 +14,6 @@ import io.ktor.http.content.*
 public class HttpStatusCodeContent(private val value: HttpStatusCode) : OutgoingContent.NoContent() {
     override val status: HttpStatusCode
         get() = value
+
+    override fun toString(): String = "HttpStatusCodeContent($value)"
 }

@@ -2,11 +2,9 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.plugins.api
+package io.ktor.server.application
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.application.plugins.api.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -43,7 +41,7 @@ class ApplicationPluginTest {
 
         val plugin = createApplicationPlugin("F", createConfiguration = { Config() }) {
             onCall { call ->
-                if (pluginConfig.enabled) {
+                if (this@createApplicationPlugin.pluginConfig.enabled) {
                     call.respondText("Plugin enabled!")
                     finish()
                 }
@@ -80,7 +78,7 @@ class ApplicationPluginTest {
                     call.attributes.put(key, data)
                 }
             }
-            onCallRespond { call ->
+            onCallRespond { call, _ ->
                 val data = call.attributes.getOrNull(key)
                 if (data != null) {
                     transformBody {
@@ -122,7 +120,7 @@ class ApplicationPluginTest {
     @Test
     fun `test dependent plugins`() {
         val pluginF = createApplicationPlugin("F", {}) {
-            onCallRespond { call ->
+            onCallRespond { call, _ ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
                     transformBody { data }
@@ -131,8 +129,8 @@ class ApplicationPluginTest {
         }
 
         val pluginG = createApplicationPlugin("G", {}) {
-            beforePlugins(pluginF) {
-                onCallRespond { call ->
+            before(pluginF) {
+                onCallRespond { call, _ ->
                     val data = call.request.headers["F"]
                     if (data != null) {
                         call.attributes.put(FConfig.Key, data)
@@ -251,7 +249,7 @@ class ApplicationPluginTest {
                     eventsList.add("afterFinish")
                 }
             }
-            onCallRespond { call ->
+            onCallRespond { call, _ ->
                 eventsList.add("onCallRespond")
 
                 call.afterFinish {
@@ -302,8 +300,8 @@ class ApplicationPluginTest {
         class Config(var data: String)
 
         val plugin = createRouteScopedPlugin("F", { Config("default") }) {
-            onCall {
-                context.call.respond(pluginConfig.data)
+            onCall { call ->
+                call.respond(pluginConfig.data)
             }
         }
 
@@ -355,7 +353,7 @@ class ApplicationPluginTest {
     @Test
     fun `test dependent routing scoped plugins`() {
         val pluginF = createRouteScopedPlugin("F", {}) {
-            onCallRespond { call ->
+            onCallRespond { call, _ ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
                     transformBody { data }
@@ -364,8 +362,8 @@ class ApplicationPluginTest {
         }
 
         val pluginG = createRouteScopedPlugin("G", {}) {
-            beforePlugins(pluginF) {
-                onCallRespond { call ->
+            before(pluginF) {
+                onCallRespond { call, _ ->
                     val data = call.request.headers["F"]
                     if (data != null) {
                         call.attributes.put(FConfig.Key, data)
@@ -405,7 +403,7 @@ class ApplicationPluginTest {
     @Test
     fun `test dependent routing scoped and application plugins`() {
         val pluginF = createApplicationPlugin("F", {}) {
-            onCallRespond { call ->
+            onCallRespond { call, _ ->
                 val data = call.attributes.getOrNull(FConfig.Key)
                 if (data != null) {
                     transformBody { data }
@@ -413,9 +411,9 @@ class ApplicationPluginTest {
             }
         }
 
-        val pluginG = createRouteScopedPlugin("G", {}) {
-            beforePlugins(pluginF) {
-                onCallRespond { call ->
+        val pluginG = createRouteScopedPlugin("G") {
+            before(pluginF) {
+                onCallRespond { call, _ ->
                     val data = call.request.headers["F"]
                     if (data != null) {
                         call.attributes.put(FConfig.Key, data)
@@ -477,7 +475,7 @@ class ApplicationPluginTest {
         data class MyInt(val x: Int)
 
         val plugin = createApplicationPlugin("F") {
-            onCallReceive {
+            onCallReceive { _ ->
                 transformBody { data ->
                     val type = requestedType?.type!!
                     if (type != MyInt::class) return@transformBody data
@@ -485,7 +483,7 @@ class ApplicationPluginTest {
                     MyInt(data.readInt())
                 }
             }
-            onCallRespond {
+            onCallRespond { _, _ ->
                 transformBody { data ->
                     if (data !is MyInt) return@transformBody data
 

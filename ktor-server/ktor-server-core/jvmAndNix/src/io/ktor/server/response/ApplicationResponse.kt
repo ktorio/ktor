@@ -27,6 +27,11 @@ public interface ApplicationResponse {
     public val headers: ResponseHeaders
 
     /**
+     * Indicates that this response is already committed and no further changes are allowed.
+     */
+    public val isCommitted: Boolean
+
+    /**
      * Cookies for this response
      */
     public val cookies: ResponseCookies

@@ -4,14 +4,12 @@
 
 package io.ktor.server.application
 
-import io.ktor.server.application.plugins.api.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
  * Defines a Plugin that can be installed into [Route]
- * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfig is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */

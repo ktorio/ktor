@@ -12,6 +12,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 
+@DslMarker
+internal annotation class PluginsDslMarker
+
 /**
  * Defines an installable Plugin
  * @param TPipeline is the type of the pipeline this plugin is compatible with
@@ -86,6 +89,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     if (this is Route && plugin is RouteScopedPlugin) {
         return installIntoRoute(plugin, configure)
     }
+
     val registry = pluginRegistry
     return when (val installedPlugin = registry.getOrNull(plugin.key)) {
         null -> {

@@ -216,7 +216,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     fun testStatusPages404() {
         createAndStartServer {
             application.install(StatusPages) {
-                status(HttpStatusCode.NotFound) {
+                status(HttpStatusCode.NotFound) { call, _ ->
                     call.respondText(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
                         "Error string"
                     }

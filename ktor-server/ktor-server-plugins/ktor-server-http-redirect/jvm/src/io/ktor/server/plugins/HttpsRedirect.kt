@@ -81,7 +81,10 @@ public class HttpsRedirect private constructor(config: Configuration) {
      */
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, HttpsRedirect> {
         override val key: AttributeKey<HttpsRedirect> = AttributeKey("HttpsRedirect")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HttpsRedirect {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): HttpsRedirect {
             val plugin = HttpsRedirect(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Plugins) {
                 if (call.request.origin.scheme == "http" &&

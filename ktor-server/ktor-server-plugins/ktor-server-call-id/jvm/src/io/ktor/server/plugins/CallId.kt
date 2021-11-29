@@ -191,7 +191,10 @@ public class CallId private constructor(
         override val key: AttributeKey<CallId> = AttributeKey("CallId")
         private val logger by lazy { LoggerFactory.getLogger(CallId::class.jvmName) }
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CallId {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): CallId {
             val configuration = Configuration().apply(configure)
 
             val instance = CallId(

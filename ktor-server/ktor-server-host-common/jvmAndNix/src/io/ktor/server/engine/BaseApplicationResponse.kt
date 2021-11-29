@@ -24,6 +24,8 @@ public expect abstract class BaseApplicationResponse(call: ApplicationCall) : Ap
     override fun status(): HttpStatusCode?
     override fun status(value: HttpStatusCode)
 
+    override val isCommitted: Boolean
+
     @UseHttp2Push
     override fun push(builder: ResponsePushBuilder)
 

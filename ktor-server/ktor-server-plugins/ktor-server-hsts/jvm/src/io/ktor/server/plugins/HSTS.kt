@@ -85,7 +85,10 @@ public class HSTS private constructor(config: Configuration) {
         public const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
 
         override val key: AttributeKey<HSTS> = AttributeKey("HSTS")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HSTS {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): HSTS {
             val plugin = HSTS(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Plugins) { plugin.intercept(call) }
             return plugin
