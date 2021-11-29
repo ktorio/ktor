@@ -441,7 +441,7 @@ public final class io/ktor/client/plugins/HttpRequestRetryKt {
 	public static final fun retry (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/client/plugins/HttpRequestTimeoutException : java/util/concurrent/CancellationException {
+public final class io/ktor/client/plugins/HttpRequestTimeoutException : java/io/IOException {
 	public fun <init> (Lio/ktor/client/request/HttpRequestBuilder;)V
 }
 
@@ -508,6 +508,7 @@ public final class io/ktor/client/plugins/HttpTimeoutKt {
 	public static final fun convertLongTimeoutToIntWithInfiniteAsZero (J)I
 	public static final fun convertLongTimeoutToLongWithInfiniteAsZero (J)J
 	public static final fun timeout (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function1;)V
+	public static final fun unwrapRequestTimeoutException (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/RedirectResponseException : io/ktor/client/plugins/ResponseException {
@@ -1309,6 +1310,10 @@ public final class io/ktor/client/utils/EmptyContent : io/ktor/http/content/Outg
 	public static final field INSTANCE Lio/ktor/client/utils/EmptyContent;
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/utils/ExceptionUtilsJvmKt {
+	public static final fun unwrapCancellationException (Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
 public final class io/ktor/client/utils/ExceptionUtilsKt {

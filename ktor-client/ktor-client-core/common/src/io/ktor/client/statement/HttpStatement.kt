@@ -42,8 +42,8 @@ public class HttpStatement(
      *
      * Please note: the [response] instance will be canceled and shouldn't be passed outside of [block].
      */
-    public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T {
-        val response: HttpResponse = executeUnsafe()
+    public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T = unwrapRequestTimeoutException {
+        val response = executeUnsafe()
 
         try {
             return block(response)
@@ -60,6 +60,7 @@ public class HttpStatement(
      */
     public suspend fun execute(): HttpResponse = execute {
         val savedCall = it.call.save()
+
         savedCall.response
     }
 
@@ -69,7 +70,7 @@ public class HttpStatement(
      * Note if T is a streaming type, you should manage how to close it manually.
      */
     @OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
-    public suspend inline fun <reified T> body(): T {
+    public suspend inline fun <reified T> body(): T = unwrapRequestTimeoutException {
         val response = executeUnsafe()
         return try {
             response.body()
@@ -83,7 +84,9 @@ public class HttpStatement(
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
-    public suspend inline fun <reified T, R> body(crossinline block: suspend (response: T) -> R): R {
+    public suspend inline fun <reified T, R> body(
+        crossinline block: suspend (response: T) -> R
+    ): R = unwrapRequestTimeoutException {
         val response: HttpResponse = executeUnsafe()
         try {
             val result = response.body<T>()
@@ -98,7 +101,7 @@ public class HttpStatement(
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
-    internal suspend fun executeUnsafe(): HttpResponse {
+    internal suspend fun executeUnsafe(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
 
         val call = client.execute(builder)
