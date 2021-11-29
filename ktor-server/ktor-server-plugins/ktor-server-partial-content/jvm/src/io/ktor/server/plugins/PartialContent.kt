@@ -48,7 +48,10 @@ public class PartialContent private constructor(private val maxRangeCount: Int) 
 
         override val key: AttributeKey<PartialContent> = AttributeKey("Partial Content")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContent {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): PartialContent {
             val plugin = PartialContent(Configuration().apply(configure).maxRangeCount)
             pipeline.intercept(ApplicationCallPipeline.Plugins) { plugin.intercept(this) }
             return plugin

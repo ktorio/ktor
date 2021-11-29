@@ -125,10 +125,15 @@ class AutoHeadResponseTest {
     @Test
     fun testWithStatusPages() = withHeadApplication {
         application.install(StatusPages) {
-            exception<IllegalStateException> {
-                call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError)
+            exception<IllegalStateException> { call, code ->
+                call.respondText("ISE: ${code.message}", status = HttpStatusCode.InternalServerError)
             }
-            status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
+            status(HttpStatusCode.NotFound) { call, _ ->
+                call.respondText(
+                    "Not found",
+                    status = HttpStatusCode.NotFound
+                )
+            }
         }
 
         application.routing {

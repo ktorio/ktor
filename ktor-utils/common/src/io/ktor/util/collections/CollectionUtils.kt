@@ -26,7 +26,7 @@ public fun <K : Any, V : Any> sharedMap(initialCapacity: Int = 8): MutableMap<K,
     return mutableMapOf()
 }
 
-@Deprecated("Will be dropped with new memory model enabled by default", ReplaceWith("mutableListOf"))
+@Deprecated("Will be dropped with new memory model enabled by default", ReplaceWith("mutableListOf<V>()"))
 public fun <V> sharedList(): MutableList<V> {
     if (PlatformUtils.IS_NATIVE && !PlatformUtils.IS_NEW_MM_ENABLED) {
         return ConcurrentList()

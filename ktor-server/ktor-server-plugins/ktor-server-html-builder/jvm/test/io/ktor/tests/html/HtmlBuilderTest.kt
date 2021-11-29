@@ -51,7 +51,7 @@ class HtmlBuilderTest {
     @Test
     fun testError() = withTestApplication {
         application.install(StatusPages) {
-            exception<NotImplementedError> {
+            exception<NotImplementedError> { call, _ ->
                 call.respondHtml(HttpStatusCode.NotImplemented) {
                     body {
                         h1 {

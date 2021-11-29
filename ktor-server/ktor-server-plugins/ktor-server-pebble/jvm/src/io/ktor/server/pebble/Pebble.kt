@@ -42,7 +42,10 @@ public class Pebble private constructor(private val engine: PebbleEngine) {
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
         override val key: AttributeKey<Pebble> = AttributeKey<Pebble>("pebble")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: PebbleEngine.Builder.() -> Unit): Pebble {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: PebbleEngine.Builder.() -> Unit
+        ): Pebble {
             val builder = PebbleEngine.Builder().apply {
                 configure(this)
             }

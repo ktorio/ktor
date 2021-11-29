@@ -5,7 +5,6 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.server.application.*
-import io.ktor.server.application.plugins.api.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -74,7 +73,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 sendEvent("afterFinish")
             }
         }
-        onCallRespond { call ->
+        onCallRespond { call, _ ->
             sendEvent("onCallRespond")
 
             call.afterFinish {

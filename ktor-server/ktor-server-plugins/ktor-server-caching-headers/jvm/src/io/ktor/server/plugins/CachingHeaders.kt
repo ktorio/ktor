@@ -71,7 +71,10 @@ public class CachingHeaders private constructor(
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, CachingHeaders> {
         override val key: AttributeKey<CachingHeaders> = AttributeKey("Caching Headers")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CachingHeaders {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): CachingHeaders {
             val configuration = Configuration().apply(configure)
             val plugin = CachingHeaders(configuration.optionsProviders)
 

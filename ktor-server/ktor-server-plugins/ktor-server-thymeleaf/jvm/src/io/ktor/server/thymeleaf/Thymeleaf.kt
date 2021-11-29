@@ -41,7 +41,10 @@ public class Thymeleaf private constructor(private val engine: TemplateEngine) {
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
         override val key: AttributeKey<Thymeleaf> = AttributeKey<Thymeleaf>("thymeleaf")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: TemplateEngine.() -> Unit): Thymeleaf {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: TemplateEngine.() -> Unit
+        ): Thymeleaf {
             val config = TemplateEngine().apply(configure)
             val plugin = Thymeleaf(config)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->

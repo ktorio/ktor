@@ -52,7 +52,10 @@ public class Sessions private constructor(public val providers: List<SessionProv
      */
     public companion object Plugin : RouteScopedPlugin<Sessions.Configuration, Sessions> {
         override val key: AttributeKey<Sessions> = AttributeKey<Sessions>("Sessions")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Sessions {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): Sessions {
             val configuration = Configuration().apply(configure)
             val sessions = Sessions(configuration.providers)
 

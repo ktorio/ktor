@@ -23,6 +23,9 @@ public actual abstract class BaseApplicationResponse actual constructor(
 ) : ApplicationResponse {
     private var _status: HttpStatusCode? by shared(null)
 
+    actual override val isCommitted: Boolean
+        get() = responded
+
     actual override val cookies: ResponseCookies by lazy {
         ResponseCookies(this, call.request.origin.scheme == "https")
     }
@@ -295,18 +298,19 @@ public actual abstract class BaseApplicationResponse actual constructor(
          * to start response object processing via [respondOutgoingContent]
          */
         public actual fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
-            sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
-                if (response !is OutgoingContent) {
+            sendPipeline.intercept(ApplicationSendPipeline.Engine) { body ->
+                if (call.isHandled) return@intercept
+
+                if (body !is OutgoingContent) {
                     throw IllegalArgumentException(
-                        "Response pipeline couldn't transform '${response::class}' to the OutgoingContent"
+                        "Response pipeline couldn't transform '${body::class}' to the OutgoingContent"
                     )
                 }
 
-                val call = call
-                val callResponse =
-                    call.response as? BaseApplicationResponse ?: call.attributes[EngineResponseAttributeKey]
+                val response = call.response as? BaseApplicationResponse
+                    ?: call.attributes[EngineResponseAttributeKey]
 
-                callResponse.respondOutgoingContent(response)
+                response.respondOutgoingContent(body)
             }
         }
     }

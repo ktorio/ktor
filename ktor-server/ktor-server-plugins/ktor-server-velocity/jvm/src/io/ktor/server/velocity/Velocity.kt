@@ -60,7 +60,10 @@ public class Velocity private constructor(private val engine: VelocityEngine) {
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, VelocityEngine, Velocity> {
         override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("velocity")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: VelocityEngine.() -> Unit): Velocity {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: VelocityEngine.() -> Unit
+        ): Velocity {
             val config = VelocityEngine().apply(configure)
             val plugin = Velocity(config)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->

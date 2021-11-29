@@ -1,4 +1,4 @@
-package io.ktor.server.application.plugins.api.debug
+package io.ktor.server.application.debug
 
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext

@@ -42,10 +42,15 @@ public interface ApplicationCall {
     /**
      * Allows you to execute a [handler] after the current call is finished.
      *
-     * @param throwable An exception that can take place before the call has finished.
+     * @param cause An exception that can take place before the call has finished.
      * */
-    public fun afterFinish(handler: (Throwable?) -> Unit)
+    public fun afterFinish(handler: (cause: Throwable?) -> Unit)
 }
+
+/**
+ * Indicates if the response was sent.
+ */
+public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
 
 public interface ApplicationCallWithContext : ApplicationCall, CoroutineScope {
     override fun afterFinish(handler: (Throwable?) -> Unit) {

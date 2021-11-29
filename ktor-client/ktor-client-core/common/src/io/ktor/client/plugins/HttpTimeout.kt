@@ -8,8 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 
 /**
@@ -145,7 +147,8 @@ public class HttpTimeout private constructor(
                     val executionContext = context.executionContext
                     val killer = scope.launch {
                         delay(requestTimeout)
-                        executionContext.cancel(HttpRequestTimeoutException(context))
+                        val cause = HttpRequestTimeoutException(context)
+                        executionContext.cancel(cause.message!!, cause)
                     }
 
                     context.executionContext.invokeOnCompletion {
@@ -168,7 +171,7 @@ public fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityCo
  */
 public class HttpRequestTimeoutException(
     request: HttpRequestBuilder
-) : CancellationException(
+) : IOException(
     "Request timeout has expired [url=${request.url.buildString()}, " +
         "request_timeout=${request.getCapabilityOrNull(HttpTimeout)?.requestTimeoutMillis ?: "unknown"} ms]"
 )
@@ -229,4 +232,13 @@ public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when 
 public fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {
     HttpTimeout.INFINITE_TIMEOUT_MS -> 0L
     else -> timeout
+}
+
+@PublishedApi
+internal inline fun <T> unwrapRequestTimeoutException(block: () -> T): T {
+    try {
+        return block()
+    } catch (cause: CancellationException) {
+        throw cause.unwrapCancellationException()
+    }
 }

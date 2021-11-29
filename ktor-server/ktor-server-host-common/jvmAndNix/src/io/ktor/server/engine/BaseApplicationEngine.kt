@@ -84,9 +84,6 @@ public abstract class BaseApplicationEngine(
     }
 }
 
-@SharedImmutable
-private val SendPipelineExecutedAttributeKey = AttributeKey<Unit>("SendPipelineExecutedAttributeKey")
-
 private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
     val hostHeaders = call.request.headers.getAll(HttpHeaders.Host) ?: return
     if (hostHeaders.size > 1) {
@@ -102,19 +99,13 @@ private class StartupInfo {
 
 @OptIn(InternalAPI::class)
 private fun Application.installDefaultInterceptors() {
-    intercept(ApplicationCallPipeline.Setup) {
-        call.response.pipeline.intercept(ApplicationSendPipeline.Before) {
-            call.attributes.put(SendPipelineExecutedAttributeKey, Unit)
-        }
-    }
     intercept(ApplicationCallPipeline.Fallback) {
-        val isResponded = call.attributes.getOrNull(SendPipelineExecutedAttributeKey) != null
-        if (isResponded) {
-            return@intercept
-        }
+        if (call.isHandled) return@intercept
+
         val status = call.response.status()
             ?: call.attributes.getOrNull(RoutingFailureStatusCode)
             ?: HttpStatusCode.NotFound
+
         call.respond(status)
     }
 

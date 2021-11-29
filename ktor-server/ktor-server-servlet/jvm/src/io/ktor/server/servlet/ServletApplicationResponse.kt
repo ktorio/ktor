@@ -49,21 +49,22 @@ public abstract class ServletApplicationResponse(
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
-            if (!completed) {
-                completed = true
-                if (responseJob.isInitialized()) {
-                    responseJob.value.apply {
-                        channel.close()
-                        join()
-                    }
-                } else {
-                    try {
-                        @Suppress("BlockingMethodInNonBlockingContext")
-                        servletResponse.flushBuffer()
-                    } catch (cause: Throwable) {
-                        throw ChannelWriteException(exception = cause)
-                    }
+            if (completed) return@intercept
+            completed = true
+
+            if (responseJob.isInitialized()) {
+                responseJob.value.apply {
+                    channel.close()
+                    join()
                 }
+                return@intercept
+            }
+
+            try {
+                @Suppress("BlockingMethodInNonBlockingContext")
+                servletResponse.flushBuffer()
+            } catch (cause: Throwable) {
+                throw ChannelWriteException(exception = cause)
             }
         }
     }

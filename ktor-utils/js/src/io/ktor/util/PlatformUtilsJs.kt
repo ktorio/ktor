@@ -7,7 +7,7 @@ package io.ktor.util
 
 public actual object PlatformUtils {
     public actual val IS_BROWSER: Boolean = js(
-        "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
+        "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'" // ktlint-disable max-line-length
     ) as Boolean
 
     public actual val IS_NODE: Boolean = js(

@@ -80,7 +80,10 @@ public class DefaultHeaders private constructor(config: Configuration) {
 
         override val key: AttributeKey<DefaultHeaders> = AttributeKey("Default Headers")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): DefaultHeaders {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): DefaultHeaders {
             val config = Configuration().apply(configure)
             if (config.headers.getAll(HttpHeaders.Server) == null) {
                 val ktorPackageVersion: String = DefaultHeaders::class.java.`package`.implementationVersion ?: "debug"
