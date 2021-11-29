@@ -1,3 +1,16 @@
+# 1.6.6
+> Published 25 November 2021
+* Some Netty EngineMain properties are not set ([KTOR-3464](https://youtrack.jetbrains.com/issue/KTOR-3464))
+* Session cookie with BASE64 encoding fails to set correct cookie ([KTOR-524](https://youtrack.jetbrains.com/issue/KTOR-524))
+* corsCheckRequestHeaders false ([KTOR-445](https://youtrack.jetbrains.com/issue/KTOR-445))
+* DropwizardMetrics does not append baseName to the 'per endpoint'-metrics ([KTOR-2527](https://youtrack.jetbrains.com/issue/KTOR-2527))
+* Cookies that added to request got removed if HttpCookies plugin is installed ([KTOR-3105](https://youtrack.jetbrains.com/issue/KTOR-3105))
+* Development mode isn't taken into account for subroutes ([KTOR-3316](https://youtrack.jetbrains.com/issue/KTOR-3316))
+* URL port should be in 0..65535 ([KTOR-3314](https://youtrack.jetbrains.com/issue/KTOR-3314))
+* Basic auth not sending second request ([KTOR-3472](https://youtrack.jetbrains.com/issue/KTOR-3472))
+* Update Kotlin to 1.6.0 ([KTOR-3422](https://youtrack.jetbrains.com/issue/KTOR-3422))
+
+
 # 1.6.5
 > Published 2 November 2021
 
