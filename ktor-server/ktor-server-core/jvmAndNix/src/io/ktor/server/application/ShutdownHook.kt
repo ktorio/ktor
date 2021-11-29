@@ -9,9 +9,9 @@ package io.ktor.server.application
  * Represents a hook that is executed when the server is shutting down.
  */
 public object Shutdown : Hook<(Application) -> Unit> {
-    override fun install(application: Application, config: (Application) -> Unit) {
+    override fun install(application: Application, handler: (Application) -> Unit) {
         application.environment.monitor.subscribe(ApplicationStopped) {
-            config(it)
+            handler(it)
         }
     }
 }
