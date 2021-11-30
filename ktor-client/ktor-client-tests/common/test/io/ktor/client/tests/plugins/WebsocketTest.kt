@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests.plugins
 
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.tests.utils.assertFailsWith
@@ -23,6 +24,7 @@ class WebsocketTest : ClientLoader() {
 
         test { client ->
 //            assertFailsWith<CustomException> {
+            try {
                 client.wss(echoWebsocket) {
                     outgoing.send(Frame.Text("Hello"))
                     val frame = incoming.receive()
@@ -30,7 +32,30 @@ class WebsocketTest : ClientLoader() {
 
                     throw CustomException()
                 }
+            } catch (e: CustomException) {
+                assertTrue(true)
+            }
+            assertTrue(false)
 //            }
+        }
+    }
+
+    @Test
+    fun testErrorHandlingWithExistingException() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFailsWith<ConnectTimeoutException> {
+                client.wss(echoWebsocket) {
+                    outgoing.send(Frame.Text("Hello"))
+                    val frame = incoming.receive()
+                    check(frame is Frame.Text)
+
+                    throw ConnectTimeoutException("Message")
+                }
+            }
         }
     }
 }
