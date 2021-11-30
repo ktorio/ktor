@@ -121,7 +121,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private class CustomException : Exception()
     
     @Test
-    fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testErrorHandling() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
