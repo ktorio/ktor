@@ -43,9 +43,43 @@ class WebsocketTest : ClientLoader() {
 
     @Test
     fun testAssert() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
         test { client ->
             assertFailsWith<CustomException> {
                 throw CustomException()
+            }
+        }
+    }
+
+    @Test
+    fun testAssert1() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFailsWith<CustomException> {
+                client.wss(echoWebsocket) {
+                    throw CustomException()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testAssert2() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFailsWith<CustomException> {
+                client.webSocket(echoWebsocket) {
+                    throw CustomException()
+                }
             }
         }
     }
