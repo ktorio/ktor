@@ -117,4 +117,31 @@ class WebSocketRemoteTest : ClientLoader() {
         val buffer = binaryFrame.data
         assertEquals(data.contentToString(), buffer.contentToString())
     }
+
+    private class CustomException : Exception()
+    
+    @Test
+    fun testErrorHandling() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            try {
+                client.wss(echoWebsocket) {
+                    outgoing.send(Frame.Text("Hello"))
+                    val frame = incoming.receive()
+                    check(frame is Frame.Text)
+
+                    throw CustomException()
+                }
+            } catch (cause: Throwable) {
+                if (cause !is CustomException) {
+                    error("Expected ${CustomException::class} exception, but $cause was thrown instead")
+                }
+                return@test
+            }
+            error("Expected ${CustomException::class} exception, but it wasn't thrown")
+        }
+    }
 }
