@@ -30,19 +30,6 @@ private typealias Ctor = (Throwable) -> Throwable?
 // Replace it with ClassValue when Java 6 support is over
 private val exceptionCtors: WeakHashMap<Class<out Throwable>, Ctor> = WeakHashMap()
 
-internal fun Throwable.unwrapCancellationException(): Throwable {
-    var exception: Throwable = this
-    while (exception is CancellationException) {
-        if (exception == exception.cause) {
-            return this
-        }
-
-        exception = exception.cause ?: return exception
-    }
-
-    return exception
-}
-
 /**
  * Try copy [exception] using [cause] as cause.
  */
