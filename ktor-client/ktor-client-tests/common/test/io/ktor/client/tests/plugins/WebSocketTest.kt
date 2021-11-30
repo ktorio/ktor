@@ -9,7 +9,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.websocket.*
 import kotlin.test.*
 
-class WebsocketTest : ClientLoader() {
+class WebSocketTest : ClientLoader() {
     private val echoWebsocket = "$TEST_WEBSOCKET_SERVER/websockets/echo"
 
     private class CustomException : Exception()
