@@ -40,4 +40,13 @@ class WebsocketTest : ClientLoader() {
 //            }
         }
     }
+
+    @Test
+    fun testAssert() = clientTests(listOf("Android", "Apache", "Curl")) {
+        test { client ->
+            assertFailsWith<CustomException> {
+                throw CustomException()
+            }
+        }
+    }
 }
