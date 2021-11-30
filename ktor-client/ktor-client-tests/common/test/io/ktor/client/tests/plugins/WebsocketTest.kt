@@ -4,10 +4,8 @@
 
 package io.ktor.client.tests.plugins
 
-import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.tests.utils.assertFailsWith
 import io.ktor.websocket.*
 import kotlin.test.*
 
@@ -23,7 +21,6 @@ class WebsocketTest : ClientLoader() {
         }
 
         test { client ->
-//            assertFailsWith<CustomException> {
             try {
                 client.wss(echoWebsocket) {
                     outgoing.send(Frame.Text("Hello"))
@@ -33,56 +30,12 @@ class WebsocketTest : ClientLoader() {
                     throw CustomException()
                 }
             } catch (cause: Throwable) {
-                if (cause !is CustomException && cause.message?.contains(CustomException::class.simpleName!!) == true) {
+                if (cause !is CustomException) {
                     error("Expected ${CustomException::class} exception, but $cause was thrown instead")
                 }
                 return@test
             }
             error("Expected ${CustomException::class} exception, but it wasn't thrown")
-//            }
-        }
-    }
-
-    @Test
-    fun testAssert() = clientTests(listOf("Android", "Apache", "Curl")) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            assertFailsWith<CustomException> {
-                throw CustomException()
-            }
-        }
-    }
-
-    @Test
-    fun testAssert1() = clientTests(listOf("Android", "Apache", "Curl")) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            assertFailsWith<CustomException> {
-                client.wss(echoWebsocket) {
-                    throw CustomException()
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testAssert2() = clientTests(listOf("Android", "Apache", "Curl")) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            assertFailsWith<CustomException> {
-                client.webSocket(echoWebsocket) {
-                    throw CustomException()
-                }
-            }
         }
     }
 }
