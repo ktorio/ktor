@@ -32,11 +32,12 @@ class WebsocketTest : ClientLoader() {
 
                     throw CustomException()
                 }
-            } catch (e: CustomException) {
-                assertTrue(true)
+            } catch (cause: Throwable) {
+                if (cause !is CustomException && cause.message?.contains(CustomException::class.simpleName!!) == true) {
+                    error("Expected ${CustomException::class} exception, but $cause was thrown instead")
+                }
                 return@test
             }
-            assertTrue(false)
 //            }
         }
     }
