@@ -6,6 +6,7 @@ package io.ktor.tests.server.jetty.http2
 
 import io.ktor.server.jetty.*
 import io.ktor.server.testing.suites.*
+import kotlin.test.*
 
 class JettyEngineHttp2CompressionTest :
     CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
@@ -21,7 +22,15 @@ class JettyEngineHttp2HttpServerCommonTest :
 }
 
 class JettyEngineHttp2HttpServerJvmTest :
-    HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
+    }
+}
 
 class JettyEngineHttp2SustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)

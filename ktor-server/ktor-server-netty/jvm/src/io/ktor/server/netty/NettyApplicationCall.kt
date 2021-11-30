@@ -7,6 +7,7 @@ package io.ktor.server.netty
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.util.*
 import kotlinx.atomicfu.*
@@ -15,7 +16,7 @@ import kotlinx.coroutines.*
 public abstract class NettyApplicationCall(
     application: Application,
     public val context: ChannelHandlerContext,
-    private val requestMessage: Any
+    private val requestMessage: Any,
 ) : BaseApplicationCall(application) {
 
     @OptIn(InternalAPI::class)
@@ -23,9 +24,29 @@ public abstract class NettyApplicationCall(
     @OptIn(InternalAPI::class)
     public abstract override val response: NettyApplicationResponse
 
+    internal lateinit var previousCallFinished: ChannelPromise
+
+    internal lateinit var callFinished: ChannelPromise
+
     public val responseWriteJob: Job = Job()
 
     private val messageReleased = atomic(false)
+
+    internal var isByteBufferContent = false
+
+    internal open fun transform(buf: ByteBuf, isLastContent: Boolean): Any {
+        return buf
+    }
+
+    internal open fun endOfStream(lastTransformed: Boolean): Any? {
+        return null
+    }
+
+    internal open fun upgrade(dst: ChannelHandlerContext) {
+        throw IllegalStateException("Already upgraded")
+    }
+
+    internal abstract fun isContextCloseRequired(): Boolean
 
     override fun afterFinish(handler: (Throwable?) -> Unit) {
         responseWriteJob.invokeOnCompletion(handler)
@@ -36,6 +57,7 @@ public abstract class NettyApplicationCall(
             @OptIn(InternalAPI::class)
             response.ensureResponseSent()
         } catch (cause: Throwable) {
+            callFinished.setFailure(cause)
             finishComplete()
             throw cause
         }

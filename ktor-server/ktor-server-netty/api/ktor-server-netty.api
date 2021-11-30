@@ -60,12 +60,18 @@ public final class io/ktor/server/netty/Netty : io/ktor/server/engine/Applicatio
 }
 
 public abstract class io/ktor/server/netty/NettyApplicationCall : io/ktor/server/engine/BaseApplicationCall {
+	public field callFinished Lio/netty/channel/ChannelPromise;
+	public field previousCallFinished Lio/netty/channel/ChannelPromise;
 	public fun <init> (Lio/ktor/server/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
 	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
+	public final fun getCallFinished ()Lio/netty/channel/ChannelPromise;
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
+	public final fun getPreviousCallFinished ()Lio/netty/channel/ChannelPromise;
 	public abstract fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
 	public abstract fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
 	public final fun getResponseWriteJob ()Lkotlinx/coroutines/Job;
+	public final fun setCallFinished (Lio/netty/channel/ChannelPromise;)V
+	public final fun setPreviousCallFinished (Lio/netty/channel/ChannelPromise;)V
 }
 
 public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
@@ -127,11 +133,12 @@ public final class io/ktor/server/netty/NettyApplicationRequestHeaders : io/ktor
 
 public abstract class io/ktor/server/netty/NettyApplicationResponse : io/ktor/server/engine/BaseApplicationResponse {
 	public static final field Companion Lio/ktor/server/netty/NettyApplicationResponse$Companion;
+	public field responseMessage Ljava/lang/Object;
 	public fun <init> (Lio/ktor/server/netty/NettyApplicationCall;Lio/netty/channel/ChannelHandlerContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun cancel ()V
 	protected final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	protected final fun getEngineContext ()Lkotlin/coroutines/CoroutineContext;
-	public final fun getResponseMessage ()Lkotlinx/coroutines/CompletableDeferred;
+	public final fun getResponseMessage ()Ljava/lang/Object;
 	protected final fun getResponseMessageSent ()Z
 	protected final fun getUserContext ()Lkotlin/coroutines/CoroutineContext;
 	protected fun respondFromBytes ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -140,6 +147,7 @@ public abstract class io/ktor/server/netty/NettyApplicationResponse : io/ktor/se
 	protected fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun responseMessage (ZZ)Ljava/lang/Object;
 	protected fun responseMessage (Z[B)Ljava/lang/Object;
+	public final fun setResponseMessage (Ljava/lang/Object;)V
 	protected final fun setResponseMessageSent (Z)V
 }
 
@@ -154,35 +162,5 @@ public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/chann
 }
 
 public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
-}
-
-public abstract class io/ktor/server/netty/cio/WriterEncapsulation {
-	public abstract fun endOfStream (Z)Ljava/lang/Object;
-	public fun getRequiresContextClose ()Z
-	public abstract fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
-	public abstract fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
-}
-
-public final class io/ktor/server/netty/cio/WriterEncapsulation$Http1 : io/ktor/server/netty/cio/WriterEncapsulation {
-	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Http1;
-	public fun endOfStream (Z)Ljava/lang/Object;
-	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
-	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
-}
-
-public final class io/ktor/server/netty/cio/WriterEncapsulation$Http2 : io/ktor/server/netty/cio/WriterEncapsulation {
-	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Http2;
-	public fun endOfStream (Z)Ljava/lang/Object;
-	public fun getRequiresContextClose ()Z
-	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
-	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
-}
-
-public final class io/ktor/server/netty/cio/WriterEncapsulation$Raw : io/ktor/server/netty/cio/WriterEncapsulation {
-	public static final field INSTANCE Lio/ktor/server/netty/cio/WriterEncapsulation$Raw;
-	public fun endOfStream (Z)Ljava/lang/Object;
-	public fun getRequiresContextClose ()Z
-	public fun transform (Lio/netty/buffer/ByteBuf;Z)Ljava/lang/Object;
-	public fun upgrade (Lio/netty/channel/ChannelHandlerContext;)V
 }
 

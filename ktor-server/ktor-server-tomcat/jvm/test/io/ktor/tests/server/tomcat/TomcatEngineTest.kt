@@ -129,6 +129,14 @@ class TomcatHttpServerJvmTest :
             chain.doFilter(request, response)
         }
     }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
+    }
 }
 
 class TomcatSustainabilityTestSuite :

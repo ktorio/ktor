@@ -4,8 +4,17 @@
 
 package io.ktor.tests.server.netty
 
+import io.ktor.server.application.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
+import io.ktor.util.cio.*
+import kotlinx.coroutines.*
+import java.util.concurrent.atomic.*
+import kotlin.test.*
+import io.ktor.utils.io.*
+import java.net.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {

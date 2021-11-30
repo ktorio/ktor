@@ -71,9 +71,6 @@ internal class NettyHttp2Handler(
 
     @OptIn(InternalAPI::class)
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val requestQueue = NettyRequestQueue(1, 1)
-        val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue, handlerJob)
-
         val call = NettyHttp2ApplicationCall(
             application,
             context,
@@ -83,11 +80,6 @@ internal class NettyHttp2Handler(
             userCoroutineContext
         )
         context.applicationCall = call
-
-        requestQueue.schedule(call)
-        requestQueue.close()
-
-        responseWriter.ensureRunning()
     }
 
     @Suppress("DEPRECATION")
