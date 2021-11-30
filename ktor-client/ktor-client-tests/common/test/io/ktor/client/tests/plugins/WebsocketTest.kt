@@ -34,6 +34,7 @@ class WebsocketTest : ClientLoader() {
                 }
             } catch (e: CustomException) {
                 assertTrue(true)
+                return@test
             }
             assertTrue(false)
 //            }
