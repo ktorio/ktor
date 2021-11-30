@@ -23,6 +23,11 @@ kotlin.sourceSets {
             implementation(kotlin("test-junit"))
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+
+            // https://github.com/Kotlin/kotlinx.coroutines/issues/3001
+            val jna_version = "5.9.0"
+            api("net.java.dev.jna:jna:$jna_version")
+            api("net.java.dev.jna:jna-platform:$jna_version")
         }
     }
     val jvmTest by getting {

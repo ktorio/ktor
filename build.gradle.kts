@@ -206,3 +206,9 @@ if (docs != null) {
         pluginsMapConfiguration.set(mapOf)
     }
 }
+
+// https://youtrack.jetbrains.com/issue/KT-49109
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    val nodeM1Version = "16.0.0"
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = nodeM1Version
+}

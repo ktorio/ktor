@@ -13,6 +13,7 @@ kotlin {
     targets.apply {
         val current = listOf(
             getByName("macosX64"),
+            getByName("macosArm64"),
             getByName("linuxX64"),
             getByName("mingwX64")
         )
@@ -25,6 +26,7 @@ kotlin {
             )
         } else {
             listOf(
+                "/usr/bin/curl",
                 "/opt/homebrew/opt/curl/include/curl",
                 "/opt/local/include/curl",
                 "/usr/local/include/curl",

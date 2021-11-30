@@ -29,10 +29,4 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-mock"))
         }
     }
-
-    val jvmTest by getting {
-        dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
-        }
-    }
 }

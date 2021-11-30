@@ -2,10 +2,6 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.gradle.api.*
-import org.gradle.api.publish.maven.tasks.*
-import org.gradle.api.publish.tasks.*
-import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
@@ -37,6 +33,7 @@ fun KotlinMultiplatformExtension.darwinTargets(): Set<KotlinNativeTarget> = setO
 
 fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = setOf(
     macosX64(),
+    macosArm64(),
     linuxX64(),
     mingwX64()
 )
