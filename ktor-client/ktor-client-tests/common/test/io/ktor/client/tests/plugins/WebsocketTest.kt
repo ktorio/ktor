@@ -40,23 +40,4 @@ class WebsocketTest : ClientLoader() {
 //            }
         }
     }
-
-    @Test
-    fun testErrorHandlingWithExistingException() = clientTests(listOf("Android", "Apache", "Curl")) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            assertFailsWith<ConnectTimeoutException> {
-                client.wss(echoWebsocket) {
-                    outgoing.send(Frame.Text("Hello"))
-                    val frame = incoming.receive()
-                    check(frame is Frame.Text)
-
-                    throw ConnectTimeoutException("Message")
-                }
-            }
-        }
-    }
 }
