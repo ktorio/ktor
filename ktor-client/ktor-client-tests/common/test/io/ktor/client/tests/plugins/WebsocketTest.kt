@@ -38,6 +38,7 @@ class WebsocketTest : ClientLoader() {
                 }
                 return@test
             }
+            error("Expected ${CustomException::class} exception, but it wasn't thrown")
 //            }
         }
     }
