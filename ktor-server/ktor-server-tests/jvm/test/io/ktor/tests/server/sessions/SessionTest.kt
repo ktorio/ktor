@@ -149,7 +149,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$sessionParam")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam}")
             }.let { call ->
                 assertEquals("id1", call.response.content)
             }
