@@ -13,6 +13,7 @@ kotlin.sourceSets {
         dependencies {
             implementation(project(":ktor-server:ktor-server-test-host"))
             implementation(project(":ktor-server:ktor-server-test-suites"))
+            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }
 }
