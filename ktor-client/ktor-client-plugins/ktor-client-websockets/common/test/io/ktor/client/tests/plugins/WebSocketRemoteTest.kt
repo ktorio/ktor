@@ -127,7 +127,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            try {
+            assertFailsWith(CustomException::class) {
                 client.wss(echoWebsocket) {
                     outgoing.send(Frame.Text("Hello"))
                     val frame = incoming.receive()
@@ -135,13 +135,7 @@ class WebSocketRemoteTest : ClientLoader() {
 
                     throw CustomException()
                 }
-            } catch (cause: Throwable) {
-                if (cause !is CustomException) {
-                    error("Expected ${CustomException::class} exception, but $cause was thrown instead")
-                }
-                return@test
             }
-            error("Expected ${CustomException::class} exception, but it wasn't thrown")
         }
     }
 }
