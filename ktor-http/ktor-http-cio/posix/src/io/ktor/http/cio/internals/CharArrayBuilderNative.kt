@@ -18,9 +18,9 @@ internal actual class CharArrayBuilder actual constructor(pool: ObjectPool<CharA
     private var current: MutableData? by shared(null)
     private var stringified: String? by shared(null)
     private var released = atomic(false)
-    private var remaining: Int = 0
+    private var remaining: Int by shared(0)
 
-    actual override var length: Int = 0
+    actual override var length: Int by shared(0)
         private set
 
     actual override fun get(index: Int): Char {
