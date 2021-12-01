@@ -210,7 +210,7 @@ class CookiesTest : ClientLoader() {
 
         test { client ->
             client.get("$TCP_SERVER/wrong-value").body<Unit>()
-            val cookies = client[HttpCookies].get(Url(TCP_SERVER))
+            val cookies = client.plugin(HttpCookies).get(Url(TCP_SERVER))
             val expected = Cookie(
                 "___utmvazauvysSB",
                 "kDu\u0001xSkE",

@@ -124,13 +124,13 @@ private fun renderClientCookies(cookies: List<Cookie>): String =
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
  */
-public suspend fun HttpClient.cookies(url: Url): List<Cookie> = plugin(HttpCookies)?.get(url) ?: emptyList()
+public suspend fun HttpClient.cookies(url: Url): List<Cookie> = pluginOrNull(HttpCookies)?.get(url) ?: emptyList()
 
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
  */
 public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
-    plugin(HttpCookies)?.get(Url(urlString)) ?: emptyList()
+    pluginOrNull(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
  * Find the [Cookie] by [name]

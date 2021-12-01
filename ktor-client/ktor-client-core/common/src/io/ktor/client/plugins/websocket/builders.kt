@@ -27,7 +27,7 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
 ): DefaultClientWebSocketSession {
-    get(WebSockets)
+    plugin(WebSockets)
     val sessionDeferred = CompletableDeferred<DefaultClientWebSocketSession>()
     val statement = prepareRequest {
         url {
@@ -84,7 +84,7 @@ public suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit,
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ) {
-    get(WebSockets)
+    plugin(WebSockets)
     val session = prepareRequest {
         url {
             protocol = URLProtocol.WS

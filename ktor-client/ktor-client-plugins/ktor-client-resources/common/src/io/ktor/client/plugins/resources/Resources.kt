@@ -9,7 +9,6 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.util.*
-import io.ktor.client.plugins.get as getFeature
 import io.ktor.resources.Resources as ResourcesCore
 
 /**
@@ -56,7 +55,7 @@ public object Resources : HttpClientPlugin<ResourcesCore.Configuration, Resource
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> HttpClient.href(resource: T): String {
-    return href(getFeature(Resources).resourcesFormat, resource)
+    return href(plugin(Resources).resourcesFormat, resource)
 }
 
 /**
@@ -65,5 +64,5 @@ public inline fun <reified T : Any> HttpClient.href(resource: T): String {
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
 public inline fun <reified T : Any> HttpClient.href(resource: T, urlBuilder: URLBuilder) {
-    href(getFeature(Resources).resourcesFormat, resource, urlBuilder)
+    href(plugin(Resources).resourcesFormat, resource, urlBuilder)
 }

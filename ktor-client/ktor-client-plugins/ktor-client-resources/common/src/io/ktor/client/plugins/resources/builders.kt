@@ -222,5 +222,5 @@ public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
 
 @PublishedApi
 internal fun HttpClient.resources(): io.ktor.resources.Resources {
-    return plugin(Resources) ?: throw IllegalStateException("Resources plugin is not installed")
+    return pluginOrNull(Resources) ?: throw IllegalStateException("Resources plugin is not installed")
 }

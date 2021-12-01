@@ -32,24 +32,18 @@ public interface HttpClientPlugin<out TConfig : Any, TPlugin : Any> {
 }
 
 /**
- * Try to get the [plugin] installed in this client. Returns `null` if the plugin was not previously installed.
+ * Returns a [plugin] installed in this client. Returns `null` if the plugin was not previously installed.
  */
-public fun <B : Any, F : Any> HttpClient.plugin(plugin: HttpClientPlugin<B, F>): F? =
+public fun <B : Any, F : Any> HttpClient.pluginOrNull(plugin: HttpClientPlugin<B, F>): F? =
     attributes.getOrNull(PLUGIN_INSTALLED_LIST)?.getOrNull(plugin.key)
 
 /**
- * Find the [plugin] installed in [HttpClient].
+ * Returns a [plugin] installed in [HttpClient].
  *
  * @throws [IllegalStateException] if [plugin] is not installed.
  */
-public operator fun <B : Any, F : Any> HttpClient.get(plugin: HttpClientPlugin<B, F>): F {
-    val requestedPlugin = plugin(plugin)
-    if (requestedPlugin != null) {
-        return requestedPlugin
-    }
-
-    throw IllegalStateException(
-        "Plugin $plugin is not installed. " +
-            "Consider using `install(${plugin.key})` in client config first."
+public fun <B : Any, F : Any> HttpClient.plugin(plugin: HttpClientPlugin<B, F>): F {
+    return pluginOrNull(plugin) ?: throw IllegalStateException(
+        "Plugin $plugin is not installed. Consider using `install(${plugin.key})` in client config first."
     )
 }

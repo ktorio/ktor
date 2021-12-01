@@ -133,7 +133,7 @@ public class HttpStatement(
         builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys
             ?.filterIsInstance<HttpClientPlugin<*, *>>()
             ?.forEach {
-                requireNotNull(client.plugin(it)) {
+                requireNotNull(client.pluginOrNull(it)) {
                     "Consider installing $it plugin because the request requires it to be installed"
                 }
             }
