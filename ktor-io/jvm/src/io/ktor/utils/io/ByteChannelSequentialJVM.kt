@@ -22,7 +22,7 @@ public class ByteChannelSequentialJVM(
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(cause)
+                cancel(cause.unwrapCancellationException())
             }
         }
     }

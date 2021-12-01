@@ -8,3 +8,16 @@ package io.ktor.utils.io
  * Print exception stacktrace.
  */
 public expect fun Throwable.printStack()
+
+internal fun Throwable.unwrapCancellationException(): Throwable {
+    var exception: Throwable = this
+    while (exception is CancellationException) {
+        if (exception == exception.cause) {
+            return this
+        }
+
+        exception = exception.cause ?: return exception
+    }
+
+    return exception
+}

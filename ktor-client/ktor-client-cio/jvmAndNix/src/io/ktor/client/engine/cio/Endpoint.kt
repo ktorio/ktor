@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
@@ -108,9 +109,10 @@ internal class Endpoint(
             )
 
             callContext[Job]!!.invokeOnCompletion { cause ->
+                val originCause = cause?.unwrapCancellationException()
                 try {
-                    input.cancel(cause)
-                    originOutput.close(cause)
+                    input.cancel(originCause)
+                    originOutput.close(originCause)
                     connection.socket.close()
                     releaseConnection()
                 } catch (_: Throwable) {
@@ -131,7 +133,7 @@ internal class Endpoint(
 
     private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
         return if (configuration?.requestTimeoutMillis != null) {
-            configuration.requestTimeoutMillis as Long
+            Long.MAX_VALUE
         } else {
             config.requestTimeout
         }
