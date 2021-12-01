@@ -26,66 +26,73 @@ internal suspend fun HttpRequestData.write(
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) {
+    val builder = RequestResponseBuilder()
+
+    val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
+    val contentEncoding = headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
+    val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+
     try {
-        val builder = RequestResponseBuilder()
+        val urlString = if (overProxy) {
+            url.toString()
+        } else {
+            url.fullPath
+        }
 
-        val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
-        val contentEncoding = headers[HttpHeaders.TransferEncoding]
-        val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
-        val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
-
-        try {
-            val urlString = if (overProxy) {
-                url.toString()
+        builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
+        // this will only add the port to the host header if the port is non-standard for the protocol
+        if (!headers.contains(HttpHeaders.Host)) {
+            val host = if (url.protocol.defaultPort == url.port) {
+                url.host
             } else {
-                url.fullPath
+                url.hostWithPort
             }
-
-            builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
-            // this will only add the port to the host header if the port is non-standard for the protocol
-            if (!headers.contains(HttpHeaders.Host)) {
-                val host = if (url.protocol.defaultPort == url.port) {
-                    url.host
-                } else {
-                    url.hostWithPort
-                }
-                builder.headerLine(HttpHeaders.Host, host)
-            }
-
-            if (contentLength != null) {
-                if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
-                    builder.headerLine(HttpHeaders.ContentLength, contentLength)
-                }
-            }
-
-            mergeHeaders(headers, body) { key, value ->
-                if (key == HttpHeaders.ContentLength) return@mergeHeaders
-
-                builder.headerLine(key, value)
-            }
-
-            if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
-                builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
-            }
-
-            builder.emptyLine()
-            output.writePacket(builder.build())
-            output.flush()
-        } finally {
-            builder.release()
+            builder.headerLine(HttpHeaders.Host, host)
         }
 
-        val content = body
-        if (content is OutgoingContent.NoContent) {
-            return
+        if (contentLength != null) {
+            if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
+                builder.headerLine(HttpHeaders.ContentLength, contentLength)
+            }
         }
 
-        val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
-        val channel = chunkedJob?.channel ?: output
+        mergeHeaders(headers, body) { key, value ->
+            if (key == HttpHeaders.ContentLength) return@mergeHeaders
 
+            builder.headerLine(key, value)
+        }
+
+        if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
+            builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
+        }
+
+        builder.emptyLine()
+        output.writePacket(builder.build())
+        output.flush()
+    } catch (cause: Throwable) {
+        if (closeChannel) {
+            output.close()
+        }
+        throw cause
+    } finally {
+        builder.release()
+    }
+
+    val content = body
+    if (content is OutgoingContent.NoContent) {
+        if (closeChannel) {
+            output.close()
+        }
+        return
+    }
+
+    val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
+    val channel = chunkedJob?.channel ?: output
+    CoroutineScope(callContext).launch {
         try {
             when (content) {
-                is OutgoingContent.NoContent -> return
+                is OutgoingContent.NoContent -> return@launch
                 is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
                 is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
                 is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
@@ -97,11 +104,11 @@ internal suspend fun HttpRequestData.write(
             channel.flush()
             chunkedJob?.channel?.close()
             chunkedJob?.join()
-        }
-    } finally {
-        output.closedCause?.let { throw it }
-        if (closeChannel) {
-            output.close()
+
+            output.closedCause?.let { throw it }
+            if (closeChannel) {
+                output.close()
+            }
         }
     }
 }
