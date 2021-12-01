@@ -20,7 +20,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(cause)
+                cancel(cause.unwrapCancellationException())
             }
         }
     }

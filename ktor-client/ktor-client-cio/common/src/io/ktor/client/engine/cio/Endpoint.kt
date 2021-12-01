@@ -82,7 +82,7 @@ internal class Endpoint(
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
-        if (deliveryPoint.offer(task)) return
+        if (deliveryPoint.trySend(task).isSuccess) return
 
         val connections = connections.value
         if (connections < config.endpoint.maxConnectionsPerRoute) {
@@ -112,9 +112,10 @@ internal class Endpoint(
             )
 
             callContext[Job]!!.invokeOnCompletion { cause ->
+                val originCause = cause?.unwrapCancellationException()
                 try {
-                    input.cancel(cause)
-                    originOutput.close(cause)
+                    input.cancel(originCause)
+                    originOutput.close(originCause)
                     connection.socket.close()
                     releaseConnection()
                 } catch (_: Throwable) {
@@ -135,7 +136,7 @@ internal class Endpoint(
 
     private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
         return if (configuration?.requestTimeoutMillis != null) {
-            configuration.requestTimeoutMillis as Long
+            Long.MAX_VALUE
         } else {
             config.requestTimeout
         }

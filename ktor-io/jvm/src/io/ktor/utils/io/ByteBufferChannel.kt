@@ -83,9 +83,8 @@ internal open class ByteBufferChannel(
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
-            if (cause != null) {
-                cancel(cause)
-            }
+            cause ?: return@invokeOnCompletion
+            cancel(cause.unwrapCancellationException())
         }
     }
 
