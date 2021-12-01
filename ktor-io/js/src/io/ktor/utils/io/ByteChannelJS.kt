@@ -85,7 +85,7 @@ internal class ByteChannelJS(initial: ChunkBuffer, autoFlush: Boolean) : ByteCha
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(cause)
+                cancel(cause.unwrapCancellationException())
             }
         }
     }

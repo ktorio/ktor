@@ -9,7 +9,6 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.tests.utils.assertFailsWith
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
