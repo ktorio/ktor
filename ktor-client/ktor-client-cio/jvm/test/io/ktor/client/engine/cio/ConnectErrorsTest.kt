@@ -38,7 +38,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testConnectAfterConnectionErrors(): Unit = runBlocking<Unit> {
+    fun testConnectAfterConnectionErrors(): Unit = runBlocking {
         val client = HttpClient(CIO) {
             engine {
                 maxConnectionsCount = 1
@@ -82,7 +82,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testLateServerStart(): Unit = runBlocking<Unit> {
+    fun testLateServerStart(): Unit = runBlocking {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
 
@@ -105,7 +105,6 @@ class ConnectErrorsTest {
                 }
             }
         ).use { client ->
-
             val serverPort = ServerSocket(0).use { it.localPort }
             val server = embeddedServer(
                 Netty,

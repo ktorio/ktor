@@ -4,6 +4,8 @@
 
 package io.ktor.server.testing
 
+import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -16,6 +18,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -535,6 +538,48 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         ) {
             assertEquals(200, status.value)
+        }
+    }
+
+    @Test
+    open fun testFlushingHeaders() {
+        createAndStartServer {
+            route("/timed") {
+                post {
+                    val byteStream = ByteChannel(autoFlush = true)
+                    launch(Dispatchers.Unconfined) {
+                        byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                        byteStream.close(null)
+                    }
+                    call.respond(object : OutgoingContent.ReadChannelContent() {
+                        override val status: HttpStatusCode = HttpStatusCode.OK
+                        override val contentType: ContentType = ContentType.Text.Plain
+                        override val headers: Headers = Headers.Empty
+                        override fun readFrom() = byteStream
+                    })
+                }
+            }
+        }
+        val client = HttpClient()
+
+        runBlocking {
+            val requestBody = ByteChannel()
+
+            client.preparePost("http://127.0.0.1:$port/timed") {
+                setBody(requestBody)
+            }.execute { httpResponse ->
+                assertEquals(httpResponse.status, HttpStatusCode.OK)
+                assertEquals(httpResponse.contentType(), ContentType.Text.Plain)
+
+                val channel: ByteReadChannel = httpResponse.body()
+                assertEquals(0, channel.availableForRead)
+
+                val content = ByteArray(5) { it.toByte() }
+                requestBody.writeFully(content)
+                requestBody.close(null)
+
+                assertContentEquals(channel.readRemaining().readBytes(), content)
+            }
         }
     }
 
