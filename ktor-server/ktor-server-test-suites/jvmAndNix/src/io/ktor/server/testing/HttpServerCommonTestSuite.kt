@@ -555,15 +555,16 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                         override val status: HttpStatusCode = HttpStatusCode.OK
                         override val contentType: ContentType = ContentType.Text.Plain
                         override val headers: Headers = Headers.Empty
+                        override val contentLength: Long = 5
                         override fun readFrom() = byteStream
                     })
                 }
             }
         }
-        val client = HttpClient()
 
         runBlocking {
-            val requestBody = ByteChannel()
+            val client = HttpClient()
+            val requestBody = ByteChannel(true)
 
             client.preparePost("http://127.0.0.1:$port/timed") {
                 setBody(requestBody)
@@ -580,6 +581,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
                 assertContentEquals(channel.readRemaining().readBytes(), content)
             }
+            client.close()
         }
     }
 
