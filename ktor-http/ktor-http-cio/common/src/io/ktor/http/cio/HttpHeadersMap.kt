@@ -5,7 +5,8 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
-import io.ktor.util.*
+import io.ktor.util.collections.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
@@ -29,17 +30,17 @@ private const val HEADER_SIZE = 8
 private const val HEADER_ARRAY_POOL_SIZE = 1000
 
 @ThreadLocal
-private val EMPTY_INT_ARRAY = IntArray(0)
+private val EMPTY_INT_LIST = mutableListOf<Int>()
 
 /**
  * A headers map data structure used in CIO
  */
 @Suppress("KDocMissingDocumentation")
 public class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {
-    public var size: Int = 0
+    public var size: Int by shared(0)
         private set
 
-    private var indexes = IntArrayPool.borrow()
+    private var indexes: MutableList<Int> by shared(IntListPool.borrow())
 
     public fun put(
         nameHash: Int,
@@ -127,9 +128,9 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
     public fun release() {
         size = 0
         val indexes = indexes
-        this.indexes = EMPTY_INT_ARRAY
+        this.indexes = EMPTY_INT_LIST
 
-        if (indexes !== EMPTY_INT_ARRAY) IntArrayPool.recycle(indexes)
+        if (indexes !== EMPTY_INT_LIST) IntListPool.recycle(indexes)
     }
 
     override fun toString(): String {
@@ -151,6 +152,10 @@ internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
 }
 
 @ThreadLocal
-private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
-    override fun produceInstance(): IntArray = IntArray(EXPECTED_HEADERS_QTY * HEADER_SIZE)
-}
+@Suppress("DEPRECATION")
+private val IntListPool: DefaultPool<MutableList<Int>> =
+    object : DefaultPool<MutableList<Int>>(HEADER_ARRAY_POOL_SIZE) {
+        override fun produceInstance(): MutableList<Int> = sharedList<Int>().apply {
+            repeat(EXPECTED_HEADERS_QTY * HEADER_SIZE) { add(0) }
+        }
+    }

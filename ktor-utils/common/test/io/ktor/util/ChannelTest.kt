@@ -13,6 +13,25 @@ import kotlin.test.*
 class ChannelTest {
 
     @Test
+    fun testCopyToFlushesDestination() = testSuspend {
+        val source = ByteChannel()
+        val destination = ByteChannel()
+
+        launch(Dispatchers.Unconfined ) {
+            source.copyTo(destination)
+        }
+
+        launch(Dispatchers.Unconfined) {
+            source.writeByte(1)
+            source.flush()
+        }
+
+        val byte = destination.readByte()
+        assertEquals(1, byte)
+        source.close()
+    }
+
+    @Test
     fun testCopyToBoth() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val source = ByteChannel()

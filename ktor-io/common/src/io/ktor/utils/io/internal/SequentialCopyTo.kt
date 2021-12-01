@@ -28,7 +28,6 @@ internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteCha
             break
         }
         val transferred = transferTo(dst, remainingLimit)
-
         val copied = if (transferred == 0L) {
             val tail = copyToTail(dst, remainingLimit)
             if (tail == 0L) {
@@ -45,6 +44,10 @@ internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteCha
         }
 
         remainingLimit -= copied
+
+        if (copied > 0) {
+            dst.flush()
+        }
     }
 
     return limit - remainingLimit

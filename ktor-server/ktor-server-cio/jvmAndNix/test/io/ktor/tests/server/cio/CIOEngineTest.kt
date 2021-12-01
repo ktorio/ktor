@@ -5,9 +5,16 @@
 
 package io.ktor.tests.server.cio
 
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.application.*
 import io.ktor.server.cio.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
+import kotlin.test.*
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
@@ -15,8 +22,23 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
         enableSsl = false
     }
 
-    override fun testFlushingHeaders() {
-        if (PlatformUtils.IS_NATIVE) return
-        super.testFlushingHeaders()
+    @Test
+    fun testChunkedResponse() {
+        createAndStartServer {
+            get("/") {
+                val byteStream = ByteChannel(autoFlush = true)
+                byteStream.writeStringUtf8("test")
+                byteStream.close(null)
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override val status: HttpStatusCode = HttpStatusCode.OK
+                    override val headers: Headers = Headers.Empty
+                    override fun readFrom() = byteStream
+                })
+            }
+        }
+
+        withUrl("/") {
+            assertEquals("test", bodyAsText())
+        }
     }
 }
