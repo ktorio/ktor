@@ -99,9 +99,6 @@ public class WebSockets internal constructor(
         }
     }
 
-    init {
-    }
-
     /**
      * [WebSockets] configuration.
      */
