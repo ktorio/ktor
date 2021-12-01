@@ -5,11 +5,11 @@
 package io.ktor.client.plugins.websocket
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 
 /**
  * Installs the [WebSockets] plugin using the [config] as configuration.
@@ -21,23 +21,38 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 }
 
 /**
- * Open [DefaultClientWebSocketSession].
+ * Opens a [DefaultClientWebSocketSession].
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
 ): DefaultClientWebSocketSession {
     get(WebSockets)
-    return request {
+    val sessionDeferred = CompletableDeferred<DefaultClientWebSocketSession>()
+    val statement = prepareRequest {
         url {
             protocol = URLProtocol.WS
             port = protocol.defaultPort
         }
         block()
-    }.body()
+    }
+    @Suppress("SuspendFunctionOnCoroutineScope")
+    launch {
+        statement.body<DefaultClientWebSocketSession, Unit> { session ->
+            val sessionCompleted = CompletableDeferred<Unit>()
+            sessionDeferred.complete(session)
+            session.outgoing.invokeOnClose {
+                if (it != null) sessionCompleted.completeExceptionally(it)
+                else sessionCompleted.complete(Unit)
+            }
+            sessionCompleted.await()
+        }
+    }
+    return sessionDeferred.await()
 }
 
 /**
- * Open [DefaultClientWebSocketSession].
+ * Opens a [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get,
@@ -52,7 +67,18 @@ public suspend fun HttpClient.webSocketSession(
 }
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [DefaultClientWebSocketSession].
+ */
+public suspend fun HttpClient.webSocketSession(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): DefaultClientWebSocketSession = webSocketSession {
+    url.takeFrom(urlString)
+    block()
+}
+
+/**
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit,
@@ -77,7 +103,7 @@ public suspend fun HttpClient.webSocket(
 }
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get,
@@ -98,7 +124,7 @@ public suspend fun HttpClient.webSocket(
 }
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.webSocket(
     urlString: String,
@@ -122,7 +148,7 @@ public suspend fun HttpClient.webSocket(
 }
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.ws(
     method: HttpMethod = HttpMethod.Get,
@@ -134,7 +160,7 @@ public suspend fun HttpClient.ws(
 ): Unit = webSocket(method, host, port, path, request, block)
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.ws(
     request: HttpRequestBuilder.() -> Unit,
@@ -142,7 +168,7 @@ public suspend fun HttpClient.ws(
 ): Unit = webSocket(request, block)
 
 /**
- * Open [block] with [DefaultClientWebSocketSession].
+ * Opens a [block] with [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.ws(
     urlString: String,
@@ -151,7 +177,7 @@ public suspend fun HttpClient.ws(
 ): Unit = webSocket(urlString, request, block)
 
 /**
- * Open [block] with secure [DefaultClientWebSocketSession].
+ * Opens a [block] with secure [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.wss(
     request: HttpRequestBuilder.() -> Unit,
@@ -166,7 +192,7 @@ public suspend fun HttpClient.wss(
 )
 
 /**
- * Open [block] with secure [DefaultClientWebSocketSession].
+ * Opens a [block] with secure [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.wss(
     urlString: String,
@@ -181,7 +207,7 @@ public suspend fun HttpClient.wss(
 )
 
 /**
- * Open [block] with secure [DefaultClientWebSocketSession].
+ * Opens a [block] with secure [DefaultClientWebSocketSession].
  */
 public suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get,
