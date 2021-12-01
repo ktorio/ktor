@@ -75,7 +75,7 @@ internal class ByteChannelNative(
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
-            if (cause != null) cancel(cause)
+            if (cause != null) cancel(cause.unwrapCancellationException())
         }
     }
 
