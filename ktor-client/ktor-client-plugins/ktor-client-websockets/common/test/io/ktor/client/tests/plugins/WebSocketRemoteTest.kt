@@ -119,7 +119,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     private class CustomException : Exception()
-    
+
     @Test
     fun testErrorHandling() = clientTests(skipEngines) {
         config {
