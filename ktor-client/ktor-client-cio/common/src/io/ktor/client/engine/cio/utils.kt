@@ -12,6 +12,7 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.errors.EOFException
@@ -239,3 +240,16 @@ internal fun ByteWriteChannel.handleHalfClosed(
     coroutineContext: CoroutineContext,
     propagateClose: Boolean
 ): ByteWriteChannel = if (propagateClose) this else withoutClosePropagation(coroutineContext)
+
+internal fun Throwable.unwrapCancellationException(): Throwable {
+    var exception: Throwable = this
+    while (exception is CancellationException) {
+        if (exception == exception.cause) {
+            return this
+        }
+
+        exception = exception.cause ?: return exception
+    }
+
+    return exception
+}
