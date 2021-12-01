@@ -5,7 +5,6 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.serialization.*
@@ -76,6 +75,41 @@ class WebSocketJvmTest : ClientLoader(100000) {
             client.webSocketSession()
         }.let {
             assertContains(it.message!!, WebSockets.key.name)
+        }
+        kotlin.test.assertFailsWith<IllegalStateException> {
+            client.webSocket {}
+        }.let {
+            assertContains(it.message!!, WebSockets.key.name)
+        }
+    }
+
+    @Test
+    fun testWebsocketSession() = clientTests(listOf("Android", "Apache")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/echo")
+            session.send("test")
+            val response = session.incoming.receive() as Frame.Text
+            assertEquals("test", response.readText())
+            session.close()
+        }
+    }
+
+    @Test
+    fun testExceptionWss() = clientTests(listOf("Android", "Apache")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            kotlin.test.assertFailsWith<IllegalStateException> {
+                client.wss("$TEST_WEBSOCKET_SERVER/websockets/echo") { error("error") }
+            }.let {
+                assertEquals("error", it.message)
+            }
         }
     }
 
