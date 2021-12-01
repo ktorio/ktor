@@ -133,7 +133,7 @@ internal class Endpoint(
 
     private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
         return if (configuration?.requestTimeoutMillis != null) {
-            configuration.requestTimeoutMillis as Long
+            Long.MAX_VALUE
         } else {
             config.requestTimeout
         }
