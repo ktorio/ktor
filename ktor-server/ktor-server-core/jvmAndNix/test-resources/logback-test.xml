@@ -5,14 +5,14 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <root level="ERROR">
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="org.apache.directory.api" level="WARN"/>
-    <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="org.apache.directory.api" level="ERROR"/>
+    <logger name="org.eclipse.jetty" level="ERROR"/>
     <logger name="org.eclipse.jetty.util.ssl.SslContextFactory" level="ERROR"/>
-    <logger name="io.netty" level="WARN"/>
-    <logger name="ktor.test" level="WARN"/>
+    <logger name="io.netty" level="ERROR"/>
+    <logger name="ktor.test" level="ERROR"/>
 
 </configuration>
