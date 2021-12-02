@@ -20,7 +20,7 @@ private const val HTTP_PROXY_PORT: Int = 8082
 
 internal fun startServer(): Closeable {
     val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-    logger.level = Level.WARN
+    logger.level = Level.ERROR
 
     val scope = CloseableGroup()
     try {
