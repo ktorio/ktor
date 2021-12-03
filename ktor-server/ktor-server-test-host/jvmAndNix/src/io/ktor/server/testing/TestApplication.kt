@@ -191,5 +191,6 @@ public fun testApplication(
         .apply { runBlocking { block() } }
 
     val testApplication = TestApplication(builder)
+    testApplication.engine.start()
     testApplication.stop()
 }
