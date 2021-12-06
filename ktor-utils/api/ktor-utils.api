@@ -735,6 +735,10 @@ public abstract class io/ktor/util/internal/AtomicOp : io/ktor/util/internal/OpD
 	public final fun tryDecide (Ljava/lang/Object;)Z
 }
 
+public final class io/ktor/util/internal/ExceptionUtilsJvmKt {
+	public static final fun initCauseBridge (Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+}
+
 public class io/ktor/util/internal/LockFreeLinkedListHead : io/ktor/util/internal/LockFreeLinkedListNode {
 	public fun <init> ()V
 	public synthetic fun describeRemove ()Lio/ktor/util/internal/AtomicDesc;

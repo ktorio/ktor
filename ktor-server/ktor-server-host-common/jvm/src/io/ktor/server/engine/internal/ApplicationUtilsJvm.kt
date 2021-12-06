@@ -12,10 +12,6 @@ internal actual fun availableProcessorsBridge(): Int = Runtime.getRuntime().avai
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = IO
 
-internal actual fun Throwable.initCauseBridge(cause: Throwable) {
-    initCause(cause)
-}
-
 internal actual fun printError(message: Any?) {
     System.err.print(message)
 }

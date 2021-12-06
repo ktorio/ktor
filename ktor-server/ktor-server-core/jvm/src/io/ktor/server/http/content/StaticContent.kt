@@ -13,11 +13,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
 
-/**
- * Attribute that could be added to an application call to prevent it's response from being compressed
- */
-public val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
-
 private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")

@@ -13,8 +13,6 @@ internal actual fun availableProcessorsBridge(): Int = 1
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default
 
-internal actual fun Throwable.initCauseBridge(cause: Throwable) {}
-
 internal actual fun printError(message: Any?) {
     fprintf(stderr, "%s", message?.toString())
 }

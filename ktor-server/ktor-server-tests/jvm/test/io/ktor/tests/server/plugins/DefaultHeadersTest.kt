@@ -2,7 +2,7 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.plugins
+package io.ktor.server.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*

@@ -3,13 +3,3 @@
  */
 
 description = ""
-
-val mockk_version: String by project.extra
-
-kotlin.sourceSets {
-    val jvmTest by getting {
-        dependencies {
-            implementation("io.mockk:mockk:$mockk_version")
-        }
-    }
-}

@@ -208,13 +208,10 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public final fun setVersion (Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/testing/TestApplicationRequestJvmKt {
-	public static final fun setBody (Lio/ktor/server/testing/TestApplicationRequest;Ljava/lang/String;Ljava/util/List;)V
-}
-
 public final class io/ktor/server/testing/TestApplicationRequestKt {
 	public static final fun setBody (Lio/ktor/server/testing/TestApplicationRequest;Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public static final fun setBody (Lio/ktor/server/testing/TestApplicationRequest;Ljava/lang/String;)V
+	public static final fun setBody (Lio/ktor/server/testing/TestApplicationRequest;Ljava/lang/String;Ljava/util/List;)V
 	public static final fun setBody (Lio/ktor/server/testing/TestApplicationRequest;[B)V
 }
 

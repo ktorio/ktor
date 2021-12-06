@@ -6,6 +6,7 @@ package io.ktor.server.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.internal.*
+import io.ktor.util.internal.*
 import kotlinx.coroutines.*
 import kotlin.reflect.*
 

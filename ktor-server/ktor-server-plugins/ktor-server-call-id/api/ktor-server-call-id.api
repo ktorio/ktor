@@ -23,10 +23,13 @@ public final class io/ktor/server/plugins/callid/CallId$Plugin : io/ktor/server/
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/plugins/callid/CallIdKt {
-	public static final field CALL_ID_DEFAULT_DICTIONARY Ljava/lang/String;
+public final class io/ktor/server/plugins/callid/CallIdJvmKt {
 	public static final fun callIdMdc (Lio/ktor/server/plugins/callloging/CallLogging$Configuration;Ljava/lang/String;)V
 	public static synthetic fun callIdMdc$default (Lio/ktor/server/plugins/callloging/CallLogging$Configuration;Ljava/lang/String;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/plugins/callid/CallIdKt {
+	public static final field CALL_ID_DEFAULT_DICTIONARY Ljava/lang/String;
 	public static final fun generate (Lio/ktor/server/plugins/callid/CallId$Configuration;ILjava/lang/String;)V
 	public static synthetic fun generate$default (Lio/ktor/server/plugins/callid/CallId$Configuration;ILjava/lang/String;ILjava/lang/Object;)V
 	public static final fun getCallId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;

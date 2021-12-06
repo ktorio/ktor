@@ -4,13 +4,12 @@
 
 package io.ktor.server.application
 
-import io.ktor.server.application.internal.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.internal.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
 
 @DslMarker
 internal annotation class PluginsDslMarker
