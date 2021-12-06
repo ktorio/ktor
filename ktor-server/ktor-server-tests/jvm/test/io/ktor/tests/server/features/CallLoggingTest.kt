@@ -18,6 +18,7 @@ import org.slf4j.event.*
 import java.util.concurrent.*
 import kotlin.test.*
 
+@Suppress("SameParameterValue")
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>
@@ -208,7 +209,7 @@ class CallLoggingTest {
                     }
                 }
 
-                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                handleRequest(HttpMethod.Get, "/uri1").let {
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
@@ -248,7 +249,7 @@ class CallLoggingTest {
                     }
                 }
 
-                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                handleRequest(HttpMethod.Get, "/uri1").let {
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue {
                         "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
@@ -311,5 +312,4 @@ class CallLoggingTest {
 
     private fun colored(value: Any, color: Ansi.Color): String =
         Ansi.ansi().fg(color).a(value).reset().toString()
-
 }

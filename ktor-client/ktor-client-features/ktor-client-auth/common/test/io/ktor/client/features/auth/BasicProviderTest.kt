@@ -35,9 +35,11 @@ class BasicProviderTest {
 
     @Test
     fun testCapitalizedSchemeIsApplicable() {
-        val provider = BasicAuthProvider(credentials = {
-            BasicAuthCredentials("user", "password")
-        })
+        val provider = BasicAuthProvider(
+            credentials = {
+                BasicAuthCredentials("user", "password")
+            }
+        )
         val header = parseAuthorizationHeader("BASIC realm=\"ktor\"")
         assertNotNull(header)
 
