@@ -71,7 +71,12 @@ buildscript {
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
 val native_targets_enabled: Boolean by extra
-val version = (project.version as String).dropLast("-SNAPSHOT".length)
+val projectVersion = project.version as String
+val version = if (projectVersion.endsWith("-SNAPSHOT")) {
+    projectVersion.dropLast("-SNAPSHOT".length)
+} else {
+    projectVersion
+}
 
 extra["configuredVersion"] = when {
     releaseVersion != null -> releaseVersion
