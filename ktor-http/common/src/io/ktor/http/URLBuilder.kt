@@ -129,7 +129,7 @@ public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
  * @property password password part of URL
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
-public data class Url internal constructor(
+public data class Url(
     val protocol: URLProtocol,
     val host: String,
     val specifiedPort: Int,
