@@ -1,4 +1,4 @@
-public final class io/ktor/serializaion/gson/GsonConverter : io/ktor/serialization/ContentConverter {
+public final class io/ktor/serialization/gson/GsonConverter : io/ktor/serialization/ContentConverter {
 	public fun <init> ()V
 	public fun <init> (Lcom/google/gson/Gson;)V
 	public synthetic fun <init> (Lcom/google/gson/Gson;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -6,12 +6,12 @@ public final class io/ktor/serializaion/gson/GsonConverter : io/ktor/serializati
 	public fun serialize (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/serializaion/gson/GsonConverterKt {
+public final class io/ktor/serialization/gson/GsonConverterKt {
 	public static final fun gson (Lio/ktor/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun gson$default (Lio/ktor/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
-public final class io/ktor/serializaion/gson/GsonWebsocketContentConverter : io/ktor/serialization/WebsocketContentConverter {
+public final class io/ktor/serialization/gson/GsonWebsocketContentConverter : io/ktor/serialization/WebsocketContentConverter {
 	public fun <init> ()V
 	public fun <init> (Lcom/google/gson/Gson;)V
 	public synthetic fun <init> (Lcom/google/gson/Gson;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

@@ -17,7 +17,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.serializaion.gson.*
+import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
