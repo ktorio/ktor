@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.plugins.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class SinglePageTest {
@@ -21,34 +20,37 @@ class SinglePageTest {
             defaultPage = "CORSTest.kt"
         }
 
-        var response = client.get("/selected/StatusPageTest.kt")
-        assertEquals(response.status, HttpStatusCode.OK)
+        client.get("/selected/StatusPageTest.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
 
-        response = client.get("/selected")
-        assertEquals(response.status, HttpStatusCode.OK)
+        client.get("/selected").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
     }
 
     @Test
     fun testIgnoreRoutes() = testApplication {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            applicationRoute = "selected"
             defaultPage = "CORSTest.kt"
             ignoredRoutes = listOf(Regex("CallIdTest\\.kt"), Regex("Part."))
         }
 
-        var response = client.get("/selected/StatusPageTest.kt")
-        assertEquals(response.status, HttpStatusCode.OK)
+        client.get("/StatusPageTest.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
 
-        response = client.get("/selected")
-        assertEquals(response.status, HttpStatusCode.OK)
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/selected/CallIdTest.kt")
+        client.get("/").let {
+            assertEquals(it.status, HttpStatusCode.OK)
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/selected/PartialContentTest.kt")
+            client.get("/CallIdTest.kt")
+        }
+
+        assertFailsWith<ClientRequestException> {
+            client.get("/PartialContentTest.kt")
         }
     }
 
@@ -56,16 +58,78 @@ class SinglePageTest {
     fun testIgnoreAllRoutes() = testApplication {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            applicationRoute = "selected"
             defaultPage = "CORSTest.kt"
             ignoredRoutes = listOf(Regex("."))
         }
         assertFailsWith<ClientRequestException> {
-            client.get("/selected/CallIdTest.kt")
+            client.get("/CallIdTest.kt")
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/selected")
+            client.get("/")
+        }
+    }
+
+    @Test
+    fun testResources() = testApplication {
+        install(SinglePage) {
+            usePackageNames = true
+            filesPath = "io.ktor.tests.server.plugins"
+            defaultPage = "CORSTest.class"
+        }
+
+        client.get("/StaticContentTest.class").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
+
+        client.get("/").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
+    }
+
+    @Test
+    fun testIgnoreResourceRoutes() = testApplication {
+        install(SinglePage) {
+            usePackageNames = true
+            filesPath = "io.ktor.tests.server.plugins"
+            defaultPage = "CORSTest.class"
+            ignoredRoutes = listOf(Regex("CallIdTest\\.class"), Regex("Part."))
+        }
+
+        client.get("/StatusPageTest.class").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
+
+        client.get("/").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+        }
+
+        assertFailsWith<ClientRequestException> {
+            client.get("/CallIdTest.class").let {
+                println(it.status)
+            }
+            println("Hello")
+        }
+
+        assertFailsWith<ClientRequestException> {
+            client.get("/PartialContentTest.class")
+        }
+    }
+
+    @Test
+    fun testIgnoreAllResourceRoutes() = testApplication {
+        install(SinglePage) {
+            usePackageNames = true
+            filesPath = "io.ktor.tests.server.plugins"
+            defaultPage = "CORSTest.class"
+            ignoredRoutes = listOf(Regex("."))
+        }
+        assertFailsWith<ClientRequestException> {
+            client.get("/CallIdTest.class")
+        }
+
+        assertFailsWith<ClientRequestException> {
+            client.get("/")
         }
     }
 }

@@ -7,7 +7,6 @@ package io.ktor.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -28,6 +27,8 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
     internal val ignoredRoutes: List<Regex> = configuration.ignoredRoutes
 
+    internal val usePackageNames: Boolean = configuration.usePackageNames
+
     public class Configuration(
         /**
          *
@@ -47,6 +48,11 @@ public class SinglePage internal constructor(configuration: Configuration) {
         /**
          *
          */
+        public var usePackageNames: Boolean = false,
+
+        /**
+         *
+         */
         public var ignoredRoutes: List<Regex> = listOf()
     )
 
@@ -60,8 +66,11 @@ public class SinglePage internal constructor(configuration: Configuration) {
             val plugin = SinglePage(Configuration().apply(configure))
 
             pipeline.routing {
-                application.routing {
-                    static(plugin.applicationRoute) {
+                static(plugin.applicationRoute) {
+                    if (plugin.usePackageNames) {
+                        resources(plugin.filesPath)
+                        defaultResource(plugin.defaultPage, plugin.filesPath)
+                    } else {
                         staticRootFolder = File(plugin.filesPath)
                         files(".")
                         default(plugin.defaultPage)
@@ -86,12 +95,13 @@ public class SinglePage internal constructor(configuration: Configuration) {
         if (call.attributes.contains(key)) return@context
         if (!isUriStartWith(requestUrl)) return@context
 
-        if(ignoredRoutes.firstOrNull { requestUrl.contains(it) } != null) {
-            call.response.status(HttpStatusCode.NotFound)
-            proceed()
-        }
-
         call.attributes.put(key, this@SinglePage)
+
+        if (ignoredRoutes.firstOrNull { requestUrl.contains(it) } != null) {
+            call.response.status(HttpStatusCode.NotFound)
+            call.respondText("File with path $requestUrl is in ignore list")
+            finish()
+        }
     }
 
     private fun isUriStartWith(uri: String) =
