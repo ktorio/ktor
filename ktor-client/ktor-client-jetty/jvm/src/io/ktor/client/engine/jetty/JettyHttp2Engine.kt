@@ -64,6 +64,8 @@ internal class JettyHttp2Engine(
 
             setupTimeoutAttributes(timeoutExtension)
 
+            config.config(this)
+
             start()
         }
 }
