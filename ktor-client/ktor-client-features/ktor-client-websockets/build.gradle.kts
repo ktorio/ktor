@@ -9,3 +9,5 @@ kotlin.sourceSets {
         }
     }
 }
+
+useJdkVersionForJvmTests(11)

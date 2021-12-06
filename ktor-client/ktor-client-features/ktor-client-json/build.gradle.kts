@@ -29,3 +29,7 @@ kotlin {
         }
     }
 }
+
+subprojects {
+    useJdkVersionForJvmTests(11)
+}

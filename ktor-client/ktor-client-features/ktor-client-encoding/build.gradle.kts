@@ -3,3 +3,5 @@
 */
 
 val ideaActive: Boolean by project.extra
+
+useJdkVersionForJvmTests(11)
