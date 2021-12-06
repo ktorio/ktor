@@ -25,35 +25,37 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
     internal val filesPath: String = configuration.filesPath
 
-    internal val ignoredRoutes: List<Regex> = configuration.ignoredRoutes
+    internal val ignoredRoutes: List<Regex> = configuration.ignoredFiles
 
-    internal val usePackageNames: Boolean = configuration.usePackageNames
+    internal val usePackageNames: Boolean = configuration.useResources
 
     public class Configuration(
         /**
-         *
+         * Default name of file or resource to serve when [applicationRoute] is requested
          */
         public var defaultPage: String = "index.html",
 
         /**
-         *
+         * The URL path under which the content should be served
          */
         public var applicationRoute: String = "/",
 
         /**
-         *
+         * Path under which the static content is located.
+         * Corresponds to the folder path if the [useResources] is true, resource path otherwise
          */
         public var filesPath: String = "",
 
         /**
-         *
+         * Specifies if static content is a resource or folder
          */
-        public var usePackageNames: Boolean = false,
+        public var useResources: Boolean = false,
 
         /**
-         *
+         * List of regex expressions with ignored file or resource names in [filesPath]
+         * Request for such files or resources fails with 404 Forbidden status
          */
-        public var ignoredRoutes: List<Regex> = listOf()
+        public var ignoredFiles: List<Regex> = listOf()
     )
 
     /**

@@ -34,7 +34,7 @@ class SinglePageTest {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignoredRoutes = listOf(Regex("CallIdTest\\.kt"), Regex("Part."))
+            ignoredFiles = listOf(Regex("CallIdTest\\.kt"), Regex("Part."))
         }
 
         client.get("/StatusPageTest.kt").let {
@@ -59,7 +59,7 @@ class SinglePageTest {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignoredRoutes = listOf(Regex("."))
+            ignoredFiles = listOf(Regex("."))
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.kt")
@@ -73,7 +73,7 @@ class SinglePageTest {
     @Test
     fun testResources() = testApplication {
         install(SinglePage) {
-            usePackageNames = true
+            useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
         }
@@ -90,10 +90,10 @@ class SinglePageTest {
     @Test
     fun testIgnoreResourceRoutes() = testApplication {
         install(SinglePage) {
-            usePackageNames = true
+            useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignoredRoutes = listOf(Regex("CallIdTest\\.class"), Regex("Part."))
+            ignoredFiles = listOf(Regex("CallIdTest\\.class"), Regex("Part."))
         }
 
         client.get("/StatusPageTest.class").let {
@@ -119,10 +119,10 @@ class SinglePageTest {
     @Test
     fun testIgnoreAllResourceRoutes() = testApplication {
         install(SinglePage) {
-            usePackageNames = true
+            useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignoredRoutes = listOf(Regex("."))
+            ignoredFiles = listOf(Regex("."))
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.class")
