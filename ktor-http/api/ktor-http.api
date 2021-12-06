@@ -988,6 +988,7 @@ public final class io/ktor/http/UnsafeHeaderException : java/lang/IllegalArgumen
 
 public final class io/ktor/http/Url {
 	public static final field Companion Lio/ktor/http/Url$Companion;
+	public fun <init> (Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
 	public final fun component1 ()Lio/ktor/http/URLProtocol;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()I
