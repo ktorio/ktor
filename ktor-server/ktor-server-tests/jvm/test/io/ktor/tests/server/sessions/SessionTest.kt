@@ -4,9 +4,9 @@
 
 package io.ktor.tests.server.sessions
 
-import io.ktor.http.*
 import io.ktor.application.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -150,7 +150,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionParam")
             }.let { call ->
                 assertEquals("id1", call.response.content)
             }
