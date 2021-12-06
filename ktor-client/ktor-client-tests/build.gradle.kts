@@ -182,6 +182,8 @@ rootProject.allprojects {
     }
 }
 
+useJdkVersionForJvmTests(11)
+
 gradle.buildFinished {
     if (startTestServer.server != null) {
         startTestServer.server?.close()

@@ -27,6 +27,11 @@ kotlin {
         }
     }
 
+    jvmToolchain {
+        def version = Math.max(8, jdk)
+        languageVersion.set(JavaLanguageVersion.of(version))
+    }
+
     task jarTest(type: Jar, dependsOn: jvmTestClasses) {
         from targets.jvm.compilations.test.output
         classifier 'test'
