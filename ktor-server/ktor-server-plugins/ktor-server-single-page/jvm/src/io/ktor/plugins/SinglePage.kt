@@ -52,13 +52,13 @@ public class SinglePage internal constructor(configuration: Configuration) {
         /**
          * Specifies if static content is a resource or folder
          */
-        internal var useResources: Boolean = false,
+        public var useResources: Boolean = false,
 
         /**
          * List of callbacks checking if file or resource in [filesPath] is ignored
          * Request for such files or resources fails with 404 Forbidden status
          */
-        public val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
+        internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
     ) {
         /**
          * Register a [block] in [ignoredFiles]

@@ -9,11 +9,12 @@ public final class io/ktor/plugins/SinglePage$Configuration {
 	public final fun getApplicationRoute ()Ljava/lang/String;
 	public final fun getDefaultPage ()Ljava/lang/String;
 	public final fun getFilesPath ()Ljava/lang/String;
-	public final fun getIgnoredFiles ()Ljava/util/List;
+	public final fun getUseResources ()Z
 	public final fun ignore (Lkotlin/jvm/functions/Function1;)V
 	public final fun setApplicationRoute (Ljava/lang/String;)V
 	public final fun setDefaultPage (Ljava/lang/String;)V
 	public final fun setFilesPath (Ljava/lang/String;)V
+	public final fun setUseResources (Z)V
 }
 
 public final class io/ktor/plugins/SinglePage$Plugin : io/ktor/server/application/ApplicationPlugin {
