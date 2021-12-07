@@ -35,7 +35,7 @@ class SinglePageTest {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
             ignore { it.contains("CallIdTest.kt") }
-            ignore { it.contains("Part") }
+            ignore { it.endsWith("ContentTest.kt") }
         }
 
         client.get("/StatusPageTest.kt").let {
@@ -95,7 +95,7 @@ class SinglePageTest {
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
             ignore { it.contains("CallIdTest.class") }
-            ignore { it.contains("Part") }
+            ignore { it.endsWith("ContentTest.class") }
         }
 
         client.get("/StatusPageTest.class").let {
@@ -111,7 +111,7 @@ class SinglePageTest {
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/PartialContentTest.class")
+            client.get("/PartialContentTest.txt")
         }
     }
 

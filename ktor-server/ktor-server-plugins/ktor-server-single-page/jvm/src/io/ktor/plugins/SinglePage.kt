@@ -15,7 +15,7 @@ import io.ktor.util.pipeline.*
 import java.io.*
 
 /**
- *
+ * This plugin provides a single page application
  */
 public class SinglePage internal constructor(configuration: Configuration) {
 
@@ -29,6 +29,9 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
     internal val usePackageNames: Boolean = configuration.useResources
 
+    /**
+     * Configuration type for the [SinglePage] plugin
+     */
     public class Configuration(
         /**
          * Default name of file or resource to serve when [applicationRoute] is requested
@@ -58,7 +61,8 @@ public class SinglePage internal constructor(configuration: Configuration) {
         public val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
     ) {
         /**
-         *
+         * Register a [block] in [ignoredFiles]
+         * [block] returns true if [path] should be ignored.
          */
         public fun ignore(block: (path: String) -> Boolean) {
             ignoredFiles += block
@@ -66,7 +70,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
     }
 
     /**
-     *
+     * Implementation of [ApplicationPlugin] for the [SinglePage]
      */
     public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePage> {
         override val key: AttributeKey<SinglePage> = AttributeKey("SinglePage")
@@ -102,6 +106,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
         val requestUrl = call.request.uri
 
         if (call.attributes.contains(key)) return@context
+
         if (!isUriStartWith(requestUrl)) return@context
 
         call.attributes.put(key, this@SinglePage)
