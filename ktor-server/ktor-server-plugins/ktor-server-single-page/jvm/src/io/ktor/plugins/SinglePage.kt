@@ -52,7 +52,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
         /**
          * Specifies if static content is a resource or folder
          */
-        public var useResources: Boolean = false,
+        internal var useResources: Boolean = false,
 
         /**
          * List of callbacks checking if file or resource in [filesPath] is ignored
