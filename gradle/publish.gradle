@@ -65,6 +65,14 @@ tasks.withType(AbstractPublishToMaven).all {
 def publishingUser = System.getenv('PUBLISHING_USER')
 def publishingPassword = System.getenv('PUBLISHING_PASSWORD')
 def publishingUrl = System.getenv("PUBLISHING_URL")
+def repositoryId = System.getenv("REPOSITORY_ID")
+
+if (repositoryId != null) {
+    println("Using predefined repository: $repositoryId")
+    publishingUrl = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
+} else {
+    println("Can't get predefined repository, using default $publishingUrl")
+}
 
 publishing {
     repositories {
