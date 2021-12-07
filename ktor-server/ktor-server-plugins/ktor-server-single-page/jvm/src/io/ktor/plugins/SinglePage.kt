@@ -101,7 +101,6 @@ public class SinglePage internal constructor(configuration: Configuration) {
     private suspend fun interceptCall(
         context: PipelineContext<Any, ApplicationCall>,
     ) = with(context) context@{
-
         val call = context.call
         val requestUrl = call.request.uri
 
@@ -119,5 +118,5 @@ public class SinglePage internal constructor(configuration: Configuration) {
     }
 
     private fun isUriStartWith(uri: String) =
-        uri.startsWith(applicationRoute) || uri.startsWith("/${applicationRoute}")
+        uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
 }
