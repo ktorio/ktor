@@ -34,7 +34,8 @@ class SinglePageTest {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignoredFiles = listOf(Regex("CallIdTest\\.kt"), Regex("Part."))
+            ignore { it.contains("CallIdTest.kt") }
+            ignore { it.contains("Part") }
         }
 
         client.get("/StatusPageTest.kt").let {
@@ -59,7 +60,7 @@ class SinglePageTest {
         install(SinglePage) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignoredFiles = listOf(Regex("."))
+            ignore { true }
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.kt")
@@ -93,7 +94,8 @@ class SinglePageTest {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignoredFiles = listOf(Regex("CallIdTest\\.class"), Regex("Part."))
+            ignore { it.contains("CallIdTest.class") }
+            ignore { it.contains("Part") }
         }
 
         client.get("/StatusPageTest.class").let {
@@ -105,10 +107,7 @@ class SinglePageTest {
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/CallIdTest.class").let {
-                println(it.status)
-            }
-            println("Hello")
+            client.get("/CallIdTest.class")
         }
 
         assertFailsWith<ClientRequestException> {
@@ -122,7 +121,7 @@ class SinglePageTest {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignoredFiles = listOf(Regex("."))
+            ignore { true }
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.class")

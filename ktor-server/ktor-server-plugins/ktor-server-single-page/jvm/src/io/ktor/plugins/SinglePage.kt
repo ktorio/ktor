@@ -25,7 +25,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
     internal val filesPath: String = configuration.filesPath
 
-    internal val ignoredRoutes: List<Regex> = configuration.ignoredFiles
+    internal val ignoredFiles: MutableList<(String) -> Boolean> = configuration.ignoredFiles
 
     internal val usePackageNames: Boolean = configuration.useResources
 
@@ -52,11 +52,18 @@ public class SinglePage internal constructor(configuration: Configuration) {
         public var useResources: Boolean = false,
 
         /**
-         * List of regex expressions with ignored file or resource names in [filesPath]
+         * List of callbacks checking if file or resource in [filesPath] is ignored
          * Request for such files or resources fails with 404 Forbidden status
          */
-        public var ignoredFiles: List<Regex> = listOf()
-    )
+        public val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
+    ) {
+        /**
+         *
+         */
+        public fun ignore(block: (path: String) -> Boolean) {
+            ignoredFiles += block
+        }
+    }
 
     /**
      *
@@ -99,7 +106,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
         call.attributes.put(key, this@SinglePage)
 
-        if (ignoredRoutes.firstOrNull { requestUrl.contains(it) } != null) {
+        if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
             call.response.status(HttpStatusCode.NotFound)
             call.respondText("File with path $requestUrl is in ignore list")
             finish()
