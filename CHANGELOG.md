@@ -1,8 +1,8 @@
 # 1.6.7
 > Published 6 December 2021
 
-* Explicitly specify jdk version for building ([KTOR-3358](https://youtrack.jetbrains.com/issue/KTOR-3464))
-* Make URL constructor public again ([KTOR-3514](https://youtrack.jetbrains.com/issue/KTOR-3464))
+* Explicitly specify jdk version for building ([KTOR-3358](https://youtrack.jetbrains.com/issue/KTOR-3358))
+* Make URL constructor public again ([KTOR-3514](https://youtrack.jetbrains.com/issue/KTOR-3514))
 
 # 1.6.6
 > Published 25 November 2021
