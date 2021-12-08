@@ -118,12 +118,12 @@ class HttpTimeoutTest : ClientLoader() {
                 val requestBuilder = HttpRequestBuilder().apply {
                     method = HttpMethod.Get
                     url("$TEST_URL/with-stream")
-                    parameter("delay", 2000)
+                    parameter("delay", 7000)
                 }
 
                 client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                delay(2000) // Channel is closing asynchronously.
+                delay(5000) // Channel is closing asynchronously.
                 assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
             }
         }
