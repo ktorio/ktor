@@ -17,7 +17,7 @@ class ChannelTest {
         val source = ByteChannel()
         val destination = ByteChannel()
 
-        launch(Dispatchers.Unconfined ) {
+        launch(Dispatchers.Unconfined) {
             source.copyTo(destination)
         }
 

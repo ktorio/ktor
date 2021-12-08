@@ -5,6 +5,7 @@ public final class io/ktor/client/engine/jetty/Jetty : io/ktor/client/engine/Htt
 
 public final class io/ktor/client/engine/jetty/JettyEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
+	public final fun configureClient (Lkotlin/jvm/functions/Function1;)V
 	public final fun getClientCacheSize ()I
 	public final fun getSslContextFactory ()Lorg/eclipse/jetty/util/ssl/SslContextFactory;
 	public final fun setClientCacheSize (I)V
