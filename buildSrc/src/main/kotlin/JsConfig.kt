@@ -37,7 +37,7 @@ private fun Project.configureJsTasks() {
             nodejs {
                 testTask {
                     useMocha {
-                        timeout = "10000"
+                        timeout = "100000"
                     }
                 }
             }
