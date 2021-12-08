@@ -111,19 +111,19 @@ class HttpTimeoutTest : ClientLoader() {
     fun testGetWithCancellation() = clientTests(listOf("Curl")) {
         config {
             install(HttpTimeout) {
-                requestTimeoutMillis = 500
+                requestTimeoutMillis = 5000
             }
 
             test { client ->
                 val requestBuilder = HttpRequestBuilder().apply {
                     method = HttpMethod.Get
                     url("$TEST_URL/with-stream")
-                    parameter("delay", 2000)
+                    parameter("delay", 7000)
                 }
 
                 client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                delay(2000) // Channel is closing asynchronously.
+                delay(5000) // Channel is closing asynchronously.
                 assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
             }
         }
@@ -298,10 +298,11 @@ class HttpTimeoutTest : ClientLoader() {
         }
     }
 
+    // Js can't configure test timeout in browser
     @Test
-    fun testRedirect() = clientTests {
+    fun testRedirect() = clientTests(listOf("js")) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
 
         test { client ->
@@ -314,8 +315,9 @@ class HttpTimeoutTest : ClientLoader() {
         }
     }
 
+    // Js can't configure test timeout in browser
     @Test
-    fun testRedirectPerRequestAttributes() = clientTests {
+    fun testRedirectPerRequestAttributes() = clientTests(listOf("js")) {
         config {
             install(HttpTimeout)
         }
@@ -325,7 +327,7 @@ class HttpTimeoutTest : ClientLoader() {
                 parameter("delay", 20)
                 parameter("count", 2)
 
-                timeout { requestTimeoutMillis = 1000 }
+                timeout { requestTimeoutMillis = 10000 }
             }.body<String>()
             assertEquals("Text", response)
         }
