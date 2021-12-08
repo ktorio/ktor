@@ -16,7 +16,7 @@ private const val DEFAULT_THREADS_COUNT = 32
 
 class MultithreadedTest : ClientLoader(timeoutSeconds = 10 * 60) {
     @Test
-    fun numberTest() = clientTests() {
+    fun numberTest() = clientTests {
         config {
             engine {
                 pipelining = true
