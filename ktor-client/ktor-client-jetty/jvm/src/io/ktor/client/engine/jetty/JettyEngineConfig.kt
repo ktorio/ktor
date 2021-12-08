@@ -13,8 +13,9 @@ import org.eclipse.jetty.util.ssl.*
  */
 public class JettyEngineConfig : HttpClientEngineConfig() {
     internal var config: (HTTP2Client) -> Unit = {}
+
     /**
-     * A Jetty's [SslContextFactory]. By default it trusts all the certificates.
+     * A Jetty's [SslContextFactory]. By default, it trusts all the certificates.
      */
     public var sslContextFactory: SslContextFactory = SslContextFactory.Client()
 
