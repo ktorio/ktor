@@ -111,7 +111,7 @@ class HttpTimeoutTest : ClientLoader() {
     fun testGetWithCancellation() = clientTests(listOf("Curl")) {
         config {
             install(HttpTimeout) {
-                requestTimeoutMillis = 500
+                requestTimeoutMillis = 5000
             }
 
             test { client ->
@@ -301,7 +301,7 @@ class HttpTimeoutTest : ClientLoader() {
     @Test
     fun testRedirect() = clientTests {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
 
         test { client ->
@@ -325,7 +325,7 @@ class HttpTimeoutTest : ClientLoader() {
                 parameter("delay", 20)
                 parameter("count", 2)
 
-                timeout { requestTimeoutMillis = 1000 }
+                timeout { requestTimeoutMillis = 10000 }
             }.body<String>()
             assertEquals("Text", response)
         }
