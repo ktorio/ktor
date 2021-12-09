@@ -12,26 +12,36 @@ import io.ktor.http.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlin.math.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
 class HttpRequestRetryTest {
 
     @Test
-    fun testNoRetryByDefault() = testWithEngine(MockEngine) {
+    fun test3RetriesWithExponentialDelayByDefault() = testWithEngine(MockEngine) {
+        val delays = sharedList<Long>()
         config {
             engine {
-                reuseHandlers = false
-                addHandler {
-                    respondError(HttpStatusCode.InternalServerError)
-                }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler { respondOk() }
+            }
+            install(HttpRequestRetry) {
+                delay { delays.add(it) }
             }
         }
 
         test { client ->
-            assertFailsWith<ServerResponseException> {
-                client.get { }
-            }
+            client.get { }
+            assertTrue(
+                delays
+                    .foldIndexed(true) { index, acc, delay ->
+                        val expectedDelay = (2.0.pow(index + 1) * 1000).toLong()
+                        acc && delay in expectedDelay..expectedDelay + 1000
+                    }
+            )
         }
     }
 
@@ -46,6 +56,39 @@ class HttpRequestRetryTest {
             }
             install(HttpRequestRetry) {
                 retryOnServerErrors(3)
+                delay { }
+            }
+        }
+
+        test { client ->
+            val response = client.get { }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun testModifyRequest() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    assertEquals(null, it.headers["X-RETRY-COUNT"])
+                    respondError(HttpStatusCode.InternalServerError)
+                }
+                addHandler {
+                    assertEquals("1", it.headers["X-RETRY-COUNT"])
+                    respondError(HttpStatusCode.InternalServerError)
+                }
+                addHandler {
+                    assertEquals("2", it.headers["X-RETRY-COUNT"])
+                    respondError(HttpStatusCode.ServiceUnavailable)
+                }
+                addHandler {
+                    assertEquals("3", it.headers["X-RETRY-COUNT"])
+                    respondOk()
+                }
+            }
+            install(HttpRequestRetry) {
+                modifyRequest { it.headers.append("X-RETRY-COUNT", retryCount.toString()) }
                 delay { }
             }
         }
@@ -92,6 +135,71 @@ class HttpRequestRetryTest {
             install(HttpRequestRetry) {
                 retryOnServerErrors(3)
                 constantDelay(millis = 123, randomizationMs = 0)
+                delay { delays.add(it) }
+            }
+        }
+
+        test { client ->
+            client.get { }
+            assertEquals(listOf(123L, 123L, 123L), delays)
+        }
+    }
+
+    @Test
+    fun testRetryAfterHeader() = testWithEngine(MockEngine) {
+        val delays = sharedList<Long>()
+        config {
+            engine {
+                addHandler {
+                    respondError(
+                        HttpStatusCode.InternalServerError,
+                        headers = headersOf(HttpHeaders.RetryAfter, "1234")
+                    )
+                }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler {
+                    respondError(
+                        HttpStatusCode.InternalServerError,
+                        // smaller than a client delay, should be ignored
+                        headers = headersOf(HttpHeaders.RetryAfter, "3")
+                    )
+                }
+                addHandler { respondOk() }
+            }
+            install(HttpRequestRetry) {
+                delayMillis { 123 }
+                delay { delays.add(it) }
+            }
+        }
+
+        test { client ->
+            client.get { }
+            assertEquals(listOf(1234L, 123L, 123L), delays)
+        }
+    }
+
+    @Test
+    fun testRetryAfterHeaderFalse() = testWithEngine(MockEngine) {
+        val delays = sharedList<Long>()
+        config {
+            engine {
+                addHandler {
+                    respondError(
+                        HttpStatusCode.InternalServerError,
+                        headers = headersOf(HttpHeaders.RetryAfter, "1234")
+                    )
+                }
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler {
+                    respondError(
+                        HttpStatusCode.InternalServerError,
+                        headers = headersOf(HttpHeaders.RetryAfter, "2345")
+                    )
+                }
+                addHandler { respondOk() }
+            }
+            install(HttpRequestRetry) {
+                delayMillis(false) { 123 }
                 delay { delays.add(it) }
             }
         }

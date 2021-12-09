@@ -400,25 +400,40 @@ public final class io/ktor/client/plugins/HttpRequestRetry {
 
 public final class io/ktor/client/plugins/HttpRequestRetry$Configuration {
 	public fun <init> ()V
-	public final fun constantDelay (JJ)V
-	public static synthetic fun constantDelay$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;JJILjava/lang/Object;)V
+	public final fun constantDelay (JJZ)V
+	public static synthetic fun constantDelay$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;JJZILjava/lang/Object;)V
 	public final fun delay (Lkotlin/jvm/functions/Function2;)V
-	public final fun delayMillis (Lkotlin/jvm/functions/Function1;)V
-	public final fun exponentialDelay (DJJ)V
-	public static synthetic fun exponentialDelay$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;DJJILjava/lang/Object;)V
+	public final fun delayMillis (ZLkotlin/jvm/functions/Function2;)V
+	public static synthetic fun delayMillis$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun exponentialDelay (DJJZ)V
+	public static synthetic fun exponentialDelay$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;DJJZILjava/lang/Object;)V
 	public final fun getMaxRetries ()I
+	public final fun modifyRequest (Lkotlin/jvm/functions/Function2;)V
 	public final fun noRetry ()V
-	public final fun retryIf (ILkotlin/jvm/functions/Function2;)V
-	public static synthetic fun retryIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun retryIf (ILkotlin/jvm/functions/Function3;)V
+	public static synthetic fun retryIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
 	public final fun retryOnException (I)V
 	public static synthetic fun retryOnException$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;IILjava/lang/Object;)V
-	public final fun retryOnExceptionIf (ILkotlin/jvm/functions/Function2;)V
-	public static synthetic fun retryOnExceptionIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun retryOnExceptionIf (ILkotlin/jvm/functions/Function3;)V
+	public static synthetic fun retryOnExceptionIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
 	public final fun retryOnExceptionOrServerErrors (I)V
 	public static synthetic fun retryOnExceptionOrServerErrors$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;IILjava/lang/Object;)V
 	public final fun retryOnServerErrors (I)V
 	public static synthetic fun retryOnServerErrors$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;IILjava/lang/Object;)V
 	public final fun setMaxRetries (I)V
+}
+
+public final class io/ktor/client/plugins/HttpRequestRetry$DelayContext {
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getRequest ()Lio/ktor/client/request/HttpRequestBuilder;
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+}
+
+public final class io/ktor/client/plugins/HttpRequestRetry$ModifyRequestContext {
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getRequest ()Lio/ktor/client/request/HttpRequestBuilder;
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+	public final fun getRetryCount ()I
 }
 
 public final class io/ktor/client/plugins/HttpRequestRetry$Plugin : io/ktor/client/plugins/HttpClientPlugin {
@@ -434,6 +449,11 @@ public final class io/ktor/client/plugins/HttpRequestRetry$RetryEventData {
 	public final fun getCause ()Ljava/lang/Throwable;
 	public final fun getRequest ()Lio/ktor/client/request/HttpRequestBuilder;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+	public final fun getRetryCount ()I
+}
+
+public final class io/ktor/client/plugins/HttpRequestRetry$ShouldRetryContext {
+	public fun <init> (I)V
 	public final fun getRetryCount ()I
 }
 
