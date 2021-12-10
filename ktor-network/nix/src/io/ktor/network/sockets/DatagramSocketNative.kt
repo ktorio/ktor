@@ -48,7 +48,6 @@ internal class DatagramSocketNative(
             }
         } catch (_: ClosedSendChannelException) {
         } catch (cause: IOException) {
-        } finally {
         }
     }
 

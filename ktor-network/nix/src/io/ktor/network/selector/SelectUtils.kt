@@ -93,6 +93,7 @@ internal class SelectorHelper {
             try {
                 pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr).check()
             } catch (_: PosixException.BadFileDescriptorException) {
+                // Ignore EBADF if the descriptor was closed.
             }
 
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
