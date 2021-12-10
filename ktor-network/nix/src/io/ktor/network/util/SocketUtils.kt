@@ -20,28 +20,12 @@ internal fun getAddressInfo(
     }
 
     val result = alloc<CPointerVar<addrinfo>>()
-    val code = getaddrinfo(hostname, portInfo.toString(), hints, result.ptr)
+    getaddrinfo(
+        hostname,
+        portInfo.toString(), hints, result.ptr).check()
     defer { freeaddrinfo(result.value) }
 
-    when (code) {
-        0 -> return result.pointed.toIpList()
-        EAI_NONAME -> error("Bad hostname: $hostname")
-//      EAI_ADDRFAMILY -> error("Bad address family")
-        EAI_AGAIN -> error("Try again")
-        EAI_BADFLAGS -> error("Bad flags")
-//      EAI_BADHINTS -> error("Bad hint")
-        EAI_FAIL -> error("FAIL")
-        EAI_FAMILY -> error("Bad family")
-//      EAI_MAX -> error("max reached")
-        EAI_MEMORY -> error("OOM")
-//      EAI_NODATA -> error("NO DATA")
-        EAI_OVERFLOW -> error("OVERFLOW")
-//      EAI_PROTOCOL -> error("PROTOCOL ERROR")
-        EAI_SERVICE -> error("SERVICE ERROR")
-        EAI_SOCKTYPE -> error("SOCKET TYPE ERROR")
-        EAI_SYSTEM -> error("SYSTEM ERROR")
-        else -> error("Unknown error: $code")
-    }
+    return result.pointed.toIpList()
 }
 
 internal fun getLocalAddress(descriptor: Int): NativeSocketAddress = memScoped {
@@ -64,7 +48,7 @@ internal fun getRemoteAddress(descriptor: Int): NativeSocketAddress = memScoped 
     return@memScoped address.reinterpret<sockaddr>().toNativeSocketAddress()
 }
 
-internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
+private fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     var current: addrinfo? = this
     val result = mutableListOf<NativeSocketAddress>()
 
@@ -78,7 +62,7 @@ internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
 
 internal fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
     AF_INET -> {
-        val address = ptr.reinterpret<sockaddr_in>().pointed
+        val address: sockaddr_in = ptr.reinterpret<sockaddr_in>().pointed
         NativeIPv4SocketAddress(address.sin_family, address.sin_addr, ntohs(address.sin_port).toInt())
     }
     AF_INET6 -> {
