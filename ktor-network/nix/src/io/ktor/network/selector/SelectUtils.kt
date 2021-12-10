@@ -8,6 +8,7 @@ import io.ktor.network.util.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -78,7 +79,7 @@ internal class SelectorHelper {
         val writeSet = alloc<fd_set>()
         val errorSet = alloc<fd_set>()
 
-        val completed = mutableListOf<EventInfo>()
+        val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
 
@@ -89,8 +90,11 @@ internal class SelectorHelper {
                 continue
             }
 
-            pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr)
-                .check()
+            try {
+                pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr).check()
+            } catch (_: PosixException.BadFileDescriptorException) {
+                // Ignore EBADF if the descriptor was closed.
+            }
 
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
         }
@@ -148,7 +152,7 @@ internal class SelectorHelper {
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
         closeSet: MutableSet<Int>,
-        completed: MutableList<EventInfo>,
+        completed: MutableSet<EventInfo>,
         readSet: fd_set,
         writeSet: fd_set,
         errorSet: fd_set
@@ -163,28 +167,26 @@ internal class SelectorHelper {
                 completed.add(event)
                 continue
             }
+
             val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
             if (select_fd_isset(event.descriptor, errorSet.ptr) != 0) {
                 completed.add(event)
-                @Suppress("DEPRECATION")
-                event.fail(SocketError())
+                event.fail(IOException("Fail to select descriptor ${event.descriptor} for ${event.interest}"))
                 continue
             }
-            if (select_fd_isset(event.descriptor, set.ptr) != 0) {
-                if (event.descriptor == wakeupSignal.selectionDescriptor) {
-                    wakeupSignal.check()
-                } else {
-                    completed.add(event)
-                    event.complete()
-                }
+
+            if (select_fd_isset(event.descriptor, set.ptr) == 0) continue
+
+            if (event.descriptor == wakeupSignal.selectionDescriptor) {
+                wakeupSignal.check()
                 continue
             }
+
+            completed.add(event)
+            event.complete()
         }
 
-        for (descriptor in closeSet) {
-            close(descriptor)
-        }
         closeSet.clear()
 
         watchSet.removeAll(completed)
@@ -195,7 +197,7 @@ internal class SelectorHelper {
         event: EventInfo,
         readSet: fd_set,
         writeSet: fd_set
-    ) = when (event.interest) {
+    ): fd_set = when (event.interest) {
         SelectInterest.READ -> readSet
         SelectInterest.WRITE -> writeSet
         SelectInterest.ACCEPT -> readSet

@@ -24,7 +24,7 @@ private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
 
 internal class DatagramSendChannel(
     val descriptor: Int,
-    val socket: DatagramSocketImpl
+    val socket: DatagramSocketNative
 ) : SendChannel<Datagram> {
     private val onCloseHandler = atomic<((Throwable?) -> Unit)?>(null)
     private val closed = atomic(false)
@@ -75,16 +75,16 @@ internal class DatagramSendChannel(
                         ).toInt()
                     }
                 }
-                when (bytesWritten ?: error("bytesWritten cannot be null")) {
+                result = when (bytesWritten ?: error("bytesWritten cannot be null")) {
                     0 -> throw IOException("Failed writing to closed socket")
                     -1 -> {
                         if (errno == EAGAIN) {
-                            result = false
+                            false
                         } else {
                             throw PosixException.forErrno()
                         }
                     }
-                    else -> result = true
+                    else -> true
                 }
             }
         } finally {

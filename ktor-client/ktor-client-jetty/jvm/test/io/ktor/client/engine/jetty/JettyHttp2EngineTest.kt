@@ -4,8 +4,6 @@
 
 package io.ktor.client.engine.jetty
 
-import ch.qos.logback.classic.*
-import ch.qos.logback.classic.Logger
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -13,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.errors.*
-import org.slf4j.*
 import kotlin.test.*
 
 class JettyHttp2EngineTest {
