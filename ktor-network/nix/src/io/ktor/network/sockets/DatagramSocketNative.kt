@@ -37,7 +37,7 @@ internal class DatagramSocketNative(
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this)
 
-    override fun toString(): String  = "DatagramSocketNative(descriptor=$descriptor)"
+    override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val receiver: ReceiveChannel<Datagram> = produce {
