@@ -86,7 +86,7 @@ fun Project.configurePublication() {
             }
             maven {
                 name = "testLocal"
-                setUrl("$rootProject.buildDir/m2")
+                setUrl("${rootProject.buildDir}/m2")
             }
         }
 
