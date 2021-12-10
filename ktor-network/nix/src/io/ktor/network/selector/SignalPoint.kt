@@ -6,16 +6,16 @@ package io.ktor.network.selector
 
 import io.ktor.network.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
 internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int
-    private val signalCounter = atomic(0)
+    private var remaining: Int by shared(0)
 
     val selectionDescriptor: Int
         get() = readDescriptor
@@ -38,35 +38,34 @@ internal class SignalPoint : Closeable {
         makeShared()
     }
 
-    fun check(): Boolean {
-        if (signalCounter.getAndSet(0) > 0) {
-            return true
+    fun check() {
+        while (remaining > 0) {
+            remaining -= readFromPipe()
         }
-
-        return drainDescriptor() > 0
     }
 
     fun signal() {
-        if (signalCounter.getAndIncrement() > 0) {
-            return
-        }
+        if (remaining > 0) return
 
         memScoped {
             val array = allocArray<ByteVar>(1)
             array[0] = 7
             // note: here we ignore the result of write intentionally
             // we simply don't care whether the buffer is full or the pipe is already closed
-            write(writeDescriptor, array, 1.convert())
+            val result = write(writeDescriptor, array, 1.convert())
+            if (result < 0) return
+
+            remaining += result.toInt()
         }
     }
 
     override fun close() {
         close(writeDescriptor)
-        drainDescriptor()
+        readFromPipe()
         close(readDescriptor)
     }
 
-    private fun drainDescriptor(): Int {
+    private fun readFromPipe(): Int {
         var count = 0
 
         memScoped {

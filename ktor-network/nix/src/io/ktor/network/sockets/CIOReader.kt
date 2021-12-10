@@ -37,7 +37,11 @@ internal fun CoroutineScope.attachForReadingImpl(
         }
 
         if (count == 0 && !channel.isClosedForWrite) {
-            selector.select(selectable, SelectInterest.READ)
+            try {
+                selector.select(selectable, SelectInterest.READ)
+            } catch (_: IOException) {
+                break
+            }
         }
 
         channel.flush()

@@ -16,11 +16,11 @@ internal data class EventInfo(
         makeShared()
     }
 
-    public fun complete() {
+    fun complete() {
         continuation.resume(Unit)
     }
 
-    public fun fail(cause: Throwable) {
+    fun fail(cause: Throwable) {
         continuation.resumeWithException(cause)
     }
 
