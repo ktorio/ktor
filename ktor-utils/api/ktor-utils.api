@@ -6,7 +6,9 @@ public final class io/ktor/util/AlwaysFailNonceManager : io/ktor/util/NonceManag
 
 public class io/ktor/util/AttributeKey {
 	public fun <init> (Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
