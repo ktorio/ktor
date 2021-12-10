@@ -11,6 +11,21 @@ package io.ktor.util
  */
 public open class AttributeKey<T>(public val name: String) {
     override fun toString(): String = if (name.isEmpty()) super.toString() else "AttributeKey: $name"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as AttributeKey<*>
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }
 
 /**
@@ -18,6 +33,8 @@ public open class AttributeKey<T>(public val name: String) {
  * @param T is type of the value stored in the attribute
  * @param name is a name of the attribute
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `AttributeKey` class instead")
 public class EquatableAttributeKey<T>(name: String) : AttributeKey<T>(name) {
 
     override fun equals(other: Any?): Boolean {
