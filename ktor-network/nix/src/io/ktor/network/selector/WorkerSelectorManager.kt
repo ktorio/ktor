@@ -11,7 +11,8 @@ import kotlin.coroutines.*
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class WorkerSelectorManager : SelectorManager {
     private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
-    override val coroutineContext: CoroutineContext = selectorContext
+    private val job = Job()
+    override val coroutineContext: CoroutineContext = selectorContext + job
 
     private val selector = SelectorHelper()
 

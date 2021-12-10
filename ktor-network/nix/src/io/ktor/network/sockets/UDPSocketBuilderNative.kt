@@ -30,7 +30,7 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
         connect(descriptor, pointer, size).check()
     }
 
-    return DatagramSocketImpl(
+    return DatagramSocketNative(
         descriptor = descriptor,
         selector = selector,
         parent = selector.coroutineContext
@@ -52,7 +52,7 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
         bind(descriptor, pointer, size).check()
     }
 
-    return DatagramSocketImpl(
+    return DatagramSocketNative(
         descriptor = descriptor,
         selector = selector,
         parent = selector.coroutineContext

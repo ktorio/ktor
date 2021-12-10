@@ -9,7 +9,6 @@ import io.ktor.network.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -17,7 +16,7 @@ import kotlinx.coroutines.channels.*
 import platform.posix.*
 import kotlin.coroutines.*
 
-internal class DatagramSocketImpl(
+internal class DatagramSocketNative(
     private val descriptor: Int,
     val selector: SelectorManager,
     parent: CoroutineContext = EmptyCoroutineContext
@@ -32,19 +31,23 @@ internal class DatagramSocketImpl(
 
     override val localAddress: NetworkAddress
         get() = getLocalAddress(descriptor).let { ResolvedNetworkAddress(it.address, it.port, it) }
+
     override val remoteAddress: NetworkAddress
         get() = getRemoteAddress(descriptor).let { ResolvedNetworkAddress(it.address, it.port, it) }
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this)
 
+    override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val receiver: ReceiveChannel<Datagram> = produce {
         try {
             while (true) {
-                val received = receiveImpl()
+                val received = readDatagram()
                 channel.send(received)
             }
         } catch (_: ClosedSendChannelException) {
+        } catch (cause: IOException) {
         }
     }
 
@@ -75,55 +78,54 @@ internal class DatagramSocketImpl(
     override fun attachForWriting(channel: ByteChannel): ReaderJob =
         attachForWritingImpl(channel, descriptor, selectable, selector)
 
-    private tailrec suspend fun receiveImpl(
-        buffer: ChunkBuffer = DefaultDatagramChunkBufferPool.borrow()
-    ): Datagram {
-        memScoped {
-            val clientAddress = alloc<sockaddr_storage>()
-            val clientAddressLength: UIntVarOf<UInt> = alloc()
-            clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
+    private suspend fun readDatagram(): Datagram {
+        while (true) {
+            val datagram = tryReadDatagram()
+            if (datagram != null) return datagram
+            selector.select(selectable, SelectInterest.READ)
+        }
+    }
 
-            val count = try {
-                buffer.write { memory, startIndex, endIndex ->
-                    val bufferStart = memory.pointer + startIndex
-                    val size = endIndex - startIndex
-                    val bytesRead = recvfrom(
-                        descriptor,
-                        bufferStart,
-                        size.convert(),
-                        0,
-                        clientAddress.ptr.reinterpret(),
-                        clientAddressLength.ptr
-                    ).toInt()
+    private fun tryReadDatagram(): Datagram? = memScoped {
+        val clientAddress = alloc<sockaddr_storage>()
+        val clientAddressLength: UIntVarOf<UInt> = alloc()
+        clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
-                    when (bytesRead) {
-                        0 -> throw IOException("Failed reading from closed socket")
-                        -1 -> {
-                            if (errno == EAGAIN) {
-                                return@write 0
-                            }
-                            throw PosixException.forErrno()
-                        }
+        val buffer = DefaultDatagramChunkBufferPool.borrow()
+        try {
+            val count = buffer.write { memory, startIndex, endIndex ->
+                val bufferStart = memory.pointer + startIndex
+                val size = endIndex - startIndex
+                val bytesRead = recvfrom(
+                    descriptor,
+                    bufferStart,
+                    size.convert(),
+                    0,
+                    clientAddress.ptr.reinterpret(),
+                    clientAddressLength.ptr
+                ).toInt()
+
+                when (bytesRead) {
+                    0 -> throw IOException("Failed reading from closed socket")
+                    -1 -> {
+                        if (errno == EAGAIN) return@write 0
+                        throw PosixException.forErrno()
                     }
-
-                    bytesRead
                 }
-            } catch (cause: Throwable) {
-                buffer.release(DefaultDatagramChunkBufferPool)
-                throw cause
+
+                bytesRead
             }
-            if (count > 0) {
-                val address = clientAddress.reinterpret<sockaddr>().toSocketAddress()
-                val datagram = Datagram(
-                    buildPacket { writeFully(buffer) },
-                    ResolvedNetworkAddress(address.address, address.port, address)
-                )
-                buffer.release(DefaultDatagramChunkBufferPool)
-                return datagram
-            } else {
-                selector.select(selectable, SelectInterest.READ)
-                return receiveImpl(buffer)
-            }
+
+            if (count <= 0) return null
+
+            val address = clientAddress.reinterpret<sockaddr>().toSocketAddress()
+
+            return Datagram(
+                buildPacket { writeFully(buffer) },
+                ResolvedNetworkAddress(address.address, address.port, address)
+            )
+        } finally {
+            buffer.release(DefaultDatagramChunkBufferPool)
         }
     }
 }
