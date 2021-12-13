@@ -25,5 +25,5 @@ internal actual fun createTempFilePath(basename: String): String {
 }
 
 internal actual fun removeFile(path: String) {
-    Files.deleteIfExists(Path.of(path))
+    Files.deleteIfExists(Path(path))
 }

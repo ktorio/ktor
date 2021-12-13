@@ -4,8 +4,8 @@
 
 package io.ktor.network.util
 
+import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.*
-import platform.linux.*
 import platform.posix.*
 
 internal fun getAddressInfo(
@@ -20,28 +20,11 @@ internal fun getAddressInfo(
     }
 
     val result = alloc<CPointerVar<addrinfo>>()
-    val code = getaddrinfo(hostname, portInfo.toString(), hints, result.ptr)
-    defer { freeaddrinfo(result.value) }
+    getaddrinfo(hostname, portInfo.toString(), hints, result.ptr)
+        .check()
 
-    when (code) {
-        0 -> return result.pointed.toIpList()
-        EAI_NONAME -> error("Bad hostname: $hostname")
-//      EAI_ADDRFAMILY -> error("Bad address family")
-        EAI_AGAIN -> error("Try again")
-        EAI_BADFLAGS -> error("Bad flags")
-//      EAI_BADHINTS -> error("Bad hint")
-        EAI_FAIL -> error("FAIL")
-        EAI_FAMILY -> error("Bad family")
-//      EAI_MAX -> error("max reached")
-        EAI_MEMORY -> error("OOM")
-//      EAI_NODATA -> error("NO DATA")
-        EAI_OVERFLOW -> error("OVERFLOW")
-//      EAI_PROTOCOL -> error("PROTOCOL ERROR")
-        EAI_SERVICE -> error("SERVICE ERROR")
-        EAI_SOCKTYPE -> error("SOCKET TYPE ERROR")
-        EAI_SYSTEM -> error("SYSTEM ERROR")
-        else -> error("Unknown error: $code")
-    }
+    defer { freeaddrinfo(result.value) }
+    return result.pointed.toIpList()
 }
 
 internal fun getLocalAddress(descriptor: Int): NativeSocketAddress = memScoped {
@@ -79,24 +62,47 @@ internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
 internal fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed
-        NativeIPv4SocketAddress(address.sin_family, address.sin_addr, ntohs(address.sin_port).toInt())
+        NativeIPv4SocketAddress(address.sin_family, address.sin_addr, networkToHostOrder(address.sin_port).toInt())
     }
     AF_INET6 -> {
         val address = ptr.reinterpret<sockaddr_in6>().pointed
         NativeIPv6SocketAddress(
             address.sin6_family,
             address.sin6_addr,
-            ntohs(address.sin6_port).toInt(),
+            networkToHostOrder(address.sin6_port).toInt(),
             address.sin6_flowinfo,
             address.sin6_scope_id
         )
     }
     AF_UNIX -> {
-        val address = ptr.reinterpret<sockaddr_un>().pointed
-        NativeUnixSocketAddress(
-            address.sun_family,
-            address.sun_path.toKString(),
-        )
+        unpack_sockaddr_un(this) { family, path ->
+            NativeUnixSocketAddress(family.convert(), path)
+        }
     }
     else -> error("Unknown address family $sa_family")
 }
+
+internal fun networkToHostOrder(value: UShort): UShort {
+    if (!Platform.isLittleEndian) return value
+    return value.reverseByteOrder()
+}
+
+internal fun hostToNetworkOrder(value: UShort): UShort {
+    if (!Platform.isLittleEndian) return value
+    return value.reverseByteOrder()
+}
+
+internal expect fun ktor_inet_ntop(
+    family: Int,
+    src: CValuesRef<*>?,
+    dst: CValuesRef<ByteVar>?,
+    size: socklen_t
+): CPointer<ByteVar>?
+
+internal expect fun <T> unpack_sockaddr_un(sockaddr: sockaddr, block: (family: UShort, path: String) -> T): T
+
+internal expect fun pack_sockaddr_un(
+    family: UShort,
+    path: String,
+    block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit
+)
