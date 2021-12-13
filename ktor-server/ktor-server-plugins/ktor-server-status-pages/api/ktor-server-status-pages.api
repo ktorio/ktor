@@ -1,22 +1,3 @@
-public final class io/ktor/server/plugins/StatusPages {
-	public static final field Plugin Lio/ktor/server/plugins/StatusPages$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/plugins/StatusPages$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/plugins/StatusPages$Configuration {
-	public fun <init> ()V
-	public final fun exception (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
-	public final fun getExceptions ()Ljava/util/Map;
-	public final fun getStatuses ()Ljava/util/Map;
-	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
-}
-
-public final class io/ktor/server/plugins/StatusPages$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/StatusPages;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/plugins/StatusPagesConfig {
 	public fun <init> ()V
 	public final fun exception (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
