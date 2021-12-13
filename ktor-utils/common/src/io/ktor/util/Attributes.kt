@@ -34,7 +34,10 @@ public open class AttributeKey<T>(public val name: String) {
  * @param name is a name of the attribute
  */
 @Suppress("DEPRECATION")
-@Deprecated("Please use `AttributeKey` class instead")
+@Deprecated(
+    "Please use `AttributeKey` class instead",
+    replaceWith = ReplaceWith("AttributeKey")
+)
 public class EquatableAttributeKey<T>(name: String) : AttributeKey<T>(name) {
 
     override fun equals(other: Any?): Boolean {
