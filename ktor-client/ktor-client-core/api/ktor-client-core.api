@@ -1318,6 +1318,10 @@ public final class io/ktor/client/utils/ExceptionUtilsJvmKt {
 	public static final fun unwrapCancellationException (Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
+public final class io/ktor/client/utils/ExceptionUtilsKt {
+	public static final fun unwrapCancellationException (Ljava/lang/Throwable;)Ljava/lang/Throwable;
+}
+
 public final class io/ktor/client/utils/HeadersKt {
 	public static final fun buildHeaders (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Headers;
 	public static synthetic fun buildHeaders$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/Headers;

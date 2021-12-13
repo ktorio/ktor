@@ -7,10 +7,16 @@ package io.ktor.util
 /**
  * Specifies a key for an attribute in [Attributes]
  * @param T is type of the value stored in the attribute
- * @param name is a name of the attribute for diagnostic purposes
+ * @param name is a name of the attribute for diagnostic purposes. Couldn't be blank
  */
 public open class AttributeKey<T>(public val name: String) {
-    override fun toString(): String = if (name.isEmpty()) super.toString() else "AttributeKey: $name"
+    init {
+        if(name.isEmpty()) {
+            throw IllegalStateException("Name shouldn't be blank")
+        }
+    }
+
+    override fun toString(): String = "AttributeKey: $name"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
