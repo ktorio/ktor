@@ -72,6 +72,12 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 if (context.url.host.isEmpty()) {
                     mergeUrls(defaultUrl, context.url)
                 }
+                defaultRequest.attributes.allKeys.forEach {
+                    if (!context.attributes.contains(it)) {
+                        @Suppress("UNCHECKED_CAST")
+                        context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
+                    }
+                }
                 context.headers.appendMissing(defaultRequest.headers.build())
             }
         }
@@ -99,6 +105,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
 
         override val headers: HeadersBuilder = HeadersBuilder()
         public val url: URLBuilder = URLBuilder()
+        public val attributes: Attributes = Attributes(concurrent = true)
 
         /**
          * Executes a [block] that configures the [URLBuilder] associated to this request.
@@ -143,6 +150,13 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             set(value) {
                 url.port = value
             }
+
+        /**
+         * Sets attributes using [block].
+         */
+        public fun setAttributes(block: Attributes.() -> Unit) {
+            attributes.apply(block)
+        }
     }
 }
 

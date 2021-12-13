@@ -273,10 +273,12 @@ public final class io/ktor/client/plugins/DefaultRequest {
 }
 
 public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder : io/ktor/http/HttpMessageBuilder {
+	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getHeaders ()Lio/ktor/http/HeadersBuilder;
 	public final fun getHost ()Ljava/lang/String;
 	public final fun getPort ()I
 	public final fun getUrl ()Lio/ktor/http/URLBuilder;
+	public final fun setAttributes (Lkotlin/jvm/functions/Function1;)V
 	public final fun setHost (Ljava/lang/String;)V
 	public final fun setPort (I)V
 	public final fun url (Ljava/lang/String;)V
