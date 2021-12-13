@@ -58,7 +58,7 @@ internal class DatagramSendChannel(
         try {
             DefaultDatagramByteBufferPool.useInstance { buffer ->
                 element.packet.copy().readAvailable(buffer)
-                result = channel.send(buffer, element.address) == 0
+                result = channel.send(buffer, element.address.toJavaAddress()) == 0
             }
         } finally {
             lock.unlock()
@@ -77,7 +77,7 @@ internal class DatagramSendChannel(
                 DefaultDatagramByteBufferPool.useInstance { buffer ->
                     element.writeMessageTo(buffer)
 
-                    val rc = channel.send(buffer, element.address)
+                    val rc = channel.send(buffer, element.address.toJavaAddress())
                     if (rc != 0) {
                         socket.interestOp(SelectInterest.WRITE, false)
                         return@useInstance
@@ -96,7 +96,7 @@ internal class DatagramSendChannel(
 
             @Suppress("BlockingMethodInNonBlockingContext")
             // this is actually non-blocking invocation
-            if (channel.send(buffer, address) != 0) {
+            if (channel.send(buffer, address.toJavaAddress()) != 0) {
                 socket.interestOp(SelectInterest.WRITE, false)
                 break
             }

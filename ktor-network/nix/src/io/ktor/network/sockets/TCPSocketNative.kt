@@ -14,8 +14,8 @@ import kotlin.coroutines.*
 internal class TCPSocketNative(
     private val descriptor: Int,
     private val selector: SelectorManager,
-    override val remoteAddress: NetworkAddress,
-    override val localAddress: NetworkAddress,
+    override val remoteAddress: SocketAddress,
+    override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : Socket, CoroutineScope {
     private val _context: CompletableJob = Job(parent[Job])

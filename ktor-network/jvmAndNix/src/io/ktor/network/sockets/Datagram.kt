@@ -4,7 +4,6 @@
 
 package io.ktor.network.sockets
 
-import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
 
@@ -17,7 +16,7 @@ internal const val MAX_DATAGRAM_SIZE = 65535
  */
 public class Datagram(
     public val packet: ByteReadPacket,
-    public val address: NetworkAddress
+    public val address: SocketAddress
 ) {
     init {
         require(packet.remaining <= MAX_DATAGRAM_SIZE) {

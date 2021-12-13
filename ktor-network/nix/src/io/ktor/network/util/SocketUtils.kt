@@ -4,29 +4,23 @@
 
 package io.ktor.network.util
 
-import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
+import platform.linux.*
 import platform.posix.*
 
 internal fun getAddressInfo(
     hostname: String,
     portInfo: Int
-): List<SocketAddress> = memScoped {
+): List<NativeSocketAddress> = memScoped {
     val hints: CValue<addrinfo> = cValue {
         ai_family = AF_UNSPEC
         ai_socktype = SOCK_STREAM
-        ai_flags = AI_PASSIVE
+        ai_flags = AI_PASSIVE or AI_NUMERICSERV
         ai_protocol = 0
     }
 
     val result = alloc<CPointerVar<addrinfo>>()
-    val code = getaddrinfo(
-        hostname,
-        my_htons(portInfo.convert()).toString(),
-        hints,
-        result.ptr
-    )
+    val code = getaddrinfo(hostname, portInfo.toString(), hints, result.ptr)
     defer { freeaddrinfo(result.value) }
 
     when (code) {
@@ -50,61 +44,59 @@ internal fun getAddressInfo(
     }
 }
 
-internal fun getLocalAddress(descriptor: Int): SocketAddress = memScoped {
+internal fun getLocalAddress(descriptor: Int): NativeSocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
     length.value = sizeOf<sockaddr_storage>().convert()
 
     getsockname(descriptor, address.ptr.reinterpret(), length.ptr).check()
 
-    return@memScoped address.reinterpret<sockaddr>().toSocketAddress()
+    return@memScoped address.reinterpret<sockaddr>().toNativeSocketAddress()
 }
 
-internal fun getRemoteAddress(descriptor: Int): SocketAddress = memScoped {
+internal fun getRemoteAddress(descriptor: Int): NativeSocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
     length.value = sizeOf<sockaddr_storage>().convert()
 
     getpeername(descriptor, address.ptr.reinterpret(), length.ptr).check()
 
-    return@memScoped address.reinterpret<sockaddr>().toSocketAddress()
+    return@memScoped address.reinterpret<sockaddr>().toNativeSocketAddress()
 }
 
-internal fun addrinfo?.toIpList(): List<SocketAddress> {
+internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     var current: addrinfo? = this
-    val result = mutableListOf<SocketAddress>()
+    val result = mutableListOf<NativeSocketAddress>()
 
     while (current != null) {
-        result += current.ai_addr!!.pointed.toSocketAddress()
+        result += current.ai_addr!!.pointed.toNativeSocketAddress()
         current = current.ai_next?.pointed
     }
 
     return result
 }
 
-internal fun sockaddr.toSocketAddress(): SocketAddress = when (sa_family.toInt()) {
+internal fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed
-        IPv4Address(
-            address.sin_family,
-            address.sin_addr,
-            my_htons(address.sin_port.convert()).convert()
-        )
+        NativeIPv4SocketAddress(address.sin_family, address.sin_addr, ntohs(address.sin_port).toInt())
     }
     AF_INET6 -> {
         val address = ptr.reinterpret<sockaddr_in6>().pointed
-        IPv6Address(
+        NativeIPv6SocketAddress(
             address.sin6_family,
             address.sin6_addr,
-            my_htons(address.sin6_port.convert()).convert(),
+            ntohs(address.sin6_port).toInt(),
             address.sin6_flowinfo,
             address.sin6_scope_id
         )
     }
+    AF_UNIX -> {
+        val address = ptr.reinterpret<sockaddr_un>().pointed
+        NativeUnixSocketAddress(
+            address.sun_family,
+            address.sun_path.toKString(),
+        )
+    }
     else -> error("Unknown address family $sa_family")
-}
-
-internal fun my_htons(value: UShort): uint16_t = when {
-    ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN -> value
-    else -> value.toShort().reverseByteOrder().toUShort()
 }

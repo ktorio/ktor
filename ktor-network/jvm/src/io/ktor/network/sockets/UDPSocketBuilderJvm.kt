@@ -5,31 +5,30 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
 
 internal actual fun UDPSocketBuilder.Companion.connectUDP(
     selector: SelectorManager,
-    remoteAddress: NetworkAddress,
-    localAddress: NetworkAddress?,
+    remoteAddress: SocketAddress,
+    localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
 ): ConnectedDatagramSocket = selector.buildOrClose({ openDatagramChannel() }) {
     assignOptions(options)
     nonBlocking()
 
-    socket().bind(localAddress)
-    connect(remoteAddress)
+    bind(localAddress?.toJavaAddress())
+    connect(remoteAddress.toJavaAddress())
 
     return DatagramSocketImpl(this, selector)
 }
 
 internal actual fun UDPSocketBuilder.Companion.bindUDP(
     selector: SelectorManager,
-    localAddress: NetworkAddress?,
+    localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
 ): BoundDatagramSocket = selector.buildOrClose({ openDatagramChannel() }) {
     assignOptions(options)
     nonBlocking()
 
-    socket().bind(localAddress)
+    bind(localAddress?.toJavaAddress())
     return DatagramSocketImpl(this, selector)
 }

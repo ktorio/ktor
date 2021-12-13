@@ -4,7 +4,6 @@
 
 package io.ktor.network.sockets
 
-import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
@@ -49,7 +48,7 @@ public interface AConnectedSocket : AWritable {
     /**
      * Remote socket address. Could throw an exception if the peer is not yet connected or already disconnected.
      */
-    public val remoteAddress: NetworkAddress
+    public val remoteAddress: SocketAddress
 }
 
 /**
@@ -59,7 +58,7 @@ public interface ABoundSocket {
     /**
      * Local socket address. Could throw an exception if no address bound yet.
      */
-    public val localAddress: NetworkAddress
+    public val localAddress: SocketAddress
 }
 
 /**

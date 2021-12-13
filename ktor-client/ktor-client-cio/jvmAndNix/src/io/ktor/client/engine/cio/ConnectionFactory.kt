@@ -6,7 +6,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.util.network.*
 import kotlinx.coroutines.sync.*
 
 internal class ConnectionFactory(
@@ -16,7 +15,7 @@ internal class ConnectionFactory(
     private val semaphore = Semaphore(maxConnectionsCount)
 
     public suspend fun connect(
-        address: NetworkAddress,
+        address: InetSocketAddress,
         configuration: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket {
         semaphore.acquire()

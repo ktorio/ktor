@@ -4,11 +4,7 @@
 
 package io.ktor.network.sockets.tests
 
-import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.test.dispatcher.*
-import io.ktor.util.*
-import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -19,9 +15,9 @@ class UDPSocketTest {
     private val done = atomic(0)
 
     @Test
-    fun testBroadcastFails(): Unit = testUdpSockets { selector ->
+    fun testBroadcastFails(): Unit = testSockets { selector ->
         if (isJvmWindows()) {
-            return@testUdpSockets
+            return@testSockets
         }
 
         lateinit var socket: BoundDatagramSocket
@@ -34,7 +30,7 @@ class UDPSocketTest {
             socket.use {
                 val datagram = Datagram(
                     packet = buildPacket { writeText("0123456789") },
-                    address = NetworkAddress("255.255.255.255", 56700)
+                    address = InetSocketAddress("255.255.255.255", 56700)
                 )
 
                 it.send(datagram)
@@ -53,12 +49,12 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testBroadcastSuccessful() = testUdpSockets { selector ->
+    fun testBroadcastSuccessful() = testSockets { selector ->
         val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
         val server = launch {
             aSocket(selector)
                 .udp()
-                .bind(NetworkAddress("0.0.0.0", 0))
+                .bind(InetSocketAddress("0.0.0.0", 0))
                 .use { socket ->
                     serverSocketCompletable.complete(socket)
                     val received = socket.receive()
@@ -74,10 +70,13 @@ class UDPSocketTest {
                 broadcast = true
             }
         clientSocket.use { socket ->
+            val inetSocketAddress = serverSocket.localAddress as? InetSocketAddress
+                ?: error("Should be an inet address")
+
             socket.send(
                 Datagram(
                     packet = buildPacket { writeText("0123456789") },
-                    address = NetworkAddress("255.255.255.255", serverSocket.localAddress.port)
+                    address = InetSocketAddress("255.255.255.255", inetSocketAddress.port)
                 )
             )
         }
@@ -92,7 +91,7 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testClose(): Unit = testUdpSockets { selector ->
+    fun testClose(): Unit = testSockets { selector ->
         val socket = aSocket(selector)
             .udp()
             .bind()
@@ -105,7 +104,7 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testInvokeOnClose() = testUdpSockets { selector ->
+    fun testInvokeOnClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
@@ -130,7 +129,7 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClose() = testUdpSockets { selector ->
+    fun testOutgoingInvokeOnClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
@@ -149,7 +148,7 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnCloseWithSocketClose() = testUdpSockets { selector ->
+    fun testOutgoingInvokeOnCloseWithSocketClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
@@ -168,7 +167,7 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClosed() = testUdpSockets { selector ->
+    fun testOutgoingInvokeOnClosed() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
             .udp()
             .bind()
@@ -187,18 +186,19 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testSendReceive(): Unit = testUdpSockets { selector ->
+    fun testSendReceive(): Unit = testSockets { selector ->
         aSocket(selector)
             .udp()
-            .bind(NetworkAddress("127.0.0.1", 8000)) {
+            .bind(InetSocketAddress("127.0.0.1", 8000)) {
                 reuseAddress = true
             }
             .use { socket ->
-                assertEquals(8000, socket.localAddress.port)
+                val localAddress = socket.localAddress as? InetSocketAddress
+                assertEquals(8000, localAddress?.port)
 
                 // Send messages to localhost
                 launch {
-                    val address = NetworkAddress("127.0.0.1", 8000)
+                    val address = InetSocketAddress("127.0.0.1", 8000)
                     repeat(10) {
                         val bytePacket = buildPacket { append("hello") }
                         val data = Datagram(bytePacket, address)
@@ -212,17 +212,6 @@ class UDPSocketTest {
                     assertEquals("hello", incoming.packet.readText())
                 }
             }
-    }
-}
-
-private fun testUdpSockets(block: suspend CoroutineScope.(SelectorManager) -> Unit) {
-    if (!PlatformUtils.IS_JVM && !PlatformUtils.IS_NATIVE) return
-    testSuspend {
-        withTimeout(1000) {
-            SelectorManager().use { selector ->
-                block(selector)
-            }
-        }
     }
 }
 

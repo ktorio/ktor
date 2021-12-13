@@ -13,7 +13,6 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
@@ -176,7 +175,7 @@ internal class Endpoint(
 
         try {
             repeat(connectAttempts) {
-                val address = NetworkAddress(host, port)
+                val address = InetSocketAddress(host, port)
 
                 val connect: suspend CoroutineScope.() -> Socket = {
                     connectionFactory.connect(address) {
