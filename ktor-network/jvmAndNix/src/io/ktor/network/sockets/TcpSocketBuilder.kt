@@ -1,7 +1,6 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
 
 /**
  * TCP socket builder
@@ -18,7 +17,7 @@ public class TcpSocketBuilder(
         hostname: String,
         port: Int,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
-    ): Socket = connect(NetworkAddress(hostname, port), configure)
+    ): Socket = connect(InetSocketAddress(hostname, port), configure)
 
     /**
      * Bind server socket at [port] to listen to [hostname].
@@ -27,13 +26,13 @@ public class TcpSocketBuilder(
         hostname: String = "0.0.0.0",
         port: Int = 0,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
-    ): ServerSocket = bind(NetworkAddress(hostname, port), configure)
+    ): ServerSocket = bind(InetSocketAddress(hostname, port), configure)
 
     /**
      * Connect to [remoteAddress].
      */
     public suspend fun connect(
-        remoteAddress: NetworkAddress,
+        remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket = connect(selector, remoteAddress, options.peer().tcp().apply(configure))
 
@@ -41,7 +40,7 @@ public class TcpSocketBuilder(
      * Bind server socket to listen to [localAddress].
      */
     public fun bind(
-        localAddress: NetworkAddress? = null,
+        localAddress: SocketAddress? = null,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
     ): ServerSocket = bind(selector, localAddress, options.peer().acceptor().apply(configure))
 }

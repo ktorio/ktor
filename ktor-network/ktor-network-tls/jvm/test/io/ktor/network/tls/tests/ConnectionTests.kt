@@ -7,6 +7,7 @@ package io.ktor.network.tls.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.util.cio.*

@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -21,14 +20,12 @@ internal class DatagramSocketImpl(
     selector,
     DefaultDatagramByteBufferPool
 ) {
-    private val socket = channel.socket()!!
-
-    override val localAddress: NetworkAddress
-        get() = socket.localSocketAddress
+    override val localAddress: SocketAddress
+        get() = channel.localAddress?.toSocketAddress()
             ?: throw IllegalStateException("Channel is not yet bound")
 
-    override val remoteAddress: NetworkAddress
-        get() = socket.remoteSocketAddress
+    override val remoteAddress: SocketAddress
+        get() = channel.remoteAddress?.toSocketAddress()
             ?: throw IllegalStateException("Channel is not yet connected")
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(channel, this)
@@ -67,7 +64,7 @@ internal class DatagramSocketImpl(
 
         interestOp(SelectInterest.READ, false)
         buffer.flip()
-        val datagram = Datagram(buildPacket { writeFully(buffer) }, address)
+        val datagram = Datagram(buildPacket { writeFully(buffer) }, address.toSocketAddress())
         DefaultDatagramByteBufferPool.recycle(buffer)
         return datagram
     }
@@ -85,7 +82,7 @@ internal class DatagramSocketImpl(
 
         interestOp(SelectInterest.READ, false)
         buffer.flip()
-        val datagram = Datagram(buildPacket { writeFully(buffer) }, address)
+        val datagram = Datagram(buildPacket { writeFully(buffer) }, address.toSocketAddress())
         DefaultDatagramByteBufferPool.recycle(buffer)
         return datagram
     }

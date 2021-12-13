@@ -5,8 +5,9 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.util.network.*
+import io.ktor.network.sockets.SocketImpl
 import kotlinx.coroutines.*
+import java.net.*
 import java.nio.channels.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
@@ -20,8 +21,8 @@ internal class ServerSocketImpl(
 
     override val socketContext: CompletableJob = Job()
 
-    override val localAddress: NetworkAddress
-        get() = channel.socket().localSocketAddress
+    override val localAddress: SocketAddress
+        get() = channel.localAddress.toSocketAddress()
 
     override suspend fun accept(): Socket {
         channel.accept()?.let { return accepted(it) }
@@ -38,10 +39,9 @@ internal class ServerSocketImpl(
 
     private fun accepted(nioChannel: SocketChannel): Socket {
         interestOp(SelectInterest.ACCEPT, false)
-        val socket = nioChannel.socket()!!
         nioChannel.configureBlocking(false)
-        socket.tcpNoDelay = true
-        return SocketImpl(nioChannel, socket, selector)
+        if (localAddress is InetSocketAddress) nioChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+        return SocketImpl(nioChannel, selector)
     }
 
     override fun close() {

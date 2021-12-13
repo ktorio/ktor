@@ -1,6 +1,5 @@
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**

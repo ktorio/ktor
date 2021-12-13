@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.util.network.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -15,7 +14,7 @@ import kotlin.coroutines.*
 internal class TCPServerSocketNative(
     private val descriptor: Int,
     private val selectorManager: SelectorManager,
-    override val localAddress: NetworkAddress,
+    override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : ServerSocket, CoroutineScope {
     private val _socketContext: CompletableJob = SupervisorJob(parent[Job])
@@ -58,14 +57,14 @@ internal class TCPServerSocketNative(
         fcntl(clientDescriptor, F_SETFL, O_NONBLOCK)
             .check()
 
-        val remoteAddress = clientAddress.reinterpret<sockaddr>().toSocketAddress()
+        val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
         val localAddress = getLocalAddress(descriptor)
 
         TCPSocketNative(
             clientDescriptor,
             selectorManager,
-            remoteAddress = ResolvedNetworkAddress(remoteAddress.address, remoteAddress.port, remoteAddress),
-            localAddress = ResolvedNetworkAddress(localAddress.address, localAddress.port, localAddress),
+            remoteAddress = remoteAddress.toSocketAddress(),
+            localAddress = localAddress.toSocketAddress(),
             parent = selfContext() + coroutineContext
         )
     }
