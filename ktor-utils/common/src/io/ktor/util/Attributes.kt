@@ -6,8 +6,8 @@ package io.ktor.util
 
 /**
  * Specifies a key for an attribute in [Attributes]
- * @param T is type of the value stored in the attribute
- * @param name is a name of the attribute for diagnostic purposes. Couldn't be blank
+ * @param T is a type of the value stored in the attribute
+ * @param name is a name of the attribute for diagnostic purposes. Can't be blank
  */
 public class AttributeKey<T : Any>(public val name: String) {
     init {
@@ -35,8 +35,8 @@ public class AttributeKey<T : Any>(public val name: String) {
 }
 
 /**
- * Version of [AttributeKey] that overrides [equals] and [hashCode] using [name]
- * @param T is type of the value stored in the attribute
+ * A version of [AttributeKey] that overrides [equals] and [hashCode] using [name]
+ * @param T is a type of the value stored in the attribute
  * @param name is a name of the attribute
  */
 @Suppress("DEPRECATION")
@@ -47,7 +47,7 @@ public class AttributeKey<T : Any>(public val name: String) {
 public typealias EquatableAttributeKey<T> = AttributeKey<T>
 
 /**
- * Create attributes instance suitable for the particular platform
+ * Creates an attributes instance suitable for the particular platform
  */
 public expect fun Attributes(concurrent: Boolean = false): Attributes
 
