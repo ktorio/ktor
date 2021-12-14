@@ -9,10 +9,10 @@ package io.ktor.util
  * @param T is type of the value stored in the attribute
  * @param name is a name of the attribute for diagnostic purposes. Couldn't be blank
  */
-public open class AttributeKey<T>(public val name: String) {
+public class AttributeKey<T>(public val name: String) {
     init {
         if(name.isEmpty()) {
-            throw IllegalStateException("Name shouldn't be blank")
+            throw IllegalStateException("Name couldn't be blank")
         }
     }
 
@@ -44,23 +44,7 @@ public open class AttributeKey<T>(public val name: String) {
     "Please use `AttributeKey` class instead",
     replaceWith = ReplaceWith("AttributeKey")
 )
-public class EquatableAttributeKey<T>(name: String) : AttributeKey<T>(name) {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as EquatableAttributeKey<*>
-
-        if (name != other.name) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-}
+public typealias EquatableAttributeKey<T> = AttributeKey<T>
 
 /**
  * Create attributes instance suitable for the particular platform
