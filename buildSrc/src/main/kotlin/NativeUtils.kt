@@ -31,6 +31,33 @@ fun KotlinMultiplatformExtension.darwinTargets(): Set<KotlinNativeTarget> = setO
     macosArm64()
 )
 
+
+fun KotlinMultiplatformExtension.macosTargets(): Set<KotlinNativeTarget> = setOf(
+    macosX64(),
+    macosArm64()
+)
+
+fun KotlinMultiplatformExtension.iosTargets(): Set<KotlinNativeTarget> = setOf(
+    iosX64(),
+    iosArm64(),
+    iosArm32(),
+    iosSimulatorArm64(),
+)
+
+fun KotlinMultiplatformExtension.watchosTargets(): Set<KotlinNativeTarget> = setOf(
+    watchosX86(),
+    watchosX64(),
+    watchosArm32(),
+    watchosArm64(),
+    watchosSimulatorArm64(),
+)
+
+fun KotlinMultiplatformExtension.tvosTargets(): Set<KotlinNativeTarget> = setOf(
+    tvosX64(),
+    tvosArm64(),
+    tvosSimulatorArm64(),
+)
+
 fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = setOf(
     macosX64(),
     macosArm64(),

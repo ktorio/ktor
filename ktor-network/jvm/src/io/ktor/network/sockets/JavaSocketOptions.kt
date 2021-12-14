@@ -21,7 +21,7 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             setOption(StandardSocketOptions.SO_REUSEADDR, true)
         }
         if (options.reusePort) {
-            setOption(StandardSocketOptions.SO_REUSEPORT, true)
+            SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
         if (options is SocketOptions.PeerSocketOptions) {
@@ -39,7 +39,7 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             setOption(StandardSocketOptions.SO_REUSEADDR, true)
         }
         if (options.reusePort) {
-            setOption(StandardSocketOptions.SO_REUSEPORT, true)
+            SocketOptionsPlatformCapabilities.setReusePort(this)
         }
     }
     if (this is DatagramChannel) {
@@ -51,7 +51,7 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             setOption(StandardSocketOptions.SO_REUSEADDR, true)
         }
         if (options.reusePort) {
-            setOption(StandardSocketOptions.SO_REUSEPORT, true)
+            SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
         if (options is SocketOptions.UDPSocketOptions) {

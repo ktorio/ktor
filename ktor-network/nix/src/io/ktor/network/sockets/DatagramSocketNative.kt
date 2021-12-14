@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
@@ -111,31 +110,16 @@ internal class DatagramSocketNative(
                         if (errno == EAGAIN) return@write 0
                         throw PosixException.forErrno()
                     }
+                    else -> bytesRead
                 }
-            } catch (cause: Throwable) {
-                buffer.release(DefaultDatagramChunkBufferPool)
-                throw cause
-            }
-            if (count > 0) {
-                val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
-                val datagram = Datagram(
-                    buildPacket { writeFully(buffer) },
-                    remoteAddress.toSocketAddress()
-                )
-                buffer.release(DefaultDatagramChunkBufferPool)
-                return datagram
-            } else {
-                selector.select(selectable, SelectInterest.READ)
-                return receiveImpl(buffer)
             }
 
             if (count <= 0) return null
-
-            val address = clientAddress.reinterpret<sockaddr>().toSocketAddress()
+            val address = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
             return Datagram(
                 buildPacket { writeFully(buffer) },
-                ResolvedNetworkAddress(address.address, address.port, address)
+                address.toSocketAddress()
             )
         } finally {
             buffer.release(DefaultDatagramChunkBufferPool)
