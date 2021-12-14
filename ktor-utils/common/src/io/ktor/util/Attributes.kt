@@ -12,7 +12,7 @@ package io.ktor.util
 public class AttributeKey<T : Any>(public val name: String) {
     init {
         if (name.isEmpty()) {
-            throw IllegalStateException("Name couldn't be blank")
+            throw IllegalStateException("Name can't be blank")
         }
     }
 
