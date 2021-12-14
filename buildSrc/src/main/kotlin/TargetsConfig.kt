@@ -5,6 +5,7 @@
 
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 
 fun Project.configureTargets() {
@@ -60,6 +61,18 @@ fun Project.configureTargets() {
             if (hasDarwin) {
                 val darwinMain by creating
                 val darwinTest by creating
+
+                val macosMain by creating
+                val macosTest by creating
+
+                val watchosMain by creating
+                val watchosTest by creating
+
+                val tvosMain by creating
+                val tvosTest by creating
+
+                val iosMain by creating
+                val iosTest by creating
             }
 
             if (hasDesktop) {
@@ -156,17 +169,50 @@ fun Project.configureTargets() {
                 }
             }
             if (hasDarwin) {
-                val darwinMain by getting {
-                    findByName("nixMain")?.let { dependsOn(it) }
+                val nixMain: KotlinSourceSet? = findByName("nixMain")
+                val darwinMain by getting
+                val darwinTest by getting
+                val macosMain by getting
+                val macosTest by getting
+                val iosMain by getting
+                val iosTest by getting
+                val watchosMain by getting
+                val watchosTest by getting
+                val tvosMain by getting
+                val tvosTest by getting
+
+                nixMain?.let { darwinMain.dependsOn(it) }
+                macosMain.dependsOn(darwinMain)
+                tvosMain.dependsOn(darwinMain)
+                iosMain.dependsOn(darwinMain)
+                watchosMain.dependsOn(darwinMain)
+
+                macosTargets().forEach {
+                    getByName("${it.name}Main").dependsOn(macosMain)
+                    getByName("${it.name}Test").dependsOn(macosTest)
                 }
 
-                val darwinTest by getting
+                iosTargets().forEach {
+                    getByName("${it.name}Main").dependsOn(iosMain)
+                    getByName("${it.name}Test").dependsOn(iosTest)
+                }
+
+                watchosTargets().forEach {
+                    getByName("${it.name}Main").dependsOn(watchosMain)
+                    getByName("${it.name}Test").dependsOn(watchosTest)
+                }
+
+                tvosTargets().forEach {
+                    getByName("${it.name}Main").dependsOn(tvosMain)
+                    getByName("${it.name}Test").dependsOn(tvosTest)
+                }
 
                 darwinTargets().forEach {
                     getByName("${it.name}Main").dependsOn(darwinMain)
                     getByName("${it.name}Test").dependsOn(darwinTest)
                 }
             }
+
             if (hasDesktop) {
                 val desktopMain by getting {
                     findByName("posixMain")?.let { dependsOn(it) }

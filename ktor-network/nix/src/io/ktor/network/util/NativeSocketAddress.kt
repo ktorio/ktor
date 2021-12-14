@@ -6,7 +6,6 @@ package io.ktor.network.util
 
 import io.ktor.network.sockets.*
 import kotlinx.cinterop.*
-import platform.linux.*
 import platform.posix.*
 
 /**
@@ -30,13 +29,17 @@ internal sealed class NativeInetSocketAddress(
 
 internal class NativeIPv4SocketAddress(
     family: sa_family_t,
-    private val rawAddress: in_addr,
+    rawAddress: in_addr,
     port: Int
 ) : NativeInetSocketAddress(family, port) {
+    val address: in_addr_t = rawAddress.s_addr
+
+    override fun toString(): String = "NativeIPv4SocketAddress[$ipString:$port]"
+
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
         cValue<sockaddr_in> {
-            sin_addr.s_addr = rawAddress.s_addr
-            sin_port = htons(port.toUShort())
+            sin_addr.s_addr = address
+            sin_port = hostToNetworkOrder(port.toUShort())
             sin_family = family
 
             block(ptr.reinterpret(), sizeOf<sockaddr_in>().convert())
@@ -46,8 +49,16 @@ internal class NativeIPv4SocketAddress(
     override val ipString: String
         get() = memScoped {
             val string = allocArray<ByteVar>(INET_ADDRSTRLEN)
-            inet_ntop(family.convert(), rawAddress.ptr, string.reinterpret(), INET_ADDRSTRLEN)?.toKString()
-                ?: error("Failed to convert address to text")
+            val value = cValue<in_addr> {
+                s_addr = address
+            }
+
+            ktor_inet_ntop(
+                family.convert(),
+                value,
+                string.reinterpret(),
+                INET_ADDRSTRLEN.convert()
+            )?.toKString() ?: error("Failed to convert address to text")
         }
 }
 
@@ -62,7 +73,7 @@ internal class NativeIPv6SocketAddress(
         cValue<sockaddr_in6> {
             sin6_family = family
             sin6_flowinfo = flowInfo
-            sin6_port = htons(port.toUShort())
+            sin6_port = hostToNetworkOrder(port.toUShort())
             sin6_scope_id = scopeId
 
             block(ptr.reinterpret(), sizeOf<sockaddr_in6>().convert())
@@ -72,7 +83,12 @@ internal class NativeIPv6SocketAddress(
     override val ipString: String
         get() = memScoped {
             val string = allocArray<ByteVar>(INET6_ADDRSTRLEN)
-            inet_ntop(family.convert(), rawAddress.ptr, string.reinterpret(), INET6_ADDRSTRLEN)?.toKString()
+            ktor_inet_ntop(
+                family.convert(),
+                rawAddress.ptr,
+                string.reinterpret(),
+                INET6_ADDRSTRLEN.convert()
+            )?.toKString()
                 ?: error("Failed to convert address to text")
         }
 }
@@ -85,11 +101,8 @@ internal class NativeUnixSocketAddress(
     val path: String,
 ) : NativeSocketAddress(family) {
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
-        cValue<sockaddr_un> {
-            strcpy(sun_path, path)
-            sun_family = family
-
-            block(ptr.reinterpret(), sizeOf<sockaddr_un>().convert())
+        pack_sockaddr_un(family.convert(), path) { address, size ->
+            block(address, size)
         }
     }
 }
