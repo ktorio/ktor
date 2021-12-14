@@ -95,6 +95,7 @@ public abstract class ByteChannelSequentialBase(
 
     private fun flushImpl(): Boolean {
         if (writable.isEmpty) {
+            slot.resume()
             return false
         }
 
