@@ -44,7 +44,7 @@ public class AttributeKey<T : Any>(public val name: String) {
     "Please use `AttributeKey` class instead",
     replaceWith = ReplaceWith("AttributeKey")
 )
-public typealias EquatableAttributeKey<T : Any> = AttributeKey<T>
+public typealias EquatableAttributeKey<T> = AttributeKey<T>
 
 /**
  * Create attributes instance suitable for the particular platform

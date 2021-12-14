@@ -4,7 +4,7 @@ public final class io/ktor/util/AlwaysFailNonceManager : io/ktor/util/NonceManag
 	public fun verifyNonce (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public class io/ktor/util/AttributeKey {
+public final class io/ktor/util/AttributeKey {
 	public fun <init> (Ljava/lang/String;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
@@ -169,12 +169,6 @@ public abstract interface class io/ktor/util/Encoder {
 public final class io/ktor/util/EncodersJvmKt {
 	public static final fun getDeflate ()Lio/ktor/util/Encoder;
 	public static final fun getGZip ()Lio/ktor/util/Encoder;
-}
-
-public final class io/ktor/util/EquatableAttributeKey : io/ktor/util/AttributeKey {
-	public fun <init> (Ljava/lang/String;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
 }
 
 public final class io/ktor/util/GenerateOnlyNonceManager : io/ktor/util/NonceManager {
