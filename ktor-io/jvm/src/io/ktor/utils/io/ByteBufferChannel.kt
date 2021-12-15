@@ -389,12 +389,13 @@ internal open class ByteBufferChannel(
         var toRelease: ReadWriteBufferState.Initial? = null
 
         _state.update { state ->
+            val closed = closed
+
             toRelease?.let { buffer ->
                 toRelease = null
-                buffer.capacity.resetForWrite()
+                if (closed?.cause == null) buffer.capacity.resetForWrite()
                 resumeWriteOp()
             }
-            val closed = closed
 
             when {
                 state === ReadWriteBufferState.Terminated -> return true
