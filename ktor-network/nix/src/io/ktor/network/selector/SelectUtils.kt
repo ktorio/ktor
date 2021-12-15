@@ -187,6 +187,9 @@ internal class SelectorHelper {
             event.complete()
         }
 
+        for (descriptor in closeSet) {
+            close(descriptor)
+        }
         closeSet.clear()
 
         watchSet.removeAll(completed)

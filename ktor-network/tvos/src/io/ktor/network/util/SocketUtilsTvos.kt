@@ -10,7 +10,7 @@ internal actual fun <T> unpack_sockaddr_un(
     sockaddr: sockaddr,
     block: (family: UShort, path: String) -> T
 ): T {
-    error("Address ${sockaddr.sa_family} is not supported on watchos")
+    error("Address ${sockaddr.sa_family} is not supported on tvos")
 }
 
 internal actual fun pack_sockaddr_un(
@@ -18,5 +18,5 @@ internal actual fun pack_sockaddr_un(
     path: String,
     block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit
 ) {
-    error("Address $family is not supported on watchos")
+    error("Address $family is not supported on tvos")
 }
