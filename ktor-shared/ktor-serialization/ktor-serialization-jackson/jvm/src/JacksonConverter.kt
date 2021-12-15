@@ -17,6 +17,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.text.Charsets
+import java.io.ByteArrayOutputStream
 
 public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
 
@@ -26,19 +27,19 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         typeInfo: TypeInfo,
         value: Any
     ): OutgoingContent {
-        return OutputStreamContent(
-            {
-                if (charset == Charsets.UTF_8) {
-                    /*
-                    Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
-                    InputStream instead of a writer to let Jackson do it's thing.
-                     */
-                    objectmapper.writeValue(this, value)
-                } else {
-                    objectmapper.writeValue(this.writer(charset = charset), value)
-                }
-            },
-            contentType.withCharset(charset)
+        val out = ByteArrayOutputStream()
+        if (charset == Charsets.UTF_8) {
+            /*
+            Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
+            InputStream instead of a writer to let Jackson do it's thing.
+             */
+            objectmapper.writeValue(out, value)
+        } else {
+            objectmapper.writeValue(out.writer(charset = charset), value)
+        }
+
+        return ByteArrayContent(
+            out.toByteArray(), contentType.withCharset(charset)
         )
     }
 
