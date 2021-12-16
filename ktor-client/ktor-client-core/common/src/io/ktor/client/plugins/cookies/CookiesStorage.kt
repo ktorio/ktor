@@ -7,6 +7,7 @@ package io.ktor.client.plugins.cookies
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlinx.datetime.*
 
 /**
  * Storage for [Cookie].
@@ -15,7 +16,7 @@ public interface CookiesStorage : Closeable {
     /**
      * Gets a map of [String] to [Cookie] for a specific [host].
      */
-    public suspend fun get(requestUrl: Url): List<Cookie>
+    public suspend fun get(requestUrl: Url, now: Instant): List<Cookie>
 
     /**
      * Sets a [cookie] for the specified [host].

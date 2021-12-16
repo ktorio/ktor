@@ -16,6 +16,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
@@ -91,7 +92,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         engineRequest: Request,
         callContext: CoroutineContext
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         val session = OkHttpWebsocketSession(
             engine,
             config.webSocketFactory ?: engine,
@@ -100,7 +101,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
-        return buildResponseData(originResponse, requestTime, session, callContext)
+        return buildResponseData(originResponse, requestTime, session, callContext, config.clock.now())
     }
 
     private suspend fun executeHttpRequest(
@@ -109,27 +110,28 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         callContext: CoroutineContext,
         requestData: HttpRequestData
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         val response = engine.execute(engineRequest, requestData)
 
         val body = response.body
         callContext[Job]!!.invokeOnCompletion { body?.close() }
 
         val responseContent = body?.source()?.toChannel(callContext, requestData) ?: ByteReadChannel.Empty
-        return buildResponseData(response, requestTime, responseContent, callContext)
+        return buildResponseData(response, requestTime, responseContent, callContext, responseTime = config.clock.now())
     }
 
     private fun buildResponseData(
         response: Response,
-        requestTime: GMTDate,
+        requestTime: Instant,
         body: Any,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
+        responseTime: Instant
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
         val headers = response.headers.fromOkHttp()
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return HttpResponseData(status, requestTime, headers, version, body, callContext, responseTime)
     }
 
     private companion object {
@@ -222,12 +224,12 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
 private fun OkHttpClient.Builder.setupTimeoutAttributes(
     timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
 ): OkHttpClient.Builder {
-    timeoutAttributes.connectTimeoutMillis?.let {
-        connectTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+    timeoutAttributes.connectTimeout?.let {
+        connectTimeout(convertTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
     }
-    timeoutAttributes.socketTimeoutMillis?.let {
-        readTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
-        writeTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+    timeoutAttributes.socketTimeout?.let {
+        readTimeout(convertTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+        writeTimeout(convertTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
     }
     return this
 }

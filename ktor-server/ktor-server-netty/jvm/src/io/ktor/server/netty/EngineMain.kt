@@ -7,6 +7,7 @@ package io.ktor.server.netty
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Netty engine
@@ -21,7 +22,7 @@ public object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = NettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+            engine.stop(3.seconds, 5.seconds)
         }
         engine.start(true)
     }
@@ -39,10 +40,10 @@ public object EngineMain {
             shareWorkGroup = it
         }
         deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
-            responseWriteTimeoutSeconds = it
+            responseWriteTimeout = it.seconds
         }
         deploymentConfig.propertyOrNull("requestReadTimeoutSeconds")?.getString()?.toInt()?.let {
-            requestReadTimeoutSeconds = it
+            requestReadTimeout = it.seconds
         }
         deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
             tcpKeepAlive = it

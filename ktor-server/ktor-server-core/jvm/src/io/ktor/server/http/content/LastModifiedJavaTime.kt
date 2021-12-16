@@ -7,8 +7,7 @@
 package io.ktor.server.http.content
 
 import io.ktor.http.content.*
-import io.ktor.server.util.*
-import io.ktor.util.date.*
+import kotlinx.datetime.*
 import java.nio.file.attribute.*
 import java.time.*
 
@@ -16,16 +15,16 @@ import java.time.*
  * Construct [LastModifiedVersion] version from a [ZonedDateTime] instance
  */
 public fun LastModifiedVersion(lastModified: ZonedDateTime): LastModifiedVersion =
-    LastModifiedVersion(lastModified.toGMTDate())
+    LastModifiedVersion(lastModified.toInstant().toKotlinInstant())
 
 /**
  * Construct [LastModifiedVersion] version from a [FileTime] instance
  */
 public fun LastModifiedVersion(lastModified: FileTime): LastModifiedVersion =
-    LastModifiedVersion(GMTDate(lastModified.toMillis()))
+    LastModifiedVersion(lastModified.toInstant().toKotlinInstant())
 
 /**
- * Construct [LastModifiedVersion] version from a [Long] instance
+ * Construct [LastModifiedVersion] version from a [Long] representing the seconds since epoch
  */
 public fun LastModifiedVersion(lastModified: Long): LastModifiedVersion =
-    LastModifiedVersion(GMTDate(lastModified))
+    LastModifiedVersion(kotlinx.datetime.Instant.fromEpochSeconds(lastModified))

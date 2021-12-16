@@ -10,6 +10,7 @@ import io.ktor.server.config.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
+import kotlinx.datetime.*
 
 /**
  * Engine environment configuration builder
@@ -55,6 +56,8 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
+    public actual var clock: Clock = Clock.System
+
     /**
      * Install application module
      */
@@ -74,7 +77,8 @@ public actual class ApplicationEngineEnvironmentBuilder {
             modules,
             parentCoroutineContext,
             rootPath,
-            developmentMode
+            developmentMode,
+            clock
         )
     }
 }

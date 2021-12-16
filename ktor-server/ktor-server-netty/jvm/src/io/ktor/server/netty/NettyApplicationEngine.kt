@@ -6,7 +6,6 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
@@ -24,6 +23,8 @@ import java.lang.reflect.*
 import java.net.*
 import java.util.concurrent.*
 import kotlin.reflect.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
@@ -59,14 +60,14 @@ public class NettyApplicationEngine(
         public var configureBootstrap: ServerBootstrap.() -> Unit = {}
 
         /**
-         * Timeout in seconds for sending responses to client
+         * Timeout for sending responses to client
          */
-        public var responseWriteTimeoutSeconds: Int = 10
+        public var responseWriteTimeout: Duration = 10.seconds
 
         /**
-         * Timeout in seconds for reading requests from client, "0" is infinite.
+         * Timeout for reading requests from client, "0" is infinite.
          */
-        public var requestReadTimeoutSeconds: Int = 0
+        public var requestReadTimeout: Duration = Duration.ZERO
 
         /**
          * If set to `true`, enables TCP keep alive for connections so all
@@ -159,8 +160,8 @@ public class NettyApplicationEngine(
                     connector,
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds,
-                    configuration.requestReadTimeoutSeconds,
+                    configuration.responseWriteTimeout,
+                    configuration.requestReadTimeout,
                     configuration.httpServerCodec,
                     configuration.channelPipelineConfig
                 )
@@ -198,7 +199,7 @@ public class NettyApplicationEngine(
 
         if (wait) {
             channels?.map { it.closeFuture() }?.forEach { it.sync() }
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(1.seconds, 5.seconds)
         }
         return this
     }
@@ -208,7 +209,9 @@ public class NettyApplicationEngine(
         workerEventGroup.shutdownGracefully().sync()
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+    override fun stop(gracePeriod: Duration, timeout: Duration) {
+        val gracePeriodMillis = gracePeriod.toLong(DurationUnit.MILLISECONDS)
+        val timeoutMillis = timeout.toLong(DurationUnit.MILLISECONDS)
         cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()

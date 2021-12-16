@@ -6,8 +6,10 @@ package io.ktor.server.sessions
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.date.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.days
 
-public const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days
+public val DEFAULT_SESSION_MAX_AGE: Duration = 7.days
 
 /**
  * SessionTransport that adds a Set-Cookie header and reads Cookie header
@@ -29,18 +31,15 @@ public class SessionTransportCookie(
     }
 
     override fun send(call: ApplicationCall, value: String) {
-        val now = GMTDate()
-        val maxAge = configuration.maxAgeInSeconds
-        val expires = when {
-            maxAge == 0L -> null
-            else -> now + maxAge * 1000L
-        }
+        val now = call.application.environment.clock.now()
+        val maxAge = configuration.maxAge
+        val expires = now + maxAge
 
         val cookie = Cookie(
             name,
             transformers.transformWrite(value),
             configuration.encoding,
-            maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+            maxAge,
             expires,
             configuration.domain,
             configuration.path,
@@ -70,9 +69,9 @@ public class CookieConfiguration {
      * Session cookies are client-driven. For example, a web browser usually removes session
      * cookies at browser or window close unless the session is restored.
      */
-    public var maxAgeInSeconds: Long = DEFAULT_SESSION_MAX_AGE
+    public var maxAge: Duration = DEFAULT_SESSION_MAX_AGE
         set(newMaxAge) {
-            require(newMaxAge >= 0) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+            require(!newMaxAge.isNegative()) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
             field = newMaxAge
         }
 

@@ -10,8 +10,10 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.date.*
+import kotlinx.datetime.*
 import java.util.concurrent.atomic.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 internal val counter = AtomicInteger(0)
 
@@ -33,7 +35,7 @@ internal fun Application.cacheTestServer() {
             }
             get("/max-age") {
                 val value = counter.incrementAndGet()
-                call.response.cacheControl(CacheControl.MaxAge(2))
+                call.response.cacheControl(CacheControl.MaxAge(2.seconds))
                 call.respondText("$value")
             }
             get("/expires") {
@@ -57,7 +59,7 @@ internal fun Application.cacheTestServer() {
             get("/last-modified") {
                 val current = counter.incrementAndGet()
                 val response = TextContent("$current", ContentType.Text.Plain)
-                response.versions += LastModifiedVersion(GMTDate.START)
+                response.versions += LastModifiedVersion(Instant.fromEpochSeconds(0))
 
                 call.respond(response)
             }
@@ -65,9 +67,9 @@ internal fun Application.cacheTestServer() {
             get("/vary") {
                 val current = counter.incrementAndGet()
                 val response = TextContent("$current", ContentType.Text.Plain).apply {
-                    caching = CachingOptions(CacheControl.MaxAge(60))
+                    caching = CachingOptions(CacheControl.MaxAge(60.seconds))
                 }
-                response.versions += LastModifiedVersion(GMTDate.START)
+                response.versions += LastModifiedVersion(Instant.fromEpochSeconds(0))
 
                 call.response.header(HttpHeaders.Vary, HttpHeaders.ContentLanguage)
                 call.respond(response)
@@ -76,20 +78,20 @@ internal fun Application.cacheTestServer() {
             get("/vary-stale") {
                 val current = counter.incrementAndGet()
                 val response = TextContent("$current", ContentType.Text.Plain).apply {
-                    caching = CachingOptions(CacheControl.MaxAge(0))
+                    caching = CachingOptions(CacheControl.MaxAge(Duration.ZERO))
                 }
-                response.versions += LastModifiedVersion(GMTDate.START)
+                response.versions += LastModifiedVersion(Instant.fromEpochSeconds(0))
 
                 call.response.header(HttpHeaders.Vary, HttpHeaders.ContentLanguage)
                 call.respond(response)
             }
 
             get("/public") {
-                call.response.cacheControl(CacheControl.MaxAge(60))
+                call.response.cacheControl(CacheControl.MaxAge(60.seconds))
                 call.respondText("public")
             }
             get("/private") {
-                call.response.cacheControl(CacheControl.MaxAge(60, visibility = CacheControl.Visibility.Private))
+                call.response.cacheControl(CacheControl.MaxAge(60.seconds, visibility = CacheControl.Visibility.Private))
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Private))
                 call.respondText("private")
             }

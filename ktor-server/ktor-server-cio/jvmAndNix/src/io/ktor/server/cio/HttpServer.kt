@@ -9,6 +9,8 @@ import io.ktor.network.sockets.*
 import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Represents a server instance
@@ -26,12 +28,12 @@ public class HttpServer(
  * HTTP server connector settings
  * @property host to listen to
  * @property port to listen to
- * @property connectionIdleTimeoutSeconds time to live for IDLE connections
+ * @property connectionIdleTimeout time to live for IDLE connections
  */
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
-    val connectionIdleTimeoutSeconds: Long = 45
+    val connectionIdleTimeout: Duration = 45.seconds
 )
 
 /**

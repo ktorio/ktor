@@ -16,6 +16,7 @@ import io.ktor.util.date.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
@@ -208,16 +209,15 @@ public class HttpRequestData @InternalAPI constructor(
 /**
  * Data prepared for [HttpResponse].
  */
-public class HttpResponseData constructor(
+public class HttpResponseData(
     public val statusCode: HttpStatusCode,
-    public val requestTime: GMTDate,
+    public val requestTime: Instant,
     public val headers: Headers,
     public val version: HttpProtocolVersion,
     public val body: Any,
-    public val callContext: CoroutineContext
+    public val callContext: CoroutineContext,
+    public val responseTime: Instant
 ) {
-    public val responseTime: GMTDate = GMTDate()
-
     override fun toString(): String = "HttpResponseData=(statusCode=$statusCode)"
 }
 

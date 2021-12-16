@@ -9,6 +9,7 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.sync.*
+import kotlinx.datetime.*
 import kotlin.math.*
 
 /**
@@ -17,12 +18,11 @@ import kotlin.math.*
 @Suppress("DEPRECATION")
 public class AcceptAllCookiesStorage : CookiesStorage {
     private val container: MutableList<Cookie> = sharedList()
-    private val oldestCookie: AtomicLong = atomic(0L)
+    private val oldestCookie = atomic(Instant.DISTANT_PAST)
     private val mutex = Mutex()
 
-    override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
-        val date = GMTDate()
-        if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
+    override suspend fun get(requestUrl: Url, now: Instant): List<Cookie> = mutex.withLock {
+        if (now >= oldestCookie.value) cleanup(now)
 
         return@withLock container.filter { it.matches(requestUrl) }
     }
@@ -34,7 +34,7 @@ public class AcceptAllCookiesStorage : CookiesStorage {
 
         container.removeAll { it.name == cookie.name && it.matches(requestUrl) }
         container.add(cookie.fillDefaults(requestUrl))
-        cookie.expires?.timestamp?.let { expires ->
+        cookie.expires?.let { expires ->
             if (oldestCookie.value > expires) {
                 oldestCookie.value = expires
             }
@@ -44,15 +44,13 @@ public class AcceptAllCookiesStorage : CookiesStorage {
     override fun close() {
     }
 
-    private fun cleanup(timestamp: Long) {
+    private fun cleanup(timestamp: Instant) {
         container.removeAll { cookie ->
-            val expires = cookie.expires?.timestamp ?: return@removeAll false
+            val expires = cookie.expires ?: return@removeAll false
             expires < timestamp
         }
 
-        val newOldest = container.fold(Long.MAX_VALUE) { acc, cookie ->
-            cookie.expires?.timestamp?.let { min(acc, it) } ?: acc
-        }
+        val newOldest = container.minOf { it.expires ?: Instant.DISTANT_PAST }
 
         oldestCookie.value = newOldest
     }

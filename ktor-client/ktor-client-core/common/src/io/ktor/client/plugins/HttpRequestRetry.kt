@@ -15,6 +15,10 @@ import kotlinx.coroutines.*
 import kotlin.math.*
 import kotlin.native.concurrent.*
 import kotlin.random.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A plugin that enables the client to retry failed requests.
@@ -32,7 +36,7 @@ import kotlin.random.*
  *      maxRetries = 5
  *      retryIf { request, response -> !response.status.isSuccess() }
  *      retryOnExceptionIf { request, cause -> cause is NetworkError }
- *      delayMillis { retry -> retry * 3000 } // will retry in 3, 6, 9, etc. seconds
+ *      delay { retry -> 3.seconds * retry } // will retry in 3, 6, 9, etc. seconds
  *      modifyRequest { it.headers.append("X_RETRY_COUNT", retryCount.toString()) }
  * }
  * ```
@@ -90,8 +94,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
     private val shouldRetry: ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean = configuration.shouldRetry
     private val shouldRetryOnException: ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean =
         configuration.shouldRetryOnException
-    private val delayMillis: DelayContext.(Int) -> Long = configuration.delayMillis
-    private val delay: suspend (Long) -> Unit = configuration.delay
+    private val delay: DelayContext.(Int) -> Duration = configuration.delay
     private val maxRetries: Int = configuration.maxRetries
     private val modifyRequest: ModifyRequestContext.(HttpRequestBuilder) -> Unit = configuration.modifyRequest
 
@@ -101,9 +104,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
     public class Configuration {
         internal lateinit var shouldRetry: ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean
         internal lateinit var shouldRetryOnException: ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean
-        internal lateinit var delayMillis: DelayContext.(Int) -> Long
+        internal lateinit var delay: DelayContext.(Int) -> Duration
         internal var modifyRequest: ModifyRequestContext.(HttpRequestBuilder) -> Unit = {}
-        internal var delay: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
 
         /**
          * The maximum amount of retries to perform for a request.
@@ -181,16 +183,16 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 
         /**
          * Specifies delay logic for retries. The [block] accepts the number of retries
-         * and should return the number of milliseconds to wait before retrying.
+         * and should return the duration to wait before retrying.
          */
-        public fun delayMillis(
+        public fun delay(
             respectRetryAfterHeader: Boolean = true,
-            block: DelayContext.(retry: Int) -> Long
+            block: DelayContext.(retry: Int) -> Duration
         ) {
-            delayMillis = {
+            delay = {
                 if (respectRetryAfterHeader) {
-                    val retryAfter = response?.headers?.get(HttpHeaders.RetryAfter)?.toLongOrNull()
-                    maxOf(block(it), retryAfter ?: 0)
+                    val retryAfter = response?.headers?.get(HttpHeaders.RetryAfter)?.toLongOrNull() ?: 0
+                    maxOf(block(it), retryAfter.seconds)
                 } else {
                     block(it)
                 }
@@ -199,53 +201,46 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 
         /**
          * Specifies a constant delay between retries.
-         * This delay equals to `millis + [0..randomizationMs]` milliseconds.
+         * This delay equals to `constant + [0..randomization]`.
          */
         public fun constantDelay(
-            millis: Long = 1000,
-            randomizationMs: Long = 1000,
+            constant: Duration = 1.seconds,
+            randomization: Duration = 1.seconds,
             respectRetryAfterHeader: Boolean = true
         ) {
-            check(millis > 0)
-            check(randomizationMs >= 0)
+            check(constant.isPositive())
+            check(!randomization.isNegative())
 
-            delayMillis(respectRetryAfterHeader) {
-                millis + randomMs(randomizationMs)
+            delay(respectRetryAfterHeader) {
+                constant + randomDuration(randomization)
             }
         }
 
         /**
          * Specifies an exponential delay between retries, which is calculated using the Exponential backoff algorithm.
-         * This delay equals to `base ^ retryCount * 1000 + [0..randomizationMs]`
+         * This delay equals to `(base ^ retryCount) sec + [0..randomization]`
          */
         public fun exponentialDelay(
             base: Double = 2.0,
-            maxDelayMs: Long = 60000,
-            randomizationMs: Long = 1000,
+            maxDelay: Duration = 1.minutes,
+            randomization: Duration = 1.seconds,
             respectRetryAfterHeader: Boolean = true
         ) {
             check(base > 0)
-            check(maxDelayMs > 0)
-            check(randomizationMs >= 0)
+            check(maxDelay.isPositive())
+            check(!randomization.isNegative())
 
-            delayMillis(respectRetryAfterHeader) { retry ->
-                val delay = minOf(base.pow(retry).toLong() * 1000L, maxDelayMs)
-                delay + randomMs(randomizationMs)
+            delay(respectRetryAfterHeader) { retry ->
+                val delay = minOf(base.pow(retry).seconds, maxDelay)
+                delay + randomDuration(randomization)
             }
         }
 
-        /**
-         * A function that waits for the specified amount of milliseconds. Uses [kotlinx.coroutines.delay] by default.
-         * Useful for tests.
-         */
-        public fun delay(block: suspend (Long) -> Unit) {
-            delay = block
-        }
-
-        private fun randomMs(randomizationMs: Long): Long =
-            if (randomizationMs == 0L) 0L else Random.nextLong(randomizationMs)
+        private fun randomDuration(randomization: Duration): Duration =
+            if (randomization == ZERO) ZERO else randomization * Random.nextDouble()
     }
 
+    @OptIn(ExperimentalTime::class)
     internal fun intercept(client: HttpClient) {
         client.plugin(HttpSend).intercept { request ->
             var retryCount = 0
@@ -253,7 +248,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
             val shouldRetryOnException =
                 request.attributes.getOrNull(ShouldRetryOnExceptionPerRequestAttributeKey) ?: shouldRetryOnException
             val maxRetries = request.attributes.getOrNull(MaxRetriesPerRequestAttributeKey) ?: maxRetries
-            val delayMillis = request.attributes.getOrNull(RetryDelayPerRequestAttributeKey) ?: delayMillis
+            val delay = request.attributes.getOrNull(RetryDelayPerRequestAttributeKey) ?: delay
             val modifyRequest = request.attributes.getOrNull(ModifyRequestPerRequestAttributeKey) ?: modifyRequest
 
             var call: HttpClientCall
@@ -287,7 +282,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
                 client.monitor.raise(HttpRequestRetryEvent, lastRetryData)
 
                 val delayContext = DelayContext(lastRetryData.request, lastRetryData.response, lastRetryData.cause)
-                delay(delayMillis(delayContext, retryCount))
+                delay(delay(delayContext, retryCount))
             }
             call
         }
@@ -350,7 +345,7 @@ public fun HttpRequestBuilder.retry(block: HttpRequestRetry.Configuration.() -> 
     val configuration = HttpRequestRetry.Configuration().apply(block)
     attributes.put(ShouldRetryPerRequestAttributeKey, configuration.shouldRetry)
     attributes.put(ShouldRetryOnExceptionPerRequestAttributeKey, configuration.shouldRetryOnException)
-    attributes.put(RetryDelayPerRequestAttributeKey, configuration.delayMillis)
+    attributes.put(RetryDelayPerRequestAttributeKey, configuration.delay)
     attributes.put(MaxRetriesPerRequestAttributeKey, configuration.maxRetries)
     attributes.put(ModifyRequestPerRequestAttributeKey, configuration.modifyRequest)
 }
@@ -379,6 +374,6 @@ private val ModifyRequestPerRequestAttributeKey =
 
 @SharedImmutable
 private val RetryDelayPerRequestAttributeKey =
-    AttributeKey<HttpRequestRetry.DelayContext.(Int) -> Long>(
+    AttributeKey<HttpRequestRetry.DelayContext.(Int) -> Duration>(
         "RetryDelayPerRequestAttributeKey"
     )

@@ -17,6 +17,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import libcurl.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 @SharedImmutable
 private val EMPTY_BYTE_ARRAY = ByteArray(0)
@@ -27,7 +28,7 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     headers = headersToCurl(),
     proxy = config.proxy,
     content = body.toCurlByteArray(),
-    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
+    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeout,
     config.forceProxyTunneling,
     config.sslVerify
 )
@@ -38,7 +39,7 @@ internal class CurlRequestData(
     val headers: CPointer<curl_slist>,
     val proxy: ProxyConfig?,
     val content: ByteArray,
-    val connectTimeout: Long?,
+    val connectTimeout: Duration?,
     val forceProxyTunneling: Boolean,
     val sslVerify: Boolean
 ) {

@@ -7,7 +7,6 @@ package io.ktor.server.engine
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.internal.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
@@ -16,7 +15,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
+import kotlinx.datetime.*
+import kotlin.time.*
 
 /**
  * Base class for implementing [ApplicationEngine]
@@ -27,6 +27,7 @@ import kotlin.native.concurrent.*
  * @param environment instance of [ApplicationEngineEnvironment] for this engine
  * @param pipeline pipeline to use with this engine
  */
+@OptIn(ExperimentalTime::class)
 public abstract class BaseApplicationEngine(
     public final override val environment: ApplicationEngineEnvironment,
     public val pipeline: EnginePipeline = defaultEnginePipeline(environment)
@@ -48,7 +49,7 @@ public abstract class BaseApplicationEngine(
 
         environment.monitor.subscribe(ApplicationStarting) {
             if (!info.isFirstLoading) {
-                info.initializedStartAt = currentTimeMillisBridge()
+                info.initializedStartAt = environment.clock.now()
             }
             it.receivePipeline.merge(pipeline.receivePipeline)
             it.sendPipeline.merge(pipeline.sendPipeline)
@@ -58,13 +59,13 @@ public abstract class BaseApplicationEngine(
             it.installDefaultTransformationChecker()
         }
         environment.monitor.subscribe(ApplicationStarted) {
-            val finishedAt = currentTimeMillisBridge()
-            val elapsedTimeInSeconds = (finishedAt - info.initializedStartAt) / 1_000.0
+            val finishedAt = environment.clock.now()
+            val elapsedTime = finishedAt - info.initializedStartAt
             if (info.isFirstLoading) {
-                environment.log.info("Application started in $elapsedTimeInSeconds seconds.")
+                environment.log.info("Application started in $elapsedTime.")
                 info.isFirstLoading = false
             } else {
-                environment.log.info("Application auto-reloaded in $elapsedTimeInSeconds seconds.")
+                environment.log.info("Application auto-reloaded in $elapsedTime.")
             }
         }
 
@@ -94,7 +95,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
 
 private class StartupInfo {
     var isFirstLoading by shared(false)
-    var initializedStartAt by shared(currentTimeMillisBridge())
+    lateinit var initializedStartAt: Instant
 }
 
 @OptIn(InternalAPI::class)

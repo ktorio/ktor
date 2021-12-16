@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import kotlin.time.*
+
 /**
  * Represents a value for a `Cache-Control` header
  *
@@ -72,17 +74,17 @@ public sealed class CacheControl(public val visibility: Visibility?) {
      * @property proxyRevalidate `true` if a caching proxy must revalidate in spite of age
      */
     public class MaxAge(
-        public val maxAgeSeconds: Int,
-        public val proxyMaxAgeSeconds: Int? = null,
+        public val maxAge: Duration,
+        public val proxyMaxAge: Duration? = null,
         public val mustRevalidate: Boolean = false,
         public val proxyRevalidate: Boolean = false,
         visibility: Visibility? = null
     ) : CacheControl(visibility) {
         override fun toString(): String {
             val parts = ArrayList<String>(5)
-            parts.add("max-age=$maxAgeSeconds")
-            if (proxyMaxAgeSeconds != null) {
-                parts.add("s-maxage=$proxyMaxAgeSeconds")
+            parts.add("max-age=${maxAge.inWholeSeconds}")
+            if (proxyMaxAge != null) {
+                parts.add("s-maxage=${proxyMaxAge.inWholeSeconds}")
             }
             if (mustRevalidate) {
                 parts.add("must-revalidate")
@@ -100,8 +102,8 @@ public sealed class CacheControl(public val visibility: Visibility?) {
         override fun equals(other: Any?): Boolean {
             return other === this || (
                 other is MaxAge &&
-                    other.maxAgeSeconds == maxAgeSeconds &&
-                    other.proxyMaxAgeSeconds == proxyMaxAgeSeconds &&
+                    other.maxAge == maxAge &&
+                    other.proxyMaxAge == proxyMaxAge &&
                     other.mustRevalidate == mustRevalidate &&
                     other.proxyRevalidate == proxyRevalidate &&
                     other.visibility == visibility
@@ -109,8 +111,8 @@ public sealed class CacheControl(public val visibility: Visibility?) {
         }
 
         override fun hashCode(): Int {
-            var result = maxAgeSeconds
-            result = 31 * result + (proxyMaxAgeSeconds ?: 0)
+            var result = maxAge.hashCode()
+            result = 31 * result + proxyMaxAge.hashCode()
             result = 31 * result + mustRevalidate.hashCode()
             result = 31 * result + proxyRevalidate.hashCode()
             result = 31 * result + visibility.hashCode()

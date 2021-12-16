@@ -6,11 +6,11 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.datetime.*
 import java.io.*
 import java.net.http.*
 import java.nio.*
@@ -19,17 +19,18 @@ import kotlin.coroutines.*
 
 internal class JavaHttpResponseBodyHandler(
     private val coroutineContext: CoroutineContext,
-    private val requestTime: GMTDate = GMTDate()
+    private val clock: Clock
 ) : HttpResponse.BodyHandler<HttpResponseData> {
 
     override fun apply(responseInfo: HttpResponse.ResponseInfo): HttpResponse.BodySubscriber<HttpResponseData> {
-        return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, requestTime)
+        return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, clock.now(), clock)
     }
 
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,
-        requestTime: GMTDate
+        requestTime: Instant,
+        clock: Clock
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
 
         private val consumerJob = Job(callContext[Job])
@@ -48,7 +49,8 @@ internal class JavaHttpResponseBodyHandler(
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
             responseChannel,
-            callContext
+            callContext,
+            responseTime = clock.now()
         )
 
         private val closed = atomic(false)

@@ -7,6 +7,7 @@ package io.ktor.server.tomcat
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tomcat engine
@@ -23,7 +24,7 @@ public object EngineMain {
             loadConfiguration(applicationEnvironment.config)
         }
         engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+            engine.stop(3.seconds, 5.seconds)
         }
         engine.start(true)
     }

@@ -9,6 +9,7 @@ import io.ktor.server.testing.*
 import org.junit.*
 import org.junit.Assert.*
 import java.util.concurrent.*
+import kotlin.time.Duration.Companion.seconds
 
 var count = 0
 
@@ -28,7 +29,7 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         }
 
         assertEquals(1, count)
-        server.stop(1, 1, TimeUnit.SECONDS)
+        server.stop(1.seconds, 1.seconds)
     }
 
     @Test
@@ -44,6 +45,6 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         }
 
         assertEquals(1, counter)
-        server.stop(1, 1, TimeUnit.SECONDS)
+        server.stop(1.seconds, 1.seconds)
     }
 }

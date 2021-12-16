@@ -4,8 +4,10 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.date.Month
+import kotlinx.datetime.*
+import kotlin.ranges.contains
 
 /**
  * Lexer over a source string, allowing testing, accepting and capture of spans of characters given
@@ -203,7 +205,7 @@ internal inline fun String.tryParseYear(success: (Int) -> Unit) {
 /**
  * Handle each 'date-token' in the rfc grammar
  */
-internal fun CookieDateBuilder.handleToken(token: String) {
+internal fun GMTDateBuilder.handleToken(token: String) {
     // 1.  If the found-time flag is not set and the token matches
     //     the time production
     if (hours == null || minutes == null || seconds == null) {
@@ -284,9 +286,9 @@ internal class CookieDateParser {
     /**
      * Parses cookie expiration date from the [source].
      */
-    public fun parse(source: String): GMTDate {
+    public fun parse(source: String): Instant {
         val lexer = StringLexer(source)
-        val builder = CookieDateBuilder()
+        val builder = GMTDateBuilder()
 
         lexer.acceptWhile { it.isDelimiter() }
 
@@ -326,18 +328,6 @@ internal class CookieDateParser {
 
         return builder.build()
     }
-}
-
-internal class CookieDateBuilder {
-    var seconds: Int? = null
-    var minutes: Int? = null
-    var hours: Int? = null
-
-    var dayOfMonth: Int? = null
-    var month: Month? = null
-    var year: Int? = null
-
-    public fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month!!, year!!)
 }
 
 /**

@@ -7,16 +7,17 @@ package io.ktor.client.engine.darwin
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import platform.Foundation.*
+import kotlin.time.*
 
 /**
  * Update [NSMutableURLRequest] and setup timeout interval that equal to socket interval specified by [HttpTimeout].
  */
 internal fun NSMutableURLRequest.setupSocketTimeout(requestData: HttpRequestData) {
     // Darwin timeout works like a socket timeout.
-    requestData.getCapabilityOrNull(HttpTimeout)?.socketTimeoutMillis?.let {
-        if (it != HttpTimeout.INFINITE_TIMEOUT_MS) {
+    requestData.getCapabilityOrNull(HttpTimeout)?.socketTimeout?.let {
+        if (it != Duration.INFINITE) {
             // Timeout should be specified in seconds.
-            setTimeoutInterval(it / 1000.0)
+            setTimeoutInterval(it.toDouble(DurationUnit.SECONDS))
         } else {
             setTimeoutInterval(Double.MAX_VALUE)
         }

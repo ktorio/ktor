@@ -10,6 +10,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.network.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 /**
@@ -91,6 +92,8 @@ public expect class ApplicationEngineEnvironmentBuilder() {
      * Development mode enabled.
      */
     public var developmentMode: Boolean
+
+    public var clock: Clock
 
     /**
      * Install application module

@@ -7,7 +7,6 @@ package io.ktor.client.engine.apache
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.apache.http.concurrent.*
 import org.apache.http.impl.nio.client.*
@@ -20,7 +19,8 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     callContext: CoroutineContext,
     requestData: HttpRequestData
 ): HttpResponseData {
-    val requestTime = GMTDate()
+    val clock = request.config.clock
+    val requestTime = clock.now()
 
     val consumer = ApacheResponseConsumer(callContext, requestData)
 
@@ -48,7 +48,15 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
         )
 
         val headers = HeadersImpl(rawHeaders)
-        return HttpResponseData(status, requestTime, headers, version, consumer.responseChannel, callContext)
+        return HttpResponseData(
+            status,
+            requestTime,
+            headers,
+            version,
+            consumer.responseChannel,
+            callContext,
+            responseTime = clock.now()
+        )
     } catch (cause: Exception) {
         future.cancel(true)
         val mappedCause = mapCause(cause, requestData)

@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
 import kotlin.io.use
 import kotlin.text.toByteArray
+import kotlin.time.*
 
 /**
  * This HTTP generator produces huge amount of requests however it doesn't validate responses and doesn't measure
@@ -621,8 +622,8 @@ public class HighLoadHttpGenerator(
             connectionsPerThread: Int,
             queueSize: Int,
             highPressure: Boolean,
-            gracefulMillis: Long,
-            timeMillis: Long
+            graceful: Duration,
+            time: Duration
         ) {
             val generator = HighLoadHttpGenerator(
                 url,
@@ -635,8 +636,8 @@ public class HighLoadHttpGenerator(
             doRun(
                 generator,
                 numberOfThreads,
-                gracefulMillis,
-                timeMillis
+                graceful,
+                time
             )
         }
 
@@ -647,8 +648,8 @@ public class HighLoadHttpGenerator(
             connectionsPerThread: Int,
             queueSize: Int,
             highPressure: Boolean,
-            gracefulMillis: Long,
-            timeMillis: Long,
+            graceful: Duration,
+            time: Duration,
             builder: RequestResponseBuilder.() -> Unit
         ) {
             val generator = HighLoadHttpGenerator(
@@ -662,16 +663,16 @@ public class HighLoadHttpGenerator(
             doRun(
                 generator,
                 numberOfThreads,
-                gracefulMillis,
-                timeMillis
+                graceful,
+                time
             )
         }
 
         private fun doRun(
             loadGenerator: HighLoadHttpGenerator,
             numberOfThreads: Int,
-            gracefulMillis: Long,
-            timeMillis: Long
+            graceful: Duration,
+            time: Duration
         ) {
             println("Running...")
             val threads = (1..numberOfThreads).map {
@@ -681,16 +682,16 @@ public class HighLoadHttpGenerator(
             }
             val joiner = thread(start = false) {
                 threads.forEach {
-                    it.join(gracefulMillis)
+                    it.join(graceful.inWholeMilliseconds)
                 }
             }
 
             try {
-                Thread.sleep(timeMillis)
+                Thread.sleep(time.inWholeMilliseconds)
                 println("Shutting down...")
                 loadGenerator.shutdown()
                 joiner.start()
-                joiner.join(gracefulMillis)
+                joiner.join(graceful.inWholeMilliseconds)
             } finally {
                 println("Termination...")
                 loadGenerator.stop()

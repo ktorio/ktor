@@ -17,6 +17,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.errors.EOFException
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
@@ -115,11 +116,12 @@ internal suspend fun HttpRequestData.write(
 
 @OptIn(DelicateCoroutinesApi::class)
 internal suspend fun readResponse(
-    requestTime: GMTDate,
+    requestTime: Instant,
     request: HttpRequestData,
     input: ByteReadChannel,
     output: ByteWriteChannel,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    clock: Clock
 ): HttpResponseData {
     val rawResponse = parseResponse(input)
         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
@@ -135,7 +137,7 @@ internal suspend fun readResponse(
         val version = HttpProtocolVersion.parse(rawResponse.version)
 
         if (status == HttpStatusCode.SwitchingProtocols) {
-            return startWebSocketSession(status, requestTime, headers, version, callContext, input, output)
+            return startWebSocketSession(status, requestTime, headers, version, callContext, input, output, clock.now())
         }
 
         val body = when {
@@ -153,7 +155,7 @@ internal suspend fun readResponse(
             }
         }
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return HttpResponseData(status, requestTime, headers, version, body, callContext, responseTime = clock.now())
     }
 }
 

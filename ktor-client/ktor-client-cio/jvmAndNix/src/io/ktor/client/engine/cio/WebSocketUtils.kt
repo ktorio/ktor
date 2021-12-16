@@ -6,16 +6,17 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 internal expect fun startWebSocketSession(
     status: HttpStatusCode,
-    requestTime: GMTDate,
+    requestTime: Instant,
     headers: Headers,
     version: HttpProtocolVersion,
     callContext: CoroutineContext,
     input: ByteReadChannel,
-    output: ByteWriteChannel
+    output: ByteWriteChannel,
+    responseTime: Instant
 ): HttpResponseData

@@ -7,6 +7,7 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlinx.datetime.*
 import kotlin.native.concurrent.*
 
 /**
@@ -74,8 +75,8 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
  *
  *  @param lastModified of the current content, for example file's last modified date
  */
-public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
-    private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
+public data class LastModifiedVersion(val lastModified: Instant) : Version {
+    private val truncatedModificationDate: Instant = Instant.fromEpochSeconds(lastModified.epochSeconds)
 
     /**
      *  @return [VersionCheckResult.OK] if all header pass or there are no headers in the request,
@@ -101,14 +102,14 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     /**
      * If-Modified-Since logic: all [dates] should be _before_ this date (truncated to seconds).
      */
-    public fun ifModifiedSince(dates: List<GMTDate>): Boolean {
+    public fun ifModifiedSince(dates: List<Instant>): Boolean {
         return dates.any { truncatedModificationDate > it }
     }
 
     /**
      * If-Unmodified-Since logic: all [dates] should not be before this date (truncated to seconds).
      */
-    public fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
+    public fun ifUnmodifiedSince(dates: List<Instant>): Boolean {
         return dates.all { truncatedModificationDate <= it }
     }
 
@@ -116,7 +117,7 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
         builder[HttpHeaders.LastModified] = lastModified.toHttpDate()
     }
 
-    private fun List<String>.parseDates(): List<GMTDate>? =
+    private fun List<String>.parseDates(): List<Instant>? =
         filter { it.isNotBlank() }
             .mapNotNull {
                 try {

@@ -11,7 +11,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.slf4j.*
 import java.net.*
-import java.util.concurrent.*
+import kotlin.time.*
 
 @Suppress("KDocMissingDocumentation")
 public abstract class TestWithKtor {
@@ -47,7 +47,7 @@ public abstract class TestWithKtor {
 
     @After
     public fun stopServer() {
-        server.stop(0, 0, TimeUnit.SECONDS)
+        server.stop(Duration.ZERO, Duration.ZERO)
     }
 
     private fun ensureServerRunning() {

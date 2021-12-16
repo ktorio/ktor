@@ -8,9 +8,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import kotlinx.atomicfu.*
-import java.util.*
+import kotlinx.datetime.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Adds the standard `Date` and `Server` HTTP headers and provides the ability
@@ -19,10 +19,7 @@ import java.util.*
 public class DefaultHeaders private constructor(config: Configuration) {
     private val headers = config.headers.build()
 
-    @OptIn(InternalAPI::class)
-    private val clock = config.clock
-
-    private var cachedDateTimeStamp: Long = 0L
+    private var cachedDateTimeStamp = Instant.DISTANT_PAST
     private val cachedDateText = atomic("")
 
     /**
@@ -38,45 +35,27 @@ public class DefaultHeaders private constructor(config: Configuration) {
          * Adds standard header property [name] with the specified [value].
          */
         public fun header(name: String, value: String): Unit = headers.append(name, value)
-
-        /**
-         * Provides time source. Useful for testing.
-         */
-        public var clock: () -> Long = { System.currentTimeMillis() }
     }
 
-    private fun intercept(call: ApplicationCall) {
-        appendDateHeader(call)
+    private fun intercept(call: ApplicationCall, now: Instant) {
+        appendDateHeader(call, now)
         headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
     }
 
-    private fun appendDateHeader(call: ApplicationCall) {
+    private fun appendDateHeader(call: ApplicationCall, now: Instant) {
         val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = clock()
-        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
-            cachedDateTimeStamp = currentTimeStamp
-            cachedDateText.value = now(currentTimeStamp).toHttpDate()
+        if (captureCached + DATE_CACHE_TIMEOUT <= now) {
+            cachedDateTimeStamp = now
+            cachedDateText.value = now.toHttpDate()
         }
         call.response.header(HttpHeaders.Date, cachedDateText.value)
-    }
-
-    private fun now(time: Long): GMTDate {
-        return calendar.get().toDate(time)
     }
 
     /**
      * An installable plugin for [DefaultHeaders].
      */
     public companion object Plugin : RouteScopedPlugin<Configuration, DefaultHeaders> {
-        private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
-
-        private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
-
-        private val calendar = object : ThreadLocal<Calendar>() {
-            override fun initialValue(): Calendar {
-                return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
-            }
-        }
+        private val DATE_CACHE_TIMEOUT = 1.seconds
 
         override val key: AttributeKey<DefaultHeaders> = AttributeKey("Default Headers")
 
@@ -92,7 +71,9 @@ public class DefaultHeaders private constructor(config: Configuration) {
             }
 
             val plugin = DefaultHeaders(config)
-            pipeline.intercept(ApplicationCallPipeline.Plugins) { plugin.intercept(call) }
+            pipeline.intercept(ApplicationCallPipeline.Plugins) {
+                plugin.intercept(call, call.application.environment.clock.now())
+            }
             return plugin
         }
     }

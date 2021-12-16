@@ -25,6 +25,9 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.text.String
 import kotlin.text.toByteArray
+import kotlin.time.*
+import kotlinx.datetime.*
+import kotlinx.datetime.Clock
 
 private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
@@ -40,11 +43,12 @@ private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
 
 internal suspend fun HttpClient.executeWebSocketRequest(
     coroutineContext: CoroutineContext,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    clock: Clock
 ): HttpResponseData {
-    val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData)
+    val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData, clock.now())
     try {
-        return webSocket.getResponse()
+        return webSocket.getResponse(clock)
     } catch (cause: HttpConnectTimeoutException) {
         throw ConnectTimeoutException(requestData, cause)
     } catch (cause: HttpTimeoutException) {
@@ -57,7 +61,7 @@ internal class JavaHttpWebSocket(
     private val callContext: CoroutineContext,
     private val httpClient: HttpClient,
     private val requestData: HttpRequestData,
-    private val requestTime: GMTDate = GMTDate()
+    private val requestTime: kotlinx.datetime.Instant
 ) : WebSocket.Listener, WebSocketSession {
 
     private lateinit var webSocket: WebSocket
@@ -129,13 +133,13 @@ internal class JavaHttpWebSocket(
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun getResponse(): HttpResponseData {
+    suspend fun getResponse(clock: Clock): HttpResponseData {
         val builder = httpClient.newWebSocketBuilder()
 
         with(builder) {
             requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
-                timeoutAttributes.connectTimeoutMillis?.let {
-                    connectTimeout(Duration.ofMillis(it))
+                timeoutAttributes.connectTimeout?.let {
+                    connectTimeout(it.toJavaDuration())
                 }
             }
 
@@ -154,7 +158,8 @@ internal class JavaHttpWebSocket(
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
             this,
-            callContext
+            callContext,
+            clock.now()
         )
     }
 

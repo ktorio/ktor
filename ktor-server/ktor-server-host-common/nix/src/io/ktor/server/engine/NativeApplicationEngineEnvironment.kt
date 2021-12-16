@@ -9,8 +9,9 @@ import io.ktor.events.EventDefinition
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
-import kotlinx.atomicfu.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 public class NativeApplicationEngineEnvironment(
     override val log: Logger,
@@ -19,7 +20,8 @@ public class NativeApplicationEngineEnvironment(
     private val modules: MutableList<Application.() -> Unit>,
     override val parentCoroutineContext: CoroutineContext,
     override val rootPath: String,
-    override val developmentMode: Boolean
+    override val developmentMode: Boolean,
+    override val clock: Clock
 ) : ApplicationEngineEnvironment {
 
     override val monitor: Events = Events()

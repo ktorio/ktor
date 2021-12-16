@@ -9,6 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
 import libcurl.*
+import kotlin.time.*
 
 private class RequestHolders(
     private val requestBody: StableRef<ByteReadPacket>?,
@@ -62,8 +63,8 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_PRIVATE, responseDataRef)
             option(CURLOPT_ACCEPT_ENCODING, "")
             request.connectTimeout?.let {
-                if (it != HttpTimeout.INFINITE_TIMEOUT_MS) {
-                    option(CURLOPT_CONNECTTIMEOUT_MS, request.connectTimeout)
+                if (it != Duration.INFINITE) {
+                    option(CURLOPT_CONNECTTIMEOUT_MS, request.connectTimeout.inWholeMilliseconds)
                 } else {
                     option(CURLOPT_CONNECTTIMEOUT_MS, Long.MAX_VALUE)
                 }

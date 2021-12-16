@@ -15,6 +15,7 @@ import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.datetime.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
@@ -38,7 +39,8 @@ public class ApplicationEngineEnvironmentReloading(
     internal val watchPaths: List<String> = emptyList(),
     override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     override val rootPath: String = "",
-    override val developmentMode: Boolean = true
+    override val developmentMode: Boolean = true,
+    override val clock: Clock
 ) : ApplicationEngineEnvironment {
 
     public constructor(
@@ -50,9 +52,10 @@ public class ApplicationEngineEnvironmentReloading(
         watchPaths: List<String> = emptyList(),
         parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
         rootPath: String = "",
+        clock: Clock
     ) : this(
         classLoader, log, config, connectors, modules, watchPaths,
-        parentCoroutineContext, rootPath, developmentMode = true
+        parentCoroutineContext, rootPath, developmentMode = true, clock = clock
     )
 
     private var _applicationInstance: Application? = Application(this)

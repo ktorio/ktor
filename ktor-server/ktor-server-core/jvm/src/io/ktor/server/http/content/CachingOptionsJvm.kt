@@ -7,10 +7,11 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.util.*
+import kotlinx.datetime.*
 import java.time.*
 
 /**
  * Creates [CachingOptions] instance with [ZonedDateTime] expiration time
  */
 public fun CachingOptions(cacheControl: CacheControl? = null, expires: ZonedDateTime): CachingOptions =
-    CachingOptions(cacheControl, expires.toGMTDate())
+    CachingOptions(cacheControl, expires.toInstant().toKotlinInstant())

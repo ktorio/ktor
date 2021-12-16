@@ -42,6 +42,8 @@ public open class HttpClientCall internal constructor(
     private val state = HttpClientCallState()
     private val received: AtomicBoolean = atomic(false)
 
+    internal val clock = client.engine.config.clock
+
     public val client: HttpClient? by threadLocal(client)
 
     override val coroutineContext: CoroutineContext get() = response.coroutineContext

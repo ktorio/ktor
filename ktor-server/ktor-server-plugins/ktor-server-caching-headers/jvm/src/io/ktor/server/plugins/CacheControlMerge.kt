@@ -5,6 +5,7 @@
 package io.ktor.server.plugins
 
 import io.ktor.http.*
+import kotlin.time.*
 
 /**
  * Merge a list of cache control directives.
@@ -41,8 +42,8 @@ internal fun List<CacheControl>.mergeCacheControlDirectives(): List<CacheControl
     val noStoreDirective = firstOrNull { it is CacheControl.NoStore } as CacheControl.NoStore?
 
     val maxAgeDirectives = filterIsInstance<CacheControl.MaxAge>()
-    val minMaxAge = maxAgeDirectives.minByOrNull { it.maxAgeSeconds }?.maxAgeSeconds
-    val minProxyMaxAge = maxAgeDirectives.minByOrNull { it.proxyMaxAgeSeconds ?: Int.MAX_VALUE }?.proxyMaxAgeSeconds
+    val minMaxAge = maxAgeDirectives.minByOrNull { it.maxAge }?.maxAge
+    val minProxyMaxAge = maxAgeDirectives.minByOrNull { it.proxyMaxAge ?: Duration.INFINITE }?.proxyMaxAge
     val mustRevalidate = maxAgeDirectives.any { it.mustRevalidate }
     val proxyRevalidate = maxAgeDirectives.any { it.proxyRevalidate }
 

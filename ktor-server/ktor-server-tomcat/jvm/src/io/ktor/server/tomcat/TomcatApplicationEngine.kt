@@ -22,6 +22,8 @@ import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tomcat application engine that runs it in embedded mode
@@ -147,12 +149,12 @@ public class TomcatApplicationEngine(
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.server.await()
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(1.seconds, 5.seconds)
         }
         return this
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+    override fun stop(gracePeriod: Duration, timeout: Duration) {
         if (!stopped.compareAndSet(expect = false, update = true)) return
 
         cancellationDeferred?.complete()

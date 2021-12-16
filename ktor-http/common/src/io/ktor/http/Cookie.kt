@@ -5,9 +5,10 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import io.ktor.util.date.*
-import kotlin.jvm.*
+import kotlinx.datetime.*
 import kotlin.native.concurrent.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
@@ -16,7 +17,7 @@ import kotlin.native.concurrent.*
  * @property name
  * @property value
  * @property encoding - cookie encoding type [CookieEncoding]
- * @property maxAge number of seconds to keep cookie
+ * @property maxAge duration to keep cookie
  * @property expires date when it expires
  * @property domain for which it is set
  * @property path for which it is set
@@ -28,9 +29,8 @@ public data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-    @get:JvmName("getMaxAgeInt")
-    val maxAge: Int = 0,
-    val expires: GMTDate? = null,
+    val maxAge: Duration = Duration.ZERO,
+    val expires: Instant? = null,
     val domain: String? = null,
     val path: String? = null,
     val secure: Boolean = false,
@@ -79,7 +79,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toIntClamping() ?: 0,
+        maxAge = (loweredMap["max-age"]?.toInt() ?: 0).seconds,
         expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -142,8 +142,8 @@ public fun renderSetCookieHeader(
     name: String,
     value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-    maxAge: Int = 0,
-    expires: GMTDate? = null,
+    maxAge: Duration = Duration.ZERO,
+    expires: Instant? = null,
     domain: String? = null,
     path: String? = null,
     secure: Boolean = false,
@@ -153,7 +153,7 @@ public fun renderSetCookieHeader(
 ): String = (
     listOf(
         cookiePart(name.assertCookieName(), value, encoding),
-        cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
+        cookiePartUnencoded("Max-Age", if (maxAge.isPositive()) maxAge else null),
         cookiePartUnencoded("Expires", expires?.toHttpDate()),
         cookiePart("Domain", domain, CookieEncoding.RAW),
         cookiePart("Path", path, CookieEncoding.RAW),

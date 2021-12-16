@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.WeakTimeoutQueue
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -17,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlin.native.concurrent.*
+import kotlin.time.*
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -32,7 +32,7 @@ import kotlin.native.concurrent.*
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
@@ -186,18 +186,18 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, ExperimentalTime::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     connection: ServerIncomingConnection
 ) {
-    val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> {
+    val receiveChildOrNull: suspend () -> ByteReadChannel? = suspend {
         channel.receiveCatching().getOrNull()
     }
 
     while (true) {
-        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        val child = withTimeout(timeout) { receiveChildOrNull() } ?: break
         try {
             child.joinTo(connection.output, false)
             connection.output.flush()
@@ -224,6 +224,3 @@ internal fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOpt
         else -> false
     }
 }
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

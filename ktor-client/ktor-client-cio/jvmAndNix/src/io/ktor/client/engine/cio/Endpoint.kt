@@ -19,6 +19,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 internal class Endpoint(
     private val host: String,
@@ -30,16 +31,17 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val lastActivity = atomic(GMTDate())
+    private val lastActivity = atomic(config.clock.now())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
-    private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
+    private val maxEndpointIdleTime: Duration = config.endpoint.connectTimeout * 2
 
+    @OptIn(ExperimentalTime::class)
     private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
             while (true) {
-                val remaining = (lastActivity.value + maxEndpointIdleTime).timestamp - GMTDate().timestamp
-                if (remaining <= 0) {
+                val remaining = lastActivity.value + maxEndpointIdleTime - config.clock.now()
+                if (!remaining.isPositive()) {
                     break
                 }
 
@@ -69,7 +71,7 @@ internal class Endpoint(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        lastActivity.value = GMTDate()
+        lastActivity.value = config.clock.now()
         val response = CompletableDeferred<HttpResponseData>()
         val task = RequestTask(request, response, callContext)
         processTask(task)
@@ -130,12 +132,8 @@ internal class Endpoint(
         }
     }
 
-    private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
-        return if (configuration?.requestTimeoutMillis != null) {
-            Long.MAX_VALUE
-        } else {
-            config.requestTimeout
-        }
+    private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Duration {
+        return configuration?.requestTimeout ?: config.requestTimeout ?: Duration.INFINITE
     }
 
     private suspend fun writeRequestAndReadResponse(
@@ -145,10 +143,10 @@ internal class Endpoint(
         input: ByteReadChannel,
         originOutput: ByteWriteChannel
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         request.write(output, callContext, proxy != null)
 
-        return readResponse(requestTime, request, input, originOutput, callContext)
+        return readResponse(requestTime, request, input, originOutput, callContext, config.clock)
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
@@ -160,12 +158,14 @@ internal class Endpoint(
             connection,
             proxy != null,
             deliveryPoint,
-            coroutineContext
+            coroutineContext,
+            config.clock
         )
 
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
@@ -184,7 +184,7 @@ internal class Endpoint(
                 }
 
                 val socket = when (connectTimeout) {
-                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
+                    Duration.INFINITE -> connect()
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
                         if (connection == null) {
@@ -242,13 +242,13 @@ internal class Endpoint(
      * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
      * connect timeout and socket timeout to be applied.
      */
-    private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Long, Long> {
+    private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Duration, Duration> {
         val default = config.endpoint.connectTimeout to config.endpoint.socketTimeout
         val timeoutAttributes = requestData.getCapabilityOrNull(HttpTimeout)
             ?: return default
 
-        val socketTimeout = timeoutAttributes.socketTimeoutMillis ?: config.endpoint.socketTimeout
-        val connectTimeout = timeoutAttributes.connectTimeoutMillis ?: config.endpoint.connectTimeout
+        val socketTimeout = timeoutAttributes.socketTimeout ?: config.endpoint.socketTimeout
+        val connectTimeout = timeoutAttributes.connectTimeout ?: config.endpoint.connectTimeout
         return connectTimeout to socketTimeout
     }
 
@@ -262,10 +262,11 @@ internal class Endpoint(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 private suspend fun <T> CoroutineScope.handleTimeout(
-    timeout: Long,
+    timeout: Duration,
     block: suspend CoroutineScope.() -> T
-): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS) {
+): T = if (timeout == Duration.INFINITE) {
     block()
 } else {
     withTimeout(timeout, block)

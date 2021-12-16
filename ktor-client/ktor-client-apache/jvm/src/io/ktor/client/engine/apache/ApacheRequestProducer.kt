@@ -25,11 +25,12 @@ import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 @OptIn(InternalAPI::class)
 internal class ApacheRequestProducer(
     private val requestData: HttpRequestData,
-    private val config: ApacheEngineConfig,
+    internal val config: ApacheEngineConfig,
     callContext: CoroutineContext
 ) : HttpAsyncRequestProducer, CoroutineScope {
 
@@ -143,9 +144,9 @@ internal class ApacheRequestProducer(
         with(config) {
             builder.config = RequestConfig.custom()
                 .setRedirectsEnabled(followRedirects)
-                .setSocketTimeout(socketTimeout)
-                .setConnectTimeout(connectTimeout)
-                .setConnectionRequestTimeout(connectionRequestTimeout)
+                .setSocketTimeout(socketTimeout.toInt(DurationUnit.MILLISECONDS))
+                .setConnectTimeout(connectTimeout.toInt(DurationUnit.MILLISECONDS))
+                .setConnectionRequestTimeout(connectionRequestTimeout.toInt(DurationUnit.MILLISECONDS))
                 .customRequest()
                 .setupTimeoutAttributes(requestData)
                 .build()
@@ -158,7 +159,7 @@ internal class ApacheRequestProducer(
 @OptIn(InternalAPI::class)
 private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
     requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
-        timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
-        timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
+        timeoutAttributes.connectTimeout?.let { setConnectTimeout(convertTimeoutToIntWithInfiniteAsZero(it)) }
+        timeoutAttributes.socketTimeout?.let { setSocketTimeout(convertTimeoutToIntWithInfiniteAsZero(it)) }
     }
 }

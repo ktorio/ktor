@@ -20,6 +20,7 @@ import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 @SharedImmutable
@@ -68,7 +69,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
                 return server
             }
 
-            server.stop(1L, 1L)
+            server.stop(1.seconds, 1.seconds)
         }
 
         error(lastFailures)
@@ -136,13 +137,14 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         withUrl("http://127.0.0.1:$port$path", port, builder, block)
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun withUrl(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(10.seconds.inWholeMilliseconds) {
+        withTimeout(10.seconds) {
             HttpClient(CIO) {
                 followRedirects = false
                 expectSuccess = false

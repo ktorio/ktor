@@ -9,10 +9,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteArray) : HttpClientCall(client) {
@@ -43,9 +43,9 @@ internal class SavedHttpResponse(
 
     override val version: HttpProtocolVersion = origin.version
 
-    override val requestTime: GMTDate = origin.requestTime
+    override val requestTime: Instant = origin.requestTime
 
-    override val responseTime: GMTDate = origin.responseTime
+    override val responseTime: Instant = origin.responseTime
 
     override val headers: Headers = origin.headers
 

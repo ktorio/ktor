@@ -11,6 +11,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.logging.*
+import kotlin.time.*
 
 internal expect fun DefaultTestConfig(configPath: String? = null): ApplicationConfig
 
@@ -54,7 +55,7 @@ public fun <R> withApplication(
     try {
         return engine.test()
     } finally {
-        engine.stop(0L, 0L)
+        engine.stop(Duration.ZERO, Duration.ZERO)
     }
 }
 

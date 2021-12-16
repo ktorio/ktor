@@ -4,14 +4,12 @@
 
 package io.ktor.http.content
 
-import io.ktor.util.date.*
+import kotlinx.datetime.*
 import java.util.*
 
 /**
  * This version passes the given [lastModified] date through the client provided
  * http conditional headers If-Modified-Since and If-Unmodified-Since.
- *
- * Notice the second precision so it may work wrong if there were few changes during the same second.
  *
  * For better behaviour use etag instead
  *
@@ -21,4 +19,4 @@ import java.util.*
  *  @param lastModified of the current content, for example file's last modified date
  */
 public fun LastModifiedVersion(lastModified: Date): LastModifiedVersion =
-    LastModifiedVersion(GMTDate(lastModified.time))
+    LastModifiedVersion(lastModified.toInstant().toKotlinInstant())

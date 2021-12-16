@@ -12,7 +12,6 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
@@ -21,6 +20,7 @@ import java.net.*
 import java.util.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 
@@ -42,7 +42,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
 
         val url: String = URLBuilder().takeFrom(data.url).buildString()
         val outgoingContent: OutgoingContent = data.body
@@ -50,8 +50,8 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             ?: outgoingContent.contentLength
 
         val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
-            connectTimeout = config.connectTimeout
-            readTimeout = config.socketTimeout
+            connectTimeout = config.connectTimeout.toInt(DurationUnit.MILLISECONDS)
+            readTimeout = config.socketTimeout.toInt(DurationUnit.MILLISECONDS)
 
             setupTimeoutAttributes(data)
 
@@ -101,7 +101,15 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
             val responseHeaders = HeadersImpl(headerFields)
 
-            HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
+            HttpResponseData(
+                statusCode,
+                requestTime,
+                responseHeaders,
+                version,
+                content,
+                callContext,
+                responseTime = config.clock.now()
+            )
         }
     }
 

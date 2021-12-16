@@ -6,9 +6,10 @@ package io.ktor.server.testing.suites
 
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Assert.*
 import java.net.*
+import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
@@ -27,13 +28,13 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         GlobalScope.launch {
             server.start(true)
         }
-
-        val addresses = withTimeout(15000) {
+        @OptIn(ExperimentalTime::class)
+        val addresses = withTimeout(15.seconds) {
             server.resolvedConnectors()
         }
 
         assertEquals(2, addresses.size)
         assertFalse(addresses.any { it.port == 0 })
-        server.stop(1000, 1000)
+        server.stop(1.seconds, 1.seconds)
     }
 }

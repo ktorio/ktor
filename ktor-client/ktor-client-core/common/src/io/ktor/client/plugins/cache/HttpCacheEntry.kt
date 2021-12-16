@@ -8,9 +8,11 @@ import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.datetime.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
@@ -23,7 +25,7 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
  * Client single response cache with [expires] and [varyKeys].
  */
 public class HttpCacheEntry internal constructor(
-    public val expires: GMTDate,
+    public val expires: Instant,
     public val varyKeys: Map<String, String>,
     public val response: HttpResponse,
     public val body: ByteArray
@@ -65,7 +67,8 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
+@OptIn(ExperimentalTime::class)
+internal fun HttpResponse.cacheExpires(fallback: () -> Instant = { call.clock.now() }): Instant {
     val cacheControl = cacheControl()
 
     val isPrivate = CacheControl.PRIVATE in cacheControl
@@ -74,10 +77,10 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
-        ?.get(1)?.toInt()
+        ?.get(1)?.toInt()?.seconds
 
     if (maxAge != null) {
-        return call.response.requestTime + maxAge * 1000L
+        return call.response.requestTime + maxAge
     }
 
     val expires = headers[HttpHeaders.Expires]
@@ -95,7 +98,7 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
     val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
-    val isStale = GMTDate() > expires
+    val isStale = response.call.clock.now() > expires
     // must-revalidate; re-validate once STALE, and MUST NOT return a cached response once stale.
     //  This is how majority of clients implement the RFC
     //  OkHttp Implements this the same: https://github.com/square/okhttp/issues/4043#issuecomment-403679369

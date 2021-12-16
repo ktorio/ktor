@@ -29,6 +29,8 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(StressSuiteRunner::class)
 abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -41,26 +43,27 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     //    private val timeMillis: Long = TimeUnit.SECONDS.toMillis(10L)
-    private val timeMillis: Long = TimeUnit.MINUTES.toMillis(2L)
-    private val gracefulMillis: Long = TimeUnit.SECONDS.toMillis(20L)
-    private val shutdownMillis: Long = TimeUnit.SECONDS.toMillis(40L)
+    private val time = 2.minutes
+    private val graceful = 20.seconds
+    private val shutdown = 40.seconds
 
     private val endMarker = "<< END >>"
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
+    override val timeout = time + graceful + shutdown
 
     @get:org.junit.Rule
     val timout1 = CoroutinesTimeout(200000L, true)
 
     @Test
     fun singleConnectionSingleThreadNoPipelining() {
-        createAndStartServer {
+        val server = createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
             }
         }
+        val clock = server.environment.clock
 
         val request = buildString {
             append("GET / HTTP/1.1\r\n")
@@ -74,11 +77,11 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
             val out = socket.getOutputStream()
             val input = socket.getInputStream().bufferedReader(Charsets.ISO_8859_1)
-            val start = System.currentTimeMillis()
+            val start = clock.now()
 
             while (true) {
-                val now = System.currentTimeMillis()
-                if (now - start >= timeMillis) break
+                val now = clock.now()
+                if (now - start >= time) break
 
                 out.write(request)
                 out.flush()
@@ -95,11 +98,12 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
     @Test
     fun singleConnectionSingleThreadWithPipelining() {
-        createAndStartServer {
+        val server = createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
             }
         }
+        val clock = server.environment.clock
 
         val request = buildString {
             append("GET / HTTP/1.1\r\n")
@@ -111,15 +115,15 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         socket {
             val out = getOutputStream()
             val input = getInputStream().bufferedReader(Charsets.ISO_8859_1)
-            val start = System.currentTimeMillis()
+            val start = clock.now()
             val sem = Semaphore(10)
             var writerFailure: Throwable? = null
 
             val sender = thread(name = "http-sender") {
                 try {
                     while (true) {
-                        val now = System.currentTimeMillis()
-                        if (now - start >= timeMillis) break
+                        val now = clock.now()
+                        if (now - start >= time) break
 
                         if (!sem.tryAcquire(1000L, TimeUnit.MILLISECONDS)) continue
 
@@ -136,8 +140,8 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
             try {
                 while (true) {
-                    val now = System.currentTimeMillis()
-                    if (now - start >= timeMillis) break
+                    val now = clock.now()
+                    if (now - start >= time) break
 
                     val line = input.readLine() ?: throw AssertionError("Unexpected EOF")
                     if (endMarker in line) {
@@ -167,7 +171,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 1, 10, true, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 1, 10, true, graceful, time)
 
         sleepWhileServerIsRestoring()
 
@@ -184,7 +188,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 100, 10, true, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 100, 10, true, graceful, time)
 
         sleepWhileServerIsRestoring()
 
@@ -201,7 +205,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, true, graceful, time)
 
         sleepWhileServerIsRestoring()
 
@@ -237,7 +241,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("localhost", port, 1, 100, 10, true, gracefulMillis, timeMillis) {
+        HighLoadHttpGenerator.doRun("localhost", port, 1, 100, 10, true, graceful, time) {
             requestLine(HttpMethod.Get, "/", "HTTP/1.1")
             headerLine(HttpHeaders.Host, "localhost")
             headerLine(HttpHeaders.Connection, "Upgrade")
@@ -275,7 +279,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, false, graceful, time)
 
         withUrl("/") {
             assertEquals(endMarkerCrLf, bodyAsText())
@@ -290,7 +294,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             }
         }
 
-        HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, graceful, time)
 
         withUrl("/") {
             assertEquals("OK", bodyAsText())
@@ -325,7 +329,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         }
 
         println("Starting...")
-        HighLoadHttpGenerator.doRun("/ll", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
+        HighLoadHttpGenerator.doRun("/ll", "localhost", port, 8, 50, 10, true, graceful, time)
 
         sleepWhileServerIsRestoring()
 

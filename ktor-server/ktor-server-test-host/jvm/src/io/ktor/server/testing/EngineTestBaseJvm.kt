@@ -31,6 +31,9 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
@@ -76,16 +79,15 @@ actual abstract class EngineTestBase<
     @get:Rule
     val test: TestName = TestName()
 
-    open val timeout: Long = if (isUnderDebugger) {
-        1000000
+    open val timeout: Duration = if (isUnderDebugger) {
+        Duration.INFINITE
     } else {
-        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(4))
+        (System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes)
     }
 
     @get:Rule
-    val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
+    val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.inWholeSeconds) }
 
-    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
     fun setUpBase() {
@@ -108,7 +110,7 @@ actual abstract class EngineTestBase<
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            (server as? ApplicationEngine)?.stop(1.seconds, 5.seconds)
             if (exceptions.isNotEmpty()) {
                 throw AssertionError("Server exceptions logged, consult log output for more information")
             }
@@ -120,7 +122,7 @@ actual abstract class EngineTestBase<
             testJob.invokeOnCompletion {
                 closeThread.start()
             }
-            closeThread.join(TimeUnit.SECONDS.toMillis(timeout))
+            closeThread.join(timeout.inWholeMilliseconds)
 
             FreePorts.recycle(port)
             FreePorts.recycle(sslPort)
@@ -199,11 +201,11 @@ actual abstract class EngineTestBase<
 
                     port = findFreePort()
                     sslPort = findFreePort()
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop(1.seconds, 1.seconds)
                     lastFailures = failures
                 }
                 else -> {
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop(1.seconds, 1.seconds)
                     throw MultipleFailureException(failures)
                 }
             }
@@ -212,7 +214,7 @@ actual abstract class EngineTestBase<
         throw MultipleFailureException(lastFailures)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalTime::class)
     protected fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
@@ -221,7 +223,7 @@ actual abstract class EngineTestBase<
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout))) {
+            withTimeout(minOf(10.seconds, timeout)) {
                 server.environment.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
@@ -280,20 +282,21 @@ actual abstract class EngineTestBase<
     protected inline fun socket(block: Socket.() -> Unit) {
         Socket().use { socket ->
             socket.tcpNoDelay = true
-            socket.soTimeout = socketReadTimeout
+            socket.soTimeout = timeout.toInt(DurationUnit.MILLISECONDS)
             socket.connect(InetSocketAddress("localhost", port))
 
             block(socket)
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun withUrl(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
+        withTimeout(timeout) {
             HttpClient(CIO) {
                 engine {
                     https.trustManager = trustManager
@@ -311,13 +314,14 @@ actual abstract class EngineTestBase<
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun withHttp2(
         url: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
+        withTimeout(timeout) {
             HttpClient(Jetty) {
                 followRedirects = false
                 expectSuccess = false

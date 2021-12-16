@@ -13,8 +13,8 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.net.*
 import java.net.http.*
-import java.time.*
 import java.util.concurrent.*
+import kotlin.time.*
 
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
 
@@ -55,9 +55,9 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
         return try {
             if (data.isUpgradeRequest()) {
-                engine.executeWebSocketRequest(callContext, data)
+                engine.executeWebSocketRequest(callContext, data, config.clock)
             } else {
-                engine.executeHttpRequest(callContext, data)
+                engine.executeHttpRequest(callContext, data, config.clock)
             }
         } catch (cause: Throwable) {
             callContext.cancel(CancellationException("Failed to execute request", cause))
@@ -76,8 +76,8 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
                 setupProxy()
 
                 data.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttribute ->
-                    timeoutAttribute.connectTimeoutMillis?.let {
-                        connectTimeout(Duration.ofMillis(it))
+                    timeoutAttribute.connectTimeout?.let {
+                        connectTimeout(it.toJavaDuration())
                     }
                 }
             }.build().also {

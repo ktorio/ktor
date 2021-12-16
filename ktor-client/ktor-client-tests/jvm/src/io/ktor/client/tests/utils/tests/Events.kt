@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlin.time.Duration.Companion.seconds
 
 internal fun Application.eventsTest() {
     routing {
@@ -18,7 +19,7 @@ internal fun Application.eventsTest() {
                 call.respondRedirect("basic")
             }
             get("cache") {
-                call.response.cacheControl(CacheControl.MaxAge(60))
+                call.response.cacheControl(CacheControl.MaxAge(60.seconds))
                 call.respondText("Hello, world!")
             }
         }

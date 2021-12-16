@@ -8,7 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
-import java.util.concurrent.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
@@ -56,15 +57,15 @@ public open class JettyApplicationEngineBase(
 
         if (wait) {
             server.join()
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(1.seconds, 5.seconds)
         }
         return this
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+    override fun stop(gracePeriod: Duration, timeout: Duration) {
         cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
-        server.stopTimeout = timeoutMillis
+        server.stopTimeout = timeout.toLong(DurationUnit.MILLISECONDS)
         server.stop()
         server.destroy()
         environment.stop()

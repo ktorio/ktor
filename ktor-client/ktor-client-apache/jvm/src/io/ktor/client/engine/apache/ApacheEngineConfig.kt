@@ -8,6 +8,8 @@ import io.ktor.client.engine.*
 import org.apache.http.client.config.*
 import org.apache.http.impl.nio.client.*
 import javax.net.ssl.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Configuration for [Apache] implementation of [HttpClientEngineFactory].
@@ -20,22 +22,22 @@ public class ApacheEngineConfig : HttpClientEngineConfig() {
     public var followRedirects: Boolean = false
 
     /**
-     * Max milliseconds between TCP packets - default 10 seconds.
+     * Max timout between TCP packets - default 10 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    public var socketTimeout: Int = 10_000
+    public var socketTimeout: Duration = 10.seconds
 
     /**
-     * Max milliseconds to establish an HTTP connection - default 10 seconds.
+     * Max timeout to establish an HTTP connection - default 10 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    public var connectTimeout: Int = 10_000
+    public var connectTimeout: Duration = 10.seconds
 
     /**
-     * Max milliseconds for the connection manager to start a request - default 20 seconds.
+     * Max timeout for the connection manager to start a request - default 20 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    public var connectionRequestTimeout: Int = 20_000
+    public var connectionRequestTimeout: Duration = 20.seconds
 
     /**
      * Optional Java's SSLContext allowing to set custom keys,

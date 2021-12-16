@@ -7,6 +7,7 @@ package io.ktor.server.engine
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
@@ -14,7 +15,7 @@ import kotlinx.coroutines.*
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
-        stop(1000, 5000)
+        stop(1.seconds, 5.seconds)
     } ?: Job()
 
 /**

@@ -36,7 +36,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             return executeWebSocketRequest(data, callContext)
         }
 
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         val rawRequest = data.toRaw(callContext)
         val rawResponse = commonFetch(data.url.toString(), rawRequest)
 
@@ -52,7 +52,8 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             headers,
             version,
             body,
-            callContext
+            callContext,
+            responseTime = config.clock.now()
         )
     }
 
@@ -75,7 +76,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
 
         val urlString = request.url.toString()
         val socket: WebSocket = createWebSocket(urlString, request.headers)
@@ -95,7 +96,8 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
             session,
-            callContext
+            callContext,
+            responseTime = config.clock.now()
         )
     }
 }

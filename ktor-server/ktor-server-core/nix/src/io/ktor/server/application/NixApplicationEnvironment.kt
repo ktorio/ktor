@@ -9,6 +9,7 @@ import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
+import kotlinx.datetime.*
 
 public actual interface ApplicationEnvironment {
     /**
@@ -40,4 +41,6 @@ public actual interface ApplicationEnvironment {
      * Provides events on Application lifecycle
      */
     public actual val monitor: Events
+
+    public actual val clock: Clock
 }

@@ -7,6 +7,7 @@ package io.ktor.server.cio
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import kotlin.jvm.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Default engine with main function that starts CIO engine using application.conf
@@ -20,7 +21,7 @@ public object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
-            engine.stop(3000, 5000)
+            engine.stop(gracePeriod = 3.seconds, timeout = 5.seconds)
         }
         engine.start(true)
     }
@@ -29,7 +30,7 @@ public object EngineMain {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
         deploymentConfig.propertyOrNull("connectionIdleTimeoutSeconds")?.getString()?.toInt()?.let {
-            connectionIdleTimeoutSeconds = it
+            connectionIdleTimeout = it.seconds
         }
     }
 }

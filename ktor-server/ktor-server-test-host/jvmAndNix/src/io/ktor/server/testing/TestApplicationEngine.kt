@@ -19,6 +19,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 /**
  * ktor test engine that provides way to simulate application calls to existing application module(s)
@@ -119,7 +120,7 @@ class TestApplicationEngine(
         return this
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+    override fun stop(gracePeriod: Duration, timeout: Duration) {
         try {
             isStarted.value = false
             cancellationDeferred?.complete()

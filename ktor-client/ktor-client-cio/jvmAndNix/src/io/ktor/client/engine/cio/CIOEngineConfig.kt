@@ -7,6 +7,8 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.network.tls.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Configuration for [CIO] client engine.
@@ -28,11 +30,11 @@ public class CIOEngineConfig : HttpClientEngineConfig() {
     public var maxConnectionsCount: Int = 1000
 
     /**
-     * Timeout to get send request headers and get first response bytes(in millis).
+     * Timeout to get send request headers and get first response bytes.
      *
-     * Use 0 to disable.
+     * Use null to disable.
      */
-    public var requestTimeout: Long = 15000
+    public var requestTimeout: Duration? = 15.seconds
 
     /**
      * [https] settings.
@@ -55,9 +57,9 @@ public class EndpointConfig {
     public var maxConnectionsPerRoute: Int = 100
 
     /**
-     * Connection keep-alive time in millis.
+     * Connection keep-alive time.
      */
-    public var keepAliveTime: Long = 5000
+    public var keepAliveTime: Duration = 5.seconds
 
     /**
      * Maximum number of requests per single pipeline.
@@ -65,14 +67,14 @@ public class EndpointConfig {
     public var pipelineMaxSize: Int = 20
 
     /**
-     * Connect timeout in millis.
+     * Connect timeout.
      */
-    public var connectTimeout: Long = 5000
+    public var connectTimeout: Duration = 5.seconds
 
     /**
-     * Socket timeout in millis.
+     * Socket timeout.
      */
-    public var socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+    public var socketTimeout: Duration = Duration.INFINITE
 
     /**
      * Maximum number of connection attempts.

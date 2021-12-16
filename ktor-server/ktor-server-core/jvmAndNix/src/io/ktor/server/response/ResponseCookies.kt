@@ -5,7 +5,9 @@
 package io.ktor.server.response
 
 import io.ktor.http.*
-import io.ktor.util.date.*
+import kotlinx.datetime.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Server's response cookies
@@ -35,31 +37,12 @@ public class ResponseCookies(
     /**
      * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
      */
-    @Deprecated("Convert maxAge to Long", level = DeprecationLevel.ERROR)
     public fun append(
         name: String,
         value: String,
         encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Int,
-        expires: GMTDate? = null,
-        domain: String? = null,
-        path: String? = null,
-        secure: Boolean = false,
-        httpOnly: Boolean = false,
-        extensions: Map<String, String?> = emptyMap()
-    ) {
-        append(name, value, encoding, maxAge.toLong(), expires, domain, path, secure, httpOnly, extensions)
-    }
-
-    /**
-     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
-     */
-    public fun append(
-        name: String,
-        value: String,
-        encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Long = 0,
-        expires: GMTDate? = null,
+        maxAge: Duration = Duration.ZERO,
+        expires: Instant? = null,
         domain: String? = null,
         path: String? = null,
         secure: Boolean = false,
@@ -71,7 +54,7 @@ public class ResponseCookies(
                 name,
                 value,
                 encoding,
-                maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                maxAge,
                 expires,
                 domain,
                 path,
@@ -86,6 +69,6 @@ public class ResponseCookies(
      * Append already expired cookie: useful to remove client cookies
      */
     public fun appendExpired(name: String, domain: String? = null, path: String? = null) {
-        append(name, "", domain = domain, path = path, expires = GMTDate.START)
+        append(name, "", domain = domain, path = path, expires = Instant.DISTANT_PAST)
     }
 }

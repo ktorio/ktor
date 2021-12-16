@@ -8,15 +8,18 @@ package io.ktor.client.engine.cio
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 internal actual class ConnectionPipeline actual constructor(
-    keepAliveTime: Long,
+    keepAliveTime: Duration,
     pipelineMaxSize: Int,
     connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
-    parentContext: CoroutineContext
+    parentContext: CoroutineContext,
+    clock: Clock
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext
 

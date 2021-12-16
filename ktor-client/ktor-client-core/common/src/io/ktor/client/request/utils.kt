@@ -7,6 +7,9 @@ package io.ktor.client.request
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlinx.datetime.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Gets the associated URL's host.
@@ -38,8 +41,8 @@ public fun HttpMessageBuilder.header(key: String, value: Any?): Unit =
 public fun HttpMessageBuilder.cookie(
     name: String,
     value: String,
-    maxAge: Int = 0,
-    expires: GMTDate? = null,
+    maxAge: Duration = Duration.ZERO,
+    expires: Instant? = null,
     domain: String? = null,
     path: String? = null,
     secure: Boolean = false,

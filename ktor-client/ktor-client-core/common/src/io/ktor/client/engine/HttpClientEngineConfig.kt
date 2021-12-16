@@ -5,7 +5,7 @@
 package io.ktor.client.engine
 
 import io.ktor.client.*
-import io.ktor.util.*
+import kotlinx.datetime.*
 
 /**
  * Base configuration for [HttpClientEngine].
@@ -28,4 +28,6 @@ public open class HttpClientEngineConfig {
      * See [ProxyBuilder] to create proxy.
      */
     public var proxy: ProxyConfig? = null
+
+    public var clock: Clock = Clock.System
 }

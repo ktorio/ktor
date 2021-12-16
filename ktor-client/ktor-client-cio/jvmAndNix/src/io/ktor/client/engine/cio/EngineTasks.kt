@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 internal data class RequestTask(
@@ -22,7 +23,7 @@ internal fun HttpRequestData.requiresDedicatedConnection(): Boolean = listOf(hea
 } || method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts()
 
 internal data class ConnectionResponseTask(
-    val requestTime: GMTDate,
+    val requestTime: Instant,
     val task: RequestTask
 )
 
@@ -30,5 +31,5 @@ internal data class ConnectionResponseTask(
  * Return true if request task contains timeout attributes specified using [HttpTimeout] plugin.
  */
 private fun HttpRequestData.containsCustomTimeouts() = getCapabilityOrNull(HttpTimeout)?.let {
-    it.connectTimeoutMillis != null || it.socketTimeoutMillis != null
+    it.connectTimeout != null || it.socketTimeout != null
 } == true

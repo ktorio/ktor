@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 /**
  * Setup [HttpURLConnection] timeout configuration using [HttpTimeout.HttpTimeoutCapabilityConfiguration] as a source.
@@ -22,8 +23,8 @@ import kotlin.coroutines.*
 @OptIn(InternalAPI::class)
 internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestData) {
     requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
-        timeoutAttributes.connectTimeoutMillis?.let { connectTimeout = convertLongTimeoutToIntWithInfiniteAsZero(it) }
-        timeoutAttributes.socketTimeoutMillis?.let { readTimeout = convertLongTimeoutToIntWithInfiniteAsZero(it) }
+        timeoutAttributes.connectTimeout?.let { connectTimeout = convertTimeoutToIntWithInfiniteAsZero(it) }
+        timeoutAttributes.socketTimeout?.let { readTimeout = convertTimeoutToIntWithInfiniteAsZero(it) }
         setupRequestTimeoutAttributes(timeoutAttributes)
     }
 }
@@ -37,10 +38,10 @@ private fun HttpURLConnection.setupRequestTimeoutAttributes(
     timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
 ) {
     // Android performs blocking connect call, so we need to add an upper bound on the call time.
-    timeoutAttributes.requestTimeoutMillis?.let { requestTimeout ->
-        if (requestTimeout == HttpTimeout.INFINITE_TIMEOUT_MS) return@let
-        if (connectTimeout == 0 || connectTimeout > requestTimeout) {
-            connectTimeout = convertLongTimeoutToIntWithInfiniteAsZero(requestTimeout)
+    timeoutAttributes.requestTimeout?.let { requestTimeout ->
+        if (requestTimeout == Duration.INFINITE) return@let
+        if (connectTimeout == 0 || connectTimeout > requestTimeout.inWholeMilliseconds) {
+            connectTimeout = convertTimeoutToIntWithInfiniteAsZero(requestTimeout)
         }
     }
 }

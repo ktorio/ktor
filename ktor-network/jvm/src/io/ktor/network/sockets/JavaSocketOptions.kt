@@ -29,7 +29,7 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
             options.sendBufferSize.takeIf { it > 0 }?.let { setOption(StandardSocketOptions.SO_SNDBUF, it) }
         }
         if (options is SocketOptions.TCPClientSocketOptions) {
-            options.lingerSeconds.takeIf { it >= 0 }?.let { setOption(StandardSocketOptions.SO_LINGER, it) }
+            options.linger?.let { setOption(StandardSocketOptions.SO_LINGER, it.inWholeSeconds.toInt()) }
             options.keepAlive?.let { setOption(StandardSocketOptions.SO_KEEPALIVE, it) }
             setOption(StandardSocketOptions.TCP_NODELAY, options.noDelay)
         }

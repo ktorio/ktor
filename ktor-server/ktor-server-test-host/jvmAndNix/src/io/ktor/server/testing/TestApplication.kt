@@ -17,6 +17,7 @@ import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
+import kotlin.time.*
 
 /**
  * Provides a client attached to [TestApplication].
@@ -43,7 +44,7 @@ public class TestApplication internal constructor(
     internal val engine by sharedLazy { builder.engine }
 
     public fun stop() {
-        builder.engine.stop(0, 0)
+        builder.engine.stop(Duration.ZERO, Duration.ZERO)
         builder.externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }

@@ -9,10 +9,10 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.datetime.*
 import kotlinx.coroutines.*
 
 /**
@@ -39,12 +39,12 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
     /**
      * [GMTDate] of the request start.
      */
-    public abstract val requestTime: GMTDate
+    public abstract val requestTime: Instant
 
     /**
      * [GMTDate] of the response start.
      */
-    public abstract val responseTime: GMTDate
+    public abstract val responseTime: Instant
 
     /**
      * Unmodified [ByteReadChannel] with the raw payload of the response.

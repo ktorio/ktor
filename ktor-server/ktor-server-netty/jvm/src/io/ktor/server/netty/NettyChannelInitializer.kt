@@ -22,6 +22,7 @@ import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 /**
  * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
@@ -35,8 +36,8 @@ public class NettyChannelInitializer(
     private val connector: EngineConnectorConfig,
     private val requestQueueLimit: Int,
     private val runningLimit: Int,
-    private val responseWriteTimeout: Int,
-    private val requestReadTimeout: Int,
+    private val responseWriteTimeout: Duration,
+    private val requestReadTimeout: Duration,
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit
 ) : ChannelInitializer<SocketChannel>() {
@@ -51,8 +52,8 @@ public class NettyChannelInitializer(
         connector: EngineConnectorConfig,
         requestQueueLimit: Int,
         runningLimit: Int,
-        responseWriteTimeout: Int,
-        requestReadTimeout: Int,
+        responseWriteTimeout: Duration,
+        requestReadTimeout: Duration,
         httpServerCodec: () -> HttpServerCodec
     ) : this(
         enginePipeline,
@@ -151,12 +152,12 @@ public class NettyChannelInitializer(
 
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
-                    if (requestReadTimeout > 0) {
-                        addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
+                    if (requestReadTimeout.isPositive()) {
+                        addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout.toInt(DurationUnit.SECONDS)))
                     }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
-                    addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
+                    addLast("timeout", WriteTimeoutHandler(responseWriteTimeout.toInt(DurationUnit.SECONDS)))
                     addLast("http1", handler)
                     channelPipelineConfig()
                 }

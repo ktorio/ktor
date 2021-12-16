@@ -13,6 +13,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Engine that based on CIO backend
@@ -28,10 +30,10 @@ public class CIOApplicationEngine(
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
         /**
-         * Number of seconds that the server will keep HTTP IDLE connections open.
+         * Duration that the server will keep HTTP IDLE connections open.
          * A connection is IDLE if there are no active requests running.
          */
-        public var connectionIdleTimeoutSeconds: Int = 45
+        public var connectionIdleTimeout: Duration = 45.seconds
     }
 
     private val configuration: Configuration by shared(Configuration().apply(configure))
@@ -71,15 +73,16 @@ public class CIOApplicationEngine(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        shutdownServer(gracePeriodMillis, timeoutMillis)
+    override fun stop(gracePeriod: Duration, timeout: Duration) {
+        shutdownServer(gracePeriod, timeout)
     }
 
-    private fun shutdownServer(gracePeriodMillis: Long, timeoutMillis: Long) {
+    @OptIn(ExperimentalTime::class)
+    private fun shutdownServer(gracePeriod: Duration, timeout: Duration) {
         stopRequest.complete()
 
         runBlocking {
-            val result = withTimeoutOrNull(gracePeriodMillis) {
+            val result = withTimeoutOrNull(gracePeriod) {
                 serverJob.join()
                 true
             }
@@ -88,7 +91,7 @@ public class CIOApplicationEngine(
                 // timeout
                 serverJob.cancel()
 
-                val forceShutdown = withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
+                val forceShutdown = withTimeoutOrNull(timeout - gracePeriod) {
                     serverJob.join()
                     false
                 } ?: true
@@ -104,7 +107,7 @@ public class CIOApplicationEngine(
         val settings = HttpServerSettings(
             host = host,
             port = port,
-            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
+            connectionIdleTimeout = configuration.connectionIdleTimeout
         )
 
         return httpServer(settings) { request ->

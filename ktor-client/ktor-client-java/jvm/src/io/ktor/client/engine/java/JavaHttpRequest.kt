@@ -18,6 +18,7 @@ import java.net.http.HttpRequest
 import java.time.*
 import java.util.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
@@ -41,8 +42,8 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
 
     with(builder) {
         getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
-            timeoutAttributes.socketTimeoutMillis?.let {
-                timeout(Duration.ofMillis(it))
+            timeoutAttributes.socketTimeout?.let {
+                timeout(it.toJavaDuration())
             }
         }
 

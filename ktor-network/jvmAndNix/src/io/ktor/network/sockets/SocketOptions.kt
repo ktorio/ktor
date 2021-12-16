@@ -4,7 +4,9 @@
 
 package io.ktor.network.sockets
 
-internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
+import kotlin.time.*
+
+internal val INFINITE_TIMEOUT = Duration.INFINITE
 
 /**
  * Socket options builder
@@ -167,9 +169,9 @@ public sealed class SocketOptions(
 
         /**
          * SO_LINGER option applied at socket close, not recommended to set to 0 however useful for debugging
-         * Value of `-1` is the default and means that it is not set and system-dependant
+         * Value of `null` is the default and means that it is not set and system-dependant
          */
-        public var lingerSeconds: Int = -1
+        public var linger: Duration? = null
 
         /**
          * SO_KEEPALIVE option is to enable/disable TCP keep-alive
@@ -179,14 +181,14 @@ public sealed class SocketOptions(
         /**
          * Socket timeout (read and write).
          */
-        public var socketTimeout: Long = INFINITE_TIMEOUT_MS
+        public var socketTimeout: Duration = INFINITE_TIMEOUT
 
         @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {
             super.copyCommon(from)
             if (from is TCPClientSocketOptions) {
                 noDelay = from.noDelay
-                lingerSeconds = from.lingerSeconds
+                linger = from.linger
                 keepAlive = from.keepAlive
             }
         }

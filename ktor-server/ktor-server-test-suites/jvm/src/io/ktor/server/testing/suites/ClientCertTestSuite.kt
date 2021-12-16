@@ -16,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * This tests uses a CA, which creates server and client certificates.
@@ -64,7 +65,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
                 val port = server.resolvedConnectors().first().port
 
                 assertEquals("Hello World", client.get("https://0.0.0.0:$port").body())
-                server.stop(1000, 1000)
+                server.stop(1.seconds, 1.seconds)
             }
         }
     }

@@ -9,6 +9,7 @@ import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
+import kotlinx.datetime.*
 
 /**
  * Represents an environment in which [Application] runs
@@ -43,4 +44,9 @@ public expect interface ApplicationEnvironment {
      * Indicates if development mode is enabled.
      */
     public val developmentMode: Boolean
+
+    /**
+     * The server [Clock] generating the "current" [Instant]
+     */
+    public val clock: Clock
 }

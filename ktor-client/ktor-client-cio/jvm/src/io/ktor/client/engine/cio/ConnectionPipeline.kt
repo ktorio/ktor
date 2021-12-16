@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
 import io.ktor.util.cio.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
@@ -21,14 +20,17 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.*
 import java.nio.channels.*
 import kotlin.coroutines.*
+import kotlinx.datetime.*
+import kotlin.time.*
 
 internal actual class ConnectionPipeline actual constructor(
-    keepAliveTime: Long,
+    keepAliveTime: Duration,
     pipelineMaxSize: Int,
     connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
-    parentContext: CoroutineContext
+    parentContext: CoroutineContext,
+    clock: Clock
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext + Job()
 
@@ -37,6 +39,7 @@ internal actual class ConnectionPipeline actual constructor(
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
+    @OptIn(ExperimentalTime::class)
     public actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
@@ -46,7 +49,7 @@ internal actual class ConnectionPipeline actual constructor(
 
                 try {
                     requestLimit.acquire()
-                    responseChannel.send(ConnectionResponseTask(GMTDate(), task))
+                    responseChannel.send(ConnectionResponseTask(clock.now(), task))
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                     throw cause
@@ -113,7 +116,7 @@ internal actual class ConnectionPipeline actual constructor(
                         body.cancel()
                     }
 
-                    val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
+                    val response = HttpResponseData(status, requestTime, headers, version, body, callContext, clock.now())
                     task.response.complete(response)
 
                     responseChannel?.use {

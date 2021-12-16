@@ -135,7 +135,7 @@ public class PartialContent private constructor(private val maxRangeCount: Int) 
     }
 
     private fun checkLastModified(actual: LastModifiedVersion, ifRange: List<Version>): Boolean {
-        val actualDate = actual.lastModified.truncateToSeconds()
+        val actualDate = actual.lastModified
 
         return ifRange.all { condition ->
             when (condition) {

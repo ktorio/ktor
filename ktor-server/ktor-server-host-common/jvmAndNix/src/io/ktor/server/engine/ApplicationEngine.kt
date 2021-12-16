@@ -7,6 +7,7 @@ package io.ktor.server.engine
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.network.*
+import kotlin.time.*
 
 /**
  * Engine which runs an application
@@ -68,8 +69,8 @@ public interface ApplicationEngine {
     /**
      * Stops this [ApplicationEngine]
      *
-     * @param gracePeriodMillis the maximum amount of time for activity to cool down
-     * @param timeoutMillis the maximum amount of time to wait until server stops gracefully
+     * @param gracePeriod the maximum amount of time for activity to cool down
+     * @param timeout the maximum amount of time to wait until server stops gracefully
      */
-    public fun stop(gracePeriodMillis: Long, timeoutMillis: Long)
+    public fun stop(gracePeriod: Duration, timeout: Duration)
 }

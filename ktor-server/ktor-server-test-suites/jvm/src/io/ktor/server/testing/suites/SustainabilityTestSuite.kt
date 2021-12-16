@@ -36,6 +36,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.time.Duration.Companion.seconds
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -69,7 +70,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(InternalServerError.value, status.value)
 
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -80,7 +81,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         withUrl("/respondWrite") {
             assertEquals(HttpStatusCode.OK.value, status.value)
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -249,7 +250,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        server!!.stop(1, 10, TimeUnit.SECONDS)
+        server!!.stop(1.seconds, 10.seconds)
         assertNotNull(job)
         assertTrue(job!!.isCancelled)
     }
@@ -671,7 +672,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                (server as? ApplicationEngine)?.stop(1.seconds, 5.seconds)
             }
     }
 
@@ -709,7 +710,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                (server as? ApplicationEngine)?.stop(1.seconds, 5.seconds)
             }
     }
 
@@ -750,7 +751,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                (server as? ApplicationEngine)?.stop(1.seconds, 5.seconds)
             }
     }
 
@@ -783,7 +784,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             exceptions.clear()
         }
 
-        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+        (server as? ApplicationEngine)?.stop(1.seconds, 5.seconds)
     }
 
     @OptIn(InternalAPI::class)

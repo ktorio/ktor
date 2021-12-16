@@ -12,7 +12,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import org.slf4j.*
 import java.io.*
-import java.util.concurrent.*
+import kotlin.time.*
 
 private const val DEFAULT_PORT: Int = 8080
 private const val DEFAULT_TLS_PORT: Int = 8089
@@ -31,11 +31,11 @@ internal fun startServer(): Closeable {
             tests()
         }.start()
 
-        scope.use(Closeable { server.stop(0L, 0L, TimeUnit.MILLISECONDS) })
+        scope.use(Closeable { server.stop(Duration.ZERO, Duration.ZERO) })
 
         val tlsServer = setupTLSServer()
         tlsServer.start()
-        scope.use(Closeable { tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS) })
+        scope.use(Closeable { tlsServer.stop(Duration.ZERO, Duration.ZERO) })
 
         Thread.sleep(1000)
     } catch (cause: Throwable) {

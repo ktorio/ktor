@@ -5,6 +5,8 @@
 package io.ktor.http
 
 import io.ktor.util.date.*
+import io.ktor.util.date.Month
+import kotlinx.datetime.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
@@ -23,11 +25,11 @@ private val HTTP_DATE_FORMATS = listOf(
 )
 
 /**
- * Convert valid http date [String] to [GMTDate] trying various http date formats from [HTTP_DATE_FORMATS]
+ * Convert valid http date [String] to [Instant] trying various http date formats from [HTTP_DATE_FORMATS]
  *
  * Note that only GMT(UTC) date is valid http date.
  */
-public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
+public fun String.fromHttpToGmtDate(): Instant = with(trim()) {
     for (format in HTTP_DATE_FORMATS) {
         try {
             val parser = GMTDateParser(format)
@@ -40,11 +42,11 @@ public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
 }
 
 /**
- * Convert valid cookie date [String] to [GMTDate] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
+ * Convert valid cookie date [String] to [Instant] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
  *
  * @see [fromHttpToGmtDate]
  */
-public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
+public fun String.fromCookieToGmtDate(): Instant = with(trim()) {
     try {
         val parser = CookieDateParser()
         return parser.parse(this@with)
@@ -54,16 +56,21 @@ public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
     return fromHttpToGmtDate()
 }
 
-/**
- * Convert [GMTDate] to valid http date [String]
- */
-public fun GMTDate.toHttpDate(): String = buildString {
-    append("${dayOfWeek.value}, ")
+private fun LocalDateTime.toHttpDate(): String = buildString {
+    append("${dayOfWeek.toWeekDay().value}, ")
     append("${dayOfMonth.padZero(2)} ")
-    append("${month.value} ")
+    append("${month.toMonth().value} ")
     append(year.padZero(4))
-    append(" ${hours.padZero(2)}:${minutes.padZero(2)}:${seconds.padZero(2)} ")
+    append(" ${hour.padZero(2)}:${minute.padZero(2)}:${second.padZero(2)} ")
     append("GMT")
 }
 
+/**
+ * Convert [Instant] to valid http date [String]
+ */
+public fun Instant.toHttpDate(): String = toLocalDateTime(TimeZone.UTC).toHttpDate()
+
 private fun Int.padZero(length: Int): String = toString().padStart(length, '0')
+
+private fun kotlinx.datetime.DayOfWeek.toWeekDay(): WeekDay = WeekDay.from(ordinal)
+private fun kotlinx.datetime.Month.toMonth(): Month = Month.from(ordinal)

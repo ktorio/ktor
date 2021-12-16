@@ -10,8 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.datetime.*
 import kotlin.coroutines.*
 
 /**
@@ -75,9 +75,9 @@ internal class DelegatedResponse constructor(
 
     override val version: HttpProtocolVersion get() = origin.version
 
-    override val requestTime: GMTDate get() = origin.requestTime
+    override val requestTime: Instant get() = origin.requestTime
 
-    override val responseTime: GMTDate get() = origin.responseTime
+    override val responseTime: Instant get() = origin.responseTime
 
     override val headers: Headers get() = origin.headers
 }

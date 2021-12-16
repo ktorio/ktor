@@ -15,6 +15,7 @@ import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.datetime.Instant
 import org.webjars.*
 import java.io.*
 import java.time.*
@@ -23,18 +24,14 @@ import java.time.*
  * This plugin listens to requests starting with the specified path prefix and responding with static content
  * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
  */
-public class Webjars internal constructor(private val webjarsPrefix: String) {
+public class Webjars internal constructor(private val webjarsPrefix: String, private val lastModified: Instant) {
     init {
         require(webjarsPrefix.startsWith("/"))
         require(webjarsPrefix.endsWith("/"))
     }
 
-    @Deprecated("Use install(Webjars), there is no need to instantiate it directly.", level = DeprecationLevel.ERROR)
-    public constructor(configuration: Configuration) : this(configuration.path)
-
     private val locator = WebJarAssetLocator()
     private val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
-    private val lastModified = GMTDate()
 
     private fun extractWebJar(path: String): String {
         val firstDelimiter = if (path.startsWith("/")) 1 else 0
@@ -112,7 +109,7 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
         ): Webjars {
             val configuration = Configuration().apply(configure)
 
-            val plugin = Webjars(configuration.path)
+            val plugin = Webjars(configuration.path, pipeline.environment!!.clock.now())
 
             pipeline.intercept(ApplicationCallPipeline.Plugins) {
                 plugin.intercept(this)
@@ -125,7 +122,7 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
 private class InputStreamContent(
     val input: InputStream,
     override val contentType: ContentType,
-    lastModified: GMTDate
+    lastModified: Instant
 ) : OutgoingContent.ReadChannelContent() {
     init {
         versions += LastModifiedVersion(lastModified)
