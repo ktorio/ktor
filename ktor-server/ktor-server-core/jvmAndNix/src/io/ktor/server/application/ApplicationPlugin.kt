@@ -109,7 +109,8 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
         }
         else -> {
             throw DuplicatePluginException(
-                "Conflicting application plugin is already installed with the same key as `${plugin.key.name}`"
+                "Please make sure that you use unique name for the plugin and don't install it twice. " +
+                    "Conflicting application plugin is already installed with the same key as `${plugin.key.name}`"
             )
         }
     }
@@ -121,7 +122,8 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
 ): F {
     if (pluginRegistry.getOrNull(plugin.key) != null) {
         throw DuplicatePluginException(
-            "Plugin `${plugin.key.name}` is already installed to the pipeline $this"
+            "Please make sure that you use unique name for the plugin and don't install it twice. " +
+                "Plugin `${plugin.key.name}` is already installed to the pipeline $this"
         )
     }
     if (application.pluginRegistry.getOrNull(plugin.key) != null) {

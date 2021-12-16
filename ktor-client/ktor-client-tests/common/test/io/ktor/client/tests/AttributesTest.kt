@@ -14,12 +14,12 @@ import kotlin.test.*
 class AttributesTest : ClientLoader() {
     @Test
     fun testKeepAttributes() = clientTests {
-        val attrKey = AttributeKey<String>("my-key")
+        val attrName = "my-key"
 
         config {
             install("attr-test") {
                 receivePipeline.intercept(HttpReceivePipeline.After) {
-                    val attr = it.call.request.attributes[attrKey]
+                    val attr = it.call.request.attributes[AttributeKey<String>(attrName)]
 
                     assertEquals("test-data", attr)
                 }
@@ -29,7 +29,10 @@ class AttributesTest : ClientLoader() {
         test { client ->
             val response = client.get("$TEST_SERVER/content/hello") {
                 setAttributes {
-                    put(attrKey, "test-data")
+                    put(
+                        AttributeKey<String>(attrName),
+                        "test-data"
+                    )
                 }
             }.body<String>()
 
