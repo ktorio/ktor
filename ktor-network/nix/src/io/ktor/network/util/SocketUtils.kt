@@ -59,6 +59,7 @@ internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     return result
 }
 
+@OptIn(UnsafeNumber::class)
 internal fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed

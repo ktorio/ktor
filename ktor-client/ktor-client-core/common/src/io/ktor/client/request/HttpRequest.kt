@@ -95,11 +95,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     public var executionContext: Job = SupervisorJob()
-        .also { it.makeShared() }
-        internal set(value) {
-            value.makeShared()
-            field = value
-        }
+        internal set
 
     /**
      * Call specific attributes.
@@ -161,7 +157,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      */
     @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
-        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
+        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
         capabilities[key] = capability
     }
 

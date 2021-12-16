@@ -14,7 +14,6 @@ import kotlin.reflect.*
 
 public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwable) -> Unit
 
-@SharedImmutable
 public val StatusPages: ApplicationPlugin<Application, StatusPagesConfig, PluginInstance> = createApplicationPlugin(
     "StatusPages",
     { StatusPagesConfig() }

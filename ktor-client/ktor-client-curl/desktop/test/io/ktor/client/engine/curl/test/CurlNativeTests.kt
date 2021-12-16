@@ -9,11 +9,9 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
-import kotlin.native.SharedImmutable
 import kotlin.native.concurrent.*
 import kotlin.test.*
 
-@SharedImmutable
 val backgroundWorker = Worker.start()
 
 class CurlNativeTests {

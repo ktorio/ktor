@@ -31,7 +31,7 @@ class RouteScopedPluginTest {
 
     @Test
     fun testPluginInstalledInRoutingScope() = withTestApplication {
-        val callbackResults = sharedListOf<String>()
+        val callbackResults = mutableListOf<String>()
 
         application.routing {
             route("root-no-plugin") {
@@ -157,7 +157,7 @@ class RouteScopedPluginTest {
 
     @Test
     fun testPluginDoNotReuseConfig() = withTestApplication {
-        val callbackResults = sharedListOf<String>()
+        val callbackResults = mutableListOf<String>()
 
         application.routing {
             route("root") {
@@ -259,9 +259,9 @@ class RouteScopedPluginTest {
 
     @Test
     fun testAllPipelinesPlugin() = withTestApplication {
-        val callbackResults = sharedListOf<String>()
-        val receiveCallbackResults = sharedListOf<String>()
-        val sendCallbackResults = sharedListOf<String>()
+        val callbackResults = mutableListOf<String>()
+        val receiveCallbackResults = mutableListOf<String>()
+        val sendCallbackResults = mutableListOf<String>()
         val allCallbacks = listOf(callbackResults, receiveCallbackResults, sendCallbackResults)
 
         application.routing {
@@ -398,7 +398,7 @@ class RouteScopedPluginTest {
 
     @Test
     fun testCustomPhase() = withTestApplication {
-        val callbackResults = sharedListOf<String>()
+        val callbackResults = mutableListOf<String>()
 
         application.routing {
             route("root") {
@@ -496,11 +496,11 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
         receivePipelineCallback: (String) -> Unit = {},
         sendPipelineCallback: (String) -> Unit = {},
     ) {
-        var name: String by shared(name)
-        var desc: String by shared(desc)
-        var pipelineCallback by shared(pipelineCallback)
-        var receivePipelineCallback by shared(receivePipelineCallback)
-        var sendPipelineCallback by shared(sendPipelineCallback)
+        var name: String = name
+        var desc: String = desc
+        var pipelineCallback = pipelineCallback
+        var receivePipelineCallback = receivePipelineCallback
+        var sendPipelineCallback = sendPipelineCallback
     }
 
     companion object Plugin : RouteScopedPlugin<Config, TestAllPipelinesPlugin> {
@@ -531,9 +531,9 @@ class TestPlugin private constructor(config: Config) {
         desc: String = "defaultDesc",
         pipelineCallback: (String) -> Unit = {}
     ) {
-        var name by shared(name)
-        var desc by shared(desc)
-        var pipelineCallback by shared(pipelineCallback)
+        var name = name
+        var desc = desc
+        var pipelineCallback = pipelineCallback
     }
 
     companion object Plugin : RouteScopedPlugin<Config, TestPlugin> {
@@ -566,9 +566,9 @@ class TestPluginCustomPhase private constructor(config: Config) {
         desc: String = "defaultDesc",
         callback: (String) -> Unit = {},
     ) {
-        var name by shared(name)
-        var desc by shared(desc)
-        var callback by shared(callback)
+        var name = name
+        var desc = desc
+        var callback = callback
     }
 
     companion object Plugin : RouteScopedPlugin<Config, TestPluginCustomPhase> {

@@ -11,7 +11,7 @@ import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class ResponseObserverTest : ClientLoader() {
-    private var observerCalled by shared(false)
+    private var observerCalled = false
 
     @Test
     fun testEmptyResponseObserverIsNotFreezing() = clientTests {

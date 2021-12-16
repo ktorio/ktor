@@ -14,7 +14,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     val relation: PipelinePhaseRelation,
     interceptors: MutableList<PipelineInterceptorFunction<TSubject, Call>>
 ) {
-    private var interceptors: MutableList<PipelineInterceptorFunction<TSubject, Call>> by shared(interceptors)
+    private var interceptors: MutableList<PipelineInterceptorFunction<TSubject, Call>> = interceptors
 
     @Suppress("UNCHECKED_CAST")
     constructor(
@@ -24,7 +24,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         check(SharedArrayList.isEmpty()) { "The shared empty array list has been modified" }
     }
 
-    var shared: Boolean by shared(true)
+    var shared: Boolean = true
 
     val isEmpty: Boolean get() = interceptors.isEmpty()
     val size: Int get() = interceptors.size
@@ -72,7 +72,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
 
     @OptIn(InternalAPI::class)
     fun copiedInterceptors(): MutableList<PipelineInterceptorFunction<TSubject, Call>> =
-        sharedListOf<PipelineInterceptorFunction<TSubject, Call>>().apply {
+        mutableListOf<PipelineInterceptorFunction<TSubject, Call>>().apply {
             addAll(interceptors)
         }
 
@@ -85,6 +85,6 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
 
     companion object {
         @OptIn(InternalAPI::class)
-        val SharedArrayList: MutableList<Any?> = sharedListOf()
+        val SharedArrayList: MutableList<Any?> = mutableListOf()
     }
 }

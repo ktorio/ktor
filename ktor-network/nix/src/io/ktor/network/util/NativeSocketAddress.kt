@@ -11,15 +11,15 @@ import platform.posix.*
 /**
  * Represents a native socket address.
  */
-internal sealed class NativeSocketAddress(
-    val family: sa_family_t,
-) {
+@OptIn(UnsafeNumber::class)
+internal sealed class NativeSocketAddress(val family: sa_family_t) {
     internal abstract fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit)
 }
 
 /**
  * Represents an INET socket address.
  */
+@OptIn(UnsafeNumber::class)
 internal sealed class NativeInetSocketAddress(
     family: sa_family_t,
     val port: Int
@@ -27,6 +27,7 @@ internal sealed class NativeInetSocketAddress(
     internal abstract val ipString: String
 }
 
+@OptIn(UnsafeNumber::class)
 internal class NativeIPv4SocketAddress(
     family: sa_family_t,
     rawAddress: in_addr,
@@ -62,6 +63,7 @@ internal class NativeIPv4SocketAddress(
         }
 }
 
+@OptIn(UnsafeNumber::class)
 internal class NativeIPv6SocketAddress(
     family: sa_family_t,
     private val rawAddress: in6_addr,
@@ -96,6 +98,7 @@ internal class NativeIPv6SocketAddress(
 /**
  * Represents an UNIX socket address.
  */
+@OptIn(UnsafeNumber::class)
 internal class NativeUnixSocketAddress(
     family: sa_family_t,
     val path: String,

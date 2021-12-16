@@ -5,8 +5,7 @@
 package io.ktor.client.engine
 
 import io.ktor.util.*
-import io.ktor.utils.io.*
-import kotlin.native.concurrent.*
+import kotlinx.atomicfu.*
 
 private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
 
@@ -17,7 +16,7 @@ private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
  * Use [append] to enable engine auto discover in [HttpClient()].
  */
 public object engines : Iterable<T> {
-    private val head = AtomicReference<Node?>(null)
+    private val head = atomic<Node?>(null)
 
     /**
      * Add engine to head.
@@ -49,9 +48,5 @@ public object engines : Iterable<T> {
     private class Node(
         val item: T,
         val next: Node?
-    ) {
-        init {
-            makeShared()
-        }
-    }
+    )
 }

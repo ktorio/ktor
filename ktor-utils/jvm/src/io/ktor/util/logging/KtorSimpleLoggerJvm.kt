@@ -6,4 +6,5 @@ package io.ktor.util.logging
 
 import org.slf4j.*
 
+@Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = LoggerFactory.getLogger(name)

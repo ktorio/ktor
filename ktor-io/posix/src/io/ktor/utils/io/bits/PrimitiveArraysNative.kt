@@ -24,6 +24,7 @@ public actual fun Memory.loadShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.loadShortArray(
     offset: Long,
     destination: ShortArray,
@@ -79,6 +80,7 @@ public actual fun Memory.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.loadIntArray(
     offset: Long,
     destination: IntArray,
@@ -138,6 +140,7 @@ public actual fun Memory.loadLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.loadLongArray(
     offset: Long,
     destination: LongArray,
@@ -193,6 +196,7 @@ public actual fun Memory.loadFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.loadFloatArray(
     offset: Long,
     destination: FloatArray,
@@ -248,6 +252,7 @@ public actual fun Memory.loadDoubleArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
@@ -537,6 +542,7 @@ internal inline fun Memory.isAlignedShort(offset: Long) = (pointer.toLong() + of
 internal inline fun Memory.isAlignedInt(offset: Long) = (pointer.toLong() + offset) and 0b11 == 0L
 internal inline fun Memory.isAlignedLong(offset: Long) = (pointer.toLong() + offset) and 0b111 == 0L
 
+@OptIn(UnsafeNumber::class)
 private fun copy(
     source: IntArray,
     destinationPointer: CPointer<ByteVar>,
@@ -548,6 +554,7 @@ private fun copy(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 private fun copy(
     source: ShortArray,
     destinationPointer: CPointer<ByteVar>,
@@ -559,6 +566,7 @@ private fun copy(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 private fun copy(
     source: LongArray,
     destinationPointer: CPointer<ByteVar>,
@@ -570,6 +578,7 @@ private fun copy(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 private fun copy(
     source: FloatArray,
     destinationPointer: CPointer<ByteVar>,
@@ -581,6 +590,7 @@ private fun copy(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 private fun copy(
     source: DoubleArray,
     destinationPointer: CPointer<ByteVar>,

@@ -24,7 +24,7 @@ public val ApplicationRequest.origin: RequestConnectionPoint
  * A key to install a mutable [RequestConnectionPoint]
  */
 @Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
-@SharedImmutable
+
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 
@@ -49,7 +49,7 @@ public class MutableOriginConnectionPoint internal constructor(
 }
 
 private class AssignableWithDelegate<T : Any>(val property: () -> T) {
-    private var assigned: T? by shared(null)
+    private var assigned: T? = null
 
     @Suppress("UNCHECKED_CAST")
     operator fun getValue(thisRef: Any, property: KProperty<*>): T = assigned ?: property()

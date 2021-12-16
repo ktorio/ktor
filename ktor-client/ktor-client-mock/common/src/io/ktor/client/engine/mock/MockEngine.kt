@@ -12,7 +12,9 @@ import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.locks.*
 import kotlinx.coroutines.*
+import kotlin.jvm.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
@@ -27,13 +29,13 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         WebSocketExtensionsCapability
     )
 
-    private val mutex = Lock()
+    private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 
-    private val _requestsHistory: MutableList<HttpRequestData> = sharedList()
-    private val _responseHistory: MutableList<HttpResponseData> = sharedList()
+    private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
+    private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
 
-    private var invocationCount: Int by shared(0)
+    private var invocationCount: Int = 0
 
     init {
         check(config.requestHandlers.size > 0) {
@@ -55,7 +57,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val handler = mutex.withLock {
+        val handler = synchronized(mutex) {
             if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
             val handler = config.requestHandlers[invocationCount]
 
@@ -69,7 +71,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
 
         val response = handler(MockRequestHandleScope(callContext), data)
 
-        mutex.withLock {
+        synchronized(mutex) {
             _requestsHistory.add(data)
             _responseHistory.add(response)
         }

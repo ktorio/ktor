@@ -37,7 +37,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    private val eventsList = sharedList<String>()
+    private val eventsList = mutableListOf<String>()
     private fun sendEvent(event: String) {
         eventsList.add(event)
         semaphore.release()

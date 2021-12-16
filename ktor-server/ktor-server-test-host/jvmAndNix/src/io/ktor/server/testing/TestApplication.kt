@@ -15,7 +15,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
@@ -40,7 +39,7 @@ public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
 ) : ClientProvider by builder {
 
-    internal val engine by sharedLazy { builder.engine }
+    internal val engine by lazy { builder.engine }
 
     public fun stop() {
         builder.engine.stop(0, 0)
@@ -66,7 +65,7 @@ public fun TestApplication(
  * Registers mocks for external services.
  */
 public class ExternalServicesBuilder {
-    internal val externalApplications = sharedMap<String, TestApplication>()
+    internal val externalApplications = mutableMapOf<String, TestApplication>()
 
     /**
      * Registers a mock for external service specified by [hosts] and configured with [block].
@@ -87,14 +86,14 @@ public class ExternalServicesBuilder {
  */
 public open class TestApplicationBuilder {
 
-    private var built by shared(false)
+    private var built = false
 
     internal val externalServices = ExternalServicesBuilder()
-    internal val applicationModules = sharedList<Application.() -> Unit>()
-    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit by shared {}
+    internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
     internal val job = Job()
 
-    internal val environment by sharedLazy {
+    internal val environment by lazy {
         built = true
         createTestEnvironment {
             config = DefaultTestConfig()
@@ -105,7 +104,7 @@ public open class TestApplicationBuilder {
         }
     }
 
-    internal val engine by sharedLazy {
+    internal val engine by lazy {
         TestApplicationEngine(environment)
     }
 
@@ -167,7 +166,7 @@ public open class TestApplicationBuilder {
  */
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client by sharedLazy { createClient { } }
+    override val client by lazy { createClient { } }
 
     override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
         return HttpClient(DelegatingTestClientEngine) {

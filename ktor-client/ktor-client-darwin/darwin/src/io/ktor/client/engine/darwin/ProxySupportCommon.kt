@@ -5,9 +5,7 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.http.*
-import platform.CoreFoundation.*
 import platform.Foundation.*
-import kotlin.native.concurrent.*
 
 private const val HTTP_ENABLE_KEY = "HTTPEnable"
 private const val HTTP_PROXY_KEY = "HTTPProxy"
@@ -30,7 +28,5 @@ internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
         HTTP_ENABLE_KEY to 1,
         HTTP_PROXY_KEY to url.host,
         HTTP_PORT_KEY to url.port
-    ).freeze()
+    )
 }
-
-internal fun CFStringRef?.toNSString(): NSString = CFBridgingRelease(this) as NSString

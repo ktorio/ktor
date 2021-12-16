@@ -49,7 +49,6 @@ public interface ApplicationPlugin<
     out TConfiguration : Any,
     TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
 
-@SharedImmutable
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
 /**

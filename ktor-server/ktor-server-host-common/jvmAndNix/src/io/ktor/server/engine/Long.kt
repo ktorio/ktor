@@ -4,9 +4,6 @@
 
 package io.ktor.server.engine
 
-import kotlin.native.concurrent.*
-
-@SharedImmutable
 private val longStrings = Array(1024) {
     it.toString()
 }

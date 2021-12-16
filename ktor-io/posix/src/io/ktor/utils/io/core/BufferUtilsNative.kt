@@ -8,8 +8,8 @@ import platform.posix.*
 import kotlin.contracts.*
 import kotlin.native.concurrent.*
 
+@OptIn(UnsafeNumber::class)
 @PublishedApi
-@SharedImmutable
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
@@ -18,36 +18,6 @@ public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer
 
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
     return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin, null)
-}
-
-@ThreadLocal
-private object BufferPoolNativeWorkaround : DefaultPool<ChunkBuffer>(BUFFER_VIEW_POOL_SIZE) {
-    override fun produceInstance(): ChunkBuffer {
-        return ChunkBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this)
-    }
-
-    override fun clearInstance(instance: ChunkBuffer): ChunkBuffer {
-        return super.clearInstance(instance).apply {
-            unpark()
-            reset()
-        }
-    }
-
-    override fun validateInstance(instance: ChunkBuffer) {
-        super.validateInstance(instance)
-
-        require(instance.referenceCount == 0) {
-            "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})"
-        }
-        require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
-    }
-
-    override fun disposeInstance(instance: ChunkBuffer) {
-        require(instance.referenceCount == 0) {
-            "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}"
-        }
-        nativeHeap.free(instance.memory)
-    }
 }
 
 public fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {

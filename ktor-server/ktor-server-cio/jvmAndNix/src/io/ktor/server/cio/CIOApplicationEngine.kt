@@ -9,15 +9,13 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
 /**
  * Engine that based on CIO backend
  */
-@OptIn(InternalAPI::class)
 public class CIOApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
@@ -34,18 +32,16 @@ public class CIOApplicationEngine(
         public var connectionIdleTimeoutSeconds: Int = 45
     }
 
-    private val configuration: Configuration by shared(Configuration().apply(configure))
+    private val configuration: Configuration = Configuration().apply(configure)
 
-    @OptIn(InternalCoroutinesApi::class)
     private val engineDispatcher = Dispatchers.IOBridge
 
-    @OptIn(InternalCoroutinesApi::class, InternalAPI::class)
     private val userDispatcher = Dispatchers.IOBridge
 
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()
 
-    private var serverJob: Job by shared(Job())
+    private var serverJob: Job by atomic(Job())
 
     init {
         serverJob = initServerJob()
@@ -70,7 +66,6 @@ public class CIOApplicationEngine(
         return this
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         shutdownServer(gracePeriodMillis, timeoutMillis)
     }
@@ -112,7 +107,6 @@ public class CIOApplicationEngine(
         }
     }
 
-    @OptIn(InternalCoroutinesApi::class)
     private suspend fun ServerRequestScope.handleRequest(request: Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(

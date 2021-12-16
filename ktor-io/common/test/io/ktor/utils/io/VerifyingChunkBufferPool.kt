@@ -15,7 +15,7 @@ class VerifyingChunkBufferPool(
 ) : ObjectPool<ChunkBuffer> {
     override val capacity: Int = Int.MAX_VALUE
     private val allocator: Allocator = DefaultAllocator
-    private val allocated = SharedSet<IdentityWrapper>()
+    private val allocated = mutableSetOf<IdentityWrapper>()
 
     override fun borrow(): ChunkBuffer {
         val instance = ChunkBuffer(allocator.alloc(bufferSize), null, this)

@@ -32,9 +32,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      */
     public open val developmentMode: Boolean = false
 
-    private val phasesRaw: MutableList<Any> = sharedListOf(*phases)
+    private val phasesRaw: MutableList<Any> = mutableListOf(*phases)
 
-    private var interceptorsQuantity by shared(0)
+    private var interceptorsQuantity = 0
 
     /**
      * Phases of this pipeline
@@ -59,15 +59,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             _interceptors.value = value
         }
 
-    /**
-     * share between pipelines/contexts
-     */
-    private var interceptorsListShared: Boolean by shared(false)
+    private var interceptorsListShared: Boolean = false
 
-    /**
-     * interceptors list is shared with pipeline phase content
-     */
-    private var interceptorsListSharedPhase: PipelinePhase? by shared(null)
+    private var interceptorsListSharedPhase: PipelinePhase? = null
 
     public constructor(
         phase: PipelinePhase,
@@ -327,7 +321,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             }
         }
 
-        val destination: MutableList<PipelineInterceptorFunction<TSubject, TContext>> = sharedListOf()
+        val destination: MutableList<PipelineInterceptorFunction<TSubject, TContext>> = mutableListOf()
         for (phaseIndex in 0..phases.lastIndex) {
             @Suppress("UNCHECKED_CAST")
             val phase = phases[phaseIndex] as? PhaseContent<TSubject, TContext> ?: continue

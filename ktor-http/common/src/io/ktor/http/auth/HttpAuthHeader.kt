@@ -10,16 +10,9 @@ import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import kotlin.native.concurrent.*
 
-@ThreadLocal
 private val TOKEN_EXTRA = setOf('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~')
-
-@ThreadLocal
 private val TOKEN68_EXTRA = setOf('-', '.', '_', '~', '+', '/')
-
-@ThreadLocal
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
-
-@ThreadLocal
 private val escapeRegex: Regex = "\\\\.".toRegex()
 
 /**

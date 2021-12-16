@@ -20,7 +20,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun test3RetriesWithExponentialDelayByDefault() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -101,7 +101,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testExponentialDelay() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -124,7 +124,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testConstantDelay() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -147,7 +147,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testRetryAfterHeader() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler {
@@ -180,7 +180,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testRetryAfterHeaderFalse() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler {
@@ -301,7 +301,7 @@ class HttpRequestRetryTest {
 
     @Test
     fun testRetryPerRequestConfig() = testWithEngine(MockEngine) {
-        val delays = sharedList<Long>()
+        val delays = mutableListOf<Long>()
         config {
             engine {
                 addHandler { throw IOException("Network error") }
@@ -344,7 +344,7 @@ class HttpRequestRetryTest {
         }
 
         test { client ->
-            val events = sharedList<HttpRequestRetry.RetryEventData>()
+            val events = mutableListOf<HttpRequestRetry.RetryEventData>()
             client.monitor.subscribe(HttpRequestRetry.HttpRequestRetryEvent) { events.add(it) }
 
             client.get {}

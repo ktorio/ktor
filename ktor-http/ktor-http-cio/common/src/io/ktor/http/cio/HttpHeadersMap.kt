@@ -5,10 +5,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
-import io.ktor.util.collections.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.pool.*
-import kotlin.native.concurrent.*
 
 private const val EXPECTED_HEADERS_QTY = 64
 
@@ -23,24 +20,19 @@ private const val EXPECTED_HEADERS_QTY = 64
  * [6] next entry index (multiplied) with the same name hash
  * [7] reserved
  */
-@SharedImmutable
 private const val HEADER_SIZE = 8
-
-@SharedImmutable
 private const val HEADER_ARRAY_POOL_SIZE = 1000
-
-@ThreadLocal
-private val EMPTY_INT_LIST = mutableListOf<Int>()
+private val EMPTY_INT_LIST = IntArray(0)
 
 /**
  * A headers map data structure used in CIO
  */
 @Suppress("KDocMissingDocumentation")
 public class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {
-    public var size: Int by shared(0)
+    public var size: Int = 0
         private set
 
-    private var indexes: MutableList<Int> by shared(IntListPool.borrow())
+    private var indexes: IntArray = IntArrayPool.borrow()
 
     public fun put(
         nameHash: Int,
@@ -130,7 +122,7 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
         val indexes = indexes
         this.indexes = EMPTY_INT_LIST
 
-        if (indexes !== EMPTY_INT_LIST) IntListPool.recycle(indexes)
+        if (indexes !== EMPTY_INT_LIST) IntArrayPool.recycle(indexes)
     }
 
     override fun toString(): String {
@@ -151,11 +143,6 @@ internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     }
 }
 
-@ThreadLocal
-@Suppress("DEPRECATION")
-private val IntListPool: DefaultPool<MutableList<Int>> =
-    object : DefaultPool<MutableList<Int>>(HEADER_ARRAY_POOL_SIZE) {
-        override fun produceInstance(): MutableList<Int> = sharedList<Int>().apply {
-            repeat(EXPECTED_HEADERS_QTY * HEADER_SIZE) { add(0) }
-        }
-    }
+private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
+    override fun produceInstance(): IntArray = IntArray(EXPECTED_HEADERS_QTY * HEADER_SIZE)
+}

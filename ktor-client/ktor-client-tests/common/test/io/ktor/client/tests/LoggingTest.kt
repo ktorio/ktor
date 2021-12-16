@@ -508,7 +508,7 @@ class LoggingTest : ClientLoader() {
 
     @Test
     fun testBodyLoggingKeepsContent() = clientTests {
-        val logs = sharedList<String>()
+        val logs = mutableListOf<String>()
         val testLogger = object : Logger {
             override fun log(message: String) {
                 logs.add(message)

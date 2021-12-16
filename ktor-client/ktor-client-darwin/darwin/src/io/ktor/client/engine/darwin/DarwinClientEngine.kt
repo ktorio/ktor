@@ -9,11 +9,9 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import platform.Foundation.*
-import kotlin.native.concurrent.*
 
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
 
@@ -21,7 +19,7 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
 
     override val supportedCapabilities = setOf(HttpTimeout)
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, UnsafeNumber::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val responseReader = DarwinResponseReader(callContext, data, config)
@@ -50,8 +48,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
 
             config.requestConfig(this)
         }
-
-        responseReader.makeShared()
 
         val session = NSURLSession.sessionWithConfiguration(
             configuration,

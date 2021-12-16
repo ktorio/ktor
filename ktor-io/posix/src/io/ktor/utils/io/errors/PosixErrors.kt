@@ -5,7 +5,6 @@ import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val KnownPosixErrors = mapOf(
     EBADF to "EBADF",
     EWOULDBLOCK to "EWOULDBLOCK",

@@ -23,5 +23,6 @@ public fun Job.printDebugTree(offset: Int = 0) {
 /**
  * Supervisor with empty coroutine exception handler ignoring all exceptions.
  */
+@Suppress("FunctionName")
 public fun SilentSupervisor(parent: Job? = null): CoroutineContext =
     SupervisorJob(parent) + CoroutineExceptionHandler { _, _ -> }

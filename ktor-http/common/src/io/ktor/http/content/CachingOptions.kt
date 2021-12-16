@@ -19,7 +19,6 @@ public data class CachingOptions(val cacheControl: CacheControl? = null, val exp
 /**
  * Specifies a key for CacheControl extension property for [OutgoingContent]
  */
-@SharedImmutable
 public val CachingProperty: AttributeKey<CachingOptions> = AttributeKey("Caching")
 
 /**

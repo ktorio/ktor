@@ -14,7 +14,6 @@ import kotlin.contracts.*
  * read/write using the same [Buffer] instance from different threads.
  */
 public open class Buffer(public val memory: Memory) {
-    private val bufferState: BufferSharedState = BufferSharedState(memory.size32)
 
     /**
      * Current read position. It is always non-negative and will never run ahead of the [writePosition].
@@ -22,11 +21,8 @@ public open class Buffer(public val memory: Memory) {
      * This position is affected by [discard], [rewind], [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var readPosition: Int
-        get() = bufferState.readPosition
-        private set(value) {
-            bufferState.readPosition = value
-        }
+    public var readPosition: Int = 0
+        private set
 
     /**
      * Current write position. It is always non-negative and will never run ahead of the [limit].
@@ -34,21 +30,15 @@ public open class Buffer(public val memory: Memory) {
      * * This position is affected by [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var writePosition: Int
-        get() = bufferState.writePosition
-        private set(value) {
-            bufferState.writePosition = value
-        }
+    public var writePosition: Int = 0
+        private set
 
     /**
      * Start gap is a reserved space in the beginning. The reserved space is usually used to write a packet length
      * in the case when it's not known before the packet constructed.
      */
-    public var startGap: Int
-        get() = bufferState.startGap
-        private set(value) {
-            bufferState.startGap = value
-        }
+    public var startGap: Int = 0
+        private set
 
     /**
      * Write position limit. No bytes could be written ahead of this limit. When the limit is less than the [capacity]
@@ -57,11 +47,8 @@ public open class Buffer(public val memory: Memory) {
      * primitive value (e.g. `kotlin.Int`) is separated into two chunks so bytes from the second chain could be copied
      * to the reserved space of the first chunk and then the whole value could be read at once.
      */
-    public var limit: Int
-        get() = bufferState.limit
-        private set(value) {
-            bufferState.limit = value
-        }
+    public var limit: Int = memory.size32
+        private set
 
     /**
      * Number of bytes reserved in the end.
@@ -82,19 +69,6 @@ public open class Buffer(public val memory: Memory) {
      * Size of the free space available for writing in bytes.
      */
     public inline val writeRemaining: Int get() = limit - writePosition
-
-    /**
-     * User data: could be a session, connection or anything useful
-     */
-    @Deprecated(
-        "Will be removed. Inherit Buffer and add required fields instead.",
-        level = DeprecationLevel.ERROR
-    )
-    public var attachment: Any?
-        get() = bufferState.attachment
-        set(value) {
-            bufferState.attachment = value
-        }
 
     /**
      * Discard [count] readable bytes.

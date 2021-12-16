@@ -7,6 +7,11 @@ package io.ktor.util.date
 import kotlinx.cinterop.*
 import platform.posix.*
 
+/**
+ * Create new gmt date from the [timestamp].
+ * @param timestamp is a number of epoch milliseconds (it is `now` by default).
+ */
+@OptIn(UnsafeNumber::class)
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {
@@ -33,6 +38,9 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     }
 }
 
+/**
+ * Create an instance of [GMTDate] from the specified date/time components
+ */
 public actual fun GMTDate(
     seconds: Int,
     minutes: Int,
@@ -61,6 +69,7 @@ public actual fun GMTDate(
     return GMTDate(timestamp * 1000L)
 }
 
+@Suppress("FunctionName")
 internal expect fun system_time(tm: CValuesRef<tm>?): Long
 
 /**

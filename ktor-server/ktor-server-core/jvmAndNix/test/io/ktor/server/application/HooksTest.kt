@@ -7,7 +7,6 @@ package io.ktor.server.application
 import io.ktor.client.request.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class HooksTest {
@@ -15,8 +14,8 @@ class HooksTest {
     @Test
     fun testCustomHookExecuted() {
         class HookHandler {
-            var called: Boolean by shared(false)
-            var executed: Boolean by shared(false)
+            var called: Boolean = false
+            var executed: Boolean = false
         }
 
         val currentHandler = HookHandler()
@@ -60,7 +59,7 @@ class HooksTest {
     @Test
     fun testShutdownHook() {
         class State {
-            var shutdownCalled by shared(false)
+            var shutdownCalled = false
         }
 
         val state = State()
@@ -90,7 +89,7 @@ class HooksTest {
     @Test
     fun testOnCallFailedHook() {
         class State {
-            var fail: Throwable? by shared(null)
+            var fail: Throwable? = null
         }
 
         val state = State()

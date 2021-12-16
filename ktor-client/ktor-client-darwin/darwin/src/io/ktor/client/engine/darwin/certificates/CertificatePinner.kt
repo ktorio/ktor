@@ -106,6 +106,7 @@ import platform.Security.*
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
+@OptIn(UnsafeNumber::class)
 public data class CertificatePinner internal constructor(
     private val pinnedCertificates: Set<PinnedCertificate>,
     private val validateTrust: Boolean
@@ -354,6 +355,7 @@ public data class CertificatePinner internal constructor(
     /**
      * Converts a [ByteArray] into sha256 base 64 encoded string
      */
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun ByteArray.toSha256String(): String {
         val digest = UByteArray(CC_SHA256_DIGEST_LENGTH)
 
@@ -369,6 +371,7 @@ public data class CertificatePinner internal constructor(
     /**
      * Converts a [ByteArray] into sha1 base 64 encoded string
      */
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun ByteArray.toSha1String(): String {
         val digest = UByteArray(CC_SHA1_DIGEST_LENGTH)
 

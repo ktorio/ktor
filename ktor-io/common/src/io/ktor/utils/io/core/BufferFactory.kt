@@ -47,7 +47,7 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
     }
 }
 
-internal expect val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer>
+internal val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer> = DefaultBufferPool()
 
 public class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,

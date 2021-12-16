@@ -7,6 +7,7 @@ package io.ktor.util.date
 import kotlinx.cinterop.*
 import platform.posix.*
 
+@Suppress("FunctionName")
 internal actual fun system_time(tm: CValuesRef<tm>?): Long {
     return _mkgmtime(tm).convert()
 }
