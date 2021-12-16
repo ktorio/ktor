@@ -6,12 +6,14 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun CoroutineScope.attachForWritingImpl(
     channel: ByteChannel,
@@ -19,14 +21,15 @@ internal fun CoroutineScope.attachForWritingImpl(
     selectable: Selectable,
     selector: SelectorManager,
     pool: ObjectPool<ByteBuffer>,
-    socketOptions: SocketOptions.TCPClientSocketOptions? = null
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    clock: GMTClock
 ): ReaderJob {
     val buffer = pool.borrow()
 
     return reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
         try {
             val timeout = if (socketOptions?.socketTimeout != null) {
-                createTimeout("writing", socketOptions.socketTimeout) {
+                createTimeout("writing", socketOptions.socketTimeout.milliseconds, clock) {
                     channel.close(SocketTimeoutException())
                 }
             } else {
@@ -78,14 +81,15 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
     nioChannel: WritableByteChannel,
     selectable: Selectable,
     selector: SelectorManager,
-    socketOptions: SocketOptions.TCPClientSocketOptions? = null
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    clock: GMTClock
 ): ReaderJob = reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
         @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             val timeout = if (socketOptions?.socketTimeout != null) {
-                createTimeout("writing-direct", socketOptions.socketTimeout) {
+                createTimeout("writing-direct", socketOptions.socketTimeout.milliseconds, clock) {
                     channel.close(SocketTimeoutException())
                 }
             } else {

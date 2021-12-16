@@ -16,6 +16,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlin.time.*
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -31,7 +32,7 @@ import kotlinx.coroutines.channels.*
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val actorChannel = Channel<ByteReadChannel>(capacity = 3)
@@ -186,15 +187,13 @@ public fun CoroutineScope.startServerConnectionPipeline(
 @OptIn(InternalAPI::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     connection: ServerIncomingConnection
 ) {
-    val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> {
-        channel.receiveCatching().getOrNull()
-    }
-
     while (true) {
-        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        val child = withTimeoutOrNull(timeout) {
+            channel.receiveCatching().getOrNull()
+        } ?: break
         try {
             child.joinTo(connection.output, false)
             connection.output.flush()
@@ -220,6 +219,3 @@ internal fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOpt
         else -> false
     }
 }
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

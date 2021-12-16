@@ -13,7 +13,9 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
 
+@ExperimentalTime
 class CacheExpiresTest {
     @Test
     fun testValidExpirationDate() {
@@ -31,52 +33,56 @@ class CacheExpiresTest {
     @Test
     fun testInvalidExpirationDate() {
         val dateText = "A1231242323532452345"
-        val expected = GMTDate.START
+        val testClock = TestTimeSource().toGMTClock()
+        val expected = testClock.now()
 
         val response = response {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(testClock)
         assertEquals(expected, result)
     }
 
     @Test
     fun testInvalidExpirationDateZero() {
         val dateText = "0"
-        val expected = GMTDate.START
+        val testClock = TestTimeSource().toGMTClock()
+        val expected = testClock.now()
 
         val response = response {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(testClock)
         assertEquals(expected, result)
     }
 
     @Test
     fun testInvalidExpirationDateEmpty() {
         val dateText = ""
-        val expected = GMTDate.START
+        val testClock = TestTimeSource().toGMTClock()
+        val expected = testClock.now()
 
         val response = response {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(testClock)
         assertEquals(expected, result)
     }
 
     @Test
     fun testInvalidExpirationDateBlank() {
         val dateText = " "
-        val expected = GMTDate.START
+        val testClock = TestTimeSource().toGMTClock()
+        val expected = testClock.now()
 
         val response = response {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(testClock)
         assertEquals(expected, result)
     }
 

@@ -31,6 +31,7 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 @RunWith(StressSuiteRunner::class)
 abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -56,11 +57,12 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
     @Test
     fun singleConnectionSingleThreadNoPipelining() {
-        createAndStartServer {
+        val server = createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
             }
         }
+        val clock = server.environment.clock
 
         val request = buildString {
             append("GET / HTTP/1.1\r\n")
@@ -74,11 +76,11 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
             val out = socket.getOutputStream()
             val input = socket.getInputStream().bufferedReader(Charsets.ISO_8859_1)
-            val start = System.currentTimeMillis()
+            val start = clock.now()
 
             while (true) {
-                val now = System.currentTimeMillis()
-                if (now - start >= timeMillis) break
+                val now = clock.now()
+                if (now - start >= timeMillis.milliseconds) break
 
                 out.write(request)
                 out.flush()
@@ -95,11 +97,12 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
     @Test
     fun singleConnectionSingleThreadWithPipelining() {
-        createAndStartServer {
+        val server = createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
             }
         }
+        val clock = server.environment.clock
 
         val request = buildString {
             append("GET / HTTP/1.1\r\n")
@@ -111,15 +114,15 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         socket {
             val out = getOutputStream()
             val input = getInputStream().bufferedReader(Charsets.ISO_8859_1)
-            val start = System.currentTimeMillis()
+            val start = clock.now()
             val sem = Semaphore(10)
             var writerFailure: Throwable? = null
 
             val sender = thread(name = "http-sender") {
                 try {
                     while (true) {
-                        val now = System.currentTimeMillis()
-                        if (now - start >= timeMillis) break
+                        val now = clock.now()
+                        if (now - start >= timeMillis.milliseconds) break
 
                         if (!sem.tryAcquire(1000L, TimeUnit.MILLISECONDS)) continue
 
@@ -136,8 +139,8 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
             try {
                 while (true) {
-                    val now = System.currentTimeMillis()
-                    if (now - start >= timeMillis) break
+                    val now = clock.now()
+                    if (now - start >= timeMillis.milliseconds) break
 
                     val line = input.readLine() ?: throw AssertionError("Unexpected EOF")
                     if (endMarker in line) {

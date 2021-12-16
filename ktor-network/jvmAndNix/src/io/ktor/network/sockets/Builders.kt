@@ -4,11 +4,13 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 
 /**
  * Start building a socket
  */
-public fun aSocket(selector: SelectorManager): SocketBuilder = SocketBuilder(selector, SocketOptions.create())
+public fun aSocket(selector: SelectorManager, clock: GMTClock = GMTClock.System): SocketBuilder =
+    SocketBuilder(selector, SocketOptions.create(), clock)
 
 /**
  * Socket builder
@@ -16,18 +18,19 @@ public fun aSocket(selector: SelectorManager): SocketBuilder = SocketBuilder(sel
 @Suppress("PublicApiImplicitType", "unused")
 public class SocketBuilder internal constructor(
     private val selector: SelectorManager,
-    override var options: SocketOptions
+    override var options: SocketOptions,
+    private val clock: GMTClock
 ) : Configurable<SocketBuilder, SocketOptions> {
 
     /**
      * Build TCP socket.
      */
-    public fun tcp(): TcpSocketBuilder = TcpSocketBuilder(selector, options.peer())
+    public fun tcp(): TcpSocketBuilder = TcpSocketBuilder(selector, options.peer(), clock)
 
     /**
      * Build UDP socket.
      */
-    public fun udp(): UDPSocketBuilder = UDPSocketBuilder(selector, options.peer().udp())
+    public fun udp(): UDPSocketBuilder = UDPSocketBuilder(selector, options.peer().udp(), clock)
 }
 
 /**

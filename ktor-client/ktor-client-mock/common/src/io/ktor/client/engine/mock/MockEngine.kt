@@ -69,7 +69,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
             handler
         }
 
-        val response = handler(MockRequestHandleScope(callContext), data)
+        val response = handler(MockRequestHandleScope(callContext, config.clock), data)
 
         synchronized(mutex) {
             _requestsHistory.add(data)

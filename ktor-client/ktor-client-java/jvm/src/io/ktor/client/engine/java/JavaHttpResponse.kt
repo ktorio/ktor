@@ -6,17 +6,19 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.future.*
 import java.net.http.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpClient.executeHttpRequest(
     callContext: CoroutineContext,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    clock: GMTClock
 ): HttpResponseData {
     val httpRequest = requestData.convertToHttpRequest(callContext)
     return try {
-        sendAsync(httpRequest, JavaHttpResponseBodyHandler(callContext)).await().body()
+        sendAsync(httpRequest, JavaHttpResponseBodyHandler(callContext, clock)).await().body()
     } catch (cause: HttpConnectTimeoutException) {
         throw ConnectTimeoutException(requestData, cause)
     } catch (cause: HttpTimeoutException) {

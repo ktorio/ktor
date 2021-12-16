@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import java.net.*
 import java.nio.channels.*
@@ -12,7 +13,8 @@ import java.nio.channels.*
 @Suppress("BlockingMethodInNonBlockingContext")
 internal class ServerSocketImpl(
     override val channel: ServerSocketChannel,
-    val selector: SelectorManager
+    val selector: SelectorManager,
+    private val clock: GMTClock
 ) : ServerSocket, Selectable by SelectableBase(channel) {
     init {
         require(!channel.isBlocking) { "Channel need to be configured as non-blocking." }
@@ -53,7 +55,7 @@ internal class ServerSocketImpl(
                 nioChannel.socket().tcpNoDelay = true
             }
         }
-        return SocketImpl(nioChannel, selector)
+        return SocketImpl(nioChannel, selector, clock = clock)
     }
 
     override fun close() {

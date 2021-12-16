@@ -15,11 +15,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.slf4j.helpers.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
+import kotlin.time.*
 
 class ApplicationEngineEnvironmentReloadingTests {
 
@@ -516,12 +518,14 @@ class ApplicationEngineEnvironmentReloadingTests {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun dummyEnv() = ApplicationEngineEnvironmentReloading(
         classLoader = this::class.java.classLoader,
         log = NOPLogger.NOP_LOGGER,
         config = MapApplicationConfig(),
         connectors = emptyList(),
-        modules = emptyList()
+        modules = emptyList(),
+        clock = TestTimeSource().toGMTClock()
     )
 }
 

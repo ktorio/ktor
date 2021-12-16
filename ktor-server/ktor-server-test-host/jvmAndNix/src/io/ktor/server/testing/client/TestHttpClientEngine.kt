@@ -83,12 +83,13 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     @OptIn(InternalAPI::class)
     private suspend fun TestApplicationResponse.httpResponseData(body: Any) = HttpResponseData(
         status() ?: HttpStatusCode.NotFound,
-        GMTDate(),
+        requestTime = config.clock.now(),
         headers.allValues().takeUnless { it.isEmpty() } ?: Headers
             .build { append(HttpHeaders.ContentLength, "0") },
         HttpProtocolVersion.HTTP_1_1,
         body,
-        callContext()
+        callContext(),
+        responseTime = config.clock.now()
     )
 
     internal fun TestApplicationRequest.appendRequestHeaders(

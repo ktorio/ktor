@@ -43,7 +43,7 @@ private fun testWithClient(
     client: HttpClient,
     timeout: Long,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = testSuspend(timeoutMillis = timeout) {
+) = testSuspend(dispatchTimeoutMs = timeout) {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
     concurrency(builder.concurrency) { threadId ->
@@ -66,7 +66,7 @@ fun <T : HttpClientEngineConfig> testWithEngine(
     loader: ClientLoader? = null,
     timeoutMillis: Long = 60L * 1000L,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = testSuspend(timeoutMillis = timeoutMillis) {
+) = testSuspend(dispatchTimeoutMs = timeoutMillis) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {

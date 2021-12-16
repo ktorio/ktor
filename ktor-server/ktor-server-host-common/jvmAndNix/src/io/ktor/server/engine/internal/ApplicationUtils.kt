@@ -11,8 +11,6 @@ import kotlinx.coroutines.*
 
 internal expect fun availableProcessorsBridge(): Int
 
-internal fun currentTimeMillisBridge(): Long = GMTDate().timestamp
-
 internal expect val Dispatchers.IOBridge: CoroutineDispatcher
 
 internal expect fun printError(message: Any?)

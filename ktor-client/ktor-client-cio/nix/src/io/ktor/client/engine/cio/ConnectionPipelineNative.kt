@@ -6,6 +6,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.network.sockets.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
@@ -16,7 +17,8 @@ internal actual class ConnectionPipeline actual constructor(
     connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
-    parentContext: CoroutineContext
+    parentContext: CoroutineContext,
+    clock: GMTClock
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext
 

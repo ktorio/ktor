@@ -1,19 +1,26 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.test.dispatcher
 
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+public actual typealias TestResult = Unit
 
 /**
  * Test runner for native suspend tests.
  */
 public actual fun testSuspend(
     context: CoroutineContext,
-    timeoutMillis: Long,
-    block: suspend CoroutineScope.() -> Unit
+    dispatchTimeoutMs: Long,
+    testBody: suspend TestScope.() -> Unit
 ) {
-    executeInWorker(timeoutMillis) {
+    executeInWorker(dispatchTimeoutMs) {
         runBlocking {
-            block()
+            TestScope().testBody()
         }
     }
 }

@@ -6,12 +6,14 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun CoroutineScope.attachForReadingImpl(
     channel: ByteChannel,
@@ -19,13 +21,14 @@ internal fun CoroutineScope.attachForReadingImpl(
     selectable: Selectable,
     selector: SelectorManager,
     pool: ObjectPool<ByteBuffer>,
-    socketOptions: SocketOptions.TCPClientSocketOptions? = null
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    clock: GMTClock
 ): WriterJob {
     val buffer = pool.borrow()
     return writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
         try {
             val timeout = if (socketOptions?.socketTimeout != null) {
-                createTimeout("reading", socketOptions.socketTimeout) {
+                createTimeout("reading", socketOptions.socketTimeout.milliseconds, clock) {
                     channel.close(SocketTimeoutException())
                 }
             } else {
@@ -78,13 +81,14 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
     selector: SelectorManager,
-    socketOptions: SocketOptions.TCPClientSocketOptions? = null
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    clock: GMTClock
 ): WriterJob = writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
     try {
         selectable.interestOp(SelectInterest.READ, false)
 
         val timeout = if (socketOptions?.socketTimeout != null) {
-            createTimeout("reading-direct", socketOptions.socketTimeout) {
+            createTimeout("reading-direct", socketOptions.socketTimeout.milliseconds, clock) {
                 channel.close(SocketTimeoutException())
             }
         } else {

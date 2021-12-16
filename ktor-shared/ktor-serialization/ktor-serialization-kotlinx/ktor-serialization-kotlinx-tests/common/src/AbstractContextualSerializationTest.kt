@@ -11,6 +11,7 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -48,7 +49,7 @@ public abstract class AbstractContextualSerializationTest<T : SerialFormat> {
     ): Boolean
 
     @Test
-    public fun testSerializationWithContext(): Unit = testSuspend {
+    public fun testSerializationWithContext(): TestResult = testSuspend {
         val context = serializersModuleOf(UserData::class, UserDataSerializer)
         val contextualSerializer = buildContextualSerializer(context)
         val contextual = KotlinxSerializationConverter(contextualSerializer)

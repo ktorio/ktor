@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.util.date.*
 import kotlin.coroutines.*
 
 /**
@@ -18,7 +19,7 @@ public typealias MockRequestHandler = suspend MockRequestHandleScope.(request: H
 /**
  * Scope for [MockRequestHandler].
  */
-public class MockRequestHandleScope(internal val callContext: CoroutineContext)
+public class MockRequestHandleScope(internal val callContext: CoroutineContext, internal val clock: GMTClock)
 
 /**
  * [HttpClientEngineConfig] for [MockEngine].

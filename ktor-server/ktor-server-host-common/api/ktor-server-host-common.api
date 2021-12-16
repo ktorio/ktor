@@ -34,6 +34,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public fun <init> ()V
 	public final fun build (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public final fun getClassLoader ()Ljava/lang/ClassLoader;
+	public final fun getClock ()Lio/ktor/util/date/GMTClock;
 	public final fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public final fun getConnectors ()Ljava/util/List;
 	public final fun getDevelopmentMode ()Z
@@ -44,6 +45,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public final fun getWatchPaths ()Ljava/util/List;
 	public final fun module (Lkotlin/jvm/functions/Function1;)V
 	public final fun setClassLoader (Ljava/lang/ClassLoader;)V
+	public final fun setClock (Lio/ktor/util/date/GMTClock;)V
 	public final fun setConfig (Lio/ktor/server/config/ApplicationConfig;)V
 	public final fun setDevelopmentMode (Z)V
 	public final fun setLog (Lorg/slf4j/Logger;)V
@@ -58,12 +60,13 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentKt {
 
 public final class io/ktor/server/engine/ApplicationEngineEnvironmentReloading : io/ktor/server/engine/ApplicationEngineEnvironment {
 	public static final field Companion Lio/ktor/server/engine/ApplicationEngineEnvironmentReloading$Companion;
-	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Z)V
-	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lio/ktor/util/date/GMTClock;)V
+	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lio/ktor/util/date/GMTClock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZLio/ktor/util/date/GMTClock;)V
+	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZLio/ktor/util/date/GMTClock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getClassLoader ()Ljava/lang/ClassLoader;
+	public fun getClock ()Lio/ktor/util/date/GMTClock;
 	public fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public fun getConnectors ()Ljava/util/List;
 	public fun getDevelopmentMode ()Z

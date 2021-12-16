@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.events.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -118,6 +119,11 @@ public class HttpClient(
     public val engineConfig: HttpClientEngineConfig = engine.config
 
     /**
+     * Client clock. Shortcut for `engine.config.clock`
+     */
+    public val clock: GMTClock get() = engine.config.clock
+
+    /**
      * Provides events on client lifecycle
      */
     public val monitor: Events = Events()
@@ -208,7 +214,7 @@ public class HttpClient(
      * Closes the underlying [engine].
      */
     override fun close() {
-        val success = closed.compareAndSet(false, true)
+        val success = closed.compareAndSet(expect = false, update = true)
         if (!success) return
 
         val installedFeatures = attributes[PLUGIN_INSTALLED_LIST]

@@ -11,14 +11,15 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class DateJvmTest {
     @Test
     fun testJvmDate() {
-        val dateRaw = GMTDate(1346524199000)
+        val dateRaw = GMTDate(1346524199000.milliseconds)
         val date = dateRaw.toJvmDate()
 
-        assertEquals(dateRaw.timestamp, date.time)
+        assertEquals(dateRaw.durationSinceEpoch, date.time.milliseconds)
     }
 
     @Test
@@ -40,19 +41,19 @@ class DateJvmTest {
 
     @Test
     fun testJvmDateWithZoneOffset() {
-        val gmtDate: GMTDate = GMTDate(0, 0, 12, 1, Month.JANUARY, 2019)
+        val gmtDate = GMTDate(0, 0, 12, 1, Month.JANUARY, 2019)
         val convertedDate = gmtDate.toJvmDate().toInstant().atZone(ZoneOffset.systemDefault())
         assertEquals(convertedDate.toGMTDate(), gmtDate)
     }
 
     @Test
     fun testJvmDateWithSimpleDateFormat() {
-        val dateFormat: SimpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         dateFormat.timeZone = TimeZone.getTimeZone(ZoneOffset.systemDefault())
         val date = dateFormat.parse("2019-01-01T12:00:00").toInstant()
 
-        val gmtDate: GMTDate = GMTDate(0, 0, 12, 1, Month.JANUARY, 2019)
-        val format: Long = dateFormat.timeZone.getOffset(gmtDate.timestamp).toLong()
+        val gmtDate = GMTDate(0, 0, 12, 1, Month.JANUARY, 2019)
+        val format: Long = dateFormat.timeZone.getOffset(gmtDate.durationSinceEpoch.inWholeMilliseconds).toLong()
         val convertedDate = gmtDate.toJvmDate().toInstant().minusMillis(format)
 
         assertEquals(date, convertedDate)

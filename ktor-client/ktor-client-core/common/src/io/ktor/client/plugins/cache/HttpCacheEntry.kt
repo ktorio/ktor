@@ -11,6 +11,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
@@ -62,7 +63,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
+internal fun HttpResponse.cacheExpires(fallback: GMTClock = call.clock): GMTDate {
     val cacheControl = cacheControl()
 
     val isPrivate = CacheControl.PRIVATE in cacheControl
@@ -71,28 +72,28 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
-        ?.get(1)?.toInt()
+        ?.get(1)?.toInt()?.seconds
 
     if (maxAge != null) {
-        return call.response.requestTime + maxAge * 1000L
+        return call.response.requestTime + maxAge
     }
 
     val expires = headers[HttpHeaders.Expires]
     return expires?.let {
         // Handle "0" case faster
-        if (it == "0" || it.isBlank()) return fallback()
+        if (it == "0" || it.isBlank()) return@let null
 
-        return try {
+        try {
             it.fromHttpToGmtDate()
         } catch (e: Throwable) {
-            fallback()
+            null
         }
-    } ?: fallback()
+    } ?: fallback.now()
 }
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
     val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
-    val isStale = GMTDate() > expires
+    val isStale = response.call.clock.now() > expires
     // must-revalidate; re-validate once STALE, and MUST NOT return a cached response once stale.
     //  This is how majority of clients implement the RFC
     //  OkHttp Implements this the same: https://github.com/square/okhttp/issues/4043#issuecomment-403679369

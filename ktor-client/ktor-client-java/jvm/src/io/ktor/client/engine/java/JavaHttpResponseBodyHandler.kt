@@ -19,17 +19,18 @@ import kotlin.coroutines.*
 
 internal class JavaHttpResponseBodyHandler(
     private val coroutineContext: CoroutineContext,
-    private val requestTime: GMTDate = GMTDate()
+    private val clock: GMTClock
 ) : HttpResponse.BodyHandler<HttpResponseData> {
 
     override fun apply(responseInfo: HttpResponse.ResponseInfo): HttpResponse.BodySubscriber<HttpResponseData> {
-        return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, requestTime)
+        return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, clock.now(), clock)
     }
 
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,
-        requestTime: GMTDate
+        requestTime: GMTDate,
+        clock: GMTClock
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
 
         private val consumerJob = Job(callContext[Job])
@@ -48,7 +49,8 @@ internal class JavaHttpResponseBodyHandler(
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
             responseChannel,
-            callContext
+            callContext,
+            responseTime = clock.now()
         )
 
         private val closed = atomic(false)

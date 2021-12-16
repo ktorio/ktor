@@ -7,6 +7,7 @@ package io.ktor.server.engine
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.util.network.*
 import kotlinx.coroutines.*
@@ -92,6 +93,8 @@ public expect class ApplicationEngineEnvironmentBuilder() {
      * Development mode enabled.
      */
     public var developmentMode: Boolean
+
+    public var clock: GMTClock
 
     /**
      * Install application module

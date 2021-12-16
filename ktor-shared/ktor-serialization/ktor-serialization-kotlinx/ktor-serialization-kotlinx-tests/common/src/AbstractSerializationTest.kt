@@ -37,7 +37,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
     ): Boolean
 
     @Test
-    public fun testMapsElements(): Unit = testSuspend {
+    public fun testMapsElements(): TestResult = testSuspend {
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         testSerializer.testSerialize(
             mapOf(
@@ -78,7 +78,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
     }
 
     @Test
-    public fun testRegisterCustom(): Unit = testSuspend {
+    public fun testRegisterCustom(): TestResult = testSuspend {
         val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
 
         val user = User(1, "vasya")
@@ -87,7 +87,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
     }
 
     @Test
-    public fun testRegisterCustomList(): Unit = testSuspend {
+    public fun testRegisterCustomList(): TestResult = testSuspend {
         val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
 
         val user = User(2, "petya")

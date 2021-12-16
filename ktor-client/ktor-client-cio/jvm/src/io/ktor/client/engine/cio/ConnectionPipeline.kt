@@ -28,7 +28,8 @@ internal actual class ConnectionPipeline actual constructor(
     connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
-    parentContext: CoroutineContext
+    parentContext: CoroutineContext,
+    clock: GMTClock
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext + Job()
 
@@ -46,7 +47,7 @@ internal actual class ConnectionPipeline actual constructor(
 
                 try {
                     requestLimit.acquire()
-                    responseChannel.send(ConnectionResponseTask(GMTDate(), task))
+                    responseChannel.send(ConnectionResponseTask(clock.now(), task))
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                     throw cause
@@ -113,7 +114,15 @@ internal actual class ConnectionPipeline actual constructor(
                         body.cancel()
                     }
 
-                    val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
+                    val response = HttpResponseData(
+                        status,
+                        requestTime,
+                        headers,
+                        version,
+                        body,
+                        callContext,
+                        clock.now()
+                    )
                     task.response.complete(response)
 
                     responseChannel?.use {

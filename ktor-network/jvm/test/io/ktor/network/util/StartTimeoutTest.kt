@@ -4,97 +4,111 @@
 
 package io.ktor.network.util
 
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
 
+@ExperimentalTime
 class StartTimeoutTest {
 
     private data class TestClock(var timeMs: Long)
 
-    private val timeoutMs: Long = 100
-    private val clock = TestClock(2000)
+    private val timeoutDuration = 100.milliseconds
 
     @Test
     fun testTimeoutInvocation() = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
         var timeoutInvoked = false
 
-        val timeout = createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
+        val timeout = createTimeout("test", timeoutDuration, clock) { timeoutInvoked = true }
         timeout.start()
         yield()
 
-        clock.timeMs += timeoutMs
-        delay(timeoutMs)
+        testTimeSource += timeoutDuration
+        delay(timeoutDuration)
         yield()
         assertTrue(timeoutInvoked)
     }
 
     @Test
     fun testTimeoutCancellation() = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
         var timeoutInvoked = false
 
-        val timeout = createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
+        val timeout = createTimeout("test", timeoutDuration, clock) { timeoutInvoked = true }
         timeout.start()
         yield()
 
-        clock.timeMs += timeoutMs
+        testTimeSource += timeoutDuration
         timeout.finish()
-        delay(timeoutMs)
+        delay(timeoutDuration)
         yield()
         assertFalse(timeoutInvoked)
     }
 
     @Test
     fun testTimeoutUpdateActivityTime() = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
         var timeoutInvoked = false
-        val timeout = createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
+        val timeout = createTimeout("test", timeoutDuration, clock) { timeoutInvoked = true }
         timeout.start()
         yield()
 
-        clock.timeMs += timeoutMs
+        testTimeSource += timeoutDuration
         timeout.start()
-        delay(timeoutMs)
-        yield()
-        assertFalse(timeoutInvoked)
-
-        clock.timeMs += timeoutMs
-        timeout.start()
-        delay(timeoutMs)
+        delay(timeoutDuration)
         yield()
         assertFalse(timeoutInvoked)
 
-        clock.timeMs += timeoutMs
-        delay(timeoutMs)
+        testTimeSource += timeoutDuration
+        timeout.start()
+        delay(timeoutDuration)
+        yield()
+        assertFalse(timeoutInvoked)
+
+        testTimeSource += timeoutDuration
+        delay(timeoutDuration)
         yield()
         assertTrue(timeoutInvoked)
     }
 
     @Test
     fun testTimeoutDoesNotTriggerWhenStopped() = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
         var timeoutInvoked = false
-        val timeout = createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
+        val timeout = createTimeout("test", timeoutDuration, clock) { timeoutInvoked = true }
         timeout.start()
         yield()
 
-        clock.timeMs += timeoutMs
+        testTimeSource += timeoutDuration
         timeout.start()
-        delay(timeoutMs)
+        delay(timeoutDuration)
         yield()
         assertFalse(timeoutInvoked)
 
         timeout.stop()
-        clock.timeMs += timeoutMs
-        delay(timeoutMs)
+        testTimeSource += timeoutDuration
+        delay(timeoutDuration)
         yield()
         assertFalse(timeoutInvoked)
 
         timeout.start()
-        clock.timeMs += timeoutMs / 2
-        delay(timeoutMs / 2)
+        testTimeSource += timeoutDuration / 2
+        delay(timeoutDuration / 2)
         yield()
         assertFalse(timeoutInvoked)
 
-        clock.timeMs += timeoutMs / 2
-        delay(timeoutMs / 2)
+        testTimeSource += timeoutDuration / 2
+        delay(timeoutDuration / 2)
         yield()
         assertTrue(timeoutInvoked)
     }
@@ -102,15 +116,18 @@ class StartTimeoutTest {
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testTimeoutCancelsWhenParentScopeCancels() = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
         var timeoutInvoked = false
         val scope = CoroutineScope(GlobalScope.coroutineContext)
-        val timeout = scope.createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
+        val timeout = scope.createTimeout("test", timeoutDuration, clock) { timeoutInvoked = true }
         timeout.start()
 
         runCatching { scope.cancel(CancellationException()) }
-        clock.timeMs += timeoutMs
+        testTimeSource += timeoutDuration
 
-        delay(timeoutMs)
+        delay(timeoutDuration)
         assertFalse(timeoutInvoked)
     }
 }

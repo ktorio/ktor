@@ -34,7 +34,7 @@ internal class CurlClientEngine(
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
 
         val curlRequest = data.toCurlRequest(config)
         val responseData = curlProcessor.executeRequest(curlRequest)
@@ -56,7 +56,8 @@ internal class CurlClientEngine(
                 headers,
                 version.fromCurl(),
                 bodyChannel,
-                callContext
+                callContext,
+                responseTime = config.clock.now()
             )
         }
     }

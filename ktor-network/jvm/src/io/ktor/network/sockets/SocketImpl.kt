@@ -5,13 +5,15 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 import java.nio.channels.*
 
 internal class SocketImpl<out S : SocketChannel>(
     override val channel: S,
     selector: SelectorManager,
-    socketOptions: SocketOptions.TCPClientSocketOptions? = null
-) : NIOSocketImpl<S>(channel, selector, pool = null, socketOptions = socketOptions),
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    clock: GMTClock
+) : NIOSocketImpl<S>(channel, selector, pool = null, socketOptions = socketOptions, clock = clock),
     Socket {
     init {
         require(!channel.isBlocking) { "Channel need to be configured as non-blocking." }

@@ -91,7 +91,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         engineRequest: Request,
         callContext: CoroutineContext
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         val session = OkHttpWebsocketSession(
             engine,
             config.webSocketFactory ?: engine,
@@ -100,7 +100,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
-        return buildResponseData(originResponse, requestTime, session, callContext)
+        return buildResponseData(originResponse, requestTime, session, callContext, config.clock.now())
     }
 
     private suspend fun executeHttpRequest(
@@ -109,27 +109,28 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         callContext: CoroutineContext,
         requestData: HttpRequestData
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         val response = engine.execute(engineRequest, requestData)
 
         val body = response.body
         callContext[Job]!!.invokeOnCompletion { body?.close() }
 
         val responseContent = body?.source()?.toChannel(callContext, requestData) ?: ByteReadChannel.Empty
-        return buildResponseData(response, requestTime, responseContent, callContext)
+        return buildResponseData(response, requestTime, responseContent, callContext, responseTime = config.clock.now())
     }
 
     private fun buildResponseData(
         response: Response,
         requestTime: GMTDate,
         body: Any,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
+        responseTime: GMTDate
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
         val headers = response.headers.fromOkHttp()
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return HttpResponseData(status, requestTime, headers, version, body, callContext, responseTime)
     }
 
     private companion object {

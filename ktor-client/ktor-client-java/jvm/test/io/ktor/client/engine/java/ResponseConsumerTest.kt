@@ -5,19 +5,26 @@
 package io.ktor.client.engine.java
 
 import io.ktor.http.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.*
+import kotlinx.coroutines.test.*
 import java.net.http.*
 import java.net.http.HttpHeaders
 import java.nio.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
 
+@ExperimentalTime
 class ResponseConsumerTest {
     @Test
-    fun testConsumeContent() {
-        val responseBodyHandler = JavaHttpResponseBodyHandler(EmptyCoroutineContext)
+    fun testConsumeContent() = testSuspend {
+        val clock = testTimeSource.toGMTClock()
+
+        val responseBodyHandler = JavaHttpResponseBodyHandler(EmptyCoroutineContext, clock)
         val bodySubscriber = responseBodyHandler.apply(
             object : HttpResponse.ResponseInfo {
                 override fun statusCode() = 200
@@ -33,22 +40,20 @@ class ResponseConsumerTest {
             }
         )
 
-        runBlocking {
-            bodySubscriber.onNext(
-                mutableListOf(
-                    ByteBuffer.wrap("ktor".toByteArray())
-                )
+        bodySubscriber.onNext(
+            mutableListOf(
+                ByteBuffer.wrap("ktor".toByteArray())
             )
-            delay(50)
-            bodySubscriber.onComplete()
+        )
+        delay(50)
+        bodySubscriber.onComplete()
 
-            val responseBody = bodySubscriber.body.toCompletableFuture().await()
+        val responseBody = bodySubscriber.body.toCompletableFuture().await()
 
-            assertEquals(200, responseBody.statusCode.value)
-            assertEquals("4", responseBody.headers[io.ktor.http.HttpHeaders.ContentLength])
-            assertEquals("text/plain", responseBody.headers[io.ktor.http.HttpHeaders.ContentType])
-            assertEquals(HttpProtocolVersion.HTTP_2_0, responseBody.version)
-            assertEquals("ktor", (responseBody.body as ByteReadChannel).readUTF8Line())
-        }
+        assertEquals(200, responseBody.statusCode.value)
+        assertEquals("4", responseBody.headers[io.ktor.http.HttpHeaders.ContentLength])
+        assertEquals("text/plain", responseBody.headers[io.ktor.http.HttpHeaders.ContentType])
+        assertEquals(HttpProtocolVersion.HTTP_2_0, responseBody.version)
+        assertEquals("ktor", (responseBody.body as ByteReadChannel).readUTF8Line())
     }
 }

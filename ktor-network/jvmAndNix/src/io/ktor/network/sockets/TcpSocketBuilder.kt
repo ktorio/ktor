@@ -1,6 +1,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 
 /**
  * TCP socket builder
@@ -8,7 +9,8 @@ import io.ktor.network.selector.*
 @Suppress("PublicApiImplicitType")
 public class TcpSocketBuilder(
     private val selector: SelectorManager,
-    override var options: SocketOptions
+    override var options: SocketOptions,
+    private val clock: GMTClock
 ) : Configurable<TcpSocketBuilder, SocketOptions> {
     /**
      * Connect to [hostname] and [port].
@@ -34,7 +36,7 @@ public class TcpSocketBuilder(
     public suspend fun connect(
         remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
-    ): Socket = connect(selector, remoteAddress, options.peer().tcp().apply(configure))
+    ): Socket = connect(selector, remoteAddress, options.peer().tcp().apply(configure), clock)
 
     /**
      * Bind server socket to listen to [localAddress].
@@ -42,5 +44,5 @@ public class TcpSocketBuilder(
     public fun bind(
         localAddress: SocketAddress? = null,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
-    ): ServerSocket = bind(selector, localAddress, options.peer().acceptor().apply(configure))
+    ): ServerSocket = bind(selector, localAddress, options.peer().acceptor().apply(configure), clock)
 }

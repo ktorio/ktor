@@ -41,7 +41,7 @@ public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("
 
     val locator = WebJarAssetLocator()
     val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
-    val lastModified = GMTDate()
+    val lastModified = environment!!.clock.now()
 
     onCall { call ->
         if (call.response.isCommitted) return@onCall

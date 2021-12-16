@@ -6,6 +6,7 @@ package io.ktor.http.content
 
 import io.ktor.util.date.*
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * This version passes the given [lastModified] date through the client provided
@@ -21,4 +22,4 @@ import java.util.*
  *  @param lastModified of the current content, for example file's last modified date
  */
 public fun LastModifiedVersion(lastModified: Date): LastModifiedVersion =
-    LastModifiedVersion(GMTDate(lastModified.time))
+    LastModifiedVersion(GMTDate(lastModified.time.milliseconds))

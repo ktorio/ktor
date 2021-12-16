@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 import java.net.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -12,12 +13,13 @@ import java.nio.channels.spi.*
 internal actual suspend fun connect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
-    socketOptions: SocketOptions.TCPClientSocketOptions
+    socketOptions: SocketOptions.TCPClientSocketOptions,
+    clock: GMTClock
 ): Socket = selector.buildOrClose({ openSocketChannelFor(remoteAddress) }) {
     if (remoteAddress is InetSocketAddress) assignOptions(socketOptions)
     nonBlocking()
 
-    SocketImpl(this, selector, socketOptions).apply {
+    SocketImpl(this, selector, socketOptions, clock).apply {
         connect(remoteAddress.toJavaAddress())
     }
 }
@@ -25,12 +27,13 @@ internal actual suspend fun connect(
 internal actual fun bind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    socketOptions: SocketOptions.AcceptorOptions
+    socketOptions: SocketOptions.AcceptorOptions,
+    clock: GMTClock
 ): ServerSocket = selector.buildOrClose({ openServerSocketChannelFor(localAddress) }) {
     if (localAddress is InetSocketAddress) assignOptions(socketOptions)
     nonBlocking()
 
-    ServerSocketImpl(this, selector).apply {
+    ServerSocketImpl(this, selector, clock).apply {
         if (java7NetworkApisAvailable) {
             channel.bind(localAddress?.toJavaAddress(), socketOptions.backlogSize)
         } else {

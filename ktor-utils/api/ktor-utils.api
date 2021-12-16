@@ -567,52 +567,65 @@ public final class io/ktor/util/converters/DelegatingConversionService$Configura
 
 public final class io/ktor/util/date/DateJvmKt {
 	public static final fun GMTDate (IIIILio/ktor/util/date/Month;I)Lio/ktor/util/date/GMTDate;
-	public static final fun GMTDate (Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
-	public static synthetic fun GMTDate$default (Ljava/lang/Long;ILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
-	public static final fun getTimeMillis ()J
-	public static final fun toDate (Ljava/util/Calendar;Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
+	public static final fun GMTDate-LRDsOJo (J)Lio/ktor/util/date/GMTDate;
 	public static final fun toJvmDate (Lio/ktor/util/date/GMTDate;)Ljava/util/Date;
 }
 
 public final class io/ktor/util/date/DateKt {
-	public static final fun minus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
-	public static final fun minus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
-	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
-	public static final fun plus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun toGMTClock (Lkotlin/time/TimeSource;Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTClock;
+	public static synthetic fun toGMTClock$default (Lkotlin/time/TimeSource;Lio/ktor/util/date/GMTDate;ILjava/lang/Object;)Lio/ktor/util/date/GMTClock;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
+}
+
+public abstract interface class io/ktor/util/date/GMTClock {
+	public static final field System Lio/ktor/util/date/GMTClock$System;
+	public abstract fun now ()Lio/ktor/util/date/GMTDate;
+}
+
+public final class io/ktor/util/date/GMTClock$System : io/ktor/util/date/GMTClock {
+	public fun now ()Lio/ktor/util/date/GMTDate;
 }
 
 public final class io/ktor/util/date/GMTDate : java/lang/Comparable {
 	public static final field Companion Lio/ktor/util/date/GMTDate$Companion;
 	public fun compareTo (Lio/ktor/util/date/GMTDate;)I
 	public synthetic fun compareTo (Ljava/lang/Object;)I
-	public final fun component1 ()I
-	public final fun component2 ()I
-	public final fun component3 ()I
-	public final fun component4 ()Lio/ktor/util/date/WeekDay;
-	public final fun component5 ()I
-	public final fun component6 ()I
-	public final fun component7 ()Lio/ktor/util/date/Month;
-	public final fun component8 ()I
-	public final fun component9 ()J
-	public final fun copy (IIILio/ktor/util/date/WeekDay;IILio/ktor/util/date/Month;IJ)Lio/ktor/util/date/GMTDate;
-	public static synthetic fun copy$default (Lio/ktor/util/date/GMTDate;IIILio/ktor/util/date/WeekDay;IILio/ktor/util/date/Month;IJILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDayOfMonth ()I
 	public final fun getDayOfWeek ()Lio/ktor/util/date/WeekDay;
 	public final fun getDayOfYear ()I
+	public final fun getDurationSinceEpoch-UwyO8pc ()J
 	public final fun getHours ()I
 	public final fun getMinutes ()I
 	public final fun getMonth ()Lio/ktor/util/date/Month;
 	public final fun getSeconds ()I
-	public final fun getTimestamp ()J
 	public final fun getYear ()I
 	public fun hashCode ()I
+	public final fun minus-5sfh64U (Lio/ktor/util/date/GMTDate;)J
+	public final fun minus-LRDsOJo (J)Lio/ktor/util/date/GMTDate;
+	public final fun plus-LRDsOJo (J)Lio/ktor/util/date/GMTDate;
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/date/GMTDate$Companion {
 	public final fun getSTART ()Lio/ktor/util/date/GMTDate;
+}
+
+public final class io/ktor/util/date/GMTDateBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/util/date/GMTDate;
+	public final fun getDayOfMonth ()Ljava/lang/Integer;
+	public final fun getHours ()Ljava/lang/Integer;
+	public final fun getMinutes ()Ljava/lang/Integer;
+	public final fun getMonth ()Lio/ktor/util/date/Month;
+	public final fun getSeconds ()Ljava/lang/Integer;
+	public final fun getYear ()Ljava/lang/Integer;
+	public final fun setDayOfMonth (Ljava/lang/Integer;)V
+	public final fun setHours (Ljava/lang/Integer;)V
+	public final fun setMinutes (Ljava/lang/Integer;)V
+	public final fun setMonth (Lio/ktor/util/date/Month;)V
+	public final fun setSeconds (Ljava/lang/Integer;)V
+	public final fun setYear (Ljava/lang/Integer;)V
 }
 
 public final class io/ktor/util/date/GMTDateParser {

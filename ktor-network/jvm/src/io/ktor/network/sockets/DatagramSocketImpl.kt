@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -14,11 +15,13 @@ import java.nio.channels.*
 
 internal class DatagramSocketImpl(
     override val channel: DatagramChannel,
-    selector: SelectorManager
+    selector: SelectorManager,
+    clock: GMTClock
 ) : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(
     channel,
     selector,
-    DefaultDatagramByteBufferPool
+    DefaultDatagramByteBufferPool,
+    clock = clock
 ) {
     override val localAddress: SocketAddress
         get() {

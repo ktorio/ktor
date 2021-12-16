@@ -8,6 +8,7 @@ package io.ktor.server.engine
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import org.slf4j.*
 import kotlin.coroutines.*
 
@@ -60,6 +61,8 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
+    public actual var clock: GMTClock = GMTClock.System
+
     /**
      * Install application module
      */
@@ -73,7 +76,16 @@ public actual class ApplicationEngineEnvironmentBuilder {
     public actual fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
         return ApplicationEngineEnvironmentReloading(
-            classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, rootPath, developmentMode
+            classLoader,
+            log,
+            config,
+            connectors,
+            modules,
+            watchPaths,
+            parentCoroutineContext,
+            rootPath,
+            developmentMode,
+            clock = clock
         )
     }
 }

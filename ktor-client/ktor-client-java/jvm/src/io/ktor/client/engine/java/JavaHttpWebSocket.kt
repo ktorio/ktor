@@ -40,11 +40,12 @@ private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
 
 internal suspend fun HttpClient.executeWebSocketRequest(
     coroutineContext: CoroutineContext,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    clock: GMTClock
 ): HttpResponseData {
-    val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData)
+    val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData, clock.now())
     try {
-        return webSocket.getResponse()
+        return webSocket.getResponse(clock)
     } catch (cause: HttpConnectTimeoutException) {
         throw ConnectTimeoutException(requestData, cause)
     } catch (cause: HttpTimeoutException) {
@@ -57,7 +58,7 @@ internal class JavaHttpWebSocket(
     private val callContext: CoroutineContext,
     private val httpClient: HttpClient,
     private val requestData: HttpRequestData,
-    private val requestTime: GMTDate = GMTDate()
+    private val requestTime: GMTDate
 ) : WebSocket.Listener, WebSocketSession {
 
     private lateinit var webSocket: WebSocket
@@ -129,7 +130,7 @@ internal class JavaHttpWebSocket(
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun getResponse(): HttpResponseData {
+    suspend fun getResponse(clock: GMTClock): HttpResponseData {
         val builder = httpClient.newWebSocketBuilder()
 
         with(builder) {
@@ -154,7 +155,8 @@ internal class JavaHttpWebSocket(
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
             this,
-            callContext
+            callContext,
+            clock.now()
         )
     }
 

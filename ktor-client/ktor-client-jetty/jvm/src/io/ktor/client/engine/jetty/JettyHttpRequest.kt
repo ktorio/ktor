@@ -30,7 +30,7 @@ internal suspend fun HttpRequestData.executeRequest(
     config: JettyEngineConfig,
     callContext: CoroutineContext
 ): HttpResponseData {
-    val requestTime = GMTDate()
+    val requestTime = config.clock.now()
     val session: HTTP2ClientSession = client.connect(url, config).apply {
         settings(SettingsFrame(emptyMap(), true), Callback.NOOP)
     } as HTTP2ClientSession
@@ -55,7 +55,8 @@ internal suspend fun HttpRequestData.executeRequest(
         headers,
         HttpProtocolVersion.HTTP_2_0,
         responseChannel,
-        callContext
+        callContext,
+        config.clock.now()
     )
 }
 

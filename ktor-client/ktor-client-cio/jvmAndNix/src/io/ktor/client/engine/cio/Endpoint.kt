@@ -12,13 +12,14 @@ import io.ktor.client.utils.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class Endpoint(
     private val host: String,
@@ -30,7 +31,7 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val lastActivity = atomic(GMTDate())
+    private val lastActivity = atomic(config.clock.now())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
@@ -38,11 +39,10 @@ internal class Endpoint(
     private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
             while (true) {
-                val remaining = (lastActivity.value + maxEndpointIdleTime).timestamp - GMTDate().timestamp
-                if (remaining <= 0) {
+                val remaining = (lastActivity.value + maxEndpointIdleTime.milliseconds) - config.clock.now()
+                if (!remaining.isPositive()) {
                     break
                 }
-
                 delay(remaining)
             }
         } catch (cause: Throwable) {
@@ -69,7 +69,7 @@ internal class Endpoint(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        lastActivity.value = GMTDate()
+        lastActivity.value = config.clock.now()
         val response = CompletableDeferred<HttpResponseData>()
         val task = RequestTask(request, response, callContext)
         processTask(task)
@@ -145,10 +145,10 @@ internal class Endpoint(
         input: ByteReadChannel,
         originOutput: ByteWriteChannel
     ): HttpResponseData {
-        val requestTime = GMTDate()
+        val requestTime = config.clock.now()
         request.write(output, callContext, proxy != null)
 
-        return readResponse(requestTime, request, input, originOutput, callContext)
+        return readResponse(requestTime, request, input, originOutput, callContext, config.clock)
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
@@ -160,7 +160,8 @@ internal class Endpoint(
             connection,
             proxy != null,
             deliveryPoint,
-            coroutineContext
+            coroutineContext,
+            config.clock
         )
 
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }

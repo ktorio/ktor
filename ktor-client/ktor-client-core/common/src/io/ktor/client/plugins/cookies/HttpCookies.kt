@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -33,9 +34,9 @@ public class HttpCookies internal constructor(
     /**
      * Find all cookies by [requestUrl].
      */
-    public suspend fun get(requestUrl: Url): List<Cookie> {
+    public suspend fun get(requestUrl: Url, now: GMTDate): List<Cookie> {
         initializer.join()
-        return storage.get(requestUrl)
+        return storage.get(requestUrl, now)
     }
 
     /**
@@ -52,8 +53,8 @@ public class HttpCookies internal constructor(
         }
     }
 
-    internal suspend fun sendCookiesWith(builder: HttpRequestBuilder) {
-        val cookies = get(builder.url.clone().build())
+    internal suspend fun sendCookiesWith(builder: HttpRequestBuilder, now: GMTDate) {
+        val cookies = get(builder.url.clone().build(), now)
 
         with(builder) {
             if (cookies.isNotEmpty()) {
@@ -109,7 +110,7 @@ public class HttpCookies internal constructor(
                 plugin.captureHeaderCookies(context)
             }
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
-                plugin.sendCookiesWith(context)
+                plugin.sendCookiesWith(context, now = scope.engineConfig.clock.now())
             }
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
@@ -125,13 +126,13 @@ private fun renderClientCookies(cookies: List<Cookie>): String =
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
  */
-public suspend fun HttpClient.cookies(url: Url): List<Cookie> = pluginOrNull(HttpCookies)?.get(url) ?: emptyList()
+public suspend fun HttpClient.cookies(url: Url): List<Cookie> =
+    pluginOrNull(HttpCookies)?.get(url, now = engineConfig.clock.now()) ?: emptyList()
 
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
  */
-public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
-    pluginOrNull(HttpCookies)?.get(Url(urlString)) ?: emptyList()
+public suspend fun HttpClient.cookies(urlString: String): List<Cookie> = cookies(Url(urlString))
 
 /**
  * Find the [Cookie] by [name]

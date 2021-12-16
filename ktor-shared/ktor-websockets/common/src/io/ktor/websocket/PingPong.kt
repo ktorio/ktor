@@ -5,7 +5,6 @@
 package io.ktor.websocket
 
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -51,7 +50,6 @@ internal fun CoroutineScope.pinger(
     val channel = Channel<Frame.Pong>(Channel.UNLIMITED)
 
     launch(actorJob + PingerCoroutineName) {
-        val random = Random(getTimeMillis())
         val pingIdBytes = ByteArray(32)
 
         try {
@@ -64,7 +62,7 @@ internal fun CoroutineScope.pinger(
                     }
                 }
 
-                random.nextBytes(pingIdBytes)
+                Random.nextBytes(pingIdBytes)
                 val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
 
                 val rc = withTimeoutOrNull(timeoutMillis) {

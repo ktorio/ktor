@@ -50,6 +50,7 @@ public final class io/ktor/server/application/ApplicationConfigExtensionsKt {
 
 public abstract interface class io/ktor/server/application/ApplicationEnvironment {
 	public abstract fun getClassLoader ()Ljava/lang/ClassLoader;
+	public abstract fun getClock ()Lio/ktor/util/date/GMTClock;
 	public abstract fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public abstract fun getDevelopmentMode ()Z
 	public abstract fun getLog ()Lorg/slf4j/Logger;
@@ -293,10 +294,6 @@ public final class io/ktor/server/http/HttpDateJvmKt {
 	public static final fun toHttpDateString (Ljava/time/temporal/Temporal;)Ljava/lang/String;
 }
 
-public final class io/ktor/server/http/HttpDateKt {
-	public static final fun toHttpDateString (J)Ljava/lang/String;
-}
-
 public final class io/ktor/server/http/LinkHeaderKt {
 	public static final fun link (Lio/ktor/server/response/ApplicationResponse;Lio/ktor/http/LinkHeader;)V
 	public static final fun link (Lio/ktor/server/response/ApplicationResponse;Ljava/lang/String;[Ljava/lang/String;)V
@@ -345,7 +342,6 @@ public final class io/ktor/server/http/content/JarFileContent : io/ktor/http/con
 }
 
 public final class io/ktor/server/http/content/LastModifiedJavaTimeKt {
-	public static final fun LastModifiedVersion (J)Lio/ktor/http/content/LastModifiedVersion;
 	public static final fun LastModifiedVersion (Ljava/nio/file/attribute/FileTime;)Lio/ktor/http/content/LastModifiedVersion;
 	public static final fun LastModifiedVersion (Ljava/time/ZonedDateTime;)Lio/ktor/http/content/LastModifiedVersion;
 }
@@ -1251,11 +1247,8 @@ public final class io/ktor/server/routing/TrailingSlashRouteSelector : io/ktor/s
 }
 
 public final class io/ktor/server/util/DateUtilsJvmKt {
-	public static final fun getGreenwichMeanTime ()Ljava/time/ZoneId;
 	public static final fun toGMTDate (Ljava/time/Instant;)Lio/ktor/util/date/GMTDate;
 	public static final fun toGMTDate (Ljava/time/ZonedDateTime;)Lio/ktor/util/date/GMTDate;
-	public static final fun toLocalDateTime (Ljava/util/Date;)Ljava/time/LocalDateTime;
-	public static final fun toZonedDateTime (Ljava/util/Date;)Ljava/time/ZonedDateTime;
 }
 
 public final class io/ktor/server/util/ParametersKt {

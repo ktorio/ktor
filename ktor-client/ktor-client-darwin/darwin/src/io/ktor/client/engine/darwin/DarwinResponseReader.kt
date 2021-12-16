@@ -25,7 +25,7 @@ internal class DarwinResponseReader(
     private val chunks = Channel<ByteArray>(Channel.UNLIMITED)
     private val rawResponse = CompletableDeferred<NSHTTPURLResponse>(callContext[Job])
 
-    private val requestTime = GMTDate()
+    private val requestTime = config.clock.now()
 
     @OptIn(DelicateCoroutinesApi::class, UnsafeNumber::class)
     suspend fun awaitResponse(): HttpResponseData {
@@ -60,7 +60,8 @@ internal class DarwinResponseReader(
             headers,
             version,
             responseBody,
-            callContext
+            callContext,
+            config.clock.now()
         )
     }
 

@@ -25,7 +25,7 @@ public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/
 }
 
 public final class io/ktor/client/engine/mock/MockRequestHandleScope {
-	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/util/date/GMTClock;)V
 }
 
 public final class io/ktor/client/engine/mock/MockUtilsKt {

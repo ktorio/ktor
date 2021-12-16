@@ -6,14 +6,28 @@ package io.ktor.util
 
 import io.ktor.util.date.*
 import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
+@ExperimentalTime
 class GMTDateTest {
 
     @Test
     fun testConstruction() {
-        val first = GMTDate()
-        val second = GMTDate(timestamp = first.timestamp)
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+        testTimeSource += 10.seconds
+
+        val first = clock.now()
+        assertEquals(10.seconds, first.durationSinceEpoch)
+        clock.test()
+    }
+
+    private fun GMTClock.test() {
+        val first = now()
+
+        val second = GMTDate(first.durationSinceEpoch)
 
         val third = GMTDate(
             first.seconds,
@@ -25,19 +39,31 @@ class GMTDateTest {
         )
 
         assertEquals(first, second)
-        assertEquals(first.timestamp / 1000, third.timestamp / 1000)
+        assertEquals(0, (third - first).inWholeSeconds)
+    }
+
+    @Test
+    fun systemClock() {
+        val systemClock = GMTClock.System
+        systemClock.test()
     }
 
     @Test
     fun testComparison() {
-        val before = GMTDate(1L)
-        val after = GMTDate(3L)
-        val inTheMiddle = GMTDate(2L)
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
+        val before = clock.now()
+        testTimeSource += 10.seconds
+        val inTheMiddle = clock.now()
+        testTimeSource += 10.seconds
+        val after = clock.now()
 
         assertTrue { before < after }
         assertTrue { inTheMiddle in before..after }
 
-        val farDate = GMTDate(after.timestamp * 1000)
+        testTimeSource += 500.days
+        val farDate = clock.now()
 
         assertTrue { farDate > before }
         assertTrue { farDate > after }
@@ -48,10 +74,13 @@ class GMTDateTest {
 
     @Test
     fun testDurationArithmetic() {
-        val now = GMTDate()
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
+        val now = clock.now()
         val plus10Secs = now + 10.seconds
         assertTrue { now < plus10Secs }
-        assertEquals(now.plus(10_000), plus10Secs)
         assertEquals(now, plus10Secs - 10.seconds)
+        assertEquals(10.seconds, plus10Secs - now)
     }
 }

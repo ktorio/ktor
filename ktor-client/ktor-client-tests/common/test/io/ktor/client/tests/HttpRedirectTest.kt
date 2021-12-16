@@ -23,7 +23,7 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.prepareGet("$TEST_URL_BASE").execute {
+            client.prepareGet(TEST_URL_BASE).execute {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.bodyAsText())
             }
@@ -67,7 +67,7 @@ class HttpRedirectTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/cookie").execute {
                 assertEquals("OK", it.bodyAsText())
-                val token = client.plugin(HttpCookies).get(it.call.request.url)["Token"]!!
+                val token = client.plugin(HttpCookies).get(it.call.request.url, client.clock.now())["Token"]!!
                 assertEquals("Hello", token.value)
             }
         }

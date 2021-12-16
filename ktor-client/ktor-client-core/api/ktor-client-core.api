@@ -4,6 +4,7 @@ public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/corout
 	public fun close ()V
 	public final fun config (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
+	public final fun getClock ()Lio/ktor/util/date/GMTClock;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getEngine ()Lio/ktor/client/engine/HttpClientEngine;
 	public final fun getEngineConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
@@ -162,9 +163,11 @@ public final class io/ktor/client/engine/HttpClientEngineCapabilityKt {
 
 public class io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
+	public final fun getClock ()Lio/ktor/util/date/GMTClock;
 	public final fun getPipelining ()Z
 	public final fun getProxy ()Ljava/net/Proxy;
 	public final fun getThreadsCount ()I
+	public final fun setClock (Lio/ktor/util/date/GMTClock;)V
 	public final fun setPipelining (Z)V
 	public final fun setProxy (Ljava/net/Proxy;)V
 	public final fun setThreadsCount (I)V
@@ -644,19 +647,19 @@ public final class io/ktor/client/plugins/cookies/AcceptAllCookiesStorage : io/k
 	public fun <init> ()V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
-	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun get (Lio/ktor/http/Url;Lio/ktor/util/date/GMTDate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cookies/ConstantCookiesStorage : io/ktor/client/plugins/cookies/CookiesStorage {
 	public fun <init> ([Lio/ktor/http/Cookie;)V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
-	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun get (Lio/ktor/http/Url;Lio/ktor/util/date/GMTDate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/client/plugins/cookies/CookiesStorage : java/io/Closeable {
 	public abstract fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun get (Lio/ktor/http/Url;Lio/ktor/util/date/GMTDate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cookies/CookiesStorageKt {
@@ -666,7 +669,7 @@ public final class io/ktor/client/plugins/cookies/CookiesStorageKt {
 public final class io/ktor/client/plugins/cookies/HttpCookies : java/io/Closeable {
 	public static final field Companion Lio/ktor/client/plugins/cookies/HttpCookies$Companion;
 	public fun close ()V
-	public final fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun get (Lio/ktor/http/Url;Lio/ktor/util/date/GMTDate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cookies/HttpCookies$Companion : io/ktor/client/plugins/HttpClientPlugin {
@@ -1065,7 +1068,7 @@ public final class io/ktor/client/request/HttpRequestPipeline$Phases {
 }
 
 public final class io/ktor/client/request/HttpResponseData {
-	public fun <init> (Lio/ktor/http/HttpStatusCode;Lio/ktor/util/date/GMTDate;Lio/ktor/http/Headers;Lio/ktor/http/HttpProtocolVersion;Ljava/lang/Object;Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lio/ktor/http/HttpStatusCode;Lio/ktor/util/date/GMTDate;Lio/ktor/http/Headers;Lio/ktor/http/HttpProtocolVersion;Ljava/lang/Object;Lkotlin/coroutines/CoroutineContext;Lio/ktor/util/date/GMTDate;)V
 	public final fun getBody ()Ljava/lang/Object;
 	public final fun getCallContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getHeaders ()Lio/ktor/http/Headers;

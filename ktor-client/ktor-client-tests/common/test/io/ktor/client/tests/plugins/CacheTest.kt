@@ -14,6 +14,9 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class CacheTest : ClientLoader() {
     var storage: HttpCache.Config? = null
@@ -318,6 +321,7 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @ExperimentalTime
     @Test
     fun testExpires() = clientTests {
         config {
@@ -327,11 +331,13 @@ class CacheTest : ClientLoader() {
         }
 
         test { client ->
-            val now = GMTDate() + 2000L
+            val testTimeSource = TestTimeSource()
+            val clock = testTimeSource.toGMTClock()
+            val now = clock.now() + 2.seconds
             val url = Url("$TEST_SERVER/cache/expires")
 
             suspend fun getWithHeader(expires: String): String {
-                delayGMTDate(1)
+                testTimeSource.delay(1.milliseconds)
 
                 return client.get(url) {
                     header("X-Expires", expires)
@@ -346,7 +352,7 @@ class CacheTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(5000)
+            testTimeSource.delay(5.seconds)
 
             // now it should be already expired
             val third = client.get(url).body<String>()
@@ -370,7 +376,7 @@ class CacheTest : ClientLoader() {
                 previous = result
             }
 
-            delayGMTDate(1)
+            testTimeSource += 1.milliseconds
             val last = client.get(url).body<String>()
             assertNotEquals(previous, last)
         }
@@ -430,25 +436,9 @@ class CacheTest : ClientLoader() {
         }
     }
 
-    /**
-     * Does delay and ensures that the [GMTDate] measurements report at least
-     * the specified number of [milliseconds].
-     * The reason why it's not the same is that on some platforms time granularity of GMTDate
-     * is not that high and could be even larger than a millisecond.
-     */
-    private suspend fun delayGMTDate(milliseconds: Long) {
-        var delayValue = milliseconds
-
-        do {
-            val start = GMTDate()
-            delay(delayValue)
-            val end = GMTDate()
-            if (end > start + milliseconds) {
-                break
-            }
-            if (delayValue != 1L) {
-                delayValue = 1L
-            }
-        } while (true)
+    @ExperimentalTime
+    private suspend fun TestTimeSource.delay(duration: Duration) {
+        delay(duration)
+        this += duration
     }
 }

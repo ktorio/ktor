@@ -68,6 +68,7 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
         }
     }
     jvmMain {

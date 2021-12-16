@@ -5,12 +5,14 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 
 internal actual fun UDPSocketBuilder.Companion.connectUDP(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions
+    options: SocketOptions.UDPSocketOptions,
+    clock: GMTClock
 ): ConnectedDatagramSocket = selector.buildOrClose({ openDatagramChannel() }) {
     assignOptions(options)
     nonBlocking()
@@ -22,13 +24,14 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     }
     connect(remoteAddress.toJavaAddress())
 
-    return DatagramSocketImpl(this, selector)
+    return DatagramSocketImpl(this, selector, clock)
 }
 
 internal actual fun UDPSocketBuilder.Companion.bindUDP(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions
+    options: SocketOptions.UDPSocketOptions,
+    clock: GMTClock
 ): BoundDatagramSocket = selector.buildOrClose({ openDatagramChannel() }) {
     assignOptions(options)
     nonBlocking()
@@ -38,5 +41,5 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     } else {
         socket().bind(localAddress?.toJavaAddress())
     }
-    return DatagramSocketImpl(this, selector)
+    return DatagramSocketImpl(this, selector, clock)
 }

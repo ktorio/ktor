@@ -8,6 +8,7 @@ package io.ktor.server.engine
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
@@ -55,6 +56,8 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
+    public actual var clock: GMTClock = GMTClock.System
+
     /**
      * Install application module
      */
@@ -74,7 +77,8 @@ public actual class ApplicationEngineEnvironmentBuilder {
             modules,
             parentCoroutineContext,
             rootPath,
-            developmentMode
+            developmentMode,
+            clock
         )
     }
 }

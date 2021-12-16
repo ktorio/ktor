@@ -8,9 +8,11 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import java.io.*
 import java.nio.file.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [caching]
@@ -29,7 +31,7 @@ public class LocalFileContent(
         if (lastModifiedVersion == 0L) {
             throw IOException("No such file ${file.absolutePath}")
         } else {
-            versions += LastModifiedVersion(lastModifiedVersion)
+            versions += LastModifiedVersion(GMTDate(lastModifiedVersion.milliseconds))
         }
     }
 

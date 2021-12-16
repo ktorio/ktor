@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
@@ -18,7 +19,8 @@ internal abstract class NIOSocketImpl<out S>(
     override val channel: S,
     val selector: SelectorManager,
     val pool: ObjectPool<ByteBuffer>?,
-    private val socketOptions: SocketOptions.TCPClientSocketOptions? = null
+    private val socketOptions: SocketOptions.TCPClientSocketOptions? = null,
+    private val clock: GMTClock
 ) : ReadWriteSocket, SelectableBase(channel), CoroutineScope
     where S : java.nio.channels.ByteChannel, S : SelectableChannel {
 
@@ -40,16 +42,16 @@ internal abstract class NIOSocketImpl<out S>(
     final override fun attachForReading(channel: ByteChannel): WriterJob {
         return attachFor("reading", channel, writerJob) {
             if (pool != null) {
-                attachForReadingImpl(channel, this.channel, this, selector, pool, socketOptions)
+                attachForReadingImpl(channel, this.channel, this, selector, pool, socketOptions, clock)
             } else {
-                attachForReadingDirectImpl(channel, this.channel, this, selector, socketOptions)
+                attachForReadingDirectImpl(channel, this.channel, this, selector, socketOptions, clock)
             }
         }
     }
 
     final override fun attachForWriting(channel: ByteChannel): ReaderJob {
         return attachFor("writing", channel, readerJob) {
-            attachForWritingDirectImpl(channel, this.channel, this, selector, socketOptions)
+            attachForWritingDirectImpl(channel, this.channel, this, selector, socketOptions, clock)
         }
     }
 

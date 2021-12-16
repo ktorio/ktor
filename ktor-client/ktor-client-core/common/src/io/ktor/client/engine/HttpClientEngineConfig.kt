@@ -5,6 +5,7 @@
 package io.ktor.client.engine
 
 import io.ktor.util.*
+import io.ktor.util.date.*
 
 /**
  * Base configuration for [HttpClientEngine].
@@ -27,4 +28,9 @@ public open class HttpClientEngineConfig {
      * See [ProxyBuilder] to create proxy.
      */
     public var proxy: ProxyConfig? = null
+
+    /**
+     * Provides the current GMTDate. Use [GMTClock.System] in production code, which is used by default.
+     */
+    public var clock: GMTClock = GMTClock.System
 }

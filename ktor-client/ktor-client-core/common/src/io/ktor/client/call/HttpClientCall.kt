@@ -26,6 +26,8 @@ public open class HttpClientCall(
 ) : CoroutineScope {
     private val received: AtomicBoolean = atomic(false)
 
+    internal val clock = client.engine.config.clock
+
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
     /**

@@ -55,9 +55,9 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
         return try {
             if (data.isUpgradeRequest()) {
-                engine.executeWebSocketRequest(callContext, data)
+                engine.executeWebSocketRequest(callContext, data, config.clock)
             } else {
-                engine.executeHttpRequest(callContext, data)
+                engine.executeHttpRequest(callContext, data, config.clock)
             }
         } catch (cause: Throwable) {
             callContext.cancel(CancellationException("Failed to execute request", cause))

@@ -6,6 +6,7 @@ package io.ktor.client.plugins.cookies
 
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -15,7 +16,7 @@ public interface CookiesStorage : Closeable {
     /**
      * Gets a map of [String] to [Cookie] for a specific [host].
      */
-    public suspend fun get(requestUrl: Url): List<Cookie>
+    public suspend fun get(requestUrl: Url, now: GMTDate): List<Cookie>
 
     /**
      * Sets a [cookie] for the specified [host].

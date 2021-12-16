@@ -4,8 +4,6 @@
 
 package io.ktor.util.date
 
-import io.ktor.util.*
-
 /**
  * Build [GMTDate] parser using [pattern] string.
  *
@@ -15,7 +13,7 @@ import io.ktor.util.*
  * | Seconds  | s            | parse seconds 0 to 60                                |
  * | Minutes  | m            | parse minutes 0 to 60                                |
  * | Hours    | h            | parse hours 0 to 23                                  |
- * | Month    | M            | parse month from Jan to Dec(see [Month] for details) |
+ * | Month    | M            | parse month from Jan to Dec (see [Month] for details)|
  * | Year     | Y            | parse year                                           |
  * | Any char | *            | Match any character                                  |
  */
@@ -107,16 +105,16 @@ public class GMTDateParser(private val pattern: String) {
     }
 }
 
-internal class GMTDateBuilder {
-    var seconds: Int? = null
-    var minutes: Int? = null
-    var hours: Int? = null
+public class GMTDateBuilder {
+    public var seconds: Int? = null
+    public var minutes: Int? = null
+    public var hours: Int? = null
 
-    var dayOfMonth: Int? = null
-    lateinit var month: Month
-    var year: Int? = null
+    public var dayOfMonth: Int? = null
+    public var month: Month? = null
+    public var year: Int? = null
 
-    public fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month, year!!)
+    public fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month!!, year!!)
 }
 
 /**

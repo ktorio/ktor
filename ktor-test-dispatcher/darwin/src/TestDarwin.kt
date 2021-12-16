@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 package io.ktor.test.dispatcher
@@ -19,14 +23,14 @@ private const val TIME_QUANTUM = 0.01
  */
 public actual fun testSuspend(
     context: CoroutineContext,
-    timeoutMillis: Long,
-    block: suspend CoroutineScope.() -> Unit
-) {
-    executeInWorker(timeoutMillis) {
+    dispatchTimeoutMs: Long,
+    testBody: suspend TestScope.() -> Unit
+): TestResult {
+    executeInWorker(dispatchTimeoutMs) {
         runBlocking {
             val loop = ThreadLocalEventLoop.currentOrNull()!!
 
-            val task = launch { block() }
+            val task = launch { TestScope().testBody() }
             while (!task.isCompleted) {
                 val date = NSDate().addTimeInterval(TIME_QUANTUM) as NSDate
                 NSRunLoop.mainRunLoop.runUntilDate(date)
@@ -36,3 +40,6 @@ public actual fun testSuspend(
         }
     }
 }
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+public actual typealias TestResult = Unit

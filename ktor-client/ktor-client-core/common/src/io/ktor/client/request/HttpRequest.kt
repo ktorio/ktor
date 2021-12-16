@@ -204,16 +204,15 @@ public class HttpRequestData @InternalAPI constructor(
 /**
  * Data prepared for [HttpResponse].
  */
-public class HttpResponseData constructor(
+public class HttpResponseData(
     public val statusCode: HttpStatusCode,
     public val requestTime: GMTDate,
     public val headers: Headers,
     public val version: HttpProtocolVersion,
     public val body: Any,
-    public val callContext: CoroutineContext
+    public val callContext: CoroutineContext,
+    public val responseTime: GMTDate
 ) {
-    public val responseTime: GMTDate = GMTDate()
-
     override fun toString(): String = "HttpResponseData=(statusCode=$statusCode)"
 }
 

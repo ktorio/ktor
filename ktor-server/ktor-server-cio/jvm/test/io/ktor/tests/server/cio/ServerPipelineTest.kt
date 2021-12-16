@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -20,8 +21,10 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.test.Test
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, InternalCoroutinesApi::class)
 class ServerPipelineTest : CoroutineScope {
     @get:Rule
     val testName = TestName()
@@ -48,10 +51,14 @@ class ServerPipelineTest : CoroutineScope {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testSmoke(): Unit = runBlocking {
+        val testTimeSource = TestTimeSource()
+        val clock = testTimeSource.toGMTClock()
+
         val connection = ServerIncomingConnection(ByteChannel(), ByteChannel(), null, null)
-        val queue = WeakTimeoutQueue(10L) { 1L }
+        val queue = WeakTimeoutQueue(1.seconds, clock)
         val job = startServerConnectionPipeline(connection, queue) {
             error("Shouldn't reach here")
         }

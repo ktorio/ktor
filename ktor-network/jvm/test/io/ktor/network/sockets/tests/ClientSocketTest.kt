@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.SocketImpl
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.mockk.*
 import kotlinx.coroutines.*
@@ -23,6 +24,7 @@ import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.test.*
 import kotlin.test.Test
+import kotlin.time.*
 
 class ClientSocketTest {
     private val exec = Executors.newCachedThreadPool()
@@ -96,6 +98,7 @@ class ClientSocketTest {
         }
     }
 
+    @ExperimentalTime
     @Test
     fun testSelfConnect() {
         val selector = mockk<SelectorManager>()
@@ -119,10 +122,13 @@ class ClientSocketTest {
         }
 
         runBlocking {
+            val testTimeSource = TestTimeSource()
+            val clock = testTimeSource.toGMTClock()
+
             assertFailsWith<ClosedChannelException>(
                 "Channel should be closed if local and remote addresses of client socket match"
             ) {
-                SocketImpl(channel, selector).connect(
+                SocketImpl(channel, selector, clock = clock).connect(
                     mockSocketAddress("server", 2)
                 )
             }

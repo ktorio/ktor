@@ -9,27 +9,23 @@ import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.contracts.*
-
-/**
- * Infinite timeout in milliseconds.
- */
-internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
+import kotlin.time.*
 
 internal class Timeout(
     private val name: String,
-    private val timeoutMs: Long,
-    private val clock: () -> Long,
+    private val timeout: Duration,
+    private val clock: GMTClock,
     private val scope: CoroutineScope,
     private val onTimeout: suspend () -> Unit
 ) {
 
-    private val lastActivityTime = atomic(0L)
+    private var lastActivityTime: GMTDate? by atomic(null)
     private val isStarted = atomic(false)
 
     private var workerJob = initTimeoutJob()
 
     fun start() {
-        lastActivityTime.value = clock()
+        lastActivityTime = clock.now()
         isStarted.value = true
     }
 
@@ -42,18 +38,19 @@ internal class Timeout(
     }
 
     private fun initTimeoutJob(): Job? {
-        if (timeoutMs == INFINITE_TIMEOUT_MS) return null
+        if (timeout == Duration.INFINITE) return null
         return scope.launch(scope.coroutineContext + CoroutineName("Timeout $name")) {
             try {
                 while (true) {
                     if (!isStarted.value) {
-                        lastActivityTime.value = clock()
+                        lastActivityTime = clock.now()
                     }
-                    val remaining = lastActivityTime.value + timeoutMs - clock()
-                    if (remaining <= 0 && isStarted.value) {
+                    val remaining = lastActivityTime!! + timeout - clock.now()
+                    if (!remaining.isPositive() && isStarted.value) {
                         break
                     }
 
+                    @OptIn(ExperimentalTime::class)
                     delay(remaining)
                 }
                 yield()
@@ -66,16 +63,16 @@ internal class Timeout(
 }
 
 /**
- * Starts timeout coroutine that will invoke [onTimeout] after [timeoutMs] of inactivity.
+ * Starts timeout coroutine that will invoke [onTimeout] after [timeout] of inactivity.
  * Use [Timeout] object to wrap code that can timeout or cancel this coroutine
  */
 internal fun CoroutineScope.createTimeout(
     name: String = "",
-    timeoutMs: Long,
-    clock: () -> Long = { getTimeMillis() },
+    timeout: Duration,
+    clock: GMTClock,
     onTimeout: suspend () -> Unit
 ): Timeout {
-    return Timeout(name, timeoutMs, clock, this, onTimeout)
+    return Timeout(name, timeout, clock, this, onTimeout)
 }
 
 internal inline fun <T> Timeout?.withTimeout(block: () -> T): T {

@@ -1,21 +1,31 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.date
 
-import io.ktor.util.*
 import java.util.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
 
 /**
- * Create new gmt date from the [timestamp].
- * @param timestamp is a number of epoch milliseconds (it is `now` by default).
+ * Create new gmt date with the [durationSinceEpoch].
  */
 @Suppress("FunctionName")
-public actual fun GMTDate(timestamp: Long?): GMTDate =
-    Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
+public actual fun GMTDate(durationSinceEpoch: Duration): GMTDate {
+    val calendar = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!
+    calendar.timeInMillis = durationSinceEpoch.inWholeMilliseconds
+    return calendar.toDate(durationSinceEpoch)
+}
+
+/**
+ * Create new gmt current date.
+ */
+@Suppress("FunctionName")
+internal actual fun GMTDate(): GMTDate =
+    Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(null)
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
@@ -28,19 +38,21 @@ public actual fun GMTDate(
     dayOfMonth: Int,
     month: Month,
     year: Int
-): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {
-    set(Calendar.YEAR, year)
-    set(Calendar.MONTH, month.ordinal)
-    set(Calendar.DAY_OF_MONTH, dayOfMonth)
-    set(Calendar.HOUR_OF_DAY, hours)
-    set(Calendar.MINUTE, minutes)
-    set(Calendar.SECOND, seconds)
-    set(Calendar.MILLISECOND, 0)
-}.toDate(timestamp = null)
+): GMTDate {
+    val calendar = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!
+    calendar.apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month.ordinal)
+        set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        set(Calendar.HOUR_OF_DAY, hours)
+        set(Calendar.MINUTE, minutes)
+        set(Calendar.SECOND, seconds)
+        set(Calendar.MILLISECOND, 0)
+    }
+    return calendar.toDate(durationSinceEpoch = null)
+}
 
-public fun Calendar.toDate(timestamp: Long?): GMTDate {
-    timestamp?.let { timeInMillis = it }
-
+private fun Calendar.toDate(durationSinceEpoch: Duration?): GMTDate {
     val seconds = get(Calendar.SECOND)
     val minutes = get(Calendar.MINUTE)
     val hours = get(Calendar.HOUR_OF_DAY)
@@ -61,16 +73,11 @@ public fun Calendar.toDate(timestamp: Long?): GMTDate {
         seconds, minutes, hours,
         dayOfWeek, dayOfMonth, dayOfYear,
         month, year,
-        timeInMillis
+        durationSinceEpoch ?: time.time.milliseconds
     )
 }
 
 /**
  * Convert to [Date]
  */
-public fun GMTDate.toJvmDate(): Date = Date(timestamp)
-
-/**
- * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
- */
-public actual fun getTimeMillis(): Long = System.currentTimeMillis()
+public fun GMTDate.toJvmDate(): Date = Date(durationSinceEpoch.inWholeMilliseconds)

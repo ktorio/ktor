@@ -7,6 +7,7 @@ package io.ktor.server.application
 
 import io.ktor.events.*
 import io.ktor.server.config.*
+import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
@@ -40,4 +41,9 @@ public actual interface ApplicationEnvironment {
      * Provides events on Application lifecycle
      */
     public actual val monitor: Events
+
+    /**
+     * Provides the current GMTDate. Use [GMTClock.System] in production code, which is used by default.
+     */
+    public actual val clock: GMTClock
 }

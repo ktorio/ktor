@@ -9,7 +9,6 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.sync.*
-import kotlin.math.*
 
 /**
  * [CookiesStorage] that stores all the cookies in an in-memory map.
@@ -17,12 +16,12 @@ import kotlin.math.*
 @Suppress("DEPRECATION")
 public class AcceptAllCookiesStorage : CookiesStorage {
     private val container: MutableList<Cookie> = mutableListOf()
-    private val oldestCookie: AtomicLong = atomic(0L)
+    private var oldestCookie: GMTDate? by atomic(null)
     private val mutex = Mutex()
 
-    override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
-        val date = GMTDate()
-        if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
+    override suspend fun get(requestUrl: Url, now: GMTDate): List<Cookie> = mutex.withLock {
+        val oldest = oldestCookie
+        if (oldest != null && now >= oldest) { cleanup(now) }
 
         return@withLock container.filter { it.matches(requestUrl) }
     }
@@ -34,9 +33,10 @@ public class AcceptAllCookiesStorage : CookiesStorage {
 
         container.removeAll { it.name == cookie.name && it.matches(requestUrl) }
         container.add(cookie.fillDefaults(requestUrl))
-        cookie.expires?.timestamp?.let { expires ->
-            if (oldestCookie.value > expires) {
-                oldestCookie.value = expires
+        cookie.expires?.let { expires ->
+            val oldest = oldestCookie
+            if (oldest == null || oldest > expires) {
+                oldestCookie = expires
             }
         }
     }
@@ -44,16 +44,14 @@ public class AcceptAllCookiesStorage : CookiesStorage {
     override fun close() {
     }
 
-    private fun cleanup(timestamp: Long) {
+    private fun cleanup(timestamp: GMTDate) {
         container.removeAll { cookie ->
-            val expires = cookie.expires?.timestamp ?: return@removeAll false
+            val expires = cookie.expires ?: return@removeAll false
             expires < timestamp
         }
 
-        val newOldest = container.fold(Long.MAX_VALUE) { acc, cookie ->
-            cookie.expires?.timestamp?.let { min(acc, it) } ?: acc
-        }
+        val newOldest = container.mapNotNull { it.expires }.minOf { it }
 
-        oldestCookie.value = newOldest
+        oldestCookie = newOldest
     }
 }

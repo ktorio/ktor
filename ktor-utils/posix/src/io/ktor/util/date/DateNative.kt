@@ -1,26 +1,24 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.date
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
-/**
- * Create new gmt date from the [timestamp].
- * @param timestamp is a number of epoch milliseconds (it is `now` by default).
- */
-@OptIn(UnsafeNumber::class)
-public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
+internal actual fun GMTDate(): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
-    val current: Long = if (timestamp == null) {
-        time(timeHolder.ptr)
-        timeHolder.value * 1000L
-    } else {
-        timeHolder.value = (timestamp / 1000).convert()
-        timestamp
-    }
+    time(timeHolder.ptr)
+    val current = timeHolder.value.seconds
+    GMTDate(current)
+}
+
+public actual fun GMTDate(durationSinceEpoch: Duration): GMTDate = memScoped {
+    val timeHolder = alloc<time_tVar>()
+    timeHolder.value = durationSinceEpoch.inWholeSeconds.convert()
 
     val dateInfo = alloc<tm>()
     gmtime_r(timeHolder.ptr, dateInfo.ptr)
@@ -33,7 +31,7 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
         GMTDate(
             tm_sec, tm_min, tm_hour,
             WeekDay.from(weekDay), tm_mday, tm_yday,
-            Month.from(tm_mon), year, current
+            Month.from(tm_mon), year, durationSinceEpoch
         )
     }
 }
@@ -66,13 +64,8 @@ public actual fun GMTDate(
 
     val timestamp = system_time(dateInfo.ptr)
 
-    return GMTDate(timestamp * 1000L)
+    return GMTDate(timestamp.seconds)
 }
 
 @Suppress("FunctionName")
 internal expect fun system_time(tm: CValuesRef<tm>?): Long
-
-/**
- * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
- */
-public actual fun getTimeMillis(): Long = GMTDate().timestamp

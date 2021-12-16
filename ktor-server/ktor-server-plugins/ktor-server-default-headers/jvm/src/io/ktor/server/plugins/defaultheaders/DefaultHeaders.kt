@@ -10,7 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
-import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A configuration for the [DefaultHeaders] plugin.
@@ -28,10 +28,6 @@ public class DefaultHeadersConfig {
      */
     public fun header(name: String, value: String): Unit = headers.append(name, value)
 
-    /**
-     * Provides a time source. Useful for testing.
-     */
-    public var clock: () -> Long = { System.currentTimeMillis() }
     internal val cachedDateText: AtomicRef<String> = atomic("")
 }
 
@@ -56,25 +52,16 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
         pluginConfig::class.java.`package`.implementationVersion ?: "debug"
     } else "debug"
     val headers = pluginConfig.headers.build()
-    val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
-    val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
-    var cachedDateTimeStamp: Long = 0L
-    val calendar = object : ThreadLocal<Calendar>() {
-        override fun initialValue(): Calendar {
-            return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
-        }
-    }
-
-    fun now(time: Long): GMTDate {
-        return calendar.get().toDate(time)
-    }
+    val cacheTimeout = 1.seconds
+    val clock = application.environment.clock
+    var cachedDateTime = clock.now()
 
     fun calculateDateHeader(): String {
-        val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = pluginConfig.clock()
-        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
-            cachedDateTimeStamp = currentTimeStamp
-            pluginConfig.cachedDateText.value = now(currentTimeStamp).toHttpDate()
+        val captureCached = cachedDateTime
+        val currentTimeStamp = clock.now()
+        if (captureCached + cacheTimeout <= currentTimeStamp) {
+            cachedDateTime = currentTimeStamp
+            pluginConfig.cachedDateText.value = currentTimeStamp.toHttpDate()
         }
         return pluginConfig.cachedDateText.value
     }

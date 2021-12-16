@@ -120,7 +120,8 @@ internal suspend fun readResponse(
     request: HttpRequestData,
     input: ByteReadChannel,
     output: ByteWriteChannel,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    clock: GMTClock
 ): HttpResponseData {
     val rawResponse = parseResponse(input)
         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
@@ -137,7 +138,7 @@ internal suspend fun readResponse(
 
         if (status == HttpStatusCode.SwitchingProtocols) {
             val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
-            return HttpResponseData(status, requestTime, headers, version, session, callContext)
+            return HttpResponseData(status, requestTime, headers, version, session, callContext, clock.now())
         }
 
         val body = when {
@@ -155,7 +156,7 @@ internal suspend fun readResponse(
             }
         }
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return HttpResponseData(status, requestTime, headers, version, body, callContext, responseTime = clock.now())
     }
 }
 

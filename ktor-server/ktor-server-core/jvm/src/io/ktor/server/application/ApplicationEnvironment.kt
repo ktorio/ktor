@@ -6,6 +6,7 @@ package io.ktor.server.application
 
 import io.ktor.events.*
 import io.ktor.server.config.*
+import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
@@ -50,4 +51,9 @@ public actual interface ApplicationEnvironment {
      * Indicates if development mode is enabled.
      */
     public actual val developmentMode: Boolean
+
+    /**
+     * Provides the current GMTDate. Use [GMTClock.System] in production code, which is used by default.
+     */
+    public actual val clock: GMTClock
 }

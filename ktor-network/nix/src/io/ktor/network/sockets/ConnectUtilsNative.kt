@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.date.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -15,7 +16,8 @@ private const val DEFAULT_BACKLOG_SIZE = 50
 internal actual suspend fun connect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
-    socketOptions: SocketOptions.TCPClientSocketOptions
+    socketOptions: SocketOptions.TCPClientSocketOptions,
+    clock: GMTClock
 ): Socket = memScoped {
     for (remote in remoteAddress.resolve()) {
         try {
@@ -47,7 +49,8 @@ internal actual suspend fun connect(
 internal actual fun bind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    socketOptions: SocketOptions.AcceptorOptions
+    socketOptions: SocketOptions.AcceptorOptions,
+    clock: GMTClock
 ): ServerSocket = memScoped {
     val address = localAddress?.address ?: getAnyLocalAddress()
     val descriptor = socket(address.family.convert(), SOCK_STREAM, 0).check()

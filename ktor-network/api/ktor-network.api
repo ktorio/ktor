@@ -127,7 +127,8 @@ public final class io/ktor/network/sockets/BoundDatagramSocket$DefaultImpls {
 }
 
 public final class io/ktor/network/sockets/BuildersKt {
-	public static final fun aSocket (Lio/ktor/network/selector/SelectorManager;)Lio/ktor/network/sockets/SocketBuilder;
+	public static final fun aSocket (Lio/ktor/network/selector/SelectorManager;Lio/ktor/util/date/GMTClock;)Lio/ktor/network/sockets/SocketBuilder;
+	public static synthetic fun aSocket$default (Lio/ktor/network/selector/SelectorManager;Lio/ktor/util/date/GMTClock;ILjava/lang/Object;)Lio/ktor/network/sockets/SocketBuilder;
 	public static final fun tcpNoDelay (Lio/ktor/network/sockets/Configurable;)Lio/ktor/network/sockets/Configurable;
 }
 
@@ -305,7 +306,7 @@ public final class io/ktor/network/sockets/TCPSocketBuilderJvmKt {
 }
 
 public final class io/ktor/network/sockets/TcpSocketBuilder : io/ktor/network/sockets/Configurable {
-	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions;)V
+	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions;Lio/ktor/util/date/GMTClock;)V
 	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ServerSocket;
 	public final fun bind (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ServerSocket;
 	public static synthetic fun bind$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/ServerSocket;
@@ -347,7 +348,7 @@ public final class io/ktor/network/sockets/TypeOfService$Companion {
 
 public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/sockets/Configurable {
 	public static final field Companion Lio/ktor/network/sockets/UDPSocketBuilder$Companion;
-	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;)V
+	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;Lio/ktor/util/date/GMTClock;)V
 	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/BoundDatagramSocket;
 	public static synthetic fun bind$default (Lio/ktor/network/sockets/UDPSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/BoundDatagramSocket;
 	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;

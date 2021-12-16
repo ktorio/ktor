@@ -90,9 +90,10 @@ public fun MockRequestHandleScope.respond(
     headers: Headers = headersOf()
 ): HttpResponseData = HttpResponseData(
     status,
-    GMTDate(),
+    clock.now(),
     headers,
     HttpProtocolVersion.HTTP_1_1,
     content,
-    callContext
+    callContext,
+    clock.now()
 )

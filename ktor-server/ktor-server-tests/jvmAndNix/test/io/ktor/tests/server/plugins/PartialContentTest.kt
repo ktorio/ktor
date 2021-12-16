@@ -18,6 +18,8 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("DEPRECATION")
 class PartialContentTest {
@@ -291,7 +293,7 @@ class PartialContentTest {
 
     @Test
     fun testIfRangeDate(): Unit = withRangeApplication {
-        val fileDate = GMTDate(lastModifiedTime)
+        val fileDate = GMTDate(durationSinceEpoch = lastModified().milliseconds)
 
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
@@ -304,7 +306,7 @@ class PartialContentTest {
 
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
-            addHeader(HttpHeaders.IfRange, fileDate.plus(10000).toHttpDate())
+            addHeader(HttpHeaders.IfRange, (fileDate + 10.seconds).toHttpDate())
         }.let { result ->
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 1-2/${content.size}", result.response.headers[HttpHeaders.ContentRange])
@@ -313,7 +315,7 @@ class PartialContentTest {
 
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
-            addHeader(HttpHeaders.IfRange, fileDate.minus(100000).toHttpDate())
+            addHeader(HttpHeaders.IfRange, (fileDate - 10.seconds).toHttpDate())
         }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
@@ -322,7 +324,7 @@ class PartialContentTest {
 
     @Test
     fun testIfRangeWrongDate(): Unit = withRangeApplication {
-        val fileDate = GMTDate(lastModifiedTime)
+        val fileDate = GMTDate(durationSinceEpoch = lastModified().milliseconds)
 
         handleRequest(HttpMethod.Get, localPath) {
             addHeader(HttpHeaders.Range, "bytes=1-2")
