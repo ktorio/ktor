@@ -164,7 +164,9 @@ public class CallLogging private constructor(
     public companion object Plugin : ApplicationPlugin<Application, Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
-            val loggingPhase = PipelinePhase("Logging")
+            val loggingMonitoringPhase = PipelinePhase("LoggingMonitoringCall")
+            val loggingBeforeCallPhase = PipelinePhase("LoggingBeforeCall")
+            val loggingAfterCallPhase = PipelinePhase("LoggingAfterCall")
             val configuration = Configuration().apply(configure)
             val plugin = CallLogging(
                 configuration.logger ?: pipeline.log,
@@ -175,17 +177,29 @@ public class CallLogging private constructor(
                 configuration.formatCall
             )
 
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingPhase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingMonitoringPhase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Call, loggingBeforeCallPhase)
+            pipeline.insertPhaseAfter(ApplicationCallPipeline.Fallback, loggingAfterCallPhase)
 
             if (plugin.mdcEntries.isNotEmpty()) {
-                pipeline.intercept(loggingPhase) {
+                pipeline.intercept(loggingMonitoringPhase) {
+                    plugin.withMDC(call) {
+                        proceed()
+                    }
+                }
+                pipeline.intercept(loggingBeforeCallPhase) {
+                    plugin.withMDC(call) {
+                        proceed()
+                    }
+                }
+                pipeline.intercept(loggingAfterCallPhase) {
                     plugin.withMDC(call) {
                         proceed()
                         plugin.logSuccess(call)
                     }
                 }
             } else {
-                pipeline.intercept(loggingPhase) {
+                pipeline.intercept(loggingMonitoringPhase) {
                     proceed()
                     plugin.logSuccess(call)
                 }

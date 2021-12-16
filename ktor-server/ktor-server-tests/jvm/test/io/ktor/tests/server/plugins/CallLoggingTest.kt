@@ -4,8 +4,10 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -18,7 +20,6 @@ import org.slf4j.event.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>
@@ -42,7 +43,7 @@ class CallLoggingTest {
             }
         }
     }
-    private val environment = createTestEnvironment {
+    private val environment: ApplicationEngineEnvironmentBuilder.() -> Unit = {
         module {
             install(CallLogging)
         }
@@ -58,8 +59,11 @@ class CallLoggingTest {
     fun `can log application lifecycle events`() {
         var hash: String? = null
 
-        withApplication(environment) {
-            hash = application.toString()
+        testApplication {
+            environment { environment() }
+            application {
+                hash = this.toString()
+            }
         }
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
@@ -81,39 +85,31 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log an unhandled get request`() {
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/")
-        }
+    fun `can log an unhandled get request`() = testApplication {
+        environment { environment() }
+
+        createClient { expectSuccess = false }.get("/")
 
         assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
-    fun `can log a successful get request`() {
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/") {
-                call.response.status(HttpStatusCode.OK)
+    fun `can log a successful get request`() = testApplication {
+        environment { environment() }
+        routing {
+            get {
+                call.respond(HttpStatusCode.OK)
             }
         }
+
+        client.get("/")
 
         assertTrue("INFO: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
-    fun `can log a failed get request`() {
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/") {
-                call.response.status(HttpStatusCode.NotFound)
-            }
-        }
-
-        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
-    }
-
-    @Test
-    fun `can customize message format`() {
-        val environment = createTestEnvironment {
+    fun `can customize message format`() = testApplication {
+        environment {
             module {
                 install(CallLogging) {
                     format { call ->
@@ -128,18 +124,14 @@ class CallLoggingTest {
             }
             log = logger
         }
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/uri-123").let { call ->
-                assertEquals("OK", call.response.content)
 
-                assertTrue("INFO: /uri-123 -> 200 OK" in messages)
-            }
-        }
+        client.get("/uri-123")
+        assertTrue("INFO: /uri-123 -> 200 OK" in messages)
     }
 
     @Test
-    fun `can filter calls to log`() {
-        val environment = createTestEnvironment {
+    fun `can filter calls to log`() = testApplication {
+        environment {
             module {
                 install(CallLogging) {
                     filter { !it.request.origin.uri.contains("avoid") }
@@ -147,23 +139,17 @@ class CallLoggingTest {
             }
             log = logger
         }
-
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/") {
-                call.response.status(HttpStatusCode.NotFound)
-            }
-            handleRequest(HttpMethod.Get, "/avoid") {
-                call.response.status(HttpStatusCode.NotFound)
-            }
-        }
+        val client = createClient { expectSuccess = false }
+        client.get("/")
+        client.get("/avoid")
 
         assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
         assertFalse("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /avoid" in messages)
     }
 
     @Test
-    fun `can change log level`() {
-        val environment = createTestEnvironment {
+    fun `can change log level`() = testApplication {
+        environment {
             module {
                 install(CallLogging) {
                     level = Level.DEBUG
@@ -171,21 +157,75 @@ class CallLoggingTest {
             }
             log = logger
         }
-
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/") {
-                call.response.status(HttpStatusCode.NotFound)
+        routing {
+            get {
+                call.respond(HttpStatusCode.OK)
             }
         }
 
-        assertTrue("DEBUG: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
+        client.get("/")
+
+        assertTrue("DEBUG: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
     }
 
     @Test
-    fun `can fill MDC and survive context switch`() {
-        var counter = 0
+    fun `can fill MDC after call`() = testApplication {
+        environment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-uri") { it.request.uri }
+                    mdc("mdc-status") { it.response.status()?.value?.toString() }
+                    format { it.request.uri }
+                }
+            }
+            log = logger
+        }
+        routing {
+            get("/*") {
+                application.log.info("test message")
+                call.respond("OK")
+            }
+        }
 
-        val environment = createTestEnvironment {
+        client.get("/uri1")
+        assertTrue { "INFO: test message [mdc-uri=/uri1]" in messages }
+        assertTrue { "INFO: /uri1 [mdc-status=200, mdc-uri=/uri1]" in messages }
+    }
+
+    @Test
+    fun `can fill MDC before routing`() = testApplication {
+        val TestPlugin = createApplicationPlugin("TestPlugin") {
+            onCall { it.response.headers.append("test-header", "test-value") }
+        }
+        environment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-test-header") { it.response.headers["test-header"] }
+                    mdc("mdc-status") { it.response.status()?.value?.toString() }
+                    format { it.request.uri }
+                }
+                install(TestPlugin)
+            }
+            log = logger
+        }
+        routing {
+            get("/*") {
+                application.log.info("test message")
+                call.respond("OK")
+            }
+        }
+
+        client.get("/uri1")
+        assertTrue("INFO: test message [mdc-test-header=test-value]" in messages)
+        assertTrue("INFO: /uri1 [mdc-status=200, mdc-test-header=test-value]" in messages)
+    }
+
+    @Test
+    fun `can fill MDC and survive context switch`() = testApplication {
+        var counter = 0
+        val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
+        environment {
             module {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
@@ -197,34 +237,33 @@ class CallLoggingTest {
             }
             log = logger
         }
-
-        withApplication(environment) {
-            Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { dispatcher ->
-                application.routing {
-                    get("/*") {
-                        withContext(dispatcher) {
-                            application.log.info("test message")
-                        }
-                        call.respond("OK")
+        application {
+            routing {
+                get("/*") {
+                    withContext(dispatcher) {
+                        application.log.info("test message")
                     }
-                }
-
-                handleRequest(HttpMethod.Get, "/uri1").let { _ ->
-                    assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue {
-                        "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
-                            "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
-                    }
+                    call.respond("OK")
                 }
             }
         }
+
+        client.get("/uri1")
+        assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+        assertTrue {
+            "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
+                "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+        }
+        dispatcher.close()
     }
 
     @Test
-    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() {
+    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() = testApplication {
         var counter = 0
 
-        val environment = createTestEnvironment {
+        @OptIn(ObsoleteCoroutinesApi::class)
+        val dispatcher = newFixedThreadPoolContext(1, "test-dispatcher")
+        environment {
             module {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
@@ -236,28 +275,24 @@ class CallLoggingTest {
             }
             log = logger
         }
-
-        withApplication(environment) {
-            @OptIn(ObsoleteCoroutinesApi::class)
-            newFixedThreadPoolContext(1, "test-dispatcher").use { dispatcher ->
-                application.routing {
-                    get("/*") {
-                        withContext(dispatcher) {
-                            application.log.info("test message")
-                        }
-                        call.respond("OK")
+        application {
+            routing {
+                get("/*") {
+                    withContext(dispatcher) {
+                        application.log.info("test message")
                     }
-                }
-
-                handleRequest(HttpMethod.Get, "/uri1").let {
-                    assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue {
-                        "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
-                            "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
-                    }
+                    call.respond("OK")
                 }
             }
         }
+
+        client.get("/uri1")
+        assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+        assertTrue {
+            "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
+                "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+        }
+        dispatcher.close()
     }
 
     @Test
@@ -270,17 +305,17 @@ class CallLoggingTest {
                 }
             }
         }
-        val environment = createTestEnvironment {
-            module {
-                install(CallLogging) {
-                    this.logger = customLogger
-                }
-            }
-        }
         var hash: String? = null
 
-        withApplication(environment) {
-            hash = application.toString()
+        testApplication {
+            environment {
+                module {
+                    install(CallLogging) {
+                        this.logger = customLogger
+                    }
+                }
+            }
+            application { hash = this.toString() }
         }
 
         assertTrue(customMessages.isNotEmpty())
@@ -289,8 +324,8 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log without colors`() {
-        val environment = createTestEnvironment {
+    fun `can log without colors`() = testApplication {
+        environment {
             module {
                 install(CallLogging) {
                     disableDefaultColors()
@@ -298,10 +333,7 @@ class CallLoggingTest {
             }
             log = logger
         }
-
-        withApplication(environment) {
-            handleRequest(HttpMethod.Get, "/")
-        }
+        createClient { expectSuccess = false }.get("/")
 
         assertTrue("INFO: 404 Not Found: GET - /" in messages)
     }
