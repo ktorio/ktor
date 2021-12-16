@@ -38,9 +38,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
             objectmapper.writeValue(out.writer(charset = charset), value)
         }
 
-        return ByteArrayContent(
-            out.toByteArray(), contentType.withCharset(charset)
-        )
+        return ByteArrayContent(out.toByteArray(), contentType.withCharset(charset))
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {

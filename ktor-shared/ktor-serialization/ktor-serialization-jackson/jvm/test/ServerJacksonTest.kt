@@ -37,10 +37,11 @@ class ServerJacksonTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader("Accept", "application/json")
         }.response.let { response ->
+            val content = """{"id":1,"title":"Hello, World!","unicode":"$uc"}"""
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""".toByteArray().size.toString(), response.headers["Content-Length"])
-            assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
+            assertEquals(content.toByteArray().size.toString(), response.headers["Content-Length"])
+            assertEquals(listOf(content), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -50,10 +51,11 @@ class ServerJacksonTest {
             addHeader("Content-Type", "application/json")
             setBody("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""")
         }.response.let { response ->
+            val content = """id=1, title=Hello, World!, unicode=$uc"""
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals("""id=1, title=Hello, World!, unicode=$uc""".toByteArray().size.toString(), response.headers["Content-Length"])
-            assertEquals(listOf("""id=1, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
+            assertEquals(content.toByteArray().size.toString(), response.headers["Content-Length"])
+            assertEquals(listOf(content), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
