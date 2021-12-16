@@ -342,8 +342,8 @@ public final class io/ktor/client/plugins/HttpClientPlugin$DefaultImpls {
 }
 
 public final class io/ktor/client/plugins/HttpClientPluginKt {
-	public static final fun get (Lio/ktor/client/HttpClient;Lio/ktor/client/plugins/HttpClientPlugin;)Ljava/lang/Object;
 	public static final fun plugin (Lio/ktor/client/HttpClient;Lio/ktor/client/plugins/HttpClientPlugin;)Ljava/lang/Object;
+	public static final fun pluginOrNull (Lio/ktor/client/HttpClient;Lio/ktor/client/plugins/HttpClientPlugin;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/HttpPlainText {

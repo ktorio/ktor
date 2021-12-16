@@ -45,7 +45,7 @@ class CommonHttpClientTest {
             install(TestPlugin)
         }
         client.close()
-        assertTrue(client.plugin(TestPlugin)!!.closed)
+        assertTrue(client.plugin(TestPlugin).closed)
     }
 
     class TestPlugin : Closeable {

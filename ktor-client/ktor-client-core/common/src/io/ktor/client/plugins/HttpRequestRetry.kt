@@ -179,7 +179,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
     }
 
     internal fun intercept(client: HttpClient) {
-        client[HttpSend].intercept { request ->
+        client.plugin(HttpSend).intercept { request ->
             var retryCount = 0
             val shouldRetry = request.attributes.getOrNull(ShouldRetryPerRequestAttributeKey) ?: shouldRetry
             val shouldRetryOnException =

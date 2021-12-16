@@ -39,7 +39,7 @@ internal class DelegatingClientWebSocketSession(
  * Converter for web socket session
  */
 public val DefaultClientWebSocketSession.converter: WebsocketContentConverter?
-    get() = call.client?.plugin(WebSockets)?.contentConverter
+    get() = call.client?.pluginOrNull(WebSockets)?.contentConverter
 
 /**
  * Serializes [data] to a frame and enqueues this frame.
