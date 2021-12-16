@@ -6,6 +6,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import kotlin.native.concurrent.*
 import kotlin.test.*
 
 /*
@@ -98,4 +99,25 @@ class DefaultRequestTest {
             }.bodyAsText()
         )
     }
+
+    @Test
+    fun testDefaultAttributes() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.attributes[TestAttributeKey])
+                }
+            }
+
+            defaultRequest {
+                setAttributes { put(TestAttributeKey, "default-string") }
+            }
+        }
+
+        assertEquals("default-string", client.get { }.bodyAsText())
+        assertEquals("custom-string", client.get { attributes.put(TestAttributeKey, "custom-string") }.bodyAsText())
+    }
 }
+
+@SharedImmutable
+private val TestAttributeKey = AttributeKey<String>("TestAttributeKey")
