@@ -10,7 +10,7 @@ import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.serializaion.jackson.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*

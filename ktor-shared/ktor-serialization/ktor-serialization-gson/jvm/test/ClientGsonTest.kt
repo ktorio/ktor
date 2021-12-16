@@ -5,7 +5,7 @@
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
-import io.ktor.serializaion.gson.*
+import io.ktor.serialization.gson.*
 import org.junit.*
 
 class ClientGsonTest : AbstractClientContentNegotiationTest() {
