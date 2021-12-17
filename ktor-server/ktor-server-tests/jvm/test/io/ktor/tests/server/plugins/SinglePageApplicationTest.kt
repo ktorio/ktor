@@ -11,10 +11,10 @@ import io.ktor.plugins.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class SinglePageTest {
+class SinglePageApplicationTest {
     @Test
     fun testPageGet() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             applicationRoute = "selected"
             defaultPage = "CORSTest.kt"
@@ -31,11 +31,11 @@ class SinglePageTest {
 
     @Test
     fun testIgnoreRoutes() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignore { it.contains("CallIdTest.kt") }
-            ignore { it.endsWith("ContentTest.kt") }
+            ignoreFiles { it.contains("CallIdTest.kt") }
+            ignoreFiles { it.endsWith("ContentTest.kt") }
         }
 
         client.get("/StatusPageTest.kt").let {
@@ -57,10 +57,10 @@ class SinglePageTest {
 
     @Test
     fun testIgnoreAllRoutes() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "CORSTest.kt"
-            ignore { true }
+            ignoreFiles { true }
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.kt")
@@ -73,7 +73,7 @@ class SinglePageTest {
 
     @Test
     fun testResources() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
@@ -90,12 +90,12 @@ class SinglePageTest {
 
     @Test
     fun testIgnoreResourceRoutes() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignore { it.contains("CallIdTest.class") }
-            ignore { it.endsWith("ContentTest.class") }
+            ignoreFiles { it.contains("CallIdTest.class") }
+            ignoreFiles { it.endsWith("ContentTest.class") }
         }
 
         client.get("/StatusPageTest.class").let {
@@ -117,11 +117,11 @@ class SinglePageTest {
 
     @Test
     fun testIgnoreAllResourceRoutes() = testApplication {
-        install(SinglePage) {
+        install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "CORSTest.class"
-            ignore { true }
+            ignoreFiles { true }
         }
         assertFailsWith<ClientRequestException> {
             client.get("/CallIdTest.class")
@@ -129,6 +129,17 @@ class SinglePageTest {
 
         assertFailsWith<ClientRequestException> {
             client.get("/")
+        }
+    }
+
+    @Test
+    fun testShortcut() = testApplication {
+        application {
+            configureAngularSinglePageApplication("jvm/test/io/ktor/tests/server/plugins")
+        }
+
+        client.get("/StatusPageTest.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
         }
     }
 }

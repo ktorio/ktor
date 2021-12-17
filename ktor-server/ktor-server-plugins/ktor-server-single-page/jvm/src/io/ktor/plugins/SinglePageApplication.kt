@@ -17,7 +17,7 @@ import java.io.*
 /**
  * This plugin provides a single page application
  */
-public class SinglePage internal constructor(configuration: Configuration) {
+public class SinglePageApplication internal constructor(configuration: Configuration) {
 
     internal val defaultPage: String = configuration.defaultPage
 
@@ -30,7 +30,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
     internal val usePackageNames: Boolean = configuration.useResources
 
     /**
-     * Configuration type for the [SinglePage] plugin
+     * Configuration type for the [SinglePageApplication] plugin
      */
     public class Configuration(
         /**
@@ -64,19 +64,19 @@ public class SinglePage internal constructor(configuration: Configuration) {
          * Register a [block] in [ignoredFiles]
          * [block] returns true if [path] should be ignored.
          */
-        public fun ignore(block: (path: String) -> Boolean) {
+        public fun ignoreFiles(block: (path: String) -> Boolean) {
             ignoredFiles += block
         }
     }
 
     /**
-     * Implementation of [ApplicationPlugin] for the [SinglePage]
+     * Implementation of [ApplicationPlugin] for the [SinglePageApplication]
      */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePage> {
-        override val key: AttributeKey<SinglePage> = AttributeKey("SinglePage")
+    public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePageApplication> {
+        override val key: AttributeKey<SinglePageApplication> = AttributeKey("SinglePage")
 
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): SinglePage {
-            val plugin = SinglePage(Configuration().apply(configure))
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): SinglePageApplication {
+            val plugin = SinglePageApplication(Configuration().apply(configure))
 
             pipeline.routing {
                 static(plugin.applicationRoute) {
@@ -108,7 +108,7 @@ public class SinglePage internal constructor(configuration: Configuration) {
 
         if (!isUriStartWith(requestUrl)) return@context
 
-        call.attributes.put(key, this@SinglePage)
+        call.attributes.put(key, this@SinglePageApplication)
 
         if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
             call.response.status(HttpStatusCode.NotFound)
