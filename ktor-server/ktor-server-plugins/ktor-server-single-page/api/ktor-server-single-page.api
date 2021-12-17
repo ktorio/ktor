@@ -1,25 +1,30 @@
-public final class io/ktor/plugins/SinglePage {
-	public static final field Plugin Lio/ktor/plugins/SinglePage$Plugin;
+public final class io/ktor/plugins/SinglePageApplication {
+	public static final field Plugin Lio/ktor/plugins/SinglePageApplication$Plugin;
 }
 
-public final class io/ktor/plugins/SinglePage$Configuration {
+public final class io/ktor/plugins/SinglePageApplication$Configuration {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun angular (Ljava/lang/String;)V
+	public final fun backbone (Ljava/lang/String;)V
+	public final fun ember (Ljava/lang/String;)V
 	public final fun getApplicationRoute ()Ljava/lang/String;
 	public final fun getDefaultPage ()Ljava/lang/String;
 	public final fun getFilesPath ()Ljava/lang/String;
 	public final fun getUseResources ()Z
-	public final fun ignore (Lkotlin/jvm/functions/Function1;)V
+	public final fun ignoreFiles (Lkotlin/jvm/functions/Function1;)V
+	public final fun react (Ljava/lang/String;)V
 	public final fun setApplicationRoute (Ljava/lang/String;)V
 	public final fun setDefaultPage (Ljava/lang/String;)V
 	public final fun setFilesPath (Ljava/lang/String;)V
 	public final fun setUseResources (Z)V
+	public final fun vue (Ljava/lang/String;)V
 }
 
-public final class io/ktor/plugins/SinglePage$Plugin : io/ktor/server/application/ApplicationPlugin {
+public final class io/ktor/plugins/SinglePageApplication$Plugin : io/ktor/server/application/ApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/plugins/SinglePage;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/plugins/SinglePageApplication;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

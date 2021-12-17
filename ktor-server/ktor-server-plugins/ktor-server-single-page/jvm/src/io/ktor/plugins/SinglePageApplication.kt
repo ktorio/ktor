@@ -69,35 +69,40 @@ public class SinglePageApplication internal constructor(configuration: Configura
         }
 
         /**
-         *
+         * Creates a single page plugin application configuration for the Angular project.
+         * Resources will be shared from filesPath directory. Root file is index.html
          */
         public fun angular(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         *
+         * Creates a single page plugin application configuration for the React project.
+         * Resources will be shared from filesPath directory. Root file is index.html
          */
         public fun react(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         *
+         * Creates a single page plugin application configuration for the Vue project.
+         * Resources will be shared from filesPath directory. Root file is index.html
          */
         public fun vue(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         *
+         * Creates a single page plugin application configuration for the Ember project.
+         * Resources will be shared from filesPath directory. Root file is index.html
          */
         public fun ember(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         *
+         * Creates a single page plugin application configuration for the Backbone project.
+         * Resources will be shared from filesPath directory. Root file is index.html
          */
         public fun backbone(filesPath: String) {
             this.filesPath = filesPath
