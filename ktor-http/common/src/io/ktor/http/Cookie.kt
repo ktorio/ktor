@@ -92,7 +92,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
 }
 
 @ThreadLocal
-private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
+private val clientCookieHeaderPattern = """(^|;)\s*([^;=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
 /**
  * Parse client's `Cookie` header value

@@ -403,4 +403,14 @@ class ParserServerSetCookieTest {
         assertEquals("aaa", parsed.value)
         assertEquals(Int.MAX_VALUE, parsed.maxAge)
     }
+
+    @Test
+    fun testSlash() {
+        val header = "384f8bdb/sessid=GLU787LwmQa9uLqnM7nWHzBm; path=/"
+        val parsed = parseServerSetCookieHeader(header)
+
+        assertEquals("384f8bdb/sessid", parsed.name)
+        assertEquals("GLU787LwmQa9uLqnM7nWHzBm", parsed.value)
+        assertEquals("/", parsed.path)
+    }
 }
