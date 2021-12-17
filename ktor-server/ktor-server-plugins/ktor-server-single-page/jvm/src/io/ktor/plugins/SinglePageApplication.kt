@@ -67,6 +67,41 @@ public class SinglePageApplication internal constructor(configuration: Configura
         public fun ignoreFiles(block: (path: String) -> Boolean) {
             ignoredFiles += block
         }
+
+        /**
+         *
+         */
+        public fun angular(filesPath: String) {
+            this.filesPath = filesPath
+        }
+
+        /**
+         *
+         */
+        public fun react(filesPath: String) {
+            this.filesPath = filesPath
+        }
+
+        /**
+         *
+         */
+        public fun vue(filesPath: String) {
+            this.filesPath = filesPath
+        }
+
+        /**
+         *
+         */
+        public fun ember(filesPath: String) {
+            this.filesPath = filesPath
+        }
+
+        /**
+         *
+         */
+        public fun backbone(filesPath: String) {
+            this.filesPath = filesPath
+        }
     }
 
     /**

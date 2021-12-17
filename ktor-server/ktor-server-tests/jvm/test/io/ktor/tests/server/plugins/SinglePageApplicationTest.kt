@@ -134,8 +134,8 @@ class SinglePageApplicationTest {
 
     @Test
     fun testShortcut() = testApplication {
-        application {
-            configureAngularSinglePageApplication("jvm/test/io/ktor/tests/server/plugins")
+        install(SinglePageApplication) {
+
         }
 
         client.get("/StatusPageTest.kt").let {
