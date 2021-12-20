@@ -164,7 +164,6 @@ public class HttpClient(
             }
 
             config += this
-            config.install(HttpRequestRetry)
 
             config.addDefaultResponseValidation()
 
