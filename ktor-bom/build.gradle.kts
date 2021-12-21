@@ -1,8 +1,13 @@
 plugins {
     id("java-platform")
+    id("maven-publish")
 }
 
-configurePublication()
+the<PublishingExtension>().publications {
+    create<MavenPublication>("maven") {
+        from(components.findByName("javaPlatform"))
+    }
+}
 
 val name = project.name
 
@@ -24,8 +29,4 @@ dependencies {
     }
 }
 
-the<PublishingExtension>().publications {
-    create<MavenPublication>("maven") {
-        from(components.findByName("javaPlatform"))
-    }
-}
+configurePublication()
