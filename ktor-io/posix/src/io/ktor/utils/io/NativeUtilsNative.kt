@@ -4,18 +4,10 @@
 
 package io.ktor.utils.io
 
-import kotlin.native.concurrent.*
-
 @OptIn(ExperimentalStdlibApi::class)
 public actual fun Any.preventFreeze() {
-    if (!isExperimentalMM()) {
-        ensureNeverFrozen()
-    }
 }
 
 @OptIn(ExperimentalStdlibApi::class)
 public actual fun Any.makeShared() {
-    if (!isExperimentalMM()) {
-        freeze()
-    }
 }

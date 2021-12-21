@@ -5,9 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.utils.io.pool.*
-import kotlin.native.concurrent.SharedImmutable
 
-@SharedImmutable
 internal actual val CharArrayPool: ObjectPool<CharArray> = object : ObjectPool<CharArray> {
     override val capacity: Int
         get() = 0

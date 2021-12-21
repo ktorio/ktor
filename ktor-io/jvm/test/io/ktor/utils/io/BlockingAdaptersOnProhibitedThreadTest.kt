@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class BlockingAdaptersOnProhibitedThreadTest {
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("BlockingAdaptersOnProhibitedThreadTest")
 
     @AfterTest

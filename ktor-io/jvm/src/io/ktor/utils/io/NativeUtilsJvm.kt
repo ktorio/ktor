@@ -4,8 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.internal.*
-
 public actual fun Any.preventFreeze() {
 }
 

@@ -6,9 +6,6 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
 import io.ktor.util.*
-import kotlinx.cinterop.*
-import libcurl.*
-import kotlin.native.SharedImmutable
 
 // This function is thread unsafe!
 // The man page asks to run it once per program,
@@ -17,7 +14,6 @@ import kotlin.native.SharedImmutable
 // See the curl_global_init(3) man page for details.
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
-@SharedImmutable
 @EagerInitialization
 private val curlGlobalInitReturnCode = curlInitBridge()
 
@@ -25,7 +21,6 @@ internal expect fun curlInitBridge(): Int
 
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("unused", "DEPRECATION")
-@SharedImmutable
 @EagerInitialization
 private val initHook = Curl
 

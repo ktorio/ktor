@@ -140,5 +140,4 @@ public var HttpRequestBuilder.expectSuccess: Boolean
     get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
-@SharedImmutable
 internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttributeKey")

@@ -185,7 +185,6 @@ public typealias ContentTransformationException = io.ktor.server.plugins.Content
  */
 private object DoubleReceivePreventionToken
 
-@SharedImmutable
 private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**

@@ -8,7 +8,6 @@ import io.ktor.util.*
 import kotlin.native.concurrent.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
-@SharedImmutable
 private val HeaderFieldValueSeparators =
     setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
 

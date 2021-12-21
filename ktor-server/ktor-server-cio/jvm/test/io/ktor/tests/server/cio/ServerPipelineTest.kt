@@ -26,7 +26,8 @@ class ServerPipelineTest : CoroutineScope {
     @get:Rule
     val testName = TestName()
 
-    private val dispatcher = ExperimentalCoroutineDispatcher(8)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val dispatcher = Dispatchers.IO.limitedParallelism(8)
 
     private val job: CompletableJob = SupervisorJob()
     private val name: CoroutineName = CoroutineName("PipelineTest.${testName.methodName}")
@@ -44,9 +45,6 @@ class ServerPipelineTest : CoroutineScope {
         job.cancel()
         runBlocking {
             job.join()
-        }
-        job.invokeOnCompletion {
-            dispatcher.close()
         }
     }
 

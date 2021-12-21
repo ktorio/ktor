@@ -39,10 +39,8 @@ actual abstract class EngineTestBase<
 ) : CoroutineScope {
     private val testJob = Job()
 
-    @OptIn(ObsoleteCoroutinesApi::class)
-    protected val testDispatcher: ExecutorCoroutineDispatcher by lazy {
-        newFixedThreadPoolContext(32, "dispatcher-${test.methodName}")
-    }
+    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+    protected val testDispatcher = Dispatchers.IO.limitedParallelism(32)
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
@@ -115,7 +113,6 @@ actual abstract class EngineTestBase<
         } finally {
             testJob.cancel()
             val closeThread = thread(start = false, name = "shutdown-test-${test.methodName}") {
-                testDispatcher.close()
             }
             testJob.invokeOnCompletion {
                 closeThread.start()

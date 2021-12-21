@@ -16,7 +16,6 @@ import kotlin.native.concurrent.*
  * Default user agent to use in ktor client.
  */
 @InternalAPI
-@SharedImmutable
 public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
 
 /**

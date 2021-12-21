@@ -18,5 +18,4 @@ public actual fun defaultSerializer(): JsonSerializer = serializers.first()
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-@SharedImmutable
 public val serializers: MutableList<JsonSerializer> = sharedList()

@@ -23,10 +23,8 @@ private const val EXPECTED_HEADERS_QTY = 64
  * [6] next entry index (multiplied) with the same name hash
  * [7] reserved
  */
-@SharedImmutable
 private const val HEADER_SIZE = 8
 
-@SharedImmutable
 private const val HEADER_ARRAY_POOL_SIZE = 1000
 
 @ThreadLocal

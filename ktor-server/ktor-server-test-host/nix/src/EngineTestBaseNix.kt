@@ -22,7 +22,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.time.Duration.Companion.seconds
 
-@SharedImmutable
 private val TEST_SELECTOR_MANAGER = SelectorManager()
 
 actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> actual constructor( // ktlint-disable max-line-length

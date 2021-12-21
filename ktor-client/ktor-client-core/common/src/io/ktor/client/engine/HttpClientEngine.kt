@@ -17,7 +17,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 internal val CALL_COROUTINE = CoroutineName("call-context")
 
 /**

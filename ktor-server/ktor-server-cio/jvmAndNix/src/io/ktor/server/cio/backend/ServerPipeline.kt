@@ -209,7 +209,6 @@ private suspend fun pipelineWriterLoop(
     }
 }
 
-@SharedImmutable
 private val BadRequestPacket = RequestResponseBuilder().apply {
     responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
     headerLine("Connection", "close")

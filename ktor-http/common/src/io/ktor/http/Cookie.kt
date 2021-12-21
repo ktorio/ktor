@@ -63,7 +63,6 @@ public enum class CookieEncoding {
     BASE64_ENCODING
 }
 
-@SharedImmutable
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 
 /**
@@ -207,7 +206,6 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
-@SharedImmutable
 private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
 
 private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped

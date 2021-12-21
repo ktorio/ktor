@@ -17,9 +17,7 @@ import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
 import platform.posix.*
 
-@SharedImmutable
 private val CLOSED: (Throwable?) -> Unit = {}
-@SharedImmutable
 private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
 
 internal class DatagramSendChannel(

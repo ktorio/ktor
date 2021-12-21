@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 internal val PLUGIN_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
 /**

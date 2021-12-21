@@ -119,5 +119,4 @@ class DefaultRequestTest {
     }
 }
 
-@SharedImmutable
 private val TestAttributeKey = AttributeKey<String>("TestAttributeKey")

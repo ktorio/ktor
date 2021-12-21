@@ -18,7 +18,6 @@ import kotlinx.coroutines.*
 import libcurl.*
 import kotlin.coroutines.*
 
-@SharedImmutable
 private val EMPTY_BYTE_ARRAY = ByteArray(0)
 
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(

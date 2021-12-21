@@ -14,7 +14,6 @@ import io.ktor.util.pipeline.*
 import kotlin.native.concurrent.*
 
 @InternalAPI
-@SharedImmutable
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
 /**

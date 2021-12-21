@@ -6,7 +6,6 @@ package io.ktor.server.engine
 
 import kotlinx.cinterop.*
 import platform.posix.*
-import kotlin.native.SharedImmutable
 import kotlin.native.concurrent.*
 
 /**
@@ -17,7 +16,6 @@ import kotlin.native.concurrent.*
  * So [stop] block will be called once or never.
  */
 
-@SharedImmutable
 private val shutdownHook: FreezableAtomicReference<() -> Unit> = FreezableAtomicReference({})
 
 public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {

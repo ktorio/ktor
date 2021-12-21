@@ -154,7 +154,6 @@ private fun ByteReadChannel.rethrowCloseCause() {
     if (cause != null) throw cause
 }
 
-@SharedImmutable
 private const val CrLfShort: Short = 0x0d0a
 
 @ThreadLocal

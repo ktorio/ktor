@@ -9,7 +9,6 @@ import io.ktor.util.*
 
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("unused", "DEPRECATION")
-@SharedImmutable
 @EagerInitialization
 private val initHook = SerializerInitializer
 

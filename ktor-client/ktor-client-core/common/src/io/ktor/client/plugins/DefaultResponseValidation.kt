@@ -12,7 +12,6 @@ import io.ktor.utils.io.concurrent.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
 /**

@@ -19,13 +19,10 @@ import kotlin.native.concurrent.*
 @ThreadLocal
 private var cachedDateText: String = GMTDate().toHttpDate()
 
-@SharedImmutable
 private val HelloWorld = "Hello, World!".toByteArray()
 
-@SharedImmutable
 private val HelloWorldLength = HelloWorld.size.toString()
 
-@SharedImmutable
 private val notFound404_11 = RequestResponseBuilder().apply {
     responseLine("HTTP/1.1", 404, "Not Found")
     headerLine("Content-Length", "0")

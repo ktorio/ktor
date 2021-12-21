@@ -10,7 +10,6 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 internal val BodyTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("BodyTypeAttributeKey")
 
 @OptIn(InternalAPI::class)

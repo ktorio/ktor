@@ -13,7 +13,6 @@ private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 private const val BASE64_MASK: Byte = 0x3f
 private const val BASE64_PAD = '='
 
-@SharedImmutable
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
 }

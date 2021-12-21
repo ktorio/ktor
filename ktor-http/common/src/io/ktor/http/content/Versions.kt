@@ -12,7 +12,6 @@ import kotlin.native.concurrent.*
 /**
  * Specifies a key for VersionList extension property for [OutgoingContent]
  */
-@SharedImmutable
 public val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**

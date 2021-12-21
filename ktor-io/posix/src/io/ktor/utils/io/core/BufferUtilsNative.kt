@@ -9,7 +9,6 @@ import kotlin.contracts.*
 import kotlin.native.concurrent.*
 
 @PublishedApi
-@SharedImmutable
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {

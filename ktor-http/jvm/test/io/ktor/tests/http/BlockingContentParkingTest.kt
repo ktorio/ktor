@@ -13,7 +13,7 @@ import kotlin.test.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class BlockingContentParkingTest {
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("BlockingContentParkingTest")
     private val channel = ByteChannel(true)
     @OptIn(DelicateCoroutinesApi::class)

@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val IgnoreTrailingSlashAttributeKey: AttributeKey<Unit> = AttributeKey("IgnoreTrailingSlashAttributeKey")
 
 internal var ApplicationCall.ignoreTrailingSlash: Boolean

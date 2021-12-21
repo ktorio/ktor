@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 /**
  * Helper interface to test client.
  */
-expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
+expect abstract class ClientLoader(timeoutSeconds: Int = 2 * 60) {
     /**
      * Perform test against all clients from dependencies.
      */

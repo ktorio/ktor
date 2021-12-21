@@ -19,14 +19,4 @@ public actual fun Dispatchers.clientDispatcher(
 ): CoroutineDispatcher = Unconfined
 
 internal actual fun checkCoroutinesVersion() {
-    try {
-        val parent = Job()
-        parent.makeShared()
-        Job(parent)
-    } catch (cause: Throwable) {
-        val message = "Ktor native HttpClient requires kotlinx.coroutines version with `native-mt` suffix" +
-            " (like `1.3.9-native-mt`). Consider checking the dependencies."
-
-        throw Error(message)
-    }
 }

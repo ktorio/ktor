@@ -14,16 +14,12 @@ import kotlin.native.concurrent.*
  */
 public class ParserException(message: String) : Exception(message)
 
-@SharedImmutable
 private const val HTTP_LINE_LIMIT = 8192
 
-@SharedImmutable
 private const val HTTP_STATUS_CODE_MIN_RANGE = 100
 
-@SharedImmutable
 private const val HTTP_STATUS_CODE_MAX_RANGE = 999
 
-@SharedImmutable
 private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
 
 /**
@@ -177,7 +173,6 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
     return s
 }
 
-@SharedImmutable
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
 
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {

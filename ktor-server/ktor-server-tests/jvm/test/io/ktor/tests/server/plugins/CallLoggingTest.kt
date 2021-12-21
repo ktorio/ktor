@@ -257,11 +257,11 @@ class CallLoggingTest {
         dispatcher.close()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() = testApplication {
         var counter = 0
 
-        @OptIn(ObsoleteCoroutinesApi::class)
         val dispatcher = newFixedThreadPoolContext(1, "test-dispatcher")
         environment {
             module {
