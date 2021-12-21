@@ -465,6 +465,28 @@ class CallValidatorTest {
             }
         }
     }
+
+    @Test
+    fun testResponseValidationThrowsResponseExceptionWithByteArray() = testWithEngine(MockEngine) {
+        val content = byteArrayOf(0x08.toByte(), 0x96.toByte(), 0x01.toByte())
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond(content, status)
+                }
+            }
+        }
+        test { client ->
+            try {
+                client.get {}
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(cause.message?.contains("<body failed decoding>"), true)
+            }
+        }
+    }
 }
 
 internal class CallValidatorTestException : Throwable()
