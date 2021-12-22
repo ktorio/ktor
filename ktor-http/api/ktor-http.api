@@ -527,6 +527,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getXCorrelationId ()Ljava/lang/String;
 	public final fun getXForwardedFor ()Ljava/lang/String;
 	public final fun getXForwardedHost ()Ljava/lang/String;
+	public final fun getXForwardedPort ()Ljava/lang/String;
 	public final fun getXForwardedProto ()Ljava/lang/String;
 	public final fun getXForwardedServer ()Ljava/lang/String;
 	public final fun getXHttpMethodOverride ()Ljava/lang/String;
