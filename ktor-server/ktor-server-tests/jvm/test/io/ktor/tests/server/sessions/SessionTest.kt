@@ -4,6 +4,8 @@
 
 package io.ktor.tests.server.sessions
 
+import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -715,6 +717,29 @@ class SessionTest {
             }
         }
         assertEquals(Sessions.key.name, handleRequest(HttpMethod.Get, "/").response.content)
+    }
+
+    data class Token(val secret: Int)
+
+    @Test
+    fun secureCookie() = testApplication {
+        install(Sessions) {
+            cookie<Token>("SESSION") {
+                cookie.path = "/token"
+                cookie.httpOnly = true
+                cookie.extensions["SameSite"] = "strict"
+                cookie.maxAgeInSeconds = 1.days.inWholeSeconds
+                cookie.secure = true
+            }
+        }
+        routing {
+            get("/token") {
+                call.sessions.set(Token(42))
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        client.get("https://localhost:80/token").body<Unit>()
     }
 
     @Test
