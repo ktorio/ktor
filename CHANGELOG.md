@@ -1,3 +1,138 @@
+# 2.0.0-beta-1
+
+* EAP Naming: main-number conflicts with dependencies ([KTOR-2724](https://youtrack.jetbrains.com/issue/KTOR-2724))
+* ktor.io/learn typo ([KTOR-3563](https://youtrack.jetbrains.com/issue/KTOR-3563))
+* Multiple messages around upgrading to new version ([KTOR-3494](https://youtrack.jetbrains.com/issue/KTOR-3494))
+* Deploy Ktor application to docker topic contains hard coded project name ([KTOR-2852](https://youtrack.jetbrains.com/issue/KTOR-2852))
+* Improvements for Docker sample in documentation ([KTOR-3294](https://youtrack.jetbrains.com/issue/KTOR-3294))
+* "io.ktor.serializaion.gson" - package naming in 2.0 ([KTOR-3527](https://youtrack.jetbrains.com/issue/KTOR-3527))
+* Drop `client.get` Operator Because of Ambiguity with `get(URL)` ([KTOR-3487](https://youtrack.jetbrains.com/issue/KTOR-3487))
+* Option "Add imports for Ktor modules automatically" doesn't work ([KTOR-3226](https://youtrack.jetbrains.com/issue/KTOR-3226))
+* Migrations are unavailable ([KTOR-3570](https://youtrack.jetbrains.com/issue/KTOR-3570))
+* AttributeKey instance is identified by its identity instead of its name ([KTOR-3538](https://youtrack.jetbrains.com/issue/KTOR-3538))
+* Fix Log Size for Java 11 Windows Build ([KTOR-3535](https://youtrack.jetbrains.com/issue/KTOR-3535))
+* ByteChannelSequential freezes after closing due to race condition ([KTOR-2776](https://youtrack.jetbrains.com/issue/KTOR-2776))
+* Apple Arm: 'Resolving NPM dependencies using yarn' returns 139 ([KTOR-3561](https://youtrack.jetbrains.com/issue/KTOR-3561))
+* Change log level from `INFO` to `ERROR` for tests only ([KTOR-3466](https://youtrack.jetbrains.com/issue/KTOR-3466))
+* Responding without contentLength freezes on CIO native ([KTOR-3492](https://youtrack.jetbrains.com/issue/KTOR-3492))
+* webSocketSession freeze every time ([KTOR-3460](https://youtrack.jetbrains.com/issue/KTOR-3460))
+* Exceptions are Swallowed in `HttpClient.wss` block ([KTOR-3461](https://youtrack.jetbrains.com/issue/KTOR-3461))
+* Support receiving headers before sending body in CIO client engine ([KTOR-3491](https://youtrack.jetbrains.com/issue/KTOR-3491))
+* [netty] Headers are only flushed after first byte is written ([KTOR-3364](https://youtrack.jetbrains.com/issue/KTOR-3364))
+* Fix `testErrorHandling` with JS ([KTOR-3510](https://youtrack.jetbrains.com/issue/KTOR-3510))
+* Build and test on Apple Silicon Arm ([KTOR-3248](https://youtrack.jetbrains.com/issue/KTOR-3248))
+* Fix old metadata publication ([KTOR-3469](https://youtrack.jetbrains.com/issue/KTOR-3469))
+* Remove checking body transformation from ContentNegotation ([KTOR-3272](https://youtrack.jetbrains.com/issue/KTOR-3272))
+* Ktor-Utils references a Java API not supported by Android ([KTOR-3426](https://youtrack.jetbrains.com/issue/KTOR-3426))
+* With test application should load environment from the `application.conf` ([KTOR-2794](https://youtrack.jetbrains.com/issue/KTOR-2794))
+* Inconsistent TestApplicationRequest and Client HttpRequestBuilder API's ([KTOR-1246](https://youtrack.jetbrains.com/issue/KTOR-1246))
+* Server features instead of client in the client `install` block ([KTOR-3412](https://youtrack.jetbrains.com/issue/KTOR-3412))
+* Using proguard and CallLogging feature causes JVM crashes ([KTOR-3345](https://youtrack.jetbrains.com/issue/KTOR-3345))
+* `ContentNegotiation` is missing in the plugins completion window ([KTOR-3411](https://youtrack.jetbrains.com/issue/KTOR-3411))
+* Code Snippets use Groovy in build files as opposed to default Kotlin option for Wizard ([KTOR-2190](https://youtrack.jetbrains.com/issue/KTOR-2190))
+* IJ locked after attempt to create new run config in a dialog ([KTOR-3385](https://youtrack.jetbrains.com/issue/KTOR-3385))
+* ContentNegotiation plugins don't accept null-responses from ContentConverts ([KTOR-3346](https://youtrack.jetbrains.com/issue/KTOR-3346))
+* High CPU consumption/Lock after project opening in org.jetbrains.kotlin.storage.getValue ; org.jetbrains.kotlin.idea.caches.resolve.IdeaResolverForProject ([KTOR-3337](https://youtrack.jetbrains.com/issue/KTOR-3337))
+* Update Ktor Plugin Description ([KTOR-3388](https://youtrack.jetbrains.com/issue/KTOR-3388))
+* Project Generated with eap-256 has Errors in Imports ([KTOR-3397](https://youtrack.jetbrains.com/issue/KTOR-3397))
+* Update non-generic samples to 2.0 ([KTOR-3285](https://youtrack.jetbrains.com/issue/KTOR-3285))
+* Simplify plugin descriptions in wizard, remove empty options ([KTOR-3386](https://youtrack.jetbrains.com/issue/KTOR-3386))
+* Bearer Authentication: Queue requests until refresh of tokens is completed ([KTOR-3325](https://youtrack.jetbrains.com/issue/KTOR-3325))
+* Article about storing sensitive data and accessing it in application.conf ([KTOR-3340](https://youtrack.jetbrains.com/issue/KTOR-3340))
+* Android: Failed resolution of: Ljava/nio/file/Paths using API 25 and lower ([KTOR-3269](https://youtrack.jetbrains.com/issue/KTOR-3269))
+* IDE action to migrate to 2.0.0 ([KTOR-3225](https://youtrack.jetbrains.com/issue/KTOR-3225))
+* Passing port 0 to start server on random port doesn't publish correct port to log ([KTOR-3288](https://youtrack.jetbrains.com/issue/KTOR-3288))
+* XForwardedHeaderSupport is installed late in the pipeline ([KTOR-731](https://youtrack.jetbrains.com/issue/KTOR-731))
+* Error in 2.0 doc/sample for HttpClient retry ([KTOR-3303](https://youtrack.jetbrains.com/issue/KTOR-3303))
+* Cyclic dependency issue in latest 2.0 (main branch) ([KTOR-3240](https://youtrack.jetbrains.com/issue/KTOR-3240))
+* An error occurred when running a sample with the configured XML serializer ([KTOR-3286](https://youtrack.jetbrains.com/issue/KTOR-3286))
+* respondOutputStream behind nginx fails ([KTOR-346](https://youtrack.jetbrains.com/issue/KTOR-346))
+* ProxyConfig.type checking for DIRECT instead of SOCKS ([KTOR-1733](https://youtrack.jetbrains.com/issue/KTOR-1733))
+* Freeze the screen when I create routes ([KTOR-3004](https://youtrack.jetbrains.com/issue/KTOR-3004))
+* httpMethod is not affected by X-Http-Method-Override (in opposite to docs) ([KTOR-404](https://youtrack.jetbrains.com/issue/KTOR-404))
+* Client: DefaultRequest apply defaults before request builder ([KTOR-2877](https://youtrack.jetbrains.com/issue/KTOR-2877))
+* KDoc: HttpRequestBuilder.header actually appends header value, does not set it ([KTOR-2492](https://youtrack.jetbrains.com/issue/KTOR-2492))
+* TLS relared tests are failing on CI ([KTOR-3224](https://youtrack.jetbrains.com/issue/KTOR-3224))
+* Jackson: receiveOrNull crashes with an exception when sending empty content ([KTOR-727](https://youtrack.jetbrains.com/issue/KTOR-727))
+* Content Negotiation: Gson: Should be able to return 400 for badly formatted request. ([KTOR-373](https://youtrack.jetbrains.com/issue/KTOR-373))
+* Jackson-backed `ApplicationCall.receive` does not throw `ContentTransformationException` ([KTOR-614](https://youtrack.jetbrains.com/issue/KTOR-614))
+* Remove Obsolete Check Cast from SuspendFunctionGun ([KTOR-3178](https://youtrack.jetbrains.com/issue/KTOR-3178))
+* Support 2.0.0 in IDE ([KTOR-3196](https://youtrack.jetbrains.com/issue/KTOR-3196))
+* Client HttpCache feature is not documented ([KTOR-1279](https://youtrack.jetbrains.com/issue/KTOR-1279))
+* Update server dependencies and imports in docs for 2.0.0 ([KTOR-3150](https://youtrack.jetbrains.com/issue/KTOR-3150))
+* Prioritize text found in feature titles over descriptions ([KTOR-2488](https://youtrack.jetbrains.com/issue/KTOR-2488))
+* SerializationException when serializing request body object of generic class type ([KTOR-1019](https://youtrack.jetbrains.com/issue/KTOR-1019))
+* The 'Create test for Ktor module' intention actions changes files from other modules for a multimodule Gradle project ([KTOR-3062](https://youtrack.jetbrains.com/issue/KTOR-3062))
+* Wizard Plugin listing strange link ([KTOR-2882](https://youtrack.jetbrains.com/issue/KTOR-2882))
+* Nothing happens when no test routes is selected when generating Ktor test for module ([KTOR-3095](https://youtrack.jetbrains.com/issue/KTOR-3095))
+* The 'Create test for Ktor module' intention action doesn't create any tests if routes are defined inside the extension function ([KTOR-3079](https://youtrack.jetbrains.com/issue/KTOR-3079))
+* Allow using the client itself inside Auth plugin in the refreshTokens lambda. ([KTOR-2977](https://youtrack.jetbrains.com/issue/KTOR-2977))
+* ADE at io.ktor.ide.plugins.add.KtorMarketplacePluginsUpdater.checkForUpdates ([KTOR-3076](https://youtrack.jetbrains.com/issue/KTOR-3076))
+* Ktor Client JS: request to /example requests http://localhost/example ([KTOR-453](https://youtrack.jetbrains.com/issue/KTOR-453))
+* URLBuilder: Move Default Values to build() function ([KTOR-1345](https://youtrack.jetbrains.com/issue/KTOR-1345))
+* Impossible to modify response headers ([KTOR-2822](https://youtrack.jetbrains.com/issue/KTOR-2822))
+* Missing Locations params result in 404 instead of 400 ([KTOR-447](https://youtrack.jetbrains.com/issue/KTOR-447))
+* Should return 405 when route exists but not for given method instead of 404 ([KTOR-737](https://youtrack.jetbrains.com/issue/KTOR-737))
+* Fix 2.0.0 branch compilation ([KTOR-2603](https://youtrack.jetbrains.com/issue/KTOR-2603))
+* Query of pre-signed URL has been altered after decode and re-encode process ([KTOR-778](https://youtrack.jetbrains.com/issue/KTOR-778))
+* ApplicationCall.locationOrNull raises error ([KTOR-1684](https://youtrack.jetbrains.com/issue/KTOR-1684))
+* Make `body` nullable for request builder ([KTOR-1400](https://youtrack.jetbrains.com/issue/KTOR-1400))
+* Provide better support for Ktor clients ([KTOR-883](https://youtrack.jetbrains.com/issue/KTOR-883))
+* Retry on HttpCode or network error ([KTOR-572](https://youtrack.jetbrains.com/issue/KTOR-572))
+* HttpRequestRetry in KTOR 2.0 should allow for request altering between retries ([KTOR-3544](https://youtrack.jetbrains.com/issue/KTOR-3544))
+* HttpCookies: parse / in the name of a cookie ([KTOR-3497](https://youtrack.jetbrains.com/issue/KTOR-3497))
+* Support for adding values to the MDC later on in the pipeline. ([KTOR-536](https://youtrack.jetbrains.com/issue/KTOR-536))
+* Pull Request - fix #1970 - update MultiPartFormDataContent to allow contentType override using optional builder ([KTOR-1833](https://youtrack.jetbrains.com/issue/KTOR-1833))
+* Pull Request - KTOR-1264 - Add UUID to DefaultConversionService ([KTOR-1815](https://youtrack.jetbrains.com/issue/KTOR-1815))
+* Pull Request - Intercept pipeline at Setup phase for XForwardedHeaderSupport feature… ([KTOR-1844](https://youtrack.jetbrains.com/issue/KTOR-1844))
+* Pull Request - Add locale to ThymeleafContent ([KTOR-1838](https://youtrack.jetbrains.com/issue/KTOR-1838))
+* Pull Request - KTOR-404 Introduce support for X-Http-Method-Override ([KTOR-1825](https://youtrack.jetbrains.com/issue/KTOR-1825))
+* Objections to changing boundary to internal on MultiPartFormDataContent? ([KTOR-325](https://youtrack.jetbrains.com/issue/KTOR-325))
+* Prototype anchors in new plugins API ([KTOR-3392](https://youtrack.jetbrains.com/issue/KTOR-3392))
+* Rename the 'Ios' client engine to more generic term to cover all Apple operating systems ([KTOR-3394](https://youtrack.jetbrains.com/issue/KTOR-3394))
+* Update Samples to Ktor 2.0 ([KTOR-3218](https://youtrack.jetbrains.com/issue/KTOR-3218))
+* Implement new `Locations` feature ([KTOR-1706](https://youtrack.jetbrains.com/issue/KTOR-1706))
+* Feature: Use websockets with serialization ([KTOR-423](https://youtrack.jetbrains.com/issue/KTOR-423))
+* JS Client doesn't support ServiceWorker ([KTOR-3448](https://youtrack.jetbrains.com/issue/KTOR-3448))
+* Move Server Related Code from `ktor-http-cio` to `ktor-server-cio` ([KTOR-3462](https://youtrack.jetbrains.com/issue/KTOR-3462))
+* Client request builder: add shortcuts for authentication headers ([KTOR-2876](https://youtrack.jetbrains.com/issue/KTOR-2876))
+* Add Check if Feature is installed for `WebSocket` builders ([KTOR-3459](https://youtrack.jetbrains.com/issue/KTOR-3459))
+* Implementation for Create `ktor-test` module with mocks of engine and clients for writing tests ([KTOR-3236](https://youtrack.jetbrains.com/issue/KTOR-3236))
+* TestEngineApplication - implement HttpClient API ([KTOR-2416](https://youtrack.jetbrains.com/issue/KTOR-2416))
+* Add explicit menu action for migration ([KTOR-3400](https://youtrack.jetbrains.com/issue/KTOR-3400))
+* Add possibility to fully configure metricName in ktor-server-metrics-micrometer ([KTOR-3302](https://youtrack.jetbrains.com/issue/KTOR-3302))
+* Support New Native Memory Model ([KTOR-3217](https://youtrack.jetbrains.com/issue/KTOR-3217))
+* Server for Kotlin Native ([KTOR-746](https://youtrack.jetbrains.com/issue/KTOR-746))
+* call.request.queryParameters decode plus as space ([KTOR-3297](https://youtrack.jetbrains.com/issue/KTOR-3297))
+* Migrate existing plugins to RoutingScoped ([KTOR-3201](https://youtrack.jetbrains.com/issue/KTOR-3201))
+* Support receiving OAuth code response as form post ([KTOR-3342](https://youtrack.jetbrains.com/issue/KTOR-3342))
+* Add parameter for specifying content-length in ApplicationCall#respondBytes ([KTOR-3087](https://youtrack.jetbrains.com/issue/KTOR-3087))
+* Allow application environment configuration when running via commandLineEnvironment ([KTOR-3027](https://youtrack.jetbrains.com/issue/KTOR-3027))
+* Add locale to ThymeleafContent ([KTOR-3313](https://youtrack.jetbrains.com/issue/KTOR-3313))
+* Add support for ports in withTestApplication ([KTOR-725](https://youtrack.jetbrains.com/issue/KTOR-725))
+* Expose non-reified request methods ([KTOR-2590](https://youtrack.jetbrains.com/issue/KTOR-2590))
+* XML Support in Ktor ([KTOR-489](https://youtrack.jetbrains.com/issue/KTOR-489))
+* Start ktor server on random port ([KTOR-686](https://youtrack.jetbrains.com/issue/KTOR-686))
+* parameterOf() should have a variant that takes in a Map<String, List<String>> ([KTOR-399](https://youtrack.jetbrains.com/issue/KTOR-399))
+* [Ktor Client] CborFeature ([KTOR-3174](https://youtrack.jetbrains.com/issue/KTOR-3174))
+* Can't set a base url that includes path data ([KTOR-730](https://youtrack.jetbrains.com/issue/KTOR-730))
+* Ktor: Fold internal stack frames for HTTP server ([KTOR-2274](https://youtrack.jetbrains.com/issue/KTOR-2274))
+* Add method to Client and ServerResponseException ([KTOR-3128](https://youtrack.jetbrains.com/issue/KTOR-3128))
+* Add UUID to DefaultConversionService ([KTOR-1264](https://youtrack.jetbrains.com/issue/KTOR-1264))
+* Implementation for Simple API for writing features ([KTOR-2480](https://youtrack.jetbrains.com/issue/KTOR-2480))
+* Add filtering support in Ktor client response interceptor ([KTOR-2992](https://youtrack.jetbrains.com/issue/KTOR-2992))
+* Define completion priorities for Ktor keywords ([KTOR-2773](https://youtrack.jetbrains.com/issue/KTOR-2773))
+* Adding features action in IDE ([KTOR-2893](https://youtrack.jetbrains.com/issue/KTOR-2893))
+* Implement design about moving features from ktor-server-core ([KTOR-1239](https://youtrack.jetbrains.com/issue/KTOR-1239))
+* Move server code to io.ktor.server.* package ([KTOR-2865](https://youtrack.jetbrains.com/issue/KTOR-2865))
+* ApplicationConfig: how to iterate over keys and values of config ([KTOR-2318](https://youtrack.jetbrains.com/issue/KTOR-2318))
+* Implementation for Events Feature For Client Metrics ([KTOR-2472](https://youtrack.jetbrains.com/issue/KTOR-2472))
+* ContentConverter.convertForSend should receive a KType ([KTOR-444](https://youtrack.jetbrains.com/issue/KTOR-444))
+* Send 100 Continue response only when getting a request to receive `IncomingContent` ([KTOR-855](https://youtrack.jetbrains.com/issue/KTOR-855))
+* Update Documentation and Code for HttpsRedirect Feature ([KTOR-1879](https://youtrack.jetbrains.com/issue/KTOR-1879))
+* Improve documentation for native/Apple client engines ([KTOR-3375](https://youtrack.jetbrains.com/issue/KTOR-3375))
+* Update Documentation and Code for CallId Feature ([KTOR-1874](https://youtrack.jetbrains.com/issue/KTOR-1874))
+* Feature to Plugin changes in Documentation ([KTOR-2372](https://youtrack.jetbrains.com/issue/KTOR-2372))
 # 1.6.7
 > Published 6 December 2021
 
@@ -37,7 +172,7 @@
 * Add check to prevent anyHost with allowCredentials ([KTOR-2872](https://youtrack.jetbrains.com/issue/KTOR-2872))
 * Bump metrics-core from 4.2.3 to 4.2.4
 * Bump webjars-locator-core from 0.47 to 0.48
-* Bump metrics-jvm from 4.2.3 to 4.2.4 
+* Bump metrics-jvm from 4.2.3 to 4.2.4
 * Fix ProxyType.SOCKS being mapped to Proxy.Type.DIRECT
 * fix grammar ([KTOR-3237](https://youtrack.jetbrains.com/issue/KTOR-3237))
 * Bump micrometer-core from 1.7.4 to 1.7.5
@@ -188,7 +323,7 @@
   [KTOR-2519](https://youtrack.jetbrains.com/issue/KTOR-2519))
 * Fixed silently ignored exceptions in HTML DSL with StatusPages feature ([KTOR-756](https://youtrack.jetbrains.com/issue/KTOR-756))
 * Changed IosHttpRequestException supertype to IOException ([KTOR-2566](https://youtrack.jetbrains.com/issue/KTOR-2566))
-* Fixed utility collection implementation for K/N ([KTOR-2482](https://youtrack.jetbrains.com/issue/KTOR-2482)) 
+* Fixed utility collection implementation for K/N ([KTOR-2482](https://youtrack.jetbrains.com/issue/KTOR-2482))
 * Fixed client Digest auth realm handling ([KTOR-1464](https://github.com/ktorio/ktor/pull/2347))
 
 # 1.5.3
@@ -301,7 +436,7 @@
 * Implemented development mode for Ktor ([KTOR-1184](https://youtrack.jetbrains.com/issue/KTOR-1184))
 * Implemented proper unhandled exception handling strategy ([KTOR-835](https://youtrack.jetbrains.com/issue/KTOR-835))
 * Added OAuth feature config to avoid Dropbox issue ([KTOR-715](https://youtrack.jetbrains.com/issue/KTOR-715))
-* **Breaking change**: Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))  
+* **Breaking change**: Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))
   Routes registered without trailing slashes no longer match URLs with trailing slashes, and vice versa. To keep the previous behavior, install the `IgnoreTrailingSlash` feature.
 * Added CIO client proxy tunneling support ([KTOR-1458](https://youtrack.jetbrains.com/issue/KTOR-1458))
 * Supported Sealed Classes inside Session-Objects ([KTOR-826](https://youtrack.jetbrains.com/issue/KTOR-826))
@@ -355,7 +490,7 @@
 * Handle failure in reading request body ([KTOR-1367](https://youtrack.jetbrains.com/issue/KTOR-1367))
 * Remove copyTo usage from ServerPipeline ([KTOR-1381](https://youtrack.jetbrains.com/issue/KTOR-1381))
 
-# 1.4.2 
+# 1.4.2
 
 > Published 10 Nov 2020
 
@@ -491,7 +626,7 @@ Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
 * Fixed maxFrameSize for chunked frames
 * Fixed URL scheme parser (#1614)
 * Fixed platform detection in `PlatformUtils.IS_NODE` and `PlatformUtils.IS_BROWSER` (#1675)
-* Fixed `Short.highByte` 
+* Fixed `Short.highByte`
 * Fixed consumeEachBufferRange (#1693)
 * Fixed httpclient gzip decoding failure (#1189)
 * Fixed `InputStream` wrapper for `Input`
@@ -517,7 +652,7 @@ Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
 * Reduced number of redundant exceptions logged in jetty server
 * Fixed text decoder in js client under nodejs
 * Fixed NSUrlSession memory leak (#1420)
-* Make server feature throw `BadContentTypeFormatException` to get status 400 
+* Make server feature throw `BadContentTypeFormatException` to get status 400
 * Reverted accidentally removed client `LocalFileContent`
 * Removed User-Agent header in browser (to avoid CORS-related issues)
 * Fixed request body with `Input`
@@ -538,7 +673,7 @@ Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
 
 * ktor client proxy support
 * Introduced `HttpStatement` and deprecated potentially dangerous resource-leaking client API
-* Eliminated kotlinx.io dependency 
+* Eliminated kotlinx.io dependency
 * Fixed server identity compression handling: keep original content length
 * Fixed handling GET requests with body (#1302)
 * Fixed curl request with empty body
@@ -559,7 +694,7 @@ Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
 * Fixed OkHttp client resource cleanup on close
 * Added watchos/tvos native targets
 * Fixed content truncation at native and JS targets
-* Fixed server's `If-Range` header parsing to avoid crash at date parsing (#1377) 
+* Fixed server's `If-Range` header parsing to avoid crash at date parsing (#1377)
 * Fixed server's conditional headers processing
 * Reduced required JDK version for `DefaultHeaders` server feature
 * Fixed client hanging due to exception in response pipeline
@@ -642,7 +777,7 @@ Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
 * Server CORS support fixed and improved
 * Added initial kotlinx.serialization support for server including receiving generic collections.
 * Introduced `ktor-bom` for better dependency management.
-* Improved jetty server engine configuration to enable manual connectors setup. 
+* Improved jetty server engine configuration to enable manual connectors setup.
 * Fixed client memory leak (#1223).
 * Upgraded Jetty, Netty and utility libraries.
 * Kotlin 1.3.41
@@ -728,9 +863,9 @@ Breaking changes/Migration steps:
 * Added experimental android client line-wrapping logger
 * Fixed webjars parameters handling and several minor fixes
 * Introduced JWTVerifier configure block when using JWKProvider
-* Added client json feature custom content types support 
+* Added client json feature custom content types support
 * Fixed incorrect url encoding for some characters (#1094)
-* Fixed hanging jetty server engine 
+* Fixed hanging jetty server engine
 * Introduced CIO client engine request timeout config
 * Added client multipart content length support
 * Jetty upgraded to 9.4.15.v20190215
@@ -764,7 +899,7 @@ Breaking changes/Migration steps:
 > Published 24 Jan 2019
 
 * Introduced native curl client engine (#479)
-* Added iosArm32 target (except curl) 
+* Added iosArm32 target (except curl)
 * Host and port route builders (#825)
 * Fixed `host()` and `port()` functions to respect proxy (#834)
 * Fixed classloading issue affecting hot-reload (#825)
@@ -776,7 +911,7 @@ Breaking changes/Migration steps:
 * Prohibited setting session at server after responding the call (#864)
 * Fixed loosing errors in `StatusPages` if there was already a response sent
 * Introduced `application` property on `ApplicationEngine` interface
-* Introduced experimental ktor server exceptions 
+* Introduced experimental ktor server exceptions
   * `BadRequestException`
   * `NotFoundException`
   * `MissingRequestParameterException`
@@ -802,14 +937,14 @@ Breaking changes/Migration steps:
 # 1.1.1
 > Published 26 Dec 2018
 
-* Fixed broken pom files 
+* Fixed broken pom files
 
 # 1.1.0
 > Published 24 Dec 2018
 
 * Reduced JDK7/8 dependencies (including #762)
 * Discarded deprecated API
-* Coroutines debug agent support 
+* Coroutines debug agent support
   * see Kotlin/kotlinx.coroutines/core/kotlinx-coroutines-debug/README.md
 * Fixed `IndexOutOfBounds` during main module function search
 * okhttp-client: pass `contentLength` for multipart form data
@@ -905,7 +1040,7 @@ Breaking changes/Migration steps:
 * Renamed `XForwardedHeadersSupport` to `XForwardedHeaderSupport` (#547)
 * Added `HttpResponse.receive<T>` method to run response pipeline on raw response
 * Introduced kotlin multiplatform url-parser
-* Supported client form data and multipart 
+* Supported client form data and multipart
 * Added missing client builders for `post` and `put` methods
 * Simplify client configuration API
 * Fixed several compression issues
@@ -928,7 +1063,7 @@ Breaking changes/Migration steps:
 * Fixed plain text client reader (#392)
 * Added EC support in CIO TLS (#394: ECDHE_RSA_AES256_SHA384, ECDHE_RSA_AES128_SHA256)
 * Fix client certificate validation
-* Introduced optional authentication 
+* Introduced optional authentication
 * Added `ApplicationCall` as receiver for auth `validate` functions
 * Introduced `call.respondBytes` (#395)
 * Improved JWT support: multiple schemes, nullable issuer
@@ -937,7 +1072,7 @@ Breaking changes/Migration steps:
 * Converter support for java big numbers
 * Ability to add auth methods to existing feature on the fly
 * Improved auth header scheme and contents validation (#415)
-* Default charset for BasicAuth is now UTF-8 (#420) 
+* Default charset for BasicAuth is now UTF-8 (#420)
 * Added `ByteArrayContent.contentLength` (#421)
 * Fixed `headersOf` case insensitive issue (#426)
 * Client deserialization improved by using type token
@@ -994,14 +1129,14 @@ Move ktor-samples to a separate repository (#340). https://github.com/ktorio/kto
 * Velocity templates support
 * Unsafe (Forbidden) headers checks added
 * Deprecated `Resource` type
-* Added support for extensible version providers to ConditionalHeaders feature 
+* Added support for extensible version providers to ConditionalHeaders feature
 * Engine-specific configuration support for application.conf
 * Added filtering and customisation of log level to CallLogging feature
 * Added ability to skip authentication using a predicate, add documentation to Authentication feature
 * Introduced auth0 JWT/JWKS authentication (#266)
 * ktor http client DSL improvements
 * CIO engine improvements, stability and performance
-* Introduced [OutgoingContent] properties `contentLength`, `contentType` and `status` 
+* Introduced [OutgoingContent] properties `contentLength`, `contentType` and `status`
 * Upgrade Netty in the corresponding engine implementation
 * Introduced `shareWorkGroup` option for Netty engine
 * More documentation
@@ -1013,38 +1148,38 @@ Move ktor-samples to a separate repository (#340). https://github.com/ktorio/kto
 * Package structure reworked
 * Packages and maven groupId renamed org.jetbrains.ktor -> io.ktor
 * Server-related artifacts having ktor-server-* name prefix (ktor-netty -> ktor-server-netty)
-* Application Host renamed to Application Engine  
+* Application Host renamed to Application Engine
 * FinalContent renamed to OutgoingContent as opposite to IncomingContent (introduced in 0.4.0)
 * Added Application Engine configure facilities so one can specify thread pool size or some engine-specific parameter
 * Initial idiomatic ktor HTTP client implementation (artifacts prefixed with ktor-client-*)
 * Metrics support, DropWizard integration
 * Improve routing API, tune resolution mechanics, hide some implementation details
-* ContentNegotiation feature to support variable content on send and receive 
+* ContentNegotiation feature to support variable content on send and receive
 * Jackson support
 * Experimental pure kotlin application engine on coroutines (CIOApplicationEngine) and CIO-based http client backend
 * Improved stability under load
-* Status pages processing improvements 
+* Status pages processing improvements
 * A lot of documentation
 
 # 0.4.0
 > Published 16 Aug 2017
 
 * Built with Kotlin 1.1.4
-* Refactored receive/response pipelines and moved them into respective ApplicationRequest & ApplicationResponse classes 
+* Refactored receive/response pipelines and moved them into respective ApplicationRequest & ApplicationResponse classes
 * Fixes, improvements and integration tests for HTTP/2 support
 * Update `ContentType` to treat all parts case insensitively
 * Remove `ApplicationLog` and use SLF4J `Logger` directly
-* Add HttpMethod.Patch and respective builder functions 
-* `routing` function will now install `Routing` feature or use existing installed feature for easier modules 
-* Convert sessions to proper feature, support multiple sessions, improve DSL 
+* Add HttpMethod.Patch and respective builder functions
+* `routing` function will now install `Routing` feature or use existing installed feature for easier modules
+* Convert sessions to proper feature, support multiple sessions, improve DSL
 * HeadRequestSupport feature is renamed to AutoHeadResponse (with deprecated typealias)
 * Replace ApplicationTransform with receive pipeline
 * Introduce send/receive pipelines for all call pipelines
 * Gson application feature for JSON transformation of incoming & outgoing data objects
 * Added HttpBin sample (thanks to @jmfayard)
-* Employ `DslMarker` annotation to prevent accidental use of route functions in get/post handlers 
+* Employ `DslMarker` annotation to prevent accidental use of route functions in get/post handlers
 * Improve diagnostics for untransformed content
-* Ensure missing file (`FileNotFoundException`) can be handled properly with `StatusPages` feature 
+* Ensure missing file (`FileNotFoundException`) can be handled properly with `StatusPages` feature
 * Websocket fixes for large frames, fragmentation and more
 * Support for specifying config file with command line
 * Improvements in Servlet-based hosts
@@ -1090,7 +1225,7 @@ Move ktor-samples to a separate repository (#340). https://github.com/ktorio/kto
   * Use `embeddedServer(Netty, …)` instead of `embeddedNettyServer(…)`
   * Support automatic reloading in embedded hosts
   * Fix ApplicationTransform problems preventing Freemarker templates from working
-* Fix json and logback dependencies to avoid propagating to clients 
+* Fix json and logback dependencies to avoid propagating to clients
 * Bug fixes & performance optimisations
 * Documentation
 
