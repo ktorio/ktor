@@ -194,3 +194,16 @@ public fun testApplication(
     testApplication.engine.start()
     testApplication.stop()
 }
+
+/**
+ * Creates a test using [TestApplication]
+ */
+public fun testApplication(
+    module: Application.() -> Unit,
+    test: suspend ApplicationTestBuilder.() -> Unit,
+) = testApplication {
+    application {
+        module()
+    }
+    test()
+}

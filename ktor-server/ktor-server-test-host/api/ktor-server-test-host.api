@@ -180,6 +180,7 @@ public final class io/ktor/server/testing/TestApplicationEngineKt {
 
 public final class io/ktor/server/testing/TestApplicationKt {
 	public static final fun TestApplication (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplication;
+	public static final fun testApplication (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public static final fun testApplication (Lkotlin/jvm/functions/Function2;)V
 }
 

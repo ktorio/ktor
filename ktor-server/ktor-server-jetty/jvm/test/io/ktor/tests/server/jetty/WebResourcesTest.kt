@@ -45,20 +45,18 @@ class WebResourcesTest {
     }
 
     @Test
-    fun testServeWebResources() = testApplication {
-        application {
-            attributes.put(ServletContextAttribute, TestContext())
-            routing {
-                static("webapp") {
-                    webResources("pages") {
-                        include { it.endsWith(".txt") }
-                        include { it.endsWith(".html") }
-                        exclude { it.endsWith("password.txt") }
-                    }
+    fun testServeWebResources() = testApplication({
+        attributes.put(ServletContextAttribute, TestContext())
+        routing {
+            static("webapp") {
+                webResources("pages") {
+                    include { it.endsWith(".txt") }
+                    include { it.endsWith(".html") }
+                    exclude { it.endsWith("password.txt") }
                 }
             }
         }
-
+    }) {
         val client = createClient { expectSuccess = false }
         client.get("/webapp/index.txt").bodyAsText().let {
             assertEquals(PlainTextContent, it)
