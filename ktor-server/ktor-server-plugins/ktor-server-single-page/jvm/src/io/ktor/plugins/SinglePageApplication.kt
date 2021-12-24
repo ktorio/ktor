@@ -17,8 +17,8 @@ import java.io.*
 /**
  * A plugin that allows you to serve a single-page application
  *
- * A basic plugin configuration for application served from `filesPath` folder
- * with `index.html` as a default file:
+ * A basic plugin configuration for the application served from the filesPath folder
+ * with index.html as a default file:
  *
  * install(SinglePageApplication) {
  *   filesPath = "application/project_path"
