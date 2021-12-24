@@ -13,6 +13,8 @@ public interface Logger {
      */
     public fun log(message: String)
 
+    public fun flush() { }
+
     public companion object
 }
 

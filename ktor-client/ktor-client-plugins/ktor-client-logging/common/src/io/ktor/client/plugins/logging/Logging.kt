@@ -61,6 +61,7 @@ public class Logging private constructor(
     }
 
     private fun doneLogging() {
+        logger.flush()
         mutex.unlock()
     }
 
