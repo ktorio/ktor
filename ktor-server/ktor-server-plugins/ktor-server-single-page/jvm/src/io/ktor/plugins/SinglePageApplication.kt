@@ -15,7 +15,14 @@ import io.ktor.util.pipeline.*
 import java.io.*
 
 /**
- * This plugin provides a single page application
+ * A plugin that allows you to serve a single-page application
+ *
+ * A basic plugin configuration for application served from `filesPath` folder
+ * with `index.html` as a default file:
+ *
+ * install(SinglePageApplication) {
+ *   filesPath = "application/project_path"
+ * }
  */
 public class SinglePageApplication internal constructor(configuration: Configuration) {
 
@@ -30,11 +37,11 @@ public class SinglePageApplication internal constructor(configuration: Configura
     internal val usePackageNames: Boolean = configuration.useResources
 
     /**
-     * Configuration type for the [SinglePageApplication] plugin
+     * Configuration for the [SinglePageApplication] plugin
      */
     public class Configuration(
         /**
-         * Default name of file or resource to serve when [applicationRoute] is requested
+         * The default name of a file or resource to serve when [applicationRoute] is requested
          */
         public var defaultPage: String = "index.html",
 
@@ -44,8 +51,8 @@ public class SinglePageApplication internal constructor(configuration: Configura
         public var applicationRoute: String = "/",
 
         /**
-         * Path under which the static content is located.
-         * Corresponds to the folder path if the [useResources] is true, resource path otherwise
+         * The path under which the static content is located.
+         * Corresponds to the folder path if the [useResources] is false, resource path otherwise
          */
         public var filesPath: String = "",
 
@@ -55,13 +62,13 @@ public class SinglePageApplication internal constructor(configuration: Configura
         public var useResources: Boolean = false,
 
         /**
-         * List of callbacks checking if file or resource in [filesPath] is ignored
-         * Request for such files or resources fails with 404 Forbidden status
+         * A list of callbacks checking if a file or resource in [filesPath] is ignored.
+         * Requests for such files or resources fails with the 404 Forbidden status
          */
         internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
     ) {
         /**
-         * Register a [block] in [ignoredFiles]
+         * Registers a [block] in [ignoredFiles]
          * [block] returns true if [path] should be ignored.
          */
         public fun ignoreFiles(block: (path: String) -> Boolean) {
@@ -69,40 +76,40 @@ public class SinglePageApplication internal constructor(configuration: Configura
         }
 
         /**
-         * Creates a single page plugin application configuration for the Angular project.
-         * Resources will be shared from filesPath directory. Root file is index.html
+         * Creates an application configuration for the Angular project.
+         * Resources will be shared from the filesPath directory. The root file is index.html
          */
         public fun angular(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         * Creates a single page plugin application configuration for the React project.
-         * Resources will be shared from filesPath directory. Root file is index.html
+         * Creates an application configuration for the React project.
+         * Resources will be shared from the filesPath directory. The root file is index.html
          */
         public fun react(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         * Creates a single page plugin application configuration for the Vue project.
-         * Resources will be shared from filesPath directory. Root file is index.html
+         * Creates an application configuration for the Vue project.
+         * Resources will be shared from the filesPath directory. The root file is index.html
          */
         public fun vue(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         * Creates a single page plugin application configuration for the Ember project.
-         * Resources will be shared from filesPath directory. Root file is index.html
+         * Creates an application configuration for the Ember project.
+         * Resources will be shared from the filesPath directory. The root file is index.html
          */
         public fun ember(filesPath: String) {
             this.filesPath = filesPath
         }
 
         /**
-         * Creates a single page plugin application configuration for the Backbone project.
-         * Resources will be shared from filesPath directory. Root file is index.html
+         * Creates an application configuration for the Backbone project.
+         * Resources will be shared from the filesPath directory. The root file is index.html
          */
         public fun backbone(filesPath: String) {
             this.filesPath = filesPath
@@ -110,7 +117,7 @@ public class SinglePageApplication internal constructor(configuration: Configura
     }
 
     /**
-     * Implementation of [ApplicationPlugin] for the [SinglePageApplication]
+     * The [SinglePageApplication] plugin implementation
      */
     public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePageApplication> {
         override val key: AttributeKey<SinglePageApplication> = AttributeKey("SinglePage")
