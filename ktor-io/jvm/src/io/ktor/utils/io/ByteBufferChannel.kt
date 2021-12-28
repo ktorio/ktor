@@ -730,12 +730,12 @@ internal open class ByteBufferChannel(
         return readAvailable(dst)
     }
 
-    override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
+    override suspend fun readPacket(size: Int): ByteReadPacket {
         closed?.cause?.let { rethrowClosed(it) }
 
         if (size == 0) return ByteReadPacket.Empty
 
-        val builder = BytePacketBuilder(headerSizeHint)
+        val builder = BytePacketBuilder()
         val buffer = BufferPool.borrow()
         var remaining = size
 
@@ -2073,14 +2073,14 @@ internal open class ByteBufferChannel(
         return sb.toString()
     }
 
-    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket = if (isClosedForWrite) {
+    override suspend fun readRemaining(limit: Long): ByteReadPacket = if (isClosedForWrite) {
         closedCause?.let { rethrowClosed(it) }
-        remainingPacket(limit, headerSizeHint)
+        remainingPacket(limit)
     } else {
-        readRemainingSuspend(limit, headerSizeHint)
+        readRemainingSuspend(limit)
     }
 
-    private fun remainingPacket(limit: Long, headerSizeHint: Int): ByteReadPacket = buildPacket(headerSizeHint) {
+    private fun remainingPacket(limit: Long): ByteReadPacket = buildPacket {
         var remaining = limit
         writeWhile { buffer ->
             if (buffer.writeRemaining.toLong() > remaining) {
@@ -2094,9 +2094,8 @@ internal open class ByteBufferChannel(
     }
 
     private suspend fun readRemainingSuspend(
-        limit: Long,
-        headerSizeHint: Int
-    ): ByteReadPacket = buildPacket(headerSizeHint) {
+        limit: Long
+    ): ByteReadPacket = buildPacket {
         var remaining = limit
         writeWhile { buffer ->
             if (buffer.writeRemaining.toLong() > remaining) {

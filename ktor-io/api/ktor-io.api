@@ -58,8 +58,8 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun readFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readInt (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readLong (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun readPacket (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun readRemaining (JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun readPacket (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun readRemaining (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readSession (Lkotlin/jvm/functions/Function1;)V
 	public fun readShort (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readSuspendableSession (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -128,8 +128,8 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract fun readFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readInt (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readLong (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun readPacket (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun readRemaining (JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun readPacket (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun readRemaining (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readSession (Lkotlin/jvm/functions/Function1;)V
 	public abstract fun readShort (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readSuspendableSession (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -145,6 +145,7 @@ public final class io/ktor/utils/io/ByteReadChannel$DefaultImpls {
 	public static synthetic fun peekTo-lBXzO7A$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun read$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
+	public static synthetic fun readRemaining$default (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/utils/io/ByteReadChannelJVMKt {
@@ -162,8 +163,6 @@ public final class io/ktor/utils/io/ByteReadChannelKt {
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun readPacket (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun readRemaining (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readRemaining (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readUTF8Line (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readUTF8LineTo (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -212,8 +211,7 @@ public final class io/ktor/utils/io/ByteWriteChannelKt {
 	public static final fun writeFully (Lio/ktor/utils/io/ByteWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeInt (Lio/ktor/utils/io/ByteWriteChannel;JLio/ktor/utils/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeInt (Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun writePacket (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun writePacket$default (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun writePacket (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writePacketSuspend (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeShort (Lio/ktor/utils/io/ByteWriteChannel;ILio/ktor/utils/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeShort (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -848,8 +846,7 @@ public final class io/ktor/utils/io/core/BuffersKt {
 }
 
 public final class io/ktor/utils/io/core/BuilderKt {
-	public static final fun buildPacket (ILkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
-	public static synthetic fun buildPacket$default (ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/utils/io/core/ByteReadPacket;
+	public static final fun buildPacket (Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun reset (Lio/ktor/utils/io/core/BytePacketBuilder;)V
 }
 
@@ -877,8 +874,9 @@ public final class io/ktor/utils/io/core/ByteOrder$Companion {
 }
 
 public final class io/ktor/utils/io/core/BytePacketBuilder : io/ktor/utils/io/core/Output {
-	public fun <init> (ILio/ktor/utils/io/pool/ObjectPool;)V
-	public synthetic fun <init> (ILio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun append (C)Lio/ktor/utils/io/core/BytePacketBuilder;
 	public synthetic fun append (C)Lio/ktor/utils/io/core/Output;
 	public synthetic fun append (C)Ljava/lang/Appendable;
@@ -1248,8 +1246,6 @@ public final class io/ktor/utils/io/core/PacketDirectKt {
 }
 
 public final class io/ktor/utils/io/core/PacketJVMKt {
-	public static final fun BytePacketBuilder (I)Lio/ktor/utils/io/core/BytePacketBuilder;
-	public static synthetic fun BytePacketBuilder$default (IILjava/lang/Object;)Lio/ktor/utils/io/core/BytePacketBuilder;
 	public static final fun getPACKET_MAX_COPY_SIZE ()I
 	public static final fun readByteBuffer (Lio/ktor/utils/io/core/ByteReadPacket;IZ)Ljava/nio/ByteBuffer;
 	public static synthetic fun readByteBuffer$default (Lio/ktor/utils/io/core/ByteReadPacket;IZILjava/lang/Object;)Ljava/nio/ByteBuffer;

@@ -140,7 +140,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         try {
             ch.readAvailable(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
             fail("Should throw exception")
-        } catch (expected: ExpectedException) {
+        } catch (_: ExpectedException) {
         }
 
         finish(2)
@@ -173,14 +173,14 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
     }
 
     @Test
-    fun testReadFullyFromClosedChannel() = runTest() {
+    fun testReadFullyFromClosedChannel() = runTest {
         expect(1)
 
         ch.close()
         try {
             ch.readFully(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(1) })
             fail("Should throw exception")
-        } catch (expected: Throwable) {
+        } catch (_: Throwable) {
         }
 
         finish(2)
@@ -195,7 +195,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         try {
             ch.readFully(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
             fail("Should throw exception")
-        } catch (expected: ExpectedException) {
+        } catch (_: ExpectedException) {
         }
 
         finish(2)
@@ -231,7 +231,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
 
             expect(2)
 
-            ch.writePacket(8) {
+            ch.writePacket {
                 writeLong(0x1234567812345678L)
             }
 

@@ -8,9 +8,6 @@ import java.nio.charset.CharsetDecoder
 
 public actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
-public actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
-    BytePacketBuilder(headerSizeHint, ChunkBuffer.Pool)
-
 public actual typealias EOFException = java.io.EOFException
 
 /**

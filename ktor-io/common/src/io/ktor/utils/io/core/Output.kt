@@ -8,11 +8,9 @@ import io.ktor.utils.io.pool.*
 /**
  * This shouldn't be implemented directly. Inherit [Output] instead.
  */
-public abstract class Output internal constructor(
-    private val headerSizeHint: Int = 0,
+public abstract class Output public constructor(
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Closeable {
-    public constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
 
     public constructor() : this(ChunkBuffer.Pool)
 
@@ -383,7 +381,6 @@ public abstract class Output internal constructor(
         if (head !== ChunkBuffer.Empty) {
             check(head.next == null)
             head.resetForWrite()
-            head.reserveStartGap(headerSizeHint)
             head.reserveEndGap(Buffer.ReservedSize)
             tailPosition = head.writePosition
             tailInitialPosition = tailPosition

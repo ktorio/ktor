@@ -6,12 +6,14 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class PostTest : ClientLoader() {
     @Test
@@ -30,6 +32,12 @@ class PostTest : ClientLoader() {
 
     @Test
     fun testWithPause() = clientTests(listOf("Js", "Darwin", "Curl", "CIO")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
+
         test { client ->
             val content = makeString(16 * 1024 * 1024)
 

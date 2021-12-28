@@ -345,8 +345,8 @@ class BytePacketReadTest {
         }
     }
 
-    private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(startGap, pool)
+    private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()

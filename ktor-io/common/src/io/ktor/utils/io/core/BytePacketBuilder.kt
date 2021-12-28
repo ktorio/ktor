@@ -24,13 +24,8 @@ import io.ktor.utils.io.pool.*
  * ```
  */
 public class BytePacketBuilder(
-    private var headerSizeHint: Int = 0,
-    pool: ObjectPool<ChunkBuffer>
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Output(pool) {
-
-    init {
-        require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
-    }
 
     /**
      * Number of bytes written to the builder after the creation or the last reset.

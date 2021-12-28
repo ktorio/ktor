@@ -19,6 +19,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.minutes
 
 class ContentTest : ClientLoader() {
     private val testSize = listOf(
@@ -62,8 +64,14 @@ class ContentTest : ClientLoader() {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testByteReadChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)

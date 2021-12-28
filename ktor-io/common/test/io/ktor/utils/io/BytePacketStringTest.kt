@@ -32,7 +32,7 @@ open class BytePacketStringTest {
     @Test
     fun testReadLineMultiBuffer() {
         val p = buildPacket {
-            kotlin.repeat(1000) {
+            repeat(1000) {
                 append("1\r22\n333\r\n4444\n")
             }
         }
@@ -53,7 +53,7 @@ open class BytePacketStringTest {
             append("ABC")
         }
 
-        assertEquals("ABC", p.readText().toString())
+        assertEquals("ABC", p.readText())
     }
 
     @Test
@@ -62,7 +62,7 @@ open class BytePacketStringTest {
             append("ABC\u0422")
         }
 
-        assertEquals("ABC\u0422", p.readText().toString())
+        assertEquals("ABC\u0422", p.readText())
     }
 
     @Test
@@ -501,8 +501,8 @@ open class BytePacketStringTest {
         }
     }.readBytes()
 
-    private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(startGap, pool)
+    private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()
