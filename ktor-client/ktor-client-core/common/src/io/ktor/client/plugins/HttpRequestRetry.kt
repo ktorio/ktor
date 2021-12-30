@@ -189,7 +189,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         ) {
             delayMillis = {
                 if (respectRetryAfterHeader) {
-                    val retryAfter = response?.headers?.get(HttpHeaders.RetryAfter)?.toLongOrNull()
+                    val retryAfter = response?.headers?.get(HttpHeaders.RetryAfter)?.toLongOrNull()?.times(1000)
                     maxOf(block(it), retryAfter ?: 0)
                 } else {
                     block(it)

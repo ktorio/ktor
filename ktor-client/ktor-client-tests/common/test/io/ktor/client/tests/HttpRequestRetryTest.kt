@@ -153,7 +153,7 @@ class HttpRequestRetryTest {
                 addHandler {
                     respondError(
                         HttpStatusCode.InternalServerError,
-                        headers = headersOf(HttpHeaders.RetryAfter, "1234")
+                        headers = headersOf(HttpHeaders.RetryAfter, "2")
                     )
                 }
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
@@ -161,20 +161,20 @@ class HttpRequestRetryTest {
                     respondError(
                         HttpStatusCode.InternalServerError,
                         // smaller than a client delay, should be ignored
-                        headers = headersOf(HttpHeaders.RetryAfter, "3")
+                        headers = headersOf(HttpHeaders.RetryAfter, "1")
                     )
                 }
                 addHandler { respondOk() }
             }
             install(HttpRequestRetry) {
-                delayMillis { 123 }
+                delayMillis { 1234 }
                 delay { delays.add(it) }
             }
         }
 
         test { client ->
             client.get { }
-            assertEquals(listOf(1234L, 123L, 123L), delays)
+            assertEquals(listOf(2000L, 1234L, 1234L), delays)
         }
     }
 
