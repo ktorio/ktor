@@ -71,5 +71,5 @@ public interface ApplicationEngine {
      * @param gracePeriodMillis the maximum amount of time for activity to cool down
      * @param timeoutMillis the maximum amount of time to wait until server stops gracefully
      */
-    public fun stop(gracePeriodMillis: Long, timeoutMillis: Long)
+    public fun stop(gracePeriodMillis: Long = 500, timeoutMillis: Long = 500)
 }
