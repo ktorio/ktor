@@ -307,6 +307,12 @@ internal class URLBuilderTest {
         assertEquals(listOf("path1", "path2"), url2.pathSegments)
     }
 
+    @Test
+    fun fromStringWithTrailingSlashAppendsSinglePathSegment() {
+        val url = URLBuilder("https://example.com/").appendPathSegments("foo")
+        assertEquals("https://example.com/foo", url.buildString())
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */

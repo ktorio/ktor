@@ -193,11 +193,7 @@ public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = app
  * Adds [components] to current [encodedPath]
  */
 public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder {
-    val paths = segments
-        .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' }.encodeURLPath() }
-        .filter { it.isNotEmpty() }
-
-    encodedPathSegments = encodedPathSegments + paths
+    appendEncodedPathSegments(segments.map { it.encodeURLPath() })
 
     return this
 }
@@ -221,8 +217,11 @@ public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuil
         .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' } }
         .filter { it.isNotEmpty() }
 
-    encodedPathSegments = encodedPathSegments + paths
-
+    encodedPathSegments = if (encodedPathSegments.all { it.isEmpty() }) {
+        listOf("") + paths
+    } else {
+        encodedPathSegments + paths
+    }
     return this
 }
 
