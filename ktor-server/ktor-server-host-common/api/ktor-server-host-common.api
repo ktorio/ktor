@@ -20,6 +20,7 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 public final class io/ktor/server/engine/ApplicationEngine$DefaultImpls {
 	public static fun getApplication (Lio/ktor/server/engine/ApplicationEngine;)Lio/ktor/server/application/Application;
 	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/server/engine/ApplicationEngineEnvironment : io/ktor/server/application/ApplicationEnvironment {
