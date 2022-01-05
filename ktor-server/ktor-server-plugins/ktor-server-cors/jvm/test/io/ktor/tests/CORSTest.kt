@@ -5,7 +5,7 @@
 package io.ktor.tests.plugins
 
 import io.ktor.http.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.cors.*
 import io.mockk.*
 import kotlin.test.*
 

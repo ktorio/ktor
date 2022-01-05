@@ -5,7 +5,7 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.server.application.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.dataconversion.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import java.math.*

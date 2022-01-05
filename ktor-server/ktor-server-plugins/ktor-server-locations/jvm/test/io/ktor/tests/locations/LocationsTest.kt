@@ -7,7 +7,7 @@ package io.ktor.tests.locations
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.locations.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.callloging.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*

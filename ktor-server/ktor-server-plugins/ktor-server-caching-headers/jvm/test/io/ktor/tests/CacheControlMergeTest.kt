@@ -6,7 +6,7 @@ package io.ktor.tests
 
 import io.ktor.http.*
 import io.ktor.http.CacheControl.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.cachingheaders.*
 import kotlin.test.*
 
 class CacheControlMergeTest {

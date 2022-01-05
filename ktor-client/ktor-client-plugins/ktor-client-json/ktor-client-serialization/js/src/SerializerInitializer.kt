@@ -3,7 +3,7 @@
 */
 
 import io.ktor.client.plugins.json.*
-import io.ktor.client.plugins.json.serializer.*
+import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.util.*
 
 @InternalAPI

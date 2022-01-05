@@ -4,7 +4,7 @@
 
 package io.ktor.tests
 
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.partialcontent.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*

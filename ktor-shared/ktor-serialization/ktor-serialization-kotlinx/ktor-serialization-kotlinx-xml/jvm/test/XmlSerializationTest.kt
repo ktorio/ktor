@@ -1,6 +1,7 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
@@ -8,9 +9,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.xml.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
-import nl.adaptivity.xmlutil.serialization.*
+import kotlinx.serialization.*
 import kotlin.test.*
 
 @Serializable
@@ -37,8 +36,11 @@ class XmlSerializationTest {
         val user = User(2, "petya")
         val photo = Photo(3, "petya.jpg")
 
-        assertEquals("<ArrayList id=\"2\" login=\"petya\"/>", serializer.testSerialize(listOf(user)))
-        assertEquals("<ArrayList id=\"3\" path=\"petya.jpg\"/>", serializer.testSerialize(listOf(photo)))
+        assertEquals("<ArrayList><User id=\"2\" login=\"petya\"/></ArrayList>", serializer.testSerialize(listOf(user)))
+        assertEquals(
+            "<ArrayList><Photo id=\"3\" path=\"petya.jpg\"/></ArrayList>",
+            serializer.testSerialize(listOf(photo))
+        )
     }
 
     private suspend inline fun <reified T : Any> ContentConverter.testSerialize(data: T): String {

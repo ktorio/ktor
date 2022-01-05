@@ -1,4 +1,4 @@
-public final class io/ktor/server/plugins/StatusPagesConfig {
+public final class io/ktor/server/plugins/statuspages/StatusPagesConfig {
 	public fun <init> ()V
 	public final fun exception (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
 	public final fun getExceptions ()Ljava/util/Map;
@@ -6,12 +6,12 @@ public final class io/ktor/server/plugins/StatusPagesConfig {
 	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
 }
 
-public final class io/ktor/server/plugins/StatusPagesJvmKt {
-	public static final fun exception (Lio/ktor/server/plugins/StatusPagesConfig;Ljava/lang/Class;Lkotlin/jvm/functions/Function3;)V
-	public static final fun statusFile (Lio/ktor/server/plugins/StatusPagesConfig;[Lio/ktor/http/HttpStatusCode;Ljava/lang/String;)V
+public final class io/ktor/server/plugins/statuspages/StatusPagesJvmKt {
+	public static final fun exception (Lio/ktor/server/plugins/statuspages/StatusPagesConfig;Ljava/lang/Class;Lkotlin/jvm/functions/Function3;)V
+	public static final fun statusFile (Lio/ktor/server/plugins/statuspages/StatusPagesConfig;[Lio/ktor/http/HttpStatusCode;Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/plugins/StatusPagesKt {
+public final class io/ktor/server/plugins/statuspages/StatusPagesKt {
 	public static final fun getStatusPages ()Lio/ktor/server/application/ApplicationPlugin;
 }
 

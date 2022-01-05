@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.contentnegotiation.*
 
 class JsonServerKotlinxSerializationTest : AbstractServerSerializationTest() {
     override val defaultContentType: ContentType = ContentType.Application.Json
