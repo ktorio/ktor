@@ -4,6 +4,8 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -11,7 +13,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
-import kotlin.time.*
 
 @Suppress("DEPRECATION")
 class CORSTest {
@@ -305,6 +306,31 @@ class CORSTest {
     }
 
     @Test
+    fun testSimpleNullAllowCredentials() {
+        testApplication {
+            application {
+                install(CORS) {
+                    anyHost()
+                    allowCredentials = true
+                }
+
+                routing {
+                    get("/") {
+                        call.respond("OK")
+                    }
+                }
+            }
+            client.get("/") {
+                header(HttpHeaders.Origin, "null")
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.call.response.status)
+                assertEquals("null", it.call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", it.call.response.bodyAsText())
+            }
+        }
+    }
+
+    @Test
     fun testSimpleNull() {
         withTestApplication {
             application.install(CORS) {
@@ -323,6 +349,33 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSimpleStarCredentials() {
+        testApplication {
+            application {
+                install(CORS) {
+                    anyHost()
+                    allowCredentials = true
+                }
+
+                routing {
+                    get("/") {
+                        call.respond("OK")
+                    }
+                }
+            }
+            client.get("/") {
+                header(HttpHeaders.Origin, "http://my-host")
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.call.response.status)
+                assertEquals("http://my-host", it.call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("true", it.call.response.headers[HttpHeaders.AccessControlAllowCredentials])
+                assertEquals(HttpHeaders.Origin, it.call.response.headers[HttpHeaders.Vary])
+                assertEquals("OK", it.call.response.bodyAsText())
             }
         }
     }
