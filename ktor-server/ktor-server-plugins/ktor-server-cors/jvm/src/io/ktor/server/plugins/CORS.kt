@@ -93,15 +93,6 @@ public class CORS internal constructor(configuration: Configuration) {
                 }
         )
 
-    init {
-        if (configuration.allowCredentials) {
-            require(!allowsAnyHost) {
-                "AnyHost * is not allowed in combination with Allow-Credentials, see " +
-                    "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSNotSupportingCredentials."
-            }
-        }
-    }
-
     /**
      * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
      * plugin installation
@@ -193,7 +184,7 @@ public class CORS internal constructor(configuration: Configuration) {
     }
 
     private fun ApplicationCall.accessControlAllowOrigin(origin: String) {
-        if (allowsAnyHost) {
+        if (allowsAnyHost && !allowCredentials) {
             response.header(HttpHeaders.AccessControlAllowOrigin, "*")
         } else {
             response.header(HttpHeaders.AccessControlAllowOrigin, origin)
