@@ -57,63 +57,63 @@ public class SinglePageApplication internal constructor(configuration: Configura
         public var filesPath: String = "",
 
         /**
-         * Specifies if static content is a resource or folder
+         * Specifies if static content is a resource package with true or folder with false
          */
         public var useResources: Boolean = false,
 
         /**
          * A list of callbacks checking if a file or resource in [filesPath] is ignored.
-         * Requests for such files or resources fails with the 404 Forbidden status
+         * Requests for such files or resources fails with the 403 Forbidden status
          */
         internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
-    ) {
-        /**
-         * Registers a [block] in [ignoredFiles]
-         * [block] returns true if [path] should be ignored.
-         */
-        public fun ignoreFiles(block: (path: String) -> Boolean) {
-            ignoredFiles += block
-        }
+    )
 
-        /**
-         * Creates an application configuration for the Angular project.
-         * Resources will be shared from the filesPath directory. The root file is index.html
-         */
-        public fun angular(filesPath: String) {
-            this.filesPath = filesPath
-        }
+    /**
+     * Registers a [block] in [ignoredFiles]
+     * [block] returns true if [path] should be ignored.
+     */
+    public fun Configuration.ignoreFiles(block: (path: String) -> Boolean) {
+        ignoredFiles += block
+    }
 
-        /**
-         * Creates an application configuration for the React project.
-         * Resources will be shared from the filesPath directory. The root file is index.html
-         */
-        public fun react(filesPath: String) {
-            this.filesPath = filesPath
-        }
+    /**
+     * Creates an application configuration for the Angular project.
+     * Resources will be shared from the filesPath directory. The root file is index.html
+     */
+    public fun Configuration.angular(filesPath: String) {
+        this.filesPath = filesPath
+    }
 
-        /**
-         * Creates an application configuration for the Vue project.
-         * Resources will be shared from the filesPath directory. The root file is index.html
-         */
-        public fun vue(filesPath: String) {
-            this.filesPath = filesPath
-        }
+    /**
+     * Creates an application configuration for the React project.
+     * Resources will be shared from the filesPath directory. The root file is index.html
+     */
+    public fun Configuration.react(filesPath: String) {
+        this.filesPath = filesPath
+    }
 
-        /**
-         * Creates an application configuration for the Ember project.
-         * Resources will be shared from the filesPath directory. The root file is index.html
-         */
-        public fun ember(filesPath: String) {
-            this.filesPath = filesPath
-        }
+    /**
+     * Creates an application configuration for the Vue project.
+     * Resources will be shared from the filesPath directory. The root file is index.html
+     */
+    public fun Configuration.vue(filesPath: String) {
+        this.filesPath = filesPath
+    }
 
-        /**
-         * Creates an application configuration for the Backbone project.
-         * Resources will be shared from the filesPath directory. The root file is index.html
-         */
-        public fun backbone(filesPath: String) {
-            this.filesPath = filesPath
-        }
+    /**
+     * Creates an application configuration for the Ember project.
+     * Resources will be shared from the filesPath directory. The root file is index.html
+     */
+    public fun Configuration.ember(filesPath: String) {
+        this.filesPath = filesPath
+    }
+
+    /**
+     * Creates an application configuration for the Backbone project.
+     * Resources will be shared from the filesPath directory. The root file is index.html
+     */
+    public fun Configuration.backbone(filesPath: String) {
+        this.filesPath = filesPath
     }
 
     /**
@@ -145,21 +145,16 @@ public class SinglePageApplication internal constructor(configuration: Configura
         }
     }
 
-    private suspend fun interceptCall(
+    private fun interceptCall(
         context: PipelineContext<Any, ApplicationCall>,
     ) = with(context) context@{
         val call = context.call
         val requestUrl = call.request.uri
 
-        if (call.attributes.contains(key)) return@context
-
         if (!isUriStartWith(requestUrl)) return@context
 
-        call.attributes.put(key, this@SinglePageApplication)
-
         if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
-            call.response.status(HttpStatusCode.NotFound)
-            call.respondText("File with path $requestUrl is in ignore list")
+            call.response.status(HttpStatusCode.Forbidden)
             finish()
         }
     }
