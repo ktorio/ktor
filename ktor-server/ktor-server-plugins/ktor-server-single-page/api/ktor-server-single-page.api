@@ -1,11 +1,5 @@
 public final class io/ktor/plugins/SinglePageApplication {
 	public static final field Plugin Lio/ktor/plugins/SinglePageApplication$Plugin;
-	public final fun angular (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public final fun backbone (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public final fun ember (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public final fun ignoreFiles (Lio/ktor/plugins/SinglePageApplication$Configuration;Lkotlin/jvm/functions/Function1;)V
-	public final fun react (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public final fun vue (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
 }
 
 public final class io/ktor/plugins/SinglePageApplication$Configuration {
@@ -26,5 +20,14 @@ public final class io/ktor/plugins/SinglePageApplication$Plugin : io/ktor/server
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/plugins/SinglePageApplication;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/plugins/SinglePageApplicationKt {
+	public static final fun angular (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
+	public static final fun backbone (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
+	public static final fun ember (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
+	public static final fun ignoreFiles (Lio/ktor/plugins/SinglePageApplication$Configuration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun react (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
+	public static final fun vue (Lio/ktor/plugins/SinglePageApplication$Configuration;Ljava/lang/String;)V
 }
 
