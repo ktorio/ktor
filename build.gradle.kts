@@ -101,7 +101,7 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.6.0"
+    id("org.jetbrains.dokka") version "1.6.10"
 }
 
 allprojects {
@@ -186,14 +186,6 @@ if (project.hasProperty("enable-coverage")) {
 
 subprojects {
     plugins.apply("org.jetbrains.dokka")
-
-    tasks.withType<DokkaTaskPartial> {
-        dokkaSourceSets.configureEach {
-            if (platform.get().name == "js") {
-                suppress.set(true)
-            }
-        }
-    }
 }
 
 val docs: String? by extra
