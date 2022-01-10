@@ -69,54 +69,6 @@ public class SinglePageApplication internal constructor(configuration: Configura
     )
 
     /**
-     * Registers a [block] in [ignoredFiles]
-     * [block] returns true if [path] should be ignored.
-     */
-    public fun Configuration.ignoreFiles(block: (path: String) -> Boolean) {
-        ignoredFiles += block
-    }
-
-    /**
-     * Creates an application configuration for the Angular project.
-     * Resources will be shared from the filesPath directory. The root file is index.html
-     */
-    public fun Configuration.angular(filesPath: String) {
-        this.filesPath = filesPath
-    }
-
-    /**
-     * Creates an application configuration for the React project.
-     * Resources will be shared from the filesPath directory. The root file is index.html
-     */
-    public fun Configuration.react(filesPath: String) {
-        this.filesPath = filesPath
-    }
-
-    /**
-     * Creates an application configuration for the Vue project.
-     * Resources will be shared from the filesPath directory. The root file is index.html
-     */
-    public fun Configuration.vue(filesPath: String) {
-        this.filesPath = filesPath
-    }
-
-    /**
-     * Creates an application configuration for the Ember project.
-     * Resources will be shared from the filesPath directory. The root file is index.html
-     */
-    public fun Configuration.ember(filesPath: String) {
-        this.filesPath = filesPath
-    }
-
-    /**
-     * Creates an application configuration for the Backbone project.
-     * Resources will be shared from the filesPath directory. The root file is index.html
-     */
-    public fun Configuration.backbone(filesPath: String) {
-        this.filesPath = filesPath
-    }
-
-    /**
      * The [SinglePageApplication] plugin implementation
      */
     public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePageApplication> {
@@ -161,4 +113,52 @@ public class SinglePageApplication internal constructor(configuration: Configura
 
     private fun isUriStartWith(uri: String) =
         uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
+}
+
+/**
+ * Registers a [block] in [ignoredFiles]
+ * [block] returns true if [path] should be ignored.
+ */
+public fun SinglePageApplication.Configuration.ignoreFiles(block: (path: String) -> Boolean) {
+    ignoredFiles += block
+}
+
+/**
+ * Creates an application configuration for the Angular project.
+ * Resources will be shared from the filesPath directory. The root file is index.html
+ */
+public fun SinglePageApplication.Configuration.angular(filesPath: String) {
+    this.filesPath = filesPath
+}
+
+/**
+ * Creates an application configuration for the React project.
+ * Resources will be shared from the filesPath directory. The root file is index.html
+ */
+public fun SinglePageApplication.Configuration.react(filesPath: String) {
+    this.filesPath = filesPath
+}
+
+/**
+ * Creates an application configuration for the Vue project.
+ * Resources will be shared from the filesPath directory. The root file is index.html
+ */
+public fun SinglePageApplication.Configuration.vue(filesPath: String) {
+    this.filesPath = filesPath
+}
+
+/**
+ * Creates an application configuration for the Ember project.
+ * Resources will be shared from the filesPath directory. The root file is index.html
+ */
+public fun SinglePageApplication.Configuration.ember(filesPath: String) {
+    this.filesPath = filesPath
+}
+
+/**
+ * Creates an application configuration for the Backbone project.
+ * Resources will be shared from the filesPath directory. The root file is index.html
+ */
+public fun SinglePageApplication.Configuration.backbone(filesPath: String) {
+    this.filesPath = filesPath
 }
