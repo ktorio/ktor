@@ -56,7 +56,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             }
         } else {
             val testServerCall = with(data) {
-                runRequest(method, url.fullPath, headers, body)
+                runRequest(method, url.fullPath, headers, body, url.protocol)
             }
             with(testServerCall.response) {
                 httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
@@ -69,10 +69,12 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         method: HttpMethod,
         url: String,
         headers: Headers,
-        content: OutgoingContent
+        content: OutgoingContent,
+        protocol: URLProtocol
     ): TestApplicationCall {
         return app.handleRequest(method, url) {
             appendRequestHeaders(headers, content)
+            this.protocol = protocol.name
 
             if (content !is OutgoingContent.NoContent) {
                 bodyChannel = content.toByteReadChannel()

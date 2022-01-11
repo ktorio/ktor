@@ -148,4 +148,16 @@ class TestApplicationTest {
         assertEquals("OK", response.bodyAsText())
         assertEquals("TEST_VALUE", response.headers["test"])
     }
+
+    @Test
+    fun testingSchema() = testApplication {
+        routing {
+            get("/echo") {
+                call.respondText(call.request.local.scheme)
+            }
+        }
+
+        assertEquals("http", client.get("/echo").bodyAsText())
+        assertEquals("https", client.get("https://localhost:80/echo").bodyAsText())
+    }
 }
