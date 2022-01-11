@@ -64,7 +64,7 @@ public fun ByteReadChannel.deflated(
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
     val crc = CRC32()
-    val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
+    val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, true)
     val input = pool.borrow()
     val compressed = pool.borrow()
 
