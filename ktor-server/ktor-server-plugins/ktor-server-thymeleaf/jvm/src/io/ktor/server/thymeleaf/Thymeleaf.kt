@@ -21,8 +21,8 @@ import java.util.*
  * @param model to be passed during template rendering
  * @param etag value for `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
- * @param locale
- * @param fragments names from [template] that is resolved by thymeleaf
+ * @param locale object represents a specific geographical, political, or cultural region
+ * @param fragments names from the [template] that is resolved by thymeleaf
  */
 public class ThymeleafContent(
     public val template: String,
