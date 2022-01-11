@@ -31,7 +31,11 @@ internal actual fun bind(
     nonBlocking()
 
     ServerSocketImpl(this, selector).apply {
-        channel.bind(localAddress?.toJavaAddress(), socketOptions.backlogSize)
+        if (java7NetworkApisAvailable) {
+            channel.bind(localAddress?.toJavaAddress(), socketOptions.backlogSize)
+        } else {
+            channel.socket().bind(localAddress?.toJavaAddress(), socketOptions.backlogSize)
+        }
     }
 }
 

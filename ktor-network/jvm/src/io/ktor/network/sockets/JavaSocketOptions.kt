@@ -7,6 +7,16 @@ package io.ktor.network.sockets
 import java.net.*
 import java.nio.channels.*
 
+/**
+ * Java 1.7 networking APIs (like [java.net.StandardSocketOptions]) are only available since Android API 24.
+ */
+internal val java7NetworkApisAvailable = try {
+    Class.forName("java.net.StandardSocketOptions")
+    true
+} catch (exception: ClassNotFoundException) {
+    false
+}
+
 internal fun SelectableChannel.nonBlocking() {
     configureBlocking(false)
 }
@@ -14,29 +24,69 @@ internal fun SelectableChannel.nonBlocking() {
 internal fun SelectableChannel.assignOptions(options: SocketOptions) {
     if (this is SocketChannel) {
         if (options.typeOfService != TypeOfService.UNDEFINED) {
-            setOption(StandardSocketOptions.IP_TOS, options.typeOfService.intValue)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.IP_TOS, options.typeOfService.intValue)
+            } else {
+                socket().trafficClass = options.typeOfService.intValue
+            }
         }
 
         if (options.reuseAddress) {
-            setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            } else {
+                socket().reuseAddress = true
+            }
         }
         if (options.reusePort) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
         if (options is SocketOptions.PeerSocketOptions) {
-            options.receiveBufferSize.takeIf { it > 0 }?.let { setOption(StandardSocketOptions.SO_RCVBUF, it) }
-            options.sendBufferSize.takeIf { it > 0 }?.let { setOption(StandardSocketOptions.SO_SNDBUF, it) }
+            options.receiveBufferSize.takeIf { it > 0 }?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_RCVBUF, it)
+                } else {
+                    socket().receiveBufferSize = it
+                }
+            }
+            options.sendBufferSize.takeIf { it > 0 }?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_SNDBUF, it)
+                } else {
+                    socket().sendBufferSize = it
+                }
+            }
         }
         if (options is SocketOptions.TCPClientSocketOptions) {
-            options.lingerSeconds.takeIf { it >= 0 }?.let { setOption(StandardSocketOptions.SO_LINGER, it) }
-            options.keepAlive?.let { setOption(StandardSocketOptions.SO_KEEPALIVE, it) }
-            setOption(StandardSocketOptions.TCP_NODELAY, options.noDelay)
+            options.lingerSeconds.takeIf { it >= 0 }?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_LINGER, it)
+                } else {
+                    socket().setSoLinger(true, it)
+                }
+            }
+            options.keepAlive?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_KEEPALIVE, it)
+                } else {
+                    socket().keepAlive = it
+                }
+            }
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.TCP_NODELAY, options.noDelay)
+            } else {
+                socket().tcpNoDelay = options.noDelay
+            }
         }
     }
     if (this is ServerSocketChannel) {
         if (options.reuseAddress) {
-            setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            } else {
+                socket().reuseAddress = true
+            }
         }
         if (options.reusePort) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
@@ -44,22 +94,46 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
     }
     if (this is DatagramChannel) {
         if (options.typeOfService != TypeOfService.UNDEFINED) {
-            setOption(StandardSocketOptions.IP_TOS, options.typeOfService.intValue)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.IP_TOS, options.typeOfService.intValue)
+            } else {
+                socket().trafficClass = options.typeOfService.intValue
+            }
         }
 
         if (options.reuseAddress) {
-            setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            } else {
+                socket().reuseAddress = true
+            }
         }
         if (options.reusePort) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
         }
 
         if (options is SocketOptions.UDPSocketOptions) {
-            setOption(StandardSocketOptions.SO_BROADCAST, options.broadcast)
+            if (java7NetworkApisAvailable) {
+                setOption(StandardSocketOptions.SO_BROADCAST, options.broadcast)
+            } else {
+                socket().broadcast = options.broadcast
+            }
         }
         if (options is SocketOptions.PeerSocketOptions) {
-            options.receiveBufferSize.takeIf { it > 0 }?.let { setOption(StandardSocketOptions.SO_RCVBUF, it) }
-            options.sendBufferSize.takeIf { it > 0 }?.let { setOption(StandardSocketOptions.SO_SNDBUF, it) }
+            options.receiveBufferSize.takeIf { it > 0 }?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_RCVBUF, it)
+                } else {
+                    socket().receiveBufferSize = it
+                }
+            }
+            options.sendBufferSize.takeIf { it > 0 }?.let {
+                if (java7NetworkApisAvailable) {
+                    setOption(StandardSocketOptions.SO_SNDBUF, it)
+                } else {
+                    socket().sendBufferSize = it
+                }
+            }
         }
     }
 }
