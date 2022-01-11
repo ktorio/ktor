@@ -13,7 +13,6 @@ import org.thymeleaf.*
 import org.thymeleaf.context.*
 import java.io.*
 import java.util.*
-import kotlin.collections.HashSet
 
 /**
  * Represents a content handled by [Thymeleaf] plugin.
