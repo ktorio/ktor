@@ -63,7 +63,11 @@ internal fun CoroutineScope.attachForReadingImpl(
             pool.recycle(buffer)
             if (nioChannel is SocketChannel) {
                 try {
-                    nioChannel.shutdownInput()
+                    if (java7NetworkApisAvailable) {
+                        nioChannel.shutdownInput()
+                    } else {
+                        nioChannel.socket().shutdownInput()
+                    }
                 } catch (ignore: ClosedChannelException) {
                 }
             }
@@ -115,7 +119,11 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     } finally {
         if (nioChannel is SocketChannel) {
             try {
-                nioChannel.shutdownInput()
+                if (java7NetworkApisAvailable) {
+                    nioChannel.shutdownInput()
+                } else {
+                    nioChannel.socket().shutdownInput()
+                }
             } catch (ignore: ClosedChannelException) {
             }
         }

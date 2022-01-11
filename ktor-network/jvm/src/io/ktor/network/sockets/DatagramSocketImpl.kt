@@ -21,12 +21,26 @@ internal class DatagramSocketImpl(
     DefaultDatagramByteBufferPool
 ) {
     override val localAddress: SocketAddress
-        get() = channel.localAddress?.toSocketAddress()
-            ?: throw IllegalStateException("Channel is not yet bound")
+        get() {
+            val localAddress = if (java7NetworkApisAvailable) {
+                channel.localAddress
+            } else {
+                channel.socket().localSocketAddress
+            }
+            return localAddress?.toSocketAddress()
+                ?: throw IllegalStateException("Channel is not yet bound")
+        }
 
     override val remoteAddress: SocketAddress
-        get() = channel.remoteAddress?.toSocketAddress()
-            ?: throw IllegalStateException("Channel is not yet connected")
+        get() {
+            val remoteAddress = if (java7NetworkApisAvailable) {
+                channel.remoteAddress
+            } else {
+                channel.socket().remoteSocketAddress
+            }
+            return remoteAddress?.toSocketAddress()
+                ?: throw IllegalStateException("Channel is not yet connected")
+        }
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(channel, this)
 

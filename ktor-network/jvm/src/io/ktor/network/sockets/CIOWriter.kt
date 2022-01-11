@@ -62,7 +62,11 @@ internal fun CoroutineScope.attachForWritingImpl(
             pool.recycle(buffer)
             if (nioChannel is SocketChannel) {
                 try {
-                    nioChannel.shutdownOutput()
+                    if (java7NetworkApisAvailable) {
+                        nioChannel.shutdownOutput()
+                    } else {
+                        nioChannel.socket().shutdownOutput()
+                    }
                 } catch (ignore: ClosedChannelException) {
                 }
             }
@@ -119,7 +123,11 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
         selectable.interestOp(SelectInterest.WRITE, false)
         if (nioChannel is SocketChannel) {
             try {
-                nioChannel.shutdownOutput()
+                if (java7NetworkApisAvailable) {
+                    nioChannel.shutdownOutput()
+                } else {
+                    nioChannel.socket().shutdownOutput()
+                }
             } catch (ignore: ClosedChannelException) {
             }
         }
