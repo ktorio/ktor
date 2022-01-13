@@ -163,6 +163,16 @@ allprojects {
                     progressiveMode = true
                 }
             }
+
+        val jdk = when (name) {
+            in jdk11Modules -> 11
+            else -> 8
+        }
+
+        jvmToolchain {
+            check(this is JavaToolchainSpec)
+            languageVersion.set(JavaLanguageVersion.of(jdk))
+        }
     }
 
     val skipPublish: List<String> by rootProject.extra

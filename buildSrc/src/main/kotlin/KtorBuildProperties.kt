@@ -3,6 +3,9 @@
  */
 
 import org.gradle.api.*
+import org.gradle.api.tasks.testing.*
+import org.gradle.jvm.toolchain.*
+import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
 /*
@@ -55,48 +58,40 @@ val EXCLUDE_MAP = mapOf(
     "macos" to WIN_TARGETS + LINUX_TARGETS
 )
 
-object KtorBuildProperties {
-    val jettyAlpnBootVersion: String? = when (java_version) {
-        "1.8.0_191",
-        "1.8.0_192",
-        "1.8.0_201",
-        "1.8.0_202",
-        "1.8.0_211",
-        "1.8.0_212",
-        "1.8.0_221",
-        "1.8.0_222",
-        "1.8.0_231",
-        "1.8.0_232",
-        "1.8.0_241",
-        "1.8.0_242" -> "8.1.13.v20181017"
-        else -> null
+val jettyAlpnBootVersion: String? = when (java_version) {
+    "1.8.0_191",
+    "1.8.0_192",
+    "1.8.0_201",
+    "1.8.0_202",
+    "1.8.0_211",
+    "1.8.0_212",
+    "1.8.0_221",
+    "1.8.0_222",
+    "1.8.0_231",
+    "1.8.0_232",
+    "1.8.0_241",
+    "1.8.0_242" -> "8.1.13.v20181017"
+    else -> null
+}
+
+fun posixTargets(project: Project): Set<KotlinNativeTarget> = project.kotlin.posixTargets()
+
+val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
+
+val jdk11Modules = listOf(
+    "ktor-client-java"
+)
+
+fun Project.useJdkVersionForJvmTests(version: Int) {
+    tasks.getByName("jvmTest").apply {
+        check(this is Test)
+
+        val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+        javaLauncher.set(
+            javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(version))
+            }
+        )
     }
 
-    @JvmStatic
-    fun posixTargets(project: Project): Set<KotlinNativeTarget> = project.kotlin.posixTargets()
-
-    @JvmStatic
-    val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
-
-    val jdk8Modules = listOf(
-        "ktor-client-tests",
-
-        "ktor-server-core", "ktor-server-host-common", "ktor-server-servlet", "ktor-server-netty", "ktor-server-tomcat",
-        "ktor-server-test-host", "ktor-server-test-suites",
-
-        "ktor-websockets", "ktor-webjars", "ktor-metrics", "ktor-server-sessions", "ktor-auth", "ktor-auth-jwt",
-
-        "ktor-network-tls-certificates"
-    )
-
-    val jdk7Modules = listOf(
-        "ktor-http",
-        "ktor-utils",
-        "ktor-network-tls",
-        "ktor-websockets"
-    )
-
-    val jdk11Modules = listOf(
-        "ktor-client-java"
-    )
 }

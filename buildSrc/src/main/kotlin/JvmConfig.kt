@@ -12,9 +12,7 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 fun Project.configureJvm() {
     val jdk = when (name) {
         in jdk11Modules -> 11
-        in jdk8Modules -> 8
-        in jdk7Modules -> 7
-        else -> 6
+        else -> 8
     }
 
     val kotlin_version: String by extra

@@ -3,3 +3,5 @@
 */
 
 description = "Ktor client Auth support"
+
+useJdkVersionForJvmTests(11)
