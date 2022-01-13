@@ -8,6 +8,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.plugins.*
+import io.ktor.plugins.spa.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
