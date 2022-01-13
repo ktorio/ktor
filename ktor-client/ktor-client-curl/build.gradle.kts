@@ -26,7 +26,6 @@ kotlin {
             )
         } else {
             listOf(
-                "/usr/bin/curl",
                 "/opt/homebrew/opt/curl/include/curl",
                 "/opt/local/include/curl",
                 "/usr/local/include/curl",
@@ -38,7 +37,8 @@ kotlin {
                 "/usr/local/Cellar/curl/7.65.3/include/curl",
                 "/usr/local/Cellar/curl/7.66.0/include/curl",
                 "/usr/local/Cellar/curl/7.80.0/include/curl",
-                "/usr/local/Cellar/curl/7.80.0_1/include/curl"
+                "/usr/local/Cellar/curl/7.80.0_1/include/curl",
+                "/usr/local/Cellar/curl/7.81.0/include/curl"
             )
         }
         current.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
