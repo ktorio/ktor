@@ -17,7 +17,7 @@ kotlin {
 
         val commonTest by getting {
             dependencies {
-                api(excludingSelf(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization")))
+                api(excludingSelf(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))) // ktlint-disable max-line-length
             }
         }
         val jvmTest by getting {
@@ -27,3 +27,5 @@ kotlin {
         }
     }
 }
+
+useJdkVersionForJvmTests(11)
