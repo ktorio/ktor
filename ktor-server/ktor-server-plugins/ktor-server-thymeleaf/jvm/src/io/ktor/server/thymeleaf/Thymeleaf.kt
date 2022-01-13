@@ -21,13 +21,16 @@ import java.util.*
  * @param model to be passed during template rendering
  * @param etag value for `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
+ * @param locale object represents a specific geographical, political, or cultural region
+ * @param fragments names from the [template] that is resolved by thymeleaf
  */
 public class ThymeleafContent(
     public val template: String,
     public val model: Map<String, Any>,
     public val etag: String? = null,
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
-    public val locale: Locale = Locale.getDefault()
+    public val locale: Locale = Locale.getDefault(),
+    public val fragments: Set<String> = setOf()
 )
 
 /**
@@ -58,11 +61,12 @@ public class Thymeleaf private constructor(private val engine: TemplateEngine) {
     }
 
     private fun process(content: ThymeleafContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
         val context = Context(locale).apply { setVariables(model) }
-        engine.process(template, context, writer)
 
-        val result = TextContent(text = writer.toString(), contentType)
+        val result = TextContent(
+            text = engine.process(template, fragments, context),
+            contentType
+        )
         if (etag != null) {
             result.versions += EntityTagVersion(etag)
         }
