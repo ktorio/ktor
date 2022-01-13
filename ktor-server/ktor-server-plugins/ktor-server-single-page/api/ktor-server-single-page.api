@@ -1,8 +1,14 @@
-public final class io/ktor/plugins/spa/SinglePageApplication {
-	public static final field Plugin Lio/ktor/plugins/spa/SinglePageApplication$Plugin;
+public final class io/ktor/plugins/spa/SinglePageApplicationKt {
+	public static final fun angular (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun backbone (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun ember (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun getSinglePageApplication ()Lio/ktor/server/application/ApplicationPlugin;
+	public static final fun ignoreFiles (Lio/ktor/plugins/spa/SpaConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun react (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun vue (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
 }
 
-public final class io/ktor/plugins/spa/SinglePageApplication$Configuration {
+public final class io/ktor/plugins/spa/SpaConfiguration {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -14,20 +20,5 @@ public final class io/ktor/plugins/spa/SinglePageApplication$Configuration {
 	public final fun setDefaultPage (Ljava/lang/String;)V
 	public final fun setFilesPath (Ljava/lang/String;)V
 	public final fun setUseResources (Z)V
-}
-
-public final class io/ktor/plugins/spa/SinglePageApplication$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/plugins/spa/SinglePageApplication;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/plugins/spa/SinglePageApplicationKt {
-	public static final fun angular (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public static final fun backbone (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public static final fun ember (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public static final fun ignoreFiles (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Lkotlin/jvm/functions/Function1;)V
-	public static final fun react (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Ljava/lang/String;)V
-	public static final fun vue (Lio/ktor/plugins/spa/SinglePageApplication$Configuration;Ljava/lang/String;)V
 }
 
