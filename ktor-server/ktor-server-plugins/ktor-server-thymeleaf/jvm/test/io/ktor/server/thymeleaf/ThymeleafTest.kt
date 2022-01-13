@@ -197,7 +197,6 @@ class ThymeleafTest {
     @Test
     fun testFragmentReturn() {
         withTestApplication {
-            println("Test fragments")
             application.install(Thymeleaf) {
                 val resolver = ClassLoaderTemplateResolver()
                 resolver.setTemplateMode("HTML")
@@ -221,7 +220,6 @@ class ThymeleafTest {
     @Test
     fun testFragmentsInsert() {
         withTestApplication {
-            println("Test fragments")
             application.install(Thymeleaf) {
                 val resolver = ClassLoaderTemplateResolver()
                 resolver.setTemplateMode("HTML")
