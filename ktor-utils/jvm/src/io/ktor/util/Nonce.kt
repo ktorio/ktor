@@ -16,7 +16,7 @@ private val SECURE_RANDOM_PROVIDER_NAME: String =
 
 private const val SECURE_RESEED_PERIOD = 30_000
 
-private const val NONCE_SIZE_IN_BYTES = 8
+private const val NONCE_SIZE_IN_BYTES = 16
 
 private const val SECURE_NONCE_COUNT = 8
 
@@ -97,13 +97,14 @@ private fun lookupSecureRandom(): SecureRandom {
     if (secure != null) return secure
 
     LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to $SHA1PRNG")
+        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to default")
 
-    return getInstanceOrNull(SHA1PRNG) ?: error("No SecureRandom implementation found")
+    return getInstanceOrNull() ?: error("No SecureRandom implementation found")
 }
 
-private fun getInstanceOrNull(name: String) = try {
-    SecureRandom.getInstance(name)
+private fun getInstanceOrNull(name: String? = null) = try {
+    if (name != null) SecureRandom.getInstance(name)
+    else SecureRandom()
 } catch (notFound: NoSuchAlgorithmException) {
     null
 }

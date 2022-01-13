@@ -4,19 +4,16 @@
 
 package io.ktor.util
 
-import platform.posix.*
-
 /**
- * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
+ * Generates a nonce string 32 characters long. Could block if the system's entropy source is empty
  */
 public actual fun generateNonce(): String {
-    val builder = StringBuilder()
-    repeat(16) {
-        builder.append(rand().toChar())
-    }
-
-    return builder.toString()
+    val bytes = ByteArray(16)
+    secureRandom(bytes)
+    return hex(bytes)
 }
+
+internal expect fun secureRandom(bytes: ByteArray)
 
 /**
  * Create [Digest] from specified hash [name].

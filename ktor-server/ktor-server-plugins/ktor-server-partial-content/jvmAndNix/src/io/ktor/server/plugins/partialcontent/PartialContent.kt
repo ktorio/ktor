@@ -18,6 +18,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.properties.*
+import kotlin.random.*
 
 /**
  * A configuration for [PartialContent].
@@ -206,7 +207,7 @@ private suspend fun Register.Context.processMultiRange(
     ranges: List<LongRange>,
     length: Long
 ) {
-    val boundary = "ktor-boundary-" + generateNonce()
+    val boundary = "ktor-boundary-" + hex(Random.nextBytes(16))
 
     call.attributes.put(SuppressionAttribute, true) // multirange with compression is not supported yet
 
