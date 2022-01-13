@@ -24,102 +24,80 @@ import java.io.*
  *   filesPath = "application/project_path"
  * }
  */
-public class SinglePageApplication internal constructor(configuration: Configuration) {
+public val SinglePageApplication: ApplicationPlugin<Application, SpaConfiguration, PluginInstance> = createApplicationPlugin(
+    "SinglePage",
+    { SpaConfiguration() }
+) {
+    val defaultPage: String = pluginConfig.defaultPage
+    val applicationRoute: String = pluginConfig.applicationRoute
+    val filesPath: String = pluginConfig.filesPath
+    val ignoredFiles: MutableList<(String) -> Boolean> = pluginConfig.ignoredFiles
+    val usePackageNames: Boolean = pluginConfig.useResources
 
-    internal val defaultPage: String = configuration.defaultPage
+    fun isUriStartWith(uri: String) =
+        uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
 
-    internal val applicationRoute: String = configuration.applicationRoute
-
-    internal val filesPath: String = configuration.filesPath
-
-    internal val ignoredFiles: MutableList<(String) -> Boolean> = configuration.ignoredFiles
-
-    internal val usePackageNames: Boolean = configuration.useResources
-
-    /**
-     * Configuration for the [SinglePageApplication] plugin
-     */
-    public class Configuration(
-        /**
-         * The default name of a file or resource to serve when [applicationRoute] is requested
-         */
-        public var defaultPage: String = "index.html",
-
-        /**
-         * The URL path under which the content should be served
-         */
-        public var applicationRoute: String = "/",
-
-        /**
-         * The path under which the static content is located.
-         * Corresponds to the folder path if the [useResources] is false, resource path otherwise
-         */
-        public var filesPath: String = "",
-
-        /**
-         * Specifies if static content is a resource package with true or folder with false
-         */
-        public var useResources: Boolean = false,
-
-        /**
-         * A list of callbacks checking if a file or resource in [filesPath] is ignored.
-         * Requests for such files or resources fails with the 403 Forbidden status
-         */
-        internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
-    )
-
-    /**
-     * The [SinglePageApplication] plugin implementation
-     */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, SinglePageApplication> {
-        override val key: AttributeKey<SinglePageApplication> = AttributeKey("SinglePage")
-
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): SinglePageApplication {
-            val plugin = SinglePageApplication(Configuration().apply(configure))
-
-            pipeline.routing {
-                static(plugin.applicationRoute) {
-                    if (plugin.usePackageNames) {
-                        resources(plugin.filesPath)
-                        defaultResource(plugin.defaultPage, plugin.filesPath)
-                    } else {
-                        staticRootFolder = File(plugin.filesPath)
-                        files(".")
-                        default(plugin.defaultPage)
-                    }
-                }
+    application.routing {
+        static(applicationRoute) {
+            if (usePackageNames) {
+                resources(filesPath)
+                defaultResource(defaultPage, filesPath)
+            } else {
+                staticRootFolder = File(filesPath)
+                files(".")
+                default(defaultPage)
             }
-
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
-                plugin.interceptCall(this)
-            }
-            return plugin
         }
     }
 
-    private fun interceptCall(
-        context: PipelineContext<Any, ApplicationCall>,
-    ) = with(context) context@{
-        val call = context.call
+    onCall { call ->
         val requestUrl = call.request.uri
 
-        if (!isUriStartWith(requestUrl)) return@context
+        if (!isUriStartWith(requestUrl)) return@onCall
 
         if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
-            call.response.status(HttpStatusCode.Forbidden)
-            finish()
+            call.respond(HttpStatusCode.Forbidden)
         }
     }
-
-    private fun isUriStartWith(uri: String) =
-        uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
 }
+
+/**
+ * Configuration for the [SinglePageApplication] plugin
+ */
+public class SpaConfiguration(
+    /**
+     * The default name of a file or resource to serve when [applicationRoute] is requested
+     */
+    public var defaultPage: String = "index.html",
+
+    /**
+     * The URL path under which the content should be served
+     */
+    public var applicationRoute: String = "/",
+
+    /**
+     * The path under which the static content is located.
+     * Corresponds to the folder path if the [useResources] is false, resource path otherwise
+     */
+    public var filesPath: String = "",
+
+    /**
+     * Specifies if static content is a resource package with true or folder with false
+     */
+    public var useResources: Boolean = false,
+
+    /**
+     * A list of callbacks checking if a file or resource in [filesPath] is ignored.
+     * Requests for such files or resources fails with the 403 Forbidden status
+     */
+    internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
+)
 
 /**
  * Registers a [block] in [ignoredFiles]
  * [block] returns true if [path] should be ignored.
  */
-public fun SinglePageApplication.Configuration.ignoreFiles(block: (path: String) -> Boolean) {
+public fun SpaConfiguration.ignoreFiles(block: (path: String) -> Boolean) {
     ignoredFiles += block
 }
 
@@ -127,7 +105,7 @@ public fun SinglePageApplication.Configuration.ignoreFiles(block: (path: String)
  * Creates an application configuration for the Angular project.
  * Resources will be shared from the filesPath directory. The root file is index.html
  */
-public fun SinglePageApplication.Configuration.angular(filesPath: String) {
+public fun SpaConfiguration.angular(filesPath: String) {
     this.filesPath = filesPath
 }
 
@@ -135,7 +113,7 @@ public fun SinglePageApplication.Configuration.angular(filesPath: String) {
  * Creates an application configuration for the React project.
  * Resources will be shared from the filesPath directory. The root file is index.html
  */
-public fun SinglePageApplication.Configuration.react(filesPath: String) {
+public fun SpaConfiguration.react(filesPath: String) {
     this.filesPath = filesPath
 }
 
@@ -143,7 +121,7 @@ public fun SinglePageApplication.Configuration.react(filesPath: String) {
  * Creates an application configuration for the Vue project.
  * Resources will be shared from the filesPath directory. The root file is index.html
  */
-public fun SinglePageApplication.Configuration.vue(filesPath: String) {
+public fun SpaConfiguration.vue(filesPath: String) {
     this.filesPath = filesPath
 }
 
@@ -151,7 +129,7 @@ public fun SinglePageApplication.Configuration.vue(filesPath: String) {
  * Creates an application configuration for the Ember project.
  * Resources will be shared from the filesPath directory. The root file is index.html
  */
-public fun SinglePageApplication.Configuration.ember(filesPath: String) {
+public fun SpaConfiguration.ember(filesPath: String) {
     this.filesPath = filesPath
 }
 
@@ -159,6 +137,6 @@ public fun SinglePageApplication.Configuration.ember(filesPath: String) {
  * Creates an application configuration for the Backbone project.
  * Resources will be shared from the filesPath directory. The root file is index.html
  */
-public fun SinglePageApplication.Configuration.backbone(filesPath: String) {
+public fun SpaConfiguration.backbone(filesPath: String) {
     this.filesPath = filesPath
 }
