@@ -1,0 +1,24 @@
+public final class io/ktor/plugins/spa/SinglePageApplicationKt {
+	public static final fun angular (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun backbone (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun ember (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun getSinglePageApplication ()Lio/ktor/server/application/ApplicationPlugin;
+	public static final fun ignoreFiles (Lio/ktor/plugins/spa/SpaConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun react (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+	public static final fun vue (Lio/ktor/plugins/spa/SpaConfiguration;Ljava/lang/String;)V
+}
+
+public final class io/ktor/plugins/spa/SpaConfiguration {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getApplicationRoute ()Ljava/lang/String;
+	public final fun getDefaultPage ()Ljava/lang/String;
+	public final fun getFilesPath ()Ljava/lang/String;
+	public final fun getUseResources ()Z
+	public final fun setApplicationRoute (Ljava/lang/String;)V
+	public final fun setDefaultPage (Ljava/lang/String;)V
+	public final fun setFilesPath (Ljava/lang/String;)V
+	public final fun setUseResources (Z)V
+}
+
