@@ -22,8 +22,6 @@ import kotlinx.coroutines.CancellationException
  */
 @OptIn(InternalAPI::class)
 public fun HttpClient.defaultTransformers() {
-    val client = this
-
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
         if (context.headers[HttpHeaders.Accept] == null) {
             context.headers.append(HttpHeaders.Accept, "*/*")
@@ -89,7 +87,7 @@ public fun HttpClient.defaultTransformers() {
                 // could be cancelled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext[Job])
-                val channel: ByteReadChannel = writer(client.coroutineContext) {
+                val channel: ByteReadChannel = writer(response.coroutineContext) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                     } catch (cause: CancellationException) {

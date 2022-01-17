@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -231,6 +232,27 @@ class HttpTimeoutTest : ClientLoader() {
             assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
+        }
+    }
+
+    @Test
+    fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js")) {
+        config {
+            install(HttpTimeout)
+        }
+
+        test { client ->
+            val response = client.prepareGet("$TEST_URL/with-stream") {
+                parameter("delay", 10000)
+                timeout { requestTimeoutMillis = 1000 }
+            }.body<ByteReadChannel>()
+            assertFailsWith<HttpRequestTimeoutException> {
+                response.readUTF8Line()
+            }
+            val result = client.get("$TEST_URL/with-delay?delay=1") {
+                timeout { requestTimeoutMillis = 10000 }
+            }.bodyAsText()
+            assertEquals("Text", result)
         }
     }
 
