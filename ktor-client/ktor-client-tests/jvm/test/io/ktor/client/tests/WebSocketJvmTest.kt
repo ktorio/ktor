@@ -99,6 +99,17 @@ class WebSocketJvmTest : ClientLoader(100000) {
     }
 
     @Test
+    fun testWebsocketSessionWithError() = clientTests(listOf("Android", "Apache")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFails { client.webSocketSession("wss://testabcde.com/ws") }
+        }
+    }
+
+    @Test
     fun testExceptionWss() = clientTests(listOf("Android", "Apache")) {
         config {
             install(WebSockets)
