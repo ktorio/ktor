@@ -4,6 +4,8 @@
 
 package io.ktor.server.thymeleaf
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
@@ -17,34 +19,36 @@ import java.util.*
 import java.util.zip.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ThymeleafTest {
     @Test
     fun testName() {
-        withTestApplication {
-            application.setUpThymeleafStringTemplate()
-            application.install(ConditionalHeaders)
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
+        testApplication {
+            application {
+                setUpThymeleafStringTemplate()
+                install(ConditionalHeaders)
+                routing {
+                    val model = mapOf("id" to 1, "title" to "Hello, World!")
 
-                get("/") {
-                    call.respond(ThymeleafContent(STRING_TEMPLATE, model, "e"))
+                    get("/") {
+                        call.respond(ThymeleafContent(STRING_TEMPLATE, model, "e"))
+                    }
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                assertNotNull(response.content)
-                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
-                assertEquals(expectedContent, response.content!!.lines())
+            val response = client.get("/")
+            val content = response.bodyAsText()
+            assertNotNull(content)
+            val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+            assertEquals(expectedContent, content.lines())
 
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
-            }
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
         }
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCompression() {
         withTestApplication {
             application.setUpThymeleafStringTemplate()
@@ -77,79 +81,84 @@ class ThymeleafTest {
 
     @Test
     fun testWithoutEtag() {
-        withTestApplication {
-            application.setUpThymeleafStringTemplate()
-            application.install(ConditionalHeaders)
+        testApplication {
+            application {
+                setUpThymeleafStringTemplate()
+                install(ConditionalHeaders)
 
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
+                routing {
+                    val model = mapOf("id" to 1, "title" to "Hello, World!")
 
-                get("/") {
-                    call.respond(ThymeleafContent(STRING_TEMPLATE, model))
+                    get("/") {
+                        call.respond(ThymeleafContent(STRING_TEMPLATE, model))
+                    }
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                assertNotNull(response.content)
-                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
-                assertEquals(expectedContent, response.content!!.lines())
+            val response = client.get("/")
+            val content = response.bodyAsText()
 
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals(null, response.headers[HttpHeaders.ETag])
-            }
+            assertNotNull(content)
+            val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+            assertEquals(expectedContent, content.lines())
+
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(null, response.headers[HttpHeaders.ETag])
         }
     }
 
     @Test
     fun canRespondAppropriately() {
-        withTestApplication {
-            application.setUpThymeleafStringTemplate()
-            application.install(ConditionalHeaders)
+        testApplication {
+            application {
+                setUpThymeleafStringTemplate()
+                install(ConditionalHeaders)
 
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+                routing {
+                    val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
-                get("/") {
-                    call.respondTemplate(STRING_TEMPLATE, model)
+                    get("/") {
+                        call.respondTemplate(STRING_TEMPLATE, model)
+                    }
                 }
             }
 
-            val call = handleRequest(HttpMethod.Get, "/")
+            val content = client.get("/").bodyAsText()
+            assertNotNull(content)
 
-            with(call.response) {
-                assertNotNull(content)
+            val lines = content.lines()
 
-                val lines = content!!.lines()
-
-                assertEquals(lines[0], "<p>Hello, 1</p>")
-                assertEquals(lines[1], "<h1>Bonjour le monde!</h1>")
-            }
+            assertEquals(lines[0], "<p>Hello, 1</p>")
+            assertEquals(lines[1], "<h1>Bonjour le monde!</h1>")
         }
     }
 
     @Test
     fun testClassLoaderTemplateResolver() {
-        withTestApplication {
-            application.install(Thymeleaf) {
-                val resolver = ClassLoaderTemplateResolver()
-                resolver.setTemplateMode("HTML")
-                resolver.prefix = "templates/"
-                resolver.suffix = ".html"
-                setTemplateResolver(resolver)
-            }
-            application.install(ConditionalHeaders)
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
-                get("/") {
-                    call.respondTemplate("test", model)
+        testApplication {
+            application {
+                install(Thymeleaf) {
+                    val resolver = ClassLoaderTemplateResolver()
+                    resolver.setTemplateMode("HTML")
+                    resolver.prefix = "templates/"
+                    resolver.suffix = ".html"
+                    setTemplateResolver(resolver)
+                }
+                install(ConditionalHeaders)
+                routing {
+                    val model = mapOf("id" to 1, "title" to "Hello, World!")
+                    get("/") {
+                        call.respondTemplate("test", model)
+                    }
                 }
             }
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                val lines = response.content!!.lines()
-                assertEquals("<p>Hello, 1</p>", lines[0])
-                assertEquals("<h1>Hello, World!</h1>", lines[1])
-            }
+
+            val content = client.get("/").bodyAsText()
+
+            val lines = content.lines()
+            assertEquals("<p>Hello, 1</p>", lines[0])
+            assertEquals("<h1>Hello, World!</h1>", lines[1])
         }
     }
 
@@ -162,35 +171,37 @@ class ThymeleafTest {
             "es-419" to "Hola, mundo!",
             "default" to "Hello, world!"
         )
-        withTestApplication {
-            application.install(Thymeleaf) {
-                val resolver = ClassLoaderTemplateResolver()
-                resolver.setTemplateMode("HTML")
-                resolver.prefix = "templates/"
-                resolver.suffix = ".html"
-                setTemplateResolver(resolver)
-            }
-            application.install(ConditionalHeaders)
-            application.routing {
-                get("/") {
-                    if (call.request.acceptLanguage() == "default") {
-                        Locale.setDefault(Locale("en"))
-                        call.respond(ThymeleafContent("i18n_test", mapOf()))
-                    } else {
-                        val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
-                        val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
-                        call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+        testApplication {
+            application {
+                install(Thymeleaf) {
+                    val resolver = ClassLoaderTemplateResolver()
+                    resolver.setTemplateMode("HTML")
+                    resolver.prefix = "templates/"
+                    resolver.suffix = ".html"
+                    setTemplateResolver(resolver)
+                }
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        if (call.request.acceptLanguage() == "default") {
+                            Locale.setDefault(Locale("en"))
+                            call.respond(ThymeleafContent("i18n_test", mapOf()))
+                        } else {
+                            val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
+                            val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
+                            call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+                        }
                     }
                 }
             }
             testCases.forEach { (language, result) ->
-                handleRequest(HttpMethod.Get, "/") {
-                    addHeader(HttpHeaders.AcceptLanguage, language)
-                }.response.let { response ->
-                    assertNotNull(response.content)
-                    val lines = response.content!!.lines()
-                    assertEquals("<h1>$result</h1>", lines[0])
-                }
+                val content = client.get("/") {
+                    header(HttpHeaders.AcceptLanguage, language)
+                }.bodyAsText()
+
+                assertNotNull(content)
+                val lines = content.lines()
+                assertEquals("<h1>$result</h1>", lines[0])
             }
         }
     }

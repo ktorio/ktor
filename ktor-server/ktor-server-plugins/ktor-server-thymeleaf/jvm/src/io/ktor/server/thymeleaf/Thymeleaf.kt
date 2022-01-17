@@ -7,8 +7,6 @@ package io.ktor.server.thymeleaf
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
 import java.io.*
@@ -37,31 +35,13 @@ public class ThymeleafContent(
  * A plugin that allows you to use Thymeleaf templates as views within your application.
  * Provides the ability to respond with [Thymeleaf]
  */
-public class Thymeleaf private constructor(private val engine: TemplateEngine) {
-    /**
-     * A plugin installing companion object
-     */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
-        override val key: AttributeKey<Thymeleaf> = AttributeKey<Thymeleaf>("thymeleaf")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: TemplateEngine.() -> Unit
-        ): Thymeleaf {
-            val config = TemplateEngine().apply(configure)
-            val plugin = Thymeleaf(config)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is ThymeleafContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
-            }
-            return plugin
-        }
-    }
-
-    private fun process(content: ThymeleafContent): OutgoingContent = with(content) {
+public val Thymeleaf: ApplicationPlugin<Application, TemplateEngine, PluginInstance> = createApplicationPlugin(
+    "Thymeleaf",
+    { TemplateEngine() }
+) {
+    fun process(content: ThymeleafContent): OutgoingContent = with(content) {
         val context = Context(locale).apply { setVariables(model) }
+        engine.process(template, context, writer)
 
         val result = TextContent(
             text = engine.process(template, fragments, context),
@@ -71,5 +51,12 @@ public class Thymeleaf private constructor(private val engine: TemplateEngine) {
             result.versions += EntityTagVersion(etag)
         }
         return result
+    }
+
+    onCallRespond { _, body ->
+        if (body !is ThymeleafContent) return@onCallRespond
+        transformBody {
+            process(body)
+        }
     }
 }
