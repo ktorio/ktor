@@ -33,8 +33,8 @@ import io.ktor.util.*
  *   result = `https://example.com/root/file.html`
  *
  * Headers of the builder will be pre-populated with request headers.
- * You can use [HeadersBuilder.contains], [HeadersBuilder.appendIfNameMissing]
- * and [HeadersBuilder.appendIfNameAndValueMissing] to avoid appending some header twice.
+ * You can use [HeadersBuilder.contains], [HeadersBuilder.appendIfNameAbsent]
+ * and [HeadersBuilder.appendIfNameAndValueAbsent] to avoid appending some header twice.
  *
  * Usage:
  * ```

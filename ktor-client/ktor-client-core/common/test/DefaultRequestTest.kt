@@ -81,7 +81,10 @@ class DefaultRequestTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
-                    respond(it.headers.getAll("header-1")!!.joinToString() + ", " + it.headers["header-2"])
+                    respond(
+                        it.headers.getAll("header-1")!!.joinToString() + ", " +
+                            it.headers.getAll("header-2")!!.joinToString()
+                    )
                 }
             }
 

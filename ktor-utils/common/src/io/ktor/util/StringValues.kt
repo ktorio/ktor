@@ -395,7 +395,7 @@ public fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringVa
  * Appends [name] [value] pair if there are no values associated with [name]
  */
 public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): StringValuesBuilder = apply {
-    if (!contains(name)) return@apply
+    if (contains(name)) return@apply
     append(name, value)
 }
 
@@ -403,7 +403,7 @@ public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): 
  * Appends [name] [value] pair if there is no existing [name] [value] pair
  */
 public fun StringValuesBuilder.appendIfNameAndValueAbsent(name: String, value: String): StringValuesBuilder = apply {
-    if (!contains(name, value)) return@apply
+    if (contains(name, value)) return@apply
     append(name, value)
 }
 
