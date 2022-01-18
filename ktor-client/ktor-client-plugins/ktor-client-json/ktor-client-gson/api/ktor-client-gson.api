@@ -1,4 +1,4 @@
-public final class io/ktor/client/plugins/json/GsonSerializer : io/ktor/client/plugins/json/JsonSerializer {
+public final class io/ktor/client/plugins/gson/GsonSerializer : io/ktor/client/plugins/json/JsonSerializer {
 	public fun <init> ()V
 	public fun <init> (Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

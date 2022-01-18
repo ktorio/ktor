@@ -5,7 +5,6 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
-import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.*

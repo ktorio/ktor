@@ -4,7 +4,7 @@
 
 @file:Suppress("DEPRECATION")
 
-import io.ktor.client.plugins.json.serializer.*
+import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.streams.*
 import kotlinx.serialization.*

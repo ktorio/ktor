@@ -1,1 +1,1 @@
-io.ktor.client.plugins.json.JacksonSerializer
+io.ktor.client.plugins.jackson.JacksonSerializer

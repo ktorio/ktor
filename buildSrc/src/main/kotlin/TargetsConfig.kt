@@ -7,22 +7,22 @@ import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.targets.native.tasks.*
+import java.io.*
+
+val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
+val Project.hasCommon: Boolean get() = files.any { it.name == "common" }
+val Project.hasJvmAndNix: Boolean get() = hasCommon || files.any { it.name == "jvmAndNix" }
+val Project.hasPosix: Boolean get() = hasCommon || files.any { it.name == "posix" }
+val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
+val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
+val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
+val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" }
+val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
+val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop
 
 fun Project.configureTargets() {
     val coroutines_version: String by extra
     val kotlin_version: String by extra
-
-    val files = project.projectDir.listFiles() ?: emptyArray()
-
-    val hasCommon = files.any { it.name == "common" }
-    val hasJvmAndNix = hasCommon || files.any { it.name == "jvmAndNix" }
-    val hasPosix = hasCommon || files.any { it.name == "posix" }
-    val hasDesktop = hasPosix || files.any { it.name == "desktop" }
-    val hasNix = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
-    val hasDarwin = hasNix || files.any { it.name == "darwin" }
-    val hasJs = hasCommon || files.any { it.name == "js" }
-    val hasJvm = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
-    val hasNative = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop
 
     kotlin {
         if (hasJvm) {

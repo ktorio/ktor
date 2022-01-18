@@ -7,6 +7,7 @@ package io.ktor.server.locations
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.dataconversion.*
 import io.ktor.server.routing.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*

@@ -26,7 +26,7 @@ public val DefaultXml: XML = XML {
     xmlDeclMode = XmlDeclMode.None
     indentString = ""
     autoPolymorphic = false
-    this.policy
+    this.xmlDeclMode
 }
 
 /**

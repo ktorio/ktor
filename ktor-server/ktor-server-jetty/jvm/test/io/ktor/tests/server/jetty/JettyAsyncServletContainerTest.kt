@@ -5,7 +5,6 @@
 package io.ktor.tests.server.jetty
 
 import io.ktor.server.jetty.*
-import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 
 class JettyAsyncServletContainerCompressionTest :

@@ -1,4 +1,4 @@
-public final class io/ktor/client/plugins/json/JacksonSerializer : io/ktor/client/plugins/json/JsonSerializer {
+public final class io/ktor/client/plugins/jackson/JacksonSerializer : io/ktor/client/plugins/json/JsonSerializer {
 	public fun <init> ()V
 	public fun <init> (Lcom/fasterxml/jackson/databind/ObjectMapper;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lcom/fasterxml/jackson/databind/ObjectMapper;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

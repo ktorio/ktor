@@ -10,7 +10,7 @@ import io.ktor.client.call.*
 import io.ktor.client.content.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.json.*
-import io.ktor.client.plugins.json.serializer.*
+import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*

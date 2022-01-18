@@ -1,18 +1,18 @@
-public final class io/ktor/server/plugins/DefaultHeaders {
-	public static final field Plugin Lio/ktor/server/plugins/DefaultHeaders$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/plugins/DefaultHeaders$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class io/ktor/server/plugins/defaultheaders/DefaultHeaders {
+	public static final field Plugin Lio/ktor/server/plugins/defaultheaders/DefaultHeaders$Plugin;
+	public synthetic fun <init> (Lio/ktor/server/plugins/defaultheaders/DefaultHeaders$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public final class io/ktor/server/plugins/DefaultHeaders$Configuration {
+public final class io/ktor/server/plugins/defaultheaders/DefaultHeaders$Configuration {
 	public fun <init> ()V
 	public final fun getClock ()Lkotlin/jvm/functions/Function0;
 	public final fun header (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun setClock (Lkotlin/jvm/functions/Function0;)V
 }
 
-public final class io/ktor/server/plugins/DefaultHeaders$Plugin : io/ktor/server/application/RouteScopedPlugin {
+public final class io/ktor/server/plugins/defaultheaders/DefaultHeaders$Plugin : io/ktor/server/application/RouteScopedPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/DefaultHeaders;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/defaultheaders/DefaultHeaders;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

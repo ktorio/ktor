@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.cbor.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.*
 
 @OptIn(ExperimentalSerializationApi::class)
