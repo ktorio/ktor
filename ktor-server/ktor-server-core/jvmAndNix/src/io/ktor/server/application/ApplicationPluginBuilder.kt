@@ -4,6 +4,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.http.content.*
 import io.ktor.server.application.debug.*
 import io.ktor.server.config.*
 import io.ktor.server.request.*
@@ -163,7 +164,7 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
 
     public override val onCallRespond: OnCallRespond<PluginConfig> = object : OnCallRespond<PluginConfig> {
         override fun afterTransform(
-            block: suspend OnCallRespondAfterTransformContext<PluginConfig>.(ApplicationCall, Any) -> Unit
+            block: suspend OnCallRespondAfterTransformContext<PluginConfig>.(ApplicationCall, OutgoingContent) -> Unit
         ) {
             val plugin = this@ApplicationPluginBuilder
 
@@ -171,9 +172,8 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
                 plugin.afterResponseInterceptions,
                 ApplicationSendPipeline.After,
                 PHASE_ON_CALL_RESPOND_AFTER,
-                ::OnCallRespondAfterTransformContext,
-                block
-            )
+                ::OnCallRespondAfterTransformContext
+            ) { call, body -> block(call, body as OutgoingContent) }
         }
     }
 
