@@ -22,7 +22,9 @@ class DefaultHeadersTest {
             get { call.respond("OK") }
         }
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertTrue(result.response.headers["Server"]!!.startsWith("Ktor/"))
+            val actual = result.response.headers["Server"]
+            assertNotNull(actual)
+            assertTrue(actual.startsWith("Ktor/"))
         }
     }
 
@@ -50,7 +52,9 @@ class DefaultHeadersTest {
         }
 
         handleRequest(HttpMethod.Get, "/1").let { result ->
-            assertTrue(result.response.headers["Server"]!!.startsWith("Ktor/"))
+            val actual = result.response.headers["Server"]
+            assertNotNull(actual)
+            assertTrue(actual.startsWith("Ktor/"))
         }
         handleRequest(HttpMethod.Get, "/2").let { result ->
             assertNull(result.response.headers["Server"])

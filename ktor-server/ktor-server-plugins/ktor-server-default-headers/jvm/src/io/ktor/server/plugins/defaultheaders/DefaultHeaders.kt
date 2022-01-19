@@ -7,93 +7,72 @@ package io.ktor.server.plugins.defaultheaders
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import java.util.*
 
 /**
+ * Configuration for DefaultHeaders plugin. Configure other headers
+ * in addition to the Date and Server provided by DefaultHeaders.
+ */
+public class DefaultHeadersConfig {
+    /**
+     * Provides a builder to append any custom headers to be sent with each request
+     */
+    internal val headers = HeadersBuilder()
+
+    /**
+     * Adds standard header property [name] with the specified [value].
+     */
+    public fun header(name: String, value: String): Unit = headers.append(name, value)
+
+    /**
+     * Provides time source. Useful for testing.
+     */
+    public var clock: () -> Long = { System.currentTimeMillis() }
+    internal val cachedDateText: AtomicRef<String> = atomic("")
+}
+
+/**
  * Adds the standard `Date` and `Server` HTTP headers and provides the ability
  * to add additional default headers into each response.
  */
-public class DefaultHeaders private constructor(config: Configuration) {
-    private val headers = config.headers.build()
-
-    @OptIn(InternalAPI::class)
-    private val clock = config.clock
-
-    private var cachedDateTimeStamp: Long = 0L
-    private val cachedDateText = atomic("")
-
-    /**
-     * Configuration for [DefaultHeaders] plugin.
-     */
-    public class Configuration {
-        /**
-         * Provides a builder to append any custom headers to be sent with each request
-         */
-        internal val headers = HeadersBuilder()
-
-        /**
-         * Adds standard header property [name] with the specified [value].
-         */
-        public fun header(name: String, value: String): Unit = headers.append(name, value)
-
-        /**
-         * Provides time source. Useful for testing.
-         */
-        public var clock: () -> Long = { System.currentTimeMillis() }
+public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+    "DefaultHeaders",
+    createConfiguration = {
+        DefaultHeadersConfig()
     }
-
-    private fun intercept(call: ApplicationCall) {
-        appendDateHeader(call)
-        headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
-    }
-
-    private fun appendDateHeader(call: ApplicationCall) {
-        val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = clock()
-        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
-            cachedDateTimeStamp = currentTimeStamp
-            cachedDateText.value = now(currentTimeStamp).toHttpDate()
+) {
+    val ktorPackageVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
+        pluginConfig::class.java.`package`.implementationVersion ?: "debug"
+    } else "debug"
+    val headers = pluginConfig.headers.build()
+    val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
+    val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
+    var cachedDateTimeStamp: Long = 0L
+    val calendar = object : ThreadLocal<Calendar>() {
+        override fun initialValue(): Calendar {
+            return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
         }
-        call.response.header(HttpHeaders.Date, cachedDateText.value)
     }
 
-    private fun now(time: Long): GMTDate {
+    fun now(time: Long): GMTDate {
         return calendar.get().toDate(time)
     }
 
-    /**
-     * An installable plugin for [DefaultHeaders].
-     */
-    public companion object Plugin : RouteScopedPlugin<Configuration, DefaultHeaders> {
-        private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
-
-        private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
-
-        private val calendar = object : ThreadLocal<Calendar>() {
-            override fun initialValue(): Calendar {
-                return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
-            }
+    fun calculateDateHeader(): String {
+        val captureCached = cachedDateTimeStamp
+        val currentTimeStamp = pluginConfig.clock()
+        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
+            cachedDateTimeStamp = currentTimeStamp
+            pluginConfig.cachedDateText.value = now(currentTimeStamp).toHttpDate()
         }
+        return pluginConfig.cachedDateText.value
+    }
 
-        override val key: AttributeKey<DefaultHeaders> = AttributeKey("Default Headers")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): DefaultHeaders {
-            val config = Configuration().apply(configure)
-            if (config.headers.getAll(HttpHeaders.Server) == null) {
-                val ktorPackageVersion: String = DefaultHeaders::class.java.`package`.implementationVersion ?: "debug"
-
-                config.headers.append(HttpHeaders.Server, "Ktor/$ktorPackageVersion")
-            }
-
-            val plugin = DefaultHeaders(config)
-            pipeline.intercept(ApplicationCallPipeline.Plugins) { plugin.intercept(call) }
-            return plugin
-        }
+    onCallRespond { call, _ ->
+        call.response.header(HttpHeaders.Date, calculateDateHeader())
+        headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
+        call.response.headers.append(HttpHeaders.Server, "Ktor/$ktorPackageVersion")
     }
 }
