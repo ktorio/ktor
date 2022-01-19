@@ -213,6 +213,7 @@ class HttpRequestRetryTest {
     @Test
     fun testMaxRetries() = testWithEngine(MockEngine) {
         config {
+            expectSuccess = true
             engine {
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
                 addHandler { respondError(HttpStatusCode.InternalServerError) }

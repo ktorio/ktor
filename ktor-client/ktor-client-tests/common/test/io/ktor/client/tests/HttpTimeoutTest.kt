@@ -35,6 +35,9 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetWithExceptionAndTryAgain() = clientTests {
+        config {
+            expectSuccess = true
+        }
         test { client ->
             val requestBuilder = HttpRequestBuilder().apply {
                 method = HttpMethod.Get

@@ -47,6 +47,7 @@ class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testCustomFormBody() = clientTests {
         config {
+            expectSuccess = true
             install(JsonPlugin)
         }
 

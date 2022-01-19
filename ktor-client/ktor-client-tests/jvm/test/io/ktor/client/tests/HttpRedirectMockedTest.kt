@@ -103,6 +103,7 @@ class HttpRedirectMockedTest {
     @Test
     fun testHttpRedirectFromHttps() = testWithEngine(MockEngine) {
         config {
+            expectSuccess = true
             server { "http://localhost2/child" }
         }
 
@@ -173,6 +174,7 @@ class HttpRedirectMockedTest {
     @Test
     fun testProhibitedRedirectHttpMethodCheck() = testWithEngine(MockEngine) {
         config {
+            expectSuccess = true
             server {
                 "http://localhost/child"
             }
