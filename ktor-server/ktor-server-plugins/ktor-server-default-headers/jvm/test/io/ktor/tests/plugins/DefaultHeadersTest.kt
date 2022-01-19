@@ -6,14 +6,10 @@ package io.ktor.tests.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.http.*
-import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -26,7 +22,9 @@ class DefaultHeadersTest {
             get { call.respond("OK") }
         }
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertTrue(result.response.headers["Server"]!!.startsWith("Ktor/"))
+            val actual = result.response.headers["Server"]
+            assertNotNull(actual)
+            assertTrue(actual.startsWith("Ktor/"))
         }
     }
 
@@ -54,7 +52,9 @@ class DefaultHeadersTest {
         }
 
         handleRequest(HttpMethod.Get, "/1").let { result ->
-            assertTrue(result.response.headers["Server"]!!.startsWith("Ktor/"))
+            val actual = result.response.headers["Server"]
+            assertNotNull(actual)
+            assertTrue(actual.startsWith("Ktor/"))
         }
         handleRequest(HttpMethod.Get, "/2").let { result ->
             assertNull(result.response.headers["Server"])

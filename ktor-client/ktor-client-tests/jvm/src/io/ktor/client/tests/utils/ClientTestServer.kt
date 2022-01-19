@@ -61,7 +61,7 @@ internal fun Application.tests() {
 }
 
 internal fun Application.tlsTests() {
-    install(DefaultHeaders) {
+    install(DefaultHeadersOld) {
         header("X-Comment", "TLS test server")
     }
 
