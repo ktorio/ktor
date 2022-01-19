@@ -20,7 +20,7 @@ public abstract class AbstractServerSerializationTest {
 
     protected abstract val defaultContentType: ContentType
     protected abstract val customContentType: ContentType
-    protected abstract fun ContentNegotiation.Configuration.configureContentNegotiation(contentType: ContentType)
+    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
 
     protected abstract fun simpleSerialize(any: TestEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): TestEntity
