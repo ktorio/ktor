@@ -21,7 +21,7 @@ class HooksTest {
         val currentHandler = HookHandler()
 
         val myHook = object : Hook<HookHandler.() -> Unit> {
-            override fun install(application: Application, handler: HookHandler.() -> Unit) {
+            override fun install(application: ApplicationCallPipeline, handler: HookHandler.() -> Unit) {
                 currentHandler.apply(handler)
 
                 application.intercept(ApplicationCallPipeline.Call) {
