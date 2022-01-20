@@ -220,13 +220,22 @@ class CallIdTest {
                     call.respond(call.callId.toString())
                 }
             }
-            get("2") {
+            route("2") {
+                install(CallId) {
+                    generate { "2222" }
+                }
+                get {
+                    call.respond(call.callId.toString())
+                }
+            }
+            get("3") {
                 call.respond(call.callId.toString())
             }
         }
 
         assertEquals("test-id", handleRequest(HttpMethod.Get, "/1").response.content)
-        assertEquals("null", handleRequest(HttpMethod.Get, "/2").response.content)
+        assertEquals("2222", handleRequest(HttpMethod.Get, "/2").response.content)
+        assertEquals("null", handleRequest(HttpMethod.Get, "/3").response.content)
     }
 
     @Test
