@@ -19,7 +19,7 @@ import java.util.*
  * Helper interface to test client.
  */
 @RunWith(Parameterized::class)
-actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
+actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
 
     @Parameterized.Parameter
     lateinit var engine: HttpClientEngineContainer
@@ -55,7 +55,7 @@ actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
         val enginesToSkip = skipEngines.map { it.lowercase(locale) }
         if (engine.toString().lowercase(locale) in enginesToSkip) return
 
-        testWithEngine(engine.factory, this, block)
+        testWithEngine(engine.factory, this, timeoutSeconds * 1000L, block)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

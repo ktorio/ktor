@@ -6,7 +6,6 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 
 private class TestFailure(val name: String, val cause: Throwable) {
     override fun toString(): String = buildString {
@@ -33,7 +32,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
         if (skipEngines.any { it.startsWith("native") }) return
 
         val skipEnginesLowerCase = skipEngines.map { it.lowercase() }.toSet()
-        val filteredEngines = engines.filter {
+        val filteredEngines: List<HttpClientEngineFactory<HttpClientEngineConfig>> = engines.filter {
             val name = it.toString().lowercase()
             !skipEnginesLowerCase.contains(name) && !skipEnginesLowerCase.contains("native:$name")
         }
@@ -41,10 +40,8 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
         val failures = mutableListOf<TestFailure>()
         for (engine in filteredEngines) {
             val result = runCatching {
-                testWithEngine(engine) {
-                    withTimeout(timeoutSeconds.toLong() * 1000L) {
-                        block()
-                    }
+                testWithEngine(engine, timeoutMillis = timeoutSeconds.toLong() * 1000L) {
+                    block()
                 }
             }
 

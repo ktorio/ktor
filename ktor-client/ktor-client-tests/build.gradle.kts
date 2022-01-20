@@ -125,7 +125,7 @@ kotlin.sourceSets {
                 }
             }
         }
-        listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
+        listOf("iosX64Test", "macosX64Test", "macosArm64Test").map { getByName(it) }.forEach {
             it.dependencies {
                 api(project(":ktor-client:ktor-client-darwin"))
             }
@@ -156,6 +156,7 @@ val testTasks = mutableListOf(
 
 testTasks += listOf(
     "macosX64Test",
+    "macosArm64Test",
     "linuxX64Test",
     "iosX64Test",
     "mingwX64Test"

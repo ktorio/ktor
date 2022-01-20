@@ -12,5 +12,8 @@ import kotlin.coroutines.*
  */
 public actual fun testSuspend(
     context: CoroutineContext,
+    timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
-): Unit = runBlocking(context, block)
+): Unit = runBlocking(context) {
+    withTimeout(timeoutMillis, block)
+}
