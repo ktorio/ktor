@@ -233,7 +233,7 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
-                    callIdMdc("mdc-call-id")
+                    сallIdMdc("mdc-call-id")
                 }
                 install(CallId) {
                     generate { "generated-call-id-${counter++}" }
@@ -271,7 +271,7 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
-                    callIdMdc("mdc-call-id")
+                    сallIdMdc("mdc-call-id")
                 }
                 install(CallId) {
                     generate { "generated-call-id-${counter++}" }
