@@ -38,14 +38,18 @@ public suspend fun HttpClient.webSocketSession(
     }
     @Suppress("SuspendFunctionOnCoroutineScope")
     launch {
-        statement.body<DefaultClientWebSocketSession, Unit> { session ->
-            val sessionCompleted = CompletableDeferred<Unit>()
-            sessionDeferred.complete(session)
-            session.outgoing.invokeOnClose {
-                if (it != null) sessionCompleted.completeExceptionally(it)
-                else sessionCompleted.complete(Unit)
+        try {
+            statement.body<DefaultClientWebSocketSession, Unit> { session ->
+                val sessionCompleted = CompletableDeferred<Unit>()
+                sessionDeferred.complete(session)
+                session.outgoing.invokeOnClose {
+                    if (it != null) sessionCompleted.completeExceptionally(it)
+                    else sessionCompleted.complete(Unit)
+                }
+                sessionCompleted.await()
             }
-            sessionCompleted.await()
+        } catch (cause: Throwable) {
+            sessionDeferred.completeExceptionally(cause)
         }
     }
     return sessionDeferred.await()
