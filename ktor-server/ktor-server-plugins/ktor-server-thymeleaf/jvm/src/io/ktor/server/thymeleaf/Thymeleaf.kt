@@ -43,7 +43,7 @@ public val Thymeleaf: ApplicationPlugin<Application, TemplateEngine, PluginInsta
         val context = Context(locale).apply { setVariables(model) }
 
         val result = TextContent(
-            text = engine.process(template, fragments, context),
+            text = pluginConfig.process(template, fragments, context),
             contentType
         )
         if (etag != null) {
