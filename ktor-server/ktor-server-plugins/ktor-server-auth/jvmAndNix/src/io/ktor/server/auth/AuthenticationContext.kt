@@ -6,7 +6,6 @@ package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import kotlin.properties.*
 
 /**
@@ -29,7 +28,8 @@ public class AuthenticationContext(public val call: ApplicationCall) {
      */
     @Suppress("unused")
     @Deprecated("Use allErrors, allFailures or error() function instead", level = DeprecationLevel.ERROR)
-    public val errors: HashMap<Any, AuthenticationFailedCause> get() = _errors
+    public val errors: HashMap<Any, AuthenticationFailedCause>
+        get() = _errors
 
     /**
      * All registered errors during auth procedure (only [AuthenticationFailedCause.Error]).
@@ -75,7 +75,7 @@ public class AuthenticationContext(public val call: ApplicationCall) {
     public fun challenge(
         key: Any,
         cause: AuthenticationFailedCause,
-        function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>
+        function: ChallengeFunction
     ) {
         error(key, cause)
         challenge.register.add(cause to function)

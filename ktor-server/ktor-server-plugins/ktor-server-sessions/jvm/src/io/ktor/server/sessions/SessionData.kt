@@ -48,25 +48,32 @@ public interface CurrentSession {
  * Set session instance with type [T]
  * @throws IllegalStateException if no session provider registered for type [T]
  */
-public inline fun <reified T> CurrentSession.set(value: T?): Unit = set(findName(T::class), value)
+public inline fun <reified T : Any> CurrentSession.set(value: T?): Unit = set(findName(T::class), value)
 
 /**
  * Get session instance with type [T]
  * @throws IllegalStateException if no session provider registered for type [T]
  */
-public inline fun <reified T> CurrentSession.get(): T? = get(findName(T::class)) as T?
+public inline fun <reified T : Any> CurrentSession.get(): T? = get(T::class)
+
+/**
+ * Get session instance with type [T]
+ * @throws IllegalStateException if no session provider registered for type [T]
+ */
+@Suppress("UNCHECKED_CAST")
+public fun <T : Any> CurrentSession.get(klass: KClass<T>): T? = get(findName(klass)) as T?
 
 /**
  * Clear session instance with type [T]
  * @throws IllegalStateException if no session provider registered for type [T]
  */
-public inline fun <reified T> CurrentSession.clear(): Unit = clear(findName(T::class))
+public inline fun <reified T : Any> CurrentSession.clear(): Unit = clear(findName(T::class))
 
 /**
  * Get or generate a new session instance using [generator] with type [T] (or [name] if specified)
  * @throws IllegalStateException if no session provider registered for type [T] (or [name] if specified)
  */
-public inline fun <reified T> CurrentSession.getOrSet(name: String = findName(T::class), generator: () -> T): T {
+public inline fun <reified T : Any> CurrentSession.getOrSet(name: String = findName(T::class), generator: () -> T): T {
     val result = get<T>()
 
     if (result != null) {
