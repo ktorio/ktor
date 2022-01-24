@@ -41,7 +41,6 @@ public val Thymeleaf: ApplicationPlugin<Application, TemplateEngine, PluginInsta
 ) {
     fun process(content: ThymeleafContent): OutgoingContent = with(content) {
         val context = Context(locale).apply { setVariables(model) }
-        engine.process(template, context, writer)
 
         val result = TextContent(
             text = engine.process(template, fragments, context),
