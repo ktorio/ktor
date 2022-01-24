@@ -78,10 +78,12 @@ class DropwizardMetricsTests {
     @Test
     fun `should prefix all metrics with baseName`(): Unit = withTestApplication {
         val prefix = "foo.bar"
-        val registry = application.install(DropwizardMetrics) {
+        var registry: MetricRegistry? = null
+        application.install(DropwizardMetrics) {
             baseName = prefix
             registerJvmMetricSets = false
-        }.registry
+            registry = this.registry
+        }
 
         application.routing {
             get("/uri") {
@@ -91,6 +93,6 @@ class DropwizardMetricsTests {
 
         handleRequest { uri = "/uri" }
 
-        assertThat(registry.names, everyItem(startsWith(prefix)))
+        assertThat(registry!!.names, everyItem(startsWith(prefix)))
     }
 }
