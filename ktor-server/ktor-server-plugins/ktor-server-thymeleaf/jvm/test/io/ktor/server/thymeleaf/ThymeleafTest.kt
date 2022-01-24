@@ -208,47 +208,47 @@ class ThymeleafTest {
 
     @Test
     fun testFragmentReturn() {
-        withTestApplication {
-            application.install(Thymeleaf) {
-                val resolver = ClassLoaderTemplateResolver()
-                resolver.setTemplateMode("HTML")
-                resolver.prefix = "templates/"
-                resolver.suffix = ".html"
-                setTemplateResolver(resolver)
-            }
-            application.install(ConditionalHeaders)
-            application.routing {
-                get("/") {
-                    call.respond(ThymeleafContent("fragments", mapOf(), fragments = setOf("firstFragment")))
+        testApplication {
+            application {
+                install(Thymeleaf) {
+                    val resolver = ClassLoaderTemplateResolver()
+                    resolver.setTemplateMode("HTML")
+                    resolver.prefix = "templates/"
+                    resolver.suffix = ".html"
+                    setTemplateResolver(resolver)
+                }
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(ThymeleafContent("fragments", mapOf(), fragments = setOf("firstFragment")))
+                    }
                 }
             }
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                val lines = response.content!!.lines()
-                assertEquals("<div><p>Hello, first fragment</p></div>", lines[0])
-            }
+            val lines = client.get("/").bodyAsText().lines()
+            assertEquals("<div><p>Hello, first fragment</p></div>", lines[0])
         }
     }
 
     @Test
     fun testFragmentsInsert() {
-        withTestApplication {
-            application.install(Thymeleaf) {
-                val resolver = ClassLoaderTemplateResolver()
-                resolver.setTemplateMode("HTML")
-                resolver.prefix = "templates/"
-                resolver.suffix = ".html"
-                setTemplateResolver(resolver)
-            }
-            application.install(ConditionalHeaders)
-            application.routing {
-                get("/") {
-                    call.respond(ThymeleafContent("fragments_insert_test", mapOf()))
+        testApplication {
+            application {
+                install(Thymeleaf) {
+                    val resolver = ClassLoaderTemplateResolver()
+                    resolver.setTemplateMode("HTML")
+                    resolver.prefix = "templates/"
+                    resolver.suffix = ".html"
+                    setTemplateResolver(resolver)
+                }
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(ThymeleafContent("fragments_insert_test", mapOf()))
+                    }
                 }
             }
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                val lines = response.content!!.lines()
-                assertEquals("<div><div><p>Hello, first fragment</p></div></div>", lines[0])
-            }
+            val lines = client.get("/").bodyAsText().lines()
+            assertEquals("<div><div><p>Hello, first fragment</p></div></div>", lines[0])
         }
     }
 
