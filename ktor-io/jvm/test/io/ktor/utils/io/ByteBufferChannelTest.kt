@@ -114,4 +114,28 @@ class ByteBufferChannelTest {
         yield()
         assertFalse(awaitingContent)
     }
+
+    @Test
+    fun testReadAvailableWithMoreThanBufferSizeContent() = runBlocking {
+        val channel = ByteChannel(autoFlush = true)
+        val data = ByteArray(4089) { 0 }
+
+        val job = launch {
+            channel.writeFully(data)
+            channel.close()
+        }
+
+        launch {
+            var result: Int
+            do {
+                result = channel.readAvailable {}
+            } while (result > 0)
+        }
+
+        try {
+            withTimeout(1000) { job.join() }
+        } catch (e: TimeoutCancellationException) {
+            fail("All bytes should be written to and read from the channel")
+        }
+    }
 }
