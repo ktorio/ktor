@@ -22,7 +22,7 @@ import kotlin.native.concurrent.*
  *
  * See [Json] for more details.
  */
-@SharedImmutable
+
 public val DefaultJson: Json = Json {
     encodeDefaults = true
     isLenient = true

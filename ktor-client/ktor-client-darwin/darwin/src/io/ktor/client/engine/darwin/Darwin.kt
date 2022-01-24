@@ -10,7 +10,6 @@ import platform.Foundation.*
 
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
-@SharedImmutable
 @EagerInitialization
 private val initHook = Darwin
 

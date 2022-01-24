@@ -18,7 +18,7 @@ import kotlin.test.*
  */
 @Suppress("DEPRECATION")
 internal class TestLogger(private vararg val expectedLog: String) : Logger {
-    private val log = sharedList<String>()
+    private val log = mutableListOf<String>()
 
     override fun log(message: String) {
         log += message

@@ -40,17 +40,17 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
      **/
     public val applicationConfig: ApplicationConfig? get() = environment?.config
 
-    internal val callInterceptions: MutableList<CallInterception> = sharedList()
+    internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 
-    internal val onReceiveInterceptions: MutableList<ReceiveInterception> = sharedList()
+    internal val onReceiveInterceptions: MutableList<ReceiveInterception> = mutableListOf()
 
-    internal val onResponseInterceptions: MutableList<ResponseInterception> = sharedList()
+    internal val onResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
 
-    internal val afterResponseInterceptions: MutableList<ResponseInterception> = sharedList()
+    internal val afterResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
 
-    internal val pipelineHandlers: MutableList<PipelineHandler> = sharedList()
+    internal val pipelineHandlers: MutableList<PipelineHandler> = mutableListOf()
 
-    internal val hooks: MutableList<HookHandler<*>> = sharedList()
+    internal val hooks: MutableList<HookHandler<*>> = mutableListOf()
 
     /**
      * Defines how processing an HTTP call needs to be modified by the current [ApplicationPluginBuilder].

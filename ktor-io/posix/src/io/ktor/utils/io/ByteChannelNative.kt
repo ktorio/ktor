@@ -9,6 +9,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 
@@ -63,11 +64,7 @@ internal class ByteChannelNative(
     autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannelSequentialBase(initial, autoFlush, pool) {
-    private var attachedJob: Job? by shared(null)
-
-    init {
-        makeShared()
-    }
+    private var attachedJob: Job? by atomic(null)
 
     @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {

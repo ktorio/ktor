@@ -15,10 +15,10 @@ import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class CallValidatorTest {
-    private var firstHandler by shared(0)
-    private var secondHandler by shared(0)
-    private var handleTriggered by shared(false)
-    private var validator by shared(0)
+    private var firstHandler = 0
+    private var secondHandler = 0
+    private var handleTriggered = false
+    private var validator = 0
 
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {

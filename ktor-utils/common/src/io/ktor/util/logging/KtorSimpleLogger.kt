@@ -4,4 +4,5 @@
 
 package io.ktor.util.logging
 
+@Suppress("FunctionName")
 public expect fun KtorSimpleLogger(name: String): Logger

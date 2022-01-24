@@ -5,11 +5,13 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
+import kotlinx.cinterop.*
 import platform.Foundation.*
 
 /**
  * Challenge handler type for [NSURLSession].
  */
+@OptIn(UnsafeNumber::class)
 public typealias ChallengeHandler = (
     session: NSURLSession,
     task: NSURLSessionTask,
@@ -48,6 +50,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Handles the challenge of HTTP responses [NSURLSession].
      */
+    @OptIn(UnsafeNumber::class)
     public var challengeHandler: ChallengeHandler? = null
         private set
 
@@ -80,6 +83,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Sets the [block] as an HTTP request challenge handler replacing the old one.
      */
+    @OptIn(UnsafeNumber::class)
     public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
     }

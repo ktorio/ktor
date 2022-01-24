@@ -55,12 +55,10 @@ public fun ContentType.fileExtensions(): List<String> = extensionsByContentType[
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
-@ThreadLocal
 private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
     caseInsensitiveMap<List<ContentType>>().apply { putAll(mimes.asSequence().groupByPairs()) }
 }
 
-@ThreadLocal
 private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
     mimes.asSequence().map { (first, second) -> second to first }.groupByPairs()
 }

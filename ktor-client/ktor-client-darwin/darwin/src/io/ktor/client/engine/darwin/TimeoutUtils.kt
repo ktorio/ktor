@@ -6,6 +6,7 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import kotlinx.cinterop.*
 import platform.Foundation.*
 
 /**
@@ -23,6 +24,7 @@ internal fun NSMutableURLRequest.setupSocketTimeout(requestData: HttpRequestData
     }
 }
 
+@OptIn(UnsafeNumber::class)
 internal fun handleNSError(requestData: HttpRequestData, error: NSError): Throwable = when (error.code) {
     NSURLErrorTimedOut -> SocketTimeoutException(requestData)
     else -> DarwinHttpRequestException(error)

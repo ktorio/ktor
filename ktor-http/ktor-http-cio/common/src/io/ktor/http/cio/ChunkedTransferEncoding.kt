@@ -16,7 +16,6 @@ import kotlin.native.concurrent.*
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
 
-@ThreadLocal
 private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
     object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
         override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
@@ -154,13 +153,8 @@ private fun ByteReadChannel.rethrowCloseCause() {
     if (cause != null) throw cause
 }
 
-@SharedImmutable
 private const val CrLfShort: Short = 0x0d0a
-
-@ThreadLocal
 private val CrLf = "\r\n".toByteArray()
-
-@ThreadLocal
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
 private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {

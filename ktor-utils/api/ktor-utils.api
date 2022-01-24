@@ -198,17 +198,6 @@ public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
-public final class io/ktor/util/Lock {
-	public fun <init> ()V
-	public final fun close ()V
-	public final fun lock ()V
-	public final fun unlock ()V
-}
-
-public final class io/ktor/util/LockKt {
-	public static final fun withLock (Lio/ktor/util/Lock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
-}
-
 public final class io/ktor/util/NIOKt {
 	public static final fun copy (Ljava/nio/ByteBuffer;I)Ljava/nio/ByteBuffer;
 	public static final fun copy (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;I)Ljava/nio/ByteBuffer;
@@ -492,61 +481,10 @@ public final class io/ktor/util/collections/CollectionUtilsKt {
 	public static synthetic fun sharedMap$default (IILjava/lang/Object;)Ljava/util/Map;
 }
 
-public class io/ktor/util/collections/ConcurrentCollection : java/util/Collection, kotlin/jvm/internal/markers/KMutableCollection {
-	public fun <init> (Ljava/util/Collection;Lio/ktor/util/Lock;)V
-	public fun add (Ljava/lang/Object;)Z
-	public fun addAll (Ljava/util/Collection;)Z
-	public fun clear ()V
-	public fun contains (Ljava/lang/Object;)Z
-	public fun containsAll (Ljava/util/Collection;)Z
-	public fun getSize ()I
-	public fun isEmpty ()Z
-	public fun iterator ()Ljava/util/Iterator;
-	public fun remove (Ljava/lang/Object;)Z
-	public fun removeAll (Ljava/util/Collection;)Z
-	public fun retainAll (Ljava/util/Collection;)Z
-	public final fun size ()I
-	public fun toArray ()[Ljava/lang/Object;
-	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
-}
-
-public final class io/ktor/util/collections/ConcurrentList : java/util/List, kotlin/jvm/internal/markers/KMutableList {
-	public fun <init> ()V
-	public fun add (ILjava/lang/Object;)V
-	public fun add (Ljava/lang/Object;)Z
-	public fun addAll (ILjava/util/Collection;)Z
-	public fun addAll (Ljava/util/Collection;)Z
-	public fun clear ()V
-	public fun contains (Ljava/lang/Object;)Z
-	public fun containsAll (Ljava/util/Collection;)Z
-	public fun equals (Ljava/lang/Object;)Z
-	public fun get (I)Ljava/lang/Object;
-	public fun getSize ()I
-	public fun hashCode ()I
-	public fun indexOf (Ljava/lang/Object;)I
-	public fun isEmpty ()Z
-	public fun iterator ()Ljava/util/Iterator;
-	public fun lastIndexOf (Ljava/lang/Object;)I
-	public fun listIterator ()Ljava/util/ListIterator;
-	public fun listIterator (I)Ljava/util/ListIterator;
-	public final fun remove (I)Ljava/lang/Object;
-	public fun remove (Ljava/lang/Object;)Z
-	public fun removeAll (Ljava/util/Collection;)Z
-	public fun removeAt (I)Ljava/lang/Object;
-	public fun retainAll (Ljava/util/Collection;)Z
-	public fun set (ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun size ()I
-	public fun subList (II)Ljava/util/List;
-	public fun toArray ()[Ljava/lang/Object;
-	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
 	public fun <init> ()V
-	public fun <init> (Lio/ktor/util/Lock;I)V
-	public synthetic fun <init> (Lio/ktor/util/Lock;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;)V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
 	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun containsKey (Ljava/lang/Object;)Z
@@ -556,7 +494,6 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun get (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun getEntries ()Ljava/util/Set;
 	public fun getKeys ()Ljava/util/Set;
-	public final fun getOrDefault (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun getSize ()I
 	public fun getValues ()Ljava/util/Collection;
 	public fun hashCode ()I
@@ -570,27 +507,8 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public final fun values ()Ljava/util/Collection;
 }
 
-public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/util/Lock;Lio/ktor/util/collections/ConcurrentMap;)V
-	public synthetic fun <init> (Lio/ktor/util/Lock;Lio/ktor/util/collections/ConcurrentMap;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun add (Ljava/lang/Object;)Z
-	public fun addAll (Ljava/util/Collection;)Z
-	public fun clear ()V
-	public fun contains (Ljava/lang/Object;)Z
-	public fun containsAll (Ljava/util/Collection;)Z
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getSize ()I
-	public fun hashCode ()I
-	public fun isEmpty ()Z
-	public fun iterator ()Ljava/util/Iterator;
-	public fun remove (Ljava/lang/Object;)Z
-	public fun removeAll (Ljava/util/Collection;)Z
-	public fun retainAll (Ljava/util/Collection;)Z
-	public final fun size ()I
-	public fun toArray ()[Ljava/lang/Object;
-	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
+public final class io/ktor/util/collections/ConcurrentSetKt {
+	public static final fun ConcurrentSet ()Ljava/util/Set;
 }
 
 public final class io/ktor/util/collections/CopyOnWriteHashMap {

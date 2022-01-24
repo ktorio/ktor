@@ -37,12 +37,9 @@ internal fun HttpClientCall(
  * @property client: client that executed the call.
  */
 public open class HttpClientCall internal constructor(
-    client: HttpClient
+    public val client: HttpClient
 ) : CoroutineScope {
-    private val state = HttpClientCallState()
     private val received: AtomicBoolean = atomic(false)
-
-    public val client: HttpClient? by threadLocal(client)
 
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
@@ -54,20 +51,14 @@ public open class HttpClientCall internal constructor(
     /**
      * Represents the [request] sent by the client
      */
-    public var request: HttpRequest
-        get() = state.request ?: error("Internal error: HttpClientCall $this wasn't initialized")
-        internal set(value) {
-            state.request = value
-        }
+    public lateinit var request: HttpRequest
+        internal set
 
     /**
      * Represents the [response] sent by the server.
      */
-    public var response: HttpResponse
-        get() = state.response ?: error("Internal error: HttpClientCall $this wasn't initialized")
-        internal set(value) {
-            state.response = value
-        }
+    public lateinit var response: HttpResponse
+        internal set
 
     protected open val allowDoubleReceive: Boolean = false
 
@@ -93,9 +84,8 @@ public open class HttpClientCall internal constructor(
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
-            val currentClient = client ?: error("Failed to receive call($this) in different native thread.")
+            val result = client.responsePipeline.execute(this, subject).response
 
-            val result = currentClient.responsePipeline.execute(this, subject).response
             if (!result.instanceOf(info.type)) {
                 val from = result::class
                 val to = info.type
@@ -126,11 +116,6 @@ public open class HttpClientCall internal constructor(
         )
         public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
-}
-
-internal expect class HttpClientCallState() {
-    var request: HttpRequest?
-    var response: HttpResponse?
 }
 
 /**

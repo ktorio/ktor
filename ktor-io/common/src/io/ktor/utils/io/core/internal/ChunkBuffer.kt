@@ -21,7 +21,7 @@ public open class ChunkBuffer(
     /**
      * Reference to an origin buffer view this was copied from
      */
-    public var origin: ChunkBuffer? by shared(origin)
+    public var origin: ChunkBuffer? = origin
         private set
 
     /**

@@ -7,12 +7,9 @@ package io.ktor.server.testing
 import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import io.ktor.util.collections.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.jvm.*
 
 /**
  * Represents a test application request
@@ -23,7 +20,6 @@ import kotlin.jvm.*
  * @property port (Optional) HTTP port to send request to
  * @property protocol HTTP protocol to be used or was used
  */
-@Suppress("DEPRECATION")
 public class TestApplicationRequest constructor(
     call: TestApplicationCall,
     closeRequest: Boolean,
@@ -33,11 +29,11 @@ public class TestApplicationRequest constructor(
     version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
 
-    var uri by shared(uri)
-    var protocol: String by shared("http")
-    var port by shared(port)
-    var version by shared(version)
-    var method by shared(method)
+    var uri = uri
+    var protocol: String = "http"
+    var port = port
+    var version = version
+    var method = method
 
     override val local: RequestConnectionPoint = object : RequestConnectionPoint {
         override val uri: String
@@ -67,27 +63,27 @@ public class TestApplicationRequest constructor(
     /**
      * Request body channel
      */
-    var bodyChannel: ByteReadChannel by shared(if (closeRequest) ByteReadChannel.Empty else ByteChannel())
+    var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
-    override val queryParameters: Parameters by sharedLazy { encodeParameters(rawQueryParameters) }
+    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
 
-    override val rawQueryParameters: Parameters by sharedLazy {
+    override val rawQueryParameters: Parameters by lazy {
         parseQueryString(queryString(), decode = false)
     }
 
     override val cookies: RequestCookies = RequestCookies(this)
 
-    private var headersMap: MutableMap<String, MutableList<String>>? by shared(sharedMap())
+    private var headersMap: MutableMap<String, MutableList<String>>? = mutableMapOf()
 
     /**
      * Add HTTP request header
      */
     public fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
-        map.getOrPut(name) { sharedListOf() }.add(value)
+        map.getOrPut(name) { mutableListOf() }.add(value)
     }
 
-    override val headers: Headers by sharedLazy {
+    override val headers: Headers by lazy {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
         Headers.build {

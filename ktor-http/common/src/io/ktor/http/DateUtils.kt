@@ -7,7 +7,6 @@ package io.ktor.http
 import io.ktor.util.date.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val HTTP_DATE_FORMATS = listOf(
     "***, dd MMM YYYY hh:mm:ss zzz",
     "****, dd-MMM-YYYY hh:mm:ss zzz",

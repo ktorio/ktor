@@ -84,6 +84,7 @@ public class ResponseObserver(
 /**
  * Install [ResponseObserver] plugin in client.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {
     install(ResponseObserver) {
         responseHandler = block

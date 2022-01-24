@@ -32,6 +32,7 @@ import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration> actual constructor(
@@ -39,10 +40,8 @@ actual abstract class EngineTestBase<
 ) : CoroutineScope {
     private val testJob = Job()
 
-    @OptIn(ObsoleteCoroutinesApi::class)
-    protected val testDispatcher: ExecutorCoroutineDispatcher by lazy {
-        newFixedThreadPoolContext(32, "dispatcher-${test.methodName}")
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    protected val testDispatcher = Dispatchers.IO.limitedParallelism(32)
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
@@ -53,7 +52,7 @@ actual abstract class EngineTestBase<
     protected actual var server: TEngine? = null
     protected var callGroupSize: Int = -1
         private set
-    protected val exceptions: ArrayList<Throwable> = ArrayList<Throwable>()
+    protected val exceptions: ArrayList<Throwable> = ArrayList()
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
     protected actual var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
@@ -114,14 +113,6 @@ actual abstract class EngineTestBase<
             }
         } finally {
             testJob.cancel()
-            val closeThread = thread(start = false, name = "shutdown-test-${test.methodName}") {
-                testDispatcher.close()
-            }
-            testJob.invokeOnCompletion {
-                closeThread.start()
-            }
-            closeThread.join(TimeUnit.SECONDS.toMillis(timeout))
-
             FreePorts.recycle(port)
             FreePorts.recycle(sslPort)
         }
@@ -352,13 +343,14 @@ actual abstract class EngineTestBase<
             trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
         }
 
+        @Suppress("BlockingMethodInNonBlockingContext")
         private suspend fun waitForPort(port: Int) {
             do {
                 delay(50)
                 try {
                     Socket("localhost", port).close()
                     break
-                } catch (expected: IOException) {
+                } catch (_: IOException) {
                 }
             } while (true)
         }

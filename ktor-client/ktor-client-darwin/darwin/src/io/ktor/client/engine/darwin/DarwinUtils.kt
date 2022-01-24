@@ -6,7 +6,6 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.call.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
@@ -25,6 +24,7 @@ internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     else -> throw UnsupportedContentTypeException(this)
 }
 
+@OptIn(UnsafeNumber::class)
 internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -32,6 +32,7 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
+@OptIn(UnsafeNumber::class)
 internal fun NSData.toByteArray(): ByteArray {
     val data: CPointer<ByteVar> = bytes!!.reinterpret()
     return ByteArray(length.toInt()) { index -> data[index] }

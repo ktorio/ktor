@@ -5,17 +5,16 @@
 package io.ktor.network.selector
 
 import io.ktor.network.util.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
 internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int
-    private var remaining: Int by shared(0)
+    private var remaining: Int by atomic(0)
 
     val selectionDescriptor: Int
         get() = readDescriptor
@@ -34,8 +33,6 @@ internal class SignalPoint : Closeable {
 
         readDescriptor = read
         writeDescriptor = write
-
-        makeShared()
     }
 
     fun check() {
@@ -44,6 +41,7 @@ internal class SignalPoint : Closeable {
         }
     }
 
+    @OptIn(UnsafeNumber::class)
     fun signal() {
         if (remaining > 0) return
 
@@ -65,6 +63,7 @@ internal class SignalPoint : Closeable {
         close(readDescriptor)
     }
 
+    @OptIn(UnsafeNumber::class)
     private fun readFromPipe(): Int {
         var count = 0
 

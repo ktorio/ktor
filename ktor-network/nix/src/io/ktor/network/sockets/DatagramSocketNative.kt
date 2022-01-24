@@ -56,10 +56,6 @@ internal class DatagramSocketNative(
     override val outgoing: SendChannel<Datagram>
         get() = sender
 
-    init {
-        makeShared()
-    }
-
     override fun close() {
         receiver.cancel()
         _context.complete()
@@ -85,6 +81,7 @@ internal class DatagramSocketNative(
         }
     }
 
+    @OptIn(UnsafeNumber::class)
     private fun tryReadDatagram(): Datagram? = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()

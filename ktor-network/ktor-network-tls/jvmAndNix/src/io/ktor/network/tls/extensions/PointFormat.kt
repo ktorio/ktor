@@ -30,7 +30,7 @@ public enum class PointFormat(public val code: Byte) {
 /**
  * List of supported curve point formats
  */
-@SharedImmutable
+
 public val SupportedPointFormats: List<PointFormat> = listOf(
     PointFormat.UNCOMPRESSED,
     PointFormat.ANSIX962_COMPRESSED_PRIME,

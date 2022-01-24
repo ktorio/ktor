@@ -21,7 +21,7 @@ public typealias HttpRequestHandler = suspend ServerRequestScope.(request: Reque
     "This is an implementation detail and will become internal in future releases.",
     level = DeprecationLevel.ERROR
 )
-@SharedImmutable
+
 public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
 /**
@@ -31,7 +31,7 @@ public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
     "This is an implementation detail and will become internal in future releases.",
     level = DeprecationLevel.ERROR
 )
-@SharedImmutable
+
 public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
 
 /**
@@ -41,5 +41,5 @@ public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipe
     "This is an implementation detail and will become internal in future releases.",
     level = DeprecationLevel.ERROR
 )
-@SharedImmutable
+
 public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")

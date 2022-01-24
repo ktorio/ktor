@@ -73,3 +73,9 @@ kotlin {
         }
     }
 }
+
+val macosArm64Test: Task by tasks
+val linkDebugTestMacosArm64: Task by tasks
+
+macosArm64Test.onlyIf { false }
+linkDebugTestMacosArm64.onlyIf { false }

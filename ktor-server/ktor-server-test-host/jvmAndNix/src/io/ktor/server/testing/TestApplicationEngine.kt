@@ -28,8 +28,8 @@ class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
-    private val testEngineJob by shared(Job(environment.parentCoroutineContext[Job]))
-    private var cancellationDeferred: CompletableJob? by shared(null)
+    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private var cancellationDeferred: CompletableJob? = null
     private val isStarted = atomic(false)
 
     override val coroutineContext: CoroutineContext = testEngineJob
@@ -39,7 +39,7 @@ class TestApplicationEngine(
      * @property dispatcher to run handlers and interceptors on
      */
     class Configuration : BaseApplicationEngine.Configuration() {
-        var dispatcher: CoroutineContext by shared(Dispatchers.IOBridge)
+        var dispatcher: CoroutineContext = Dispatchers.IOBridge
     }
 
     internal val configuration = Configuration().apply(configure)
@@ -69,11 +69,11 @@ class TestApplicationEngine(
     val client: HttpClient
         get() = _client.value!!
 
-    private var processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit by shared {
+    private var processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit = {
         it()
     }
 
-    internal var processResponse: TestApplicationCall.() -> Unit by shared { }
+    internal var processResponse: TestApplicationCall.() -> Unit = { }
 
     init {
         pipeline.intercept(EnginePipeline.Call) { callInterceptor(Unit) }

@@ -85,5 +85,4 @@ public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
  */
 @OptIn(InternalAPI::class)
 @PublicAPICandidate("1.6.0")
-@SharedImmutable
 internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")

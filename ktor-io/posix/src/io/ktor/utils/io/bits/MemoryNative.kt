@@ -67,6 +67,7 @@ public actual class Memory constructor(
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
+    @OptIn(UnsafeNumber::class)
     public actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
@@ -83,7 +84,7 @@ public actual class Memory constructor(
 
         if (length == 0) return
 
-        platform.posix.memcpy(
+        memcpy(
             destination.pointer + destinationOffset,
             pointer + offset,
             length.convert()
@@ -95,6 +96,7 @@ public actual class Memory constructor(
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
+    @OptIn(UnsafeNumber::class)
     public actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
         require(offset >= 0L) { "offset shouldn't be negative: $offset" }
         require(length >= 0L) { "length shouldn't be negative: $length" }
@@ -111,7 +113,7 @@ public actual class Memory constructor(
 
         if (length == 0L) return
 
-        platform.posix.memcpy(
+        memcpy(
             destination.pointer + destinationOffset,
             pointer + offset,
             length.convert()
@@ -224,6 +226,7 @@ internal inline fun Double.toBigEndian(): Double = when {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
@@ -238,6 +241,7 @@ public actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
+@OptIn(UnsafeNumber::class)
 public actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
@@ -267,6 +271,7 @@ public fun Memory.copyTo(
  * Copy content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
+@OptIn(UnsafeNumber::class)
 public fun Memory.copyTo(
     destination: CPointer<ByteVar>,
     offset: Long,
@@ -293,6 +298,7 @@ public fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Int, length: In
  * Copy [length] bytes to the [destination] at the specified [destinationOffset]
  * from the memory addressed by this pointer with [offset] in bytes.
  */
+@OptIn(UnsafeNumber::class)
 public fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")

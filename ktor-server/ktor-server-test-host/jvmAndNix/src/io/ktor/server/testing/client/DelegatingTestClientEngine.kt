@@ -22,8 +22,8 @@ internal class DelegatingTestClientEngine(
     override val dispatcher = Dispatchers.IOBridge
     override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability)
 
-    private val appEngine by sharedLazy(config.appEngineProvider)
-    private val externalEngines by sharedLazy {
+    private val appEngine by lazy(config.appEngineProvider)
+    private val externalEngines by lazy {
         val engines = mutableMapOf<String, TestHttpClientEngine>()
         config.externalApplicationsProvider().forEach { (authority, testApplication) ->
             engines[authority] = TestHttpClientEngine(
@@ -32,10 +32,10 @@ internal class DelegatingTestClientEngine(
         }
         engines.toMap()
     }
-    private val mainEngine by sharedLazy {
+    private val mainEngine by lazy {
         TestHttpClientEngine(TestHttpClientConfig().apply { app = appEngine })
     }
-    private val mainEngineHostWithPort by sharedLazy {
+    private val mainEngineHostWithPort by lazy {
         runBlocking { appEngine.resolvedConnectors().first().let { "${it.host}:${it.port}" } }
     }
 

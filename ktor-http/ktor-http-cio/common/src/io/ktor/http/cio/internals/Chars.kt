@@ -6,7 +6,6 @@ package io.ktor.http.cio.internals
 
 import io.ktor.http.*
 import io.ktor.utils.io.*
-import kotlin.native.concurrent.*
 
 internal const val HTAB: Char = '\u0009'
 
@@ -34,11 +33,9 @@ internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, oth
 private inline fun Int.toLowerCase() =
     if (this in 'A'.code..'Z'.code) 'a'.code + (this - 'A'.code) else this
 
-@SharedImmutable
 internal val DefaultHttpMethods =
     AsciiCharTree.build(HttpMethod.DefaultMethods, { it.value.length }, { m, idx -> m.value[idx] })
 
-@SharedImmutable
 private val HexTable = (0..0xff).map { v ->
     when {
         v in 0x30..0x39 -> v - 0x30L
@@ -48,7 +45,6 @@ private val HexTable = (0..0xff).map { v ->
     }
 }.toLongArray()
 
-@SharedImmutable
 internal val HexLetterTable: ByteArray = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).code.toByte()
 }.toByteArray()

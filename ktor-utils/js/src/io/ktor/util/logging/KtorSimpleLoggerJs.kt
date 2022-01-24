@@ -4,6 +4,7 @@
 
 package io.ktor.util.logging
 
+@Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
     override fun error(message: String) {
         console.error(message)

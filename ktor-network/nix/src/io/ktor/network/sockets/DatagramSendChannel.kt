@@ -17,9 +17,7 @@ import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
 import platform.posix.*
 
-@SharedImmutable
 private val CLOSED: (Throwable?) -> Unit = {}
-@SharedImmutable
 private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
 
 internal class DatagramSendChannel(
@@ -51,7 +49,7 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @OptIn(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
 
@@ -104,6 +102,7 @@ internal class DatagramSendChannel(
         }
     }
 
+    @OptIn(UnsafeNumber::class)
     private tailrec suspend fun sendImpl(
         datagram: Datagram,
         bytes: ByteArray = datagram.packet.readBytes()

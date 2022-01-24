@@ -14,18 +14,13 @@ import kotlin.collections.set
 /**
  * Mutable configuration used by [HttpClient].
  */
-@Suppress("DEPRECATION")
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
-    @OptIn(InternalAPI::class)
-    private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
-    @OptIn(InternalAPI::class)
-    private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
+    private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = mutableMapOf()
+    private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = mutableMapOf()
+    private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = mutableMapOf()
 
-    @OptIn(InternalAPI::class)
-    private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = sharedMap()
-
-    internal var engineConfig: T.() -> Unit by shared {}
+    internal var engineConfig: T.() -> Unit = {}
 
     /**
      * Configure engine parameters.
@@ -41,22 +36,22 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     /**
      * Use [HttpRedirect] plugin to automatically follow redirects.
      */
-    public var followRedirects: Boolean by shared(true)
+    public var followRedirects: Boolean = true
 
     /**
      * Use [defaultTransformers] to automatically handle simple [ContentType].
      */
-    public var useDefaultTransformers: Boolean by shared(true)
+    public var useDefaultTransformers: Boolean = true
 
     /**
      * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
      */
-    public var expectSuccess: Boolean by shared(true)
+    public var expectSuccess: Boolean = true
 
     /**
      * Indicate if client should use development mode. In development mode client pipelines have advanced stack traces.
      */
-    public var developmentMode: Boolean by shared(PlatformUtils.IS_DEVELOPMENT_MODE)
+    public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
     /**
      * Installs a specific [plugin] and optionally [configure] it.

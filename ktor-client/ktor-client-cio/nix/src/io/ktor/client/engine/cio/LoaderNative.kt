@@ -9,7 +9,6 @@ import io.ktor.util.*
 
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
-@SharedImmutable
 @EagerInitialization
 private val initHook = CIO
 

@@ -17,30 +17,23 @@ import kotlin.native.concurrent.*
 private typealias Node = LockFreeLinkedListNode
 
 @PublishedApi
-@SharedImmutable
 internal const val UNDECIDED: Int = 0
 
 @PublishedApi
-@SharedImmutable
 internal const val SUCCESS: Int = 1
 
 @PublishedApi
-@SharedImmutable
 internal const val FAILURE: Int = 2
 
 @PublishedApi
-@SharedImmutable
 internal val CONDITION_FALSE: Any = Symbol("CONDITION_FALSE")
 
 @PublishedApi
-@SharedImmutable
 internal val ALREADY_REMOVED: Any = Symbol("ALREADY_REMOVED")
 
 @PublishedApi
-@SharedImmutable
 internal val LIST_EMPTY: Any = Symbol("LIST_EMPTY")
 
-@SharedImmutable
 private val REMOVE_PREPARED: Any = Symbol("REMOVE_PREPARED")
 
 /** @suppress **This is unstable API and it is subject to change.** */
@@ -70,7 +63,6 @@ public abstract class OpDescriptor {
     public abstract fun perform(affected: Any?): Any?
 }
 
-@SharedImmutable
 private val NO_DECISION: Any = Symbol("NO_DECISION")
 
 /**
@@ -440,7 +432,7 @@ public open class LockFreeLinkedListNode {
 
         private val _affectedNode = atomic<Node?>(null)
         final override val affectedNode: Node? get() = _affectedNode.value
-        final override val originalNext: Node? get() = queue
+        final override val originalNext: Node get() = queue
 
         override fun retry(affected: Node, next: Any): Boolean = next !== queue
 

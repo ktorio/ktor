@@ -33,7 +33,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	protected final fun getSocketReadTimeout ()I
 	protected final fun getSslPort ()I
 	public final fun getTest ()Lorg/junit/rules/TestName;
-	protected final fun getTestDispatcher ()Lkotlinx/coroutines/ExecutorCoroutineDispatcher;
+	protected final fun getTestDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getTestLog ()Lorg/slf4j/Logger;
 	public fun getTimeout ()J
 	public final fun getTimeoutRule ()Lkotlinx/coroutines/debug/junit4/CoroutinesTimeout;

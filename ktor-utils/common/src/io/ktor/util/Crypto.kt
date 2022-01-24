@@ -11,7 +11,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val digits = "0123456789abcdef".toCharArray()
 
 /**

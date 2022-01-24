@@ -25,13 +25,13 @@ internal class CIOApplicationResponse(
     private val userDispatcher: CoroutineContext,
     private val upgraded: CompletableDeferred<Boolean>?
 ) : BaseApplicationResponse(call) {
-    private var statusCode: HttpStatusCode by shared(HttpStatusCode.OK)
-    private val headersNames = sharedList<String>()
-    private val headerValues = sharedList<String>()
+    private var statusCode: HttpStatusCode = HttpStatusCode.OK
+    private val headersNames = mutableListOf<String>()
+    private val headerValues = mutableListOf<String>()
 
-    private var chunkedChannel: ByteWriteChannel? by shared(null)
+    private var chunkedChannel: ByteWriteChannel? = null
 
-    private var chunkedJob: Job? by shared(null)
+    private var chunkedJob: Job? = null
 
     override val headers = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {

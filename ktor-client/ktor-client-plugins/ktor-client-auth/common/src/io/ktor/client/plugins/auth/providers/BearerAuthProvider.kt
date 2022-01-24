@@ -10,8 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
 
 /**
  * Adds [BearerAuthProvider] to the client's [Auth] providers.
@@ -79,8 +77,6 @@ public class BearerAuthProvider(
     private val realm: String?
 ) : AuthProvider {
 
-    private val refreshTokensDeferred = atomic<CompletableDeferred<BearerTokens?>?>(null)
-
     @Suppress("OverridingDeprecatedMember")
     @Deprecated("Please use sendWithoutRequest function instead")
     override val sendWithoutRequest: Boolean
@@ -118,12 +114,12 @@ public class BearerAuthProvider(
 
     public override suspend fun refreshToken(response: HttpResponse): Boolean {
         val newToken = tokensHolder.setToken {
-            refreshTokens(RefreshTokensParams(response.call.client!!, response, tokensHolder.loadToken()))
+            refreshTokens(RefreshTokensParams(response.call.client, response, tokensHolder.loadToken()))
         }
         return newToken != null
     }
 
-    public suspend fun clearToken() {
+    public fun clearToken() {
         tokensHolder.clearToken()
     }
 }

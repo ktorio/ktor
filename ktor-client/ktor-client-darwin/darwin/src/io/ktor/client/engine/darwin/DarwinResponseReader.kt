@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import platform.Foundation.*
@@ -26,7 +27,7 @@ internal class DarwinResponseReader(
 
     private val requestTime = GMTDate()
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, UnsafeNumber::class)
     suspend fun awaitResponse(): HttpResponseData {
         val response = rawResponse.await()
 
@@ -103,6 +104,7 @@ internal class DarwinResponseReader(
         completionHandler(null)
     }
 
+    @OptIn(UnsafeNumber::class)
     override fun URLSession(
         session: NSURLSession,
         task: NSURLSessionTask,

@@ -12,11 +12,10 @@ import java.lang.reflect.*
 import kotlin.test.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
+@OptIn(DelicateCoroutinesApi::class)
 class BlockingContentParkingTest {
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("BlockingContentParkingTest")
     private val channel = ByteChannel(true)
-    @OptIn(DelicateCoroutinesApi::class)
     private val consumer = GlobalScope.launch {
         channel.discard()
     }

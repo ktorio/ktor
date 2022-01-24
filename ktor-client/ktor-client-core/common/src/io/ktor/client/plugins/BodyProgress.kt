@@ -16,11 +16,9 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val UploadProgressListenerAttributeKey =
     AttributeKey<ProgressListener>("UploadProgressListenerAttributeKey")
 
-@SharedImmutable
 private val DownloadProgressListenerAttributeKey =
     AttributeKey<ProgressListener>("DownloadProgressListenerAttributeKey")
 

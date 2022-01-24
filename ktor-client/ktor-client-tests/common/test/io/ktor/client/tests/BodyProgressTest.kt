@@ -29,7 +29,7 @@ class BodyProgressTest : ClientLoader() {
     @Serializable
     data class User(val login: String, val id: Long)
 
-    private var invokedCount: Long by shared(0)
+    private var invokedCount: Long = 0
 
     @Test
     fun testSendDataClass() = clientTests {
