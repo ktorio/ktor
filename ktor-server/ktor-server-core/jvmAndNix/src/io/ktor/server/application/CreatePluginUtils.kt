@@ -198,5 +198,5 @@ private fun <Configuration : Any, Plugin : ApplicationPluginBuilder<Configuratio
         it.action(pipeline.sendPipeline)
     }
 
-    hooks.forEach { it.install(application) }
+    hooks.forEach { it.install(pipeline) }
 }
