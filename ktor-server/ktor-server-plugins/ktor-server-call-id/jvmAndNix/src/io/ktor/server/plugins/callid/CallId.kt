@@ -6,17 +6,16 @@ package io.ktor.server.plugins.callid
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.CopyableThrowable
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.slf4j.LoggerFactory
-import kotlin.random.Random
-import kotlin.reflect.jvm.jvmName
+import kotlinx.coroutines.*
+import org.slf4j.*
+import kotlin.random.*
+import kotlin.reflect.jvm.*
 
 /**
  * A function that retrieves or generates call id using provided call
