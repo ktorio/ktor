@@ -51,9 +51,7 @@ public val DefaultJson: Json = Json {
  * @param contentType to register with, `application/json` by default
  */
 @OptIn(ExperimentalSerializationApi::class)
-public fun Configuration.json(
+public expect fun Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
-) {
-    serialization(contentType, json)
-}
+)

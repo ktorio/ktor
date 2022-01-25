@@ -8,11 +8,14 @@ import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import java.io.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -36,15 +39,32 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         return serializeNullable(contentType, charset, typeInfo, value)
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun serializeNullable(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
-        return TextContent(gson.toJson(value), contentType.withCharsetIfNeeded(charset))
+        return OutputStreamContent(
+            {
+                val writer = this.writer(charset = charset)
+                // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in Writer
+                if (typeInfo.type == Flow::class) {
+                    (value as Flow<*>).serializeJson(writer)
+                } else {
+                    // non flow content
+                    gson.toJson(value, writer)
+                }
+
+                // must flush manually
+                writer.flush()
+            },
+            contentType.withCharsetIfNeeded(charset)
+        )
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         if (gson.isExcluded(typeInfo.type)) {
             throw ExcludedTypeGsonException(typeInfo.type)
@@ -52,12 +72,47 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
         try {
             return withContext(Dispatchers.IO) {
+                // specific behavior for Sequence : collect it into a List
+                var isSequence = false
+                val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
+                    isSequence = true
+                    typeInfo.sequenceToListTypeInfo()
+                } else {
+                    typeInfo
+                }
                 val reader = content.toInputStream().reader(charset)
-                gson.fromJson(reader, typeInfo.reifiedType)
+                val decoded: Any? = gson.fromJson(reader, resolvedTypeInfo.reifiedType)
+
+                if (decoded != null && isSequence) {
+                    (decoded as List<*>).asSequence()
+                } else {
+                    decoded
+                }
             }
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
+    }
+
+    private companion object {
+        private const val beginArrayCharCode = '['.code
+        private const val endArrayCharCode = ']'.code
+        private const val objectSeparator = ','.code
+    }
+
+    /**
+     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
+     */
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun <T> Flow<T>.serializeJson(writer: Writer) {
+        writer.write(beginArrayCharCode)
+        collectIndexed { index, value ->
+            if (index > 0) {
+                writer.write(objectSeparator)
+            }
+            gson.toJson(value, writer)
+        }
+        writer.write(endArrayCharCode)
     }
 }
 

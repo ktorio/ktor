@@ -35,6 +35,10 @@ public final class io/ktor/serialization/JsonConvertException : io/ktor/serializ
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class io/ktor/serialization/TypeInfoExtensionJvmKt {
+	public static final fun sequenceToListTypeInfo (Lio/ktor/util/reflect/TypeInfo;)Lio/ktor/util/reflect/TypeInfo;
+}
+
 public class io/ktor/serialization/WebsocketContentConvertException : io/ktor/serialization/ContentConvertException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

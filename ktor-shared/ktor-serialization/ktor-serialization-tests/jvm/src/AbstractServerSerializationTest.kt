@@ -1,7 +1,7 @@
 /*
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
-package io.ktor.serialization.kotlinx.test
+package io.ktor.serialization.test
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,21 +11,22 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
+import java.nio.charset.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
 public abstract class AbstractServerSerializationTest {
-    protected val serializer: KSerializer<TestEntity> = TestEntity.serializer()
-
     protected abstract val defaultContentType: ContentType
     protected abstract val customContentType: ContentType
     protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
 
     protected abstract fun simpleSerialize(any: TestEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): TestEntity
+    protected abstract fun simpleDeserializeList(t: ByteArray, charset: Charset = Charsets.UTF_8): List<TestEntity>
 
-    protected fun withTestSerializingApplication(block: suspend TestApplicationEngine.() -> Unit): Unit =
+    private fun withTestSerializingApplication(block: suspend TestApplicationEngine.() -> Unit): Unit =
         withTestApplication {
             application.install(ContentNegotiation) {
                 configureContentNegotiation(defaultContentType)
@@ -39,6 +40,12 @@ public abstract class AbstractServerSerializationTest {
                     val entity = call.receive<TestEntity>()
                     assertEquals(999, entity.x)
                     call.respondText("OK")
+                }
+                get("/list") {
+                    call.respond(testEntities)
+                }
+                get("/flow") {
+                    call.respond(testEntities.asFlow())
                 }
             }
 
@@ -85,6 +92,38 @@ public abstract class AbstractServerSerializationTest {
     }
 
     @Test
+    public fun testListNoAcceptUtf8(): Unit = withTestSerializingApplication {
+        handleRequest(HttpMethod.Get, "/list").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
+    }
+
+    @Test
+    public fun testListNoAcceptUtf16(): Unit = withTestSerializingApplication {
+        handleRequest(HttpMethod.Get, "/list") {
+            addHeader("Accept-Charset", "UTF-16")
+        }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
+    }
+
+    @Test
+    public fun testFlowNoAcceptUtf8(): Unit = withTestSerializingApplication {
+        handleRequest(HttpMethod.Get, "/flow").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
+    }
+
+    @Test
+    public fun testFlowNoAcceptUtf16(): Unit = withTestSerializingApplication {
+        handleRequest(HttpMethod.Get, "/flow") {
+            addHeader("Accept-Charset", "UTF-16")
+        }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
+    }
+
+    private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
+        assertEquals(HttpStatusCode.OK, response.status())
+        val bytes = response.byteContent
+        assertNotNull(bytes)
+        val listEntity = simpleDeserializeList(bytes, charset)
+        assertEquals(testEntities, listEntity)
+    }
+
+    @Test
     public fun testParseWithContentType(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Put, "/parse") {
             addHeader(HttpHeaders.ContentType, defaultContentType.toString())
@@ -96,5 +135,9 @@ public abstract class AbstractServerSerializationTest {
     }
 
     @Serializable
-    public data class TestEntity(val x: Int)
+    public data class TestEntity(val x: Int, val y: String? = null)
+
+    private companion object {
+        private val testEntities = listOf(TestEntity(111, "ൠ"), TestEntity(222))
+    }
 }

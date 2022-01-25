@@ -11,12 +11,15 @@ import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlin.text.Charsets
+import kotlinx.coroutines.flow.*
+import java.io.*
+import kotlin.text.*
 
 /**
  * A content converter that uses [Jackson]
@@ -65,25 +68,58 @@ public class JacksonConverter(
         }
         return OutputStreamContent(
             {
+                /*
+                Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
+                InputStream instead of a Writer to let Jackson do its thing.
+                */
                 if (charset == Charsets.UTF_8) {
-                    /*
-                    Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
-                    InputStream instead of a writer to let Jackson do it's thing.
-                     */
-                    objectMapper.writeValue(this, value)
+                    // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in OutputStream
+                    if (typeInfo.type == Flow::class) {
+                        (value as Flow<*>).serializeJson(this)
+                    } else {
+                        // non flow content
+                        objectMapper.writeValue(this, value)
+                    }
                 } else {
-                    objectMapper.writeValue(this.writer(charset = charset), value)
+                    // For other charsets, we use a Writer
+                    val writer = this.writer(charset = charset)
+
+                    // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in Writer
+                    if (typeInfo.type == Flow::class) {
+                        (value as Flow<*>).serializeJson(writer)
+                    } else {
+                        // non flow content
+                        objectMapper.writeValue(writer, value)
+                    }
                 }
             },
             contentType.withCharsetIfNeeded(charset)
         )
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         try {
             return withContext(Dispatchers.IO) {
+                // specific behavior for Sequence : collect it into a List
+                var isSequence = false
+                val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
+                    isSequence = true
+                    typeInfo.sequenceToListTypeInfo()
+                } else {
+                    typeInfo
+                }
                 val reader = content.toInputStream().reader(charset)
-                objectMapper.readValue(reader, objectMapper.constructType(typeInfo.reifiedType))
+                val decoded: Any? = objectMapper.readValue(
+                    reader,
+                    objectMapper.constructType(resolvedTypeInfo.reifiedType)
+                )
+
+                if (decoded != null && isSequence) {
+                    (decoded as List<*>).asSequence()
+                } else {
+                    decoded
+                }
             }
         } catch (deserializeFailure: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
@@ -94,6 +130,55 @@ public class JacksonConverter(
                 else -> throw deserializeFailure
             }
         }
+    }
+
+    private companion object {
+        private const val beginArrayCharCode = '['.code
+        private const val endArrayCharCode = ']'.code
+        private const val objectSeparator = ','.code
+    }
+
+    /**
+     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
+     */
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun <T> Flow<T>.serializeJson(outputStream: OutputStream) {
+        val jfactory = JsonFactory()
+        // cannot use ObjectMapper write to Stream because it flushes the OutputStream
+        val jGenerator = jfactory.createGenerator(outputStream, JsonEncoding.UTF8)
+        jGenerator.codec = objectMapper
+
+        outputStream.write(beginArrayCharCode)
+        collectIndexed { index, value ->
+            if (index > 0) {
+                outputStream.write(objectSeparator)
+            }
+            jGenerator.writeObject(value)
+        }
+        outputStream.write(endArrayCharCode)
+    }
+
+    /**
+     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
+     */
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun <T> Flow<T>.serializeJson(writer: Writer) {
+        val jfactory = JsonFactory()
+        // cannot use ObjectMapper write to Stream because it flushes the OutputStream
+        val jGenerator = jfactory.createGenerator(writer)
+        jGenerator.configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
+        jGenerator.codec = objectMapper
+
+        writer.write(beginArrayCharCode)
+        collectIndexed { index, value ->
+            if (index > 0) {
+                writer.write(objectSeparator)
+            }
+            jGenerator.writeObject(value)
+        }
+        writer.write(endArrayCharCode)
+        // must flush manually
+        writer.flush()
     }
 }
 

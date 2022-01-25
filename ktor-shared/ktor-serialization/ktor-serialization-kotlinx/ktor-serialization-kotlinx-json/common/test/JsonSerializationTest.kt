@@ -119,6 +119,34 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
             )
         }
     }
+
+    @Test
+    fun testList() = testSuspend {
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val dogListJson = """[{"age": 8,"name":"Auri"}]"""
+        assertEquals(
+            listOf(DogDTO(8, "Auri")),
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<List<DogDTO>>(),
+                ByteReadChannel(dogListJson.toByteArray())
+            )
+        )
+    }
+
+    @Test
+    fun testSequence() = testSuspend {
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val dogListJson = """[{"age": 8,"name":"Auri"}]"""
+        assertContentEquals(
+            sequenceOf(DogDTO(8, "Auri")),
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<Sequence<DogDTO>>(),
+                ByteReadChannel(dogListJson.toByteArray())
+            ) as Sequence<*>
+        )
+    }
 }
 
 @Serializable

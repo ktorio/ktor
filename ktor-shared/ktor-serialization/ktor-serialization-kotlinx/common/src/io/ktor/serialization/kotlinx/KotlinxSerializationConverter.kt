@@ -7,20 +7,21 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import kotlin.jvm.*
 
 /**
- * Creates a converter serializing with the specified string [format] and
+ * Creates an abstract converter serializing with the specified string [format] and
  * [defaultCharset] (optional, usually it is UTF-8).
  */
-@OptIn(ExperimentalSerializationApi::class)
-public class KotlinxSerializationConverter(
+public abstract class AbstractKotlinxSerializationConverter(
     private val format: SerialFormat,
 ) : ContentConverter {
     init {
@@ -45,16 +46,48 @@ public class KotlinxSerializationConverter(
         return serializeNullable(contentType, charset, typeInfo, value)
     }
 
+    abstract override suspend fun serializeNullable(
+        contentType: ContentType,
+        charset: Charset,
+        typeInfo: TypeInfo,
+        value: Any?
+    ): OutgoingContent
+
+    protected fun serializerFromTypeInfo(typeInfo: TypeInfo): KSerializer<*> =
+        serializerFromTypeInfo(typeInfo, format.serializersModule)
+}
+
+/**
+ * Creates a converter serializing with the specified string [format] and
+ * [defaultCharset] (optional, usually it is UTF-8).
+ */
+@OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
+public class KotlinxSerializationConverter(
+    private val format: SerialFormat,
+) : AbstractKotlinxSerializationConverter(format) {
+    init {
+        require(format is BinaryFormat || format is StringFormat) {
+            "Only binary and string formats are supported, " +
+                "$format is not supported."
+        }
+    }
+
     override suspend fun serializeNullable(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
+        // specific behavior for kotlinx.coroutines.flow.Flow : collect it into a List
+        val resolvedValue = if (typeInfo.type == Flow::class) {
+            (value as Flow<*>).toList()
+        } else {
+            value
+        }
         return serializationBase.serialize(
             SerializationNegotiationParameters(
                 format,
-                value,
+                resolvedValue,
                 typeInfo,
                 charset,
                 contentType
@@ -63,11 +96,19 @@ public class KotlinxSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        // specific behavior for Sequence : collect it into a List
+        var isSequence = false
+        val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
+            isSequence = true
+            typeInfo.sequenceToListTypeInfo()
+        } else {
+            typeInfo
+        }
+        val serializer = serializerFromTypeInfo(resolvedTypeInfo)
         val contentPacket = content.readRemaining()
 
         try {
-            return when (format) {
+            val decoded = when (format) {
                 is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
                 is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
                 else -> {
@@ -75,11 +116,17 @@ public class KotlinxSerializationConverter(
                     error("Unsupported format $format")
                 }
             }
+            return if (decoded != null && isSequence) {
+                (decoded as List<*>).asSequence()
+            } else {
+                decoded
+            }
         } catch (cause: Throwable) {
             throw JsonConvertException("Illegal input", cause)
         }
     }
 
+    @OptIn(InternalAPI::class)
     private val serializationBase = object : KotlinxSerializationBase<OutgoingContent.ByteArrayContent>(format) {
         override suspend fun serializeContent(parameters: SerializationParameters): OutgoingContent.ByteArrayContent {
             if (parameters !is SerializationNegotiationParameters) {

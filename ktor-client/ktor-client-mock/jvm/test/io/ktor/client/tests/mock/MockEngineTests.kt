@@ -77,7 +77,7 @@ class MockEngineTests {
     fun testWithContentNegotationPlugin() = runBlocking {
         val client = HttpClient(
             MockEngine { request ->
-                val bodyBytes = (request.body as OutgoingContent.ByteArrayContent).bytes()
+                val bodyBytes = (request.body as OutputStreamContent).toByteArray()
                 respondOk(String(bodyBytes))
             }
         ) {

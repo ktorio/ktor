@@ -6,16 +6,38 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import io.ktor.serialization.test.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import java.nio.charset.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-class ServerJacksonTest {
+class ServerJacksonTest : AbstractServerSerializationTest() {
+    private val objectMapper = jacksonObjectMapper()
+    override val defaultContentType: ContentType = ContentType.Application.Json
+    override val customContentType: ContentType = ContentType.parse("application/x-json")
+
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
+        register(contentType, JacksonConverter(objectMapper))
+    }
+
+    override fun simpleDeserialize(t: ByteArray): TestEntity {
+        return objectMapper.readValue(String(t), jacksonTypeRef<TestEntity>())
+    }
+
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
+        return objectMapper.readValue(String(t, charset), jacksonTypeRef<List<TestEntity>>())
+    }
+
+    override fun simpleSerialize(any: TestEntity): ByteArray {
+        return objectMapper.writeValueAsBytes(any)
+    }
+
     @Test
     fun testMap() = withTestApplication {
         val uc = "\u0422"

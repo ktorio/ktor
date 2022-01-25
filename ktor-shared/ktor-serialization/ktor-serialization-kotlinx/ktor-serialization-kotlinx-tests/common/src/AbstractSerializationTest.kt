@@ -10,6 +10,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -101,6 +102,25 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
         assertEquals(
             """[{"id":3,"path":"petya.jpg"}]""",
             serializer.testSerialize(listOf(photo)),
+            defaultSerializationFormat
+        )
+    }
+
+    @Test
+    public fun testRegisterCustomFlow(): Unit = testSuspend {
+        val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
+
+        val user = User(2, "petya")
+        val photo = Photo(3, "petya.jpg")
+
+        assertEquals(
+            """[{"id":2,"login":"petya"}]""",
+            serializer.testSerialize(flowOf(user)),
+            defaultSerializationFormat
+        )
+        assertEquals(
+            """[{"id":3,"path":"petya.jpg"}]""",
+            serializer.testSerialize(flowOf(photo)),
             defaultSerializationFormat
         )
     }
