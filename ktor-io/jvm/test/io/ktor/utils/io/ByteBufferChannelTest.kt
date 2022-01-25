@@ -123,7 +123,7 @@ class ByteBufferChannelTest {
         }
 
         try {
-            withTimeout(1000) { job.join() }
+            withTimeout(2500) { job.join() }
         } catch (e: TimeoutCancellationException) {
             fail("All bytes should be written to and read from the channel")
         }
@@ -157,7 +157,7 @@ class ByteBufferChannelTest {
         }
 
         try {
-            withTimeout() { job.join() }
+            withTimeout(2500) { job.join() }
         } catch (e: TimeoutCancellationException) {
             fail("All bytes should be written to and read from the channel")
         }
