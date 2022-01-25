@@ -68,13 +68,10 @@ internal class CIOEngine(
                 selector.coroutineContext[Job]!!.join()
             }
         }
-
-        makeShared()
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        callContext.makeShared()
 
         while (coroutineContext.isActive) {
             val endpoint = selectEndpoint(data.url, proxy)

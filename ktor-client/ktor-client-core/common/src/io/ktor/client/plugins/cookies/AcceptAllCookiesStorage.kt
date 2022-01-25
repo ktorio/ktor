@@ -16,7 +16,7 @@ import kotlin.math.*
  */
 @Suppress("DEPRECATION")
 public class AcceptAllCookiesStorage : CookiesStorage {
-    private val container: MutableList<Cookie> = sharedList()
+    private val container: MutableList<Cookie> = mutableListOf()
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Mutex()
 

@@ -12,19 +12,16 @@ import kotlin.native.concurrent.*
 /**
  * Occurs after the creation of a new request
  */
-@SharedImmutable
 public val HttpRequestCreated: EventDefinition<HttpRequestBuilder> = EventDefinition()
 
 /**
  * Occurs before sending the request, and after execution of all interceptors.
  */
-@SharedImmutable
 public val HttpRequestIsReadyForSending: EventDefinition<HttpRequestBuilder> = EventDefinition()
 
 /**
  * Occurs after responses headers have been received.
  */
-@SharedImmutable
 public val HttpResponseReceived: EventDefinition<HttpResponse> = EventDefinition()
 
 /**
@@ -35,11 +32,9 @@ public class HttpResponseReceiveFail(public val response: HttpResponse, public v
 /**
  * Occurs when an exception is thrown during receiving of body.
  */
-@SharedImmutable
 public val HttpResponseReceiveFailed: EventDefinition<HttpResponseReceiveFail> = EventDefinition()
 
 /**
  * Occurs when the response is cancelled due to an exception.
  */
-@SharedImmutable
 public val HttpResponseCancelled: EventDefinition<HttpResponse> = EventDefinition()

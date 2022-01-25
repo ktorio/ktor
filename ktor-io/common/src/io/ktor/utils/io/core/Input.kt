@@ -12,7 +12,6 @@ public abstract class Input(
     remaining: Long = head.remainingAll(),
     public val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Closeable {
-    private val state = InputSharedState(head, remaining)
 
     /**
      * It is `true` when it is known that no more bytes will be available. When it is `false` then this means that
@@ -42,13 +41,12 @@ public abstract class Input(
     /**
      * Current head chunk reference
      */
-    private var _head: ChunkBuffer
-        get() = state.head
+    private var _head: ChunkBuffer = head
         set(newHead) {
-            state.head = newHead
-            state.headMemory = newHead.memory
-            state.headPosition = newHead.readPosition
-            state.headEndExclusive = newHead.writePosition
+            field = newHead
+            headMemory = newHead.memory
+            headPosition = newHead.readPosition
+            headEndExclusive = newHead.writePosition
         }
 
     @PublishedApi
@@ -56,36 +54,24 @@ public abstract class Input(
         get() = _head.also { it.discardUntilIndex(headPosition) }
 
     @PublishedApi
-    internal var headMemory: Memory
-        get() = state.headMemory
-        set(value) {
-            state.headMemory = value
-        }
+    internal var headMemory: Memory = head.memory
 
     @PublishedApi
-    internal var headPosition: Int
-        get() = state.headPosition
-        set(value) {
-            state.headPosition = value
-        }
+    internal var headPosition: Int = head.readPosition
 
     @PublishedApi
-    internal var headEndExclusive: Int
-        get() = state.headEndExclusive
-        set(value) {
-            state.headEndExclusive = value
+    internal var headEndExclusive: Int = head.writePosition
+
+    @PublishedApi
+    internal var tailRemaining: Long = remaining - (headEndExclusive - headPosition)
+        set(newValue) {
+            require(newValue >= 0) { "tailRemaining shouldn't be negative: $newValue" }
+            field = newValue
         }
 
     @PublishedApi
     internal val headRemaining: Int
         inline get() = headEndExclusive - headPosition
-
-    private var tailRemaining: Long
-        get() = state.tailRemaining
-        set(newValue) {
-            require(newValue >= 0) { "tailRemaining shouldn't be negative: $newValue" }
-            state.tailRemaining = newValue
-        }
 
     internal fun prefetch(min: Long): Boolean {
         if (min <= 0) return true

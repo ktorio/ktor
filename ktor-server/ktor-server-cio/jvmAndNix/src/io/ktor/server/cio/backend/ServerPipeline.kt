@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.WeakTimeoutQueue
+import io.ktor.server.cio.internal.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -16,7 +16,6 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlin.native.concurrent.*
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -35,7 +34,6 @@ public fun CoroutineScope.startServerConnectionPipeline(
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
-    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     val actorChannel = Channel<ByteReadChannel>(capacity = 3)
 
     launch(
@@ -44,8 +42,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
     ) {
         try {
             pipelineWriterLoop(actorChannel, timeout, connection)
-        } catch (t: Throwable) {
-            connection.output.close(t)
+        } catch (cause: Throwable) {
+            connection.output.close(cause)
         } finally {
             connection.output.close()
         }
@@ -126,7 +124,6 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
-            @OptIn(ExperimentalCoroutinesApi::class)
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 val handlerScope = ServerRequestScope(
                     coroutineContext,
@@ -201,15 +198,14 @@ private suspend fun pipelineWriterLoop(
         try {
             child.joinTo(connection.output, false)
             connection.output.flush()
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             if (child is ByteWriteChannel) {
-                child.close(t)
+                child.close(cause)
             }
         }
     }
 }
 
-@SharedImmutable
 private val BadRequestPacket = RequestResponseBuilder().apply {
     responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
     headerLine("Connection", "close")

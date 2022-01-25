@@ -10,6 +10,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.coroutines.*
+import kotlin.native.concurrent.*
 
 internal class TCPServerSocketNative(
     private val descriptor: Int,

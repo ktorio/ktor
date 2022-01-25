@@ -154,7 +154,6 @@ public inline fun <reified T : Any> Route.handle(
     handle(serializer, body)
 }
 
-@SharedImmutable
 @PublishedApi
 internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInstance")
 

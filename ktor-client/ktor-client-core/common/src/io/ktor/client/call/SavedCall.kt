@@ -60,11 +60,9 @@ internal class SavedHttpResponse(
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
-    val currentClient = client ?: error("Failed to save call in different native thread.")
-
     val responseBody = response.content.readRemaining().readBytes()
 
-    return SavedHttpCall(currentClient, responseBody).also { result ->
+    return SavedHttpCall(client, responseBody).also { result ->
         result.request = SavedHttpRequest(result, request)
         result.response = SavedHttpResponse(result, responseBody, response)
     }

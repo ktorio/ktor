@@ -4,7 +4,6 @@
 
 package io.ktor.network.selector
 
-import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 internal data class EventInfo(
@@ -12,9 +11,6 @@ internal data class EventInfo(
     val interest: SelectInterest,
     private val continuation: Continuation<Unit>
 ) {
-    init {
-        makeShared()
-    }
 
     fun complete() {
         continuation.resume(Unit)

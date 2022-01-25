@@ -1,7 +1,6 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
 @file:Suppress("DEPRECATION")
 
 package io.ktor.client.plugins.json
@@ -18,5 +17,4 @@ public actual fun defaultSerializer(): JsonSerializer = serializers.first()
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-@SharedImmutable
-public val serializers: MutableList<JsonSerializer> = sharedList()
+public val serializers: MutableList<JsonSerializer> = mutableListOf()

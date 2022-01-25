@@ -19,10 +19,11 @@ internal fun ByteBuffer.decodeASCII(out: CharArray, offset: Int = 0, length: Int
     } else decodeASCII3_buffer(out, offset, length)
 }
 
+@Suppress("FunctionName")
 private fun ByteBuffer.decodeASCII3_array(out: CharArray, offset: Int, length: Int): Int {
     var pos = offset
     val end = offset + length
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 
@@ -80,7 +81,7 @@ private inline fun ByteBuffer.decodeASCII3_array(
 ): Int {
     var pos = offset
     val end = offset + length
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 

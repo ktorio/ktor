@@ -49,7 +49,7 @@ class CommonHttpClientTest {
     }
 
     class TestPlugin : Closeable {
-        var closed by shared(false)
+        var closed = false
         override fun close() {
             closed = true
         }

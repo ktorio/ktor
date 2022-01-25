@@ -13,11 +13,8 @@ import kotlin.native.concurrent.*
  */
 public fun hostIsIp(host: String): Boolean = IP_PARSER.match(host)
 
-@SharedImmutable
 private val IPv4address = digits then "." then digits then "." then digits then "." then digits
 
-@SharedImmutable
 private val IPv6address = "[" then atLeastOne(hex or ":") then "]"
 
-@SharedImmutable
 private val IP_PARSER = (IPv4address or IPv6address).buildRegexParser()

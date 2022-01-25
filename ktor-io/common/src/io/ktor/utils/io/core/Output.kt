@@ -31,55 +31,25 @@ public abstract class Output internal constructor(
      */
     protected abstract fun closeDestination()
 
-    private val state = OutputSharedState()
+    private var _head: ChunkBuffer? = null
 
-    private var _head: ChunkBuffer?
-        get() = state.head
-        set(value) {
-            state.head = value
-        }
-
-    private var _tail: ChunkBuffer?
-        get() = state.tail
-        set(value) {
-            state.tail = value
-        }
+    private var _tail: ChunkBuffer? = null
 
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
 
-    internal var tailMemory: Memory
-        get() = state.tailMemory
-        set(value) {
-            state.tailMemory = value
-        }
+    internal var tailMemory: Memory = Memory.Empty
 
-    internal var tailPosition
-        get() = state.tailPosition
-        set(value) {
-            state.tailPosition = value
-        }
+    internal var tailPosition: Int = 0
 
-    internal var tailEndExclusive
-        get() = state.tailEndExclusive
-        private set(value) {
-            state.tailEndExclusive = value
-        }
+    internal var tailEndExclusive: Int = 0
 
-    private var tailInitialPosition
-        get() = state.tailInitialPosition
-        set(value) {
-            state.tailInitialPosition = value
-        }
+    private var tailInitialPosition = 0
 
     /**
      * Number of bytes buffered in the chain except the tail chunk
      */
-    private var chainedSize: Int
-        get() = state.chainedSize
-        set(value) {
-            state.chainedSize = value
-        }
+    private var chainedSize: Int = 0
 
     internal inline val tailRemaining: Int get() = tailEndExclusive - tailPosition
 

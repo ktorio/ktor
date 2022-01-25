@@ -12,7 +12,6 @@ import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 import kotlin.random.*
 
-@ThreadLocal
 private val RN_BYTES = "\r\n".toByteArray()
 
 /**

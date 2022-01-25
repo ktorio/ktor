@@ -13,7 +13,5 @@ public object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicatio
     override fun create(
         environment: ApplicationEngineEnvironment,
         configure: CIOApplicationEngine.Configuration.() -> Unit
-    ): CIOApplicationEngine {
-        return CIOApplicationEngine(environment, configure)
-    }
+    ): CIOApplicationEngine = CIOApplicationEngine(environment, configure)
 }

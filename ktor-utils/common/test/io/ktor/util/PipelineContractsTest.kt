@@ -14,8 +14,8 @@ import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")
 class PipelineContractsTest {
-    private val checkList = sharedListOf<String>()
-    private var v by shared(0)
+    private val checkList = mutableListOf<String>()
+    private var v = 0
     private val caught = atomic(false)
 
     private val phase1 = PipelinePhase("A")
@@ -170,11 +170,6 @@ class PipelineContractsTest {
 
     @Test
     fun executePipelineWithSuspension() {
-        /**
-         * Continuation doesn't support freeze in native.
-         */
-        if (PlatformUtils.IS_NATIVE) return
-
         val pipeline = Pipeline<Unit, Unit>(phase1)
         var continuation: Continuation<Unit>? = null
 
@@ -236,11 +231,6 @@ class PipelineContractsTest {
 
     @Test
     fun executePipelineWithSuspensionAndNestedProceed() {
-        /**
-         * Continuation doesn't support freeze in native.
-         */
-        if (PlatformUtils.IS_NATIVE) return
-
         val pipeline = Pipeline<Unit, Unit>(phase1)
         var continuation: Continuation<Unit>? = null
 

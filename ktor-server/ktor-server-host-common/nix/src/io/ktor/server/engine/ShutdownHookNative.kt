@@ -6,8 +6,9 @@ package io.ktor.server.engine
 
 import kotlinx.cinterop.*
 import platform.posix.*
-import kotlin.native.SharedImmutable
 import kotlin.native.concurrent.*
+
+private val shutdownHook: FreezableAtomicReference<() -> Unit> = FreezableAtomicReference({})
 
 /**
  * Adds automatic application shutdown hooks management. Should be used **before** starting the engine.
@@ -16,10 +17,6 @@ import kotlin.native.concurrent.*
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-
-@SharedImmutable
-private val shutdownHook: FreezableAtomicReference<() -> Unit> = FreezableAtomicReference({})
-
 public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
     shutdownHook.value = stop
 

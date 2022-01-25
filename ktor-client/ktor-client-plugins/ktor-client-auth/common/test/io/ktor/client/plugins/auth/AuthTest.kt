@@ -19,7 +19,6 @@ import kotlin.test.*
 
 class AuthTest : ClientLoader() {
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testDigestAuthLegacy() = clientTests(listOf("Js", "native")) {
         config {
@@ -350,7 +349,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var clientWithAuth: HttpClient? by shared(null)
+    private var clientWithAuth: HttpClient? = null
 
     @Suppress("JoinDeclarationAndAssignment")
     @OptIn(DelicateCoroutinesApi::class)
@@ -403,7 +402,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var refreshRequestsCount by shared(0)
+    private var refreshRequestsCount = 0
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
@@ -443,7 +442,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var loadCount by shared(0)
+    private var loadCount = 0
 
     @Test
     fun testLoadTokenAfterClear() = clientTests {

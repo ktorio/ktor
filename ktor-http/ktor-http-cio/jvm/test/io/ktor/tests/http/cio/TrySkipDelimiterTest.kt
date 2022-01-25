@@ -16,7 +16,7 @@ class TrySkipDelimiterTest {
     private val ch = ByteChannel()
 
     @Test
-    fun testSmoke(): Unit = runBlockingTest {
+    fun testSmoke(): Unit = runTest {
         ch.writeFully(byteArrayOf(1, 2, 3))
         ch.close()
 
@@ -27,7 +27,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testSmokeWithOffsetShift(): Unit = runBlockingTest {
+    fun testSmokeWithOffsetShift(): Unit = runTest {
         ch.writeFully(byteArrayOf(9, 1, 2, 3))
         ch.close()
 
@@ -39,7 +39,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testEmpty(): Unit = runBlockingTest {
+    fun testEmpty(): Unit = runTest {
         ch.close()
 
         val delimiter = ByteBuffer.wrap(byteArrayOf(1, 2))
@@ -47,7 +47,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testFull(): Unit = runBlockingTest {
+    fun testFull(): Unit = runTest {
         ch.writeFully(byteArrayOf(1, 2))
         ch.close()
 
@@ -57,7 +57,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testIncomplete(): Unit = runBlockingTest {
+    fun testIncomplete(): Unit = runTest {
         ch.writeFully(byteArrayOf(1, 2))
         ch.close()
 
@@ -68,7 +68,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testOtherBytes(): Unit = runBlockingTest {
+    fun testOtherBytes(): Unit = runTest {
         ch.writeFully(byteArrayOf(7, 8))
         ch.close()
 
@@ -85,7 +85,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testTimeSplit(): Unit = runBlockingTest {
+    fun testTimeSplit(): Unit = runTest {
         val writer = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
             ch.writeByte(2)
             ch.close()
@@ -103,7 +103,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testTimeSplitNonClosed(): Unit = runBlockingTest {
+    fun testTimeSplitNonClosed(): Unit = runTest {
         val writer = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
             ch.writeByte(2)
             ch.flush()
@@ -121,7 +121,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testTimeSplitWrongBytes(): Unit = runBlockingTest {
+    fun testTimeSplitWrongBytes(): Unit = runTest {
         val writer = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
             ch.writeByte(33)
             ch.flush()
@@ -141,7 +141,7 @@ class TrySkipDelimiterTest {
     }
 
     @Test
-    fun testSkipTooLongDelimiter(): Unit = runBlockingTest {
+    fun testSkipTooLongDelimiter(): Unit = runTest {
         assertFails {
             ch.skipDelimiterOrEof(ByteBuffer.allocate(DEFAULT_BUFFER_SIZE * 2))
         }

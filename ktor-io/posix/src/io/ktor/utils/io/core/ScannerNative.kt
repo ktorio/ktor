@@ -72,6 +72,7 @@ internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2:
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
+@OptIn(UnsafeNumber::class)
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
     dst: ByteArray,
@@ -102,6 +103,7 @@ private inline fun Buffer.readUntilImpl(
     return copied
 }
 
+@OptIn(UnsafeNumber::class)
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
     dst: Output

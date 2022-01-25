@@ -18,7 +18,7 @@ import kotlin.test.*
 import kotlin.time.*
 
 class CacheTest : ClientLoader() {
-    var storage: HttpCache.Config? by shared(null)
+    var storage: HttpCache.Config? = null
 
     @Test
     fun testNoStore() = clientTests {

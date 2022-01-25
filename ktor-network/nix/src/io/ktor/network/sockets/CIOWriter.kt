@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.math.*
 
+@OptIn(UnsafeNumber::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,

@@ -92,7 +92,7 @@ internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = n
 /**
  * List of supported combinations of hash and signature algorithms
  */
-@SharedImmutable
+
 public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA384Encryption),
     HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA256Encryption),

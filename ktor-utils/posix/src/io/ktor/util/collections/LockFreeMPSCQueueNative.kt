@@ -4,7 +4,7 @@
 package io.ktor.util.collections
 
 import io.ktor.util.*
-import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlin.native.concurrent.*
 
 private typealias Core<E> = LockFreeMPSCQueueCore<E>
@@ -22,8 +22,8 @@ private typealias Core<E> = LockFreeMPSCQueueCore<E>
  */
 @InternalAPI
 public class LockFreeMPSCQueue<E : Any> {
-    private val _cur = AtomicReference(Core<E>(Core.INITIAL_CAPACITY))
-    private val closed = AtomicInt(0)
+    private val _cur = atomic(Core<E>(Core.INITIAL_CAPACITY))
+    private val closed = atomic(0)
 
     // Note: it is not atomic w.r.t. remove operation (remove can transiently fail when isEmpty is false)
     public val isEmpty: Boolean get() = _cur.value.isEmpty
@@ -68,13 +68,9 @@ public class LockFreeMPSCQueue<E : Any> {
  */
 private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private val mask = capacity - 1
-    private val _next = AtomicReference<Core<E>?>(null)
-    private val _state = AtomicLong(0L)
-    private val array = Array<AtomicReference<Any?>>(capacity) { AtomicReference(null) }
-
-    init {
-        makeShared()
-    }
+    private val _next = atomic<Core<E>?>(null)
+    private val _state = atomic(0L)
+    private val array = atomicArrayOfNulls<Any?>(capacity)
 
     private fun setArrayValueHelper(index: Int, value: Any?) {
         array[index].value = value
@@ -88,7 +84,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     // Note: it is not atomic w.r.t. remove operation (remove can transiently fail when isEmpty is false)
     val isEmpty: Boolean get() = _state.value.withState { head, tail -> head == tail }
 
-    public fun close(): Boolean {
+    fun close(): Boolean {
         _state.update { state ->
             if (state and CLOSED_MASK != 0L) return true // ok - already closed
             if (state and FROZEN_MASK != 0L) return false // frozen -- try next
@@ -98,7 +94,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     }
 
     // ADD_CLOSED | ADD_FROZEN | ADD_SUCCESS
-    public fun addLast(element: E): Int {
+    fun addLast(element: E): Int {
         _state.loop { state ->
             if (state and (FROZEN_MASK or CLOSED_MASK) != 0L) return state.addFailReason() // cannot add
             state.withState { head, tail ->
@@ -144,7 +140,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
 
     // SINGLE CONSUMER
     // REMOVE_FROZEN | null (EMPTY) | E (SUCCESS)
-    public fun removeFirstOrNull(): Any? {
+    fun removeFirstOrNull(): Any? {
         _state.loop { state ->
             if (state and FROZEN_MASK != 0L) return REMOVE_FROZEN // frozen -- cannot modify
             state.withState { head, tail ->
@@ -184,7 +180,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
         }
     }
 
-    public fun next(): LockFreeMPSCQueueCore<E> = allocateOrGetNextCopy(markFrozen())
+    fun next(): LockFreeMPSCQueueCore<E> = allocateOrGetNextCopy(markFrozen())
 
     private fun markFrozen(): Long =
         _state.updateAndGet { state ->
@@ -220,7 +216,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private class Placeholder(val index: Int)
 
     @Suppress("PrivatePropertyName")
-    internal companion object {
+    companion object {
         internal const val INITIAL_CAPACITY = 8
 
         private const val CAPACITY_BITS = 30
@@ -255,42 +251,5 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
 
         // FROZEN | CLOSED
         private fun Long.addFailReason(): Int = if (this and CLOSED_MASK != 0L) ADD_CLOSED else ADD_FROZEN
-    }
-}
-
-/**
- * Infinite loop that reads this atomic variable and performs the specified [action] on its value.
- */
-public inline fun AtomicLong.loop(action: (Long) -> Unit): Nothing {
-    while (true) {
-        action(value)
-    }
-}
-
-/**
- * Updates variable atomically using the specified [function] of its value.
- */
-public inline fun AtomicLong.update(function: (Long) -> Long) {
-    while (true) {
-        val cur = value
-        val upd = function(cur)
-        if (compareAndSet(cur, upd)) return
-    }
-}
-
-/**
- * Updates variable atomically using the specified [function] of its value and returns its new value.
- */
-public inline fun AtomicLong.updateAndGet(function: (Long) -> Long): Long {
-    while (true) {
-        val cur = value
-        val upd = function(cur)
-        if (compareAndSet(cur, upd)) return upd
-    }
-}
-
-public inline fun <T> AtomicReference<T>.loop(action: (T) -> Unit): Nothing {
-    while (true) {
-        action(value)
     }
 }

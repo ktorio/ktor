@@ -39,10 +39,6 @@ internal class SelectorHelper {
         }
     )
 
-    init {
-        makeShared()
-    }
-
     fun interest(event: EventInfo): Boolean {
         if (interestQueue.addLast(event)) {
             wakeupSignal.signal()
@@ -99,7 +95,7 @@ internal class SelectorHelper {
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
         }
 
-        val exception = CancellationException("Selector closed").apply { makeShared() }
+        val exception = CancellationException("Selector closed")
         while (!interestQueue.isEmpty) {
             interestQueue.removeFirstOrNull()?.fail(exception)
         }

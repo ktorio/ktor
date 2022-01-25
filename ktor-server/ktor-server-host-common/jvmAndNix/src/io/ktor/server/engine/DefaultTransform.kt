@@ -18,7 +18,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
 
 /**

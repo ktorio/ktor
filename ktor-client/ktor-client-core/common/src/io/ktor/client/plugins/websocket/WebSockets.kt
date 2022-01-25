@@ -16,7 +16,6 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
 /**

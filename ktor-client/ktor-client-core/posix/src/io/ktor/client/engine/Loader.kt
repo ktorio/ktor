@@ -5,10 +5,9 @@
 package io.ktor.client.engine
 
 import io.ktor.util.*
-import io.ktor.utils.io.*
-import kotlin.native.concurrent.*
+import kotlinx.atomicfu.*
 
-private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
+private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig>
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
@@ -16,13 +15,13 @@ private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
  * Shared engines collection for.
  * Use [append] to enable engine auto discover in [HttpClient()].
  */
-public object engines : Iterable<T> {
-    private val head = AtomicReference<Node?>(null)
+public object engines : Iterable<EngineFactory> {
+    private val head = atomic<Node?>(null)
 
     /**
      * Add engine to head.
      */
-    public fun append(item: T) {
+    public fun append(item: EngineFactory) {
         while (true) {
             val current = head.value
             val new = Node(item, current)
@@ -34,10 +33,10 @@ public object engines : Iterable<T> {
     /**
      * @return unfrozen collection iterator.
      */
-    override fun iterator(): Iterator<T> = object : Iterator<T> {
+    override fun iterator(): Iterator<EngineFactory> = object : Iterator<EngineFactory> {
         var current = head.value
 
-        override fun next(): T {
+        override fun next(): EngineFactory {
             val result = current!!
             current = result.next
             return result.item
@@ -47,11 +46,7 @@ public object engines : Iterable<T> {
     }
 
     private class Node(
-        val item: T,
+        val item: EngineFactory,
         val next: Node?
-    ) {
-        init {
-            makeShared()
-        }
-    }
+    )
 }

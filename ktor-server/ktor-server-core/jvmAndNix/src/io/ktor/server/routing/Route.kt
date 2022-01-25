@@ -45,12 +45,12 @@ public open class Route(
     public val children: List<Route> get() = childList
 
     @OptIn(InternalAPI::class)
-    private val childList: MutableList<Route> = sharedList()
+    private val childList: MutableList<Route> = mutableListOf()
 
-    private var cachedPipeline: ApplicationCallPipeline? by shared(null)
+    private var cachedPipeline: ApplicationCallPipeline? = null
 
     @OptIn(InternalAPI::class)
-    internal val handlers = sharedList<PipelineInterceptor<Unit, ApplicationCall>>()
+    internal val handlers = mutableListOf<PipelineInterceptor<Unit, ApplicationCall>>()
 
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector

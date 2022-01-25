@@ -13,7 +13,6 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlin.native.concurrent.*
 
-@ThreadLocal
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 
 /**

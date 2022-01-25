@@ -12,7 +12,6 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 
 internal class CIOApplicationRequest(
     call: ApplicationCall,
@@ -21,18 +20,18 @@ internal class CIOApplicationRequest(
     private val input: ByteReadChannel,
     private val request: Request
 ) : BaseApplicationRequest(call) {
-    override val cookies: RequestCookies by sharedLazy { RequestCookies(this) }
+    override val cookies: RequestCookies by lazy { RequestCookies(this) }
 
     override fun receiveChannel() = input
 
     @OptIn(InternalAPI::class)
     override val headers: Headers = CIOHeaders(request.headers)
 
-    override val queryParameters: Parameters by sharedLazy { encodeParameters(rawQueryParameters) }
+    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
 
-    override val rawQueryParameters: Parameters by sharedLazy {
+    override val rawQueryParameters: Parameters by lazy {
         val uri = request.uri.toString()
-        val queryStartIndex = uri.indexOf('?').takeIf { it != -1 } ?: return@sharedLazy Parameters.Empty
+        val queryStartIndex = uri.indexOf('?').takeIf { it != -1 } ?: return@lazy Parameters.Empty
         parseQueryString(uri, startIndex = queryStartIndex + 1, decode = false)
     }
 

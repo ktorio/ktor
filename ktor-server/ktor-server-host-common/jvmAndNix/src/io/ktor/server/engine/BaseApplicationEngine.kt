@@ -93,8 +93,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
 }
 
 private class StartupInfo {
-    var isFirstLoading by shared(false)
-    var initializedStartAt by shared(currentTimeMillisBridge())
+    var isFirstLoading = false
+    var initializedStartAt = currentTimeMillisBridge()
 }
 
 @OptIn(InternalAPI::class)

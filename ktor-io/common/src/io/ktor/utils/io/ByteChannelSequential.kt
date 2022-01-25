@@ -5,6 +5,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.atomicfu.*
 import kotlinx.atomicfu.locks.*
 import kotlin.math.*
 
@@ -19,17 +20,18 @@ public abstract class ByteChannelSequentialBase(
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
+    private val _lastReadView: AtomicRef<ChunkBuffer> = atomic(ChunkBuffer.Empty)
 
-    private val state = ByteChannelSequentialBaseSharedState()
+    private val _totalBytesRead = atomic(0L)
+    private val _totalBytesWritten = atomic(0L)
 
-    protected var closed: Boolean
-        get() = state.closed
-        set(value) {
-            state.closed = value
-        }
+    protected var closed: Boolean by atomic(false)
 
     protected val writable: BytePacketBuilder = BytePacketBuilder(0, pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
+
+    private var lastReadAvailable: Int by atomic(0)
+    private var lastReadView: ChunkBuffer by atomic(ChunkBuffer.Empty)
 
     private val slot = AwaitingSlot()
 
@@ -50,27 +52,11 @@ public abstract class ByteChannelSequentialBase(
     override val isClosedForWrite: Boolean
         get() = closed
 
-    private var _totalBytesRead: Long
-        get() = state.totalBytesRead
-        set(value) {
-            state.totalBytesRead = value
-        }
+    override val totalBytesRead: Long
+        get() = _totalBytesRead.value
 
-    override val totalBytesRead: Long get() = state.totalBytesRead
-
-    private var _totalBytesWritten: Long
-        get() = state.totalBytesWritten
-        set(value) {
-            state.totalBytesWritten = value
-        }
-
-    override val totalBytesWritten: Long get() = state.totalBytesWritten
-
-    final override var closedCause: Throwable?
-        get() = state.closedCause
-        private set(value) {
-            state.closedCause = value
-        }
+    override val totalBytesWritten: Long get() = _totalBytesWritten.value
+    final override var closedCause: Throwable? by atomic(null)
 
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
@@ -78,14 +64,14 @@ public abstract class ByteChannelSequentialBase(
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
         while (availableForWrite < count && !closed) {
             if (!flushImpl()) {
-                slot.sleep()
+                slot.sleep { availableForWrite < count && !closed }
             }
         }
     }
 
     internal suspend fun awaitAtLeastNBytesAvailableForRead(count: Int) {
         while (availableForRead < count && !closed) {
-            slot.sleep()
+            slot.sleep { availableForRead < count && !closed }
         }
     }
 
@@ -326,7 +312,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     protected fun afterRead(count: Int) {
-        _totalBytesRead += count
+        addBytesRead(count)
         slot.resume()
     }
 
@@ -556,18 +542,6 @@ public abstract class ByteChannelSequentialBase(
         return readBoolean()
     }
 
-    private var lastReadAvailable: Int
-        get() = state.lastReadAvailable
-        set(value) {
-            state.lastReadAvailable = value
-        }
-
-    private var lastReadView: ChunkBuffer
-        get() = state.lastReadView
-        set(value) {
-            state.lastReadView = value
-        }
-
     private fun completeReading() {
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
@@ -783,7 +757,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     protected fun afterWrite(count: Int) {
-        _totalBytesWritten += count
+        addBytesWritten(count)
 
         if (closed) {
             writable.release()
@@ -823,5 +797,13 @@ public abstract class ByteChannelSequentialBase(
         }
 
         return bytesCopied
+    }
+
+    private fun addBytesRead(count: Int) {
+        _totalBytesRead.addAndGet(count.toLong())
+    }
+
+    private fun addBytesWritten(count: Int) {
+        _totalBytesWritten.addAndGet(count.toLong())
     }
 }

@@ -9,7 +9,7 @@ import io.ktor.client.engine.darwin.certificates.CertificatesInfo.HASH_ALGORITHM
 import io.ktor.client.engine.darwin.certificates.CertificatesInfo.HASH_ALGORITHM_SHA_256
 
 /**
- * Represents a pinned certificate. Recommended to use [Builder.add] to construct
+ * Represents a pinned certificate. Recommended using [Builder.add] to construct
  * [CertificatePinner]
  */
 public data class PinnedCertificate(

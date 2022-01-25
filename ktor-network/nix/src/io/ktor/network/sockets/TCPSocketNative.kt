@@ -26,10 +26,6 @@ internal class TCPSocketNative(
     override val socketContext: Job
         get() = _context
 
-    init {
-        makeShared()
-    }
-
     override fun attachForReading(channel: ByteChannel): WriterJob =
         attachForReadingImpl(channel, descriptor, selectable, selector)
 

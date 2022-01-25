@@ -23,10 +23,6 @@ public actual abstract class NetworkAddress constructor(
     @InternalAPI
     public var explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
 
-    init {
-        makeShared()
-    }
-
     /**
      * Resolve current socket address.
      */
@@ -37,6 +33,7 @@ public actual abstract class NetworkAddress constructor(
 public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
     object : NetworkAddress(hostname, port, null) {}
 
+@Suppress("FunctionName")
 public fun ResolvedNetworkAddress(hostname: String, port: Int, explicitAddress: Any?): NetworkAddress =
     object : NetworkAddress(hostname, port, explicitAddress) {}
 

@@ -51,9 +51,9 @@ public class TestApplicationResponse(
             _byteContent.value = value
         }
 
-    private var responseChannel: ByteReadChannel? by shared(null)
+    private var responseChannel: ByteReadChannel? = null
 
-    private var responseJob: Job? by shared(null)
+    private var responseJob: Job? = null
 
     /**
      * Get completed when a response channel is assigned.

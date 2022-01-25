@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
 public actual abstract class BaseApplicationResponse actual constructor(
     actual final override val call: ApplicationCall
 ) : ApplicationResponse {
-    private var _status: HttpStatusCode? by shared(null)
+    private var _status: HttpStatusCode? = null
 
     actual override val isCommitted: Boolean
         get() = responded
@@ -36,7 +36,7 @@ public actual abstract class BaseApplicationResponse actual constructor(
         setStatus(value)
     }
 
-    private var responded by shared(false)
+    private var responded = false
 
     public actual final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
         call.application.environment.developmentMode

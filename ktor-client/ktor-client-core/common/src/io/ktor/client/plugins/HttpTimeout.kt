@@ -27,9 +27,9 @@ public class HttpTimeout private constructor(
      * [HttpTimeout] extension configuration that is used during installation.
      */
     public class HttpTimeoutCapabilityConfiguration {
-        private var _requestTimeoutMillis: Long? by shared(0)
-        private var _connectTimeoutMillis: Long? by shared(0)
-        private var _socketTimeoutMillis: Long? by shared(0)
+        private var _requestTimeoutMillis: Long? = 0
+        private var _connectTimeoutMillis: Long? = 0
+        private var _socketTimeoutMillis: Long? = 0
 
         /**
          * Creates a new instance of [HttpTimeoutCapabilityConfiguration].
