@@ -12,11 +12,10 @@ public object CallRouted : Hook<(RoutingApplicationCall) -> Unit> {
 }
 
 /**
- * Hook that will be triggered after a call processing was completely finished (i.e. all handlers were
- * executed and response was sent)
+ * Hook that will be triggered after a call was successfully routed and it's processing has completely finished.
  */
-public object CallFinished : Hook<(ApplicationCall) -> Unit> {
+public object RoutedCallProcessed : Hook<(ApplicationCall) -> Unit> {
     override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.environment?.monitor?.subscribe(Routing.RoutingCallFinished)  { call -> handler(call) }
+        application.environment?.monitor?.subscribe(Routing.RoutingCallFinished) { call -> handler(call) }
     }
 }
