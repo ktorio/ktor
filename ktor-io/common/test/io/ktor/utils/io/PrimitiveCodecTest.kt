@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class PrimitiveCodecTest {
     val pool = VerifyingChunkBufferPool()
-    val builder = BytePacketBuilder(0, pool)
+    val builder = BytePacketBuilder(pool)
 
     @AfterTest
     fun tearDown() {

@@ -5,7 +5,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.streams.*
 import org.junit.*
 import java.util.*
@@ -305,7 +304,7 @@ class BytePacketReaderWriterTest {
 
     @Test
     fun writePacketWithHintExact() {
-        val inner = buildPacket(4) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -322,7 +321,7 @@ class BytePacketReaderWriterTest {
 
     @Test
     fun writePacketWithHintBigger() {
-        val inner = buildPacket(10) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -339,7 +338,7 @@ class BytePacketReaderWriterTest {
 
     @Test
     fun writePacketWithHintFailed() {
-        val inner = buildPacket(3) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -403,8 +402,8 @@ class BytePacketReaderWriterTest {
         assertEquals(0x1234567812345678L, packet.readLong())
     }
 
-    private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(startGap, pool)
+    private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()

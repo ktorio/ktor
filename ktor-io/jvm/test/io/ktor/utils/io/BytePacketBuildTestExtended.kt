@@ -76,7 +76,7 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
     }
 
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(0, pool)
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()

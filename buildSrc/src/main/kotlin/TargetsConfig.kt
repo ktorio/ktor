@@ -124,7 +124,9 @@ fun Project.configureTargets() {
                     findByName("commonMain")?.let { dependsOn(it) }
                 }
 
-                val posixTest by getting
+                val posixTest by getting {
+                    findByName("commonTest")?.let { dependsOn(it) }
+                }
 
                 posixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(posixMain)

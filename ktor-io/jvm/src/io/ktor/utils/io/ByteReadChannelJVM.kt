@@ -72,15 +72,14 @@ public actual interface ByteReadChannel {
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
-     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [WritePacket].
+     * and not enough bytes available.
      */
-    public actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readPacket(size: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
-     * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    public actual suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readRemaining(limit: Long): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed

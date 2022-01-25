@@ -35,7 +35,7 @@ class ReadTextCommonTest {
 
     @Test
     fun writePacketWithHintExact() {
-        val inner = buildPacket(4) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -52,7 +52,7 @@ class ReadTextCommonTest {
 
     @Test
     fun writePacketWithHintBigger() {
-        val inner = buildPacket(10) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -69,7 +69,7 @@ class ReadTextCommonTest {
 
     @Test
     fun writePacketWithHintFailed() {
-        val inner = buildPacket(3) {
+        val inner = buildPacket {
             append(".")
         }
 
@@ -381,8 +381,8 @@ class ReadTextCommonTest {
         assertEquals("123", packet.readText(max = 3))
     }
 
-    private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(startGap, pool)
+    private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()

@@ -5,9 +5,7 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
-import kotlin.test.Test
 
 open class BytePacketBuildTest {
     open val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
@@ -183,7 +181,7 @@ open class BytePacketBuildTest {
         try {
             p.readInt()
             fail()
-        } catch (expected: EOFException) {
+        } catch (_: EOFException) {
         } finally {
             p.release()
         }
@@ -285,7 +283,7 @@ open class BytePacketBuildTest {
     }
 
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(0, pool)
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()
@@ -298,7 +296,7 @@ open class BytePacketBuildTest {
     private fun String.toByteArray0(): ByteArray {
         val result = ByteArray(length)
 
-        for (i in 0 until length) {
+        for (i in indices) {
             val v = this[i].code and 0xff
             if (v > 0x7f) fail()
             result[i] = v.toByte()

@@ -52,15 +52,14 @@ public expect interface ByteReadChannel {
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
-     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
+     * and not enough bytes available.
      */
-    public suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
+    public suspend fun readPacket(size: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
-     * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    public suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
+    public suspend fun readRemaining(limit: Long = Long.MAX_VALUE): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed
@@ -192,20 +191,9 @@ public expect interface ByteReadChannel {
 }
 
 /**
- * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
- * and not enough bytes available.
- */
-public suspend fun ByteReadChannel.readPacket(size: Int): ByteReadPacket = readPacket(size, 0)
-
-/**
- * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
- */
-public suspend fun ByteReadChannel.readRemaining(limit: Long): ByteReadPacket = readRemaining(limit, 0)
-
-/**
  * Reads all remaining bytes and makes a byte packet
  */
-public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE, 0)
+public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE)
 
 public suspend fun ByteReadChannel.readFully(dst: ChunkBuffer) {
     readFully(dst, dst.writeRemaining)
