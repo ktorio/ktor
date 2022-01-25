@@ -350,7 +350,10 @@ public fun StringValues.flattenForEach(block: (String, String) -> Unit): Unit = 
  * Create a new instance of [StringValues] filtered by the specified [predicate]
  * @param keepEmpty when `true` will keep empty lists otherwise keys with no values will be discarded
  */
-public fun StringValues.excludeFromCache(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
+public fun StringValues.excludeFromCache(
+    keepEmpty: Boolean = false,
+    predicate: (String, String) -> Boolean
+): StringValues {
     val entries = entries()
     val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(entries.size)

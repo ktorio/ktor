@@ -7,7 +7,6 @@ package io.ktor.server.plugins.doublereceive
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 
-
 internal object ReceiveBytes : Hook<suspend (ApplicationCall, CallReceiveState) -> CallReceiveState> {
     override fun install(
         application: Application,
