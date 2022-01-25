@@ -12,11 +12,11 @@ public interface Hook<HookHandler> {
     /**
      * Specifies how to install a hook in the [application].
      */
-    public fun install(application: Application, handler: HookHandler)
+    public fun install(application: ApplicationCallPipeline, handler: HookHandler)
 }
 
 internal class HookHandler<T>(private val hook: Hook<T>, private val handler: T) {
-    fun install(application: Application) {
+    fun install(application: ApplicationCallPipeline) {
         hook.install(application, handler)
     }
 }
