@@ -117,7 +117,7 @@ class ApplicationRequestContentTest {
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(value, call.receive<IntList>())
+                assertEquals(value, call.receive())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -191,24 +191,6 @@ class ApplicationRequestContentTest {
     }
 
     @Test
-    fun testDoubleReceive(): Unit = withTestApplication {
-        application.install(DoubleReceive)
-
-        application.intercept(ApplicationCallPipeline.Call) {
-            assertEquals("bodyContent", call.receiveText())
-            assertEquals("bodyContent", call.receiveText())
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // we can't receive a channel because we have a string cached
-                call.receiveChannel()
-            }
-        }
-
-        handleRequest(HttpMethod.Get, "") {
-            setBody("bodyContent")
-        }
-    }
-
-    @Test
     fun testDoubleReceiveDifferentTypes(): Unit = withTestApplication {
         application.install(DoubleReceive)
 
@@ -233,9 +215,8 @@ class ApplicationRequestContentTest {
             call.receiveChannel().readRemaining().use { packet ->
                 assertEquals(11, packet.remaining)
             }
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // a channel can't be received twice
-                call.receiveChannel()
+            call.receiveChannel().readRemaining().use { packet ->
+                assertEquals(11, packet.remaining)
             }
         }
 
@@ -257,10 +238,9 @@ class ApplicationRequestContentTest {
             assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            val cause = assertFailsWith<RequestReceiveAlreadyFailedException> {
+            assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            assertTrue { cause.cause is MySpecialException }
         }
 
         handleRequest(HttpMethod.Get, "") {
