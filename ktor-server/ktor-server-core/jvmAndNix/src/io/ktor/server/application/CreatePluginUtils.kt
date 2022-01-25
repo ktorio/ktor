@@ -198,6 +198,5 @@ private fun <Configuration : Any, Plugin : ApplicationPluginBuilder<Configuratio
         it.action(pipeline.sendPipeline)
     }
 
-    println("   installing hooks: ${hooks.size}")
     hooks.forEach { it.install(pipeline) }
 }
