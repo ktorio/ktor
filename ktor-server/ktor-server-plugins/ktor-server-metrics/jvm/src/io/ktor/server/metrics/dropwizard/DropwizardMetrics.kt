@@ -10,7 +10,6 @@ import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import java.util.concurrent.*
 
 /**
@@ -41,17 +40,15 @@ private val routingMetricsKey = AttributeKey<RoutingMetrics>("metrics")
 private data class CallMeasure constructor(val timer: Timer.Context)
 private val measureKey = AttributeKey<CallMeasure>("metrics")
 
-private object BeforeMonitoring : Hook<(ApplicationCall) -> Unit> {
+private object Monitoring : Hook<(ApplicationCall) -> Unit> {
     override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        val phase = PipelinePhase("MetricsBeforeMonitoring")
-        application.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
-        application.intercept(phase) {
+        application.intercept(ApplicationCallPipeline.Monitoring) {
             handler(call)
         }
     }
 }
 
-private object AfterMonitoring : Hook<(ApplicationCall) -> Unit> {
+private object AfterCall : Hook<(ApplicationCall) -> Unit> {
     override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
         application.intercept(ApplicationCallPipeline.Monitoring) {
             try {
@@ -98,7 +95,7 @@ public val DropwizardMetrics: ApplicationPlugin<Application, DropwizardMetricsCo
             )
         }
 
-        on(CallFinished) { call ->
+        on(RoutedCallProcessed) { call ->
             val routingMetrics = call.attributes.take(routingMetricsKey)
             val status = call.response.status()?.value ?: 0
             val statusMeter =
@@ -107,12 +104,12 @@ public val DropwizardMetrics: ApplicationPlugin<Application, DropwizardMetricsCo
             routingMetrics.context.stop()
         }
 
-        on(BeforeMonitoring) { call ->
+        on(Monitoring) { call ->
             active.inc()
             call.attributes.put(measureKey, CallMeasure(duration.time()))
         }
 
-        on(AfterMonitoring) { call ->
+        on(AfterCall) { call ->
             active.dec()
             val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
                 pluginConfig.registry.meter(name(pluginConfig.baseName, "status", it.toString()))
