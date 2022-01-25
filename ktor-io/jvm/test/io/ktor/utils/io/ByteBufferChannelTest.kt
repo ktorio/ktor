@@ -126,10 +126,16 @@ class ByteBufferChannelTest {
         }
 
         launch {
-            var result: Int
-            do {
-                result = channel.readAvailable {}
-            } while (result > 0)
+            channel.awaitContent()
+            assertEquals(4088, channel.availableForRead)
+
+            val firstRead = channel.readAvailable { /* no-op */ }
+            assertEquals(0, firstRead)
+
+            val secondRead = channel.readAvailable {
+                it.position(it.remaining())
+            }
+            assertEquals(4088, secondRead)
         }
 
         try {
