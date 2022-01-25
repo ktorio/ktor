@@ -131,6 +131,7 @@ class ByteBufferChannelTest {
 
             val firstRead = channel.readAvailable { /* no-op */ }
             assertEquals(0, firstRead)
+            assertEquals(4088, channel.availableForRead)
 
             val secondRead = channel.readAvailable {
                 it.position(it.remaining())

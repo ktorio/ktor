@@ -649,6 +649,9 @@ internal open class ByteBufferChannel(
                 state.completeWrite(locked - result) // return back extra bytes (see note above)
                 // we use completeWrite in spite of that it is read block
                 // we don't need to resume read as we are already in read block
+
+                // flush returned bytes back for subsequent reads
+                state.flush()
             }
 
             return@reading true
