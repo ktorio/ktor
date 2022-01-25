@@ -110,7 +110,10 @@ public open class Route(
 
         val handlers = handlers
         for (index in 0..handlers.lastIndex) {
-            pipeline.intercept(Call, handlers[index])
+            pipeline.intercept(Call) {
+                if (call.isHandled) return@intercept
+                handlers[index].invoke(this, Unit)
+            }
         }
         cachedPipeline = pipeline
         pipeline

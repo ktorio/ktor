@@ -4,6 +4,8 @@
 
 package io.ktor.tests.server.routing
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -689,6 +691,30 @@ class RoutingProcessingTest {
 
         // I also tried to create a test listening to multiple ports, but I couldn't get it
         // to work because of the same reason above.
+    }
+
+    @Test
+    fun testRoutingNotCalledForHandledRequests() = testApplication {
+        var sideEffect = false
+        application {
+            val handler = createApplicationPlugin("Handler") {
+                onCall { call ->
+                    call.respond("plugin")
+                }
+            }
+            install(handler)
+
+            routing {
+                get("/") {
+                    sideEffect = true
+                    call.respond("routing")
+                }
+            }
+        }
+
+        val response = client.get("/").bodyAsText()
+        assertEquals("plugin", response)
+        assertFalse(sideEffect)
     }
 
     @Test
