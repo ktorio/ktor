@@ -90,7 +90,7 @@ public sealed class RelativePluginBuilder<PluginConfig : Any>(
     }
 
     override fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(ApplicationCall, body: ApplicationReceiveRequest) -> Unit
+        block: suspend OnCallReceiveContext<PluginConfig>.(ApplicationCall, body: CallReceiveState) -> Unit
     ) {
         val otherInterceptions = otherPlugins.map { it.onReceiveInterceptions }
 

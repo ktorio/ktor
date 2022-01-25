@@ -86,6 +86,6 @@ internal fun <T> href(
 
     urlBuilder.pathSegments = updatedParts
 
-    val queryArgs = parameters.filter { key, _ -> !usedForPathParameterNames.contains(key) }
+    val queryArgs = parameters.excludeFromCache { key, _ -> !usedForPathParameterNames.contains(key) }
     urlBuilder.parameters.appendAll(queryArgs)
 }

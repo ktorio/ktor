@@ -360,8 +360,8 @@ public final class io/ktor/util/StringValuesKt {
 	public static synthetic fun appendFiltered$default (Lio/ktor/util/StringValuesBuilder;Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static final fun appendIfNameAbsent (Lio/ktor/util/StringValuesBuilder;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/util/StringValuesBuilder;
 	public static final fun appendIfNameAndValueAbsent (Lio/ktor/util/StringValuesBuilder;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/util/StringValuesBuilder;
-	public static final fun filter (Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;)Lio/ktor/util/StringValues;
-	public static synthetic fun filter$default (Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/util/StringValues;
+	public static final fun excludeFromCache (Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;)Lio/ktor/util/StringValues;
+	public static synthetic fun excludeFromCache$default (Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/util/StringValues;
 	public static final fun flattenEntries (Lio/ktor/util/StringValues;)Ljava/util/List;
 	public static final fun flattenForEach (Lio/ktor/util/StringValues;Lkotlin/jvm/functions/Function2;)V
 	public static final fun toMap (Lio/ktor/util/StringValues;)Ljava/util/Map;

@@ -54,7 +54,7 @@ public class TransformBodyContext(public val requestedType: TypeInfo?)
 @PluginsDslMarker
 public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
-    override val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
+    override val context: PipelineContext<CallReceiveState, ApplicationCall>
 ) : CallContext<PluginConfig>(pluginConfig, context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
@@ -67,10 +67,9 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
 
         val transformContext = TransformBodyContext(typeInfo)
 
-        context.subject = ApplicationReceiveRequest(
+        context.subject = CallReceiveState(
             context.subject.typeInfo,
-            transformContext.transform(receiveBody),
-            context.subject.reusableValue
+            transformContext.transform(receiveBody)
         )
     }
 }

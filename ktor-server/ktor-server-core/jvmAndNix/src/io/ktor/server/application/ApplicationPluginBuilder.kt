@@ -9,7 +9,6 @@ import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.util.debug.*
 import io.ktor.util.pipeline.*
 import kotlin.random.*
@@ -74,7 +73,7 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public override fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall, body: ApplicationReceiveRequest) -> Unit // ktlint-disable max-line-length
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall, body: CallReceiveState) -> Unit // ktlint-disable max-line-length
     ) {
         onDefaultPhase(
             onReceiveInterceptions,

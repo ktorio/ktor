@@ -72,7 +72,7 @@ public sealed interface PluginBuilder<PluginConfig : Any> {
     public fun onCallReceive(
         block: suspend OnCallReceiveContext<PluginConfig>.(
             call: ApplicationCall,
-            receiveRequest: ApplicationReceiveRequest
+            receiveRequest: CallReceiveState
         ) -> Unit
     )
 

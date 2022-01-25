@@ -125,7 +125,7 @@ class ApplicationRequestContentTest {
 
                 val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
-                proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
+                proceedWith(CallReceiveState(query.typeInfo, transformed))
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
@@ -209,10 +209,8 @@ class ApplicationRequestContentTest {
         application.intercept(ApplicationCallPipeline.Call) {
             assertEquals("bodyContent", call.receiveText())
             assertEquals("bodyContent", call.receiveText())
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // we can't receive a stream because we have a string cached
-                call.receiveStream()
-            }
+            val stream = call.receiveStream()
+            assertEquals("bodyContent", stream.reader().readText())
         }
 
         handleRequest(HttpMethod.Get, "") {
@@ -244,6 +242,21 @@ class ApplicationRequestContentTest {
 
         application.intercept(ApplicationCallPipeline.Call) {
             assertEquals(11, call.receiveStream().readBytes().size)
+            assertEquals(11, call.receiveStream().readBytes().size)
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+    @Test
+    fun testDoubleReceiveStreamsWithoutRawCache(): Unit = withTestApplication {
+        application.install(DoubleReceive) {
+            cacheRawRequest = false
+        }
+
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertEquals(11, call.receiveStream().readBytes().size)
             assertFailsWith<RequestAlreadyConsumedException> {
                 // a stream can't be received twice
                 call.receiveStream()
@@ -263,9 +276,8 @@ class ApplicationRequestContentTest {
             call.receiveChannel().readRemaining().use { packet ->
                 assertEquals(11, packet.remaining)
             }
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // a channel can't be received twice
-                call.receiveChannel()
+            call.receiveChannel().readRemaining().use { packet ->
+                assertEquals(11, packet.remaining)
             }
         }
 
@@ -287,10 +299,9 @@ class ApplicationRequestContentTest {
             assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            val cause = assertFailsWith<RequestReceiveAlreadyFailedException> {
+            assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            assertTrue { cause.cause is MySpecialException }
         }
 
         handleRequest(HttpMethod.Get, "") {

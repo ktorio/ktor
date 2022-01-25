@@ -72,7 +72,7 @@ class ReceiveBlockingPrimitiveTest {
         pipeline: ApplicationReceivePipeline,
         call: ApplicationCall
     ) {
-        val request = ApplicationReceiveRequest(typeInfo<InputStream>(), ByteChannel())
+        val request = CallReceiveState(typeInfo<InputStream>(), ByteChannel())
         val transformed = pipeline.execute(call, request)
         val stream = transformed.value as InputStream
         @Suppress("BlockingMethodInNonBlockingContext")

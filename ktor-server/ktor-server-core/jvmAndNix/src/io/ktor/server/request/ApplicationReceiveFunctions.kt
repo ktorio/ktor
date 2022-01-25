@@ -22,10 +22,9 @@ import kotlin.reflect.*
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-public class ApplicationReceiveRequest constructor(
+public data class CallReceiveState constructor(
     public val typeInfo: TypeInfo,
-    public val value: Any,
-    public val reusableValue: Boolean = false
+    public val value: Any
 )
 
 /**
@@ -35,7 +34,7 @@ public class ApplicationReceiveRequest constructor(
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+) : Pipeline<CallReceiveState, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
@@ -62,7 +61,6 @@ public open class ApplicationReceivePipeline(
  * Receives content for this request.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
@@ -70,7 +68,6 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeInfo<T>())
 
 /**
@@ -91,7 +88,7 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
-    require(typeInfo.type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
+    require(typeInfo.type != CallReceiveState::class) { "ApplicationReceiveRequest can't be received" }
 
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
 
@@ -100,7 +97,7 @@ public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
     }
 
     val incomingContent = token ?: request.receiveChannel()
-    val receiveRequest = ApplicationReceiveRequest(typeInfo, incomingContent)
+    val receiveRequest = CallReceiveState(typeInfo, incomingContent)
     val finishedRequest = request.pipeline.execute(this, receiveRequest)
     val transformed = finishedRequest.value
 

@@ -135,7 +135,7 @@ public class SessionSerializerReflection<T : Any> internal constructor(
     private fun <T : Any> findConstructor(type: KClass<T>, bundle: StringValues): KFunction<T> {
         if (type.isSealed) {
             val particularType = findParticularType(type, bundle)
-            val filtered = bundle.filter { key, _ -> key != TYPE_TOKEN_PARAMETER_NAME }
+            val filtered = bundle.excludeFromCache { key, _ -> key != TYPE_TOKEN_PARAMETER_NAME }
             return findConstructor(particularType, filtered)
         }
         if (type.isAbstract) {

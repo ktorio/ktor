@@ -26,6 +26,9 @@ public fun ApplicationRequest.queryString(): String = origin.uri.substringAfter(
 public fun ApplicationRequest.contentType(): ContentType =
     header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
 
+public fun ApplicationRequest.contentLength(): Long? =
+    header(HttpHeaders.ContentLength)?.toLongOrNull()
+
 /**
  * Request's charset
  */
