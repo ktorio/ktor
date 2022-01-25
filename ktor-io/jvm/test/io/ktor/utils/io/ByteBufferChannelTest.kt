@@ -180,5 +180,4 @@ class ByteBufferChannelTest {
         yield()
         assertFalse(awaitingContent)
     }
-
 }
