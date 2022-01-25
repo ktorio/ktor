@@ -1,4 +1,4 @@
-public final class io/ktor/server/plugins/callid/CallidConfig {
+public final class io/ktor/server/plugins/callid/CallIdConfig {
 	public fun <init> ()V
 	public final fun generate (Lkotlin/jvm/functions/Function1;)V
 	public final fun header (Ljava/lang/String;)V
@@ -8,22 +8,22 @@ public final class io/ktor/server/plugins/callid/CallidConfig {
 	public final fun retrieveFromHeader (Ljava/lang/String;)V
 	public final fun verify (Ljava/lang/String;Z)V
 	public final fun verify (Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun verify$default (Lio/ktor/server/plugins/callid/CallidConfig;Ljava/lang/String;ZILjava/lang/Object;)V
+	public static synthetic fun verify$default (Lio/ktor/server/plugins/callid/CallIdConfig;Ljava/lang/String;ZILjava/lang/Object;)V
 }
 
-public final class io/ktor/server/plugins/callid/CallidKt {
+public final class io/ktor/server/plugins/callid/CallIdKt {
 	public static final field CALL_ID_DEFAULT_DICTIONARY Ljava/lang/String;
-	public static final fun generate (Lio/ktor/server/plugins/callid/CallidConfig;ILjava/lang/String;)V
-	public static synthetic fun generate$default (Lio/ktor/server/plugins/callid/CallidConfig;ILjava/lang/String;ILjava/lang/Object;)V
+	public static final fun generate (Lio/ktor/server/plugins/callid/CallIdConfig;ILjava/lang/String;)V
+	public static synthetic fun generate$default (Lio/ktor/server/plugins/callid/CallIdConfig;ILjava/lang/String;ILjava/lang/Object;)V
 	public static final fun getCallId ()Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun getCallId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
-	public static final fun сallIdMdc (Lio/ktor/server/plugins/CallLogging$Configuration;Ljava/lang/String;)V
-	public static synthetic fun сallIdMdc$default (Lio/ktor/server/plugins/CallLogging$Configuration;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun сallIdMdc (Lio/ktor/server/plugins/callloging/CallLogging$Configuration;Ljava/lang/String;)V
+	public static synthetic fun сallIdMdc$default (Lio/ktor/server/plugins/callloging/CallLogging$Configuration;Ljava/lang/String;ILjava/lang/Object;)V
 }
 
-public final class io/ktor/server/plugins/RejectedCallIdException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
+public final class io/ktor/server/plugins/callid/RejectedCallIdException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Ljava/lang/String;)V
-	public fun createCopy ()Lio/ktor/server/plugins/RejectedCallIdException;
+	public fun createCopy ()Lio/ktor/server/plugins/callid/RejectedCallIdException;
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getIllegalCallId ()Ljava/lang/String;
 }
