@@ -116,8 +116,8 @@ public class io/ktor/server/application/CallContext {
 
 public final class io/ktor/server/application/CallFailed : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/CallFailed;
-	public synthetic fun install (Lio/ktor/server/application/Application;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/server/application/CreatePluginUtilsKt {
@@ -144,7 +144,7 @@ public final class io/ktor/server/application/DuplicatePluginException : io/ktor
 }
 
 public abstract interface class io/ktor/server/application/Hook {
-	public abstract fun install (Lio/ktor/server/application/Application;Ljava/lang/Object;)V
+	public abstract fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
 }
 
 public final class io/ktor/server/application/InvalidBodyException : java/lang/Exception {
@@ -222,8 +222,8 @@ public final class io/ktor/server/application/RouteScopedPluginKt {
 
 public final class io/ktor/server/application/Shutdown : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/Shutdown;
-	public synthetic fun install (Lio/ktor/server/application/Application;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/application/TransformBodyContext {
