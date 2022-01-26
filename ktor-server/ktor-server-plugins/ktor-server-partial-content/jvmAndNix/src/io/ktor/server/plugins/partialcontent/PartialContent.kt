@@ -54,7 +54,6 @@ private object Register : Hook<suspend Register.Context.(call: ApplicationCall, 
     }
 }
 
-
 /**
  * Plugin to support requests to specific content ranges.
  *
