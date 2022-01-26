@@ -14,9 +14,7 @@ import io.ktor.util.internal.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.random.*
-import kotlin.reflect.jvm.*
 
 /**
  * A function that retrieves or generates call id using provided call
