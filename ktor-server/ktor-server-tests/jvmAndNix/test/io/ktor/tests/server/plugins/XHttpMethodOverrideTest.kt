@@ -39,7 +39,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodDelete() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(HttpMethod.Delete, call.request.origin.method)
@@ -60,7 +60,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodDeleteRouting() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.routing {
                 delete("/") {
@@ -88,7 +88,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodPatch() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(HttpMethod.Patch, call.request.origin.method)
@@ -109,7 +109,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureCustomHeaderName() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport) {
+            application.install(XHttpMethodOverride) {
                 headerName = "X-My-Header"
             }
 
@@ -133,7 +133,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithNoExistingMethod() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.routing {
                 get("/") {
@@ -152,7 +152,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedFor() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.install(XForwardedHeaderSupport)
 
@@ -182,7 +182,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedPort() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.install(XForwardedHeaderSupport)
 
@@ -212,7 +212,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedNoPort() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.install(XForwardedHeaderSupport)
 
@@ -242,7 +242,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwarded() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.install(ForwardedHeaderSupport)
 
