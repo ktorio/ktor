@@ -6,16 +6,20 @@ description = ""
 
 kotlin {
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                api(project(":ktor-client:ktor-client-core"))
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
-                api(project(":ktor-client:ktor-client-core"))
                 api("com.googlecode.json-simple:json-simple:1.1.1") {
                     isTransitive = false
                 }
             }
         }
-        val jvmTest by getting {
+        val commonTest by getting {
             dependencies {
                 api(project(":ktor-client:ktor-client-cio"))
                 api(project(":ktor-client:ktor-client-mock"))

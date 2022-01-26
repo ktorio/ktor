@@ -14,7 +14,7 @@ private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentType.length + Ht
 /**
  * Start multirange response writer coroutine
  */
-internal fun CoroutineScope.writeMultipleRangesImpl(
+internal actual fun CoroutineScope.writeMultipleRangesImpl(
     channelProducer: (LongRange) -> ByteReadChannel,
     ranges: List<LongRange>,
     fullLength: Long?,
@@ -61,7 +61,7 @@ private suspend fun ByteWriteChannel.writeHeaders(
     writeFully(headers)
 }
 
-internal fun calculateMultipleRangesBodyLength(
+internal actual fun calculateMultipleRangesBodyLength(
     ranges: List<LongRange>,
     fullLength: Long?,
     boundary: String,

@@ -15,8 +15,6 @@ internal fun currentTimeMillisBridge(): Long = GMTDate().timestamp
 
 internal expect val Dispatchers.IOBridge: CoroutineDispatcher
 
-internal expect fun Throwable.initCauseBridge(cause: Throwable)
-
 internal expect fun printError(message: Any?)
 
 internal expect fun configureShutdownUrl(environment: ApplicationEnvironment, pipeline: EnginePipeline)

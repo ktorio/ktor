@@ -1,12 +1,12 @@
-public final class io/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport : io/ktor/server/application/ApplicationPlugin {
-	public static final field INSTANCE Lio/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport;
+public final class io/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport : io/ktor/server/application/ApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport;
 	public final fun getForwardedParsedKey ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport$Config {
+public final class io/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport$Config {
 	public fun <init> ()V
 	public final fun extractValue (Lkotlin/jvm/functions/Function2;)V
 	public final fun skipKnownProxies (Ljava/util/List;)V
@@ -15,15 +15,15 @@ public final class io/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSuppor
 	public final fun useLastValue ()V
 }
 
-public final class io/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue {
+public final class io/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;
-	public static synthetic fun copy$default (Lio/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/plugins/forwardedsupport/ForwardedHeaderSupport$ForwardedHeaderValue;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBy ()Ljava/lang/String;
 	public final fun getForParam ()Ljava/lang/String;
@@ -34,14 +34,14 @@ public final class io/ktor/server/plugins/fowwardedsupport/ForwardedHeaderSuppor
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport : io/ktor/server/application/ApplicationPlugin {
-	public static final field INSTANCE Lio/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport;
+public final class io/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport : io/ktor/server/application/ApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$Config;
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$Config;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$Config {
+public final class io/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$Config {
 	public fun <init> ()V
 	public final fun extractEdgeProxy (Lkotlin/jvm/functions/Function2;)V
 	public final fun getForHeaders ()Ljava/util/List;
@@ -55,15 +55,15 @@ public final class io/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSuppo
 	public final fun useLastProxy ()V
 }
 
-public final class io/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues {
+public final class io/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;
-	public static synthetic fun copy$default (Lio/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/plugins/fowwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/plugins/forwardedsupport/XForwardedHeaderSupport$XForwardedHeaderValues;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getForHeader ()Ljava/lang/String;
 	public final fun getHostHeader ()Ljava/lang/String;

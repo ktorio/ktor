@@ -6,7 +6,7 @@ description = ""
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
             }

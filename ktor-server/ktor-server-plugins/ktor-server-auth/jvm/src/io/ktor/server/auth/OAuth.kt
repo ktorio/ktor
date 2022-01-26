@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.auth
 
@@ -10,12 +10,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import java.io.*
 
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth2")
+private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth2")
 
 /**
  * OAuth versions used in configuration
@@ -257,7 +257,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
 
                         block(accessToken)
                     } catch (cause: OAuth2Exception.InvalidGrant) {
-                        Logger.trace("Redirected to the login page due to invalid_grant error: {}", cause.message)
+                        Logger.trace("Redirected to the login page due to invalid_grant error: ${cause.message}")
                         call.oauthHandleFail(loginPageUrl)
                     } catch (ioe: IOException) {
                         Logger.trace("Redirected to the login page due to IO error", ioe)

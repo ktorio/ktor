@@ -1,17 +1,9 @@
-public final class io/ktor/server/plugins/cachingheaders/CachingHeaders {
-	public static final field Plugin Lio/ktor/server/plugins/cachingheaders/CachingHeaders$Plugin;
-	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun optionsFor (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
-}
-
-public final class io/ktor/server/plugins/cachingheaders/CachingHeaders$Configuration {
+public final class io/ktor/server/plugins/cachingheaders/CachingHeadersConfig {
 	public fun <init> ()V
 	public final fun options (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/plugins/cachingheaders/CachingHeaders$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/cachingheaders/CachingHeaders;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/cachingheaders/CachingHeadersKt {
+	public static final fun getCachingHeaders ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 

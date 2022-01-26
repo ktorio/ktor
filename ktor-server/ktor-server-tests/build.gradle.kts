@@ -3,7 +3,7 @@ description = ""
 val jansi_version: String by project.extra
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    val commonMain by getting {
         dependencies {
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-test-host"))
@@ -12,7 +12,6 @@ kotlin.sourceSets {
     val jvmTest by getting {
         dependencies {
             implementation("org.fusesource.jansi:jansi:$jansi_version")
-            api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }

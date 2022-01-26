@@ -37,15 +37,15 @@ class StaticContentTest {
             static("selected") {
                 staticRootFolder = basedir
                 files("plugins")
-                file("routing/RoutingBuildTest.kt")
+                file("sessions/SessionTest.kt")
                 route("virtual") {
                     default("plugins/StaticContentTest.kt")
-                    file("foobar.kt", "routing/RoutingBuildTest.kt")
+                    file("foobar.kt", "sessions/SessionTest.kt")
                 }
             }
             static {
                 staticRootFolder = basedir
-                file("foobar.kt", "routing/RoutingBuildTest.kt")
+                file("foobar.kt", "sessions/SessionTest.kt")
             }
         }
 
@@ -63,15 +63,15 @@ class StaticContentTest {
         }
 
         // can serve select file from other dir
-        handleRequest(HttpMethod.Get, "/selected/routing/RoutingBuildTest.kt").let { result ->
+        handleRequest(HttpMethod.Get, "/selected/sessions/SessionTest.kt").let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't serve file from other dir that was not published explicitly
-        handleRequest(HttpMethod.Get, "/selected/routing/RoutingResolveTest.kt").let { result ->
+        handleRequest(HttpMethod.Get, "/selected/sessions/AutoSerializerTest.kt").let { result ->
             assertFalse(result.response.status()!!.isSuccess())
         }
         // can't serve dir itself
-        handleRequest(HttpMethod.Get, "/selected/routing").let { result ->
+        handleRequest(HttpMethod.Get, "/selected/sessions").let { result ->
             assertFalse(result.response.status()!!.isSuccess())
         }
         // can serve file from virtual folder with a renamed file

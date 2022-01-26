@@ -5,9 +5,14 @@
 package io.ktor.server.testing
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
+import io.ktor.server.testing.internal.*
+import io.ktor.util.collections.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -115,4 +120,46 @@ public fun TestApplicationRequest.setBody(value: ByteArray) {
  */
 public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
     bodyChannel = ByteReadChannel(value.readBytes())
+}
+
+/**
+ * Set multipart HTTP request body
+ */
+public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
+    bodyChannel = writer(Dispatchers.IOBridge) {
+        if (parts.isEmpty()) return@writer
+
+        try {
+            append("\r\n\r\n")
+            parts.forEach {
+                append("--$boundary\r\n")
+                for ((key, values) in it.headers.entries()) {
+                    append("$key: ${values.joinToString(";")}\r\n")
+                }
+                append("\r\n")
+                append(
+                    when (it) {
+                        is PartData.FileItem -> {
+                            channel.writeFully(it.provider().readBytes())
+                            ""
+                        }
+                        is PartData.BinaryItem -> {
+                            channel.writeFully(it.provider().readBytes())
+                            ""
+                        }
+                        is PartData.FormItem -> it.value
+                    }
+                )
+                append("\r\n")
+            }
+
+            append("--$boundary--\r\n")
+        } finally {
+            parts.forEach { it.dispose() }
+        }
+    }.channel
+}
+
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
 }

@@ -1,8 +1,8 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.testing
+package io.ktor.server.testing
 
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -13,9 +13,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.server.testing.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.system.*
