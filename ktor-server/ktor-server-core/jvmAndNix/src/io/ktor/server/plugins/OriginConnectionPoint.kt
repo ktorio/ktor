@@ -33,7 +33,7 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
  * By default all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.host]
  * and [RequestConnectionPoint.port] overridden by [HttpHeaders.Host] header value.
  * Users can assign new values parsed from [HttpHeaders.Forwarded], [HttpHeaders.XForwardedHost], etc.
- * See [XForwardedHeaderSupport] and [ForwardedHeaderSupport].
+ * See [XForwardedHeaders] and [ForwardedHeaders].
  */
 public class MutableOriginConnectionPoint internal constructor(
     delegate: RequestConnectionPoint

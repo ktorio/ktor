@@ -8,7 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.forwardedsupport.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.hsts.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -54,7 +54,7 @@ class HSTSTest {
     @Test
     fun testSubrouteInstall() = testApplication {
         application {
-            install(XForwardedHeaderSupport)
+            install(XForwardedHeaders)
             routing {
                 route("/1") {
                     install(HSTS) {
@@ -161,7 +161,7 @@ class HSTSTest {
     }
 
     private fun Application.testApp(block: HSTSConfig.() -> Unit = {}) {
-        install(XForwardedHeaderSupport)
+        install(XForwardedHeaders)
         install(HSTS) {
             maxAgeInSeconds = 10
             includeSubDomains = true

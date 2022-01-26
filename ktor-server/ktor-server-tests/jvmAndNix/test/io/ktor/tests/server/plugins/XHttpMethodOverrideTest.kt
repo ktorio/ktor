@@ -7,7 +7,7 @@ package io.ktor.tests.server.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.forwardedsupport.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.methodoverride.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -154,7 +154,7 @@ class XHttpMethodOverrideTest {
         withTestApplication {
             application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
@@ -184,7 +184,7 @@ class XHttpMethodOverrideTest {
         withTestApplication {
             application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
@@ -214,7 +214,7 @@ class XHttpMethodOverrideTest {
         withTestApplication {
             application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
@@ -244,7 +244,7 @@ class XHttpMethodOverrideTest {
         withTestApplication {
             application.install(XHttpMethodOverride)
 
-            application.install(ForwardedHeaderSupport)
+            application.install(ForwardedHeaders)
 
             application.routing {
                 get("/") {
