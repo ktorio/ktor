@@ -6,6 +6,7 @@ package io.ktor.tests.server.plugins
 
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.plugins.*
 import io.ktor.plugins.spa.*
@@ -18,7 +19,7 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             applicationRoute = "selected"
-            defaultPage = "CORSTest.kt"
+            defaultPage = "SinglePageApplicationTest.kt"
         }
 
         client.get("/selected/StatusPageTest.kt").let {
@@ -34,9 +35,9 @@ class SinglePageApplicationTest {
     fun testIgnoreRoutes() = testApplication {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            defaultPage = "CORSTest.kt"
-            ignoreFiles { it.contains("CallIdTest.kt") }
-            ignoreFiles { it.endsWith("ContentTest.kt") }
+            defaultPage = "SinglePageApplicationTest.kt"
+            ignoreFiles { it.contains("CookiesTest.kt") }
+            ignoreFiles { it.endsWith("PartialContentTest.kt") }
         }
 
         client.get("/StatusPageTest.kt").let {
@@ -48,7 +49,7 @@ class SinglePageApplicationTest {
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/CallIdTest.kt")
+            client.get("/CookiesTest.kt")
         }
 
         assertFailsWith<ClientRequestException> {
