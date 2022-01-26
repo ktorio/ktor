@@ -7,10 +7,11 @@ package io.ktor.server.plugins.callid
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.callloging.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.internal.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
@@ -38,7 +39,7 @@ public class RejectedCallIdException(
     public val illegalCallId: String
 ) : IllegalArgumentException(), CopyableThrowable<RejectedCallIdException> {
     override fun createCopy(): RejectedCallIdException? = RejectedCallIdException(illegalCallId).also {
-        it.initCause(this)
+        it.initCauseBridge(this)
     }
 }
 
@@ -99,10 +100,10 @@ public class CallIdConfig {
      * Only one verify condition or dictionary could be specified
      */
     public fun verify(dictionary: String, reject: Boolean = false) {
-        val sortedDictionary = dictionary.toList().sorted().toCharArray()
-        verify { CallId ->
-            if (!verifyCallIdAgainstDictionary(CallId, sortedDictionary)) {
-                if (reject) throw RejectedCallIdException(CallId)
+        val dictionarySet = dictionary.toSet()
+        verify { callId ->
+            if (!verifyCallIdAgainstDictionary(callId, dictionarySet)) {
+                if (reject) throw RejectedCallIdException(callId)
                 false
             } else {
                 true
@@ -145,7 +146,7 @@ public class CallIdConfig {
 
 internal object BeforeSetup : Hook<suspend (ApplicationCall) -> Unit> {
     private val phase: PipelinePhase = PipelinePhase("CallId")
-    private val logger by lazy { LoggerFactory.getLogger(CallId::class.jvmName) }
+    private val logger by lazy { KtorSimpleLogger(CallId::class.simpleName!!) }
 
     override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         application.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
@@ -223,9 +224,9 @@ public val CallId: RouteScopedPlugin<CallIdConfig, PluginInstance> = createRoute
  */
 public val ApplicationCall.callId: String? get() = attributes.getOrNull(CallIdKey)
 
-private fun verifyCallIdAgainstDictionary(CallId: String, sortedDictionary: CharArray): Boolean {
-    for (index in 0 until CallId.length) {
-        if (sortedDictionary.binarySearch(CallId[index], 0, sortedDictionary.size) < 0) {
+private fun verifyCallIdAgainstDictionary(callId: String, dictionarySet: Set<Char>): Boolean {
+    for (element in callId) {
+        if (!dictionarySet.contains(element)) {
             return false
         }
     }
@@ -263,13 +264,6 @@ public fun CallIdConfig.generate(length: Int = 64, dictionary: String = CALL_ID_
     generate { Random.nextString(length, dictionaryCharacters) }
 }
 
-/**
- * Put call id into MDC (diagnostic context value) with [name]
- */
-public fun CallLogging.Configuration.сallIdMdc(name: String = "CallId") {
-    mdc(name) { it.callId }
-}
-
 private fun String.duplicates() = toCharArray().groupBy { it }.filterValues { it.size > 1 }.keys.sorted()
 private fun Random.nextString(length: Int, dictionary: CharArray): String {
     val chars = CharArray(length)
@@ -279,5 +273,5 @@ private fun Random.nextString(length: Int, dictionary: CharArray): String {
         chars[index] = dictionary[nextInt(dictionarySize)]
     }
 
-    return String(chars)
+    return chars.concatToString()
 }
