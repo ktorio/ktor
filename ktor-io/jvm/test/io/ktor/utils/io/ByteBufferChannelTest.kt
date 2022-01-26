@@ -98,6 +98,72 @@ class ByteBufferChannelTest {
     }
 
     @Test
+    fun testPartialReadAvailable() = runBlocking {
+        val dataSize = 4088
+        val channel = ByteChannel(autoFlush = true)
+        val data = ByteArray(dataSize) { 0 }
+
+        val job = launch {
+            channel.writeFully(data)
+            channel.close()
+        }
+
+        launch {
+            channel.awaitContent()
+            assertEquals(dataSize, channel.availableForRead)
+
+            val firstRead = channel.readAvailable { /* no-op */ }
+            assertEquals(0, firstRead)
+            assertEquals(dataSize, channel.availableForRead)
+
+            val secondRead = channel.readAvailable {
+                it.position(it.remaining())
+            }
+            assertEquals(dataSize, secondRead)
+        }
+
+        try {
+            withTimeout(2500) { job.join() }
+        } catch (e: TimeoutCancellationException) {
+            fail("All bytes should be written to and read from the channel")
+        }
+    }
+
+    @Test
+    fun testReadAvailableWithMoreThanBufferSizeContent() = runBlocking {
+        val dataSize = 4089 // larger than buffer capacity (4088)
+        val channel = ByteChannel(autoFlush = true)
+        val data = ByteArray(dataSize) { 0 }
+
+        val job = launch {
+            channel.writeFully(data)
+            channel.close()
+        }
+
+        launch {
+            var totalRead = 0
+            var result: Int
+            do {
+                channel.awaitContent()
+
+                result = channel.readAvailable {
+                    it.position(it.remaining()) // consume all available bytes
+                }
+
+                if (result > 0) totalRead += result
+            } while (result > 0)
+
+            assertEquals(dataSize, totalRead)
+        }
+
+        try {
+            withTimeout(2500) { job.join() }
+        } catch (e: TimeoutCancellationException) {
+            fail("All bytes should be written to and read from the channel")
+        }
+    }
+
+    @Test
     fun testAwaitContent() = runBlocking {
         val channel = ByteBufferChannel(true)
 
