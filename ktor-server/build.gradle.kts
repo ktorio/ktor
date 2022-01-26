@@ -25,7 +25,6 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-http-redirect"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-single-page"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-method-override"))
         }
     }
