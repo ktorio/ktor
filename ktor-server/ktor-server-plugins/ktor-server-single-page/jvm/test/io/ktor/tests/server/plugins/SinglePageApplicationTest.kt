@@ -1,14 +1,12 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.plugins
 
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.plugins.*
 import io.ktor.plugins.spa.*
 import io.ktor.server.testing.*
 import kotlin.test.*
@@ -19,10 +17,10 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             applicationRoute = "selected"
-            defaultPage = "SinglePageApplicationTest.kt"
+            defaultPage = "Empty3.kt"
         }
 
-        client.get("/selected/StatusPageTest.kt").let {
+        client.get("/selected/Empty1.kt").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
 
@@ -36,11 +34,11 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
             defaultPage = "SinglePageApplicationTest.kt"
-            ignoreFiles { it.contains("CookiesTest.kt") }
-            ignoreFiles { it.endsWith("PartialContentTest.kt") }
+            ignoreFiles { it.contains("Empty1.kt") }
+            ignoreFiles { it.endsWith("Empty2.kt") }
         }
 
-        client.get("/StatusPageTest.kt").let {
+        client.get("/Empty3.kt").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
 
@@ -49,11 +47,11 @@ class SinglePageApplicationTest {
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/CookiesTest.kt")
+            client.get("/Empty1.kt")
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/PartialContentTest.kt")
+            client.get("/Empty2.kt")
         }
     }
 
@@ -61,11 +59,11 @@ class SinglePageApplicationTest {
     fun testIgnoreAllRoutes() = testApplication {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            defaultPage = "CORSTest.kt"
+            defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
         assertFailsWith<ClientRequestException> {
-            client.get("/CallIdTest.kt")
+            client.get("/Empty1.kt")
         }
 
         assertFailsWith<ClientRequestException> {
@@ -78,10 +76,10 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "CORSTest.class"
+            defaultPage = "SinglePageApplicationTest.class"
         }
 
-        client.get("/StaticContentTest.class").let {
+        client.get("/Empty1.class").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
 
@@ -95,12 +93,12 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "CORSTest.class"
-            ignoreFiles { it.contains("CallIdTest.class") }
-            ignoreFiles { it.endsWith("ContentTest.class") }
+            defaultPage = "SinglePageApplicationTest.class"
+            ignoreFiles { it.contains("Empty1.class") }
+            ignoreFiles { it.endsWith("Empty2.class") }
         }
 
-        client.get("/StatusPageTest.class").let {
+        client.get("/Empty3.class").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
 
@@ -109,11 +107,11 @@ class SinglePageApplicationTest {
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/CallIdTest.class")
+            client.get("/Empty1.class")
         }
 
         assertFailsWith<ClientRequestException> {
-            client.get("/PartialContentTest.txt")
+            client.get("/Empty2.class")
         }
     }
 
@@ -122,11 +120,11 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "CORSTest.class"
+            defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
         assertFailsWith<ClientRequestException> {
-            client.get("/CallIdTest.class")
+            client.get("/Empty1.class")
         }
 
         assertFailsWith<ClientRequestException> {
@@ -140,7 +138,7 @@ class SinglePageApplicationTest {
             angular("jvm/test/io/ktor/tests/server/plugins")
         }
 
-        client.get("/StatusPageTest.kt").let {
+        client.get("/Empty1.kt").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
     }
