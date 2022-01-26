@@ -927,4 +927,184 @@ class CORSTest {
             }
         }
     }
+
+    @Test
+    fun originValidation() = testApplication {
+        install(CORS) {
+            allowSameOrigin = false
+            anyHost()
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "hyp-hen://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "plus+://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "do.t://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "digits11://host") }.status
+        )
+
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "a()://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "1abc://host") }.status
+        )
+    }
+
+    @Test
+    fun originWithWildcard() = testApplication {
+        install(CORS) {
+            allowSameOrigin = true
+            host("domain.com")
+            host("*.domain.com")
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://www.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.net") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "https://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "https://www.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "https://foo.bar.domain.com") }.status
+        )
+    }
+
+    @Test
+    fun originWithWildcardAndSubdomain() = testApplication {
+        install(CORS) {
+            allowSameOrigin = true
+            host("domain.com", subDomains = listOf("foo", "*.bar"))
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://anything.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "http://invalid.foo.domain.com") }.status
+        )
+    }
+
+    @Test
+    fun invalidOriginWithWildcard() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            ("domain.com*" to messageWildcardInFrontOfDomain),
+            ("domain.com*." to messageWildcardInFrontOfDomain),
+            ("*." to messageWildcardInFrontOfDomain),
+            ("**" to messageWildcardInFrontOfDomain),
+            ("*.*." to messageWildcardInFrontOfDomain),
+            ("*.*.domain.com" to messageWildcardOnlyOnce),
+            ("*.foo*.domain.com" to messageWildcardOnlyOnce),
+        ).forEach { (host, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for this host '$host'"
+            ) {
+                testApplication {
+                    install(CORS) { host(host) }
+                }
+            }
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun originWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("foo*.") to messageWildcardInFrontOfDomain),
+            (listOf("*.foo*.bar") to messageWildcardOnlyOnce),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                testApplication {
+                    install(CORS) { host("domain.com", subDomains = subDomains) }
+                }
+            }
+
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun invalidOriginWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("*.foo") to messageWildcardOnlyOnce),
+            (listOf("*") to messageWildcardInFrontOfDomain),
+            (listOf("foo") to messageWildcardInFrontOfDomain),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                testApplication {
+                    install(CORS) { host("*.domain.com", subDomains = subDomains) }
+                }
+            }
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
 }
