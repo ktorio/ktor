@@ -6,7 +6,7 @@ package io.ktor.tests.server.http
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.forwardedsupport.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
 import kotlin.test.*
@@ -236,7 +236,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxy() {
         withTestApplication {
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("http://special-host:90/", call.url())
             }
@@ -250,7 +250,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttps() {
         withTestApplication {
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("https://special-host:90/", call.url())
             }
@@ -265,7 +265,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttpsDefaultPort() {
         withTestApplication {
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("https://special-host/", call.url())
             }
@@ -280,7 +280,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttpsWithPortEqualToDefault() {
         withTestApplication {
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("https://special-host/", call.url())
             }
