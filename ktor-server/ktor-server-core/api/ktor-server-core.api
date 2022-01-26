@@ -743,16 +743,16 @@ public final class io/ktor/server/routing/AndRouteSelector : io/ktor/server/rout
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/routing/CallFinished : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/routing/CallFinished;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
-}
-
 public final class io/ktor/server/routing/CallRouted : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/routing/CallRouted;
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/routing/RoutedCallProcessed : io/ktor/server/application/Hook {
+  public static final field INSTANCE Lio/ktor/server/routing/RoutedCallProcessed;
+  public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+  public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/routing/ConstantParameterRouteSelector : io/ktor/server/routing/RouteSelector {
