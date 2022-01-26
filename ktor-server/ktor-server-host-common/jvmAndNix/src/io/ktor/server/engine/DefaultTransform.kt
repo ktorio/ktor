@@ -69,13 +69,13 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> defaultPlatformTransformations(query)
         }
         if (transformed != null) {
-            proceedWith(CallReceiveState(query.typeInfo, transformed))
+            proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
         }
     }
 }
 
-internal expect suspend fun PipelineContext<CallReceiveState, ApplicationCall>.defaultPlatformTransformations(
-    query: CallReceiveState
+internal expect suspend fun PipelineContext<ApplicationReceiveRequest, ApplicationCall>.defaultPlatformTransformations(
+    query: ApplicationReceiveRequest
 ): Any?
 
 internal expect fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData

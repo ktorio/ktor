@@ -443,7 +443,7 @@ class RoutingProcessingTest {
                 receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
                     userIntercepted = true
                     routingInterceptorWrapped = wrappedWithInterceptor
-                    proceedWith(CallReceiveState(it.typeInfo, Foo()))
+                    proceedWith(ApplicationReceiveRequest(it.typeInfo, Foo()))
                 }
                 get("{username}") {
                     instance = call.receive()

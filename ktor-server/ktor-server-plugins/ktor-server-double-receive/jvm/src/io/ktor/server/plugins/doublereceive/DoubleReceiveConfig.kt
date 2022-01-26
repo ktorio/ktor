@@ -12,7 +12,7 @@ import io.ktor.util.reflect.*
  * [DoubleReceive] Plugin configuration.
  */
 public class DoubleReceiveConfig {
-    internal val filters = mutableListOf<(ApplicationCall, CallReceiveState) -> Boolean>()
+    internal val filters = mutableListOf<(ApplicationCall, ApplicationReceiveRequest) -> Boolean>()
 
     /**
      * Cache request before applying any transformations.
@@ -26,7 +26,7 @@ public class DoubleReceiveConfig {
      * Add filter to [DoubleReceive] plugin.
      * If [block] returns `true`, the body will not be cached in memory.
      */
-    public fun excludeFromCache(block: (call: ApplicationCall, receiveState: CallReceiveState) -> Boolean) {
+    public fun excludeFromCache(block: (call: ApplicationCall, receiveState: ApplicationReceiveRequest) -> Boolean) {
         filters += block
     }
 

@@ -223,7 +223,7 @@ public class ContentNegotiation internal constructor(
                     )
                 }
 
-                proceedWith(CallReceiveState(receive.typeInfo, converted))
+                proceedWith(ApplicationReceiveRequest(receive.typeInfo, converted))
             }
             return plugin
         }

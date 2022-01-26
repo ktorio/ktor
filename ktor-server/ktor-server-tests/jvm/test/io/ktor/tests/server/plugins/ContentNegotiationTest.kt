@@ -547,7 +547,11 @@ class ContentNegotiationTest {
 
         application.routing {
             get("/") {
-                call.respondText(call.receive<Wrapper>().value + "-" + call.receive<Wrapper>().value)
+                val first = call.receive<Wrapper>()
+                val second = call.receive<Wrapper>()
+                assertEquals("[content]", first.value)
+                assertEquals(first.value, second.value)
+                call.respondText(first.value + "-" + second.value)
             }
         }
 

@@ -125,7 +125,7 @@ class ApplicationRequestContentTest {
 
                 val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
-                proceedWith(CallReceiveState(query.typeInfo, transformed))
+                proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
             }
 
             application.intercept(ApplicationCallPipeline.Call) {

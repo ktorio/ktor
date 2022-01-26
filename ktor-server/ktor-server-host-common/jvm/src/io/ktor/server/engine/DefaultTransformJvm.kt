@@ -19,8 +19,8 @@ import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
 
-internal actual suspend fun PipelineContext<CallReceiveState, ApplicationCall>.defaultPlatformTransformations(
-    query: CallReceiveState
+internal actual suspend fun PipelineContext<ApplicationReceiveRequest, ApplicationCall>.defaultPlatformTransformations(
+    query: ApplicationReceiveRequest
 ): Any? {
     val channel = query.value as? ByteReadChannel ?: return null
 

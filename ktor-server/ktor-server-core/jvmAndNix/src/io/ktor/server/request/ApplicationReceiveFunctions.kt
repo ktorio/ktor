@@ -22,7 +22,7 @@ import kotlin.reflect.*
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-public data class CallReceiveState constructor(
+public class ApplicationReceiveRequest constructor(
     public val typeInfo: TypeInfo,
     public val value: Any
 )
@@ -34,7 +34,7 @@ public data class CallReceiveState constructor(
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<CallReceiveState, ApplicationCall>(Before, Transform, After) {
+) : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
@@ -88,7 +88,7 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
-    require(typeInfo.type != CallReceiveState::class) { "ApplicationReceiveRequest can't be received" }
+    require(typeInfo.type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
 
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
 
@@ -97,7 +97,7 @@ public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
     }
 
     val incomingContent = token ?: request.receiveChannel()
-    val receiveRequest = CallReceiveState(typeInfo, incomingContent)
+    val receiveRequest = ApplicationReceiveRequest(typeInfo, incomingContent)
     val finishedRequest = request.pipeline.execute(this, receiveRequest)
     val transformed = finishedRequest.value
 
