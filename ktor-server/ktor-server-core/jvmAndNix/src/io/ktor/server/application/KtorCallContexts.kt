@@ -66,10 +66,16 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
         if (typeInfo.type == ByteReadChannel::class) return
 
         val transformContext = TransformBodyContext(typeInfo)
+        val transformResult = transformContext.transform(receiveBody)
+
+        if (transformResult is ApplicationReceiveRequest) {
+            context.subject = transformResult
+            return
+        }
 
         context.subject = ApplicationReceiveRequest(
             context.subject.typeInfo,
-            transformContext.transform(receiveBody),
+            transformResult,
             context.subject.reusableValue
         )
     }
