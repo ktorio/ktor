@@ -22,7 +22,7 @@ import kotlin.test.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.minutes
 
-class ContentTest : ClientLoader() {
+class ContentTest : ClientLoader(5 * 60) {
     private val testSize = listOf(
         0,
         1, // small edge cases

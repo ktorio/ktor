@@ -46,7 +46,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     /**
      * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
      */
-    public var expectSuccess: Boolean = true
+    public var expectSuccess: Boolean = false
 
     /**
      * Indicate if client should use development mode. In development mode client pipelines have advanced stack traces.
