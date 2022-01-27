@@ -1,13 +1,10 @@
-public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideSupport : io/ktor/server/application/ApplicationPlugin {
-	public static final field INSTANCE Lio/ktor/server/plugins/methodoverride/XHttpMethodOverrideSupport;
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/methodoverride/XHttpMethodOverrideSupport$Configuration;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideSupport$Configuration {
+public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideConfig {
 	public fun <init> ()V
 	public final fun getHeaderName ()Ljava/lang/String;
 	public final fun setHeaderName (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideKt {
+	public static final fun getXHttpMethodOverride ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
