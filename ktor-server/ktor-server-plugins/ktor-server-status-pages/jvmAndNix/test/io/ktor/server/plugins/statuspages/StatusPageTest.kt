@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.plugins
+package io.ktor.server.plugins.statuspages
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -18,7 +18,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlin.test.*
 
-@Suppress("IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION", "DEPRECATION")
 class StatusPageTest {
     private val textPlainUtf8 = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
 
@@ -241,7 +240,6 @@ class StatusPageTest {
     }
 
     @Test
-    @Suppress("RedundantAsync", "IMPLICIT_NOTHING_AS_TYPE_PARAMETER", "ReplaceSingleLineLet")
     fun testErrorInAsync(): Unit = withTestApplication {
         class AsyncFailedException : Exception()
 
@@ -267,16 +265,10 @@ class StatusPageTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/fail").let {
-            assertEquals("Async failed", it.response.content)
-        }
-
-        handleRequest(HttpMethod.Get, "/cancel").let {
-            assertEquals("OK", it.response.content)
-        }
+        assertEquals("Async failed", handleRequest(HttpMethod.Get, "/fail").response.content)
+        assertEquals("OK", handleRequest(HttpMethod.Get, "/cancel").response.content)
     }
 
-    @Suppress("ReplaceSingleLineLet")
     @Test
     fun testDefaultKtorExceptionWithoutPlugin(): Unit = withTestApplication {
         application.routing {
@@ -291,15 +283,10 @@ class StatusPageTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/bad-request").let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/media-type-not-supported").let { call ->
-            assertEquals(HttpStatusCode.UnsupportedMediaType, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/not-found").let { call ->
-            assertEquals(HttpStatusCode.NotFound, call.response.status())
-        }
+        assertEquals(HttpStatusCode.BadRequest, handleRequest(HttpMethod.Get, "/bad-request").response.status())
+        val unsupported = handleRequest(HttpMethod.Get, "/media-type-not-supported")
+        assertEquals(HttpStatusCode.UnsupportedMediaType, unsupported.response.status())
+        assertEquals(HttpStatusCode.NotFound, handleRequest(HttpMethod.Get, "/not-found").response.status())
     }
 
     @Test
@@ -379,6 +366,42 @@ class StatusPageTest {
         handleRequest(HttpMethod.Get, "/not-found").let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("NotFound", call.response.content)
+        }
+    }
+
+    @Test
+    fun testStatusPagesNotCalledAfterRouting() {
+        val ThrowingPlugin = createApplicationPlugin("ThrowingPlugin") {
+            onCall {
+                throw NotFoundException()
+            }
+        }
+
+        testApplication {
+            var exceptionHandled = false
+            var routingHandled = false
+
+            application {
+                install(ThrowingPlugin)
+                install(StatusPages) {
+                    exception<NotFoundException> { call: ApplicationCall, cause ->
+                        exceptionHandled = true
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                }
+
+                routing {
+                    get("/") {
+                        routingHandled = true
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertFalse(routingHandled)
+            assertTrue(exceptionHandled)
         }
     }
 }

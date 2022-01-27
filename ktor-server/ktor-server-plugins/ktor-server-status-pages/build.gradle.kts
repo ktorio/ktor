@@ -3,3 +3,13 @@
  */
 
 description = ""
+
+kotlin {
+    sourceSets {
+        val jvmAndNixTest by getting {
+            dependencies {
+                api(project(":ktor-server:ktor-server-test-host"))
+            }
+        }
+    }
+}

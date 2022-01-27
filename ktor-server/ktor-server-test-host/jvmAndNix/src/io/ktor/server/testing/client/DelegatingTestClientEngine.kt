@@ -47,12 +47,16 @@ internal class DelegatingTestClientEngine(
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val authority = data.url.protocolWithAuthority
         val hostWithPort = data.url.hostWithPort
-        return if (externalEngines.containsKey(authority)) {
-            externalEngines[authority]!!.execute(data)
-        } else if (hostWithPort == mainEngineHostWithPort) {
-            mainEngine.execute(data)
-        } else {
-            throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPort)
+        return when {
+            externalEngines.containsKey(authority) -> {
+                externalEngines[authority]!!.execute(data)
+            }
+            hostWithPort == mainEngineHostWithPort -> {
+                mainEngine.execute(data)
+            }
+            else -> {
+                throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPort)
+            }
         }
     }
 
