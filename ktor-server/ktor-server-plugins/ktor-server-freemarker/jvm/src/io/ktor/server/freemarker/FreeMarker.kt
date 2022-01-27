@@ -44,7 +44,7 @@ public val FreeMarker: ApplicationPlugin<Application, Configuration, PluginInsta
         return result
     }
 
-    onCallRespond { call, message ->
+    onCallRespond { _, message ->
         if (message is FreeMarkerContent) {
             transformBody {
                 process(message)
