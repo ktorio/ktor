@@ -10,47 +10,49 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 
-internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBody(
-) = onCallReceive { call, receive ->
-    val registrations = pluginConfig.registrations
-    val requestedType = receive.typeInfo
+internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
+    onCallReceive { call, receive ->
+        val registrations = pluginConfig.registrations
+        val requestedType = receive.typeInfo
 
-    if (requestedType.type == ByteReadChannel::class) return@onCallReceive
+        if (requestedType.type == ByteReadChannel::class) return@onCallReceive
 
-    transformBody { body: ByteReadChannel ->
-        val requestContentType = try {
-            call.request.contentType().withoutParameters()
-        } catch (parseFailure: BadContentTypeFormatException) {
-            throw BadRequestException(
-                "Illegal Content-Type header format: ${call.request.headers[HttpHeaders.ContentType]}",
-                parseFailure
-            )
-        }
-        val suitableConverters = registrations
-            .filter { converter -> requestContentType.match(converter.contentType) }
-            .takeIf { it.isNotEmpty() } ?: return@transformBody body
-
-        val converted = try {
-            // Pick the first one that can convert the subject successfully
-            suitableConverters.firstNotNullOfOrNull { registration ->
-                registration.converter.deserialize(
-                    charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                    typeInfo = requestedType,
-                    content = receive.value as ByteReadChannel
+        transformBody { body: ByteReadChannel ->
+            val requestContentType = try {
+                call.request.contentType().withoutParameters()
+            } catch (parseFailure: BadContentTypeFormatException) {
+                throw BadRequestException(
+                    "Illegal Content-Type header format: ${call.request.headers[HttpHeaders.ContentType]}",
+                    parseFailure
                 )
-            } ?: return@transformBody body
-        } catch (convertException: ContentConvertException) {
-            throw BadRequestException(
-                convertException.message ?: "Can't convert parameters",
-                convertException.cause
+            }
+            val suitableConverters = registrations
+                .filter { converter -> requestContentType.match(converter.contentType) }
+                .takeIf { it.isNotEmpty() } ?: return@transformBody body
+
+            val converted = try {
+                // Pick the first one that can convert the subject successfully
+                suitableConverters.firstNotNullOfOrNull { registration ->
+                    registration.converter.deserialize(
+                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
+                        typeInfo = requestedType,
+                        content = receive.value as ByteReadChannel
+                    )
+                } ?: return@transformBody body
+            } catch (convertException: ContentConvertException) {
+                throw BadRequestException(
+                    convertException.message ?: "Can't convert parameters",
+                    convertException.cause
+                )
+            }
+
+            return@transformBody ApplicationReceiveRequest(
+                typeInfo = requestedType,
+                value = converted,
+                reusableValue = true
             )
         }
-
-        return@transformBody ApplicationReceiveRequest(
-            typeInfo = requestedType,
-            value = converted,
-            reusableValue = true
-        )
     }
 }
