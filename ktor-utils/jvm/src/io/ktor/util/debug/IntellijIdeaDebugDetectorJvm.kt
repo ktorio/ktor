@@ -17,6 +17,9 @@ internal actual object IntellijIdeaDebugDetector {
         } catch (error: ClassNotFoundException) {
             // Relevant case for Android (KTOR-3426) in tests. Android does not support ManagementFactory
             false
+        } catch (error: NoClassDefFoundError) {
+            // Same as above (KTOR-3690)
+            false
         }
     }
 }
