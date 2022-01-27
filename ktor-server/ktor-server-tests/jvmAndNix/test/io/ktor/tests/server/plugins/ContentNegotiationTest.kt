@@ -579,32 +579,6 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testNotMatchingAcceptAndContentTypes(): Unit = withTestApplication {
-        with(application) {
-            install(ContentNegotiation) {
-                checkAcceptHeaderCompliance = true
-            }
-
-            routing {
-                get("/send") {
-                    call.respond("some text")
-                }
-            }
-        }
-
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", ContentType.Application.Json.toString())
-        }.let { call ->
-            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
-        }
-        handleRequest(HttpMethod.Get, "/send") {
-            addHeader("Accept", "text/plain1")
-        }.let { call ->
-            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
-        }
-    }
-
-    @Test
     fun testMatchingAcceptAndContentTypes(): Unit = withTestApplication {
         with(application) {
             install(ContentNegotiation) {

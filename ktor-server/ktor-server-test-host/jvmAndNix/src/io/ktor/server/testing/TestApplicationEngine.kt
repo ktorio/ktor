@@ -162,7 +162,7 @@ class TestApplicationEngine(
     /**
      * Make a test request
      */
-    @OptIn(InternalAPI::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     fun handleRequest(
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
