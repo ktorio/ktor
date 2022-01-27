@@ -24,42 +24,43 @@ import java.io.*
  *   filesPath = "application/project_path"
  * }
  */
-public val SinglePageApplication: ApplicationPlugin<Application, SpaConfiguration, PluginInstance> = createApplicationPlugin(
-    "SinglePage",
-    { SpaConfiguration() }
-) {
-    val defaultPage: String = pluginConfig.defaultPage
-    val applicationRoute: String = pluginConfig.applicationRoute
-    val filesPath: String = pluginConfig.filesPath
-    val ignoredFiles: MutableList<(String) -> Boolean> = pluginConfig.ignoredFiles
-    val usePackageNames: Boolean = pluginConfig.useResources
+public val SinglePageApplication: ApplicationPlugin<Application, SpaConfiguration, PluginInstance> =
+    createApplicationPlugin(
+        "SinglePage",
+        { SpaConfiguration() }
+    ) {
+        val defaultPage: String = pluginConfig.defaultPage
+        val applicationRoute: String = pluginConfig.applicationRoute
+        val filesPath: String = pluginConfig.filesPath
+        val ignoredFiles: MutableList<(String) -> Boolean> = pluginConfig.ignoredFiles
+        val usePackageNames: Boolean = pluginConfig.useResources
 
-    fun isUriStartWith(uri: String) =
-        uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
+        fun isUriStartWith(uri: String) =
+            uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
 
-    application.routing {
-        static(applicationRoute) {
-            if (usePackageNames) {
-                resources(filesPath)
-                defaultResource(defaultPage, filesPath)
-            } else {
-                staticRootFolder = File(filesPath)
-                files(".")
-                default(defaultPage)
+        application.routing {
+            static(applicationRoute) {
+                if (usePackageNames) {
+                    resources(filesPath)
+                    defaultResource(defaultPage, filesPath)
+                } else {
+                    staticRootFolder = File(filesPath)
+                    files(".")
+                    default(defaultPage)
+                }
+            }
+        }
+
+        onCall { call ->
+            val requestUrl = call.request.uri
+
+            if (!isUriStartWith(requestUrl)) return@onCall
+
+            if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
+                call.respond(HttpStatusCode.Forbidden)
             }
         }
     }
-
-    onCall { call ->
-        val requestUrl = call.request.uri
-
-        if (!isUriStartWith(requestUrl)) return@onCall
-
-        if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
-            call.respond(HttpStatusCode.Forbidden)
-        }
-    }
-}
 
 /**
  * Configuration for the [SinglePageApplication] plugin

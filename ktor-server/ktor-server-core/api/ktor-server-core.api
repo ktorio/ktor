@@ -342,7 +342,7 @@ public final class io/ktor/server/http/content/CompressedFileType : java/lang/En
 }
 
 public final class io/ktor/server/http/content/DefaultTransformKt {
-	public static final fun transformDefaultContent (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+	public static final fun transformDefaultContent (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/server/http/content/HttpStatusCodeContent : io/ktor/http/content/OutgoingContent$NoContent {

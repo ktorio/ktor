@@ -1,8 +1,4 @@
-public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiation {
-	public static final field Plugin Lio/ktor/server/plugins/contentnegotiation/ContentNegotiation$Plugin;
-}
-
-public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiation$Configuration : io/ktor/serialization/Configuration {
+public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiationConfig : io/ktor/serialization/Configuration {
 	public fun <init> ()V
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
 	public final fun getCheckAcceptHeaderCompliance ()Z
@@ -10,14 +6,8 @@ public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiation$
 	public final fun setCheckAcceptHeaderCompliance (Z)V
 }
 
-public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiation$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/contentnegotiation/ContentNegotiation;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiationKt {
-	public static final fun sortedByQuality (Ljava/util/List;)Ljava/util/List;
+	public static final fun getContentNegotiation ()Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun suitableCharset (Lio/ktor/server/application/ApplicationCall;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
 	public static synthetic fun suitableCharset$default (Lio/ktor/server/application/ApplicationCall;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
 }
