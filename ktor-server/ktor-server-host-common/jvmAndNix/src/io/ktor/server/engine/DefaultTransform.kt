@@ -25,7 +25,7 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
  */
 public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
-        val transformed = transformDefaultContent(value)
+        val transformed = transformDefaultContent(call, value)
         if (transformed != null) proceedWith(transformed)
     }
 }
