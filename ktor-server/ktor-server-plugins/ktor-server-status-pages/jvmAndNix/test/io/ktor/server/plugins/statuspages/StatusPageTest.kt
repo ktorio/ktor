@@ -16,6 +16,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlin.math.*
 import kotlin.test.*
 
 class StatusPageTest {
@@ -401,6 +402,37 @@ class StatusPageTest {
             val response = client.get("/")
             assertEquals(HttpStatusCode.NotFound, response.status)
             assertFalse(routingHandled)
+            assertTrue(exceptionHandled)
+        }
+    }
+
+    @Test
+    fun testVerify500OnException() {
+        testApplication {
+            var exceptionHandled = false
+            var routingHandled = false
+
+            application {
+                install(StatusPages) {
+                    exception<Throwable> { call: ApplicationCall, _ ->
+                        exceptionHandled = true
+                        call.respond(HttpStatusCode.InternalServerError)
+                    }
+                }
+
+                routing {
+                    get("/") {
+                        routingHandled = true
+                        throw IllegalArgumentException("something went wrong")
+                    }
+                }
+            }
+
+            val response = client.config {
+                expectSuccess = false
+            }.get("/")
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertTrue(routingHandled)
             assertTrue(exceptionHandled)
         }
     }
