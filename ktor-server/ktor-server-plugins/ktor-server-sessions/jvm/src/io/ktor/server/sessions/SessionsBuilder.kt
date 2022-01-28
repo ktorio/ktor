@@ -11,7 +11,7 @@ import kotlin.reflect.full.*
  * Configure sessions to get it from cookie using session [storage]
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
-public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
+public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
     @Suppress("DEPRECATION_ERROR")
     val builder = CookieIdSessionBuilder(sessionType)
     cookie(name, builder, sessionType, storage)
@@ -21,7 +21,7 @@ public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KC
  * Configure sessions to get it from cookie using session [storage]
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage) {
+public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage: SessionStorage) {
     val sessionType = S::class
 
     val builder = CookieIdSessionBuilder(sessionType, typeOf<S>())
@@ -29,7 +29,7 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, 
 }
 
 @PublishedApi
-internal fun <S : Any> Sessions.Configuration.cookie(
+internal fun <S : Any> SessionsConfig.cookie(
     name: String,
     builder: CookieIdSessionBuilder<S>,
     sessionType: KClass<S>,
@@ -47,7 +47,7 @@ internal fun <S : Any> Sessions.Configuration.cookie(
  * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.cookie(
+public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
     storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit
@@ -62,7 +62,7 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(
  * Configure sessions to get it from cookie using session [storage]
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
-public inline fun <S : Any> Sessions.Configuration.cookie(
+public inline fun <S : Any> SessionsConfig.cookie(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
@@ -78,7 +78,7 @@ public inline fun <S : Any> Sessions.Configuration.cookie(
  * Configure sessions to get it from HTTP header using session [storage]
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
-public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
+public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
     @Suppress("DEPRECATION_ERROR")
     val builder = HeaderIdSessionBuilder(sessionType)
     header(name, sessionType, storage, builder)
@@ -87,7 +87,7 @@ public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KC
 /**
  * Configure sessions to get it from HTTP header using session [storage]
  */
-public inline fun <reified S : Any> Sessions.Configuration.header(name: String, storage: SessionStorage) {
+public inline fun <reified S : Any> SessionsConfig.header(name: String, storage: SessionStorage) {
     header<S>(name, storage, {})
 }
 
@@ -96,7 +96,7 @@ public inline fun <reified S : Any> Sessions.Configuration.header(name: String, 
  * The actual content of the session is stored at server side using the specified [storage].
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.header(
+public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
     storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit
@@ -113,7 +113,7 @@ public inline fun <reified S : Any> Sessions.Configuration.header(
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION_ERROR")
-public inline fun <S : Any> Sessions.Configuration.header(
+public inline fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
@@ -124,7 +124,7 @@ public inline fun <S : Any> Sessions.Configuration.header(
 }
 
 @PublishedApi
-internal fun <S : Any> Sessions.Configuration.header(
+internal fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage?,
@@ -149,7 +149,7 @@ internal fun <S : Any> Sessions.Configuration.header(
  * Configure sessions to serialize to/from HTTP cookie
  */
 @Deprecated("Use reified type parameter instead.", level = DeprecationLevel.ERROR)
-public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>) {
+public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>) {
     @Suppress("DEPRECATION_ERROR")
     val builder = CookieSessionBuilder(sessionType)
     cookie(name, sessionType, builder)
@@ -159,7 +159,7 @@ public fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KC
  * Configure sessions to serialize to/from HTTP cookie
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.cookie(name: String) {
+public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
     val sessionType = S::class
 
     val builder = CookieSessionBuilder(sessionType, typeOf<S>())
@@ -172,7 +172,7 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(name: String) 
  * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.cookie(
+public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
     block: CookieSessionBuilder<S>.() -> Unit
 ) {
@@ -186,7 +186,7 @@ public inline fun <reified S : Any> Sessions.Configuration.cookie(
  * Configure sessions to serialize to/from HTTP cookie configuring it by [block]
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
-public inline fun <S : Any> Sessions.Configuration.cookie(
+public inline fun <S : Any> SessionsConfig.cookie(
     name: String,
     sessionType: KClass<S>,
     block: CookieSessionBuilder<S>.() -> Unit
@@ -197,7 +197,7 @@ public inline fun <S : Any> Sessions.Configuration.cookie(
 }
 
 @PublishedApi
-internal fun <S : Any> Sessions.Configuration.cookie(
+internal fun <S : Any> SessionsConfig.cookie(
     name: String,
     sessionType: KClass<S>,
     builder: CookieSessionBuilder<S>
@@ -213,7 +213,7 @@ internal fun <S : Any> Sessions.Configuration.cookie(
  * Configure sessions to serialize to/from HTTP header
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
-public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>) {
+public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>) {
     @Suppress("DEPRECATION_ERROR")
     val builder = HeaderSessionBuilder(sessionType)
     header(name, sessionType, null, builder)
@@ -222,7 +222,7 @@ public fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KC
 /**
  * Configure sessions to serialize to/from HTTP header
  */
-public inline fun <reified S : Any> Sessions.Configuration.header(name: String) {
+public inline fun <reified S : Any> SessionsConfig.header(name: String) {
     header<S>(name, {})
 }
 
@@ -231,7 +231,7 @@ public inline fun <reified S : Any> Sessions.Configuration.header(name: String) 
  * optionally transformed by specified transforms in [block].
  */
 @OptIn(ExperimentalStdlibApi::class)
-public inline fun <reified S : Any> Sessions.Configuration.header(
+public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
     block: HeaderSessionBuilder<S>.() -> Unit
 ) {
@@ -246,7 +246,7 @@ public inline fun <reified S : Any> Sessions.Configuration.header(
  * and apply [block] function to configure serializataion and optional transformations
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
-public inline fun <S : Any> Sessions.Configuration.header(
+public inline fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
     block: HeaderSessionBuilder<S>.() -> Unit
