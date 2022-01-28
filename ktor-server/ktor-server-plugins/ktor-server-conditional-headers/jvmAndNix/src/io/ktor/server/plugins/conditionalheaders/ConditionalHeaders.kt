@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 
 /**
  * A configuration for the [ConditionalHeaders] plugin
@@ -29,6 +30,13 @@ public class ConditionalHeadersConfig {
     }
 }
 
+internal val ConditionalHeadersKey = AttributeKey<List<suspend (OutgoingContent) -> List<Version>>>("ConditionalHeadersKey")
+
+public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
+    val versionProviders = application.attributes.getOrNull(ConditionalHeadersKey)
+    return versionProviders?.flatMapTo(ArrayList(versionProviders.size)) { it(content) } ?: emptyList()
+}
+
 /**
  * A plugin that avoids sending the body of content if it has not changed since the last request.
  */
@@ -38,9 +46,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, Plugi
 ) {
     val versionProviders = pluginConfig.versionProviders
 
-    suspend fun versionsFor(content: OutgoingContent): List<Version> {
-        return versionProviders.flatMapTo(ArrayList(versionProviders.size)) { it(content) }
-    }
+    application.attributes.put(ConditionalHeadersKey, versionProviders)
 
     fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
         for (version in versions) {
@@ -53,7 +59,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, Plugi
     }
 
     onCallRespond.afterTransform { call, message ->
-        val versions = if (message is OutgoingContent) versionsFor(message) else emptyList()
+        val versions = if (message is OutgoingContent) call.versionsFor(message) else emptyList()
 
         if (versions.isNotEmpty()) {
             val headers = Headers.build {
