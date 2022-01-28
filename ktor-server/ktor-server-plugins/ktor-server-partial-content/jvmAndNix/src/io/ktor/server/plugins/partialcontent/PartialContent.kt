@@ -124,9 +124,10 @@ public class PartialContent private constructor(private val maxRangeCount: Int) 
             return false
         }
 
-        val versions = if (conditionalHeadersPlugin == null)
+        val versions = if (conditionalHeadersPlugin != null)
             call.versionsFor(content)
-        else content.headers.parseVersions()
+        else
+            content.headers.parseVersions()
 
         return versions.all { version ->
             when (version) {
