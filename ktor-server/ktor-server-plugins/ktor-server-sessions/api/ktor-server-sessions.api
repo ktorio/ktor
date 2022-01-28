@@ -86,6 +86,7 @@ public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 }
 
 public final class io/ktor/server/sessions/SessionDataKt {
+	public static final fun get (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
 }
 

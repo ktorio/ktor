@@ -18,23 +18,43 @@ import kotlin.reflect.*
  * @property validator applied to an application all and session providing a [Principal]
  */
 public class SessionAuthenticationProvider<T : Any> private constructor(
-    config: Configuration<T>
+    config: Config<T>
 ) : AuthenticationProvider(config) {
     public val type: KClass<T> = config.type
 
-    @PublishedApi
-    internal val challenge: SessionAuthChallengeFunction<T> = config.challengeFunction
+    private val challengeFunction: SessionAuthChallengeFunction<T> = config.challengeFunction
 
-    @PublishedApi
-    internal val validator: AuthenticationFunction<T> = config.validator
+    private val validator: AuthenticationFunction<T> = config.validator
+
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val session = call.sessions.get(type)
+        val principal = session?.let { validator(call, it) }
+
+        if (principal != null) {
+            context.principal(principal)
+        } else {
+            val cause =
+                if (session == null) AuthenticationFailedCause.NoCredentials
+                else AuthenticationFailedCause.InvalidCredentials
+
+            @Suppress("NAME_SHADOWING")
+            context.challenge(SessionAuthChallengeKey, cause) { challenge, call ->
+                challengeFunction(SessionChallengeContext(call), principal)
+                if (!challenge.completed && call.response.status() != null) {
+                    challenge.complete()
+                }
+            }
+        }
+    }
 
     /**
      * Session auth configuration
      */
-    public class Configuration<T : Any> @PublishedApi internal constructor(
+    public class Config<T : Any> @PublishedApi internal constructor(
         name: String?,
         internal val type: KClass<T>
-    ) : AuthenticationProvider.Configuration(name) {
+    ) : AuthenticationProvider.Config(name) {
         internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
         internal var challengeFunction: SessionAuthChallengeFunction<T> = {
@@ -94,9 +114,9 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
 /**
  * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
- * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Configuration.validate] configuration
+ * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Config.validate] configuration
  */
-public inline fun <reified T : Principal> Authentication.Configuration.session(
+public inline fun <reified T : Principal> AuthenticationConfig.session(
     name: String? = null
 ) {
     session<T>(name) {
@@ -106,43 +126,29 @@ public inline fun <reified T : Principal> Authentication.Configuration.session(
 
 /**
  * Provides ability to authenticate users via sessions. It is important to have
- * specified [SessionAuthenticationProvider.Configuration.validate] and
- * [SessionAuthenticationProvider.Configuration.challenge] in the lambda
+ * specified [SessionAuthenticationProvider.Config.validate] and
+ * [SessionAuthenticationProvider.Config.challenge] in the lambda
  * to get it work property
  */
-public inline fun <reified T : Any> Authentication.Configuration.session(
+public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null,
-    configure: SessionAuthenticationProvider.Configuration<T>.() -> Unit
+    configure: SessionAuthenticationProvider.Config<T>.() -> Unit
 ) {
-    val provider = SessionAuthenticationProvider.Configuration(name, T::class).apply(configure).buildProvider()
-
-    provider.pipeline.intercept(AuthenticationPipeline.CheckAuthentication) { context ->
-        val session = call.sessions.get<T>()
-        val principal = session?.let { provider.validator(call, it) }
-
-        if (principal != null) {
-            context.principal(principal)
-        } else {
-            val cause =
-                if (session == null) AuthenticationFailedCause.NoCredentials
-                else AuthenticationFailedCause.InvalidCredentials
-
-            context.challenge(SessionAuthChallengeKey, cause) {
-                provider.challenge(this, principal)
-                if (!it.completed && call.response.status() != null) {
-                    it.complete()
-                }
-            }
-        }
-    }
-
+    val provider = SessionAuthenticationProvider.Config(name, T::class).apply(configure).buildProvider()
     register(provider)
 }
 
 /**
+ * A context for [SessionAuthChallengeFunction]
+ */
+public class SessionChallengeContext(
+    public val call: ApplicationCall
+)
+
+/**
  * Specifies what to send back if session authentication fails.
  */
-public typealias SessionAuthChallengeFunction<T> = suspend PipelineContext<*, ApplicationCall>.(T?) -> Unit
+public typealias SessionAuthChallengeFunction<T> = suspend SessionChallengeContext.(T?) -> Unit
 
 /**
  * A key used to register auth challenge
