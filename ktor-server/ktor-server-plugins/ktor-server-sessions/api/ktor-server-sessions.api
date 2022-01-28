@@ -85,6 +85,10 @@ public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 	public static final fun setMaxAge-6Au4x4Y (Lio/ktor/server/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
 }
 
+public final class io/ktor/server/sessions/SessionDataKt {
+	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
+}
+
 public final class io/ktor/server/sessions/SessionIdProviderKt {
 	public static final fun generateSessionId ()Ljava/lang/String;
 }
@@ -239,40 +243,28 @@ public final class io/ktor/server/sessions/SessionTransportTransformerMessageAut
 	public fun transformWrite (Ljava/lang/String;)Ljava/lang/String;
 }
 
-public final class io/ktor/server/sessions/Sessions {
-	public static final field Plugin Lio/ktor/server/sessions/Sessions$Plugin;
-	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getProviders ()Ljava/util/List;
+public final class io/ktor/server/sessions/SessionsBuilderKt {
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/server/sessions/CookieIdSessionBuilder;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/CookieSessionBuilder;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lio/ktor/server/sessions/HeaderSessionBuilder;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/sessions/Sessions$Configuration {
+public final class io/ktor/server/sessions/SessionsConfig {
 	public fun <init> ()V
 	public final fun getProviders ()Ljava/util/List;
 	public final fun register (Lio/ktor/server/sessions/SessionProvider;)V
 }
 
-public final class io/ktor/server/sessions/Sessions$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/sessions/Sessions;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/sessions/SessionsBuilderKt {
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/server/sessions/CookieIdSessionBuilder;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/CookieSessionBuilder;)V
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
-	public static final fun cookie (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
-	public static final fun header (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
-	public static final fun header (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
-	public static final fun header (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lio/ktor/server/sessions/HeaderSessionBuilder;)V
-	public static final fun header (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
-	public static final fun header (Lio/ktor/server/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
-}
-
 public final class io/ktor/server/sessions/SessionsKt {
-	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
+	public static final fun getSessions ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
 public final class io/ktor/server/sessions/TooLateSessionSetException : java/lang/IllegalStateException {
