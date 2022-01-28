@@ -4,6 +4,8 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -13,13 +15,12 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class CachingHeadersTest {
     @Test
     fun testNoPluginInstalled(): Unit = test(
         configure = {},
-        test = { call ->
-            assertEquals(null, call.response.headers[HttpHeaders.CacheControl])
+        test = { response ->
+            assertEquals(null, response.headers[HttpHeaders.CacheControl])
         }
     )
 
@@ -28,8 +29,8 @@ class CachingHeadersTest {
         configure = {
             install(CachingHeaders)
         },
-        test = { call ->
-            assertEquals("no-cache", call.response.headers[HttpHeaders.CacheControl])
+        test = { response ->
+            assertEquals("no-cache", response.headers[HttpHeaders.CacheControl])
         }
     )
 
@@ -40,8 +41,8 @@ class CachingHeadersTest {
                 options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
             }
         },
-        test = { call ->
-            assertEquals("no-cache, private, no-store", call.response.headers[HttpHeaders.CacheControl])
+        test = { response ->
+            assertEquals("no-cache, private, no-store", response.headers[HttpHeaders.CacheControl])
         }
     )
 
@@ -53,65 +54,68 @@ class CachingHeadersTest {
                 options { CachingOptions(CacheControl.MaxAge(15)) }
             }
         },
-        test = { call ->
+        test = { response ->
             assertEquals(
                 "no-cache, no-store, max-age=15, private",
-                call.response.headers[HttpHeaders.CacheControl]
+                response.headers[HttpHeaders.CacheControl]
             )
         }
     )
 
     @Test
-    fun testSubrouteInstall() = withTestApplication {
-        application.routing {
-            route("/1") {
-                install(CachingHeaders) {
-                    options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-                    options { CachingOptions(CacheControl.MaxAge(15)) }
+    fun testSubrouteInstall() = testApplication {
+        application {
+            routing {
+                route("/1") {
+                    install(CachingHeaders) {
+                        options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                        options { CachingOptions(CacheControl.MaxAge(15)) }
+                    }
+                    get {
+                        call.respondText("test") {
+                            caching = CachingOptions(CacheControl.NoCache(null))
+                        }
+                    }
                 }
-                get {
+                get("/2") {
                     call.respondText("test") {
                         caching = CachingOptions(CacheControl.NoCache(null))
                     }
                 }
             }
-            get("/2") {
-                call.respondText("test") {
-                    caching = CachingOptions(CacheControl.NoCache(null))
-                }
-            }
         }
 
-        handleRequest(HttpMethod.Get, "/1").let { call ->
+        client.get("/1").let {
             assertEquals(
                 "no-cache, no-store, max-age=15, private",
-                call.response.headers[HttpHeaders.CacheControl]
+                it.headers[HttpHeaders.CacheControl]
             )
         }
 
-        handleRequest(HttpMethod.Get, "/2").let { call ->
-            assertNull(call.response.headers[HttpHeaders.CacheControl])
+        client.get("/2").let {
+            assertNull(it.headers[HttpHeaders.CacheControl])
         }
     }
 
     private fun test(
         configure: Application.() -> Unit,
-        test: (ApplicationCall) -> Unit
-    ): Unit = withTestApplication {
-        configure(application)
+        test: (HttpResponse) -> Unit
+    ): Unit = testApplication {
+        application {
+            configure(this)
 
-        application.routing {
-            get("/") {
-                call.respondText("test") {
-                    caching = CachingOptions(CacheControl.NoCache(null))
+            routing {
+                get("/") {
+                    call.respondText("test") {
+                        caching = CachingOptions(CacheControl.NoCache(null))
+                    }
                 }
             }
         }
-
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertTrue(call.response.status()!!.isSuccess())
-            assertEquals("test", call.response.content?.trim())
-            test(call)
+        client.get("/").let {
+            assertTrue(it.status.isSuccess())
+            assertEquals("test", it.bodyAsText().trim())
+            test(it)
         }
     }
 }
