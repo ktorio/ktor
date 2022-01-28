@@ -147,9 +147,9 @@ class OAuth1aFlowTest {
                         throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
                     }
                     // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
-                    //            if (nonce !in knownNonceSet) {
-                    //                throw IllegalArgumentException("Bad nonce specified: $nonce")
-                    //            }
+                    // if (nonce !in knownNonceSet) {
+                    //     throw IllegalArgumentException("Bad nonce specified: $nonce")
+                    // }
                     if (token != "token1") {
                         throw IllegalArgumentException("Wrong token specified: $token")
                     }
@@ -230,8 +230,7 @@ class OAuth1aFlowTest {
 
             waitExecutor()
 
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, null", result.response.content)
+            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
         }
     }
 
@@ -244,8 +243,7 @@ class OAuth1aFlowTest {
 
             waitExecutor()
 
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, null", result.response.content)
+            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
         }
     }
 
