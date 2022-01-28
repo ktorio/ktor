@@ -41,14 +41,13 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
             String::class -> channel.readText(
-                charset = withContentType(call) { call.request.contentCharset() }
-                    ?: Charsets.ISO_8859_1
+                charset = withContentType(call) { call.request.contentCharset() } ?: Charsets.UTF_8
             )
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
                 when {
                     contentType.match(ContentType.Application.FormUrlEncoded) -> {
-                        val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
+                        val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.UTF_8)
                         parseQueryString(string)
                     }
                     contentType.match(ContentType.MultiPart.FormData) -> {
