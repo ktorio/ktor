@@ -524,9 +524,7 @@ public final class io/ktor/server/request/ApplicationReceivePipeline$Phases {
 }
 
 public final class io/ktor/server/request/ApplicationReceiveRequest {
-	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Z)V
-	public synthetic fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getReusableValue ()Z
+	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;)V
 	public final fun getTypeInfo ()Lio/ktor/util/reflect/TypeInfo;
 	public final fun getValue ()Ljava/lang/Object;
 }
@@ -558,6 +556,7 @@ public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
 	public static final fun authorization (Lio/ktor/server/request/ApplicationRequest;)Ljava/lang/String;
 	public static final fun cacheControl (Lio/ktor/server/request/ApplicationRequest;)Ljava/lang/String;
 	public static final fun contentCharset (Lio/ktor/server/request/ApplicationRequest;)Ljava/nio/charset/Charset;
+	public static final fun contentLength (Lio/ktor/server/request/ApplicationRequest;)Ljava/lang/Long;
 	public static final fun contentType (Lio/ktor/server/request/ApplicationRequest;)Lio/ktor/http/ContentType;
 	public static final fun document (Lio/ktor/server/request/ApplicationRequest;)Ljava/lang/String;
 	public static final fun getHttpMethod (Lio/ktor/server/request/ApplicationRequest;)Lio/ktor/http/HttpMethod;

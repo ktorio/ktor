@@ -1,8 +1,8 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-package io.ktor.tests.server.plugins
+package io.ktor.server.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -23,7 +23,7 @@ import kotlin.test.*
 class StaticContentTest {
     val basedir =
         listOf(File("jvm/test"), File("ktor-server/ktor-server-tests/jvm/test"))
-            .map { File(it, "io/ktor/tests/server") }
+            .map { File(it, "io/ktor/server") }
             .first(File::exists)
 
     private operator fun File.get(relativePath: String) = File(this, relativePath)
@@ -96,7 +96,7 @@ class StaticContentTest {
 
         application.routing {
             static {
-                resources("io.ktor.tests.server.plugins")
+                resources("io.ktor.server.plugins")
                 resources("java.util")
                 route("z") {
                     staticBasePackage = "java.util"
