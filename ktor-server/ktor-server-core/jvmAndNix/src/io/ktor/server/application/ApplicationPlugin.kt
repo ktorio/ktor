@@ -132,7 +132,10 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
     }
     // we install plugin into fake pipeline and add interceptors manually
     // to avoid having multiple interceptors after pipelines are merged
-    val fakePipeline = Route(parent, selector, developmentMode, environment)
+    val fakePipeline = when (this) {
+        is Routing -> Routing(application)
+        else -> Route(parent, selector, developmentMode, environment)
+    }
     val installed = plugin.install(fakePipeline, configure)
     pluginRegistry.put(plugin.key, installed)
 
