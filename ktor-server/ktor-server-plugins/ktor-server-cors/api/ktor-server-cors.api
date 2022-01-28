@@ -1,18 +1,6 @@
-public final class io/ktor/server/plugins/cors/CORS {
+public final class io/ktor/server/plugins/cors/CORSConfig {
 	public static final field CORS_DEFAULT_MAX_AGE J
-	public static final field Plugin Lio/ktor/server/plugins/cors/CORS$Plugin;
-	public final fun getAllHeaders ()Ljava/util/Set;
-	public final fun getAllHeadersSet ()Ljava/util/Set;
-	public final fun getAllowCredentials ()Z
-	public final fun getAllowSameOrigin ()Z
-	public final fun getAllowsAnyHost ()Z
-	public final fun getHeaderPredicates ()Ljava/util/List;
-	public final fun getMethods ()Ljava/util/Set;
-	public final fun intercept (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/cors/CORS$Configuration {
-	public static final field Companion Lio/ktor/server/plugins/cors/CORS$Configuration$Companion;
+	public static final field Companion Lio/ktor/server/plugins/cors/CORSConfig$Companion;
 	public fun <init> ()V
 	public final fun allowHeaders (Lkotlin/jvm/functions/Function1;)V
 	public final fun allowHeadersPrefixed (Ljava/lang/String;)V
@@ -30,7 +18,7 @@ public final class io/ktor/server/plugins/cors/CORS$Configuration {
 	public final fun getMethods ()Ljava/util/Set;
 	public final fun header (Ljava/lang/String;)V
 	public final fun host (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
-	public static synthetic fun host$default (Lio/ktor/server/plugins/cors/CORS$Configuration;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)V
+	public static synthetic fun host$default (Lio/ktor/server/plugins/cors/CORSConfig;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)V
 	public final fun method (Lio/ktor/http/HttpMethod;)V
 	public final fun setAllowCredentials (Z)V
 	public final fun setAllowNonSimpleContentTypes (Z)V
@@ -38,21 +26,19 @@ public final class io/ktor/server/plugins/cors/CORS$Configuration {
 	public final fun setMaxAgeInSeconds (J)V
 }
 
-public final class io/ktor/server/plugins/cors/CORS$Configuration$Companion {
+public final class io/ktor/server/plugins/cors/CORSConfig$Companion {
 	public final fun getCorsDefaultMethods ()Ljava/util/Set;
 	public final fun getCorsSimpleContentTypes ()Ljava/util/Set;
 	public final fun getCorsSimpleRequestHeaders ()Ljava/util/Set;
 	public final fun getCorsSimpleResponseHeaders ()Ljava/util/Set;
 }
 
-public final class io/ktor/server/plugins/cors/CORS$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/cors/CORS;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/cors/CORSKt {
+	public static final fun getCORS ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
 public final class io/ktor/server/plugins/cors/KotlinTimeJvmKt {
-	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/cors/CORS$Configuration;)J
-	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/cors/CORS$Configuration;J)V
+	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/cors/CORSConfig;)J
+	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/cors/CORSConfig;J)V
 }
 
