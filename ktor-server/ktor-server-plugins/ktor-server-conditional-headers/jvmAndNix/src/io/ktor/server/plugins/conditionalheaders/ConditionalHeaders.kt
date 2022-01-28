@@ -30,8 +30,12 @@ public class ConditionalHeadersConfig {
     }
 }
 
-internal val ConditionalHeadersKey = AttributeKey<List<suspend (OutgoingContent) -> List<Version>>>("ConditionalHeadersKey")
+internal val ConditionalHeadersKey: AttributeKey<List<suspend (OutgoingContent) -> List<Version>>> =
+    AttributeKey("ConditionalHeadersKey")
 
+/**
+ * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
+ */
 public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
     val versionProviders = application.attributes.getOrNull(ConditionalHeadersKey)
     return versionProviders?.flatMapTo(ArrayList(versionProviders.size)) { it(content) } ?: emptyList()
