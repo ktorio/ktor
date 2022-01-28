@@ -24,8 +24,7 @@ import kotlin.reflect.*
  */
 public class ApplicationReceiveRequest constructor(
     public val typeInfo: TypeInfo,
-    public val value: Any,
-    public val reusableValue: Boolean = false
+    public val value: Any
 )
 
 /**
@@ -62,7 +61,6 @@ public open class ApplicationReceivePipeline(
  * Receives content for this request.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
@@ -70,7 +68,6 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeInfo<T>())
 
 /**

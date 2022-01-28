@@ -1,8 +1,7 @@
 // ktlint-disable filename
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
 package io.ktor.server.http
 
 import io.ktor.http.*
@@ -34,10 +33,7 @@ class ApplicationRequestContentTest {
 
         application.intercept(ApplicationCallPipeline.Call) {
             assertEquals(11, call.receiveStream().readBytes().size)
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // a stream can't be received twice
-                call.receiveStream()
-            }
+            assertEquals(11, call.receiveStream().readBytes().size)
         }
 
         handleRequest(HttpMethod.Get, "") {
