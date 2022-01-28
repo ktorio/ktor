@@ -8,8 +8,6 @@ import freemarker.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
 import java.io.*
 
 /**
@@ -31,37 +29,26 @@ public class FreeMarkerContent(
  * A plugin that allows you to use FreeMarker templates as views within your application.
  * Provides the ability to respond with [FreeMarkerContent]
  */
-public class FreeMarker private constructor(private val config: Configuration) {
-    /**
-     * A plugin installing companion object
-     */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, FreeMarker> {
-        override val key: AttributeKey<FreeMarker> = AttributeKey("freemarker")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): FreeMarker {
-            val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
-            val plugin = FreeMarker(config)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is FreeMarkerContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
-            }
-            return plugin
-        }
-    }
-
-    private fun process(content: FreeMarkerContent): OutgoingContent = with(content) {
+public val FreeMarker: ApplicationPlugin<Application, Configuration, PluginInstance> = createApplicationPlugin(
+    "FreeMarker",
+    { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
+) {
+    fun process(content: FreeMarkerContent): OutgoingContent = with(content) {
         val writer = StringWriter()
-        config.getTemplate(content.template).process(model, writer)
+        pluginConfig.getTemplate(content.template).process(model, writer)
 
         val result = TextContent(text = writer.toString(), contentType)
         if (etag != null) {
             result.versions += EntityTagVersion(etag)
         }
         return result
+    }
+
+    onCallRespond { _, message ->
+        if (message is FreeMarkerContent) {
+            transformBody {
+                process(message)
+            }
+        }
     }
 }
