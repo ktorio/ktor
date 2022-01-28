@@ -17,18 +17,41 @@ import io.ktor.utils.io.core.*
  * @property name is the name of the provider, or `null` for a default provider
  */
 public class BasicAuthenticationProvider internal constructor(
-    configuration: Configuration
-) : AuthenticationProvider(configuration) {
-    internal val realm: String = configuration.realm
+    config: Config
+) : AuthenticationProvider(config) {
+    internal val realm: String = config.realm
 
-    internal val charset: Charset? = configuration.charset
+    internal val charset: Charset? = config.charset
 
-    internal val authenticationFunction = configuration.authenticationFunction
+    internal val authenticationFunction = config.authenticationFunction
+
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val credentials = call.request.basicAuthenticationCredentials(charset)
+        val principal = credentials?.let { authenticationFunction(call, it) }
+
+        val cause = when {
+            credentials == null -> AuthenticationFailedCause.NoCredentials
+            principal == null -> AuthenticationFailedCause.InvalidCredentials
+            else -> null
+        }
+
+        if (cause != null) {
+            @Suppress("NAME_SHADOWING")
+            context.challenge(basicAuthenticationChallengeKey, cause) { challenge, call ->
+                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
+                challenge.complete()
+            }
+        }
+        if (principal != null) {
+            context.principal(principal)
+        }
+    }
 
     /**
      * Basic auth configuration
      */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
             throw NotImplementedError(
                 "Basic auth validate function is not specified. Use basic { validate { ... } } to fix."
@@ -67,36 +90,11 @@ public class BasicAuthenticationProvider internal constructor(
 /**
  * Installs Basic Authentication mechanism
  */
-public fun Authentication.Configuration.basic(
+public fun AuthenticationConfig.basic(
     name: String? = null,
-    configure: BasicAuthenticationProvider.Configuration.() -> Unit
+    configure: BasicAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Configuration(name).apply(configure))
-    val realm = provider.realm
-    val charset = provider.charset
-    val authenticate = provider.authenticationFunction
-
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val credentials = call.request.basicAuthenticationCredentials(charset)
-        val principal = credentials?.let { authenticate(call, it) }
-
-        val cause = when {
-            credentials == null -> AuthenticationFailedCause.NoCredentials
-            principal == null -> AuthenticationFailedCause.InvalidCredentials
-            else -> null
-        }
-
-        if (cause != null) {
-            context.challenge(basicAuthenticationChallengeKey, cause) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
-                it.complete()
-            }
-        }
-        if (principal != null) {
-            context.principal(principal)
-        }
-    }
-
+    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Config(name).apply(configure))
     register(provider)
 }
 

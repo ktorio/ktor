@@ -546,7 +546,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Configuration.() -> Unit = {}) =
+    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Config.() -> Unit = {}) =
         configureServer {
             jwt {
                 this@jwt.realm = this@JWTAuthTest.realm
@@ -561,7 +561,7 @@ class JWTAuthTest {
             }
         }
 
-    private fun Application.configureServer(authBlock: (Authentication.Configuration.() -> Unit)) {
+    private fun Application.configureServer(authBlock: (AuthenticationConfig.() -> Unit)) {
         install(Authentication) {
             authBlock(this)
         }

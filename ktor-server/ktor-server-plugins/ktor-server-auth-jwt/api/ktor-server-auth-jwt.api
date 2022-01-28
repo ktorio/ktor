@@ -1,15 +1,16 @@
 public final class io/ktor/server/auth/jwt/JWTAuthKt {
-	public static final fun jwt (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun jwt$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun jwt (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun jwt$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/auth/jwt/JWTAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/jwt/JWTAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
 	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
-	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function4;)V
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun setRealm (Ljava/lang/String;)V
@@ -20,10 +21,15 @@ public final class io/ktor/server/auth/jwt/JWTAuthenticationProvider$Configurati
 	public final fun verifier (Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/auth/jwt/JWTChallengeContext {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 }
 
 public final class io/ktor/server/auth/jwt/JWTCredential : io/ktor/server/auth/jwt/JWTPayloadHolder, io/ktor/server/auth/Credential {

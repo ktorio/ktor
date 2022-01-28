@@ -55,8 +55,8 @@ class DigestTest {
 
             application.install(Authentication) {
                 provider {
-                    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) {
-                        call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
+                    authenticate { context ->
+                        context.call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
                     }
                 }
             }

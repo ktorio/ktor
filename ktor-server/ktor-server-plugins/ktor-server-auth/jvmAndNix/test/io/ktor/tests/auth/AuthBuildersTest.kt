@@ -178,11 +178,11 @@ class AuthBuildersTest {
     @Test
     fun testNoRouting() {
         withTestApplication {
-            val auth = application.install(Authentication) {
+            application.install(Authentication) {
                 form { validate { UserIdPrincipal(it.name) } }
             }
 
-            auth.interceptPipeline(application)
+            application.install(AuthenticationInterceptors)
 
             application.intercept(ApplicationCallPipeline.Call) {
                 call.respondText("OK")
@@ -220,8 +220,7 @@ class AuthBuildersTest {
         on("auth method name conflict") {
             application.authentication {
                 assertFails {
-                    basic("2") {
-                    }
+                    basic("2") {}
                 }
             }
         }
@@ -292,8 +291,7 @@ class AuthBuildersTest {
                     assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
                 }
                 on("try call without authentication") {
-                    val call = handleRequest(HttpMethod.Get, "/auth") {
-                    }
+                    val call = handleRequest(HttpMethod.Get, "/auth") {}
                     assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
                     assertEquals("OK:null", call.response.content)
                 }
@@ -302,24 +300,19 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
+    fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication {
         class CustomErrorCause : AuthenticationFailedCause.Error("custom error")
-
-        @Suppress("DEPRECATION_ERROR", "unused")
-        class DeprecationTest : AuthenticationFailedCause.Error(cause = "deprecated") {
-            fun f(): String = cause
-        }
 
         application.apply {
             authentication {
                 provider("custom") {
-                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                        context.authentication.error(this, AuthenticationFailedCause.Error("test"))
+                    authenticate { context ->
+                        context.error(this, AuthenticationFailedCause.Error("test"))
                     }
                 }
                 provider("custom-inheritance") {
-                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                        context.authentication.error(this, CustomErrorCause())
+                    authenticate { context ->
+                        context.error(this, CustomErrorCause())
                     }
                 }
             }
@@ -371,10 +364,10 @@ class AuthBuildersTest {
         application.apply {
             authentication {
                 provider("custom") {
-                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                        context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
+                    authenticate { context ->
+                        context.challenge(this, AuthenticationFailedCause.Error("test")) { challenge, call ->
                             call.respondText("Challenge")
-                            it.complete()
+                            challenge.complete()
                         }
                     }
                 }
