@@ -32,24 +32,6 @@ public class WebjarsConfig {
                 }
             }
         }
-
-    /**
-     * Makes no effect. Will be dropped in future releases.
-     */
-    @Suppress("unused")
-    @Deprecated("This is no longer used and will be dropped in future releases.", level = DeprecationLevel.ERROR)
-    public var zone: ZoneId = ZoneId.systemDefault()
-}
-
-private fun extractWebJar(path: String, knownWebJars: Set<String>, locator: WebJarAssetLocator): String {
-    val firstDelimiter = if (path.startsWith("/")) 1 else 0
-    val nextDelimiter = path.indexOf("/", 1)
-    val webjar = if (nextDelimiter > -1) path.substring(firstDelimiter, nextDelimiter) else ""
-    val partialPath = path.substring(nextDelimiter + 1)
-    if (webjar !in knownWebJars) {
-        throw IllegalArgumentException("jar $webjar not found")
-    }
-    return locator.getFullPath(webjar, partialPath)
 }
 
 /**
@@ -67,6 +49,8 @@ public val Webjars: ApplicationPlugin<Application, WebjarsConfig, PluginInstance
         val lastModified = GMTDate()
 
         onCall { call ->
+            if (call.response.isCommitted) return@onCall
+
             val fullPath = call.request.path()
             if (fullPath.startsWith(webjarsPrefix) &&
                 call.request.httpMethod == HttpMethod.Get &&
@@ -90,15 +74,3 @@ public val Webjars: ApplicationPlugin<Application, WebjarsConfig, PluginInstance
             }
         }
     }
-
-private class InputStreamContent(
-    val input: InputStream,
-    override val contentType: ContentType,
-    lastModified: GMTDate
-) : OutgoingContent.ReadChannelContent() {
-    init {
-        versions += LastModifiedVersion(lastModified)
-    }
-
-    override fun readFrom(): ByteReadChannel = input.toByteReadChannel(pool = KtorDefaultPool)
-}
