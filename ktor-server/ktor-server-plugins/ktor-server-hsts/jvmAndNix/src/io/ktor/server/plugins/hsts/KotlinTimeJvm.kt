@@ -9,7 +9,7 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 @ExperimentalTime
-public var HSTS.Configuration.maxAgeDuration: Duration
+public var HSTSConfig.maxAgeDuration: Duration
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
         require(!newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
