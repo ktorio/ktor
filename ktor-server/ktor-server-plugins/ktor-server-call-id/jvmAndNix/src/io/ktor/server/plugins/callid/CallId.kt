@@ -144,7 +144,7 @@ public class CallIdConfig {
 
 internal object BeforeSetup : Hook<suspend (ApplicationCall) -> Unit> {
     private val phase: PipelinePhase = PipelinePhase("CallId")
-    private val logger by lazy { KtorSimpleLogger(CallId::class.simpleName!!) }
+    private val logger by lazy { KtorSimpleLogger(phase.name) }
 
     override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         application.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
