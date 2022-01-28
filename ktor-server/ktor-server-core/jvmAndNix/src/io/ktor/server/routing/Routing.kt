@@ -47,8 +47,6 @@ public class Routing(
             is RoutingResolveResult.Failure ->
                 context.call.attributes.put(RoutingFailureStatusCode, resolveResult.errorStatusCode)
         }
-
-        println("Resolve finished: $resolveResult")
     }
 
     private suspend fun executeResult(

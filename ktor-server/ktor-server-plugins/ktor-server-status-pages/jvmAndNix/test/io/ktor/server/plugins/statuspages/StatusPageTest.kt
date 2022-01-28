@@ -371,7 +371,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatusPagesNotCalledAfterRouting() {
+    fun testRoutingNotCalledAfterStatusPages() {
         val ThrowingPlugin = createApplicationPlugin("ThrowingPlugin") {
             onCall {
                 throw NotFoundException()

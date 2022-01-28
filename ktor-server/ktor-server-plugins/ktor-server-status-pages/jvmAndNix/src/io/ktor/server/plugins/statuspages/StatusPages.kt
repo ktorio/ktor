@@ -12,7 +12,7 @@ import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
 /**
- * Specify how the exception should be handled.
+ * Specifies how the exception should be handled.
  */
 public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwable) -> Unit
 
