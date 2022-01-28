@@ -17,21 +17,76 @@ import java.security.*
  * @property algorithmName Message digest algorithm to be used. Usually only `MD5` is supported by clients.
  */
 public class DigestAuthenticationProvider internal constructor(
-    config: Configuration
+    config: Config
 ) : AuthenticationProvider(config) {
 
-    public val realm: String = config.realm
+    private val realm: String = config.realm
 
-    public val algorithmName: String = config.algorithmName
+    private val algorithmName: String = config.algorithmName
 
-    internal val nonceManager: NonceManager = config.nonceManager
+    private val nonceManager: NonceManager = config.nonceManager
 
-    internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
+    private val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
+
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val authorizationHeader = call.request.parseAuthorizationHeader()
+        val credentials = authorizationHeader?.let { authHeader ->
+            if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
+                authHeader.toDigestCredential()
+            } else {
+                null
+            }
+        }
+
+        val verify: suspend (DigestCredential) -> Boolean = {
+            it.verifier(
+                call.request.local.method,
+                MessageDigest.getInstance(algorithmName),
+                userNameRealmPasswordDigestProvider
+            )
+        }
+        val principal = credentials?.let {
+            if ((it.algorithm ?: "MD5") == algorithmName &&
+                it.realm == realm &&
+                nonceManager.verifyNonce(it.nonce) &&
+                verify(it)
+            ) {
+                UserIdPrincipal(it.userName)
+            } else {
+                null
+            }
+        }
+
+        when (principal) {
+            null -> {
+                val cause = when (credentials) {
+                    null -> AuthenticationFailedCause.NoCredentials
+                    else -> AuthenticationFailedCause.InvalidCredentials
+                }
+
+                @Suppress("NAME_SHADOWING")
+                context.challenge(digestAuthenticationChallengeKey, cause) { challenge, call ->
+                    call.respond(
+                        UnauthorizedResponse(
+                            HttpAuthHeader.digestAuthChallenge(
+                                realm,
+                                algorithm = algorithmName,
+                                nonce = nonceManager.newNonce()
+                            )
+                        )
+                    )
+                    challenge.complete()
+                }
+            }
+            else -> context.principal(principal)
+        }
+    }
 
     /**
      * Digest auth configuration
      */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var digestProvider: DigestProviderFunction = { userName, realm ->
             MessageDigest.getInstance(algorithmName).let { digester ->
                 digester.reset()
@@ -75,65 +130,11 @@ public typealias DigestProviderFunction = suspend (userName: String, realm: Stri
 /**
  * Installs Digest Authentication mechanism
  */
-public fun Authentication.Configuration.digest(
+public fun AuthenticationConfig.digest(
     name: String? = null,
-    configure: DigestAuthenticationProvider.Configuration.() -> Unit
+    configure: DigestAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Configuration(name).apply(configure))
-
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val authorizationHeader = call.request.parseAuthorizationHeader()
-        val credentials = authorizationHeader?.let { authHeader ->
-            if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-                authHeader.toDigestCredential()
-            } else {
-                null
-            }
-        }
-
-        val verify: suspend (DigestCredential) -> Boolean = {
-            it.verifier(
-                call.request.local.method,
-                MessageDigest.getInstance(provider.algorithmName),
-                provider.userNameRealmPasswordDigestProvider
-            )
-        }
-        val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == provider.algorithmName &&
-                it.realm == provider.realm &&
-                provider.nonceManager.verifyNonce(it.nonce) &&
-                verify(it)
-            ) {
-                UserIdPrincipal(it.userName)
-            } else {
-                null
-            }
-        }
-
-        when (principal) {
-            null -> {
-                val cause = when (credentials) {
-                    null -> AuthenticationFailedCause.NoCredentials
-                    else -> AuthenticationFailedCause.InvalidCredentials
-                }
-
-                context.challenge(digestAuthenticationChallengeKey, cause) {
-                    call.respond(
-                        UnauthorizedResponse(
-                            HttpAuthHeader.digestAuthChallenge(
-                                provider.realm,
-                                algorithm = provider.algorithmName,
-                                nonce = provider.nonceManager.newNonce()
-                            )
-                        )
-                    )
-                    it.complete()
-                }
-            }
-            else -> context.principal(principal)
-        }
-    }
-
+    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Config(name).apply(configure))
     register(provider)
 }
 

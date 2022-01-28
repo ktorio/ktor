@@ -19,39 +19,31 @@ public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credential
 /**
  * Represents an authentication provider with the given name
  */
-public open class AuthenticationProvider(config: Configuration) {
-    private var filterPredicates: MutableList<ApplicationCallPredicate>? = config.filterPredicates
-
+public abstract class AuthenticationProvider(config: Config) {
     /**
      * Provider name or `null` for a default provider
      */
     public val name: String? = config.name
 
     /**
-     * Authentication pipeline for this provider
+     * Authenticates request based on [AuthenticationContext].
+     * Implementations should either add new [AuthenticationContext.principal] for successful authentication
+     * or register [AuthenticationContext.challenge] for failed ones
      */
-    public val pipeline: AuthenticationPipeline = AuthenticationPipeline(
-        config.pipeline.developmentMode
-    ).also { pipeline ->
-        pipeline.merge(config.pipeline)
-    }
+    public abstract suspend fun onAuthenticate(context: AuthenticationContext)
 
     /**
      * Authentication filters specifying if authentication is required for particular [ApplicationCall]
      *
      * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
      */
-    public val skipWhen: List<ApplicationCallPredicate> get() = filterPredicates ?: emptyList()
+    public val skipWhen: List<ApplicationCallPredicate> = config.filterPredicates ?: emptyList()
 
     /**
      * Authentication provider configuration base class
      * @property name is the name of the provider, or `null` for a default provider.
      */
-    public open class Configuration protected constructor(public val name: String?) {
-        /**
-         * Authentication pipeline for this provider.
-         */
-        public val pipeline: AuthenticationPipeline = AuthenticationPipeline(developmentMode = false)
+    public open class Config protected constructor(public val name: String?) {
 
         /**
          * Authentication filters specifying if authentication is required for particular [ApplicationCall]
@@ -71,6 +63,4 @@ public open class AuthenticationProvider(config: Configuration) {
             filterPredicates = list
         }
     }
-
-    private class NamedConfiguration(name: String?) : Configuration(name)
 }

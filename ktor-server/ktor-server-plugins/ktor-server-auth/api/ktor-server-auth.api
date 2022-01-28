@@ -1,27 +1,28 @@
+public final class io/ktor/server/auth/AfterAuthenticationHook : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/auth/AfterAuthenticationHook;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
+}
+
 public final class io/ktor/server/auth/Authentication {
-	public static final field Plugin Lio/ktor/server/auth/Authentication$Plugin;
-	public fun <init> ()V
-	public fun <init> (Ljava/util/List;)V
+	public static final field Companion Lio/ktor/server/auth/Authentication$Companion;
+	public fun <init> (Lio/ktor/server/auth/AuthenticationConfig;)V
 	public final fun configure (Lkotlin/jvm/functions/Function1;)V
-	public final fun interceptPipeline (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/util/List;Z)V
-	public static synthetic fun interceptPipeline$default (Lio/ktor/server/auth/Authentication;Lio/ktor/server/application/ApplicationCallPipeline;Ljava/util/List;ZILjava/lang/Object;)V
 }
 
-public final class io/ktor/server/auth/Authentication$Configuration {
-	public fun <init> ()V
-	public fun <init> (Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun provider$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public final fun register (Lio/ktor/server/auth/AuthenticationProvider;)V
-}
-
-public final class io/ktor/server/auth/Authentication$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public final fun getAuthenticatePhase ()Lio/ktor/util/pipeline/PipelinePhase;
-	public final fun getChallengePhase ()Lio/ktor/util/pipeline/PipelinePhase;
+public final class io/ktor/server/auth/Authentication$Companion : io/ktor/server/application/ApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/Authentication;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/AuthenticationConfig {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun provider$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun register (Lio/ktor/server/auth/AuthenticationProvider;)V
 }
 
 public final class io/ktor/server/auth/AuthenticationContext {
@@ -60,46 +61,34 @@ public final class io/ktor/server/auth/AuthenticationFailedCause$NoCredentials :
 	public static final field INSTANCE Lio/ktor/server/auth/AuthenticationFailedCause$NoCredentials;
 }
 
-public final class io/ktor/server/auth/AuthenticationKt {
+public final class io/ktor/server/auth/AuthenticationInterceptorsKt {
 	public static final fun authenticate (Lio/ktor/server/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static synthetic fun authenticate$default (Lio/ktor/server/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static final fun getAuthenticationInterceptors ()Lio/ktor/server/application/RouteScopedPlugin;
+}
+
+public final class io/ktor/server/auth/AuthenticationKt {
 	public static final fun authentication (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getAuthentication (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/auth/AuthenticationContext;
-}
-
-public final class io/ktor/server/auth/AuthenticationPipeline : io/ktor/util/pipeline/Pipeline {
-	public static final field Companion Lio/ktor/server/auth/AuthenticationPipeline$Companion;
-	public fun <init> ()V
-	public fun <init> (Z)V
-	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getDevelopmentMode ()Z
-}
-
-public final class io/ktor/server/auth/AuthenticationPipeline$Companion {
-	public final fun getCheckAuthentication ()Lio/ktor/util/pipeline/PipelinePhase;
-	public final fun getRequestAuthentication ()Lio/ktor/util/pipeline/PipelinePhase;
 }
 
 public final class io/ktor/server/auth/AuthenticationProcedureChallenge {
 	public fun <init> ()V
 	public final fun complete ()V
-	public final fun getChallenges ()Ljava/util/List;
 	public final fun getCompleted ()Z
-	public final fun getErrorChallenges ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
 }
 
-public class io/ktor/server/auth/AuthenticationProvider {
-	public fun <init> (Lio/ktor/server/auth/AuthenticationProvider$Configuration;)V
+public abstract class io/ktor/server/auth/AuthenticationProvider {
+	public fun <init> (Lio/ktor/server/auth/AuthenticationProvider$Config;)V
 	public final fun getName ()Ljava/lang/String;
-	public final fun getPipeline ()Lio/ktor/server/auth/AuthenticationPipeline;
 	public final fun getSkipWhen ()Ljava/util/List;
+	public abstract fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public class io/ktor/server/auth/AuthenticationProvider$Configuration {
+public class io/ktor/server/auth/AuthenticationProvider$Config {
 	protected fun <init> (Ljava/lang/String;)V
 	public final fun getName ()Ljava/lang/String;
-	public final fun getPipeline ()Lio/ktor/server/auth/AuthenticationPipeline;
 	public final fun skipWhen (Lkotlin/jvm/functions/Function1;)V
 }
 
@@ -111,16 +100,17 @@ public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/ser
 }
 
 public final class io/ktor/server/auth/BasicAuthKt {
-	public static final fun basic (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun basic$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun basic (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun basic$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun basicAuthenticationCredentials (Lio/ktor/server/request/ApplicationRequest;Ljava/nio/charset/Charset;)Lio/ktor/server/auth/UserPasswordCredential;
 	public static synthetic fun basicAuthenticationCredentials$default (Lio/ktor/server/request/ApplicationRequest;Ljava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/server/auth/UserPasswordCredential;
 }
 
 public final class io/ktor/server/auth/BasicAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/BasicAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/BasicAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public final fun getCharset ()Ljava/nio/charset/Charset;
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun setCharset (Ljava/nio/charset/Charset;)V
@@ -132,8 +122,8 @@ public abstract interface class io/ktor/server/auth/Credential {
 }
 
 public final class io/ktor/server/auth/DigestAuthKt {
-	public static final fun digest (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun digest$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun digest (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun digest$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun digestAuthenticationCredentials (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/auth/DigestCredential;
 	public static final fun expectedDigest (Lio/ktor/server/auth/DigestCredential;Lio/ktor/http/HttpMethod;Ljava/security/MessageDigest;[B)[B
 	public static final fun toDigestCredential (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;)Lio/ktor/server/auth/DigestCredential;
@@ -141,11 +131,10 @@ public final class io/ktor/server/auth/DigestAuthKt {
 }
 
 public final class io/ktor/server/auth/DigestAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
-	public final fun getAlgorithmName ()Ljava/lang/String;
-	public final fun getRealm ()Ljava/lang/String;
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/DigestAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/DigestAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public final fun digestProvider (Lkotlin/jvm/functions/Function3;)V
 	public final fun getAlgorithmName ()Ljava/lang/String;
 	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
@@ -184,6 +173,11 @@ public final class io/ktor/server/auth/DigestCredential : io/ktor/server/auth/Cr
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/auth/DynamicProviderConfig : io/ktor/server/auth/AuthenticationProvider$Config {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun authenticate (Lkotlin/jvm/functions/Function1;)V
+}
+
 public final class io/ktor/server/auth/ForbiddenResponse : io/ktor/http/content/OutgoingContent$NoContent {
 	public fun <init> (Lio/ktor/http/auth/HttpAuthHeader;)V
 	public fun <init> ([Lio/ktor/http/auth/HttpAuthHeader;)V
@@ -192,15 +186,21 @@ public final class io/ktor/server/auth/ForbiddenResponse : io/ktor/http/content/
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 }
 
+public final class io/ktor/server/auth/FormAuthChallengeContext {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+}
+
 public final class io/ktor/server/auth/FormAuthKt {
-	public static final fun form (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun form$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun form (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun form$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/auth/FormAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/FormAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/FormAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
@@ -332,9 +332,10 @@ public final class io/ktor/server/auth/OAuthAccessTokenResponse$OAuth2 : io/ktor
 }
 
 public final class io/ktor/server/auth/OAuthAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/OAuthAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/OAuthAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public field client Lio/ktor/client/HttpClient;
 	public field providerLookup Lkotlin/jvm/functions/Function1;
 	public field urlProvider Lkotlin/jvm/functions/Function2;
@@ -391,8 +392,8 @@ public final class io/ktor/server/auth/OAuthKt {
 
 public final class io/ktor/server/auth/OAuthProcedureKt {
 	public static final fun getOAuthKey ()Ljava/lang/Object;
-	public static final fun oauth (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun oauth$default (Lio/ktor/server/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public abstract class io/ktor/server/auth/OAuthServerSettings {
@@ -438,26 +439,36 @@ public final class io/ktor/server/auth/OAuthVersion : java/lang/Enum {
 public abstract interface class io/ktor/server/auth/Principal {
 }
 
+public final class io/ktor/server/auth/RouteAuthenticationConfig {
+	public fun <init> ()V
+}
+
 public final class io/ktor/server/auth/SessionAuthKt {
 	public static final field SessionAuthChallengeKey Ljava/lang/String;
 }
 
 public final class io/ktor/server/auth/SessionAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
 	public static final field Companion Lio/ktor/server/auth/SessionAuthenticationProvider$Companion;
-	public synthetic fun <init> (Lio/ktor/server/auth/SessionAuthenticationProvider$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/auth/SessionAuthenticationProvider$Config;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getType ()Lkotlin/reflect/KClass;
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/SessionAuthenticationProvider$Companion {
 }
 
-public final class io/ktor/server/auth/SessionAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Configuration {
+public final class io/ktor/server/auth/SessionAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public final fun buildProvider ()Lio/ktor/server/auth/SessionAuthenticationProvider;
 	public final fun challenge (Lio/ktor/http/Url;)V
 	public final fun challenge (Ljava/lang/String;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/auth/SessionChallengeContext {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 }
 
 public final class io/ktor/server/auth/UnauthorizedResponse : io/ktor/http/content/OutgoingContent$NoContent {

@@ -16,14 +16,13 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.util.*
 import kotlin.reflect.*
 
-private val JWTAuthKey: Any = "JWTAuth"
+internal val JWTAuthKey: Any = "JWTAuth"
 
-private val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
+internal val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
 
 /**
  * Shortcut functions for standard registered [JWT Claims](https://tools.ietf.org/html/rfc7519#section-4.1)
@@ -183,19 +182,47 @@ public typealias JWTConfigureFunction = Verification.() -> Unit
 /**
  * JWT authentication provider that will be registered with the specified [name]
  */
-public class JWTAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
+public class JWTAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
-    internal val realm: String = config.realm
-    internal val schemes: JWTAuthSchemes = config.schemes
-    internal val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
-    internal val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
-    internal val authenticationFunction = config.authenticationFunction
-    internal val challengeFunction: JWTAuthChallengeFunction = config.challenge
+    private val realm: String = config.realm
+    private val schemes: JWTAuthSchemes = config.schemes
+    private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
+    private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
+    private val authenticationFunction = config.authenticationFunction
+    private val challengeFunction: JWTAuthChallengeFunction = config.challenge
+
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val token = authHeader(call)
+        if (token == null) {
+            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes, challengeFunction)
+            return
+        }
+
+        try {
+            val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticationFunction)
+            if (principal != null) {
+                context.principal(principal)
+                return
+            }
+
+            context.bearerChallenge(
+                AuthenticationFailedCause.InvalidCredentials,
+                realm,
+                schemes,
+                challengeFunction
+            )
+        } catch (cause: Throwable) {
+            val message = cause.message ?: cause.javaClass.simpleName
+            JWTLogger.trace("JWT verification failed: {}", message)
+            context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
+        }
+    }
 
     /**
      * JWT auth provider configuration
      */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
             throw NotImplementedError(
                 "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
@@ -326,137 +353,23 @@ public class JWTAuthenticationProvider internal constructor(config: Configuratio
 /**
  * Installs JWT Authentication mechanism
  */
-public fun Authentication.Configuration.jwt(
+public fun AuthenticationConfig.jwt(
     name: String? = null,
-    configure: JWTAuthenticationProvider.Configuration.() -> Unit
+    configure: JWTAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = JWTAuthenticationProvider.Configuration(name).apply(configure).build()
-    val realm = provider.realm
-    val authenticate = provider.authenticationFunction
-    val verifier = provider.verifier
-    val schemes = provider.schemes
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = provider.authHeader(call)
-        if (token == null) {
-            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes, provider.challengeFunction)
-            return@intercept
-        }
-
-        try {
-            val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
-            if (principal != null) {
-                context.principal(principal)
-                return@intercept
-            }
-
-            context.bearerChallenge(
-                AuthenticationFailedCause.InvalidCredentials,
-                realm,
-                schemes,
-                provider.challengeFunction
-            )
-        } catch (cause: Throwable) {
-            val message = cause.message ?: cause.javaClass.simpleName
-            JWTLogger.trace("JWT verification failed: {}", message)
-            context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
-        }
-    }
+    val provider = JWTAuthenticationProvider.Config(name).apply(configure).build()
     register(provider)
 }
+
+/**
+ * A context for [JWTAuthChallengeFunction]
+ */
+public class JWTChallengeContext(
+    public val call: ApplicationCall
+)
 
 /**
  * Specifies what to send back if session authentication fails.
  */
 public typealias JWTAuthChallengeFunction =
-    suspend PipelineContext<*, ApplicationCall>.(defaultScheme: String, realm: String) -> Unit
-
-private fun AuthenticationContext.bearerChallenge(
-    cause: AuthenticationFailedCause,
-    realm: String,
-    schemes: JWTAuthSchemes,
-    challengeFunction: JWTAuthChallengeFunction
-) {
-    challenge(JWTAuthKey, cause) {
-        challengeFunction(this, schemes.defaultScheme, realm)
-        if (!it.completed && call.response.status() != null) {
-            it.complete()
-        }
-    }
-}
-
-private fun getVerifier(
-    jwkProvider: JwkProvider,
-    issuer: String?,
-    token: HttpAuthHeader,
-    schemes: JWTAuthSchemes,
-    jwtConfigure: Verification.() -> Unit
-): JWTVerifier? {
-    val jwk = token.getBlob(schemes)?.let { blob ->
-        try {
-            jwkProvider.get(JWT.decode(blob).keyId)
-        } catch (ex: JwkException) {
-            JWTLogger.trace("Failed to get JWK: {}", ex.message)
-            null
-        } catch (ex: JWTDecodeException) {
-            JWTLogger.trace("Illegal JWT: {}", ex.message)
-            null
-        }
-    } ?: return null
-
-    val algorithm = try {
-        jwk.makeAlgorithm()
-    } catch (cause: Throwable) {
-        JWTLogger.trace("Failed to create algorithm {}: {}", jwk.algorithm, cause.message ?: cause.javaClass.simpleName)
-        return null
-    }
-
-    return when (issuer) {
-        null -> JWT.require(algorithm)
-        else -> JWT.require(algorithm).withIssuer(issuer)
-    }.apply(jwtConfigure).build()
-}
-
-private fun getVerifier(
-    jwkProvider: JwkProvider,
-    token: HttpAuthHeader,
-    schemes: JWTAuthSchemes,
-    configure: JWTConfigureFunction
-): JWTVerifier? {
-    return getVerifier(jwkProvider, null, token, schemes, configure)
-}
-
-private suspend fun verifyAndValidate(
-    call: ApplicationCall,
-    jwtVerifier: JWTVerifier?,
-    token: HttpAuthHeader,
-    schemes: JWTAuthSchemes,
-    validate: suspend ApplicationCall.(JWTCredential) -> Principal?
-): Principal? {
-    val jwt = try {
-        token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
-    } catch (ex: JWTVerificationException) {
-        JWTLogger.trace("Token verification failed: {}", ex.message)
-        null
-    } ?: return null
-
-    val payload = jwt.parsePayload()
-    val credentials = JWTCredential(payload)
-    return validate(call, credentials)
-}
-
-private fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
-    this is HttpAuthHeader.Single && authScheme in schemes -> blob
-    else -> null
-}
-
-private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
-    parseAuthorizationHeader()
-} catch (ex: IllegalArgumentException) {
-    JWTLogger.trace("Illegal HTTP auth header", ex)
-    null
-}
-
-private fun DecodedJWT.parsePayload(): Payload {
-    val payloadString = String(Base64.getUrlDecoder().decode(payload))
-    return JWTParser().parsePayload(payloadString)
-}
+    suspend JWTChallengeContext.(defaultScheme: String, realm: String) -> Unit
