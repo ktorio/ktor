@@ -123,6 +123,7 @@ public class PartialContent private constructor(private val maxRangeCount: Int) 
         } catch (_: Throwable) {
             return false
         }
+        if (conditionalHeadersPlugin is ConditionalHeadersPluginInstance)
 
         val versions = conditionalHeadersPlugin?.versionsFor(content) ?: content.headers.parseVersions()
 
