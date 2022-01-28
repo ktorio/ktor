@@ -1,9 +1,7 @@
 public final class io/ktor/server/webjars/WebjarsConfig {
 	public fun <init> ()V
 	public final fun getPath ()Ljava/lang/String;
-	public final fun getZone ()Ljava/time/ZoneId;
 	public final fun setPath (Ljava/lang/String;)V
-	public final fun setZone (Ljava/time/ZoneId;)V
 }
 
 public final class io/ktor/server/webjars/WebjarsKt {
