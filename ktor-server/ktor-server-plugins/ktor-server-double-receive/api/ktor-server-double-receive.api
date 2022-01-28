@@ -1,34 +1,12 @@
-public abstract class io/ktor/server/plugins/doublereceive/CachedTransformationResult {
-	public synthetic fun <init> (Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getType ()Lio/ktor/util/reflect/TypeInfo;
-}
-
-public class io/ktor/server/plugins/doublereceive/CachedTransformationResult$Failure : io/ktor/server/plugins/doublereceive/CachedTransformationResult {
-	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Throwable;)V
-	public final fun getCause ()Ljava/lang/Throwable;
-}
-
-public final class io/ktor/server/plugins/doublereceive/CachedTransformationResult$Success : io/ktor/server/plugins/doublereceive/CachedTransformationResult {
-	public fun <init> (Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;)V
-	public final fun getValue ()Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/doublereceive/DoubleReceive {
-	public static final field Plugin Lio/ktor/server/plugins/doublereceive/DoubleReceive$Plugin;
-}
-
-public final class io/ktor/server/plugins/doublereceive/DoubleReceive$Configuration {
+public final class io/ktor/server/plugins/doublereceive/DoubleReceiveConfig {
 	public fun <init> ()V
-	public final fun getReceiveEntireContent ()Z
-	public final fun setReceiveEntireContent (Z)V
+	public final fun excludeFromCache (Lkotlin/jvm/functions/Function2;)V
+	public final fun getCacheRawRequest ()Z
+	public final fun maxSize (J)V
+	public final fun setCacheRawRequest (Z)V
 }
 
-public final class io/ktor/server/plugins/doublereceive/DoubleReceive$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/doublereceive/DoubleReceive;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/doublereceive/RequestReceiveAlreadyFailedException : java/lang/Exception {
+public final class io/ktor/server/plugins/doublereceive/DoubleReceiveKt {
+	public static final fun getDoubleReceive ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
