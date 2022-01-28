@@ -27,6 +27,12 @@ public fun ApplicationRequest.contentType(): ContentType =
     header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
 
 /**
+ * Request's content length header or null.
+ */
+public fun ApplicationRequest.contentLength(): Long? =
+    header(HttpHeaders.ContentLength)?.toLongOrNull()
+
+/**
  * Request's charset
  */
 public fun ApplicationRequest.contentCharset(): Charset? = contentType().charset()

@@ -50,8 +50,7 @@ internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBo
 
             return@transformBody ApplicationReceiveRequest(
                 typeInfo = requestedType,
-                value = converted,
-                reusableValue = true
+                value = converted
             )
         }
     }
