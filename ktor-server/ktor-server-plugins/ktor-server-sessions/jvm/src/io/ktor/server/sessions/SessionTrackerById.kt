@@ -31,7 +31,7 @@ public inline fun <reified SessionType : Any> ApplicationCall.sessionId(): Strin
  */
 public val ApplicationCall.sessionId: String?
     get() {
-        val providers = application.plugin(Sessions).providers.filter { it.tracker is SessionTrackerById }
+        val providers = application.attributes[SessionProvidersKey].filter { it.tracker is SessionTrackerById }
         return when (providers.size) {
             0 -> null
             1 -> sessionId(providers[0].name)
@@ -41,8 +41,7 @@ public val ApplicationCall.sessionId: String?
 
 @PublishedApi
 internal fun ApplicationCall.sessionId(name: String): String? {
-    val provider = application.plugin(Sessions)
-        .providers
+    val provider = application.attributes[SessionProvidersKey]
         .firstOrNull { it.name == name }
         ?: error("No session provider $name found.")
 
