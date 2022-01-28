@@ -16,7 +16,6 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
 
@@ -69,7 +68,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> defaultPlatformTransformations(query)
         }
         if (transformed != null) {
-            proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.typeInfo.type in ReusableTypes))
+            proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
         }
     }
 }

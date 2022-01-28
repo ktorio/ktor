@@ -75,8 +75,7 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
 
         context.subject = ApplicationReceiveRequest(
             context.subject.typeInfo,
-            transformResult,
-            context.subject.reusableValue
+            transformResult
         )
     }
 }
