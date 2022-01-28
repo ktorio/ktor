@@ -10,7 +10,7 @@ package io.ktor.server.application
  */
 public object Shutdown : Hook<(Application) -> Unit> {
     override fun install(application: ApplicationCallPipeline, handler: (Application) -> Unit) {
-        application.environment?.monitor?.subscribe(ApplicationStopped) {
+        application.environment!!.monitor.subscribe(ApplicationStopped) {
             handler(it)
         }
     }
