@@ -8,8 +8,6 @@ import com.codahale.metrics.*
 import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
-import io.ktor.server.routing.*
-import io.ktor.util.*
 import java.util.concurrent.*
 
 /**
@@ -34,32 +32,9 @@ public class DropwizardMetricsConfig {
     public var registerJvmMetricSets: Boolean = true
 }
 
-private class RoutingMetrics(val name: String, val context: Timer.Context)
-private val routingMetricsKey = AttributeKey<RoutingMetrics>("metrics")
-
-private data class CallMeasure constructor(val timer: Timer.Context)
-private val measureKey = AttributeKey<CallMeasure>("metrics")
-
-private object Monitoring : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
-            handler(call)
-        }
-    }
-}
-
-private object AfterCall : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
-            try {
-                proceed()
-            } finally {
-                handler(call)
-            }
-        }
-    }
-}
-
+/**
+ * Dropwizard metrics support plugin. See https://ktor.io/servers/features/metrics.html for details.
+ */
 public val DropwizardMetrics: ApplicationPlugin<Application, DropwizardMetricsConfig, PluginInstance> =
     createApplicationPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
         val duration = pluginConfig.registry.timer(name(pluginConfig.baseName, "duration"))
@@ -104,7 +79,7 @@ public val DropwizardMetrics: ApplicationPlugin<Application, DropwizardMetricsCo
             routingMetrics.context.stop()
         }
 
-        on(Monitoring) { call ->
+        on(BeforeCall) { call ->
             active.inc()
             call.attributes.put(measureKey, CallMeasure(duration.time()))
         }
