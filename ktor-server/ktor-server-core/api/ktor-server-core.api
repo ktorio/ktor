@@ -743,12 +743,6 @@ public final class io/ktor/server/routing/AndRouteSelector : io/ktor/server/rout
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/routing/CallRouted : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/routing/CallRouted;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
-}
-
 public final class io/ktor/server/routing/ConstantParameterRouteSelector : io/ktor/server/routing/RouteSelector {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -1081,12 +1075,6 @@ public final class io/ktor/server/routing/RouteSelectorEvaluation$Success : io/k
 	public final fun getSegmentIncrement ()I
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/routing/RoutedCallProcessed : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/routing/RoutedCallProcessed;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/routing/Routing : io/ktor/server/routing/Route {
