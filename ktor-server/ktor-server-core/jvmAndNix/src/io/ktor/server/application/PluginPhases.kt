@@ -34,6 +34,9 @@ public interface OnCallRespond<PluginConfig : Any> {
      * @param block An action that needs to be executed after transformation of the response body.
      **/
     public fun afterTransform(
-        block: suspend OnCallRespondAfterTransformContext<PluginConfig>.(call: ApplicationCall, responseBody: OutgoingContent) -> Unit // ktlint-disable max-line-length
+        block: suspend OnCallRespondAfterTransformContext<PluginConfig>.(
+            call: ApplicationCall,
+            responseBody: OutgoingContent
+        ) -> Unit // ktlint-disable max-line-length
     )
 }

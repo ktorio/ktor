@@ -122,7 +122,7 @@ public sealed class RelativePluginBuilder<PluginConfig : Any>(
                 this@RelativePluginBuilder.currentPlugin.afterResponseInterceptions,
                 this@RelativePluginBuilder.otherPlugins.map { it.afterResponseInterceptions },
                 ::OnCallRespondAfterTransformContext,
-            ) { call, body -> block(call, body as OutgoingContent)}
+            ) { call, body -> block(call, body as OutgoingContent) }
         }
     }
 }
