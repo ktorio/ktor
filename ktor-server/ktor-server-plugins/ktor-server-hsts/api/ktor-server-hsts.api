@@ -1,12 +1,4 @@
-public final class io/ktor/server/plugins/hsts/HSTS {
-	public static final field DEFAULT_HSTS_MAX_AGE J
-	public static final field Plugin Lio/ktor/server/plugins/hsts/HSTS$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/plugins/hsts/HSTS$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getHeaderValue ()Ljava/lang/String;
-	public final fun intercept (Lio/ktor/server/application/ApplicationCall;)V
-}
-
-public final class io/ktor/server/plugins/hsts/HSTS$Configuration {
+public final class io/ktor/server/plugins/hsts/HSTSConfig {
 	public fun <init> ()V
 	public final fun getCustomDirectives ()Ljava/util/Map;
 	public final fun getIncludeSubDomains ()Z
@@ -17,14 +9,12 @@ public final class io/ktor/server/plugins/hsts/HSTS$Configuration {
 	public final fun setPreload (Z)V
 }
 
-public final class io/ktor/server/plugins/hsts/HSTS$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/hsts/HSTS;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/hsts/HSTSKt {
+	public static final fun getHSTS ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
 public final class io/ktor/server/plugins/hsts/KotlinTimeJvmKt {
-	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/hsts/HSTS$Configuration;)J
-	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/hsts/HSTS$Configuration;J)V
+	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/hsts/HSTSConfig;)J
+	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/hsts/HSTSConfig;J)V
 }
 
