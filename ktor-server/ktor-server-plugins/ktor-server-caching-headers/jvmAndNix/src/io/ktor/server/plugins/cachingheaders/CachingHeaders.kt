@@ -34,7 +34,6 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig, PluginInstanc
     "Caching Headers",
     ::CachingHeadersConfig
 ) {
-
     val optionsProviders = pluginConfig.optionsProviders.toList()
 
     fun optionsFor(content: OutgoingContent): List<CachingOptions> {
@@ -42,24 +41,23 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig, PluginInstanc
     }
 
     onCallRespond.afterTransform { call, message ->
-        val options = if (message is OutgoingContent) optionsFor(message) else emptyList()
+        val options = optionsFor(message)
+        if (options.isEmpty()) return@afterTransform
 
-        if (options.isNotEmpty()) {
-            val headers = Headers.build {
-                options.mapNotNull { it.cacheControl }
-                    .mergeCacheControlDirectives()
-                    .ifEmpty { null }?.let { directives ->
-                        append(HttpHeaders.CacheControl, directives.joinToString(separator = ", "))
-                    }
-                options.firstOrNull { it.expires != null }?.expires?.let { expires ->
-                    append(HttpHeaders.Expires, expires.toHttpDate())
+        val headers = Headers.build {
+            options.mapNotNull { it.cacheControl }
+                .mergeCacheControlDirectives()
+                .ifEmpty { null }?.let { directives ->
+                    append(HttpHeaders.CacheControl, directives.joinToString(separator = ", "))
                 }
+            options.firstOrNull { it.expires != null }?.expires?.let { expires ->
+                append(HttpHeaders.Expires, expires.toHttpDate())
             }
+        }
 
-            val responseHeaders = call.response.headers
-            headers.forEach { name, values ->
-                values.forEach { responseHeaders.append(name, it) }
-            }
+        val responseHeaders = call.response.headers
+        headers.forEach { name, values ->
+            values.forEach { responseHeaders.append(name, it) }
         }
     }
 }
