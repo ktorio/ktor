@@ -1,22 +1,11 @@
-public final class io/ktor/server/plugins/compression/Compression {
-	public static final field Plugin Lio/ktor/server/plugins/compression/Compression$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/plugins/compression/Compression$Configuration : io/ktor/server/plugins/compression/ConditionsHolderBuilder {
+public final class io/ktor/server/plugins/compression/CompressionConfig : io/ktor/server/plugins/compression/ConditionsHolderBuilder {
 	public fun <init> ()V
 	public final fun build ()Lio/ktor/server/plugins/compression/CompressionOptions;
 	public final fun default ()V
 	public final fun encoder (Ljava/lang/String;Lio/ktor/server/plugins/compression/CompressionEncoder;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun encoder$default (Lio/ktor/server/plugins/compression/Compression$Configuration;Ljava/lang/String;Lio/ktor/server/plugins/compression/CompressionEncoder;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun encoder$default (Lio/ktor/server/plugins/compression/CompressionConfig;Ljava/lang/String;Lio/ktor/server/plugins/compression/CompressionEncoder;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public fun getConditions ()Ljava/util/List;
 	public final fun getEncoders ()Ljava/util/Map;
-}
-
-public final class io/ktor/server/plugins/compression/Compression$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/compression/Compression;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/plugins/compression/CompressionEncoder {
@@ -59,16 +48,7 @@ public final class io/ktor/server/plugins/compression/CompressionEncoderConfig {
 }
 
 public final class io/ktor/server/plugins/compression/CompressionKt {
-	public static final fun condition (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;Lkotlin/jvm/functions/Function2;)V
-	public static final fun deflate (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun deflate$default (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun excludeContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
-	public static final fun gzip (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun gzip$default (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun identity (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun identity$default (Lio/ktor/server/plugins/compression/Compression$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun matchContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
-	public static final fun minimumSize (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;J)V
+	public static final fun getCompression ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
 public final class io/ktor/server/plugins/compression/CompressionOptions {
@@ -88,6 +68,19 @@ public final class io/ktor/server/plugins/compression/CompressionOptions {
 
 public abstract interface class io/ktor/server/plugins/compression/ConditionsHolderBuilder {
 	public abstract fun getConditions ()Ljava/util/List;
+}
+
+public final class io/ktor/server/plugins/compression/ConfigKt {
+	public static final fun condition (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;Lkotlin/jvm/functions/Function2;)V
+	public static final fun deflate (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun deflate$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun excludeContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
+	public static final fun gzip (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun gzip$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun identity (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun identity$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun matchContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
+	public static final fun minimumSize (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;J)V
 }
 
 public final class io/ktor/server/plugins/compression/DeflateEncoder : io/ktor/server/plugins/compression/CompressionEncoder {
