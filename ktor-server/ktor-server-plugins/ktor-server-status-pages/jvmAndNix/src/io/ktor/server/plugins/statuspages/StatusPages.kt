@@ -33,15 +33,10 @@ public val StatusPages: ApplicationPlugin<Application, StatusPagesConfig, Plugin
         return exceptions[key]
     }
 
-    onCallRespond.afterTransform { call, body ->
+    onCallRespond.afterTransform { call, body: OutgoingContent ->
         if (call.attributes.contains(statusPageMarker)) return@afterTransform
 
-        val status = when (body) {
-            is OutgoingContent -> body.status
-            is HttpStatusCode -> body
-            else -> null
-        } ?: return@afterTransform
-
+        val status = body.status ?: return@afterTransform
         val handler = statuses[status] ?: return@afterTransform
         call.attributes.put(statusPageMarker, Unit)
         try {
