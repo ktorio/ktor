@@ -408,7 +408,7 @@ class StatusPagesTest {
             application {
                 install(ThrowingPlugin)
                 install(StatusPages) {
-                    exception<NotFoundException> { call: ApplicationCall, cause ->
+                    exception<NotFoundException> { call: ApplicationCall, _ ->
                         exceptionHandled = true
                         call.respond(HttpStatusCode.NotFound)
                     }

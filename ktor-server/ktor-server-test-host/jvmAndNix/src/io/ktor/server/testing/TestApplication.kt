@@ -171,7 +171,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     override fun createClient(
         block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
-        expectSuccess = true
         engine {
             parentJob = job
             appEngineProvider = { engine }

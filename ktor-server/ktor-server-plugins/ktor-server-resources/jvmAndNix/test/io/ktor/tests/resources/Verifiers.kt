@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialisation.*
+import io.ktor.server.plugins.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -40,7 +41,9 @@ inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, co
 fun ApplicationTestBuilder.urlShouldBeUnhandled(url: String) {
     on("making post request to $url") {
         it("should not be handled") {
-            assertFails { runBlocking { client.post(url) } }
+            runBlocking {
+                assertFalse(client.post(url).status.isSuccess())
+            }
         }
     }
 }
