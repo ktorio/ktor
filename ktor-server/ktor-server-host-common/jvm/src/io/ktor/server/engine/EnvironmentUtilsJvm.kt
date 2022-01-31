@@ -19,7 +19,8 @@ internal actual fun buildApplicationConfig(args: Array<String>): ApplicationConf
         .filterKeys { it.startsWith("-P:") }
         .mapKeys { it.key.removePrefix("-P:") }
 
-    val configFile = argumentsPairs["-config"]?.let { File(it) }
+    val profile = argumentsPairs["-profile"]
+    val configFile = argumentsPairs["-config"]?.let { File(it) } ?: profile?.let { File("application-${profile}.conf") }
 
     val argConfig = ConfigFactory.parseMap(commandLineProperties, "Command-line options")
 

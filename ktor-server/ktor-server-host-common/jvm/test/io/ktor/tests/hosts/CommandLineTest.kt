@@ -66,6 +66,12 @@ class CommandLineTest {
         assertEquals("8080", port)
     }
 
+    @Test
+    fun configFileWithProfile() {
+        val port = commandLineEnvironment(arrayOf("-profile=test")).config.property("ktor.deployment.port").getString()
+        assertEquals("4000", port)
+    }
+
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
             return Pair(File(uri.path.substringBefore("!")), null)
