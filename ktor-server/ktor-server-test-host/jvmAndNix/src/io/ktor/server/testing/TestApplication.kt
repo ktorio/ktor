@@ -168,16 +168,15 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client by lazy { createClient { } }
 
-    override fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient {
-        return HttpClient(DelegatingTestClientEngine) {
-            expectSuccess = true
-            engine {
-                parentJob = job
-                appEngineProvider = { engine }
-                externalApplicationsProvider = { externalServices.externalApplications }
-            }
-            block()
+    override fun createClient(
+        block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
+    ): HttpClient = HttpClient(DelegatingTestClientEngine) {
+        engine {
+            parentJob = job
+            appEngineProvider = { engine }
+            externalApplicationsProvider = { externalServices.externalApplications }
         }
+        block()
     }
 }
 

@@ -11,7 +11,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlin.native.concurrent.*
 
 @InternalAPI
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
@@ -41,7 +40,8 @@ public class Routing(
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
-        when (val resolveResult = resolveContext.resolve()) {
+        val resolveResult = resolveContext.resolve()
+        when (resolveResult) {
             is RoutingResolveResult.Success ->
                 executeResult(context, resolveResult.route, resolveResult.parameters)
             is RoutingResolveResult.Failure ->

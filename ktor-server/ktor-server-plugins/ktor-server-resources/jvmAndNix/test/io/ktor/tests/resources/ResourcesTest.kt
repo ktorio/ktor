@@ -6,6 +6,7 @@ package io.ktor.tests.resources
 
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialisation.*
 import io.ktor.server.application.*
@@ -461,9 +462,7 @@ class ResourcesTest {
         urlShouldBeHandled(resourceWithEnum(resourceEnum.B), "/?e=B")
 
         runBlocking {
-            assertFailsWith<ClientRequestException> {
-                client.get("/?e=x")
-            }
+            assertFalse(client.get("/?e=x").status.isSuccess())
         }
     }
 
@@ -488,19 +487,12 @@ class ResourcesTest {
         )
 
         runBlocking {
-            assertFailsWith<ClientRequestException> {
-                // missing parameter text
-                // null because missing parameter leads to routing miss
-                client.get("/?number=1&longNumber=2")
-            }
-            assertFailsWith<ClientRequestException> {
-                // illegal value for numeric property
-                client.get("/?text=abc&number=z&longNumber=2")
-            }
-            assertFailsWith<ClientRequestException> {
-                // illegal value for numeric property
-                client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2")
-            }
+            assertEquals(HttpStatusCode.BadRequest, client.get("/?number=1&longNumber=2").status)
+            assertEquals(HttpStatusCode.BadRequest, client.get("/?text=abc&number=z&longNumber=2").status)
+            assertEquals(
+                HttpStatusCode.BadRequest,
+                client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").status
+            )
         }
     }
 }

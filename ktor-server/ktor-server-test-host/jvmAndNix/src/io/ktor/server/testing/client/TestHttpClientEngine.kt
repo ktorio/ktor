@@ -19,7 +19,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, app: TestApplicationEngine) {
-
     val supportedCapabilities: Set<HttpClientEngineCapability<*>>
 
     suspend fun runWebSocketRequest(
@@ -31,7 +30,6 @@ internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, a
 }
 
 public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
-
     private val app: TestApplicationEngine = config.app
 
     private val bridge = TestHttpClientEngineBridge(this, app)
@@ -47,24 +45,24 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         app.start()
-        return if (data.isUpgradeRequest()) {
+        if (data.isUpgradeRequest()) {
             val (testServerCall, session) = with(data) {
                 bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
             }
-            with(testServerCall.response) {
+            return with(testServerCall.response) {
                 httpResponseData(session)
             }
-        } else {
-            val testServerCall = with(data) {
-                runRequest(method, url.fullPath, headers, body, url.protocol)
-            }
-            with(testServerCall.response) {
-                httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
-            }
+        }
+
+        val testServerCall = with(data) {
+            runRequest(method, url.fullPath, headers, body, url.protocol)
+        }
+
+        return with(testServerCall.response) {
+            httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
         }
     }
 
-    @OptIn(InternalAPI::class)
     private fun runRequest(
         method: HttpMethod,
         url: String,
