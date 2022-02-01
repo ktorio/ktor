@@ -12,5 +12,11 @@ kotlin {
                 implementation("org.fusesource.jansi:jansi:$jansi_version")
             }
         }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+            }
+        }
     }
 }
