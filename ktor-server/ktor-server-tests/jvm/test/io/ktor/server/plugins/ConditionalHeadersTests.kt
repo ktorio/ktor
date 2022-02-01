@@ -4,7 +4,6 @@
 
 package io.ktor.tests.server.plugins
 
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -78,12 +77,11 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
                 get("2") { call.respond("response") }
             }
         }
-        assertFailsWith<RedirectResponseException> {
-            client.get("/1") {
-                header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
-            }
+        client.get("/1") {
+            header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
         client.get("/2") {
@@ -96,15 +94,14 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
 
     @Test
     fun testIfModifiedSinceEq(): Unit = withConditionalApplication {
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -121,15 +118,14 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             }
         }
 
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -148,15 +144,14 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
 
     @Test
     fun testIfModifiedSinceGt(): Unit = withConditionalApplication {
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -175,15 +170,14 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
 
     @Test
     fun testIfUnModifiedSinceLess(): Unit = withConditionalApplication {
-        assertFailsWith<ClientRequestException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.minusDays(1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.minusDays(1).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -240,19 +234,18 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             assertEquals("response", response.bodyAsText())
         }
 
-        assertFailsWith<ClientRequestException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    "zzz"
-                )
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(-1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                "zzz"
+            )
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -282,19 +275,18 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             assertEquals("response", response.bodyAsText())
         }
 
-        assertFailsWith<ClientRequestException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(-1).toHttpDateString()
-                )
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(2).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -324,19 +316,18 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             assertEquals("response", response.bodyAsText())
         }
 
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(1).toHttpDateString()
-                )
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(2).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
@@ -370,51 +361,48 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             assertEquals("response", response.bodyAsText())
         }
 
-        assertFailsWith<ClientRequestException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(-1).toHttpDateString()
-                )
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(-1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(1).toHttpDateString()
-                )
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
         }.let {
-            assertEquals("", it.response.bodyAsText())
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
-        assertFailsWith<RedirectResponseException> {
-            client.get("/") {
-                header(
-                    HttpHeaders.IfModifiedSince,
-                    date.plusDays(1).toHttpDateString()
-                )
-                header(
-                    HttpHeaders.IfUnmodifiedSince,
-                    date.plusDays(-1).toHttpDateString()
-                )
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            header(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
         }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
             // both conditions are not met but actually it is not clear which one should win
             // so we declare the order
-            assertEquals("", it.response.bodyAsText())
+            assertEquals("", it.bodyAsText())
         }
     }
 }

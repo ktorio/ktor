@@ -5,7 +5,6 @@
 
 package io.ktor.tests.server.plugins
 
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -55,31 +54,27 @@ class ETagsTest {
 
     @Test
     fun testIfMatchConditionFailed(): Unit = withConditionalApplication {
-        assertFailsWith<ClientRequestException> {
-            client.get {
-                header(HttpHeaders.IfMatch, "tag2")
-            }
+        val result = client.get {
+            header(HttpHeaders.IfMatch, "tag2")
         }
+        assertEquals(HttpStatusCode.PreconditionFailed, result.status)
     }
 
     @Test
     fun testIfNoneMatchConditionAccepted(): Unit = withConditionalApplication {
-        assertFailsWith<RedirectResponseException> {
-            client.get {
-                header(HttpHeaders.IfNoneMatch, "tag1")
-            }
-        }.let {
-            assertEquals("\"tag1\"", it.response.headers[HttpHeaders.ETag])
+        val result = client.get {
+            header(HttpHeaders.IfNoneMatch, "tag1")
         }
+        assertEquals(HttpStatusCode.NotModified, result.status)
+        assertEquals("\"tag1\"", result.headers[HttpHeaders.ETag])
     }
 
     @Test
     fun testIfNoneMatchWeakConditionAccepted(): Unit = withConditionalApplication {
-        assertFailsWith<RedirectResponseException> {
-            client.get {
-                header(HttpHeaders.IfNoneMatch, "W/tag1")
-            }
+        val result = client.get {
+            header(HttpHeaders.IfNoneMatch, "W/tag1")
         }
+        assertEquals(HttpStatusCode.NotModified, result.status)
     }
 
     @Test
@@ -115,11 +110,10 @@ class ETagsTest {
 
     @Test
     fun testIfNoneMatchListConditionFailed(): Unit = withConditionalApplication {
-        assertFailsWith<RedirectResponseException> {
-            client.get {
-                header(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
-            }
+        val result = client.get {
+            header(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
         }
+        assertEquals(HttpStatusCode.NotModified, result.status)
     }
 
     @Test
@@ -146,10 +140,9 @@ class ETagsTest {
 
     @Test
     fun testIfMatchListConditionFailed(): Unit = withConditionalApplication {
-        assertFailsWith<ClientRequestException> {
-            client.get {
-                header(HttpHeaders.IfMatch, "tag0,tag2,tag3")
-            }
+        val result = client.get {
+            header(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
+        assertEquals(HttpStatusCode.PreconditionFailed, result.status)
     }
 }
