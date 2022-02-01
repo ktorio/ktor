@@ -63,7 +63,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, Plugi
     }
 
     onCallRespond.afterTransform { call, message ->
-        val versions = if (message is OutgoingContent) call.versionsFor(message) else emptyList()
+        val versions = call.versionsFor(message)
 
         if (versions.isNotEmpty()) {
             val headers = Headers.build {
