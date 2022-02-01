@@ -9,11 +9,16 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
-import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
+/**
+ * Specifies how the exception should be handled.
+ */
 public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwable) -> Unit
 
+/**
+ * A plugin that handles exceptions and status codes. Useful to configure default error pages.
+ */
 public val StatusPages: ApplicationPlugin<Application, StatusPagesConfig, PluginInstance> = createApplicationPlugin(
     "StatusPages",
     { StatusPagesConfig() }
