@@ -23,69 +23,65 @@ class StatusPagesTest {
     private val textPlainUtf8 = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
 
     @Test
-    fun testStatus404() {
-        testApplication {
-            application {
-                install(StatusPages) {
-                    status(HttpStatusCode.NotFound) { call, code ->
-                        call.respondText("${code.value} ${code.description}", status = code)
-                    }
-                }
-
-                routing {
-                    get("/") {
-                        call.respond("ok")
-                    }
-                    get("/notFound") {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
+    fun testStatus404() = testApplication {
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
                 }
             }
 
-            client.get("/").let { response ->
-                assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("ok", response.bodyAsText())
+            routing {
+                get("/") {
+                    call.respond("ok")
+                }
+                get("/notFound") {
+                    call.respond(HttpStatusCode.NotFound)
+                }
             }
+        }
 
-            client.get("/missing").let { response ->
-                assertEquals(HttpStatusCode.NotFound, response.status)
-                assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
-                assertEquals(textPlainUtf8, response.contentType())
-            }
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("ok", response.bodyAsText())
+        }
 
-            client.get("/notFound").let { response ->
-                assertEquals(HttpStatusCode.NotFound, response.status)
-                assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
-                assertEquals(textPlainUtf8, response.contentType())
-            }
+        client.get("/missing").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
+            assertEquals(textPlainUtf8, response.contentType())
+        }
+
+        client.get("/notFound").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
+            assertEquals(textPlainUtf8, response.contentType())
         }
     }
 
     @Test
-    fun testStatus404CustomObject() {
-        testApplication {
-            application {
-                install(StatusPages) {
-                    status(HttpStatusCode.NotFound) { call, code ->
-                        call.respondText("${code.value} ${code.description}", status = code)
+    fun testStatus404CustomObject() = testApplication {
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
+                }
+            }
+
+            intercept(ApplicationCallPipeline.Call) {
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override val status = HttpStatusCode.NotFound
+                        override fun readFrom(): ByteReadChannel = fail("Should never reach here")
                     }
-                }
-
-                intercept(ApplicationCallPipeline.Call) {
-                    call.respond(
-                        object : OutgoingContent.ReadChannelContent() {
-                            override val status = HttpStatusCode.NotFound
-                            override fun readFrom(): ByteReadChannel = fail("Should never reach here")
-                        }
-                    )
-                }
+                )
             }
+        }
 
-            client.get("/missing").let { response ->
-                assertEquals(HttpStatusCode.NotFound, response.status)
-                assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
-                assertEquals(textPlainUtf8, response.contentType())
-            }
+        client.get("/missing").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
+            assertEquals(textPlainUtf8, response.contentType())
         }
     }
 
@@ -122,34 +118,32 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testFailPage() {
-        testApplication {
-            application {
-                install(StatusPages) {
-                    exception<Throwable> { call, cause ->
-                        call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
-                    }
-                }
-
-                routing {
-                    get("/iae") {
-                        throw IllegalArgumentException()
-                    }
-                    get("/npe") {
-                        throw NullPointerException()
-                    }
+    fun testFailPage() = testApplication {
+        application {
+            install(StatusPages) {
+                exception<Throwable> { call, cause ->
+                    call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
                 }
             }
 
-            client.get("/iae").let { response ->
-                assertEquals(HttpStatusCode.InternalServerError, response.status)
-                assertEquals("IllegalArgumentException", response.bodyAsText())
+            routing {
+                get("/iae") {
+                    throw IllegalArgumentException()
+                }
+                get("/npe") {
+                    throw NullPointerException()
+                }
             }
+        }
 
-            client.get("/npe").let { response ->
-                assertEquals(HttpStatusCode.InternalServerError, response.status)
-                assertEquals("NullPointerException", response.bodyAsText())
-            }
+        client.get("/iae").let { response ->
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("IllegalArgumentException", response.bodyAsText())
+        }
+
+        client.get("/npe").let { response ->
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("NullPointerException", response.bodyAsText())
         }
     }
 
@@ -188,44 +182,40 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testErrorDuringStatus() {
-        testApplication {
-            application {
-                install(StatusPages) {
-                    status(HttpStatusCode.NotFound) { _, _ ->
-                        throw IllegalStateException("")
-                    }
-                    exception<Throwable> { call, cause ->
-                        call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
-                    }
+    fun testErrorDuringStatus() = testApplication {
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { _, _ ->
+                    throw IllegalStateException("")
+                }
+                exception<Throwable> { call, cause ->
+                    call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
                 }
             }
+        }
 
-            client.get("/").let { response ->
-                assertEquals(HttpStatusCode.InternalServerError, response.status)
-                assertEquals("IllegalStateException", response.bodyAsText())
-            }
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("IllegalStateException", response.bodyAsText())
         }
     }
 
     @Test
-    fun testErrorShouldNotRecurse() {
-        testApplication {
-            application {
-                install(StatusPages) {
-                    exception<IllegalStateException> { _, _ ->
-                        throw IllegalStateException()
-                    }
-                }
-
-                intercept(ApplicationCallPipeline.Fallback) {
-                    throw NullPointerException()
+    fun testErrorShouldNotRecurse() = testApplication {
+        application {
+            install(StatusPages) {
+                exception<IllegalStateException> { _, _ ->
+                    throw IllegalStateException()
                 }
             }
 
-            assertFails {
-                client.get("/")
+            intercept(ApplicationCallPipeline.Fallback) {
+                throw NullPointerException()
             }
+        }
+
+        assertFails {
+            client.get("/")
         }
     }
 
@@ -430,33 +420,31 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testVerify500OnException() {
-        testApplication {
-            var exceptionHandled = false
-            var routingHandled = false
+    fun testVerify500OnException() = testApplication {
+        var exceptionHandled = false
+        var routingHandled = false
 
-            application {
-                install(StatusPages) {
-                    exception<Throwable> { call: ApplicationCall, _ ->
-                        exceptionHandled = true
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
-                }
-
-                routing {
-                    get("/") {
-                        routingHandled = true
-                        throw IllegalArgumentException("something went wrong")
-                    }
+        application {
+            install(StatusPages) {
+                exception<Throwable> { call: ApplicationCall, _ ->
+                    exceptionHandled = true
+                    call.respond(HttpStatusCode.InternalServerError)
                 }
             }
 
-            val response = client.config {
-                expectSuccess = false
-            }.get("/")
-            assertEquals(HttpStatusCode.InternalServerError, response.status)
-            assertTrue(routingHandled)
-            assertTrue(exceptionHandled)
+            routing {
+                get("/") {
+                    routingHandled = true
+                    throw IllegalArgumentException("something went wrong")
+                }
+            }
         }
+
+        val response = client.config {
+            expectSuccess = false
+        }.get("/")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertTrue(routingHandled)
+        assertTrue(exceptionHandled)
     }
 }
