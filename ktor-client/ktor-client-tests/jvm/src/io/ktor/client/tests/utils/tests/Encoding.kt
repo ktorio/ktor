@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests.utils.tests
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.response.*
@@ -13,15 +14,30 @@ internal fun Application.encodingTestServer() {
     routing {
         route("/compression") {
             route("/deflate") {
-                install(Compression) { deflate() }
+                install(Compression) {
+                    deflate()
+                    minimumSize(0)
+                }
                 setCompressionEndpoints()
             }
             route("/gzip") {
-                install(Compression) { gzip() }
+                install(Compression) {
+                    gzip()
+                    minimumSize(0)
+                }
                 setCompressionEndpoints()
             }
+            route("/gzip-empty") {
+                get {
+                    call.response.headers.append(HttpHeaders.ContentEncoding, "gzip")
+                    call.respondText("")
+                }
+            }
             route("/identity") {
-                install(Compression) { identity() }
+                install(Compression) {
+                    identity()
+                    minimumSize(0)
+                }
                 setCompressionEndpoints()
             }
         }
