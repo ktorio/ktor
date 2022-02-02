@@ -12,10 +12,8 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
-import kotlin.time.*
 
 class CacheTest : ClientLoader() {
     var storage: HttpCache.Config? = null
@@ -332,7 +330,6 @@ class CacheTest : ClientLoader() {
             val now = GMTDate() + 2000L
             val url = Url("$TEST_SERVER/cache/expires")
 
-            @OptIn(ExperimentalTime::class)
             suspend fun getWithHeader(expires: String): String {
                 delayGMTDate(1)
 

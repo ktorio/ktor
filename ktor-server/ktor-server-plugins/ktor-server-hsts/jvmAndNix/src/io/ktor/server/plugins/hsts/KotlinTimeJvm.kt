@@ -8,7 +8,9 @@ import kotlin.math.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
-@ExperimentalTime
+/**
+ * Duration to tell the client to keep the host in a list of known HSTS hosts.
+ */
 public var HSTS.Configuration.maxAgeDuration: Duration
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
