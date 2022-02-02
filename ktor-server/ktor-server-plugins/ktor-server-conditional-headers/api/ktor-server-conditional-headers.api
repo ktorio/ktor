@@ -1,23 +1,13 @@
-public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeaders {
-	public static final field Plugin Lio/ktor/server/plugins/conditionalheaders/ConditionalHeaders$Plugin;
-	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun versionsFor (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeaders$Configuration {
+public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeadersConfig {
 	public fun <init> ()V
 	public final fun version (Lkotlin/jvm/functions/Function2;)V
 }
 
-public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeaders$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/conditionalheaders/ConditionalHeaders;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeadersKt {
+	public static final fun getConditionalHeaders ()Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun getDefaultVersions (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
 	public static final fun parseVersions (Lio/ktor/http/Headers;)Ljava/util/List;
+	public static final fun versionsFor (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun withETag (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun withETag$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
