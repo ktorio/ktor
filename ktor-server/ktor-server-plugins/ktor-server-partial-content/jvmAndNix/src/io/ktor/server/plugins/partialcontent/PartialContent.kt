@@ -126,11 +126,11 @@ private suspend fun checkIfRangeHeader(
         return false
     }
 
-        val versions = if (conditionalHeadersPlugin != null) {
-            call.versionsFor(content)
-        } else {
-            content.headers.parseVersions()
-        }
+    val versions = if (conditionalHeadersPlugin != null) {
+        call.versionsFor(content)
+    } else {
+        content.headers.parseVersions()
+    }
 
     return versions.all { version ->
         when (version) {
