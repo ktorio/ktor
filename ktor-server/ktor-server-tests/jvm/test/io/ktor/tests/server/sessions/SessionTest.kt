@@ -18,13 +18,11 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.random.*
 import kotlin.test.*
-import kotlin.time.*
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("ReplaceSingleLineLet", "DEPRECATION")
-@OptIn(ExperimentalTime::class)
 class SessionTest {
     private val cookieName = "_S" + Random.nextInt(100)
 

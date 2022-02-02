@@ -11,7 +11,6 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Duration to tell the client to keep CORS options.
  */
-@ExperimentalTime
 public var CORS.Configuration.maxAgeDuration: Duration
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {

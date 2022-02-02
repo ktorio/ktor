@@ -19,7 +19,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
-import kotlin.time.*
 import kotlin.time.Duration.Companion.minutes
 
 class ContentTest : ClientLoader(5 * 60) {
@@ -64,7 +63,6 @@ class ContentTest : ClientLoader(5 * 60) {
         }
     }
 
-    @OptIn(ExperimentalTime::class)
     @Test
     fun testByteReadChannel() = clientTests(listOf("Js")) {
         config {

@@ -16,7 +16,6 @@ import io.ktor.server.websocket.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
-import kotlin.time.*
 import io.ktor.client.engine.cio.CIO as CioClient
 import io.ktor.server.cio.CIO as CioServer
 
@@ -30,7 +29,6 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
      */
     @Test
     @NoHttp2
-    @OptIn(ExperimentalTime::class)
     fun testClassCastException(): Unit = runBlocking {
         val exceptionHandler = CoroutineExceptionHandler { _, cause ->
             cancel("Uncaught failure", cause)

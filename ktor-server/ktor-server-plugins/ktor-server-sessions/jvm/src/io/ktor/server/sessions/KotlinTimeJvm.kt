@@ -13,7 +13,6 @@ import kotlin.time.Duration.Companion.seconds
  * Session cookies are client-driven. For example, a web browser usually removes session
  * cookies at browser or window close unless the session is restored.
  */
-@ExperimentalTime
 public var CookieConfiguration.maxAge: Duration?
     get() = maxAgeInSeconds.seconds
     set(newMaxAge) {
