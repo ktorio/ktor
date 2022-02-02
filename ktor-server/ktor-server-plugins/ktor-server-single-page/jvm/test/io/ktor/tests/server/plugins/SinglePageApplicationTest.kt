@@ -4,7 +4,6 @@
 
 package io.ktor.tests.server.plugins
 
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.plugins.spa.*
@@ -19,11 +18,9 @@ class SinglePageApplicationTest {
             applicationRoute = "selected"
             defaultPage = "Empty3.kt"
         }
-
         client.get("/selected/Empty1.kt").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
         client.get("/selected").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
@@ -37,21 +34,17 @@ class SinglePageApplicationTest {
             ignoreFiles { it.contains("Empty1.kt") }
             ignoreFiles { it.endsWith("Empty2.kt") }
         }
-
         client.get("/Empty3.kt").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
         client.get("/").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty1.kt")
+        client.get("/Empty1.kt").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty2.kt")
+        client.get("/Empty2.kt").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
     }
 
@@ -62,12 +55,11 @@ class SinglePageApplicationTest {
             defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty1.kt")
+        client.get("/Empty1.kt").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/")
+        client.get("/").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
     }
 
@@ -78,11 +70,9 @@ class SinglePageApplicationTest {
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "SinglePageApplicationTest.class"
         }
-
         client.get("/Empty1.class").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
         client.get("/").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
@@ -97,21 +87,17 @@ class SinglePageApplicationTest {
             ignoreFiles { it.contains("Empty1.class") }
             ignoreFiles { it.endsWith("Empty2.class") }
         }
-
         client.get("/Empty3.class").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
         client.get("/").let {
             assertEquals(it.status, HttpStatusCode.OK)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty1.class")
+        client.get("/Empty1.class").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty2.class")
+        client.get("/Empty2.class").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
     }
 
@@ -123,12 +109,11 @@ class SinglePageApplicationTest {
             defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
-        assertFailsWith<ClientRequestException> {
-            client.get("/Empty1.class")
+        client.get("/Empty1.class").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
-
-        assertFailsWith<ClientRequestException> {
-            client.get("/")
+        client.get("/").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
         }
     }
 

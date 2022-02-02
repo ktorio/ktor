@@ -8,41 +8,62 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.http.content.HttpStatusCodeContent
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
+
+/**
+ * A configuration for the [ConditionalHeaders] plugin
+ */
+public class ConditionalHeadersConfig {
+    internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
+
+    init {
+        versionProviders.add { content -> content.versions }
+        versionProviders.add { content -> content.headers.parseVersions() }
+    }
+
+    /**
+     * Registers a function that can fetch version list for a given [OutgoingContent]
+     */
+    public fun version(provider: suspend (OutgoingContent) -> List<Version>) {
+        versionProviders.add(provider)
+    }
+}
+
+internal val ConditionalHeadersKey: AttributeKey<List<suspend (OutgoingContent) -> List<Version>>> =
+    AttributeKey("ConditionalHeadersKey")
+
+/**
+ * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
+ */
+public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
+    val versionProviders = application.attributes.getOrNull(ConditionalHeadersKey)
+    return versionProviders?.flatMapTo(ArrayList(versionProviders.size)) { it(content) } ?: emptyList()
+}
 
 /**
  * A plugin that avoids sending the body of content if it has not changed since the last request.
  */
-public class ConditionalHeaders private constructor(
-    private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>
+public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+    "ConditionalHeaders",
+    ::ConditionalHeadersConfig
 ) {
+    val versionProviders = pluginConfig.versionProviders
 
-    /**
-     * A configuration for the [ConditionalHeaders] plugin
-     */
-    public class Configuration {
-        internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
+    application.attributes.put(ConditionalHeadersKey, versionProviders)
 
-        init {
-            versionProviders.add { content -> content.versions }
-            versionProviders.add { content -> content.headers.parseVersions() }
+    fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
+        for (version in versions) {
+            val result = version.check(call.request.headers)
+            if (result != VersionCheckResult.OK) {
+                return result
+            }
         }
-
-        /**
-         * Registers a function that can fetch version list for a given [OutgoingContent]
-         */
-        public fun version(provider: suspend (OutgoingContent) -> List<Version>) {
-            versionProviders.add(provider)
-        }
+        return VersionCheckResult.OK
     }
 
-    internal suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>, message: Any) {
-        val call = context.call
-
-        val versions = if (message is OutgoingContent) versionsFor(message) else emptyList()
+    onCallRespond.afterTransform { call, message ->
+        val versions = call.versionsFor(message)
 
         if (versions.isNotEmpty()) {
             val headers = Headers.build {
@@ -57,52 +78,10 @@ public class ConditionalHeaders private constructor(
 
         val checkResult = checkVersions(call, versions)
         if (checkResult != VersionCheckResult.OK) {
-            val response = HttpStatusCodeContent(checkResult.statusCode)
-            context.proceedWith(response)
-            return
-        }
-    }
-
-    private fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
-        for (version in versions) {
-            val result = version.check(call.request.headers)
-            if (result != VersionCheckResult.OK) {
-                return result
+            transformBody {
+                HttpStatusCodeContent(checkResult.statusCode)
             }
-        }
-        return VersionCheckResult.OK
-    }
-
-    /**
-     * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
-     */
-    public suspend fun versionsFor(content: OutgoingContent): List<Version> {
-        return versionProviders.flatMapTo(ArrayList(versionProviders.size)) { it(content) }
-    }
-
-    /**
-     * `ApplicationPlugin` implementation for [ConditionalHeaders]
-     */
-    public companion object Plugin : RouteScopedPlugin<Configuration, ConditionalHeaders> {
-        override val key: AttributeKey<ConditionalHeaders> = AttributeKey("Conditional Headers")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): ConditionalHeaders {
-            val configuration = Configuration().apply(configure)
-            val plugin = ConditionalHeaders(configuration.versionProviders)
-
-            // Intercept response pipeline and after the content is ready to be served
-            // check if it needs to be served according to conditions
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
-                plugin.interceptor(
-                    this,
-                    message
-                )
-            }
-
-            return plugin
+            return@afterTransform
         }
     }
 }
