@@ -2,8 +2,10 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.plugins
+package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -13,6 +15,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
@@ -26,375 +29,380 @@ import java.util.*
 import kotlin.test.*
 
 @RunWith(Parameterized::class)
-@Suppress("DEPRECATION")
 class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
         fun zones(): List<Array<Any>> =
-            listOf(arrayOf<Any>("GMT", ZoneId.of("GMT")), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
+            listOf(arrayOf("GMT", ZoneId.of("GMT")), arrayOf("SomeLocal", ZoneId.of("GMT+1")))
     }
 
     private val date = ZonedDateTime.now(zone)!!
 
-    private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
-        application.install(ConditionalHeaders) {
-            version { listOf(LastModifiedVersion(date)) }
-        }
-        application.routing {
-            handle {
-                call.respondText("response")
+    private fun withConditionalApplication(body: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
+        application {
+            install(ConditionalHeaders) {
+                version { listOf(LastModifiedVersion(date)) }
+            }
+            routing {
+                handle {
+                    call.respondText("response")
+                }
             }
         }
 
-        body()
+        runBlocking {
+            body()
+        }
     }
 
     @Test
     fun testNoHeaders(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/").let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        client.get("/").let { result ->
+            assertEquals(HttpStatusCode.OK, result.status)
+            assertEquals("response", result.bodyAsText())
         }
     }
 
     @Test
-    fun testSubrouteInstall(): Unit = withTestApplication {
-        application.routing {
-            route("1") {
-                install(ConditionalHeaders) {
-                    version { listOf(LastModifiedVersion(date)) }
+    fun testSubrouteInstall(): Unit = testApplication {
+        application {
+            routing {
+                route("1") {
+                    install(ConditionalHeaders) {
+                        version { listOf(LastModifiedVersion(date)) }
+                    }
+                    get { call.respond("response") }
                 }
-                get { call.respond("response") }
+                get("2") { call.respond("response") }
             }
-            get("2") { call.respond("response") }
+        }
+        client.get("/1") {
+            header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/1") {
-            addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString())
-        }.let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
-        }
-        handleRequest(HttpMethod.Get, "/2") {
-            addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString())
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        client.get("/2") {
+            header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
     }
 
     @Test
     fun testIfModifiedSinceEq(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
-    fun testIfModifiedSinceEqZoned() {
-        withTestApplication {
-            application.install(ConditionalHeaders) {
+    fun testIfModifiedSinceEqZoned() = testApplication {
+        application {
+            install(ConditionalHeaders) {
                 version { listOf(LastModifiedVersion(date)) }
             }
-            application.routing {
+            routing {
                 handle {
                     call.respondText("response")
                 }
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(
-                    HttpHeaders.IfModifiedSince,
-                    date.toHttpDateString()
-                )
-            }.let { result ->
-                assertEquals(HttpStatusCode.NotModified, result.response.status())
-                assertNull(result.response.content)
-            }
+        client.get("/") {
+            header(
+                HttpHeaders.IfModifiedSince,
+                date.toHttpDateString()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testIfModifiedSinceLess(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.minusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
     }
 
     @Test
     fun testIfModifiedSinceGt(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testIfUnModifiedSinceEq(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
     }
 
     @Test
     fun testIfUnModifiedSinceLess(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.minusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
-            assertNull(result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testIfUnModifiedSinceGt(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
     }
 
     @Test
     fun testIfUnmodifiedSinceIllegal(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 "zzz"
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 "zzz"
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 "zzz"
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 "zzz"
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
-            assertEquals(null, result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testIfUnmodifiedSinceMultiple(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 ""
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(2).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(2).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
-            assertNull(result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testIfModifiedSinceMultiple(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 ""
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(2).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(2).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
     }
 
     @Test
     fun testBoth(): Unit = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 ""
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 ""
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
-            assertEquals(null, result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.PreconditionFailed, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-        }.let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertEquals(null, result.response.content)
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(
+        client.get("/") {
+            header(
                 HttpHeaders.IfModifiedSince,
                 date.plusDays(1).toHttpDateString()
             )
-            addHeader(
+            header(
                 HttpHeaders.IfUnmodifiedSince,
                 date.plusDays(-1).toHttpDateString()
             )
-        }.let { result ->
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
             // both conditions are not met but actually it is not clear which one should win
             // so we declare the order
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertEquals(null, result.response.content)
+            assertEquals("", it.bodyAsText())
         }
     }
 }
