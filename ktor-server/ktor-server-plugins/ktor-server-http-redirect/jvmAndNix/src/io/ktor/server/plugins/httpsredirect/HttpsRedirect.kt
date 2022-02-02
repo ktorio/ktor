@@ -73,4 +73,3 @@ public val HttpsRedirect: ApplicationPlugin<Application, HttpsRedirectConfig, Pl
             }
         }
     }
-
