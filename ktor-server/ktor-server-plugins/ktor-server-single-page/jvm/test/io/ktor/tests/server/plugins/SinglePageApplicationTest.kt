@@ -18,12 +18,10 @@ class SinglePageApplicationTest {
             applicationRoute = "selected"
             defaultPage = "Empty3.kt"
         }
-        client.get("/selected/Empty1.kt").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/selected").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
+
+        assertEquals(client.get("/selected/Empty1.kt").status, HttpStatusCode.OK)
+
+        assertEquals(client.get("/selected").status, HttpStatusCode.OK)
     }
 
     @Test
@@ -34,18 +32,11 @@ class SinglePageApplicationTest {
             ignoreFiles { it.contains("Empty1.kt") }
             ignoreFiles { it.endsWith("Empty2.kt") }
         }
-        client.get("/Empty3.kt").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/Empty1.kt").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
-        client.get("/Empty2.kt").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/Empty3.kt").status)
+        assertEquals(HttpStatusCode.OK, client.get("/").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty2.kt").status)
     }
 
     @Test
@@ -55,12 +46,9 @@ class SinglePageApplicationTest {
             defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
-        client.get("/Empty1.kt").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
-        client.get("/").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
+
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
     }
 
     @Test
@@ -70,12 +58,9 @@ class SinglePageApplicationTest {
             filesPath = "io.ktor.tests.server.plugins"
             defaultPage = "SinglePageApplicationTest.class"
         }
-        client.get("/Empty1.class").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/").status)
     }
 
     @Test
@@ -87,18 +72,12 @@ class SinglePageApplicationTest {
             ignoreFiles { it.contains("Empty1.class") }
             ignoreFiles { it.endsWith("Empty2.class") }
         }
-        client.get("/Empty3.class").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
-        client.get("/Empty1.class").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
-        client.get("/Empty2.class").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/Empty3.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/").status)
+
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty2.class").status)
     }
 
     @Test
@@ -109,12 +88,9 @@ class SinglePageApplicationTest {
             defaultPage = "SinglePageApplicationTest.kt"
             ignoreFiles { true }
         }
-        client.get("/Empty1.class").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
-        client.get("/").let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
+
+        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/").status)
     }
 
     @Test
@@ -123,8 +99,6 @@ class SinglePageApplicationTest {
             angular("jvm/test/io/ktor/tests/server/plugins")
         }
 
-        client.get("/Empty1.kt").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-        }
+        assertEquals(HttpStatusCode.OK, client.get("/Empty1.kt").status)
     }
 }
