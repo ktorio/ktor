@@ -143,7 +143,7 @@ class WebjarsTest {
     @OptIn(InternalAPI::class)
     @Test
     fun callHandledBeforeWebjars() {
-        val alwaysRespondHello = object: Hook<Unit> {
+        val alwaysRespondHello = object : Hook<Unit> {
             override fun install(application: ApplicationCallPipeline, handler: Unit) {
                 application.intercept(ApplicationCallPipeline.Setup) {
                     call.respond("Hello")
