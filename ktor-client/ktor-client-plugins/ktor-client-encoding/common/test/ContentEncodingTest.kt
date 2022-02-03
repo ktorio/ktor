@@ -29,7 +29,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testDeflate() = clientTests {
+    fun testDeflate() = clientTests(listOf("native:CIO")) {
         config {
             ContentEncoding {
                 deflate()
@@ -44,7 +44,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZip() = clientTests {
+    fun testGZip() = clientTests(listOf("native:CIO")) {
         config {
             ContentEncoding {
                 gzip()

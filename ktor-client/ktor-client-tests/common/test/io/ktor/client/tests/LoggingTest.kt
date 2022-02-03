@@ -6,6 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
@@ -435,13 +436,14 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingWithCompression() = clientTests {
+    fun testLoggingWithCompression() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/compression/deflate",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
+            "-> Accept-Encoding: gzip,deflate,identity",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -454,14 +456,17 @@ class LoggingTest : ClientLoader() {
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
             "???-> connection: close",
-            "-> Content-Length: 20",
+            "-> Content-Encoding: deflate",
             "-> Content-Type: text/plain; charset=UTF-8",
+            "-> Transfer-Encoding: chunked",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
-            "Compressed response!",
+            "???[response body omitted]",
+            "???Compressed response!",  // Curl engine
             "BODY END"
         )
         config {
+            ContentEncoding()
             Logging {
                 logger = testLogger
                 level = LogLevel.ALL
@@ -472,8 +477,8 @@ class LoggingTest : ClientLoader() {
             val response = client.prepareGet {
                 method = HttpMethod.Get
                 url("$TEST_SERVER/compression/deflate")
-            }.body<String>()
-            assertEquals("Compressed response!", response)
+            }.execute()
+            assertEquals("Compressed response!", response.body<String>())
         }
         after {
             testLogger.verify()
