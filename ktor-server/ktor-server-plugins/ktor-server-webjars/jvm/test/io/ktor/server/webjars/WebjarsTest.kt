@@ -4,12 +4,15 @@
 
 package io.ktor.server.webjars
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -134,6 +137,31 @@ class WebjarsTest {
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
                 assertNotNull(call.response.headers["Last-Modified"])
             }
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun callHandledBeforeWebjars() {
+        val alwaysRespondHello = object : Hook<Unit> {
+            override fun install(application: ApplicationCallPipeline, handler: Unit) {
+                application.intercept(ApplicationCallPipeline.Setup) {
+                    call.respond("Hello")
+                }
+            }
+        }
+        val pluginBeforeWebjars = createApplicationPlugin("PluginBeforeWebjars") {
+            on(alwaysRespondHello, Unit)
+        }
+
+        testApplication {
+            install(pluginBeforeWebjars)
+            install(Webjars)
+
+            val response = client.get("/webjars/jquery/3.3.1/jquery.js")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("Hello", response.bodyAsText())
+            assertNotEquals("application/javascript", response.headers["Content-Type"])
         }
     }
 }
