@@ -1,11 +1,4 @@
-public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics {
-	public static final field Plugin Lio/ktor/server/metrics/dropwizard/DropwizardMetrics$Plugin;
-	public synthetic fun <init> (Lcom/codahale/metrics/MetricRegistry;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getBaseName ()Ljava/lang/String;
-	public final fun getRegistry ()Lcom/codahale/metrics/MetricRegistry;
-}
-
-public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Configuration {
+public final class io/ktor/server/metrics/dropwizard/DropwizardMetricsConfig {
 	public fun <init> ()V
 	public final fun getBaseName ()Ljava/lang/String;
 	public final fun getRegisterJvmMetricSets ()Z
@@ -15,9 +8,7 @@ public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Configura
 	public final fun setRegistry (Lcom/codahale/metrics/MetricRegistry;)V
 }
 
-public final class io/ktor/server/metrics/dropwizard/DropwizardMetrics$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/metrics/dropwizard/DropwizardMetrics;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/metrics/dropwizard/DropwizardMetricsKt {
+	public static final fun getDropwizardMetrics ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
