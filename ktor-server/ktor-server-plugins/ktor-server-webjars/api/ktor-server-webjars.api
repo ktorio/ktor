@@ -1,19 +1,10 @@
-public final class io/ktor/server/webjars/Webjars {
-	public static final field Plugin Lio/ktor/server/webjars/Webjars$Plugin;
-	public fun <init> (Lio/ktor/server/webjars/Webjars$Configuration;)V
-}
-
-public final class io/ktor/server/webjars/Webjars$Configuration {
+public final class io/ktor/server/webjars/WebjarsConfig {
 	public fun <init> ()V
 	public final fun getPath ()Ljava/lang/String;
-	public final fun getZone ()Ljava/time/ZoneId;
 	public final fun setPath (Ljava/lang/String;)V
-	public final fun setZone (Ljava/time/ZoneId;)V
 }
 
-public final class io/ktor/server/webjars/Webjars$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/webjars/Webjars;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/webjars/WebjarsKt {
+	public static final fun getWebjars ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
