@@ -1,9 +1,4 @@
-public final class io/ktor/server/plugins/callid/CallId {
-	public static final field Plugin Lio/ktor/server/plugins/callid/CallId$Plugin;
-	public synthetic fun <init> ([Lkotlin/jvm/functions/Function1;[Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/plugins/callid/CallId$Configuration {
+public final class io/ktor/server/plugins/callid/CallIdConfig {
 	public fun <init> ()V
 	public final fun generate (Lkotlin/jvm/functions/Function1;)V
 	public final fun header (Ljava/lang/String;)V
@@ -13,14 +8,7 @@ public final class io/ktor/server/plugins/callid/CallId$Configuration {
 	public final fun retrieveFromHeader (Ljava/lang/String;)V
 	public final fun verify (Ljava/lang/String;Z)V
 	public final fun verify (Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun verify$default (Lio/ktor/server/plugins/callid/CallId$Configuration;Ljava/lang/String;ZILjava/lang/Object;)V
-}
-
-public final class io/ktor/server/plugins/callid/CallId$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public final fun getPhase ()Lio/ktor/util/pipeline/PipelinePhase;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/callid/CallId;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun verify$default (Lio/ktor/server/plugins/callid/CallIdConfig;Ljava/lang/String;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/plugins/callid/CallIdJvmKt {
@@ -30,8 +18,9 @@ public final class io/ktor/server/plugins/callid/CallIdJvmKt {
 
 public final class io/ktor/server/plugins/callid/CallIdKt {
 	public static final field CALL_ID_DEFAULT_DICTIONARY Ljava/lang/String;
-	public static final fun generate (Lio/ktor/server/plugins/callid/CallId$Configuration;ILjava/lang/String;)V
-	public static synthetic fun generate$default (Lio/ktor/server/plugins/callid/CallId$Configuration;ILjava/lang/String;ILjava/lang/Object;)V
+	public static final fun generate (Lio/ktor/server/plugins/callid/CallIdConfig;ILjava/lang/String;)V
+	public static synthetic fun generate$default (Lio/ktor/server/plugins/callid/CallIdConfig;ILjava/lang/String;ILjava/lang/Object;)V
+	public static final fun getCallId ()Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun getCallId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 }
 
