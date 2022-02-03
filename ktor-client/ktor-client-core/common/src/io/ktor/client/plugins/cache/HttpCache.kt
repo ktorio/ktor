@@ -35,6 +35,7 @@ public class HttpCache private constructor(
     /**
      * [HttpCache] configuration.
      */
+    @KtorDsl
     public class Config {
         /**
          * Storage for public cache entries.

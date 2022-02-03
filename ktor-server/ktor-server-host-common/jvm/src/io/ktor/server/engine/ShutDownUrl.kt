@@ -97,6 +97,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     /**
      * Shutdown url configuration builder
      */
+    @KtorDsl
     public class Configuration {
         /**
          * URI to handle shutdown requests

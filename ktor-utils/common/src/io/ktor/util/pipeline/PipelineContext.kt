@@ -4,6 +4,7 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.jvm.*
@@ -13,7 +14,7 @@ import kotlin.jvm.*
  *
  * @param context: object representing context in which pipeline executes
  */
-@ContextDsl
+@KtorDsl
 public abstract class PipelineContext<TSubject : Any, TContext : Any>(
     public val context: TContext
 ) : CoroutineScope {

@@ -98,6 +98,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
     /**
      * Contains [HttpRequestRetry] configurations settings.
      */
+    @KtorDsl
     public class Configuration {
         internal lateinit var shouldRetry: ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean
         internal lateinit var shouldRetryOnException: ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean

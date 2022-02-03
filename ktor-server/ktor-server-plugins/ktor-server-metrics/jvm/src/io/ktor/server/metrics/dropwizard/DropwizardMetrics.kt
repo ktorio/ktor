@@ -8,11 +8,13 @@ import com.codahale.metrics.*
 import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 import java.util.concurrent.*
 
 /**
  * Metrics plugin configuration object that is used during plugin installation.
  */
+@KtorDsl
 public class DropwizardMetricsConfig {
     /**
      * Dropwizard metrics base name (prefix)

@@ -91,6 +91,7 @@ public class MicrometerMetrics private constructor(
      * @property distinctNotRegisteredRoutes specifies if requests for non existent routes should
      * contain request path or fallback to common `n/a` value. `true` by default
      * */
+    @KtorDsl
     public class Configuration {
         @Deprecated(
             "baseName is deprecated",

@@ -189,6 +189,8 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
                 action = { pipeline ->
                     pipeline.intercept(phase) {
                         // Information about the plugin name is needed for the Intellij Idea debugger.
+                        val key = this@ApplicationPluginBuilder.key
+                        val pluginConfig = this@ApplicationPluginBuilder.pluginConfig
                         addToContextInDebugMode(PluginName(key.name)) {
                             ijDebugReportHandlerStarted(pluginName = key.name, handler = handlerName)
 

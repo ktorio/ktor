@@ -6,11 +6,13 @@ package io.ktor.server.plugins.doublereceive
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 
 /**
  * [DoubleReceive] Plugin configuration.
  */
+@KtorDsl
 public class DoubleReceiveConfig {
     internal val filters = mutableListOf<(ApplicationCall, ApplicationReceiveRequest) -> Boolean>()
 

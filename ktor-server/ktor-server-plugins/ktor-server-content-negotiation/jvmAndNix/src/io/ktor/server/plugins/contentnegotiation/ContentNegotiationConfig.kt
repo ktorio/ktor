@@ -6,11 +6,13 @@ package io.ktor.server.plugins.contentnegotiation
 
 import io.ktor.http.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
  * Configuration type for [ContentNegotiation] plugin
  */
+@KtorDsl
 public class ContentNegotiationConfig : Configuration {
     internal val registrations = mutableListOf<ConverterRegistration>()
     internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()

@@ -101,6 +101,7 @@ public class WebSockets internal constructor(
     /**
      * [WebSockets] configuration.
      */
+    @KtorDsl
     public class Config {
         internal val extensionsConfig: WebSocketExtensionsConfig = WebSocketExtensionsConfig()
 

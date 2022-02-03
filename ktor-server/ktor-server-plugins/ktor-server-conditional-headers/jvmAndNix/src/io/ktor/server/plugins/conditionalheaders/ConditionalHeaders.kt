@@ -14,6 +14,7 @@ import io.ktor.util.*
 /**
  * A configuration for the [ConditionalHeaders] plugin
  */
+@KtorDsl
 public class ConditionalHeadersConfig {
     internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
 

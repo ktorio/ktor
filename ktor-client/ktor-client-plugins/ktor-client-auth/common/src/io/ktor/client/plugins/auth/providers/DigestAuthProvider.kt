@@ -20,7 +20,7 @@ import kotlinx.atomicfu.*
 public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
-        providers += DigestAuthProvider(_credentials, realm, algorithmName)
+        this@digest.providers += DigestAuthProvider(_credentials, realm, algorithmName)
     }
 }
 
@@ -28,6 +28,7 @@ public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
  * [DigestAuthProvider] configuration.
  */
 @Suppress("KDocMissingDocumentation")
+@KtorDsl
 public class DigestAuthConfig {
 
     public var algorithmName: String = "MD5"

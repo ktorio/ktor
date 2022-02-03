@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 
 private object Setup : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
@@ -32,6 +33,7 @@ public val XHttpMethodOverride: ApplicationPlugin<Application, XHttpMethodOverri
 /**
  * A config for [XHttpMethodOverride]
  */
+@KtorDsl
 public class XHttpMethodOverrideConfig {
     /**
      * A header name overriding the HTTP method.

@@ -25,6 +25,7 @@ public class IgnoreTrailingSlash private constructor() {
     /**
      * Configuration for this plugin
      */
+    @KtorDsl
     public class Configuration
 
     public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, IgnoreTrailingSlash> {

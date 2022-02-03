@@ -489,6 +489,7 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",
@@ -526,6 +527,7 @@ class TestPlugin private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",
@@ -561,6 +563,7 @@ class TestPluginCustomPhase private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",

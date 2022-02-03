@@ -78,6 +78,7 @@ public class ContentNegotiation internal constructor(
     /**
      * Companion object for plugin installation
      */
+    @KtorDsl
     public companion object Plugin : HttpClientPlugin<Config, ContentNegotiation> {
         public override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 

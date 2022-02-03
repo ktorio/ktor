@@ -24,6 +24,7 @@ public class ResponseObserver(
     private val responseHandler: ResponseHandler,
     private val filter: ((HttpClientCall) -> Boolean)? = null
 ) {
+    @KtorDsl
     public class Config {
         internal var responseHandler: ResponseHandler = {}
 

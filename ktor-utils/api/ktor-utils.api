@@ -195,6 +195,9 @@ public final class io/ktor/util/InputJvmKt {
 public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class io/ktor/util/KtorDsl : java/lang/annotation/Annotation {
+}
+
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
@@ -843,9 +846,6 @@ public final class io/ktor/util/network/NetworkAddressJvmKt {
 	public static final fun NetworkAddress (Ljava/lang/String;I)Ljava/net/SocketAddress;
 	public static final fun getHostname (Ljava/net/SocketAddress;)Ljava/lang/String;
 	public static final fun getPort (Ljava/net/SocketAddress;)I
-}
-
-public abstract interface annotation class io/ktor/util/pipeline/ContextDsl : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/util/pipeline/InvalidPhaseException : java/lang/Throwable {

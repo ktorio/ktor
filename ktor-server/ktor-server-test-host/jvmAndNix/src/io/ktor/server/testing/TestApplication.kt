@@ -13,13 +13,14 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
-import io.ktor.util.collections.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
 /**
  * Provides a client attached to [TestApplication].
  */
+@KtorDsl
 public interface ClientProvider {
     /**
      * Returns a client with default config
@@ -29,6 +30,7 @@ public interface ClientProvider {
     /**
      * Creates a client with custom config
      */
+    @KtorDsl
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
@@ -52,6 +54,7 @@ public class TestApplication internal constructor(
  * Creates an instance of [TestApplication] configured with the builder [block].
  * Make sure to call [TestApplication.stop] after your tests.
  */
+@KtorDsl
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
@@ -64,12 +67,14 @@ public fun TestApplication(
 /**
  * Registers mocks for external services.
  */
+@KtorDsl
 public class ExternalServicesBuilder {
     internal val externalApplications = mutableMapOf<String, TestApplication>()
 
     /**
      * Registers a mock for external service specified by [hosts] and configured with [block].
      */
+    @KtorDsl
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
@@ -84,6 +89,7 @@ public class ExternalServicesBuilder {
 /**
  * A builder for [TestApplication]
  */
+@KtorDsl
 public open class TestApplicationBuilder {
 
     private var built = false
@@ -97,10 +103,10 @@ public open class TestApplicationBuilder {
         built = true
         createTestEnvironment {
             config = DefaultTestConfig()
-            modules.addAll(applicationModules)
+            modules.addAll(this@TestApplicationBuilder.applicationModules)
             developmentMode = true
-            environmentBuilder()
-            parentCoroutineContext += job
+            this@TestApplicationBuilder.environmentBuilder(this)
+            parentCoroutineContext += this@TestApplicationBuilder.job
         }
     }
 
@@ -111,6 +117,7 @@ public open class TestApplicationBuilder {
     /**
      * Builds mocks for external services using [ExternalServicesBuilder]
      */
+    @KtorDsl
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
         checkNotBuilt()
         externalServices.block()
@@ -119,6 +126,7 @@ public open class TestApplicationBuilder {
     /**
      * Builds an environment using [block]
      */
+    @KtorDsl
     public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         environmentBuilder = block
@@ -127,6 +135,7 @@ public open class TestApplicationBuilder {
     /**
      * Adds a module to [TestApplication]
      */
+    @KtorDsl
     public fun application(block: Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
@@ -136,18 +145,19 @@ public open class TestApplicationBuilder {
      * Installs a [plugin] into [TestApplication]
      */
     @Suppress("UNCHECKED_CAST")
+    @KtorDsl
     public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
         configure: B.() -> Unit = {}
     ) {
         checkNotBuilt()
-        applicationModules.add { install(plugin as Plugin<Application, B, F>, configure) }
+        applicationModules.add { install(plugin as Plugin<ApplicationCallPipeline, B, F>, configure) }
     }
 
     /**
      * Installs routing into [TestApplication]
      */
-    @ContextDsl
+    @KtorDsl
     public fun routing(configuration: Routing.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
@@ -164,17 +174,19 @@ public open class TestApplicationBuilder {
 /**
  * A builder for the test that uses [TestApplication]
  */
+@KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client by lazy { createClient { } }
 
+    @KtorDsl
     override fun createClient(
         block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
         engine {
-            parentJob = job
-            appEngineProvider = { engine }
-            externalApplicationsProvider = { externalServices.externalApplications }
+            parentJob = this@ApplicationTestBuilder.job
+            appEngineProvider = { this@ApplicationTestBuilder.engine }
+            externalApplicationsProvider = { this@ApplicationTestBuilder.externalServices.externalApplications }
         }
         block()
     }
@@ -183,6 +195,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 /**
  * Creates a test using [TestApplication]
  */
+@KtorDsl
 public fun testApplication(
     block: suspend ApplicationTestBuilder.() -> Unit
 ) {

@@ -19,6 +19,7 @@ import kotlin.reflect.*
  */
 @Suppress("unused")
 @KtorExperimentalLocationsAPI
+@KtorDsl
 public open class Locations constructor(
     application: Application,
     routeService: LocationRouteService
@@ -109,6 +110,7 @@ public open class Locations constructor(
     /**
      * Configuration for [Locations].
      */
+    @KtorDsl
     public class Configuration {
         /**
          * Specifies an alternative routing service. Default is [LocationAttributeRouteService].

@@ -60,6 +60,7 @@ public class ContentEncoding private constructor(
     /**
      * [ContentEncoding] configuration.
      */
+    @KtorDsl
     public class Config {
         internal val encoders: MutableMap<String, ContentEncoder> = CaseInsensitiveMap()
 
