@@ -1,17 +1,10 @@
-public final class io/ktor/server/plugins/partialcontent/PartialContent {
-	public static final field Plugin Lio/ktor/server/plugins/partialcontent/PartialContent$Plugin;
-	public synthetic fun <init> (ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/plugins/partialcontent/PartialContent$Configuration {
+public final class io/ktor/server/plugins/partialcontent/PartialContentConfig {
 	public fun <init> ()V
 	public final fun getMaxRangeCount ()I
 	public final fun setMaxRangeCount (I)V
 }
 
-public final class io/ktor/server/plugins/partialcontent/PartialContent$Plugin : io/ktor/server/application/RouteScopedPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/partialcontent/PartialContent;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/partialcontent/PartialContentKt {
+	public static final fun getPartialContent ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
