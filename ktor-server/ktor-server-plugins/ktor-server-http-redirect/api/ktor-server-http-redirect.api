@@ -1,12 +1,4 @@
-public final class io/ktor/server/plugins/httpsredirect/HttpsRedirect {
-	public static final field Plugin Lio/ktor/server/plugins/httpsredirect/HttpsRedirect$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/plugins/httpsredirect/HttpsRedirect$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getExcludePredicates ()Ljava/util/List;
-	public final fun getPermanent ()Z
-	public final fun getRedirectPort ()I
-}
-
-public final class io/ktor/server/plugins/httpsredirect/HttpsRedirect$Configuration {
+public final class io/ktor/server/plugins/httpsredirect/HttpsRedirectConfig {
 	public fun <init> ()V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun excludePrefix (Ljava/lang/String;)V
@@ -18,9 +10,7 @@ public final class io/ktor/server/plugins/httpsredirect/HttpsRedirect$Configurat
 	public final fun setSslPort (I)V
 }
 
-public final class io/ktor/server/plugins/httpsredirect/HttpsRedirect$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/httpsredirect/HttpsRedirect;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/httpsredirect/HttpsRedirectKt {
+	public static final fun getHttpsRedirect ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
