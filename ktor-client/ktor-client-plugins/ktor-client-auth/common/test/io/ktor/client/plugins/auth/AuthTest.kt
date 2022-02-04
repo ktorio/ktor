@@ -284,7 +284,6 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-
             client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
@@ -325,6 +324,47 @@ class AuthTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
+    @Test
+    fun testUnauthorizedRefreshTokenWithoutWWWAuthenticateHeaderIfOneProviderIsInstalled() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh-no-www-authenticate-header").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
+    @Test
+    fun testUnauthorizedDoesNotRefreshTokenWithoutWWWAuthenticateHeaderIfMultipleProvidersAreInstalled() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+                basic {
+                    credentials { BasicAuthCredentials("name", "password") }
+                }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh-no-www-authenticate-header").execute {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
     }

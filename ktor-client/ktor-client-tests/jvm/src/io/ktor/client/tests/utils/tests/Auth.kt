@@ -109,6 +109,15 @@ internal fun Application.authTestServer() {
 
                     call.respond(HttpStatusCode.OK)
                 }
+                get("test-refresh-no-www-authenticate-header") {
+                    val token = call.request.headers["Authorization"]
+                    if (token.isNullOrEmpty() || token.contains("invalid")) {
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond(HttpStatusCode.OK)
+                }
                 route("token") {
                     get("first") {
                         call.respond("first")

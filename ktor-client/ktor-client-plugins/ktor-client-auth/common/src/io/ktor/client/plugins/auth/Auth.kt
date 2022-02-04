@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 
 /**
  * A client's authentication plugin.
@@ -47,20 +46,20 @@ public class Auth private constructor(
 
                 while (call.response.status == HttpStatusCode.Unauthorized) {
                     val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
-                    if (headerValue.isNullOrEmpty()) {
-                        return@intercept call
-                    }
 
-                    val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
-                    val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    val authHeader = headerValue?.let { parseAuthorizationHeader(headerValue) }
+                    val provider = when {
+                        authHeader == null && candidateProviders.size == 1 -> candidateProviders.first()
+                        authHeader == null -> return@intercept call
+                        else -> candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    }
                     if (!provider.refreshToken(call.response)) return@intercept call
 
                     candidateProviders.remove(provider)
 
                     val request = HttpRequestBuilder()
                     request.takeFromWithExecutionContext(context)
-                    request.attributes.put(AuthHeaderAttribute, authHeader)
-                    provider.addRequestHeaders(request)
+                    provider.addRequestHeaders(request, authHeader)
                     request.attributes.put(circuitBreaker, Unit)
 
                     call = execute(request)
@@ -77,12 +76,3 @@ public class Auth private constructor(
 public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
     install(Auth, block)
 }
-
-/**
- * AuthHeader from the previous unsuccessful request. This actually should be passed as
- * parameter to AuthProvider.addRequestHeaders instead in the future and the attribute will
- * be removed after that.
- */
-@OptIn(InternalAPI::class)
-@PublicAPICandidate("1.6.0")
-internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")

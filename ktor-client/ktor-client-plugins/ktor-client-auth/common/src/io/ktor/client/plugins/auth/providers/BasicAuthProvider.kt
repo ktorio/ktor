@@ -121,7 +121,7 @@ public class BasicAuthProvider(
         return true
     }
 
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val credentials = tokensHolder.loadToken() ?: return
         request.headers[HttpHeaders.Authorization] = constructBasicAuthValue(credentials)
     }
