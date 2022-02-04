@@ -321,6 +321,22 @@ public data class PathSegmentConstantRouteSelector(
     override fun toString(): String = value
 }
 
+
+/**
+ * Evaluates a route against an optional constant path segment.
+ * @param value is a value of the path segment
+ */
+public data class OptionalPathSegmentConstantRouteSelector(val value: String) : RouteSelector() {
+
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = when {
+        segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
+            RouteSelectorEvaluation.ConstantPath
+        else -> RouteSelectorEvaluation.Missing
+    }
+
+    override fun toString() = "$value?"
+}
+
 /**
  * Evaluates a route against a single trailing slash
  */
