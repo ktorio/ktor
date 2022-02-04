@@ -20,9 +20,11 @@ import java.io.*
  * A basic plugin configuration for the application served from the filesPath folder
  * with index.html as a default file:
  *
+ * ```
  * install(SinglePageApplication) {
  *   filesPath = "application/project_path"
  * }
+ * ```
  */
 public val SinglePageApplication: ApplicationPlugin<Application, SPAConfig, PluginInstance> =
     createApplicationPlugin(
