@@ -54,6 +54,7 @@ public class JsonPlugin internal constructor(
     /**
      * [JsonPlugin] configuration that is used during installation
      */
+    @KtorDsl
     public class Config {
         /**
          * Serializer that will be used for serializing requests and deserializing response bodies.

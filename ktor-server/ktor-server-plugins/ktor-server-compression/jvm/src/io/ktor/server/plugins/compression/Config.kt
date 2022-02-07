@@ -7,6 +7,7 @@ package io.ktor.server.plugins.compression
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 
 /**
  * Compression plugin configuration
@@ -47,6 +48,7 @@ public data class CompressionEncoderConfig(
 /**
  * Configuration builder for Compression plugin
  */
+@KtorDsl
 public class CompressionConfig : ConditionsHolderBuilder {
     /**
      * Encoders map by names

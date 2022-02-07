@@ -22,6 +22,7 @@ import kotlin.properties.*
 /**
  * A configuration for [PartialContent].
  */
+@KtorDsl
 public class PartialContentConfig {
     /**
      * Maximum number of ranges that will be accepted from HTTP request.

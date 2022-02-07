@@ -5,6 +5,7 @@
 package io.ktor.resources
 
 import io.ktor.resources.serialisation.*
+import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 
@@ -22,6 +23,7 @@ public class Resources(configuration: Configuration) {
      * Configuration for the Resources plugin instance.
      */
     @OptIn(ExperimentalSerializationApi::class)
+    @KtorDsl
     public class Configuration {
 
         /**

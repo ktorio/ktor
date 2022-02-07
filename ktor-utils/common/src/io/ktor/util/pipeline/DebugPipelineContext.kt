@@ -4,6 +4,7 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.util.*
 import kotlin.coroutines.*
 
 /**
@@ -12,7 +13,7 @@ import kotlin.coroutines.*
  * @param interceptors list of interceptors to execute
  * @param subject object representing subject that goes along the pipeline
  */
-@ContextDsl
+@KtorDsl
 internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
     context: TContext,
     private val interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>,

@@ -26,6 +26,7 @@ public class HttpTimeout private constructor(
     /**
      * [HttpTimeout] extension configuration that is used during installation.
      */
+    @KtorDsl
     public class HttpTimeoutCapabilityConfiguration {
         private var _requestTimeoutMillis: Long? = 0
         private var _connectTimeoutMillis: Long? = 0
@@ -137,6 +138,7 @@ public class HttpTimeout private constructor(
                 }
 
                 configuration?.apply {
+                    val context = this@intercept.context
                     connectTimeoutMillis = connectTimeoutMillis ?: plugin.connectTimeoutMillis
                     socketTimeoutMillis = socketTimeoutMillis ?: plugin.socketTimeoutMillis
                     requestTimeoutMillis = requestTimeoutMillis ?: plugin.requestTimeoutMillis

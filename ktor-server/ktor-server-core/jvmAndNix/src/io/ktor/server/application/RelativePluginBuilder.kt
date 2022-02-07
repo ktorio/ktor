@@ -67,7 +67,7 @@ public sealed class RelativePluginBuilder<PluginConfig : Any>(
                     }
 
                     pipeline.intercept(currentPhase) {
-                        contextInit(currentPlugin.pluginConfig, this).block(call, subject)
+                        contextInit(this@RelativePluginBuilder.currentPlugin.pluginConfig, this).block(call, subject)
                     }
                 }
             )

@@ -20,6 +20,7 @@ public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey
  * @param application is an instance of [Application] for this routing
  */
 @OptIn(InternalAPI::class)
+@KtorDsl
 public class Routing(
     public val application: Application
 ) : Route(
@@ -138,6 +139,6 @@ public val Route.application: Application
 /**
  * Gets or installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it
  */
-@ContextDsl
+@KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
     pluginOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)

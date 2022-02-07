@@ -16,6 +16,7 @@ import kotlin.coroutines.*
  *
  * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
+@KtorDsl
 public class Application(
     override val environment: ApplicationEnvironment
 ) : ApplicationCallPipeline(environment.developmentMode, environment), CoroutineScope {

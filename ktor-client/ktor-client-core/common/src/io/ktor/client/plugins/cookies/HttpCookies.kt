@@ -78,6 +78,7 @@ public class HttpCookies internal constructor(
     /**
      * [HttpCookies] configuration.
      */
+    @KtorDsl
     public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 

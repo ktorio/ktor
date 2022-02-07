@@ -32,6 +32,7 @@ public class Logging private constructor(
     /**
      * [Logging] plugin configuration
      */
+    @KtorDsl
     public class Config {
         /**
          * filters

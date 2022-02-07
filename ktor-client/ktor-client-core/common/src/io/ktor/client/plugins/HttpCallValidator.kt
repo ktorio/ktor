@@ -47,6 +47,7 @@ public class HttpCallValidator internal constructor(
     /**
      * [HttpCallValidator] configuration.
      */
+    @KtorDsl
     public class Config {
         internal val responseValidators: MutableList<ResponseValidator> = mutableListOf()
         internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()

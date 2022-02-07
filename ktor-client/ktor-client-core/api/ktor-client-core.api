@@ -35,9 +35,6 @@ public final class io/ktor/client/HttpClientConfig {
 	public final fun setUseDefaultTransformers (Z)V
 }
 
-public abstract interface annotation class io/ktor/client/HttpClientDsl : java/lang/annotation/Annotation {
-}
-
 public abstract interface class io/ktor/client/HttpClientEngineContainer {
 	public abstract fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 }

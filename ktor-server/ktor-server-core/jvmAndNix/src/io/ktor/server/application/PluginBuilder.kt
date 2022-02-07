@@ -19,7 +19,7 @@ import kotlin.random.*
 /**
  * A builder that is available inside a plugin creation block. You can use this builder to hook in various steps of request processing.
  **/
-@PluginsDslMarker
+@KtorDsl
 public sealed interface PluginBuilder<PluginConfig : Any> {
 
     /**

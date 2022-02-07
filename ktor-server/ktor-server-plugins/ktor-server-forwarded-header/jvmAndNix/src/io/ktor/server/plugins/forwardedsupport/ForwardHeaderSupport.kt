@@ -68,6 +68,7 @@ public object XForwardedHeaderSupport :
      * [XForwardedHeaderSupport] plugin's configuration
      */
     @Suppress("PublicApiImplicitType")
+    @KtorDsl
     public class Config {
         /**
          * Host name X-header names. Default are `X-Forwarded-Server` and `X-Forwarded-Host`
@@ -272,6 +273,7 @@ public object ForwardedHeaderSupport : ApplicationPlugin<ApplicationCallPipeline
         return ForwardedHeaderValue(map.remove("host"), map.remove("by"), map.remove("for"), map.remove("proto"), map)
     }
 
+    @KtorDsl
     public class Config {
         internal var forwardedHeadersHandler: (MutableOriginConnectionPoint, List<ForwardedHeaderValue>) -> Unit =
             { _, _ -> }

@@ -4,9 +4,12 @@
 
 package io.ktor.server.sessions
 
+import io.ktor.util.*
+
 /**
  * Sessions configuration builder
  */
+@KtorDsl
 public class SessionsConfig {
     private val registered = ArrayList<SessionProvider<*>>()
 

@@ -51,6 +51,7 @@ public fun applicationEngineEnvironment(
 /**
  * Engine environment configuration builder
  */
+@KtorDsl
 public expect class ApplicationEngineEnvironmentBuilder() {
     /**
      * Parent coroutine context for an application

@@ -10,13 +10,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.util.*
 
 /**
  * Adds [BearerAuthProvider] to the client's [Auth] providers.
  */
 public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
+        this@bearer.providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
     }
 }
 
@@ -37,6 +38,7 @@ public class RefreshTokensParams(
 /**
  * [BearerAuthProvider] configuration.
  */
+@KtorDsl
 public class BearerAuthConfig {
     internal var _refreshTokens: suspend RefreshTokensParams.() -> BearerTokens? = { null }
     internal var _loadTokens: suspend () -> BearerTokens? = { null }

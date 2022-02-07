@@ -10,6 +10,7 @@ import io.ktor.util.*
 /**
  * A config for [Authentication] plugin
  */
+@KtorDsl
 public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider> = emptyMap()) {
     internal val providers = providers.toMutableMap()
 

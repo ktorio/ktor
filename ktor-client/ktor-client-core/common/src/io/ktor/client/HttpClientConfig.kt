@@ -14,7 +14,7 @@ import kotlin.collections.set
 /**
  * Mutable configuration used by [HttpClient].
  */
-@HttpClientDsl
+@KtorDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
     private val plugins: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = mutableMapOf()
     private val pluginConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = mutableMapOf()
@@ -119,9 +119,3 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
         customInterceptors += other.customInterceptors
     }
 }
-
-/**
- * Dsl marker for [HttpClient] dsl.
- */
-@DslMarker
-public annotation class HttpClientDsl

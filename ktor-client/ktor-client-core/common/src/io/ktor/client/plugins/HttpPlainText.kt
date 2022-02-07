@@ -62,6 +62,7 @@ public class HttpPlainText internal constructor(
     /**
      * Charset configuration for [HttpPlainText] plugin.
      */
+    @KtorDsl
     public class Config {
         internal val charsets: MutableSet<Charset> = mutableSetOf()
         internal val charsetQuality: MutableMap<Charset, Float> = mutableMapOf()

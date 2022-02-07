@@ -9,6 +9,7 @@ package io.ktor.server.application
 import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -18,7 +19,7 @@ import io.ktor.utils.io.*
  * Every call handler ([ApplicationPluginBuilder.onCall], [ApplicationPluginBuilder.onCallReceive], [ApplicationPluginBuilder.onCallRespond], and so on)
  * of your plugin has a derivative of [CallContext] as a receiver.
  **/
-@PluginsDslMarker
+@KtorDsl
 public open class CallContext<PluginConfig : Any> internal constructor(
     public val pluginConfig: PluginConfig,
     protected open val context: PipelineContext<*, ApplicationCall>
@@ -33,7 +34,7 @@ public open class CallContext<PluginConfig : Any> internal constructor(
  *
  * @see CallContext
  **/
-@PluginsDslMarker
+@KtorDsl
 public class OnCallContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
     context: PipelineContext<Unit, ApplicationCall>
@@ -42,7 +43,7 @@ public class OnCallContext<PluginConfig : Any> internal constructor(
 /**
  * Contains type information about the current request or response body when performing a transformation.
  * */
-@PluginsDslMarker
+@KtorDsl
 public class TransformBodyContext(public val requestedType: TypeInfo?)
 
 /**
@@ -51,7 +52,7 @@ public class TransformBodyContext(public val requestedType: TypeInfo?)
  *
  * @see CallContext
  **/
-@PluginsDslMarker
+@KtorDsl
 public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
     override val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
@@ -86,7 +87,7 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
  *
  * @see CallContext
  **/
-@PluginsDslMarker
+@KtorDsl
 public class OnCallRespondContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
     override val context: PipelineContext<Any, ApplicationCall>
@@ -107,7 +108,7 @@ public class OnCallRespondContext<PluginConfig : Any> internal constructor(
  *
  * @see CallContext
  **/
-@PluginsDslMarker
+@KtorDsl
 public class OnCallRespondAfterTransformContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
     override val context: PipelineContext<Any, ApplicationCall>

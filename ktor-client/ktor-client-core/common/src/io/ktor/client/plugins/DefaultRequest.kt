@@ -65,7 +65,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 val defaultRequest = DefaultRequestBuilder().apply {
-                    headers.appendAll(context.headers)
+                    headers.appendAll(this@intercept.context.headers)
                     plugin.block(this)
                 }
                 val defaultUrl = defaultRequest.url.build()
@@ -101,6 +101,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
     /**
      * Configuration object for [DefaultRequestBuilder] plugin
      */
+    @KtorDsl
     public class DefaultRequestBuilder internal constructor() : HttpMessageBuilder {
 
         override val headers: HeadersBuilder = HeadersBuilder()

@@ -31,6 +31,7 @@ public class DataConversion(configuration: Configuration) : ConversionService {
     /**
      * Data conversion service configuration
      */
+    @KtorDsl
     public class Configuration {
         internal val converters = mutableMapOf<KClass<*>, ConversionService>()
 

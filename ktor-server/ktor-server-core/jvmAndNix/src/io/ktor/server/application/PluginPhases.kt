@@ -6,6 +6,7 @@
 package io.ktor.server.application
 
 import io.ktor.http.content.*
+import io.ktor.util.*
 
 /**
  * Descendents of [OnCallReceive] allow you to extend the process of sending a response to the client.
@@ -25,7 +26,7 @@ import io.ktor.http.content.*
  * This prints a URL once you execute call.respond() on your server
  * and prints raw content to be sent to the client.
  **/
-@PluginsDslMarker
+@KtorDsl
 public interface OnCallRespond<PluginConfig : Any> {
     /**
      * Allows you to execute your code after response transformation has been made.

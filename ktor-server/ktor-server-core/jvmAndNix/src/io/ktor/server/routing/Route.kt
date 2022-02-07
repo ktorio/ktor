@@ -18,7 +18,7 @@ import io.ktor.utils.io.concurrent.*
  * @param developmentMode is flag to switch report level for stack traces.
  */
 @Suppress("DEPRECATION")
-@ContextDsl
+@KtorDsl
 public open class Route(
     public val parent: Route?,
     public val selector: RouteSelector,

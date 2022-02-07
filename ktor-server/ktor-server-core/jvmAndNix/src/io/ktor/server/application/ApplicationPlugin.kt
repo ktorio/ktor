@@ -11,9 +11,6 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
-@DslMarker
-internal annotation class PluginsDslMarker
-
 /**
  * Defines an installable Plugin
  * @param TPipeline is the type of the pipeline this plugin is compatible with

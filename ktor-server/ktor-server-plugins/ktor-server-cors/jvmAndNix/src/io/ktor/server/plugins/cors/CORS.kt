@@ -132,6 +132,7 @@ public val CORS: ApplicationPlugin<Application, CORSConfig, PluginInstance> =
 /**
  * CORS plugin configuration
  */
+@KtorDsl
 public class CORSConfig {
     private val wildcardWithDot = "*."
 

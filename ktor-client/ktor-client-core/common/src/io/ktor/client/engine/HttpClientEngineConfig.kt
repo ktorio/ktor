@@ -4,13 +4,12 @@
 
 package io.ktor.client.engine
 
-import io.ktor.client.*
 import io.ktor.util.*
 
 /**
  * Base configuration for [HttpClientEngine].
  */
-@HttpClientDsl
+@KtorDsl
 public open class HttpClientEngineConfig {
     /**
      * Network threads count advice.

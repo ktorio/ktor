@@ -34,6 +34,7 @@ public class CallLogging private constructor(
     /**
      * Configuration for [CallLogging] plugin
      */
+    @KtorDsl
     public class Configuration {
         internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
         internal val mdcEntries = mutableListOf<MDCEntry>()

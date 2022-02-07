@@ -14,6 +14,7 @@ import io.ktor.util.*
 /**
  * Redirect plugin configuration
  */
+@KtorDsl
 public class HttpsRedirectConfig {
     /**
      * HTTPS port (443 by default) to redirect to

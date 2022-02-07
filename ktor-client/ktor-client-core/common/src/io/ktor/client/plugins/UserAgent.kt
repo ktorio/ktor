@@ -16,6 +16,7 @@ import io.ktor.util.*
  */
 public class UserAgent private constructor(public val agent: String) {
 
+    @KtorDsl
     public class Config(public var agent: String = "Ktor http-client")
 
     public companion object Plugin : HttpClientPlugin<Config, UserAgent> {

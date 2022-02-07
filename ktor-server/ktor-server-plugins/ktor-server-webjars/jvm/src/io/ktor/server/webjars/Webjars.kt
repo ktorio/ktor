@@ -5,6 +5,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
@@ -16,6 +17,7 @@ import java.time.*
 /**
  * Webjars plugin configuration.
  */
+@KtorDsl
 public class WebjarsConfig {
     /**
      * Path prefix at which the installed plugin responds.

@@ -37,6 +37,7 @@ public class Mustache private constructor(configuration: Configuration) {
 
     private val mustacheFactory = configuration.mustacheFactory
 
+    @KtorDsl
     public class Configuration {
         public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
     }

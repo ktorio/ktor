@@ -73,3 +73,10 @@ public annotation class KtorExperimentalAPI
     AnnotationTarget.TYPEALIAS
 )
 public annotation class PublicAPICandidate(val version: String)
+
+/**
+ * A marker annotations for DSLs.
+ */
+@DslMarker
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
+public annotation class KtorDsl

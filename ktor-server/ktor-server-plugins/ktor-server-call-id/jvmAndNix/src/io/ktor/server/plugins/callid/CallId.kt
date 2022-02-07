@@ -44,6 +44,7 @@ public class RejectedCallIdException(
 /**
  * [CallId] plugin's configuration
  */
+@KtorDsl
 public class CallIdConfig {
     internal val retrievers = ArrayList<CallIdProvider>()
     internal val generators = ArrayList<CallIdProvider>()
@@ -153,7 +154,7 @@ internal object BeforeSetup : Hook<suspend (ApplicationCall) -> Unit> {
             try {
                 handler(call)
             } catch (rejection: RejectedCallIdException) {
-                logger.warn(
+                this@BeforeSetup.logger.warn(
                     "Illegal call id retrieved or generated that is rejected by call id verifier:" +
                         " (url-encoded) " +
                         rejection.illegalCallId.encodeURLParameter()

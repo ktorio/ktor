@@ -14,7 +14,7 @@ import io.ktor.util.*
  * https://ktor.io/clients/http-client/engines.html
  */
 @OptIn(InternalAPI::class)
-@HttpClientDsl
+@KtorDsl
 public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) } ?: error(

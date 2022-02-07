@@ -13,6 +13,7 @@ import io.ktor.util.*
 /**
  * HSTS configuration
  */
+@KtorDsl
 public class HSTSConfig {
     /**
      * Consents that the policy allows including the domain into web browser preloading list

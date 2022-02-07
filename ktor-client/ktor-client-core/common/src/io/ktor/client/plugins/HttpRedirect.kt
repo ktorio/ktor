@@ -23,6 +23,7 @@ public class HttpRedirect private constructor(
     private val allowHttpsDowngrade: Boolean
 ) {
 
+    @KtorDsl
     public class Config {
 
         /**

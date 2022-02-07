@@ -9,19 +9,20 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlin.jvm.*
 
 /**
  * Builds a route to match specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.route(path: String, build: Route.() -> Unit): Route = createRouteFromPath(path).apply(build)
 
 /**
  * Builds a route to match specified [method] and [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createRouteFromPath(path).createChild(selector).apply(build)
@@ -30,7 +31,7 @@ public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit
 /**
  * Builds a route to match specified [method]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createChild(selector).apply(body)
@@ -39,7 +40,7 @@ public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
 /**
  * Builds a route to match parameter with specified [name] and [value]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = ConstantParameterRouteSelector(name, value)
     return createChild(selector).apply(build)
@@ -48,7 +49,7 @@ public fun Route.param(name: String, value: String, build: Route.() -> Unit): Ro
 /**
  * Builds a route to match parameter with specified [name] and capture its value
  */
-@ContextDsl
+@KtorDsl
 public fun Route.param(name: String, build: Route.() -> Unit): Route {
     val selector = ParameterRouteSelector(name)
     return createChild(selector).apply(build)
@@ -57,7 +58,7 @@ public fun Route.param(name: String, build: Route.() -> Unit): Route {
 /**
  * Builds a route to optionally capture parameter with specified [name], if it exists
  */
-@ContextDsl
+@KtorDsl
 public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
     val selector = OptionalParameterRouteSelector(name)
     return createChild(selector).apply(build)
@@ -66,7 +67,7 @@ public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
 /**
  * Builds a route to match header with specified [name] and [value]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.header(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = HttpHeaderRouteSelector(name, value)
     return createChild(selector).apply(build)
@@ -75,7 +76,7 @@ public fun Route.header(name: String, value: String, build: Route.() -> Unit): R
 /**
  * Builds a route to match requests with [HttpHeaders.Accept] header matching specified [contentType]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Route {
     val selector = HttpAcceptRouteSelector(contentType)
     return createChild(selector).apply(build)
@@ -84,7 +85,7 @@ public fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Rout
 /**
  * Builds a route to match requests with [HttpHeaders.ContentType] header matching specified [contentType]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
     return header(HttpHeaders.ContentType, "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
@@ -92,7 +93,7 @@ public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit):
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.get(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Get) { handle(body) }
 }
@@ -100,7 +101,7 @@ public fun Route.get(path: String, body: PipelineInterceptor<Unit, ApplicationCa
 /**
  * Builds a route to match `GET` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.get(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Get) { handle(body) }
 }
@@ -108,7 +109,7 @@ public fun Route.get(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 /**
  * Builds a route to match `POST` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Post) { handle(body) }
 }
@@ -116,7 +117,7 @@ public fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationC
 /**
  * Builds a route to match `POST` requests receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("postTyped")
 public inline fun <reified R : Any> Route.post(
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
@@ -127,7 +128,7 @@ public inline fun <reified R : Any> Route.post(
 /**
  * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("postTypedPath")
 public inline fun <reified R : Any> Route.post(
     path: String,
@@ -139,7 +140,7 @@ public inline fun <reified R : Any> Route.post(
 /**
  * Builds a route to match `POST` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.post(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Post) { handle(body) }
 }
@@ -147,7 +148,7 @@ public fun Route.post(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 /**
  * Builds a route to match `HEAD` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.head(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Head) { handle(body) }
 }
@@ -155,7 +156,7 @@ public fun Route.head(path: String, body: PipelineInterceptor<Unit, ApplicationC
 /**
  * Builds a route to match `HEAD` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.head(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Head) { handle(body) }
 }
@@ -163,7 +164,7 @@ public fun Route.head(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 /**
  * Builds a route to match `PUT` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.put(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Put) { handle(body) }
 }
@@ -171,7 +172,7 @@ public fun Route.put(path: String, body: PipelineInterceptor<Unit, ApplicationCa
 /**
  * Builds a route to match `PUT` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Put) { handle(body) }
 }
@@ -179,7 +180,7 @@ public fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 /**
  * Builds a route to match `PUT` requests with receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("putTyped")
 public inline fun <reified R : Any> Route.put(
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
@@ -190,7 +191,7 @@ public inline fun <reified R : Any> Route.put(
 /**
  * Builds a route to match `PUT` requests with specified [path] receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("putTypedPath")
 public inline fun <reified R : Any> Route.put(
     path: String,
@@ -202,7 +203,7 @@ public inline fun <reified R : Any> Route.put(
 /**
  * Builds a route to match `PATCH` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.patch(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Patch) { handle(body) }
 }
@@ -210,7 +211,7 @@ public fun Route.patch(path: String, body: PipelineInterceptor<Unit, Application
 /**
  * Builds a route to match `PATCH` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Patch) { handle(body) }
 }
@@ -218,7 +219,7 @@ public fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route 
 /**
  * Builds a route to match `PATCH` requests receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("patchTyped")
 public inline fun <reified R : Any> Route.patch(
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
@@ -229,7 +230,7 @@ public inline fun <reified R : Any> Route.patch(
 /**
  * Builds a route to match `PATCH` requests with specified [path] receiving request body content of type [R]
  */
-@ContextDsl
+@KtorDsl
 @JvmName("patchTypedPath")
 public inline fun <reified R : Any> Route.patch(
     path: String,
@@ -241,7 +242,7 @@ public inline fun <reified R : Any> Route.patch(
 /**
  * Builds a route to match `DELETE` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.delete(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Delete) { handle(body) }
 }
@@ -249,7 +250,7 @@ public fun Route.delete(path: String, body: PipelineInterceptor<Unit, Applicatio
 /**
  * Builds a route to match `DELETE` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.delete(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Delete) { handle(body) }
 }
@@ -257,7 +258,7 @@ public fun Route.delete(body: PipelineInterceptor<Unit, ApplicationCall>): Route
 /**
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
-@ContextDsl
+@KtorDsl
 public fun Route.options(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Options) { handle(body) }
 }
@@ -265,7 +266,7 @@ public fun Route.options(path: String, body: PipelineInterceptor<Unit, Applicati
 /**
  * Builds a route to match `OPTIONS` requests
  */
-@ContextDsl
+@KtorDsl
 public fun Route.options(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Options) { handle(body) }
 }

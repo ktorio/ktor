@@ -36,6 +36,7 @@ public class HttpSend private constructor(
     private val maxSendCount: Int = 20
 ) {
 
+    @KtorDsl
     public class Config {
         /**
          * Maximum number of requests that can be sent during a call

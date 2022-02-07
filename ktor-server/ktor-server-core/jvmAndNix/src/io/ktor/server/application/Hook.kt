@@ -4,10 +4,12 @@
 
 package io.ktor.server.application
 
+import io.ktor.util.*
+
 /**
  * Represents a hook that can be registered in [ApplicationPluginBuilder].
  */
-@PluginsDslMarker
+@KtorDsl
 public interface Hook<HookHandler> {
     /**
      * Specifies how to install a hook in the [application].

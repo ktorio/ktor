@@ -25,7 +25,7 @@ import kotlin.coroutines.*
  * The [HttpClientEngine] is selected from the dependencies.
  * https://ktor.io/clients/http-client/engines.html
  */
-@HttpClientDsl
+@KtorDsl
 public expect fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
@@ -34,7 +34,7 @@ public expect fun HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
  * and an optional [block] for configuring this client.
  */
-@HttpClientDsl
+@KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
     block: HttpClientConfig<T>.() -> Unit = {}
@@ -56,7 +56,7 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engine]
  * and a [block] for configuring this client.
  */
-@HttpClientDsl
+@KtorDsl
 public fun HttpClient(
     engine: HttpClientEngine,
     block: HttpClientConfig<*>.() -> Unit
