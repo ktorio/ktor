@@ -158,6 +158,6 @@ class TestApplicationTest {
         }
 
         assertEquals("http", client.get("/echo").bodyAsText())
-        assertEquals("https", client.get("https://localhost:80/echo").bodyAsText())
+        assertEquals("https", client.get("https://localhost/echo").bodyAsText())
     }
 }
