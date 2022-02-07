@@ -35,8 +35,8 @@ internal class DelegatingTestClientEngine(
     private val mainEngine by lazy {
         TestHttpClientEngine(TestHttpClientConfig().apply { app = appEngine })
     }
-    private val mainEngineHostWithPort by lazy {
-        runBlocking { appEngine.resolvedConnectors().first().let { "${it.host}:${it.port}" } }
+    private val mainEngineHostWithPorts by lazy {
+        runBlocking { appEngine.resolvedConnectors().map { "${it.host}:${it.port}" } }
     }
 
     private val clientJob: CompletableJob = Job(config.parentJob)
@@ -51,11 +51,11 @@ internal class DelegatingTestClientEngine(
             externalEngines.containsKey(authority) -> {
                 externalEngines[authority]!!.execute(data)
             }
-            hostWithPort == mainEngineHostWithPort -> {
+            hostWithPort in mainEngineHostWithPorts -> {
                 mainEngine.execute(data)
             }
             else -> {
-                throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPort)
+                throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPorts)
             }
         }
     }
@@ -80,10 +80,11 @@ internal class DelegatingTestClientEngine(
 public class InvalidTestRequestException(
     authority: String,
     externalAuthorities: Set<String>,
-    mainHostWithPort: String
+    mainHostWithPorts: List<String>
 ) : IllegalArgumentException(
     "Can not resolve request to $authority. " +
-        "Main app runs at $mainHostWithPort and external services are ${externalAuthorities.joinToString()}"
+        "Main app runs at ${mainHostWithPorts.joinToString()} and " +
+        "external services are ${externalAuthorities.joinToString()}"
 )
 
 internal class DelegatingTestHttpClientConfig : HttpClientEngineConfig() {

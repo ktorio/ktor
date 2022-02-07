@@ -257,7 +257,7 @@ public final class io/ktor/server/testing/UtilsKt {
 }
 
 public final class io/ktor/server/testing/client/InvalidTestRequestException : java/lang/IllegalArgumentException {
-	public fun <init> (Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Set;Ljava/util/List;)V
 }
 
 public final class io/ktor/server/testing/client/TestHttpClientConfig : io/ktor/client/engine/HttpClientEngineConfig {

@@ -736,7 +736,7 @@ class SessionTest {
             }
         }
 
-        client.get("https://localhost:80/token").body<Unit>()
+        client.get("https://localhost/token").body<Unit>()
     }
 
     @Test
