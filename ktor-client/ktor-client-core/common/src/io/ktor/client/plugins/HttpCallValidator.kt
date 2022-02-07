@@ -5,13 +5,14 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.HttpCallValidator.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlin.native.concurrent.*
 
 /**
  * Response validator method.
@@ -26,13 +27,18 @@ public typealias ResponseValidator = suspend (response: HttpResponse) -> Unit
 public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
 
 /**
+ * Response exception handler method. [request] is null if
+ */
+public typealias CallRequestExceptionHandler = suspend (cause: Throwable, request: HttpRequest) -> Unit
+
+/**
  * Response validator plugin is used for validate response and handle response exceptions.
  *
  * See also [Config] for additional details.
  */
 public class HttpCallValidator internal constructor(
     private val responseValidators: List<ResponseValidator>,
-    private val callExceptionHandlers: List<CallExceptionHandler>,
+    private val callExceptionHandlers: List<HandlerWrapper>,
     private val expectSuccess: Boolean
 ) {
 
@@ -40,8 +46,13 @@ public class HttpCallValidator internal constructor(
         responseValidators.forEach { it(response) }
     }
 
-    private suspend fun processException(cause: Throwable) {
-        callExceptionHandlers.forEach { it(cause) }
+    private suspend fun processException(cause: Throwable, request: HttpRequest) {
+        callExceptionHandlers.forEach {
+            when(it) {
+                is ExceptionHandlerWrapper -> it.handler(cause)
+                is RequestExceptionHandlerWrapper -> it.handler(cause, request)
+            }
+        }
     }
 
     /**
@@ -50,7 +61,7 @@ public class HttpCallValidator internal constructor(
     @KtorDsl
     public class Config {
         internal val responseValidators: MutableList<ResponseValidator> = mutableListOf()
-        internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()
+        internal val responseExceptionHandlers: MutableList<HandlerWrapper> = mutableListOf()
 
         /**
          * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
@@ -67,7 +78,15 @@ public class HttpCallValidator internal constructor(
          * Last added handler executes first.
          */
         public fun handleResponseException(block: CallExceptionHandler) {
-            responseExceptionHandlers += block
+            responseExceptionHandlers += ExceptionHandlerWrapper(block)
+        }
+
+        /**
+         * Add [CallRequestExceptionHandler].
+         * Last added handler executes first.
+         */
+        public fun handleResponseExceptionWithRequest(block: CallRequestExceptionHandler) {
+            responseExceptionHandlers += RequestExceptionHandlerWrapper(block)
         }
 
         /**
@@ -101,7 +120,10 @@ public class HttpCallValidator internal constructor(
                     proceedWith(it)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
-                    plugin.processException(unwrappedCause)
+                    plugin.processException(
+                        unwrappedCause,
+                        DefaultHttpRequest(HttpClientCall(scope), context.build())
+                    )
                     throw unwrappedCause
                 }
             }
@@ -113,7 +135,7 @@ public class HttpCallValidator internal constructor(
                     proceedWith(container)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
-                    plugin.processException(unwrappedCause)
+                    plugin.processException(unwrappedCause, context.request)
                     throw unwrappedCause
                 }
             }
@@ -142,3 +164,9 @@ public var HttpRequestBuilder.expectSuccess: Boolean
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
 internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttributeKey")
+
+internal interface HandlerWrapper
+
+internal data class ExceptionHandlerWrapper(internal val handler: CallExceptionHandler): HandlerWrapper
+
+internal data class RequestExceptionHandlerWrapper(internal val handler: CallRequestExceptionHandler): HandlerWrapper
