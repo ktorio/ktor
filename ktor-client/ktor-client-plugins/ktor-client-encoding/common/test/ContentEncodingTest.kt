@@ -23,7 +23,11 @@ class ContentEncodingTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_URL/identity")
-            assertEquals("identity", response.headers[HttpHeaders.ContentEncoding])
+            val contentEncoding = response.headers[HttpHeaders.ContentEncoding]
+            // JS browser engines don't have Content-Encoding header for identity encoding
+            if (contentEncoding != null) {
+                assertEquals("identity", contentEncoding)
+            }
             assertEquals("Compressed response!", response.body<String>())
         }
     }
