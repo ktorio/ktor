@@ -24,14 +24,16 @@ public interface AuthProvider {
     public fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequest
 
     /**
-     * Check if current provider is applicable to the request.
+     * Checks if current provider is applicable to the request.
      */
     public fun isApplicable(auth: HttpAuthHeader): Boolean
 
     /**
-     * Add authentication method headers and creds.
+     * Adds authentication method headers and credentials.
+     * @param authHeader value of `WWW-Authenticate` header from failed response, if exists
+     * @param request builder for an authenticated request
      */
-    public suspend fun addRequestHeaders(request: HttpRequestBuilder)
+    public suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader? = null)
 
     /**
      * Refresh token if required.

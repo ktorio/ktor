@@ -102,7 +102,7 @@ public class BearerAuthProvider(
     /**
      * Add authentication method headers and creds.
      */
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {
