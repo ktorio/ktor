@@ -48,7 +48,7 @@ public class HttpCallValidator internal constructor(
 
     private suspend fun processException(cause: Throwable, request: HttpRequest) {
         callExceptionHandlers.forEach {
-            when(it) {
+            when (it) {
                 is ExceptionHandlerWrapper -> it.handler(cause)
                 is RequestExceptionHandlerWrapper -> it.handler(cause, request)
             }
@@ -167,6 +167,6 @@ internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAtt
 
 internal interface HandlerWrapper
 
-internal data class ExceptionHandlerWrapper(internal val handler: CallExceptionHandler): HandlerWrapper
+internal data class ExceptionHandlerWrapper(internal val handler: CallExceptionHandler) : HandlerWrapper
 
-internal data class RequestExceptionHandlerWrapper(internal val handler: CallRequestExceptionHandler): HandlerWrapper
+internal data class RequestExceptionHandlerWrapper(internal val handler: CallRequestExceptionHandler) : HandlerWrapper
