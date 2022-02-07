@@ -12,6 +12,7 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
@@ -74,6 +75,37 @@ internal class ByteChannelNative(
             attachedJob = null
             if (cause != null) cancel(cause.unwrapCancellationException())
         }
+    }
+
+    /**
+     * Invokes [block] if it is possible to read at least [min] byte
+     * providing buffer to it so lambda can read from the buffer
+     * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+     *
+     * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
+     * in this case you have to invoke read again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for read, should be positive
+     * @param block to be invoked when at least [min] bytes available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    public override fun readAvailable(min: Int, block: (Buffer) -> Unit): Int {
+        if (availableForRead < min) {
+            return -1
+        }
+
+        prepareFlushedBytes()
+
+        var result: Int
+        readable.read(min) {
+            val position = it.readPosition
+            block(it)
+            result = it.readPosition - position
+        }
+
+        return result
     }
 
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
@@ -172,6 +204,22 @@ internal class ByteChannelNative(
             position += size
             if (rem > 0) flush()
             else afterWrite(size.toInt())
+        }
+    }
+
+    public override fun writeAvailable(min: Int, block: (Buffer) -> Unit): Int {
+        if (closed) {
+            throw closedCause ?: ClosedSendChannelException("Channel closed for write")
+        }
+
+        if (availableForWrite < min) {
+            return -1
+        }
+
+        return writable.write(min) {
+            val position = it.writePosition
+            block(it)
+            it.writePosition - position
         }
     }
 

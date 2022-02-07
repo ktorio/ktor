@@ -167,6 +167,11 @@ public actual interface ByteReadChannel {
     public actual suspend fun discard(max: Long): Long
 
     /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
+
+    /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
      * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
      * bytes then it will trigger the underlying source reading first and after that will

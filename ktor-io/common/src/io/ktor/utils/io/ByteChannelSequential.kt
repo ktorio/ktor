@@ -774,6 +774,13 @@ public abstract class ByteChannelSequentialBase(
         ensureNotClosed()
     }
 
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    override suspend fun awaitContent() {
+        await(1)
+    }
+
     final override suspend fun peekTo(
         destination: Memory,
         destinationOffset: Long,

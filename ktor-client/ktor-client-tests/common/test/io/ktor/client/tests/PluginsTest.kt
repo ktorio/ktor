@@ -43,7 +43,7 @@ class PluginsTest : ClientLoader() {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBodyObserver() = clientTests(listOf("CIO", "Curl")) {
+    fun testBodyObserver() = clientTests(listOf("CIO")) {
         val body = "Hello, world"
         val task = Job()
         config {

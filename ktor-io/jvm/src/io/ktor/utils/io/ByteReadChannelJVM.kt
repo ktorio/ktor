@@ -237,7 +237,10 @@ public actual interface ByteReadChannel {
         max: Long
     ): Long
 
-    public suspend fun awaitContent()
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }

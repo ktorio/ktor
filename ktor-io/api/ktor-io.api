@@ -24,6 +24,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	protected final fun afterRead (I)V
 	protected final fun afterWrite (I)V
 	public fun await (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun awaitContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun awaitFreeSpace (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun awaitSuspend (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun beginWriteSession ()Lio/ktor/utils/io/WriterSuspendSession;

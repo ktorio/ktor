@@ -44,6 +44,22 @@ public actual interface ByteReadChannel {
     public actual val totalBytesRead: Long
 
     /**
+     * Invokes [block] if it is possible to read at least [min] byte
+     * providing buffer to it so lambda can read from the buffer
+     * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+     *
+     * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
+     * in this case you have to invoke read again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for read, should be positive
+     * @param block to be invoked when at least [min] bytes available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    public fun readAvailable(min: Int, block: (Buffer) -> Unit): Int
+
+    /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
@@ -198,6 +214,11 @@ public actual interface ByteReadChannel {
      * @return number of bytes were discarded
      */
     public actual suspend fun discard(max: Long): Long
+
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
 
     /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
