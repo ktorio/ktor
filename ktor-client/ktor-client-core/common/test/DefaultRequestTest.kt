@@ -120,6 +120,42 @@ class DefaultRequestTest {
         assertEquals("default-string", client.get { }.bodyAsText())
         assertEquals("custom-string", client.get { attributes.put(TestAttributeKey, "custom-string") }.bodyAsText())
     }
+
+    @Test
+    fun testDefaultQuery() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.url.parameters["key"] ?: "missing")
+                }
+            }
+
+            defaultRequest {
+                url.parameters.append("key", "default")
+            }
+        }
+
+        assertEquals("default", client.get { }.bodyAsText())
+        assertEquals("custom", client.get { url.parameters.append("key", "custom") }.bodyAsText())
+    }
+
+    @Test
+    fun testDefaultFragment() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.url.fragment.takeIf { it.isNotEmpty() } ?: "missing")
+                }
+            }
+
+            defaultRequest {
+                url.fragment = "default"
+            }
+        }
+
+        assertEquals("default", client.get { }.bodyAsText())
+        assertEquals("custom", client.get { url.fragment = "custom" }.bodyAsText())
+    }
 }
 
 private val TestAttributeKey = AttributeKey<String>("TestAttributeKey")
