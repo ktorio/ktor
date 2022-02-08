@@ -52,6 +52,9 @@ public interface ApplicationCall {
  */
 public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
 
+/**
+ * An instance of [ApplicationCall] that is bound to a coroutine context.
+ */
 public interface ApplicationCallWithContext : ApplicationCall, CoroutineScope {
     override fun afterFinish(handler: (Throwable?) -> Unit) {
         coroutineContext.job.invokeOnCompletion(handler)
