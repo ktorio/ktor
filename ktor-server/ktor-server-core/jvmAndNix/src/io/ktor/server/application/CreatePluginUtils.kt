@@ -178,10 +178,6 @@ private fun <Configuration : Any, Plugin : ApplicationPluginBuilder<Configuratio
 ) {
     apply(body)
 
-    pipelineHandlers.forEach { handle ->
-        handle(pipeline)
-    }
-
     callInterceptions.forEach {
         it.action(pipeline)
     }

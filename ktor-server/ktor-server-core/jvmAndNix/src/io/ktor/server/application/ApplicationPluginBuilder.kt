@@ -22,6 +22,9 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
     internal val key: AttributeKey<PluginInstance>
 ) : PluginBuilder<PluginConfig> {
 
+    /**
+     * Configuration of current plugin.
+     */
     public abstract val pluginConfig: PluginConfig
 
     /**
@@ -47,8 +50,6 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
     internal val onResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
 
     internal val afterResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
-
-    internal val pipelineHandlers: MutableList<PipelineHandler> = mutableListOf()
 
     internal val hooks: MutableList<HookHandler<*>> = mutableListOf()
 
@@ -99,44 +100,6 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
             ::OnCallRespondContext,
             block
         )
-    }
-
-    /**
-     * Executes specific actions after all [targetPlugins] are executed.
-     *
-     * @param targetPlugins Plugins that need to be executed before your current [ApplicationPluginBuilder].
-     * @param build Defines the code of your plugin that needs to be executed after [targetPlugins].
-     *
-     * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
-     * (such as [onCall], [onCallRespond], and so on). These actions are executed right after all actions defined
-     * by the given [plugin] are already executed in the same stage.
-     **/
-    public fun after(
-        vararg targetPlugins: Plugin<*, *, PluginInstance>,
-        build: AfterPluginsBuilder<PluginConfig>.() -> Unit
-    ) {
-        pipelineHandlers.add { pipeline ->
-            AfterPluginsBuilder(this, targetPlugins.map { pipeline.plugin(it).builder }).build()
-        }
-    }
-
-    /**
-     * Executes specific actions before all [targetPlugins] are executed.
-     *
-     * @param targetPlugins Plugins that need to be executed after your current [ApplicationPluginBuilder].
-     * @param build Defines the code of your plugin that needs to be executed before [targetPlugins].
-     *
-     * Note: you can define multiple actions inside a [build] callback for multiple stages of handling an HTTP call
-     * (such as [onCall], [onCallRespond], and so on) and each of these actions will be executed right before all actions defined
-     * by the given [targetPlugins] were already executed in the same stage.
-     **/
-    public fun before(
-        vararg targetPlugins: Plugin<*, *, PluginInstance>,
-        build: BeforePluginsBuilder<PluginConfig>.() -> Unit
-    ) {
-        pipelineHandlers.add { pipeline ->
-            BeforePluginsBuilder(this, targetPlugins.map { pipeline.plugin(it).builder }).build()
-        }
     }
 
     /**
