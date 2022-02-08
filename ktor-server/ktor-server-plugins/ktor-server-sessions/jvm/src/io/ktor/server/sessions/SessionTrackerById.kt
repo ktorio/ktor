@@ -6,7 +6,6 @@ package io.ktor.server.sessions
 
 import io.ktor.server.application.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
 import kotlin.reflect.*
 
 /**
@@ -72,11 +71,8 @@ public class SessionTrackerById<S : Any>(
 
         call.attributes.put(sessionIdKey, sessionId)
         try {
-            return storage.read(sessionId) { channel ->
-                val text = channel.readUTF8Line()
-                    ?: throw IllegalStateException("Failed to read stored session from $channel")
-                serializer.deserialize(text)
-            }
+            val serialized = storage.read(sessionId)
+            return serializer.deserialize(serialized)
         } catch (notFound: NoSuchElementException) {
             call.application.log.debug(
                 "Failed to lookup session: ${notFound.message ?: notFound.toString()}. " +
@@ -93,10 +89,7 @@ public class SessionTrackerById<S : Any>(
     override suspend fun store(call: ApplicationCall, value: S): String {
         val sessionId = call.attributes.computeIfAbsent(sessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(value)
-        storage.write(sessionId) { channel ->
-            channel.writeStringUtf8(serialized)
-            channel.close()
-        }
+        storage.write(sessionId, serialized)
         return sessionId
     }
 

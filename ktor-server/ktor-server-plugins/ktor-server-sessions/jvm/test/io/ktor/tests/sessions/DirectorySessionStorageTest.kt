@@ -5,8 +5,6 @@
 package io.ktor.tests.sessions
 
 import io.ktor.server.sessions.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.nio.file.*
@@ -28,21 +26,20 @@ class DirectorySessionStorageTest {
 
     @Test(expected = NoSuchElementException::class)
     fun testMissingSession(): Unit = runBlocking {
-        storage.read("id0") { it.cancel() }
-        Unit
+        storage.read("id0")
     }
 
     @Test
     fun testSaveSimple(): Unit = runBlocking {
-        storage.write("id1") { it.toOutputStream().writer().use { it.write("test1") } }
-        assertEquals("test1", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
+        storage.write("id1", "test1")
+        assertEquals("test1", storage.read("id1"))
     }
 
     @Test
     fun testSaveTwice(): Unit = runBlocking {
-        storage.write("id1") { it.toOutputStream().writer().use { it.write("test1 with tail") } }
-        storage.write("id1") { it.toOutputStream().writer().use { it.write("test2") } }
-        assertEquals("test2", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
+        storage.write("id1", "test1 with tail")
+        storage.write("id1", "test2")
+        assertEquals("test2", storage.read("id1"))
     }
 
     @Test
@@ -50,8 +47,9 @@ class DirectorySessionStorageTest {
         testSaveSimple()
         storage.invalidate("id1")
         assertFailsWith(NoSuchElementException::class) {
-            runBlocking { storage.read("id1") { it.cancel() } }
+            runBlocking {
+                storage.read("id1")
+            }
         }
-        Unit
     }
 }

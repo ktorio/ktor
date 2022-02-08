@@ -4,9 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.cio.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import java.util.concurrent.*
 
 /**
@@ -18,21 +15,14 @@ import java.util.concurrent.*
  * This is intended for development.
  */
 public class SessionStorageMemory : SessionStorage {
-    private val sessions = ConcurrentHashMap<String, ByteArray>()
+    private val sessions = ConcurrentHashMap<String, String>()
 
-    override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {
-        coroutineScope {
-            val channel = writer(Dispatchers.Unconfined, autoFlush = true) {
-                provider(channel)
-            }.channel
-
-            sessions[id] = channel.toByteArray()
-        }
+    override suspend fun write(id: String, value: String) {
+        sessions[id] = value
     }
 
-    override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R =
-        sessions[id]?.let { data -> consumer(ByteReadChannel(data)) }
-            ?: throw NoSuchElementException("Session $id not found")
+    override suspend fun read(id: String): String =
+        sessions[id] ?: throw NoSuchElementException("Session $id not found")
 
     override suspend fun invalidate(id: String) {
         sessions.remove(id)

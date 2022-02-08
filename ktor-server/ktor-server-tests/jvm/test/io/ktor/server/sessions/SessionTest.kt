@@ -431,7 +431,7 @@ class SessionTest {
                 assertTrue { sessionId.matches("[A-Za-z0-9]+".toRegex()) }
             }
             val serializedSession = runBlocking {
-                sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
+                sessionStorage.read(sessionId)
             }
             assertNotNull(serializedSession)
             assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
@@ -507,7 +507,7 @@ class SessionTest {
             }
 
             val serializedSession = runBlocking {
-                sessionStorage.read(serverSessionId) { it.toInputStream().reader().readText() }
+                sessionStorage.read(serverSessionId)
             }
             assertNotNull(serializedSession)
             assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
