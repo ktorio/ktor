@@ -4,24 +4,24 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-
 @Suppress("KDocMissingDocumentation")
 public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
-    private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
-        delegate.read(id) { input -> input.readRemaining().readBytes() }
-    }
+    private val referenceCache = SoftReferenceCache<String, String> { id -> delegate.read(id) }
     private val cache = BaseTimeoutCache(idleTimeout, true, referenceCache)
 
-    override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
-        val readChannel = cache.getOrCompute(id)
-        return consumer(ByteReadChannel(readChannel))
+    override suspend fun read(id: String): String {
+        return cache.getOrCompute(id)
     }
 
-    override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {
+    override suspend fun write(id: String, value: String) {
+        val cachedValue = try {
+            read(id)
+        } catch (_: Throwable) {
+            null
+        }
+        if (cachedValue == value) return
         cache.invalidate(id)
-        return delegate.write(id, provider)
+        delegate.write(id, value)
     }
 
     override suspend fun invalidate(id: String) {

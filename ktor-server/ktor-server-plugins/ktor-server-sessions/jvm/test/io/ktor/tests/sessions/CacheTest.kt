@@ -139,20 +139,66 @@ class CacheTest {
     fun canReadDataFromCacheStorageWithinEventLoopGroupProxy() {
         runBlocking {
             val memoryStorage = SessionStorageMemory()
-            memoryStorage.write("id") { channel -> channel.writeByte(123) }
+            memoryStorage.write("id", "123")
             val storage = CacheStorage(memoryStorage, 100)
 
             val group = EventLoopGroupProxy.create(4)
             group.submit(
                 Runnable {
                     runBlocking {
-                        storage.read("id") { channel ->
-                            assertEquals(123, channel.readByte())
-                        }
+                        assertEquals("123", storage.read("id"))
                     }
                 }
             ).sync()
             group.shutdownGracefully().sync()
         }
+    }
+
+    @Test
+    fun testStoreSameValueDoesntTriggerDelegate() {
+        var readCount = 0
+        var writeCount = 0
+        var invalidateCount = 0
+        val memoryStorage = object : SessionStorage {
+            val storage = mutableMapOf<String, String>()
+            override suspend fun write(id: String, value: String) {
+                writeCount++
+                storage[id] = value
+            }
+
+            override suspend fun invalidate(id: String) {
+                invalidateCount++
+                storage.remove(id)
+            }
+
+            override suspend fun read(id: String): String {
+                readCount++
+                return storage[id]!!
+            }
+        }
+        val storage = CacheStorage(memoryStorage, 100)
+
+        runBlocking {
+            storage.write("id", "123")
+            assertEquals("123", storage.read("id"))
+        }
+        assertEquals(2, readCount) // compute + read
+        assertEquals(1, writeCount)
+
+        runBlocking {
+            storage.write("id", "123")
+            assertEquals("123", storage.read("id"))
+        }
+        assertEquals(2, readCount) // no additional read
+        assertEquals(1, writeCount)
+
+        runBlocking {
+            storage.write("id", "234")
+            assertEquals("234", storage.read("id"))
+        }
+        assertEquals(3, readCount) // additional read after invalidation
+        assertEquals(2, writeCount)
+
+        assertEquals(0, invalidateCount)
     }
 }
