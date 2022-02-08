@@ -17,6 +17,13 @@ public final class io/ktor/server/jte/Jte$Plugin : io/ktor/server/application/Ap
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/server/jte/JteConfig {
+	public field templateEngine Lgg/jte/TemplateEngine;
+	public fun <init> ()V
+	public final fun getTemplateEngine ()Lgg/jte/TemplateEngine;
+	public final fun setTemplateEngine (Lgg/jte/TemplateEngine;)V
+}
+
 public final class io/ktor/server/jte/JteContent {
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -24,6 +31,10 @@ public final class io/ktor/server/jte/JteContent {
 	public final fun getEtag ()Ljava/lang/String;
 	public final fun getParams ()Ljava/util/Map;
 	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/jte/JteKt {
+	public static final fun getJte ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
 public final class io/ktor/server/jte/RespondTemplateKt {
