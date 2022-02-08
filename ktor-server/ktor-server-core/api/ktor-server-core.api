@@ -1,7 +1,3 @@
-public final class io/ktor/server/application/AfterPluginsBuilder : io/ktor/server/application/RelativePluginBuilder {
-	public fun getApplication ()Lio/ktor/server/application/Application;
-}
-
 public final class io/ktor/server/application/Application : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;)V
 	public final fun dispose ()V
@@ -78,8 +74,6 @@ public abstract interface class io/ktor/server/application/ApplicationPlugin : i
 }
 
 public abstract class io/ktor/server/application/ApplicationPluginBuilder : io/ktor/server/application/PluginBuilder {
-	public final fun after ([Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
-	public final fun before ([Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
 	public final fun getApplicationConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
@@ -103,10 +97,6 @@ public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)V
 	public static final fun uninstallAllPlugins (Lio/ktor/util/pipeline/Pipeline;)V
 	public static final fun uninstallPlugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
-}
-
-public final class io/ktor/server/application/BeforePluginsBuilder : io/ktor/server/application/RelativePluginBuilder {
-	public fun getApplication ()Lio/ktor/server/application/Application;
 }
 
 public class io/ktor/server/application/CallContext {
