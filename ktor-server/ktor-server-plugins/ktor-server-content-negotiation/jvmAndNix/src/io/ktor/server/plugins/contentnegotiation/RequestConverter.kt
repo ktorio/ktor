@@ -13,9 +13,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
 internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
-    onCallReceive { call, receive ->
+    onCallReceive { call ->
         val registrations = pluginConfig.registrations
-        val requestedType = receive.typeInfo
+        val requestedType = call.receiveType
 
         if (requestedType.type == ByteReadChannel::class) return@onCallReceive
 
@@ -38,7 +38,7 @@ internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBo
                     registration.converter.deserialize(
                         charset = call.request.contentCharset() ?: Charsets.UTF_8,
                         typeInfo = requestedType,
-                        content = receive.value as ByteReadChannel
+                        content = body
                     )
                 } ?: return@transformBody body
             } catch (convertException: ContentConvertException) {
@@ -48,10 +48,7 @@ internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBo
                 )
             }
 
-            return@transformBody ApplicationReceiveRequest(
-                typeInfo = requestedType,
-                value = converted
-            )
+            return@transformBody converted
         }
     }
 }

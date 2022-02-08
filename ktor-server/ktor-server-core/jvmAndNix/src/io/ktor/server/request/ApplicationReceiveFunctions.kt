@@ -17,24 +17,12 @@ import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
- * Represents a subject for [ApplicationReceivePipeline]
- * @param typeInfo specifies the desired type for a receiving operation
- * @param value specifies current value being processed by the pipeline
- * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
- */
-public class ApplicationReceiveRequest constructor(
-    public val typeInfo: TypeInfo,
-    public val value: Any
-)
-
-/**
  * Pipeline for processing incoming content
- *
- * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
+ * When executed, this pipeline starts with an instance of [ByteReadChannel].
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+) : Pipeline<Any, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
@@ -88,18 +76,14 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
-    require(typeInfo.type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
-
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
-
     if (token == null) {
         attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
     }
 
+    receiveType = typeInfo
     val incomingContent = token ?: request.receiveChannel()
-    val receiveRequest = ApplicationReceiveRequest(typeInfo, incomingContent)
-    val finishedRequest = request.pipeline.execute(this, receiveRequest)
-    val transformed = finishedRequest.value
+    val transformed = request.pipeline.execute(this, incomingContent)
 
     when {
         transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
@@ -112,8 +96,8 @@ public suspend fun <T : Any> ApplicationCall.receive(typeInfo: TypeInfo): T {
 
 /**
  * Receives content for this request.
- * @param type instance of `KClass` specifying type to be received.
- * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
+ * @param [typeInfo] type to be received.
+ * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
@@ -129,13 +113,11 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
-public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
-    return try {
-        receive(type)
-    } catch (cause: ContentTransformationException) {
-        application.log.debug("Conversion failed, null returned", cause)
-        null
-    }
+public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? = try {
+    receive(type)
+} catch (cause: ContentTransformationException) {
+    application.log.debug("Conversion failed, null returned", cause)
+    null
 }
 
 /**

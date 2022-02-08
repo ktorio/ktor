@@ -25,34 +25,34 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig, PluginInstance>
     val filters = pluginConfig.filters
     val cacheRawRequest: Boolean = pluginConfig.cacheRawRequest
 
-    on(ReceiveBytes) { call, state: ApplicationReceiveRequest ->
-        if (filters.any { it(call, state) }) return@on state.value
+    on(ReceiveBytes) { call, body ->
+        if (filters.any { it(call, body) }) return@on body
 
         val cache = call.receiveCache
 
-        if (cache.containsKey(state.typeInfo.type)) {
-            return@on cache[state.typeInfo.type]!!
+        if (cache.containsKey(call.receiveType.type)) {
+            return@on cache[call.receiveType.type]!!
         }
 
-        if (!cacheRawRequest) return@on state.value
+        if (!cacheRawRequest) return@on body
 
         val cacheValue = cache[ByteArray::class] as? ByteArray
         if (cacheValue != null) {
             return@on ByteReadChannel(cacheValue)
         }
 
-        val value = state.value as? ByteReadChannel ?: return@on state
+        val value = body as? ByteReadChannel ?: return@on body
         val content = value.readRemaining().readBytes()
         cache[ByteArray::class] = content
         return@on ByteReadChannel(content)
     }
 
-    on(ReceiveBodyTransformed) { call, state ->
-        if (filters.any { it(call, state) }) return@on state.value
+    on(ReceiveBodyTransformed) { call, body ->
+        if (filters.any { it(call, body) }) return@on body
 
         val cache = call.receiveCache
-        cache[state.value::class] = state.value
-        return@on state.value
+        cache[body::class] = body
+        return@on body
     }
 }
 
