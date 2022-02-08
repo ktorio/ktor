@@ -41,7 +41,7 @@ import io.ktor.util.*
  * val client = HttpClient {
  *   defaultRequest {
  *     url("https://base.url/dir/")
- *     headers.appendIfNameMissing(HttpHeaders.ContentType, ContentType.Application.Json)
+ *     headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json)
  *   }
  * }
  * client.get("file")
@@ -91,8 +91,16 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
                     url.encodedPathSegments = url.encodedPathSegments.dropLast(1) + encodedPathSegments
                 }
-                url.encodedFragment = encodedFragment
+                if (encodedFragment.isNotEmpty()) {
+                    url.encodedFragment = encodedFragment
+                }
+                val defaultParameters = ParametersBuilder().apply { appendAll(url.encodedParameters) }
                 url.encodedParameters = encodedParameters
+                defaultParameters.entries().forEach { (key, values) ->
+                    if (!url.encodedParameters.contains(key)) {
+                        url.encodedParameters.appendAll(key, values)
+                    }
+                }
                 takeFrom(url)
             }
         }
