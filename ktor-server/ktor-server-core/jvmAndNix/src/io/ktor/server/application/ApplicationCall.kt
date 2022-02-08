@@ -8,7 +8,10 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import kotlinx.coroutines.*
+
+private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
 /**
  * Represents a single act of communication between a client and server.
@@ -51,6 +54,15 @@ public interface ApplicationCall {
  * Indicates if the response was sent.
  */
 public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
+
+/**
+ * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
+ */
+public var ApplicationCall.receiveType: TypeInfo
+    get() = attributes[RECEIVE_TYPE_KEY]
+    internal set(value) {
+        attributes.put(RECEIVE_TYPE_KEY, value)
+    }
 
 public interface ApplicationCallWithContext : ApplicationCall, CoroutineScope {
     override fun afterFinish(handler: (Throwable?) -> Unit) {

@@ -4,9 +4,11 @@
 
 package io.ktor.tests.hosts
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
+import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -16,16 +18,10 @@ import kotlin.concurrent.*
 import kotlin.test.*
 
 class ReceiveBlockingPrimitiveTest {
-    private val pipeline = ApplicationReceivePipeline()
-
-    init {
-        pipeline.installDefaultTransformations()
-    }
-
     @Test
     fun testBlockingPrimitiveUsuallyAllowed() {
         testOnThread { call ->
-            receiveInputStream(pipeline, call)
+            call.receive<InputStream>().close()
         }
     }
 
@@ -35,7 +31,7 @@ class ReceiveBlockingPrimitiveTest {
             testOnThread { call ->
                 markParkingProhibited()
 
-                receiveInputStream(pipeline, call)
+                call.receive<InputStream>().close()
             }
         }.let { cause ->
             assertTrue(cause.message!!.startsWith("Acquiring blocking primitives "))
@@ -68,20 +64,25 @@ class ReceiveBlockingPrimitiveTest {
         }
     }
 
-    private suspend fun receiveInputStream(
-        pipeline: ApplicationReceivePipeline,
-        call: ApplicationCall
-    ) {
-        val request = ApplicationReceiveRequest(typeInfo<InputStream>(), ByteChannel())
-        val transformed = pipeline.execute(call, request)
-        val stream = transformed.value as InputStream
-        @Suppress("BlockingMethodInNonBlockingContext")
-        stream.close()
-    }
-
     private class TestCall : BaseApplicationCall(Application(applicationEngineEnvironment {})) {
-        override val request: BaseApplicationRequest
-            get() = error("Shouldn't be invoked")
+        init {
+            application.receivePipeline.installDefaultTransformations()
+        }
+        override val request: BaseApplicationRequest = object : BaseApplicationRequest(this) {
+            override val queryParameters: Parameters
+                get() = TODO("Not yet implemented")
+            override val rawQueryParameters: Parameters
+                get() = TODO("Not yet implemented")
+            override val headers: Headers
+                get() = TODO("Not yet implemented")
+            override val local: RequestConnectionPoint
+                get() = TODO("Not yet implemented")
+            override val cookies: RequestCookies
+                get() = TODO("Not yet implemented")
+
+            override fun receiveChannel(): ByteReadChannel = ByteReadChannel.Empty
+        }
+
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
 

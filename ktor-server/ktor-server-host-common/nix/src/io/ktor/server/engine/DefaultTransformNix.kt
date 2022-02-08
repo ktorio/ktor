@@ -12,8 +12,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-internal actual suspend fun PipelineContext<ApplicationReceiveRequest, ApplicationCall>.defaultPlatformTransformations(
-    query: ApplicationReceiveRequest
+internal actual suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+    query: Any
 ): Any? = null
 
 internal actual fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData =

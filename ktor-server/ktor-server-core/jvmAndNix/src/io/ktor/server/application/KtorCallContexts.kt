@@ -1,13 +1,9 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("UNUSED_PARAMETER")
-
 package io.ktor.server.application
 
 import io.ktor.http.content.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -55,29 +51,19 @@ public class TransformBodyContext(public val requestedType: TypeInfo?)
 @KtorDsl
 public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
-    override val context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>
+    override val context: PipelineContext<Any, ApplicationCall>
 ) : CallContext<PluginConfig>(pluginConfig, context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
      * If another plugin has already made the transformation, then your [transformBody] handler is not executed.
      **/
     public suspend fun transformBody(transform: suspend TransformBodyContext.(body: ByteReadChannel) -> Any) {
-        val receiveBody = context.subject.value as? ByteReadChannel ?: return
-        val typeInfo = context.subject.typeInfo
-        if (typeInfo.type == ByteReadChannel::class) return
+        val receiveBody = context.subject as? ByteReadChannel ?: return
+        val typeInfo = context.call.receiveType
+        if (typeInfo == typeInfo<ByteReadChannel>()) return
 
         val transformContext = TransformBodyContext(typeInfo)
-        val transformResult = transformContext.transform(receiveBody)
-
-        if (transformResult is ApplicationReceiveRequest) {
-            context.subject = transformResult
-            return
-        }
-
-        context.subject = ApplicationReceiveRequest(
-            context.subject.typeInfo,
-            transformResult
-        )
+        context.subject = transformContext.transform(receiveBody)
     }
 }
 

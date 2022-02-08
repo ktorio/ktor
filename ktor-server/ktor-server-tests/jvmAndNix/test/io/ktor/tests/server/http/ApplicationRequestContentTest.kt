@@ -13,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
@@ -107,13 +108,13 @@ class ApplicationRequestContentTest {
         withTestApplication {
             val value = IntList(listOf(1, 2, 3, 4))
 
-            application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
-                if (query.typeInfo.type != IntList::class) return@intercept
-                val message = query.value as? ByteReadChannel ?: return@intercept
+            application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { body ->
+                if (call.receiveType != typeInfo<IntList>()) return@intercept
+                val message = body as? ByteReadChannel ?: return@intercept
 
                 val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
-                proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
+                proceedWith(transformed)
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
@@ -155,9 +156,7 @@ class ApplicationRequestContentTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(415, call.response.status()?.value)
-        }
+        assertEquals(415, handleRequest(HttpMethod.Get, "/").response.status()?.value)
     }
 
     @Test
@@ -171,9 +170,7 @@ class ApplicationRequestContentTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(200, call.response.status()?.value)
-        }
+        assertEquals(200, handleRequest(HttpMethod.Get, "/").response.status()?.value)
     }
 
     @Test
@@ -230,7 +227,7 @@ class ApplicationRequestContentTest {
         application.install(DoubleReceive)
 
         application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-            if (it.typeInfo.type == IntList::class) {
+            if (call.receiveType.type == IntList::class) {
                 throw MySpecialException()
             }
         }

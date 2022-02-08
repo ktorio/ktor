@@ -75,14 +75,14 @@ public abstract class ApplicationPluginBuilder<PluginConfig : Any> internal cons
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public override fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall, body: ApplicationReceiveRequest) -> Unit // ktlint-disable max-line-length
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall, body: Any) -> Unit
     ) {
         onDefaultPhase(
             onReceiveInterceptions,
             ApplicationReceivePipeline.Transform,
             PHASE_ON_CALL_RECEIVE,
             ::OnCallReceiveContext,
-        ) { call, body -> block(call, body) }
+        ) { call, body: Any -> block(call, body) }
     }
 
     /**

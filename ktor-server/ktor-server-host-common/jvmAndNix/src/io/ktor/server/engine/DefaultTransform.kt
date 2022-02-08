@@ -33,10 +33,10 @@ public fun ApplicationSendPipeline.installDefaultTransformations() {
  * Default receive transformation
  */
 public fun ApplicationReceivePipeline.installDefaultTransformations() {
-    intercept(ApplicationReceivePipeline.Transform) { query ->
-        val channel = query.value as? ByteReadChannel ?: return@intercept
+    intercept(ApplicationReceivePipeline.Transform) { body ->
+        val channel = body as? ByteReadChannel ?: return@intercept
 
-        val transformed: Any? = when (query.typeInfo.type) {
+        val transformed: Any? = when (call.receiveType.type) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
             String::class -> channel.readText(
@@ -65,16 +65,16 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
                     else -> null // Respond UnsupportedMediaType? but what if someone else later would like to do it?
                 }
             }
-            else -> defaultPlatformTransformations(query)
+            else -> defaultPlatformTransformations(body)
         }
         if (transformed != null) {
-            proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
+            proceedWith(transformed)
         }
     }
 }
 
-internal expect suspend fun PipelineContext<ApplicationReceiveRequest, ApplicationCall>.defaultPlatformTransformations(
-    query: ApplicationReceiveRequest
+internal expect suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+    query: Any
 ): Any?
 
 internal expect fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData

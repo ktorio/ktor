@@ -19,12 +19,12 @@ import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
 
-internal actual suspend fun PipelineContext<ApplicationReceiveRequest, ApplicationCall>.defaultPlatformTransformations(
-    query: ApplicationReceiveRequest
+internal actual suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+    query: Any
 ): Any? {
-    val channel = query.value as? ByteReadChannel ?: return null
+    val channel = query as? ByteReadChannel ?: return null
 
-    return when (query.typeInfo.type) {
+    return when (call.receiveType.type) {
         InputStream::class -> receiveGuardedInputStream(channel)
         MultiPartData::class -> multiPartData(channel)
         else -> null
