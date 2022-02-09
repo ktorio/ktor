@@ -49,39 +49,25 @@ internal fun velocityOutgoingContent(
  * A plugin that allows you to use Velocity templates as views within your application.
  * Provides the ability to respond with [VelocityContent].
  */
-public class Velocity private constructor(private val engine: VelocityEngine) {
-    init {
-        engine.init()
-    }
+public val Velocity: ApplicationPlugin<Application, VelocityEngine, PluginInstance> =
+    createApplicationPlugin("Velocity", ::VelocityEngine) {
 
-    /**
-     * A companion object for installing plugin
-     */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, VelocityEngine, Velocity> {
-        override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("velocity")
+        pluginConfig.init()
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: VelocityEngine.() -> Unit
-        ): Velocity {
-            val config = VelocityEngine().apply(configure)
-            val plugin = Velocity(config)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is VelocityContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
+        fun process(content: VelocityContent): OutgoingContent {
+            return velocityOutgoingContent(
+                pluginConfig.getTemplate(content.template),
+                VelocityContext(content.model),
+                content.etag,
+                content.contentType
+            )
+        }
+
+        onCallRespond { _, value ->
+            if (value is VelocityContent) {
+                transformBody {
+                    process(value)
                 }
             }
-            return plugin
         }
     }
-
-    private fun process(content: VelocityContent): OutgoingContent {
-        return velocityOutgoingContent(
-            engine.getTemplate(content.template),
-            VelocityContext(content.model),
-            content.etag,
-            content.contentType
-        )
-    }
-}

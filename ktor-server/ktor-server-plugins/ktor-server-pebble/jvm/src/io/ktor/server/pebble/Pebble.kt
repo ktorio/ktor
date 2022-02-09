@@ -37,39 +37,26 @@ public class PebbleContent(
  * A plugin that allows you to use Pebble templates as views within your application.
  * Provides the ability to respond with [PebbleContent]
  */
-public class Pebble private constructor(private val engine: PebbleEngine) {
+public val Pebble: ApplicationPlugin<Application, PebbleEngine.Builder, PluginInstance> =
+    createApplicationPlugin("Pebble", { PebbleEngine.Builder() }) {
+        val engine = pluginConfig.build()
 
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
-        override val key: AttributeKey<Pebble> = AttributeKey<Pebble>("pebble")
+        fun process(content: PebbleContent): OutgoingContent = with(content) {
+            val writer = StringWriter()
+            engine.getTemplate(content.template).evaluate(writer, model, locale)
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: PebbleEngine.Builder.() -> Unit
-        ): Pebble {
-            val builder = PebbleEngine.Builder().apply {
-                configure(this)
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
-            val plugin = Pebble(builder.build())
+            return result
+        }
 
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is PebbleContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
+        onCallRespond { _, value ->
+            if (value is PebbleContent) {
+                transformBody {
+                    process(value)
                 }
             }
-
-            return plugin
         }
     }
-
-    private fun process(content: PebbleContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        engine.getTemplate(content.template).evaluate(writer, model, locale)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-}

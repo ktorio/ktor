@@ -29,48 +29,34 @@ public class MustacheContent(
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
+@KtorDsl
+public class MustacheConfig {
+    public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
+}
+
 /**
  * A plugin that allows you to use Mustache templates as views within your application.
  * Provides the ability to respond with [MustacheContent]
  */
-public class Mustache private constructor(configuration: Configuration) {
+public val Mustache: ApplicationPlugin<Application, MustacheConfig, PluginInstance> =
+    createApplicationPlugin("Mustache", ::MustacheConfig) {
 
-    private val mustacheFactory = configuration.mustacheFactory
+        val mustacheFactory = pluginConfig.mustacheFactory
 
-    @KtorDsl
-    public class Configuration {
-        public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
-    }
+        fun process(content: MustacheContent): OutgoingContent = with(content) {
+            val writer = StringWriter()
+            mustacheFactory.compile(content.template).execute(writer, model)
 
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, Mustache> {
-        override val key: AttributeKey<Mustache> = AttributeKey<Mustache>("mustache")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): Mustache {
-            val configuration = Configuration().apply(configure)
-            val plugin = Mustache(configuration)
-
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is MustacheContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
+            return result
+        }
 
-            return plugin
+        onCallRespond { _, body ->
+            if (body is MustacheContent) {
+                transformBody { process(body) }
+            }
         }
     }
-
-    private fun process(content: MustacheContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        mustacheFactory.compile(content.template).execute(writer, model)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-}
