@@ -49,15 +49,17 @@ public val Jte: ApplicationPlugin<Application, JteConfig, PluginInstance> = crea
         templateEngine.render(content.template, content.params, writer)
 
         val result = TextContent(writer.toString(), content.contentType)
-        if (content.etag != null)
+        if (content.etag != null) {
             result.versions += EntityTagVersion(content.etag)
+        }
         return result
     }
 
     onCallRespond { _, message ->
-        if (message is JteContent)
+        if (message is JteContent) {
             transformBody {
                 process(message)
             }
+        }
     }
 }

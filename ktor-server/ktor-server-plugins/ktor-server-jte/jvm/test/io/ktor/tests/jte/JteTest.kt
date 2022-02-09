@@ -184,7 +184,6 @@ class JteTest {
                 )
             }
             templateEngine = TemplateEngine.create(resolver, gg.jte.ContentType.Html)
-
         }
     }
 
