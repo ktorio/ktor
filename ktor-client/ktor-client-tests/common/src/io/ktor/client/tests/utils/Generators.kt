@@ -24,6 +24,7 @@ fun List<PartData>.makeString(): String = buildString {
             is PartData.FileItem -> filenameContentTypeAndContentString(it.provider, it.headers)
             is PartData.FormItem -> it.value
             is PartData.BinaryItem -> filenameContentTypeAndContentString(it.provider, it.headers)
+            is PartData.BinaryChannelItem -> error("Not implemented")
         }
 
         append(content)

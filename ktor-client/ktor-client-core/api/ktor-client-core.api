@@ -1099,14 +1099,23 @@ public final class io/ktor/client/request/UtilsKt {
 	public static final fun setPort (Lio/ktor/client/request/HttpRequestBuilder;I)V
 }
 
+public final class io/ktor/client/request/forms/ChannelProvider {
+	public fun <init> (Ljava/lang/Long;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBlock ()Lkotlin/jvm/functions/Function0;
+	public final fun getSize ()Ljava/lang/Long;
+}
+
 public final class io/ktor/client/request/forms/FormBuilder {
 	public final fun append (Lio/ktor/client/request/forms/FormPart;)V
+	public final fun append (Ljava/lang/String;Lio/ktor/client/request/forms/ChannelProvider;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/client/request/forms/InputProvider;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Ljava/lang/Number;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Ljava/lang/Object;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;[BLio/ktor/http/Headers;)V
+	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/client/request/forms/ChannelProvider;Lio/ktor/http/Headers;ILjava/lang/Object;)V
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/client/request/forms/InputProvider;Lio/ktor/http/Headers;ILjava/lang/Object;)V
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/http/Headers;ILjava/lang/Object;)V
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/Number;Lio/ktor/http/Headers;ILjava/lang/Object;)V

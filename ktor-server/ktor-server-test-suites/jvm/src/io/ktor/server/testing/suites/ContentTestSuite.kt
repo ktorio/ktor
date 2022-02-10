@@ -578,6 +578,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         )
                         is PartData.BinaryItem -> {
                         }
+                        is PartData.BinaryChannelItem -> {}
                     }
 
                     part.dispose()
@@ -645,6 +646,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         )
                         is PartData.BinaryItem -> {
                         }
+                        is PartData.BinaryChannelItem -> {}
                     }
 
                     part.dispose()

@@ -148,6 +148,10 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                             ""
                         }
                         is PartData.FormItem -> it.value
+                        is PartData.BinaryChannelItem -> {
+                            it.provider().copyTo(channel)
+                            ""
+                        }
                     }
                 )
                 append("\r\n")

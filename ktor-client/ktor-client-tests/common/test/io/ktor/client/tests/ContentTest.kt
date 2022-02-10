@@ -186,6 +186,21 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
+    fun testMultipartWithByteReadChannel() = clientTests {
+        test { client ->
+            val response = client.submitFormWithBinaryData(
+                "$TEST_SERVER/echo",
+                formData = formData {
+                    append("channel", ChannelProvider { ByteReadChannel("from channel") })
+                }
+            ).body<String>()
+
+            assertContains(response, "Content-Disposition: form-data; name=channel")
+            assertContains(response, "from channel")
+        }
+    }
+
+    @Test
     fun testFormDataWithContentLength() = clientTests(listOf("Js")) {
         test { client ->
             client.submitForm {
