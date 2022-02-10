@@ -149,7 +149,7 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                         }
                         is PartData.FormItem -> it.value
                         is PartData.BinaryChannelItem -> {
-                            it.channel.copyTo(channel)
+                            it.provider().copyTo(channel)
                             ""
                         }
                     }
