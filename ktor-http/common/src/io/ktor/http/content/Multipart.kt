@@ -6,6 +6,7 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.PartData.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -45,6 +46,15 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
         dispose: () -> Unit,
         partHeaders: Headers
     ) : PartData(dispose, partHeaders)
+
+    /**
+     * Represents a binary part with a [ByteReadChannel] as a source
+     * @property channel source channel to read data from
+     */
+    public class BinaryChannelItem(
+        public val channel: ByteReadChannel,
+        partHeaders: Headers
+    ) : PartData({}, partHeaders)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing

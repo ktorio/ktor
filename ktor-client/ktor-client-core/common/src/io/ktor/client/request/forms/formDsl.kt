@@ -7,6 +7,7 @@ package io.ktor.client.request.forms
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.contracts.*
 
@@ -48,6 +49,10 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                     partHeaders.append(HttpHeaders.ContentLength, size.toString())
                 }
                 PartData.BinaryItem(value.block, {}, partHeaders.build())
+            }
+            is ByteReadChannel -> {
+                val channel: ByteReadChannel = value
+                PartData.BinaryChannelItem(channel, partHeaders.build())
             }
             is Input -> error("Can't use [Input] as part of form: $value. Consider using [InputProvider] instead.")
             else -> error("Unknown form content type: $value")
@@ -118,6 +123,10 @@ public class FormBuilder internal constructor() {
      * Append a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    public fun append(key: String, value: ByteReadChannel, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
