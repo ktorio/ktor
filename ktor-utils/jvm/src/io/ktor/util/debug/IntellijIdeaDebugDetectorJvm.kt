@@ -14,11 +14,7 @@ internal actual object IntellijIdeaDebugDetector {
             ManagementFactory.getRuntimeMXBean()
                 .inputArguments.toString()
                 .contains("jdwp")
-        } catch (error: ClassNotFoundException) {
-            // Relevant case for Android (KTOR-3426) in tests. Android does not support ManagementFactory
-            false
-        } catch (error: NoClassDefFoundError) {
-            // Same as above (KTOR-3690)
+        } catch (error: Throwable) {
             false
         }
     }

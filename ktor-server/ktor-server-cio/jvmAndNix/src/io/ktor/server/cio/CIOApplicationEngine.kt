@@ -124,7 +124,7 @@ public class CIOApplicationEngine(
 
             try {
                 pipeline.execute(call)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 handleFailure(call, error)
             } finally {
                 call.release()
