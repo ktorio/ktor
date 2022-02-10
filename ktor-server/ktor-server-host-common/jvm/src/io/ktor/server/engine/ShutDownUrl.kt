@@ -52,11 +52,11 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     /**
      * A plugin to install into engine pipeline
      */
-    public object EnginePlugin : ApplicationPlugin<EnginePipeline, Configuration, ShutDownUrl> {
+    public object EnginePlugin : ApplicationPlugin<EnginePipeline, Config, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
-        override fun install(pipeline: EnginePipeline, configure: Configuration.() -> Unit): ShutDownUrl {
-            val config = Configuration()
+        override fun install(pipeline: EnginePipeline, configure: Config.() -> Unit): ShutDownUrl {
+            val config = Config()
             configure(config)
 
             val plugin = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
@@ -73,32 +73,22 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     /**
      * A plugin to install into application call pipeline
      */
-    public object ApplicationCallPlugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, ShutDownUrl> {
-        override val key: AttributeKey<ShutDownUrl> = AttributeKey("shutdown.url")
+    public val ApplicationCallPlugin: ApplicationPlugin<Application, Config, PluginInstance> =
+        createApplicationPlugin("shutdown.url", ::Config) {
+            val plugin = ShutDownUrl(pluginConfig.shutDownUrl, pluginConfig.exitCodeSupplier)
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): ShutDownUrl {
-            val config = Configuration()
-            configure(config)
-
-            val plugin = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
+            onCall { call ->
                 if (call.request.uri == plugin.url) {
                     plugin.doShutdown(call)
                 }
             }
-
-            return plugin
         }
-    }
 
     /**
      * Shutdown url configuration builder
      */
     @KtorDsl
-    public class Configuration {
+    public class Config {
         /**
          * URI to handle shutdown requests
          */

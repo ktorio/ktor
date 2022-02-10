@@ -814,18 +814,8 @@ public final class io/ktor/server/routing/HttpMethodRouteSelector : io/ktor/serv
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/routing/IgnoreTrailingSlash {
-	public static final field Plugin Lio/ktor/server/routing/IgnoreTrailingSlash$Plugin;
-}
-
-public final class io/ktor/server/routing/IgnoreTrailingSlash$Configuration {
-	public fun <init> ()V
-}
-
-public final class io/ktor/server/routing/IgnoreTrailingSlash$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/IgnoreTrailingSlash;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/routing/IgnoreTrailingSlashKt {
+	public static final fun getIgnoreTrailingSlash ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
 public final class io/ktor/server/routing/LocalPortRouteSelector : io/ktor/server/routing/RouteSelector {

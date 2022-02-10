@@ -6,8 +6,6 @@ package io.ktor.server.metrics.micrometer
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.metrics.micrometer.MicrometerMetrics.Plugin.activeRequestsGaugeName
-import io.ktor.server.metrics.micrometer.MicrometerMetrics.Plugin.requestTimeTimerName
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -25,6 +23,9 @@ import kotlin.test.*
 class MicrometerMetricsTests {
     private var noHandlerHandledRequest = false
     private var throwableCaughtInEngine: Throwable? = null
+
+    private val requestTimeTimerName = "ktor.http.server.requests"
+    private val activeRequestsGaugeName = "ktor.http.server.requests.active"
 
     @BeforeTest
     fun reset() {
@@ -74,12 +75,10 @@ class MicrometerMetricsTests {
             registry = testRegistry
         }
 
-        val illegalAccessException = IllegalAccessException("something went wrong")
-
         application.routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
-                throw illegalAccessException
+                throw IllegalStateException("something went wrong")
             }
         }
 
@@ -90,7 +89,7 @@ class MicrometerMetricsTests {
         with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
-                assertTag("throwable", "java.lang.IllegalAccessException")
+                assertTag("throwable", "java.lang.IllegalStateException")
                 assertTag("status", "500")
                 assertTag("route", "/uri")
                 assertTag("method", "GET")
@@ -98,7 +97,7 @@ class MicrometerMetricsTests {
             }
         }
         testRegistry.assertActive(0.0)
-        assertTrue(throwableCaughtInEngine is IllegalAccessException)
+        assertTrue(throwableCaughtInEngine is IllegalStateException)
     }
 
     @Test
@@ -327,30 +326,6 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    @Suppress("DEPRECATION")
-    fun `throws exception when base name is not defined`(): Unit = withTestApplication {
-        assertFailsWith<IllegalArgumentException> {
-            application.install(MicrometerMetrics) {
-                baseName = "   "
-            }
-        }
-    }
-
-    @Test
-    @Suppress("DEPRECATION")
-    fun `timer and gauge metric names are configurable via baseName due to backward compatibility`(): Unit =
-        withTestApplication {
-            val newBaseName = "custom.http.server"
-            application.install(MicrometerMetrics) {
-                registry = SimpleMeterRegistry()
-                baseName = newBaseName
-            }
-
-            assertEquals("$newBaseName.requests", requestTimeTimerName)
-            assertEquals("$newBaseName.requests.active", activeRequestsGaugeName)
-        }
-
-    @Test
     fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
         assertFailsWith<IllegalArgumentException> {
             application.install(MicrometerMetrics) {
@@ -362,40 +337,16 @@ class MicrometerMetricsTests {
     @Test
     fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
         val newMetricName = "custom.metric.name"
+        val registry = SimpleMeterRegistry()
         application.install(MicrometerMetrics) {
-            registry = SimpleMeterRegistry()
+            this.registry = registry
             metricName = newMetricName
         }
 
-        assertEquals(newMetricName, requestTimeTimerName)
-        assertEquals("$newMetricName.active", activeRequestsGaugeName)
+        handleRequest(HttpMethod.Get, "/uri")
+
+        assertEquals(1, registry.get("$newMetricName.active").meters().size)
     }
-
-    @Test
-    fun `should get default metric name for timer and gauge from metricName is null`(): Unit = withTestApplication {
-        application.install(MicrometerMetrics) {
-            registry = SimpleMeterRegistry()
-            metricName = null
-        }
-
-        assertEquals("ktor.http.server.requests", requestTimeTimerName)
-        assertEquals("ktor.http.server.requests.active", activeRequestsGaugeName)
-    }
-
-    @Test
-    @Suppress("DEPRECATION")
-    fun `should get metric name from metricName when both baseName and metricName are defined`(): Unit =
-        withTestApplication {
-            val newMetricName = "custom.metric.name"
-            application.install(MicrometerMetrics) {
-                registry = SimpleMeterRegistry()
-                baseName = "new.base.name"
-                metricName = newMetricName
-            }
-
-            assertEquals(newMetricName, requestTimeTimerName)
-            assertEquals("$newMetricName.active", activeRequestsGaugeName)
-        }
 
     @Test
     fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {

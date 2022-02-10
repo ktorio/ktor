@@ -307,18 +307,12 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 public final class io/ktor/server/engine/ShutDownUrl {
 	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getApplicationCallPlugin ()Lio/ktor/server/application/ApplicationPlugin;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/engine/ShutDownUrl$ApplicationCallPlugin : io/ktor/server/application/ApplicationPlugin {
-	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$ApplicationCallPlugin;
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ShutDownUrl;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/engine/ShutDownUrl$Configuration {
+public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
