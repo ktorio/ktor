@@ -1,5 +1,4 @@
 import io.ktor.client.request.forms.*
-import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -37,7 +36,7 @@ class MultiPartFormDataContentTest {
     fun testEmptyByteReadChannel() = testSuspend {
         val data = MultiPartFormDataContent(
             formData {
-                append("channel", ByteReadChannel.Empty)
+                append("channel", ChannelProvider { ByteReadChannel.Empty })
             },
             boundary = "boundary"
         )
@@ -60,11 +59,7 @@ class MultiPartFormDataContentTest {
         val content = "body"
         val data = MultiPartFormDataContent(
             formData {
-                append(
-                    "channel",
-                    ByteReadChannel(content),
-                    headers = headersOf(HttpHeaders.ContentLength, content.length.toString())
-                )
+                append("channel", ChannelProvider(size = content.length.toLong()) { ByteReadChannel(content) })
             },
             boundary = "boundary",
         )
@@ -88,7 +83,7 @@ class MultiPartFormDataContentTest {
         val body = ByteArray(4089) { 'k'.code.toByte() }
         val data = MultiPartFormDataContent(
             formData {
-                append("channel", ByteReadChannel(body))
+                append("channel", ChannelProvider { ByteReadChannel(body) })
             },
             boundary = "boundary"
         )

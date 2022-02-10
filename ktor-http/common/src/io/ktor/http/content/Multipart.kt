@@ -48,11 +48,11 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
     ) : PartData(dispose, partHeaders)
 
     /**
-     * Represents a binary part with a [ByteReadChannel] as a source
-     * @property channel source channel to read data from
+     * Represents a binary part with a provider that supplies [ByteReadChannel]
+     * @property provider supplies a channel to read data from
      */
     public class BinaryChannelItem(
-        public val channel: ByteReadChannel,
+        public val provider: () -> ByteReadChannel,
         partHeaders: Headers
     ) : PartData({}, partHeaders)
 

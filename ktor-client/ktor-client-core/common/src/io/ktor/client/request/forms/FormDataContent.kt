@@ -9,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 import kotlin.random.*
 
 private val RN_BYTES = "\r\n".toByteArray()
@@ -80,7 +79,7 @@ public class MultiPartFormDataContent(
             is PartData.BinaryChannelItem -> {
                 val headers = headersBuilder.build().readBytes()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
-                PreparedPart.ChannelPart(headers, part.channel, size)
+                PreparedPart.ChannelPart(headers, part.provider, size)
             }
         }
     }
@@ -120,7 +119,7 @@ public class MultiPartFormDataContent(
                         }
                     }
                     is PreparedPart.ChannelPart -> {
-                        part.channel.copyTo(channel)
+                        part.provider().copyTo(channel)
                     }
                 }
 
@@ -144,7 +143,11 @@ private fun generateBoundary(): String = buildString {
 
 private sealed class PreparedPart(val headers: ByteArray, val size: Long?) {
     class InputPart(headers: ByteArray, val provider: () -> Input, size: Long?) : PreparedPart(headers, size)
-    class ChannelPart(headers: ByteArray, val channel: ByteReadChannel, size: Long?) : PreparedPart(headers, size)
+    class ChannelPart(
+        headers: ByteArray,
+        val provider: () -> ByteReadChannel,
+        size: Long?
+    ) : PreparedPart(headers, size)
 }
 
 private suspend fun Input.copyTo(channel: ByteWriteChannel) {

@@ -191,7 +191,7 @@ class ContentTest : ClientLoader(5 * 60) {
             val response = client.submitFormWithBinaryData(
                 "$TEST_SERVER/echo",
                 formData = formData {
-                    append("channel", ByteReadChannel("from channel"))
+                    append("channel", ChannelProvider { ByteReadChannel("from channel") })
                 }
             ).body<String>()
 

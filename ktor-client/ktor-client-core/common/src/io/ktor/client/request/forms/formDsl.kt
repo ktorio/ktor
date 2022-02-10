@@ -50,9 +50,12 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 }
                 PartData.BinaryItem(value.block, {}, partHeaders.build())
             }
-            is ByteReadChannel -> {
-                val channel: ByteReadChannel = value
-                PartData.BinaryChannelItem(channel, partHeaders.build())
+            is ChannelProvider -> {
+                val size = value.size
+                if (size != null) {
+                    partHeaders.append(HttpHeaders.ContentLength, size.toString())
+                }
+                PartData.BinaryChannelItem(value.block, partHeaders.build())
             }
             is Input -> error("Can't use [Input] as part of form: $value. Consider using [InputProvider] instead.")
             else -> error("Unknown form content type: $value")
@@ -126,7 +129,10 @@ public class FormBuilder internal constructor() {
         parts += FormPart(key, value, headers)
     }
 
-    public fun append(key: String, value: ByteReadChannel, headers: Headers = Headers.Empty) {
+    /**
+     * Append a pair [key]:[ChannelProvider] with optional [headers].
+     */
+    public fun append(key: String, value: ChannelProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
@@ -163,6 +169,13 @@ public inline fun FormBuilder.append(
  * @param block: content generator
  */
 public class InputProvider(public val size: Long? = null, public val block: () -> Input)
+
+/**
+ * Supplies a new [ByteReadChannel]
+ * @property size is total amount of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
+ * @param block returns a new [ByteReadChannel]
+ */
+public class ChannelProvider(public val size: Long? = null, public val block: () -> ByteReadChannel)
 
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.

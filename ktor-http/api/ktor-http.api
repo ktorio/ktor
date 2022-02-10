@@ -1247,8 +1247,8 @@ public abstract class io/ktor/http/content/PartData {
 }
 
 public final class io/ktor/http/content/PartData$BinaryChannelItem : io/ktor/http/content/PartData {
-	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/Headers;)V
-	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;)V
+	public final fun getProvider ()Lkotlin/jvm/functions/Function0;
 }
 
 public final class io/ktor/http/content/PartData$BinaryItem : io/ktor/http/content/PartData {
