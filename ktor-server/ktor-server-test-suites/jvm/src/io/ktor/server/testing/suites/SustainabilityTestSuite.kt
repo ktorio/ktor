@@ -641,6 +641,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    class CustomFail(message: String) : Throwable(message)
+
     @Test
     public fun testErrorInApplicationCallPipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
@@ -654,7 +656,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {
-                        throw IllegalStateException("Failed in phase $phase")
+                        throw CustomFail("Failed in phase $phase")
                     }
 
                     routing {
