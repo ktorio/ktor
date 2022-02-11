@@ -12,7 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
-internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
+internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
     onCallReceive { call ->
         val registrations = pluginConfig.registrations
         val requestedType = call.receiveType

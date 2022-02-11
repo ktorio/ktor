@@ -9,10 +9,10 @@ import io.ktor.server.request.*
 
 internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall, Any) -> Any
     ) {
-        application.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
             val body = handler(call, it)
             proceedWith(body)
         }
@@ -21,10 +21,10 @@ internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
 
 internal object ReceiveBodyTransformed : Hook<suspend (ApplicationCall, Any) -> Any> {
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (call: ApplicationCall, state: Any) -> Any
     ) {
-        application.receivePipeline.intercept(ApplicationReceivePipeline.After) {
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.After) {
             val body = handler(call, it)
             proceedWith(body)
         }

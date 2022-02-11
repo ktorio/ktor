@@ -15,11 +15,11 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
     internal val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        application.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticatePhase)
-        application.intercept(AuthenticatePhase) { handler(call) }
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticatePhase)
+        pipeline.intercept(AuthenticatePhase) { handler(call) }
     }
 }
 
@@ -27,31 +27,31 @@ internal object ChallengeHook : Hook<suspend (ApplicationCall) -> Unit> {
     internal val ChallengePhase: PipelinePhase = PipelinePhase("Challenge")
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        application.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
-        application.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, ChallengePhase)
-        application.intercept(ChallengePhase) { handler(call) }
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
+        pipeline.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, ChallengePhase)
+        pipeline.intercept(ChallengePhase) { handler(call) }
     }
 }
 
 /**
- * A hook that is executed after authentication succeeds.
+ * A hook that is executed after authentication was checked.
  * Note that this hook executes also for optional authentication or for routes without any authentication,
  * resulting in [ApplicationCall.principal] being `null`
  */
-public object AfterAuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
+public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
     internal val AfterAuthenticationPhase: PipelinePhase = PipelinePhase("AfterAuthentication")
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        application.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
-        application.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, ChallengeHook.ChallengePhase)
-        application.insertPhaseAfter(ChallengeHook.ChallengePhase, AfterAuthenticationPhase)
-        application.intercept(AfterAuthenticationPhase) { handler(call) }
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
+        pipeline.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, ChallengeHook.ChallengePhase)
+        pipeline.insertPhaseAfter(ChallengeHook.ChallengePhase, AfterAuthenticationPhase)
+        pipeline.intercept(AfterAuthenticationPhase) { handler(call) }
     }
 }
 

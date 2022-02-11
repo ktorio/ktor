@@ -170,8 +170,8 @@ public val ForwardedHeaders: ApplicationPlugin<Application, ForwardedHeadersConf
  * Represents a hook that is executed when the server is setting up.
  */
 internal object BeforeCall : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Setup) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
             handler(call)
         }
     }

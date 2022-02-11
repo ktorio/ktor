@@ -10,10 +10,10 @@ import kotlinx.coroutines.*
 public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable) -> Unit> {
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (call: ApplicationCall, cause: Throwable) -> Unit
     ) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
+        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
             try {
                 coroutineScope {
                     proceed()

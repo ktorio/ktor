@@ -1,9 +1,3 @@
-public final class io/ktor/server/auth/AfterAuthenticationHook : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/auth/AfterAuthenticationHook;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
-}
-
 public final class io/ktor/server/auth/Authentication {
 	public static final field Companion Lio/ktor/server/auth/Authentication$Companion;
 	public fun <init> (Lio/ktor/server/auth/AuthenticationConfig;)V
@@ -14,6 +8,12 @@ public final class io/ktor/server/auth/Authentication$Companion : io/ktor/server
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/Authentication;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/AuthenticationChecked : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/auth/AuthenticationChecked;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/auth/AuthenticationConfig {

@@ -13,8 +13,8 @@ import io.ktor.util.*
  * Hook that will be triggered when a call was routed and before any other handlers.
  */
 internal object CallRouted : Hook<(RoutingApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (RoutingApplicationCall) -> Unit) {
-        application.environment?.monitor?.subscribe(Routing.RoutingCallStarted) { call -> handler(call) }
+    override fun install(pipeline: ApplicationCallPipeline, handler: (RoutingApplicationCall) -> Unit) {
+        pipeline.environment?.monitor?.subscribe(Routing.RoutingCallStarted) { call -> handler(call) }
     }
 }
 
@@ -22,8 +22,8 @@ internal object CallRouted : Hook<(RoutingApplicationCall) -> Unit> {
  * Hook that will be triggered after a call was successfully routed and it's processing has completely finished.
  */
 internal object RoutedCallProcessed : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.environment?.monitor?.subscribe(Routing.RoutingCallFinished) { call -> handler(call) }
+    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+        pipeline.environment?.monitor?.subscribe(Routing.RoutingCallFinished) { call -> handler(call) }
     }
 }
 
@@ -34,16 +34,16 @@ internal data class CallMeasure constructor(val timer: Timer.Context)
 internal val measureKey = AttributeKey<CallMeasure>("metrics")
 
 internal object BeforeCall : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
             handler(call)
         }
     }
 }
 
 internal object AfterCall : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
             try {
                 proceed()
             } finally {

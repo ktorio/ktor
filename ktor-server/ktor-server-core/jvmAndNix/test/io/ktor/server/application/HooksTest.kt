@@ -5,7 +5,6 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -23,10 +22,10 @@ class HooksTest {
         val currentHandler = HookHandler()
 
         val myHook = object : Hook<HookHandler.() -> Unit> {
-            override fun install(application: ApplicationCallPipeline, handler: HookHandler.() -> Unit) {
+            override fun install(pipeline: ApplicationCallPipeline, handler: HookHandler.() -> Unit) {
                 currentHandler.apply(handler)
 
-                application.intercept(ApplicationCallPipeline.Call) {
+                pipeline.intercept(ApplicationCallPipeline.Call) {
                     currentHandler.executed = true
                 }
             }
@@ -125,8 +124,8 @@ class HooksTest {
     @Test
     fun testHookWithRoutingPlugin() {
         val OnCallHook = object : Hook<() -> Unit> {
-            override fun install(application: ApplicationCallPipeline, handler: () -> Unit) {
-                application.intercept(ApplicationCallPipeline.Call) {
+            override fun install(pipeline: ApplicationCallPipeline, handler: () -> Unit) {
+                pipeline.intercept(ApplicationCallPipeline.Call) {
                     handler()
                 }
             }

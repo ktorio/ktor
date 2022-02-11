@@ -149,16 +149,16 @@ private data class CallMeasure(
 )
 
 private object Monitoring : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
             handler(call)
         }
     }
 }
 
 internal object ResponseSent : Hook<(ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        application.sendPipeline.intercept(ApplicationSendPipeline.After) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
             try {
                 proceed()
             } finally {
