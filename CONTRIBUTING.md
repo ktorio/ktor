@@ -46,7 +46,7 @@ Run the following commands to install `libcurl` and `libncurses`:
 
 **macOS** 
 
-To easiest way to install `libcurl` and 'libncurses` on macOS is to use [Hombrew](https://brew.sh). Run the following commands:
+The easiest way to install `libcurl` and 'libncurses` on macOS is to use [Homebrew](https://brew.sh). Run the following commands:
 
 ```
     brew install curl
