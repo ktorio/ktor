@@ -29,7 +29,6 @@ kotlin.sourceSets {
             // so shouldn"t increase the size of the final artifact.
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
 
-            api("ch.qos.logback:logback-classic:$logback_version")
             api("org.eclipse.jetty.http2:http2-client:$jetty_version")
             api("org.eclipse.jetty:jetty-client:$jetty_version")
             api("org.eclipse.jetty.http2:http2-http-client-transport:$jetty_version")

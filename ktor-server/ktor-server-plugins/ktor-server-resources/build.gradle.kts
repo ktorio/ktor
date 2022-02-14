@@ -5,6 +5,7 @@ plugins {
 }
 
 val serialization_version: String by project.extra
+val logback_version: String by project.extra
 
 kotlin.sourceSets {
     jvmAndNixMain {
@@ -16,6 +17,12 @@ kotlin.sourceSets {
     jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
+        }
+    }
+
+    jvmTest {
+        dependencies {
+            api("ch.qos.logback:logback-classic:$logback_version")
         }
     }
 }

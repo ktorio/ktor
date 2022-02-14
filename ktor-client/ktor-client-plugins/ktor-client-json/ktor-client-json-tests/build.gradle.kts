@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-gson"))
             api(project(":ktor-client:ktor-client-cio"))

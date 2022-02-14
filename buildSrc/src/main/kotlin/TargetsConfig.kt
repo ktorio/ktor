@@ -50,12 +50,6 @@ fun Project.configureTargets() {
             if (hasNix) {
                 val nixMain by creating
                 val nixTest by creating
-
-                val nix32Main by creating
-                val nix32Test by creating
-
-                val nix64Main by creating
-                val nix64Test by creating
             }
 
             if (hasDarwin) {
@@ -144,31 +138,11 @@ fun Project.configureTargets() {
                     findByName("jvmAndNixTest")?.let { dependsOn(it) }
                 }
 
-                val nix32Main by getting {
-                    dependsOn(nixMain)
-                }
-
-                val nix64Main by getting {
-                    dependsOn(nixMain)
-                }
-
-                val nix32Test by getting
-                val nix64Test by getting
-
                 nixTargets().forEach {
                     getByName("${it.name}Main").dependsOn(nixMain)
                     getByName("${it.name}Test").dependsOn(nixTest)
                 }
 
-                nix32Targets().forEach {
-                    getByName("${it.name}Main").dependsOn(nix32Main)
-                    getByName("${it.name}Test").dependsOn(nix32Test)
-                }
-
-                nix64Targets().forEach {
-                    getByName("${it.name}Main").dependsOn(nix64Main)
-                    getByName("${it.name}Test").dependsOn(nix64Test)
-                }
             }
             if (hasDarwin) {
                 val nixMain: KotlinSourceSet? = findByName("nixMain")

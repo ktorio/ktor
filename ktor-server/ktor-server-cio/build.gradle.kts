@@ -1,7 +1,9 @@
 description = ""
 
+val logback_version: String by extra
+
 kotlin.sourceSets {
-    val jvmAndNixMain by getting {
+    jvmAndNixMain {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-http:ktor-http-cio"))
@@ -16,10 +18,11 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-test-suites"))
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            api("ch.qos.logback:logback-classic:$logback_version")
         }
     }
 }

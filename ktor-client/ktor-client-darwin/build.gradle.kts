@@ -1,6 +1,6 @@
 
 kotlin.sourceSets {
-    val darwinMain by getting {
+    darwinMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
         }

@@ -8,7 +8,8 @@ plugins {
     id("kotlinx-serialization")
 }
 
-val jackson_version: String by project.extra
+val jackson_version: String by extra
+val logback_version: String by extra
 
 kotlin.sourceSets.jvmMain {
     dependencies {
@@ -19,5 +20,6 @@ kotlin.sourceSets.jvmMain {
         api(project(":ktor-client:ktor-client-tests"))
         api(project(":ktor-server:ktor-server-test-host"))
         api("com.fasterxml.jackson.core:jackson-annotations:$jackson_version")
+        api("ch.qos.logback:logback-classic:$logback_version")
     }
 }

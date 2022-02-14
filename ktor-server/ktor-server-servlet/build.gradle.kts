@@ -2,7 +2,7 @@ description = ""
 val mockk_version: String by extra
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
 
@@ -10,7 +10,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             implementation("io.mockk:mockk:$mockk_version")

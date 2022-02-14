@@ -6,7 +6,7 @@ description = ""
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
             }

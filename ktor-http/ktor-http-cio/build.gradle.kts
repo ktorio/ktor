@@ -3,19 +3,19 @@ description = ""
 val coroutines_version: String by extra
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-http"))
         }
     }
 
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-network"))
         }
     }
 
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
         }

@@ -3,6 +3,7 @@
  */
 
 val xmlutil_version: String by extra
+val logback_version: String by extra
 
 plugins {
     id("kotlinx-serialization")
@@ -21,6 +22,8 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")) // ktlint-disable max-line-length
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
+
+            api("ch.qos.logback:logback-classic:$logback_version")
         }
     }
 }

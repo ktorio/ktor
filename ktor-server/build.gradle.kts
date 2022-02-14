@@ -1,7 +1,7 @@
 description = "Wrapper for ktor-server-core and base plugins"
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
@@ -9,7 +9,7 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
         }
     }
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))

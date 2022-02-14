@@ -12,7 +12,7 @@ kotlin {
     }
 
     sourceSets {
-        val jvmAndNixMain by getting {
+        jvmAndNixMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
@@ -24,7 +24,7 @@ kotlin {
             }
         }
 
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation("io.mockk:mockk:$mockk_version")
             }

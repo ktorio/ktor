@@ -10,7 +10,7 @@ plugins {
 }
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))

@@ -50,13 +50,13 @@ open class KtorTestServer : DefaultTask() {
 val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
         }
     }
-    val commonTest by getting {
+    commonTest {
         dependencies {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
@@ -70,7 +70,7 @@ kotlin.sourceSets {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
         }
     }
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
@@ -93,7 +93,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
@@ -105,7 +105,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jsTest by getting {
+    jsTest {
         dependencies {
             api(project(":ktor-client:ktor-client-js"))
         }

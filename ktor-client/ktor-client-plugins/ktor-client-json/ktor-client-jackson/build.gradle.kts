@@ -3,7 +3,7 @@ val jackson_version: String by project.extra
 val jackson_kotlin_version: String by project.extra
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
 
@@ -12,7 +12,7 @@ kotlin.sourceSets {
             implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-json-tests"))
