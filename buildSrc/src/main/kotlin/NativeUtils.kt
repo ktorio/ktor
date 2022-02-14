@@ -64,24 +64,3 @@ fun KotlinMultiplatformExtension.desktopTargets(): Set<KotlinNativeTarget> = set
     linuxX64(),
     mingwX64()
 )
-
-fun KotlinMultiplatformExtension.nix32Targets(): Set<KotlinNativeTarget> = setOf(
-    iosArm32(),
-    watchosX86(),
-    watchosArm32()
-)
-
-fun KotlinMultiplatformExtension.nix64Targets(): Set<KotlinNativeTarget> = setOf(
-    iosArm64(),
-    iosX64(),
-    linuxX64(),
-    iosSimulatorArm64(),
-    watchosX64(),
-    watchosArm64(),
-    watchosSimulatorArm64(),
-    tvosX64(),
-    tvosArm64(),
-    tvosSimulatorArm64(),
-    macosX64(),
-    macosArm64()
-)

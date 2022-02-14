@@ -4,6 +4,7 @@ val netty_version: String by extra
 val jetty_alpn_api_version: String by extra
 val netty_tcnative_version: String by extra
 val mockk_version: String by extra
+val logback_version: String by extra
 
 val enableAlpnProp = project.hasProperty("enableAlpn")
 val osName = System.getProperty("os.name").toLowerCase()
@@ -17,7 +18,7 @@ val nativeClassifier: String? = if (enableAlpnProp) {
 } else null
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
 
@@ -31,7 +32,7 @@ kotlin.sourceSets {
             }
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-test-suites"))
@@ -41,6 +42,8 @@ kotlin.sourceSets {
             api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
             implementation("io.mockk:mockk:$mockk_version")
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
+            api("ch.qos.logback:logback-classic:$logback_version")
         }
     }
 }

@@ -1,7 +1,7 @@
 description = "Serialization API for client and server"
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-shared:ktor-websockets"))
         }

@@ -4,7 +4,7 @@
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 api(project(":ktor-network:ktor-network-tls"))
             }

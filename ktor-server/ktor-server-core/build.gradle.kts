@@ -7,10 +7,11 @@ description = ""
 val typesafe_config_version: String by extra
 val kotlin_version: String by extra
 val mockk_version: String by extra
-val jansi_version: String by project.extra
+val jansi_version: String by extra
+val logback_version: String by extra
 
 kotlin.sourceSets {
-    val jvmAndNixMain by getting {
+    jvmAndNixMain {
         dependencies {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
@@ -21,7 +22,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api("com.typesafe:config:$typesafe_config_version")
             implementation("org.fusesource.jansi:jansi:$jansi_version")
@@ -31,11 +32,12 @@ kotlin.sourceSets {
     val jvmAndNixTest by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
+            api("ch.qos.logback:logback-classic:$logback_version")
             api(project(":ktor-network"))
         }
     }
 
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             implementation("io.mockk:mockk:$mockk_version")
         }

@@ -4,7 +4,7 @@ val apache_version: String by project.extra
 val apache_core_version: String by project.extra
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
             api("org.apache.httpcomponents:httpasyncclient:$apache_version")
@@ -16,7 +16,7 @@ kotlin.sourceSets {
             }
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }

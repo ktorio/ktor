@@ -1,6 +1,6 @@
 kotlin {
     sourceSets {
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }

@@ -1,11 +1,11 @@
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api("com.github.spullara.mustache.java:compiler:0.9.10")
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))

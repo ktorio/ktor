@@ -5,7 +5,7 @@
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-utils"))
             }

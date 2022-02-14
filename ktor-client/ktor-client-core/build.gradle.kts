@@ -7,7 +7,7 @@ val abort_controller_version: String by project
 val ws_version: String by project
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-shared:ktor-events"))
@@ -15,7 +15,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jsMain by getting {
+    jsMain {
         dependencies {
             api(npm("node-fetch", node_fetch_version))
             api(npm("abort-controller", abort_controller_version))
@@ -23,7 +23,7 @@ kotlin.sourceSets {
         }
     }
 
-    val commonTest by getting {
+    commonTest {
         dependencies {
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-mock"))

@@ -4,14 +4,16 @@
 
 description = ""
 
+val logback_version: String by extra
+
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
             }
         }
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
                 api("com.googlecode.json-simple:json-simple:1.1.1") {
@@ -19,11 +21,17 @@ kotlin {
                 }
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-client:ktor-client-cio"))
                 api(project(":ktor-client:ktor-client-mock"))
                 api(project(":ktor-server:ktor-server-test-host"))
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                api("ch.qos.logback:logback-classic:$logback_version")
             }
         }
     }

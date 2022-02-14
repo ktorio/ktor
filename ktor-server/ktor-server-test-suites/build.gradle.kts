@@ -1,9 +1,10 @@
 description = ""
 
 val coroutines_version: String by extra
+val logback_version: String by extra
 
 kotlin.sourceSets {
-    val jvmAndNixMain by getting {
+    jvmAndNixMain {
         dependencies {
             api(kotlin("test"))
 
@@ -14,7 +15,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
@@ -30,9 +31,11 @@ kotlin.sourceSets {
             api("net.java.dev.jna:jna-platform:$jna_version")
         }
     }
-    val jvmTest by getting {
+
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            api("ch.qos.logback:logback-classic:$logback_version")
         }
     }
 }

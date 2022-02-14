@@ -6,7 +6,7 @@ description = ""
 
 kotlin {
     sourceSets {
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation(project(":ktor-server:ktor-server-netty"))
             }

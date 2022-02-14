@@ -13,7 +13,7 @@ kotlin.sourceSets {
         }
     }
 
-   val jvmTest by getting {
+   jvmTest {
         dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
