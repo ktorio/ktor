@@ -34,7 +34,7 @@ public class PartialContentConfig {
     }
 }
 
-private object Register : Hook<suspend Register.Context.(call: ApplicationCall, message: Any) -> Unit> {
+private object BodyTransformed : Hook<suspend BodyTransformed.Context.(call: ApplicationCall, message: Any) -> Unit> {
     class Context(private val context: PipelineContext<Any, ApplicationCall>) {
         val call: ApplicationCall = context.call
 
@@ -44,12 +44,12 @@ private object Register : Hook<suspend Register.Context.(call: ApplicationCall, 
     }
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend Context.(call: ApplicationCall, message: Any) -> Unit
     ) {
-        val registerPhase = PipelinePhase("PartialContent")
-        application.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, registerPhase)
-        application.sendPipeline.intercept(registerPhase) { message ->
+        val partialContentPhase = PipelinePhase("PartialContent")
+        pipeline.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, partialContentPhase)
+        pipeline.sendPipeline.intercept(partialContentPhase) { message ->
             Context(this).handler(call, message)
         }
     }
@@ -78,7 +78,7 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig, PluginInstanc
             call.attributes.put(SuppressionAttribute, true)
         }
 
-        on(Register) { call, message ->
+        on(BodyTransformed) { call, message ->
             val rangeSpecifier = call.request.ranges()
             if (rangeSpecifier == null) {
                 if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
@@ -96,7 +96,7 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig, PluginInstanc
         }
     }
 
-private suspend fun Register.Context.tryProcessRange(
+private suspend fun BodyTransformed.Context.tryProcessRange(
     content: OutgoingContent.ReadChannelContent,
     call: ApplicationCall,
     rangesSpecifier: RangesSpecifier,
@@ -162,7 +162,7 @@ private fun checkEntityTags(actual: EntityTagVersion, ifRange: List<Version>): B
     }
 }
 
-private suspend fun Register.Context.processRange(
+private suspend fun BodyTransformed.Context.processRange(
     content: OutgoingContent.ReadChannelContent,
     rangesSpecifier: RangesSpecifier,
     length: Long,
@@ -193,7 +193,7 @@ private suspend fun Register.Context.processRange(
     }
 }
 
-private fun Register.Context.processSingleRange(
+private fun BodyTransformed.Context.processSingleRange(
     content: OutgoingContent.ReadChannelContent,
     range: LongRange,
     length: Long
@@ -201,7 +201,7 @@ private fun Register.Context.processSingleRange(
     transformBodyTo(PartialOutgoingContent.Single(call.isGet(), content, range, length))
 }
 
-private suspend fun Register.Context.processMultiRange(
+private suspend fun BodyTransformed.Context.processMultiRange(
     content: OutgoingContent.ReadChannelContent,
     ranges: List<LongRange>,
     length: Long

@@ -147,10 +147,10 @@ internal object BeforeSetup : Hook<suspend (ApplicationCall) -> Unit> {
     private val phase: PipelinePhase = PipelinePhase("CallId")
     private val logger by lazy { KtorSimpleLogger(phase.name) }
 
-    override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        application.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
 
-        application.intercept(phase) {
+        pipeline.intercept(phase) {
             try {
                 handler(call)
             } catch (rejection: RejectedCallIdException) {

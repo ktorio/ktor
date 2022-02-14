@@ -74,19 +74,6 @@ public final class io/ktor/server/application/ApplicationKt {
 public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/Plugin {
 }
 
-public abstract class io/ktor/server/application/ApplicationPluginBuilder : io/ktor/server/application/PluginBuilder {
-	public final fun getApplicationConfig ()Lio/ktor/server/config/ApplicationConfig;
-	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
-	public fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
-	public abstract fun getPluginConfig ()Ljava/lang/Object;
-	public final fun on (Lio/ktor/server/application/Hook;Ljava/lang/Object;)V
-	public fun onCall (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallReceive (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
-	public fun onCallRespond (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallRespond (Lkotlin/jvm/functions/Function4;)V
-}
-
 public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun getPluginRegistry (Lio/ktor/util/pipeline/Pipeline;)Lio/ktor/util/Attributes;
 	public static final fun install (Lio/ktor/server/routing/Route;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -174,34 +161,21 @@ public abstract interface class io/ktor/server/application/Plugin {
 	public abstract fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/server/application/PluginBuilder {
+public abstract class io/ktor/server/application/PluginBuilder {
 	public abstract fun getApplication ()Lio/ktor/server/application/Application;
-	public abstract fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
-	public abstract fun onCall (Lkotlin/jvm/functions/Function3;)V
-	public abstract fun onCallReceive (Lkotlin/jvm/functions/Function3;)V
-	public abstract fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
-	public abstract fun onCallRespond (Lkotlin/jvm/functions/Function3;)V
-	public abstract fun onCallRespond (Lkotlin/jvm/functions/Function4;)V
-}
-
-public final class io/ktor/server/application/PluginBuilder$DefaultImpls {
-	public static fun onCallReceive (Lio/ktor/server/application/PluginBuilder;Lkotlin/jvm/functions/Function3;)V
-	public static fun onCallRespond (Lio/ktor/server/application/PluginBuilder;Lkotlin/jvm/functions/Function3;)V
+	public final fun getApplicationConfig ()Lio/ktor/server/config/ApplicationConfig;
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
+	public abstract fun getPluginConfig ()Ljava/lang/Object;
+	public final fun on (Lio/ktor/server/application/Hook;Ljava/lang/Object;)V
+	public final fun onCall (Lkotlin/jvm/functions/Function3;)V
+	public final fun onCallReceive (Lkotlin/jvm/functions/Function3;)V
+	public final fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
+	public final fun onCallRespond (Lkotlin/jvm/functions/Function3;)V
+	public final fun onCallRespond (Lkotlin/jvm/functions/Function4;)V
 }
 
 public final class io/ktor/server/application/PluginInstance {
-}
-
-public abstract class io/ktor/server/application/RelativePluginBuilder : io/ktor/server/application/PluginBuilder {
-	public synthetic fun <init> (Lio/ktor/server/application/ApplicationPluginBuilder;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
-	protected abstract fun insertPhase (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
-	public fun onCall (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallReceive (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
-	public fun onCallRespond (Lkotlin/jvm/functions/Function3;)V
-	public fun onCallRespond (Lkotlin/jvm/functions/Function4;)V
-	protected abstract fun selectPhase (Ljava/util/List;)Lio/ktor/util/pipeline/PipelinePhase;
 }
 
 public abstract interface class io/ktor/server/application/RouteScopedPlugin : io/ktor/server/application/Plugin {

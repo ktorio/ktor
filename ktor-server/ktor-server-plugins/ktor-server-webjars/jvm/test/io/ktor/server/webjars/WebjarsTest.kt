@@ -144,8 +144,8 @@ class WebjarsTest {
     @Test
     fun callHandledBeforeWebjars() {
         val alwaysRespondHello = object : Hook<Unit> {
-            override fun install(application: ApplicationCallPipeline, handler: Unit) {
-                application.intercept(ApplicationCallPipeline.Setup) {
+            override fun install(pipeline: ApplicationCallPipeline, handler: Unit) {
+                pipeline.intercept(ApplicationCallPipeline.Setup) {
                     call.respond("Hello")
                 }
             }

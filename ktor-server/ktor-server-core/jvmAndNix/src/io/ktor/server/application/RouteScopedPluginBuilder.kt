@@ -7,4 +7,4 @@ package io.ktor.server.application
 /**
  * Utility class to build a [RouteScopedPlugin] instance.
  **/
-public typealias RouteScopedPluginBuilder<PluginConfig> = ApplicationPluginBuilder<PluginConfig>
+public typealias RouteScopedPluginBuilder<PluginConfig> = PluginBuilder<PluginConfig>

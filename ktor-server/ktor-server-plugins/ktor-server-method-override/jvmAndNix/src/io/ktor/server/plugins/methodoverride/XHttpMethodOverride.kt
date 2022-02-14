@@ -11,8 +11,8 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 
 private object Setup : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        application.intercept(ApplicationCallPipeline.Setup) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
             handler(call)
         }
     }

@@ -33,10 +33,10 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
     }
 
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend Context.(ApplicationCall) -> Unit
     ) {
-        application.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
+        pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
             handler(Context(this), call)
         }
     }

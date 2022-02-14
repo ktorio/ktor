@@ -9,8 +9,8 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 
 private object BeforeSendHook : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(application: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        application.sendPipeline.intercept(ApplicationSendPipeline.Before) {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
             handler(call)
         }
     }

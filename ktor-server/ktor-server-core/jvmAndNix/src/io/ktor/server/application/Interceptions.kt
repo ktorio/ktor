@@ -4,7 +4,6 @@
 
 package io.ktor.server.application
 
-import io.ktor.server.request.*
 import io.ktor.util.pipeline.*
 
 /**

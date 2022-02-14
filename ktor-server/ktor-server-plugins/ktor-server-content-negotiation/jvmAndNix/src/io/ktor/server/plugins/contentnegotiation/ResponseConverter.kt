@@ -13,7 +13,7 @@ import io.ktor.server.response.*
 
 private val NOT_ACCEPTABLE = HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
 
-internal fun ApplicationPluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onCallRespond { call, subject ->
+internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onCallRespond { call, subject ->
     if (subject is OutgoingContent || subject::class in pluginConfig.ignoredTypes) return@onCallRespond
 
     val registrations = pluginConfig.registrations
