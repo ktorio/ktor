@@ -106,7 +106,9 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     val eventListener = { event: Event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> continuation.resumeWithException(WebSocketException(JSON.stringify(event)))
+            "error" -> {
+                continuation.resumeWithException(WebSocketException(event.asString()))
+            }
         }
     }
 
@@ -121,6 +123,10 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
             this@awaitConnection.close()
         }
     }
+}
+
+private fun Event.asString(): String = buildString {
+    append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
 private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {

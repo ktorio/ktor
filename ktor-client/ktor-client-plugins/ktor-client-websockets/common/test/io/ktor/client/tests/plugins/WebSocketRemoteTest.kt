@@ -3,8 +3,10 @@
 */
 package io.ktor.client.tests.plugins
 
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
@@ -98,6 +100,23 @@ class WebSocketRemoteTest : ClientLoader() {
         test { client ->
             client.webSocket(echoWebsocket) {
                 close(CloseReason(1005, "Reserved close code"))
+            }
+        }
+    }
+
+    @Test
+    fun testNotFound() = clientTests(skipEngines) {
+        config {
+            install(WebSockets)
+            expectSuccess = true
+        }
+
+        test { client ->
+            assertFailsWith<ClientRequestException> {
+                client.webSocketSession {
+                    url("$TEST_SERVER/404")
+                    header("Authorization", "<auth>")
+                }
             }
         }
     }
