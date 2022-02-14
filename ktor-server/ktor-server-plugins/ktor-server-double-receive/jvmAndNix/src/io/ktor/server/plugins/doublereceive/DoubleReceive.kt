@@ -5,10 +5,10 @@
 package io.ktor.server.plugins.doublereceive
 
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
@@ -50,12 +50,13 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
             MemoryCache(body, coroutineContext)
         }
 
-        call.afterFinish {
-            content.dispose()
-        }
-
         cache[DoubleReceiveCache::class] = content
         return@on content.read()
+    }
+
+    on(ResponseSent) { call ->
+        val cache = call.receiveCache
+        (cache[DoubleReceiveCache::class] as DoubleReceiveCache?)?.dispose()
     }
 
     on(ReceiveBodyTransformed) { call, body ->
@@ -67,8 +68,8 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
     }
 }
 
-private val ApplicationCall.receiveCache: ReceiveCache get() =
-    attributes.computeIfAbsent(ReceiveCacheKey) { mutableMapOf() }
+private val ApplicationCall.receiveCache: ReceiveCache
+    get() = attributes.computeIfAbsent(ReceiveCacheKey) { mutableMapOf() }
 
 private val ReceiveCacheKey = AttributeKey<ReceiveCache>("ReceiveCache")
 

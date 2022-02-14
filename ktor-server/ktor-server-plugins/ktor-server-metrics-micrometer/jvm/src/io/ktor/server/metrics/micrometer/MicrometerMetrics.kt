@@ -5,8 +5,9 @@
 package io.ktor.server.metrics.micrometer
 
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.application.hooks.Metrics
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.micrometer.core.instrument.*
@@ -116,7 +117,8 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         })
         pluginConfig.meterBinders.forEach { it.bindTo(pluginConfig.registry) }
 
-        on(Monitoring) { call ->
+        @OptIn(InternalAPI::class)
+        on(Metrics) { call ->
             active?.incrementAndGet()
             call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
         }
@@ -147,23 +149,3 @@ private data class CallMeasure(
     var route: String? = null,
     var throwable: Throwable? = null
 )
-
-private object Monitoring : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
-            handler(call)
-        }
-    }
-}
-
-internal object ResponseSent : Hook<(ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
-            try {
-                proceed()
-            } finally {
-                handler(call)
-            }
-        }
-    }
-}

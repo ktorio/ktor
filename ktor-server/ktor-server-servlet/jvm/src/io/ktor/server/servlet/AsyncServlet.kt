@@ -27,7 +27,7 @@ public open class AsyncServletApplicationCall(
     upgrade: ServletUpgrade,
     parentCoroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application), CoroutineScope {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 

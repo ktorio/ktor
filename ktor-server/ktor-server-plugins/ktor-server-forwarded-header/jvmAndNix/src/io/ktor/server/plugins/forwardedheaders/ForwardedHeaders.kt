@@ -6,6 +6,7 @@ package io.ktor.server.plugins.forwardedheaders
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.util.*
@@ -161,20 +162,9 @@ public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createA
                 parseForwardedValue(it)
             }
 
-    on(BeforeCall) { call ->
+    on(CallSetup) { call ->
         val forwardedHeaders = call.request.forwardedHeaders() ?: return@on
         call.attributes.put(FORWARDED_PARSED_KEY, forwardedHeaders)
         pluginConfig.forwardedHeadersHandler.invoke(call.mutableOriginConnectionPoint, forwardedHeaders)
-    }
-}
-
-/**
- * Represents a hook that is executed when the server is setting up.
- */
-internal object BeforeCall : Hook<(ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Setup) {
-            handler(call)
-        }
     }
 }

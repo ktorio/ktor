@@ -7,6 +7,7 @@ package io.ktor.server.plugins.autohead
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.*
 import io.ktor.util.*
 
@@ -19,13 +20,11 @@ public val AutoHeadResponse: ApplicationPlugin<Unit> = createApplicationPlugin("
         call.mutableOriginConnectionPoint.method = HttpMethod.Get
     }
 
-    onCallRespond.afterTransform { call, _ ->
-        if (call.request.local.method != HttpMethod.Head) return@afterTransform
+    on(ResponseBodyReadyForSend) { call, content ->
+        if (call.request.local.method != HttpMethod.Head) return@on
+        if (content is OutgoingContent.NoContent) return@on
 
-        transformBody { body ->
-            if (body is OutgoingContent.NoContent) return@transformBody body
-            HeadResponse(body)
-        }
+        transformBodyTo(HeadResponse(content))
     }
 }
 

@@ -17,6 +17,7 @@ import kotlin.random.*
 /**
  * Utility class to build an [ApplicationPlugin] instance.
  **/
+@KtorDsl
 @Suppress("UNUSED_PARAMETER", "DEPRECATION")
 public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     internal val key: AttributeKey<PluginInstance>
@@ -172,40 +173,6 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
         handler: HookHandler
     ) {
         hooks.add(HookHandler(hook, handler))
-    }
-
-    /**
-     * Specifies the [block] handler for every [call.respond()] statement.
-     *
-     * This [block] is be invoked for every attempt to send the response.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val BodyLimiter = createApplicationPlugin("BodyLimiter") {
-     *     onCallRespond { _: ApplicationCall, body: Any ->
-     *         if (body is ByteArray) {
-     *             check(body.size < 4 * 1024 * 1024) { "Body size is too big: ${body.size} bytes" }
-     *         }
-     *     }
-     *  }
-     *
-     * ```
-     **/
-    public val onCallRespond: OnCallRespond<PluginConfig> = object : OnCallRespond<PluginConfig> {
-        override fun afterTransform(
-            block: suspend OnCallRespondAfterTransformContext<PluginConfig>.(ApplicationCall, OutgoingContent) -> Unit
-        ) {
-            val plugin = this@PluginBuilder
-
-            plugin.onDefaultPhaseWithMessage(
-                plugin.afterResponseInterceptions,
-                ApplicationSendPipeline.After,
-                PHASE_ON_CALL_RESPOND_AFTER,
-                ::OnCallRespondAfterTransformContext
-            ) { call, body -> block(call, body as OutgoingContent) }
-        }
     }
 
     /**

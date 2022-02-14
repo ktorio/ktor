@@ -128,10 +128,9 @@ public class io/ktor/server/testing/TestApplicationBuilder {
 	public final fun routing (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/engine/BaseApplicationCall, io/ktor/server/application/ApplicationCallWithContext {
+public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lio/ktor/server/application/Application;ZZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;

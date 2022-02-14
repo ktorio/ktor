@@ -86,10 +86,6 @@ class ReceiveBlockingPrimitiveTest {
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
 
-        override fun afterFinish(handler: (Throwable?) -> Unit) {
-            error("afterFinish is not available for TestCall")
-        }
-
         fun close() {
             application.dispose()
         }

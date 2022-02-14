@@ -7,6 +7,7 @@ package io.ktor.server.plugins.cachingheaders
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 
 /**
  * A configuration for the [CachingHeaders] plugin.
@@ -33,7 +34,7 @@ public class CachingHeadersConfig {
  * The example below shows how to add the `Cache-Control` header with the `max-age` option for CSS and JSON:
  * ```kotlin
  * install(CachingHeaders) {
- *     options { outgoingContent ->
+ *     options { call, outgoingContent ->
  *         when (outgoingContent.contentType?.withoutParameters()) {
  *             ContentType.Text.CSS -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
  *             ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 60))
@@ -55,9 +56,9 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
         return optionsProviders.mapNotNullTo(ArrayList(optionsProviders.size)) { it(call, content) }
     }
 
-    onCallRespond.afterTransform { call, message ->
-        val options = optionsFor(call, message)
-        if (options.isEmpty()) return@afterTransform
+    on(ResponseBodyReadyForSend) { call, content ->
+        val options = optionsFor(call, content)
+        if (options.isEmpty()) return@on
 
         val headers = Headers.build {
             options.mapNotNull { it.cacheControl }

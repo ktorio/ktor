@@ -6,6 +6,7 @@ package io.ktor.server.plugins.callid
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -143,29 +144,6 @@ public class CallIdConfig {
     }
 }
 
-internal object BeforeSetup : Hook<suspend (ApplicationCall) -> Unit> {
-    private val phase: PipelinePhase = PipelinePhase("CallId")
-    private val logger by lazy { KtorSimpleLogger(phase.name) }
-
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
-
-        pipeline.intercept(phase) {
-            try {
-                handler(call)
-            } catch (rejection: RejectedCallIdException) {
-                this@BeforeSetup.logger.warn(
-                    "Illegal call id retrieved or generated that is rejected by call id verifier:" +
-                        " (url-encoded) " +
-                        rejection.illegalCallId.encodeURLParameter()
-                )
-                call.respond(HttpStatusCode.BadRequest)
-                finish()
-            }
-        }
-    }
-}
-
 internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCallId")
 
 /**
@@ -201,8 +179,9 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
     val providers = (pluginConfig.retrievers + pluginConfig.generators).toTypedArray()
     val repliers = pluginConfig.responseInterceptors.toTypedArray()
     val verifier = pluginConfig.verifier
+    val logger by lazy { KtorSimpleLogger("CallId") }
 
-    on(BeforeSetup) { call ->
+    on(CallSetup) { call ->
         for (provider in providers) {
             val callId = provider(call) ?: continue
             if (!verifier(callId)) continue // could throw a RejectedCallIdException
@@ -214,6 +193,15 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
             }
             break
         }
+    }
+
+    on(CallFailed) { call, cause ->
+        if (cause !is RejectedCallIdException) return@on
+        logger.warn(
+            "Illegal call id retrieved or generated that is rejected by call id verifier: (url-encoded) " +
+                cause.illegalCallId.encodeURLParameter()
+        )
+        call.respond(HttpStatusCode.BadRequest)
     }
 }
 

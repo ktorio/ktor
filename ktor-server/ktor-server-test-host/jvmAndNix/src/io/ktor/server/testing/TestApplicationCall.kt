@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -16,7 +17,7 @@ class TestApplicationCall(
     readResponse: Boolean = false,
     closeRequest: Boolean = true,
     override val coroutineContext: CoroutineContext
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application), CoroutineScope {
 
     /**
      * Set to `true` when the request has been handled and a response has been produced

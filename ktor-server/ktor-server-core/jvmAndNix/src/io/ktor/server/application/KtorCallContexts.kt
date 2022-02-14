@@ -3,7 +3,6 @@
  */
 package io.ktor.server.application
 
-import io.ktor.http.content.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -85,34 +84,5 @@ public class OnCallRespondContext<PluginConfig : Any> internal constructor(
         val transformContext = TransformBodyContext(context.call.response.responseType)
 
         context.subject = transformContext.transform(context.subject)
-    }
-}
-
-/**
- * A context associated with the onCallRespond.afterTransform {...} handler. Allows you to transform the response binary data.
- * [OnCallRespondAfterTransformContext] is a receiver for [OnCallRespond.afterTransform] handler of your [PluginBuilder].
- *
- * @see CallContext
- **/
-@KtorDsl
-public class OnCallRespondAfterTransformContext<PluginConfig : Any> internal constructor(
-    pluginConfig: PluginConfig,
-    override val context: PipelineContext<Any, ApplicationCall>
-) : CallContext<PluginConfig>(pluginConfig, context) {
-    /**
-     * Specifies how to transform the response body already transformed into [OutgoingContent] before sending it to the
-     * client.
-     *
-     * @param transform An action that modifies [OutgoingContent] that needs to be sent to a client.
-     **/
-    public suspend fun transformBody(
-        transform: suspend TransformBodyContext.(body: OutgoingContent) -> OutgoingContent
-    ) {
-        val transformContext = TransformBodyContext(context.call.response.responseType)
-
-        val newContent = context.subject as? OutgoingContent
-            ?: throw noBinaryDataException("OutgoingContent", context.subject)
-
-        context.subject = transformContext.transform(newContent)
     }
 }
