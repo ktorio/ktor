@@ -5,7 +5,7 @@
 package io.ktor.resources
 
 import io.ktor.http.*
-import io.ktor.resources.serialisation.*
+import io.ktor.resources.serialization.*
 import io.ktor.util.*
 import kotlinx.serialization.*
 

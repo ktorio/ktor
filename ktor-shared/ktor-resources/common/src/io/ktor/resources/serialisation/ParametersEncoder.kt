@@ -2,10 +2,9 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.resources.serialisation
+package io.ktor.resources.serialization
 
 import io.ktor.http.*
-import io.ktor.resources.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*

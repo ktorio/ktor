@@ -8,7 +8,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*
-import io.ktor.resources.serialisation.*
+import io.ktor.resources.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources

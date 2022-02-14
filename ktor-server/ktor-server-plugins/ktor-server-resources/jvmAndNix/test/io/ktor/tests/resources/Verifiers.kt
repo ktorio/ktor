@@ -7,7 +7,7 @@ package io.ktor.tests.resources
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*
-import io.ktor.resources.serialisation.*
+import io.ktor.resources.serialization.*
 import io.ktor.server.plugins.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
