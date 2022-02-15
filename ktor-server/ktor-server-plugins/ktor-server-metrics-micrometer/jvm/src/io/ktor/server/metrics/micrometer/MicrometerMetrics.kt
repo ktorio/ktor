@@ -82,7 +82,7 @@ public class MicrometerMetricsConfig {
  *   the request (or 'n/a' if no throwable had been thrown).
  *   Please note, that if an exception is thrown after calling [ApplicationCall.respond()], the tag is still "n/a"
  */
-public val MicrometerMetrics: ApplicationPlugin<Application, MicrometerMetricsConfig, PluginInstance> =
+public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
     createApplicationPlugin("MicrometerMetrics", ::MicrometerMetricsConfig) {
 
         if (pluginConfig.metricName.isBlank()) {

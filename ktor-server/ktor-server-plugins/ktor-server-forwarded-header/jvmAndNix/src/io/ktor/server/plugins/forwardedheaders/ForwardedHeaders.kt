@@ -138,33 +138,35 @@ public data class ForwardedHeaderValue(
  * [ForwardedHeaders] plugin allows you to obtain information headers from the original request in reverse proxy
  * setups. For more information see https://datatracker.ietf.org/doc/html/rfc7239
  */
-public val ForwardedHeaders: ApplicationPlugin<Application, ForwardedHeadersConfig, PluginInstance> =
-    createApplicationPlugin("ForwardedHeaders", createConfiguration = { ForwardedHeadersConfig() }) {
-        fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue {
-            val map = value.params.associateByTo(HashMap(), { it.name }, { it.value })
+public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createApplicationPlugin(
+    "ForwardedHeaders",
+    ::ForwardedHeadersConfig
+) {
+    fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue {
+        val map = value.params.associateByTo(HashMap(), { it.name }, { it.value })
 
-            return ForwardedHeaderValue(
-                map.remove("host"),
-                map.remove("by"),
-                map.remove("for"),
-                map.remove("proto"),
-                map
-            )
-        }
-
-        fun ApplicationRequest.forwardedHeaders() =
-            headers.getAll(HttpHeaders.Forwarded)
-                ?.flatMap { it.split(',') }
-                ?.flatMap { parseHeaderValue(";$it") }?.map {
-                    parseForwardedValue(it)
-                }
-
-        on(BeforeCall) { call ->
-            val forwardedHeaders = call.request.forwardedHeaders() ?: return@on
-            call.attributes.put(FORWARDED_PARSED_KEY, forwardedHeaders)
-            pluginConfig.forwardedHeadersHandler.invoke(call.mutableOriginConnectionPoint, forwardedHeaders)
-        }
+        return ForwardedHeaderValue(
+            map.remove("host"),
+            map.remove("by"),
+            map.remove("for"),
+            map.remove("proto"),
+            map
+        )
     }
+
+    fun ApplicationRequest.forwardedHeaders() =
+        headers.getAll(HttpHeaders.Forwarded)
+            ?.flatMap { it.split(',') }
+            ?.flatMap { parseHeaderValue(";$it") }?.map {
+                parseForwardedValue(it)
+            }
+
+    on(BeforeCall) { call ->
+        val forwardedHeaders = call.request.forwardedHeaders() ?: return@on
+        call.attributes.put(FORWARDED_PARSED_KEY, forwardedHeaders)
+        pluginConfig.forwardedHeadersHandler.invoke(call.mutableOriginConnectionPoint, forwardedHeaders)
+    }
+}
 
 /**
  * Represents a hook that is executed when the server is setting up.

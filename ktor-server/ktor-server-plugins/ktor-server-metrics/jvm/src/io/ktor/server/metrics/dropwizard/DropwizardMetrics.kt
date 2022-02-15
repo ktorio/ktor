@@ -37,7 +37,7 @@ public class DropwizardMetricsConfig {
 /**
  * Dropwizard metrics support plugin. See https://ktor.io/servers/features/metrics.html for details.
  */
-public val DropwizardMetrics: ApplicationPlugin<Application, DropwizardMetricsConfig, PluginInstance> =
+public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
     createApplicationPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
         val duration = pluginConfig.registry.timer(name(pluginConfig.baseName, "duration"))
         val active = pluginConfig.registry.counter(name(pluginConfig.baseName, "active"))

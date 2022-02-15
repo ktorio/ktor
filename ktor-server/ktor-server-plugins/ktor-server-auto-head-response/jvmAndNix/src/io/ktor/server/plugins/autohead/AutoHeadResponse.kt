@@ -8,29 +8,26 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
  * A plugin that automatically respond to HEAD requests.
  */
-public val AutoHeadResponse: ApplicationPlugin<Application, Unit, PluginInstance> =
-    createApplicationPlugin("AutoHeadResponse") {
+public val AutoHeadResponse: ApplicationPlugin<Unit> = createApplicationPlugin("AutoHeadResponse") {
+    onCall { call ->
+        if (call.request.local.method != HttpMethod.Head) return@onCall
+        call.mutableOriginConnectionPoint.method = HttpMethod.Get
+    }
 
-        onCall { call ->
-            if (call.request.local.method != HttpMethod.Head) return@onCall
-            call.mutableOriginConnectionPoint.method = HttpMethod.Get
-        }
+    onCallRespond.afterTransform { call, _ ->
+        if (call.request.local.method != HttpMethod.Head) return@afterTransform
 
-        onCallRespond.afterTransform { call, _ ->
-            if (call.request.local.method != HttpMethod.Head) return@afterTransform
-
-            transformBody { body ->
-                if (body is OutgoingContent.NoContent) return@transformBody body
-                HeadResponse(body)
-            }
+        transformBody { body ->
+            if (body is OutgoingContent.NoContent) return@transformBody body
+            HeadResponse(body)
         }
     }
+}
 
 private class HeadResponse(val original: OutgoingContent) : OutgoingContent.NoContent() {
     override val status: HttpStatusCode? get() = original.status

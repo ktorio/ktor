@@ -12,7 +12,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * Defines an installable Plugin
+ * Defines an installable Plugin.
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
@@ -34,16 +34,26 @@ public interface Plugin<
 }
 
 /**
+ * Defines a Plugin that is installed into Application.
+ * @param TPipeline is the type of the pipeline this plugin is compatible with
+ * @param TConfiguration is the configuration object type for this Plugin
+ * @param TPlugin is the instance type of the Plugin object
+ */
+@Suppress("AddVarianceModifier")
+public interface BaseApplicationPlugin<
+    in TPipeline : Pipeline<*, ApplicationCall>,
+    out TConfiguration : Any,
+    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
+
+/**
  * Defines a Plugin that is installed into Application
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */
 @Suppress("AddVarianceModifier")
-public interface ApplicationPlugin<
-    in TPipeline : Pipeline<*, ApplicationCall>,
-    out TConfiguration : Any,
-    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
+public interface ApplicationPlugin<out TConfiguration : Any> :
+    BaseApplicationPlugin<Application, TConfiguration, PluginInstance>
 
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
@@ -174,7 +184,7 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
         "or migrate this plugin to `RouteScopedPlugin` to support installing into route."
 )
 public fun <P : Route, B : Any, F : Any> P.install(
-    plugin: ApplicationPlugin<P, B, F>,
+    plugin: BaseApplicationPlugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
     return install(plugin as Plugin<P, B, F>, configure)

@@ -191,18 +191,20 @@ public data class XForwardedHeaderValues(
  * [XForwardedHeaders] plugin allows you to obtain information headers from the original request in reverse proxy
  * setups. For more information see https://datatracker.ietf.org/doc/html/rfc7239
  */
-public val XForwardedHeaders: ApplicationPlugin<Application, XForwardedHeadersConfig, PluginInstance> =
-    createApplicationPlugin("XForwardedHeaders", createConfiguration = { XForwardedHeadersConfig() }) {
+public val XForwardedHeaders: ApplicationPlugin<XForwardedHeadersConfig> = createApplicationPlugin(
+    "XForwardedHeaders",
+    ::XForwardedHeadersConfig
+) {
+    onCall { call ->
+        val strategy = pluginConfig.xForwardedHeadersHandler
+        val headers = XForwardedHeaderValues(
+            protoHeader = pluginConfig.protoHeaders.firstNotNullOfOrNull { call.request.headers[it] },
+            forHeader = pluginConfig.forHeaders.firstNotNullOfOrNull { call.request.headers[it] },
+            hostHeader = pluginConfig.hostHeaders.firstNotNullOfOrNull { call.request.headers[it] },
+            httpsFlagHeader = pluginConfig.httpsFlagHeaders.firstNotNullOfOrNull { call.request.headers[it] },
+            portHeader = pluginConfig.portHeaders.firstNotNullOfOrNull { call.request.headers[it] },
+        )
 
-        onCall { call ->
-            val strategy = pluginConfig.xForwardedHeadersHandler
-            val headers = XForwardedHeaderValues(
-                protoHeader = pluginConfig.protoHeaders.firstNotNullOfOrNull { call.request.headers[it] },
-                forHeader = pluginConfig.forHeaders.firstNotNullOfOrNull { call.request.headers[it] },
-                hostHeader = pluginConfig.hostHeaders.firstNotNullOfOrNull { call.request.headers[it] },
-                httpsFlagHeader = pluginConfig.httpsFlagHeaders.firstNotNullOfOrNull { call.request.headers[it] },
-                portHeader = pluginConfig.portHeaders.firstNotNullOfOrNull { call.request.headers[it] },
-            )
-            strategy.invoke(call.mutableOriginConnectionPoint, headers)
-        }
+        strategy.invoke(call.mutableOriginConnectionPoint, headers)
     }
+}

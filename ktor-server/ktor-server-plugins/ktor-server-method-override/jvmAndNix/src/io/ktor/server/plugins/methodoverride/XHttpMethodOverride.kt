@@ -21,14 +21,16 @@ private object Setup : Hook<suspend (ApplicationCall) -> Unit> {
 /**
  * A plugin that supports overriding HTTP method by the `X-Http-Method-Override` header.
  */
-public val XHttpMethodOverride: ApplicationPlugin<Application, XHttpMethodOverrideConfig, PluginInstance> =
-    createApplicationPlugin("XHttpMethodOverride", ::XHttpMethodOverrideConfig) {
-        on(Setup) { call ->
-            call.request.header(pluginConfig.headerName)?.takeIf { it.isNotBlank() }?.let { methodOverride ->
-                call.mutableOriginConnectionPoint.method = HttpMethod.parse(methodOverride)
-            }
+public val XHttpMethodOverride: ApplicationPlugin<XHttpMethodOverrideConfig> = createApplicationPlugin(
+    "XHttpMethodOverride",
+    ::XHttpMethodOverrideConfig
+) {
+    on(Setup) { call ->
+        call.request.header(pluginConfig.headerName)?.takeIf { it.isNotBlank() }?.let { methodOverride ->
+            call.mutableOriginConnectionPoint.method = HttpMethod.parse(methodOverride)
         }
     }
+}
 
 /**
  * A config for [XHttpMethodOverride]

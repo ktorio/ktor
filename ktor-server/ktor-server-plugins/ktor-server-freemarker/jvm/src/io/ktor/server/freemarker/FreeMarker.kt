@@ -29,7 +29,7 @@ public class FreeMarkerContent(
  * A plugin that allows you to use FreeMarker templates as views within your application.
  * Provides the ability to respond with [FreeMarkerContent]
  */
-public val FreeMarker: ApplicationPlugin<Application, Configuration, PluginInstance> = createApplicationPlugin(
+public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugin(
     "FreeMarker",
     { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
 ) {

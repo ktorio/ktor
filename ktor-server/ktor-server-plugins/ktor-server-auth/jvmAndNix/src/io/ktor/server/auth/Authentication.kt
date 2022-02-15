@@ -74,7 +74,7 @@ public class Authentication(internal var config: AuthenticationConfig) {
         config = newConfiguration.copy()
     }
 
-    public companion object : ApplicationPlugin<Application, AuthenticationConfig, Authentication> {
+    public companion object : BaseApplicationPlugin<Application, AuthenticationConfig, Authentication> {
         override val key: AttributeKey<Authentication> = AttributeKey("AuthenticationHolder")
 
         override fun install(pipeline: Application, configure: AuthenticationConfig.() -> Unit): Authentication {

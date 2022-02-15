@@ -35,8 +35,8 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
     body: PluginBuilder<PluginConfigT>.() -> Unit
-): ApplicationPlugin<Application, PluginConfigT, PluginInstance> =
-    object : ApplicationPlugin<Application, PluginConfigT, PluginInstance> {
+): ApplicationPlugin<PluginConfigT> =
+    object : ApplicationPlugin<PluginConfigT> {
         override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
         override fun install(
@@ -119,8 +119,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
 public fun createApplicationPlugin(
     name: String,
     body: PluginBuilder<Unit>.() -> Unit
-): ApplicationPlugin<Application, Unit, PluginInstance> =
-    createApplicationPlugin(name, {}, body)
+): ApplicationPlugin<Unit> = createApplicationPlugin(name, {}, body)
 
 /**
  * Creates a [RouteScopedPlugin] that can be installed into [Application].

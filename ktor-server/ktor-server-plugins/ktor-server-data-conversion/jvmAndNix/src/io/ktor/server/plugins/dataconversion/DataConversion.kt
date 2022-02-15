@@ -14,7 +14,7 @@ import io.ktor.util.converters.DefaultConversionService
  * Object for installing [io.ktor.util.converters.DataConversion] plugin
  */
 public object DataConversion :
-    ApplicationPlugin<ApplicationCallPipeline, DataConversion.Configuration, DataConversion> {
+    BaseApplicationPlugin<ApplicationCallPipeline, DataConversion.Configuration, DataConversion> {
 
     override fun install(
         pipeline: ApplicationCallPipeline,
