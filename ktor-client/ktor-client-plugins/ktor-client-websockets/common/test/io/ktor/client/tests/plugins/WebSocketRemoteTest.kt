@@ -112,12 +112,17 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<ClientRequestException> {
+            var failed = false
+            try {
                 client.webSocketSession {
                     url("$TEST_SERVER/404")
                     header("Authorization", "<auth>")
                 }
+            } catch (cause: ClientRequestException) {
+                failed = true
             }
+
+            assertTrue(failed)
         }
     }
 
