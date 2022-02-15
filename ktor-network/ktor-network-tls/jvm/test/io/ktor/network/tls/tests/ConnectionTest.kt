@@ -24,7 +24,6 @@ import org.junit.*
 import org.junit.Ignore
 import org.junit.Test
 import java.io.*
-import java.net.*
 import java.net.ServerSocket
 import java.security.*
 import java.security.cert.*
@@ -32,7 +31,7 @@ import javax.net.ssl.*
 import kotlin.test.*
 
 @Suppress("UNCHECKED_CAST")
-class ConnectionTests {
+class ConnectionTest {
 
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(20)

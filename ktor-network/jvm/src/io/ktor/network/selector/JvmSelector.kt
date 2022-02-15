@@ -12,6 +12,11 @@ public actual interface Selectable : Closeable, DisposableHandle {
     public val suspensions: InterestSuspensionsMap
 
     /**
+     * Indicated if the selectable is closed.
+     */
+    public val isClosed: Boolean
+
+    /**
      * current interests
      */
     public val interestedOps: Int
