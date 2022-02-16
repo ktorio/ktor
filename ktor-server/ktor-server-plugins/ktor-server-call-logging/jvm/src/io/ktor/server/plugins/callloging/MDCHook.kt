@@ -9,13 +9,13 @@ import io.ktor.util.pipeline.*
 
 internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ApplicationCall, suspend () -> Unit) -> Unit> {
     override fun install(
-        application: ApplicationCallPipeline,
+        pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall, suspend () -> Unit) -> Unit
     ) {
         val mdcPhase = PipelinePhase("${phase.name}MDC")
-        application.insertPhaseBefore(phase, mdcPhase)
+        pipeline.insertPhaseBefore(phase, mdcPhase)
 
-        application.intercept(mdcPhase) {
+        pipeline.intercept(mdcPhase) {
             handler(call, ::proceed)
         }
     }

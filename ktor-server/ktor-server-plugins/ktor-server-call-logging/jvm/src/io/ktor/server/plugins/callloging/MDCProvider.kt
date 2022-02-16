@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.logging.*
 import io.ktor.util.*
 
-internal fun ApplicationPluginBuilder<CallLoggingConfig>.setupMDCProvider() {
+internal fun PluginBuilder<CallLoggingConfig>.setupMDCProvider() {
     application.pluginRegistry.put(KtorMDCProvider.key, KtorMDCProvider(pluginConfig.mdcEntries))
 }
 

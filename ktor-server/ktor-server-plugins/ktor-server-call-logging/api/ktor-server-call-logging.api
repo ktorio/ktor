@@ -10,10 +10,6 @@ public final class io/ktor/server/plugins/callloging/CallLoggingConfig {
 	public final fun setLogger (Lorg/slf4j/Logger;)V
 }
 
-public final class io/ktor/server/plugins/callloging/CallLogging$Plugin : io/ktor/server/application/BaseApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/callloging/CallLogging;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 public final class io/ktor/server/plugins/callloging/CallLoggingKt {
 	public static final fun getCallLogging ()Lio/ktor/server/application/ApplicationPlugin;
 }
