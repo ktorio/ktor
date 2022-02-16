@@ -38,5 +38,4 @@ bin/
 hs_err_pid*.log
 
 gradle-user-home
-kotlin-js-store
 
