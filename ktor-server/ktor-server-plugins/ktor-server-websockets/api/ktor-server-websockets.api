@@ -88,7 +88,7 @@ public final class io/ktor/server/websocket/WebSockets : kotlinx/coroutines/Coro
 	public final fun getTimeoutMillis ()J
 }
 
-public final class io/ktor/server/websocket/WebSockets$Plugin : io/ktor/server/application/ApplicationPlugin {
+public final class io/ktor/server/websocket/WebSockets$Plugin : io/ktor/server/application/BaseApplicationPlugin {
 	public final fun getEXTENSIONS_KEY ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/websocket/WebSockets;

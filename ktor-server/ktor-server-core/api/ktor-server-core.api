@@ -71,20 +71,23 @@ public final class io/ktor/server/application/ApplicationKt {
 	public static final fun getLog (Lio/ktor/server/application/Application;)Lorg/slf4j/Logger;
 }
 
-public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/Plugin {
+public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/BaseApplicationPlugin {
 }
 
 public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun getPluginRegistry (Lio/ktor/util/pipeline/Pipeline;)Lio/ktor/util/Attributes;
-	public static final fun install (Lio/ktor/server/routing/Route;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun install (Lio/ktor/server/routing/Route;Lio/ktor/server/application/BaseApplicationPlugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun install (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/ApplicationPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/BaseApplicationPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun install$default (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun plugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static final fun pluginOrNull (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)V
 	public static final fun uninstallAllPlugins (Lio/ktor/util/pipeline/Pipeline;)V
 	public static final fun uninstallPlugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
+}
+
+public abstract interface class io/ktor/server/application/BaseApplicationPlugin : io/ktor/server/application/Plugin {
 }
 
 public class io/ktor/server/application/CallContext {
@@ -1034,7 +1037,7 @@ public final class io/ktor/server/routing/Routing : io/ktor/server/routing/Route
 	public final fun trace (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/routing/Routing$Plugin : io/ktor/server/application/ApplicationPlugin {
+public final class io/ktor/server/routing/Routing$Plugin : io/ktor/server/application/BaseApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public final fun getRoutingCallFinished ()Lio/ktor/events/EventDefinition;
 	public final fun getRoutingCallStarted ()Lio/ktor/events/EventDefinition;

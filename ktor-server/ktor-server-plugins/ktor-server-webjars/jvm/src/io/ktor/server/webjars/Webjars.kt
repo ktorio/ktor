@@ -52,11 +52,8 @@ public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("
             try {
                 val location = extractWebJar(resourcePath, knownWebJars, locator)
                 val stream = WebjarsConfig::class.java.classLoader.getResourceAsStream(location) ?: return@onCall
-                call.respond(
-                    InputStreamContent(
-                        stream, ContentType.defaultForFilePath(fullPath), lastModified
-                    )
-                )
+                val content = InputStreamContent(stream, ContentType.defaultForFilePath(fullPath), lastModified)
+                call.respond(content)
             } catch (multipleFiles: MultipleMatchesException) {
                 call.respond(HttpStatusCode.InternalServerError)
             } catch (_: IllegalArgumentException) {
