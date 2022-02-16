@@ -25,6 +25,13 @@ public class DoubleReceiveConfig {
     public var cacheRawRequest: Boolean = true
 
     /**
+     * Indicates if a file should be used to cache raw requests. Otherwise, requests will be stored in memory.
+     *
+     * If [cacheRawRequest] is `false` then this setting is ignored.
+     */
+    public var useFileForCache: Boolean = PlatformUtils.IS_JVM
+
+    /**
      * Add filter to [DoubleReceive] plugin.
      * If [block] returns `true`, the body will not be cached in memory.
      */

@@ -2,8 +2,10 @@ public final class io/ktor/server/plugins/doublereceive/DoubleReceiveConfig {
 	public fun <init> ()V
 	public final fun excludeFromCache (Lkotlin/jvm/functions/Function2;)V
 	public final fun getCacheRawRequest ()Z
+	public final fun getUseFileForCache ()Z
 	public final fun maxSize (J)V
 	public final fun setCacheRawRequest (Z)V
+	public final fun setUseFileForCache (Z)V
 }
 
 public final class io/ktor/server/plugins/doublereceive/DoubleReceiveKt {
