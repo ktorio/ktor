@@ -126,6 +126,26 @@ class WebSocketRemoteTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testEchoWithSession() = clientTests(skipEngines) {
+        repeatCount = 1000
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            println(attempt)
+
+            val session = client.webSocketSession { url("$TEST_WEBSOCKET_SERVER/websockets/echo") }
+            session.send(Frame.Text("Hello, world"))
+
+            val actual = session.incoming.receive()
+            assertTrue(actual is Frame.Text)
+            assertEquals("Hello, world", actual.readText())
+            session.close()
+        }
+    }
+
     private suspend fun WebSocketSession.ping(salt: String) {
         outgoing.send(Frame.Text("text: $salt"))
         val frame = incoming.receive()
