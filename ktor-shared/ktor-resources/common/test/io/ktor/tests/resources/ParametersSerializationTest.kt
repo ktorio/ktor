@@ -5,7 +5,7 @@
 package io.ktor.tests.resources
 
 import io.ktor.http.*
-import io.ktor.resources.serialisation.*
+import io.ktor.resources.serialization.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
