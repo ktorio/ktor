@@ -165,8 +165,8 @@ public var HttpRequestBuilder.expectSuccess: Boolean
 
 internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttributeKey")
 
-internal interface HandlerWrapper
+internal sealed interface HandlerWrapper
 
-internal data class ExceptionHandlerWrapper(internal val handler: CallExceptionHandler) : HandlerWrapper
+internal class ExceptionHandlerWrapper(val handler: CallExceptionHandler) : HandlerWrapper
 
-internal data class RequestExceptionHandlerWrapper(internal val handler: CallRequestExceptionHandler) : HandlerWrapper
+internal class RequestExceptionHandlerWrapper(val handler: CallRequestExceptionHandler) : HandlerWrapper
