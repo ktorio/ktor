@@ -18,7 +18,7 @@ import kotlin.reflect.*
  * If you want to limit it, consider using [DoubleReceiveConfig.maxSize] method.
  *
  */
-public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig, PluginInstance> = createRouteScopedPlugin(
+public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteScopedPlugin(
     "DoubleReceive",
     { DoubleReceiveConfig() }
 ) {

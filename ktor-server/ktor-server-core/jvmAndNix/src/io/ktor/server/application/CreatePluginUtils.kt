@@ -77,7 +77,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
     body: PluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT, PluginInstance> = object : RouteScopedPlugin<PluginConfigT, PluginInstance> {
+): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
 
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
@@ -147,7 +147,7 @@ public fun createApplicationPlugin(
 public fun createRouteScopedPlugin(
     name: String,
     body: PluginBuilder<Unit>.() -> Unit
-): RouteScopedPlugin<Unit, PluginInstance> = createRouteScopedPlugin(name, {}, body)
+): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name, {}, body)
 
 private fun <
     PipelineT : ApplicationCallPipeline,

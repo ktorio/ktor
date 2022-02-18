@@ -59,42 +59,43 @@ private object BodyTransformed : Hook<suspend BodyTransformed.Context.(call: App
  * Plugin to support requests to specific content ranges.
  *
  * It is essential for streaming video and restarting downloads.
- *
  */
-public val PartialContent: RouteScopedPlugin<PartialContentConfig, PluginInstance> =
-    createRouteScopedPlugin("PartialContent", ::PartialContentConfig) {
-        onCall { call ->
-            if (call.request.ranges() == null) return@onCall
+public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRouteScopedPlugin(
+    "PartialContent",
+    ::PartialContentConfig
+) {
+    onCall { call ->
+        if (call.request.ranges() == null) return@onCall
 
-            if (!call.isGetOrHead()) {
-                val message = HttpStatusCode.MethodNotAllowed
-                    .description("Method ${call.request.local.method.value} is not allowed with range request")
-                if (!call.response.isCommitted) {
-                    call.respond(message)
-                }
-                return@onCall
+        if (!call.isGetOrHead()) {
+            val message = HttpStatusCode.MethodNotAllowed
+                .description("Method ${call.request.local.method.value} is not allowed with range request")
+            if (!call.response.isCommitted) {
+                call.respond(message)
             }
-
-            call.attributes.put(SuppressionAttribute, true)
+            return@onCall
         }
 
-        on(BodyTransformed) { call, message ->
-            val rangeSpecifier = call.request.ranges()
-            if (rangeSpecifier == null) {
-                if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
-                    transformBodyTo(PartialOutgoingContent.Bypass(message))
-                }
-                return@on
-            }
+        call.attributes.put(SuppressionAttribute, true)
+    }
 
-            if (!call.isGetOrHead()) return@on
-
+    on(BodyTransformed) { call, message ->
+        val rangeSpecifier = call.request.ranges()
+        if (rangeSpecifier == null) {
             if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
-                val length = message.contentLength ?: return@on
-                tryProcessRange(message, call, rangeSpecifier, length, pluginConfig.maxRangeCount)
+                transformBodyTo(PartialOutgoingContent.Bypass(message))
             }
+            return@on
+        }
+
+        if (!call.isGetOrHead()) return@on
+
+        if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
+            val length = message.contentLength ?: return@on
+            tryProcessRange(message, call, rangeSpecifier, length, pluginConfig.maxRangeCount)
         }
     }
+}
 
 private suspend fun BodyTransformed.Context.tryProcessRange(
     content: OutgoingContent.ReadChannelContent,

@@ -194,7 +194,7 @@ internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCa
  *
  * [CallId] plugin will be installed to [BeforeSetup.phase] into [ApplicationCallPipeline].
  */
-public val CallId: RouteScopedPlugin<CallIdConfig, PluginInstance> = createRouteScopedPlugin(
+public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
     "CallId",
     ::CallIdConfig
 ) {

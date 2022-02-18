@@ -39,7 +39,6 @@ public interface Plugin<
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */
-@Suppress("AddVarianceModifier")
 public interface BaseApplicationPlugin<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
@@ -47,11 +46,8 @@ public interface BaseApplicationPlugin<
 
 /**
  * Defines a Plugin that is installed into Application
- * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
- * @param TPlugin is the instance type of the Plugin object
  */
-@Suppress("AddVarianceModifier")
 public interface ApplicationPlugin<out TConfiguration : Any> :
     BaseApplicationPlugin<Application, TConfiguration, PluginInstance>
 
@@ -91,7 +87,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    if (this is Route && plugin is RouteScopedPlugin) {
+    if (this is Route && plugin is BaseRouteScopedPlugin) {
         return installIntoRoute(plugin, configure)
     }
 
@@ -122,7 +118,7 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
 }
 
 private fun <B : Any, F : Any> Route.installIntoRoute(
-    plugin: RouteScopedPlugin<B, F>,
+    plugin: BaseRouteScopedPlugin<B, F>,
     configure: B.() -> Unit = {}
 ): F {
     if (pluginRegistry.getOrNull(plugin.key) != null) {
@@ -159,7 +155,7 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
 
 private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
     fakePipeline: P,
-    plugin: RouteScopedPlugin<B, F>,
+    plugin: BaseRouteScopedPlugin<B, F>,
     pluginInstance: F
 ) {
     items.forEach { phase ->

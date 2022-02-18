@@ -45,7 +45,7 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
 /**
  * A plugin for compressing a response based on specific conditions and the ability of the client to decompress it
  */
-public val Compression: RouteScopedPlugin<CompressionConfig, PluginInstance> = createRouteScopedPlugin(
+public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScopedPlugin(
     "Compression",
     ::CompressionConfig
 ) {

@@ -90,6 +90,9 @@ public final class io/ktor/server/application/ApplicationPluginKt {
 public abstract interface class io/ktor/server/application/BaseApplicationPlugin : io/ktor/server/application/Plugin {
 }
 
+public abstract interface class io/ktor/server/application/BaseRouteScopedPlugin : io/ktor/server/application/Plugin {
+}
+
 public class io/ktor/server/application/CallContext {
 	protected fun getContext ()Lio/ktor/util/pipeline/PipelineContext;
 	public final fun getPluginConfig ()Ljava/lang/Object;
@@ -181,7 +184,7 @@ public abstract class io/ktor/server/application/PluginBuilder {
 public final class io/ktor/server/application/PluginInstance {
 }
 
-public abstract interface class io/ktor/server/application/RouteScopedPlugin : io/ktor/server/application/Plugin {
+public abstract interface class io/ktor/server/application/RouteScopedPlugin : io/ktor/server/application/BaseRouteScopedPlugin {
 }
 
 public final class io/ktor/server/application/RouteScopedPluginKt {
