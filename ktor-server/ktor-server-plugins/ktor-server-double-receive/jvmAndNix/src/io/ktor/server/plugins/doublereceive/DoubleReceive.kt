@@ -43,10 +43,15 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig, PluginInstance>
         }
 
         val value = body as? ByteReadChannel ?: return@on body
-        val content = if (pluginConfig.useFileForCache) {
+
+        val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             FileCache(value, context = coroutineContext)
         } else {
             MemoryCache(body, coroutineContext)
+        }
+
+        call.afterFinish {
+            content.dispose()
         }
 
         cache[DoubleReceiveCache::class] = content

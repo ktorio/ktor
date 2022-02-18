@@ -15,6 +15,7 @@ import io.ktor.util.reflect.*
 @KtorDsl
 public class DoubleReceiveConfig {
     internal val filters = mutableListOf<(ApplicationCall, Any) -> Boolean>()
+    internal val shouldUseFileCache = mutableListOf<(ApplicationCall) -> Boolean>()
 
     /**
      * Cache request before applying any transformations.
@@ -25,18 +26,23 @@ public class DoubleReceiveConfig {
     public var cacheRawRequest: Boolean = true
 
     /**
-     * Indicates if a file should be used to cache raw requests. Otherwise, requests will be stored in memory.
-     *
-     * If [cacheRawRequest] is `false` then this setting is ignored.
-     */
-    public var useFileForCache: Boolean = PlatformUtils.IS_JVM
-
-    /**
      * Add filter to [DoubleReceive] plugin.
-     * If [block] returns `true`, the body will not be cached in memory.
+     * Can be called multiple times, if any of [block]s returns `true`, the request body will not be cached in memory.
      */
     public fun excludeFromCache(block: (call: ApplicationCall, body: Any) -> Boolean) {
         filters += block
+    }
+
+    /**
+     * Specifies if a temp file should be used to cache request body.
+     *
+     * Works only if [cacheRawRequest] is `true`.
+     *
+     * Can be called multiple times, and if any of [block]s returns `true`, the request body will be cached in file.
+     * Otherwise, it will be cached in memory.
+     */
+    public fun useFileForCache(block: (call: ApplicationCall) -> Boolean = { true }) {
+        shouldUseFileCache += block
     }
 
     /**
