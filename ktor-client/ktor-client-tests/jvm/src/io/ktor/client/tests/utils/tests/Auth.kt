@@ -126,6 +126,9 @@ internal fun Application.authTestServer() {
                         delay(call.parameters["delay"]?.toLong() ?: 0)
                         call.respond("second")
                     }
+                    get("refresh-401") {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
                 }
                 get("first") {
                     val header = call.request.headers[HttpHeaders.Authorization]
