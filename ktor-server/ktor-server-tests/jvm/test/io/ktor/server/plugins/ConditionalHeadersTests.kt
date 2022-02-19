@@ -42,7 +42,7 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     private fun withConditionalApplication(body: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
         application {
             install(ConditionalHeaders) {
-                version { listOf(LastModifiedVersion(date)) }
+                version { _, _ -> listOf(LastModifiedVersion(date)) }
             }
             routing {
                 handle {
@@ -70,7 +70,7 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
             routing {
                 route("1") {
                     install(ConditionalHeaders) {
-                        version { listOf(LastModifiedVersion(date)) }
+                        version { _, _ -> listOf(LastModifiedVersion(date)) }
                     }
                     get { call.respond("response") }
                 }
@@ -86,6 +86,32 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
 
         client.get("/2") {
             header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("response", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testUseHeadersFromResponse(): Unit = testApplication {
+        application {
+            install(ConditionalHeaders)
+            routing {
+                get {
+                    call.response.header(HttpHeaders.LastModified, date.toHttpDateString())
+                    call.respond("response")
+                }
+            }
+        }
+        client.get {
+            header(HttpHeaders.IfModifiedSince, date.toHttpDateString())
+        }.let {
+            assertEquals(HttpStatusCode.NotModified, it.status)
+            assertEquals("", it.bodyAsText())
+        }
+
+        client.get {
+            header(HttpHeaders.IfModifiedSince, date.minusDays(1).toHttpDateString())
         }.let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("response", response.bodyAsText())
@@ -109,7 +135,7 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     fun testIfModifiedSinceEqZoned() = testApplication {
         application {
             install(ConditionalHeaders) {
-                version { listOf(LastModifiedVersion(date)) }
+                version { _, _ -> listOf(LastModifiedVersion(date)) }
             }
             routing {
                 handle {
