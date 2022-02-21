@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * [ResponseObserver] callback.
@@ -64,7 +65,7 @@ public class ResponseObserver(
                 val newResponse = response.wrapWithContent(responseContent)
                 val sideResponse = response.call.wrapWithContent(loggingContent).response
 
-                scope.launch {
+                scope.launch(getResponseObserverContext()) {
                     try {
                         plugin.responseHandler(sideResponse)
                     } catch (_: Throwable) {
@@ -81,6 +82,8 @@ public class ResponseObserver(
         }
     }
 }
+
+internal expect suspend fun getResponseObserverContext(): CoroutineContext
 
 /**
  * Install [ResponseObserver] plugin in client.

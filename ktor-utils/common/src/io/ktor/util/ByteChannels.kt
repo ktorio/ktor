@@ -5,7 +5,6 @@
 package io.ktor.util
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -30,9 +29,7 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
                 }
             }
 
-            if (this is ByteChannel) {
-                closedCause?.let { throw it }
-            }
+            closedCause?.let { throw it }
         } catch (cause: Throwable) {
             this@split.cancel(cause)
             first.cancel(cause)

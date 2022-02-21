@@ -102,6 +102,8 @@ kotlin.sourceSets {
             if (currentJdk >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
+            implementation(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
         }
     }
 

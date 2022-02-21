@@ -83,9 +83,7 @@ public fun ByteReadChannel.deflated(
             channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
         }
 
-        if (this is ByteChannel) {
-            closedCause?.let { throw it }
-        }
+        closedCause?.let { throw it }
 
         deflater.finish()
         channel.deflateWhile(deflater, compressed) { !deflater.finished() }
