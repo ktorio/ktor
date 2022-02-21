@@ -7,6 +7,7 @@ package io.ktor.client.plugins.compression
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
@@ -21,13 +22,18 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/identity").body<String>()
-            assertEquals("Compressed response!", response)
+            val response = client.get("$TEST_URL/identity")
+            val contentEncoding = response.headers[HttpHeaders.ContentEncoding]
+            // JS browser engines don't have Content-Encoding header for identity encoding
+            if (contentEncoding != null) {
+                assertEquals("identity", contentEncoding)
+            }
+            assertEquals("Compressed response!", response.body<String>())
         }
     }
 
     @Test
-    fun testDeflate() = clientTests {
+    fun testDeflate() = clientTests(listOf("native:CIO")) {
         config {
             ContentEncoding {
                 deflate()
@@ -35,13 +41,14 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/deflate").body<String>()
-            assertEquals("Compressed response!", response)
+            val response = client.get("$TEST_URL/deflate")
+            assertEquals("deflate", response.headers[HttpHeaders.ContentEncoding])
+            assertEquals("Compressed response!", response.body<String>())
         }
     }
 
     @Test
-    fun testGZip() = clientTests {
+    fun testGZip() = clientTests(listOf("native:CIO")) {
         config {
             ContentEncoding {
                 gzip()
@@ -49,8 +56,24 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/gzip").body<String>()
-            assertEquals("Compressed response!", response)
+            val response = client.get("$TEST_URL/gzip")
+            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+            assertEquals("Compressed response!", response.body<String>())
+        }
+    }
+
+    @Test
+    fun testGZipEmpty() = clientTests {
+        config {
+            ContentEncoding {
+                gzip()
+            }
+        }
+
+        test { client ->
+            val response = client.get("$TEST_URL/gzip-empty")
+            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+            assertEquals("", response.body<String>())
         }
     }
 }

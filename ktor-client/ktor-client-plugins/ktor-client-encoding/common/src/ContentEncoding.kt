@@ -127,6 +127,11 @@ public class ContentEncoding private constructor(
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) { (type, content) ->
+                val method = context.request.method
+                val contentLength = context.response.contentLength()
+
+                if (contentLength == 0L) return@intercept
+                if (contentLength == null && method == HttpMethod.Head) return@intercept
                 if (content !is ByteReadChannel) return@intercept
 
                 val response = with(plugin) {
