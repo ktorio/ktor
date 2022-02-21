@@ -1,6 +1,6 @@
 public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeadersConfig {
 	public fun <init> ()V
-	public final fun version (Lkotlin/jvm/functions/Function2;)V
+	public final fun version (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/server/plugins/conditionalheaders/ConditionalHeadersKt {

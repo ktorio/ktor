@@ -16,30 +16,33 @@ import io.ktor.util.*
  */
 @KtorDsl
 public class ConditionalHeadersConfig {
-    internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
+    internal val versionProviders = mutableListOf<suspend (ApplicationCall, OutgoingContent) -> List<Version>>()
 
     init {
-        versionProviders.add { content -> content.versions }
-        versionProviders.add { content -> content.headers.parseVersions() }
+        versionProviders.add { _, content -> content.versions }
+        versionProviders.add { call, content ->
+            content.headers.parseVersions().takeIf { it.isNotEmpty() }
+                ?: call.response.headers.allValues().parseVersions()
+        }
     }
 
     /**
-     * Registers a function that can fetch version list for a given [OutgoingContent]
+     * Registers a function that can fetch version list for a given [ApplicationCall] and [OutgoingContent]
      */
-    public fun version(provider: suspend (OutgoingContent) -> List<Version>) {
+    public fun version(provider: suspend (ApplicationCall, OutgoingContent) -> List<Version>) {
         versionProviders.add(provider)
     }
 }
 
-internal val ConditionalHeadersKey: AttributeKey<List<suspend (OutgoingContent) -> List<Version>>> =
+internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, OutgoingContent) -> List<Version>>> =
     AttributeKey("ConditionalHeadersKey")
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
  */
 public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
-    val versionProviders = application.attributes.getOrNull(ConditionalHeadersKey)
-    return versionProviders?.flatMapTo(ArrayList(versionProviders.size)) { it(content) } ?: emptyList()
+    val versionProviders = application.attributes.getOrNull(VersionProvidersKey)
+    return versionProviders?.flatMap { it(this, content) } ?: emptyList()
 }
 
 /**
@@ -51,7 +54,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 ) {
     val versionProviders = pluginConfig.versionProviders
 
-    application.attributes.put(ConditionalHeadersKey, versionProviders)
+    application.attributes.put(VersionProvidersKey, versionProviders)
 
     fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
         for (version in versions) {

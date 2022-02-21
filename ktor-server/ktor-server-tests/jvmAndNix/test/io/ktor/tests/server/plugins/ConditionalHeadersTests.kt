@@ -21,7 +21,7 @@ class ETagsTest {
     private fun withConditionalApplication(body: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
         application {
             install(ConditionalHeaders) {
-                version { listOf(EntityTagVersion("tag1")) }
+                version { _, _ -> listOf(EntityTagVersion("tag1")) }
             }
             routing {
                 handle {
