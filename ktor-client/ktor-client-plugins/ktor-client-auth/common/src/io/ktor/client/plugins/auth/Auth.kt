@@ -21,6 +21,11 @@ public class Auth private constructor(
 ) {
 
     public companion object Plugin : HttpClientPlugin<Auth, Auth> {
+        /**
+         * Shows that request should skip auth and refresh token procedure
+         */
+        public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
+
         override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
 
         override fun prepare(block: Auth.() -> Unit): Auth {
@@ -35,11 +40,10 @@ public class Auth private constructor(
                 }
             }
 
-            val circuitBreaker = AttributeKey<Unit>("auth-request")
             scope.plugin(HttpSend).intercept { context ->
                 val origin = execute(context)
                 if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
-                if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
+                if (origin.request.attributes.contains(AuthCircuitBreaker)) return@intercept origin
 
                 var call = origin
 
@@ -61,7 +65,7 @@ public class Auth private constructor(
                     val request = HttpRequestBuilder()
                     request.takeFromWithExecutionContext(context)
                     provider.addRequestHeaders(request, authHeader)
-                    request.attributes.put(circuitBreaker, Unit)
+                    request.attributes.put(AuthCircuitBreaker, Unit)
 
                     call = execute(request)
                 }

@@ -33,7 +33,15 @@ public class RefreshTokensParams(
     public val client: HttpClient,
     public val response: HttpResponse,
     public val oldTokens: BearerTokens?
-)
+) {
+
+    /**
+     * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
+     */
+    public fun HttpRequestBuilder.markAsRefreshTokenRequest() {
+        attributes.put(Auth.AuthCircuitBreaker, Unit)
+    }
+}
 
 /**
  * [BearerAuthProvider] configuration.

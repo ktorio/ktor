@@ -4,6 +4,7 @@ public final class io/ktor/client/plugins/auth/Auth {
 }
 
 public final class io/ktor/client/plugins/auth/Auth$Plugin : io/ktor/client/plugins/HttpClientPlugin {
+	public final fun getAuthCircuitBreaker ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/plugins/auth/Auth;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
@@ -141,5 +142,6 @@ public final class io/ktor/client/plugins/auth/providers/RefreshTokensParams {
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public final fun getOldTokens ()Lio/ktor/client/plugins/auth/providers/BearerTokens;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+	public final fun markAsRefreshTokenRequest (Lio/ktor/client/request/HttpRequestBuilder;)V
 }
 

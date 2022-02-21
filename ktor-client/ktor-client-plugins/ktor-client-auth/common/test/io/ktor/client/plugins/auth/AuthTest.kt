@@ -13,7 +13,6 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -389,7 +388,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var clientWithAuth: HttpClient? = null
+    private lateinit var clientWithAuth: HttpClient
 
     @Suppress("JoinDeclarationAndAssignment")
     @OptIn(DelicateCoroutinesApi::class)
@@ -404,18 +403,45 @@ class AuthTest : ClientLoader() {
                         loadTokens { BearerTokens("first", "first") }
 
                         refreshTokens {
-                            val token = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
                             BearerTokens(token, token)
                         }
                     }
                 }
             }
 
-            val first = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
-            val second = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+            val first = clientWithAuth.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            val second = clientWithAuth.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
 
             assertEquals("OK", first)
             assertEquals("OK", second)
+        }
+    }
+
+    @Suppress("JoinDeclarationAndAssignment")
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun testRefreshReplies401() = clientTests {
+        test { client ->
+            clientWithAuth = client.config {
+                developmentMode = true
+
+                install(Auth) {
+                    bearer {
+                        loadTokens { BearerTokens("first", "first") }
+
+                        refreshTokens {
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/refresh-401") {
+                                markAsRefreshTokenRequest()
+                            }.bodyAsText()
+                            BearerTokens(token, token)
+                        }
+                    }
+                }
+            }
+
+            val result = clientWithAuth.get("$TEST_SERVER/auth/bearer/second")
+            assertEquals(HttpStatusCode.Unauthorized, result.status)
         }
     }
 
