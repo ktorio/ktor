@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CallValidatorTest {
     private var firstHandler = 0
     private var secondHandler = 0
@@ -22,6 +23,8 @@ class CallValidatorTest {
 
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
+        var thirdHandler = 0
+
         config {
             engine {
                 addHandler { respondOk() }
@@ -36,22 +39,29 @@ class CallValidatorTest {
                     secondHandler++
                     assertTrue(it is CallValidatorTestException)
                 }
+
+                handleResponseExceptionWithRequest { cause, request ->
+                    thirdHandler++
+                    assertTrue(cause is CallValidatorTestException)
+                    assertNotNull(request)
+                }
             }
         }
 
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
-            var thirdHandler = false
+            var fourthHandler = false
             try {
                 client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
-                thirdHandler = true
+                fourthHandler = true
             }
 
             assertEquals(1, firstHandler)
             assertEquals(1, secondHandler)
-            assertTrue(thirdHandler)
+            assertEquals(1, thirdHandler)
+            assertTrue(fourthHandler)
         }
     }
 
@@ -66,6 +76,11 @@ class CallValidatorTest {
                     assertTrue(it is CallValidatorTestException)
                     firstHandler++
                 }
+                handleResponseExceptionWithRequest { cause, request ->
+                    assertTrue(cause is CallValidatorTestException)
+                    assertNotNull(request)
+                    secondHandler++
+                }
             }
         }
         test { client ->
@@ -75,6 +90,7 @@ class CallValidatorTest {
             }
 
             assertEquals(1, firstHandler)
+            assertEquals(1, secondHandler)
         }
     }
 
