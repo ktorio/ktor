@@ -22,19 +22,3 @@ public final class io/ktor/server/plugins/callloging/CallLogging$Plugin : io/kto
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/plugins/callloging/CallLoggingConfig {
-	public fun <init> ()V
-	public final fun disableDefaultColors ()V
-	public final fun filter (Lkotlin/jvm/functions/Function1;)V
-	public final fun format (Lkotlin/jvm/functions/Function1;)V
-	public final fun getLevel ()Lorg/slf4j/event/Level;
-	public final fun getLogger ()Lorg/slf4j/Logger;
-	public final fun mdc (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public final fun setLevel (Lorg/slf4j/event/Level;)V
-	public final fun setLogger (Lorg/slf4j/Logger;)V
-}
-
-public final class io/ktor/server/plugins/callloging/CallLoggingKt {
-	public static final fun getCallLogging ()Lio/ktor/server/application/ApplicationPlugin;
-}
-
