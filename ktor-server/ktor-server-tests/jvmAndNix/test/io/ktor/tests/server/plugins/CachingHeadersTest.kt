@@ -38,7 +38,7 @@ class CachingHeadersTest {
     fun addNoStore(): Unit = test(
         configure = {
             install(CachingHeaders) {
-                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
             }
         },
         test = { response ->
@@ -50,8 +50,8 @@ class CachingHeadersTest {
     fun testAddMaxAgeAndNoStore(): Unit = test(
         configure = {
             install(CachingHeaders) {
-                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-                options { CachingOptions(CacheControl.MaxAge(15)) }
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(CacheControl.MaxAge(15)) }
             }
         },
         test = { response ->
@@ -68,8 +68,8 @@ class CachingHeadersTest {
             routing {
                 route("/1") {
                     install(CachingHeaders) {
-                        options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-                        options { CachingOptions(CacheControl.MaxAge(15)) }
+                        options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                        options { _, _ -> CachingOptions(CacheControl.MaxAge(15)) }
                     }
                     get {
                         call.respondText("test") {
