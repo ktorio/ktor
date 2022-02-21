@@ -77,6 +77,11 @@ public class HttpCallValidator internal constructor(
          * Add [CallExceptionHandler].
          * Last added handler executes first.
          */
+        @Deprecated(
+            "Consider using `handleResponseExceptionWithRequest` instead",
+            replaceWith = ReplaceWith("this.handleResponseExceptionWithRequest(block)"),
+            level = DeprecationLevel.WARNING
+        )
         public fun handleResponseException(block: CallExceptionHandler) {
             responseExceptionHandlers += ExceptionHandlerWrapper(block)
         }
