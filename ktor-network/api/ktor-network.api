@@ -45,6 +45,7 @@ public abstract interface class io/ktor/network/selector/Selectable : java/io/Cl
 	public abstract fun getInterestedOps ()I
 	public abstract fun getSuspensions ()Lio/ktor/network/selector/InterestSuspensionsMap;
 	public abstract fun interestOp (Lio/ktor/network/selector/SelectInterest;Z)V
+	public abstract fun isClosed ()Z
 }
 
 public abstract interface class io/ktor/network/selector/SelectorManager : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
