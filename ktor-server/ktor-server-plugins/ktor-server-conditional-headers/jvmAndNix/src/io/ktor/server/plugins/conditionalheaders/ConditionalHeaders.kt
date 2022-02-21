@@ -45,7 +45,7 @@ public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<V
 /**
  * A plugin that avoids sending the body of content if it has not changed since the last request.
  */
-public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = createRouteScopedPlugin(
     "ConditionalHeaders",
     ::ConditionalHeadersConfig
 ) {
@@ -90,7 +90,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig, Plugi
 /**
  * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it
  * produces 410 Precondition Failed or 304 Not modified responses when necessary.
- * Otherwise sets ETag header and delegates to the [block] function
+ * Otherwise, sets ETag header and delegates to the [block] function
  *
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details

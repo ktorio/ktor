@@ -104,7 +104,7 @@ public class WebSockets private constructor(
     /**
      * Plugin installation object.
      */
-    public companion object Plugin : ApplicationPlugin<Application, WebSocketOptions, WebSockets> {
+    public companion object Plugin : BaseApplicationPlugin<Application, WebSocketOptions, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("WebSockets")
 
         /**

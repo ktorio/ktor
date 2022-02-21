@@ -16,118 +16,117 @@ import io.ktor.util.*
 /**
  * A CORS plugin that allows you to configure allowed hosts, HTTP methods, headers set by the client, and so on.
  */
-public val CORS: ApplicationPlugin<Application, CORSConfig, PluginInstance> =
-    createApplicationPlugin("CORS", ::CORSConfig) {
-        val numberRegex = "[0-9]+".toRegex()
-        val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
-        val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
-        val allowCredentials: Boolean = pluginConfig.allowCredentials
-        val allHeaders: Set<String> =
-            (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
-                if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
-            }
-        val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
-        val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
-        val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
-        val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
-        val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
-            .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-        val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
-            .map { it.value }
-            .sorted()
-            .joinToString(", ")
-        val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
-        val exposedHeaders = when {
-            pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
-            else -> null
+public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS", ::CORSConfig) {
+    val numberRegex = "[0-9]+".toRegex()
+    val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
+    val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
+    val allowCredentials: Boolean = pluginConfig.allowCredentials
+    val allHeaders: Set<String> =
+        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
+            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
         }
-        val hostsNormalized = HashSet(
-            pluginConfig.hosts
-                .filterNot { it.contains('*') }
-                .map { normalizeOrigin(it, numberRegex) }
-        )
-        val hostsWithWildcard = HashSet(
-            pluginConfig.hosts
-                .filter { it.contains('*') }
-                .map {
-                    val normalizedOrigin = normalizeOrigin(it, numberRegex)
-                    val (prefix, suffix) = normalizedOrigin.split('*')
-                    prefix to suffix
-                }
-        )
-
-        /**
-         * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
-         * plugin installation
-         */
-        /**
-         * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
-         * plugin installation
-         */
-        onCall { call ->
-            if (!allowsAnyHost || allowCredentials) {
-                call.corsVary()
+    val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
+    val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
+    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
+    val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
+    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
+        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
+    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
+        .map { it.value }
+        .sorted()
+        .joinToString(", ")
+    val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
+    val exposedHeaders = when {
+        pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
+        else -> null
+    }
+    val hostsNormalized = HashSet(
+        pluginConfig.hosts
+            .filterNot { it.contains('*') }
+            .map { normalizeOrigin(it, numberRegex) }
+    )
+    val hostsWithWildcard = HashSet(
+        pluginConfig.hosts
+            .filter { it.contains('*') }
+            .map {
+                val normalizedOrigin = normalizeOrigin(it, numberRegex)
+                val (prefix, suffix) = normalizedOrigin.split('*')
+                prefix to suffix
             }
+    )
 
-            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
+    /**
+     * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
+     * plugin installation
+     */
+    /**
+     * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
+     * plugin installation
+     */
+    onCall { call ->
+        if (!allowsAnyHost || allowCredentials) {
+            call.corsVary()
+        }
 
-            val checkOrigin = checkOrigin(
-                origin,
-                call.request.origin,
-                allowSameOrigin,
-                allowsAnyHost,
-                hostsNormalized,
-                hostsWithWildcard,
-                numberRegex
-            )
-            when (checkOrigin) {
-                OriginCheckResult.OK -> {
-                }
-                OriginCheckResult.SkipCORS -> return@onCall
-                OriginCheckResult.Failed -> {
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
+
+        val checkOrigin = checkOrigin(
+            origin,
+            call.request.origin,
+            allowSameOrigin,
+            allowsAnyHost,
+            hostsNormalized,
+            hostsWithWildcard,
+            numberRegex
+        )
+        when (checkOrigin) {
+            OriginCheckResult.OK -> {
+            }
+            OriginCheckResult.SkipCORS -> return@onCall
+            OriginCheckResult.Failed -> {
+                call.respondCorsFailed()
+                return@onCall
+            }
+        }
+
+        if (!allowNonSimpleContentTypes) {
+            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            if (contentType != null) {
+                if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
                     call.respondCorsFailed()
                     return@onCall
                 }
             }
+        }
 
-            if (!allowNonSimpleContentTypes) {
-                val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
-                if (contentType != null) {
-                    if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                        call.respondCorsFailed()
-                        return@onCall
-                    }
-                }
-            }
+        if (call.request.httpMethod == HttpMethod.Options) {
+            call.respondPreflight(
+                origin,
+                methodsListHeaderValue,
+                headersList,
+                methods,
+                allowsAnyHost,
+                allowCredentials,
+                maxAgeHeaderValue,
+                headerPredicates,
+                allHeadersSet
+            )
+            return@onCall
+        }
 
-            if (call.request.httpMethod == HttpMethod.Options) {
-                call.respondPreflight(
-                    origin,
-                    methodsListHeaderValue,
-                    headersList,
-                    methods,
-                    allowsAnyHost,
-                    allowCredentials,
-                    maxAgeHeaderValue,
-                    headerPredicates,
-                    allHeadersSet
-                )
-                return@onCall
-            }
+        if (!call.corsCheckCurrentMethod(methods)) {
+            call.respondCorsFailed()
+            return@onCall
+        }
 
-            if (!call.corsCheckCurrentMethod(methods)) {
-                call.respondCorsFailed()
-                return@onCall
-            }
+        call.accessControlAllowOrigin(origin, allowsAnyHost, allowCredentials)
+        call.accessControlAllowCredentials(allowCredentials)
 
-            call.accessControlAllowOrigin(origin, allowsAnyHost, allowCredentials)
-            call.accessControlAllowCredentials(allowCredentials)
-
-            if (exposedHeaders != null) {
-                call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
-            }
+        if (exposedHeaders != null) {
+            call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
         }
     }
+}
 
 /**
  * CORS plugin configuration

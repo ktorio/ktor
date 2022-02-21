@@ -20,9 +20,8 @@ internal var ApplicationCall.ignoreTrailingSlash: Boolean
 /**
  * Plugin that ignores trailing slashes while resolving urls
  */
-public val IgnoreTrailingSlash: ApplicationPlugin<Application, Unit, PluginInstance> =
-    createApplicationPlugin("IgnoreTrailingSlash") {
-        onCall { call ->
-            call.ignoreTrailingSlash = true
-        }
+public val IgnoreTrailingSlash: ApplicationPlugin<Unit> = createApplicationPlugin("IgnoreTrailingSlash") {
+    onCall { call ->
+        call.ignoreTrailingSlash = true
     }
+}

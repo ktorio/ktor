@@ -37,7 +37,7 @@ public class DefaultHeadersConfig {
  * Adds the standard `Date` and `Server` HTTP headers and provides the ability
  * to add additional default headers into each response.
  */
-public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRouteScopedPlugin(
     "DefaultHeaders",
     createConfiguration = {
         DefaultHeadersConfig()

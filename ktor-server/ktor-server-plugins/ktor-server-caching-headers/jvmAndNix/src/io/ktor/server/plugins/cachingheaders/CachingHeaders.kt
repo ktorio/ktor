@@ -30,7 +30,7 @@ public class CachingHeadersConfig {
  * A plugin that adds the capability to configure the Cache-Control and Expires headers using [CachingOptions].
  * It invokes [CachingHeadersConfig.optionsProviders] for every response and use first non-null [CachingOptions]
  */
-public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRouteScopedPlugin(
     "Caching Headers",
     ::CachingHeadersConfig
 ) {

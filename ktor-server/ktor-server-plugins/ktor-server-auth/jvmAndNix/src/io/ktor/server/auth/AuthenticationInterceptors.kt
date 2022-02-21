@@ -60,7 +60,7 @@ private val logger = KtorSimpleLogger("Authentication")
 /**
  * A plugin that authenticate calls. Usually used via [authenticate] function inside routing.
  */
-public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConfig, PluginInstance> =
+public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConfig> =
     createRouteScopedPlugin("AuthenticationInterceptors", ::RouteAuthenticationConfig) {
 
         on(AuthenticationHook) { call ->

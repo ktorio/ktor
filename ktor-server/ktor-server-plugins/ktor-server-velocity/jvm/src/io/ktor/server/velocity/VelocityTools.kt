@@ -20,32 +20,34 @@ public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit)
  * VelocityTools ktor plugin. Populates model with standard Velocity tools.
  */
 @Suppress("UNCHECKED_CAST")
-public val VelocityTools: ApplicationPlugin<Application, EasyFactoryConfiguration, PluginInstance> =
-    createApplicationPlugin("VelocityTools", ::EasyFactoryConfiguration) {
+public val VelocityTools: ApplicationPlugin<EasyFactoryConfiguration> = createApplicationPlugin(
+    "VelocityTools",
+    ::EasyFactoryConfiguration
+) {
+    val engineConfig = pluginConfig.getData(ENGINE_CONFIG_KEY)
+        ?.also { pluginConfig.removeData(it) }
+        ?.value as (VelocityEngine.() -> Unit)? ?: {}
 
-        val engineConfig = pluginConfig.getData(ENGINE_CONFIG_KEY)
-            ?.also { pluginConfig.removeData(it) }
-            ?.value as (VelocityEngine.() -> Unit)? ?: {}
-        val engine = VelocityEngine().apply(engineConfig)
-        val toolManager = ToolManager().apply {
-            this.configure(pluginConfig)
-            velocityEngine = engine
-        }
+    val engine = VelocityEngine().apply(engineConfig)
+    val toolManager = ToolManager().apply {
+        this.configure(pluginConfig)
+        velocityEngine = engine
+    }
 
-        fun process(content: VelocityContent): OutgoingContent {
-            return velocityOutgoingContent(
-                toolManager.velocityEngine.getTemplate(content.template),
-                toolManager.createContext().also { it.putAll(content.model) },
-                content.etag,
-                content.contentType
-            )
-        }
+    fun process(content: VelocityContent): OutgoingContent {
+        return velocityOutgoingContent(
+            toolManager.velocityEngine.getTemplate(content.template),
+            toolManager.createContext().also { it.putAll(content.model) },
+            content.etag,
+            content.contentType
+        )
+    }
 
-        onCallRespond { _, value ->
-            if (value is VelocityContent) {
-                transformBody {
-                    process(value)
-                }
+    onCallRespond { _, value ->
+        if (value is VelocityContent) {
+            transformBody {
+                process(value)
             }
         }
     }
+}

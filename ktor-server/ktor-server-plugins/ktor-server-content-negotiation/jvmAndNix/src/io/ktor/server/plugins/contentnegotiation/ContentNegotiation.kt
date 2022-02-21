@@ -44,7 +44,7 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
  * * https://tools.ietf.org/html/rfc7231#section-5.3
  * * https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
  */
-public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig, PluginInstance> = createRouteScopedPlugin(
+public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = createRouteScopedPlugin(
     "ContentNegotiation",
     { ContentNegotiationConfig() }
 ) {

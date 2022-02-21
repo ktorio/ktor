@@ -11,7 +11,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.*
-import kotlin.native.concurrent.*
 
 /**
  * Registers a route [body] for a resource defined by the [T] class.
@@ -185,7 +184,7 @@ internal fun <T : Any> Route.handle(
     intercept(ApplicationCallPipeline.Plugins) {
         val resources = application.plugin(Resources)
         try {
-            val resource = resources.resourcesFormat.decodeFromParameters<T>(serializer, call.parameters)
+            val resource = resources.resourcesFormat.decodeFromParameters(serializer, call.parameters)
             call.attributes.put(ResourceInstanceKey, resource)
         } catch (cause: Throwable) {
             throw BadRequestException("Can't transform call to resource", cause)

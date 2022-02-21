@@ -19,9 +19,9 @@ public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwa
 /**
  * A plugin that handles exceptions and status codes. Useful to configure default error pages.
  */
-public val StatusPages: ApplicationPlugin<Application, StatusPagesConfig, PluginInstance> = createApplicationPlugin(
+public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplicationPlugin(
     "StatusPages",
-    { StatusPagesConfig() }
+    ::StatusPagesConfig
 ) {
     val statusPageMarker = AttributeKey<Unit>("StatusPagesTriggered")
 

@@ -9,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
-import java.io.*
 import java.util.*
 
 /**
@@ -35,9 +34,9 @@ public class ThymeleafContent(
  * A plugin that allows you to use Thymeleaf templates as views within your application.
  * Provides the ability to respond with [Thymeleaf]
  */
-public val Thymeleaf: ApplicationPlugin<Application, TemplateEngine, PluginInstance> = createApplicationPlugin(
+public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugin(
     "Thymeleaf",
-    { TemplateEngine() }
+    ::TemplateEngine
 ) {
     fun process(content: ThymeleafContent): OutgoingContent = with(content) {
         val context = Context(locale).apply { setVariables(model) }

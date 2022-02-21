@@ -19,7 +19,6 @@ public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey
  * Root routing node for an [Application]
  * @param application is an instance of [Application] for this routing
  */
-@OptIn(InternalAPI::class)
 @KtorDsl
 public class Routing(
     public val application: Application
@@ -39,6 +38,7 @@ public class Routing(
         tracers.add(block)
     }
 
+    @OptIn(InternalAPI::class)
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
         val resolveResult = resolveContext.resolve()
@@ -103,7 +103,7 @@ public class Routing(
      * Installable plugin for [Routing]
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : ApplicationPlugin<Application, Routing, Routing> {
+    public companion object Plugin : BaseApplicationPlugin<Application, Routing, Routing> {
 
         /**
          * Event definition for when a routing-based call processing starts

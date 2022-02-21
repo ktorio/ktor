@@ -43,7 +43,7 @@ import io.ktor.resources.Resources as ResourcesCore
  *
  * @see Resource
  */
-public object Resources : ApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
+public object Resources : BaseApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
 
     override val key: AttributeKey<ResourcesCore> = AttributeKey("Resources")
 

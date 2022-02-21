@@ -37,26 +37,28 @@ public class PebbleContent(
  * A plugin that allows you to use Pebble templates as views within your application.
  * Provides the ability to respond with [PebbleContent]
  */
-public val Pebble: ApplicationPlugin<Application, PebbleEngine.Builder, PluginInstance> =
-    createApplicationPlugin("Pebble", { PebbleEngine.Builder() }) {
-        val engine = pluginConfig.build()
+public val Pebble: ApplicationPlugin<PebbleEngine.Builder> = createApplicationPlugin(
+    "Pebble",
+    { PebbleEngine.Builder() }
+) {
+    val engine = pluginConfig.build()
 
-        fun process(content: PebbleContent): OutgoingContent = with(content) {
-            val writer = StringWriter()
-            engine.getTemplate(content.template).evaluate(writer, model, locale)
+    fun process(content: PebbleContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        engine.getTemplate(content.template).evaluate(writer, model, locale)
 
-            val result = TextContent(text = writer.toString(), contentType)
-            if (etag != null) {
-                result.versions += EntityTagVersion(etag)
-            }
-            return result
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
+        return result
+    }
 
-        onCallRespond { _, value ->
-            if (value is PebbleContent) {
-                transformBody {
-                    process(value)
-                }
+    onCallRespond { _, value ->
+        if (value is PebbleContent) {
+            transformBody {
+                process(value)
             }
         }
     }
+}

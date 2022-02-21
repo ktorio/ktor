@@ -158,7 +158,6 @@ internal data class SessionProviderData<S : Any>(var value: S?, val incoming: Bo
 
 internal val SessionDataKey = AttributeKey<SessionData>("SessionKey")
 
-@OptIn(InternalAPI::class)
 private fun ApplicationCall.reportMissingSession(): Nothing {
     application.plugin(Sessions) // ensure the plugin is installed
     throw SessionNotYetConfiguredException()

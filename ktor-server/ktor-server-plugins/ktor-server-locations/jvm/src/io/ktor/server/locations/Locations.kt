@@ -96,7 +96,6 @@ public open class Locations constructor(
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 
-        @OptIn(KtorExperimentalLocationsAPI::class)
         return info.queryParameters.fold(pathRoute) { entry, query ->
             val selector = if (query.isOptional) {
                 OptionalParameterRouteSelector(query.name)
@@ -122,7 +121,7 @@ public open class Locations constructor(
     /**
      * Installable plugin for [Locations].
      */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, Locations> {
+    public companion object Plugin : BaseApplicationPlugin<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
         @OptIn(KtorExperimentalLocationsAPI::class)

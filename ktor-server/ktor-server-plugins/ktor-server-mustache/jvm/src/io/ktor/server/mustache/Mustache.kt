@@ -38,25 +38,23 @@ public class MustacheConfig {
  * A plugin that allows you to use Mustache templates as views within your application.
  * Provides the ability to respond with [MustacheContent]
  */
-public val Mustache: ApplicationPlugin<Application, MustacheConfig, PluginInstance> =
-    createApplicationPlugin("Mustache", ::MustacheConfig) {
+public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
+    val mustacheFactory = pluginConfig.mustacheFactory
 
-        val mustacheFactory = pluginConfig.mustacheFactory
+    fun process(content: MustacheContent): OutgoingContent = with(content) {
+        val writer = StringWriter()
+        mustacheFactory.compile(content.template).execute(writer, model)
 
-        fun process(content: MustacheContent): OutgoingContent = with(content) {
-            val writer = StringWriter()
-            mustacheFactory.compile(content.template).execute(writer, model)
-
-            val result = TextContent(text = writer.toString(), contentType)
-            if (etag != null) {
-                result.versions += EntityTagVersion(etag)
-            }
-            return result
+        val result = TextContent(text = writer.toString(), contentType)
+        if (etag != null) {
+            result.versions += EntityTagVersion(etag)
         }
+        return result
+    }
 
-        onCallRespond { _, body ->
-            if (body is MustacheContent) {
-                transformBody { process(body) }
-            }
+    onCallRespond { _, body ->
+        if (body is MustacheContent) {
+            transformBody { process(body) }
         }
     }
+}

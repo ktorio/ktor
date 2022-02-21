@@ -61,16 +61,18 @@ public class HttpsRedirectConfig {
 /**
  * A plugin that redirects non-secure HTTP calls to HTTPS
  */
-public val HttpsRedirect: ApplicationPlugin<Application, HttpsRedirectConfig, PluginInstance> =
-    createApplicationPlugin("HttpsRedirect", ::HttpsRedirectConfig) {
-        onCall { call ->
-            if (call.request.origin.scheme == "http" &&
-                pluginConfig.excludePredicates.none { predicate -> predicate(call) }
-            ) {
-                val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = pluginConfig.sslPort }
-                if (!call.response.isCommitted) {
-                    call.respondRedirect(redirectUrl, pluginConfig.permanentRedirect)
-                }
+public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplicationPlugin(
+    "HttpsRedirect",
+    ::HttpsRedirectConfig
+) {
+    onCall { call ->
+        if (call.request.origin.scheme == "http" &&
+            pluginConfig.excludePredicates.none { predicate -> predicate(call) }
+        ) {
+            val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = pluginConfig.sslPort }
+            if (!call.response.isCommitted) {
+                call.respondRedirect(redirectUrl, pluginConfig.permanentRedirect)
             }
         }
     }
+}

@@ -47,10 +47,7 @@ internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
  * See http://ktor.io/servers/features/hsts.html for details
  * See RFC 6797 https://tools.ietf.org/html/rfc6797
  */
-public val HSTS: RouteScopedPlugin<HSTSConfig, PluginInstance> = createRouteScopedPlugin(
-    "HSTS",
-    ::HSTSConfig
-) {
+public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS", ::HSTSConfig) {
     /**
      * Constructed `Strict-Transport-Security` header value
      */

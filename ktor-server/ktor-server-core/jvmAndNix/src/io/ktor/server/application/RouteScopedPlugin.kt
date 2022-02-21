@@ -13,10 +13,20 @@ import io.ktor.util.pipeline.*
  * @param TConfig is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */
-public interface RouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
+public interface BaseRouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
     Plugin<ApplicationCallPipeline, TConfiguration, TPlugin>
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * Defines a Plugin that can be installed into [Route]
+ * @param TConfig is the configuration object type for this Plugin
+ */
+public interface RouteScopedPlugin<TConfiguration : Any> : BaseRouteScopedPlugin<TConfiguration, PluginInstance>
+
+/**
+ * Finds the plugin [F] in the current [Route]. If not found, search in the parent [Route].
+ *
+ * @return [F] instance or `null` if not found
+ */
 public fun <F : Any> Route.findPluginInRoute(plugin: Plugin<*, *, F>): F? {
     var current = this
     while (true) {

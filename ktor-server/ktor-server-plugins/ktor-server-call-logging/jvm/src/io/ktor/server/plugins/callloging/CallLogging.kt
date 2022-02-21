@@ -162,8 +162,9 @@ public class CallLogging private constructor(
     /**
      * Installable plugin for [CallLogging].
      */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, CallLogging> {
+    public companion object Plugin : BaseApplicationPlugin<Application, Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
+
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingMonitoringPhase = PipelinePhase("LoggingMonitoringCall")
             val loggingBeforeCallPhase = PipelinePhase("LoggingBeforeCall")
