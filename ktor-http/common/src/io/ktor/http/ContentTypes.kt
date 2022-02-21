@@ -279,7 +279,19 @@ public class BadContentTypeFormatException(value: String) : Exception("Bad Conte
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
  */
-public fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
+public fun ContentType.withCharset(charset: Charset): ContentType =
+    withParameter("charset", charset.name)
+
+/**
+ * Creates a copy of `this` type with the added charset parameter with [charset] value
+ * if charset is not ignored by this [ContentType]
+ */
+public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
+    if (charset.name == "UTF-8" && contentType == "application" && contentSubtype == "json") {
+        this
+    } else {
+        withParameter("charset", charset.name)
+    }
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.

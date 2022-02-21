@@ -136,12 +136,13 @@ public final class io/ktor/http/ContentRangeKt {
 
 public final class io/ktor/http/ContentType : io/ktor/http/HeaderValueWithParameters {
 	public static final field Companion Lio/ktor/http/ContentType$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getContentSubtype ()Ljava/lang/String;
 	public final fun getContentType ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun isCharsetIgnored ()Lkotlin/jvm/functions/Function1;
 	public final fun match (Lio/ktor/http/ContentType;)Z
 	public final fun match (Ljava/lang/String;)Z
 	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/ContentType;
@@ -244,6 +245,7 @@ public abstract interface class io/ktor/http/ContentTypeMatcher {
 public final class io/ktor/http/ContentTypesKt {
 	public static final fun charset (Lio/ktor/http/HeaderValueWithParameters;)Ljava/nio/charset/Charset;
 	public static final fun withCharset (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;)Lio/ktor/http/ContentType;
+	public static final fun withCharsetIfNeeded (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;)Lio/ktor/http/ContentType;
 }
 
 public final class io/ktor/http/Cookie {

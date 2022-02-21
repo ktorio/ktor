@@ -90,7 +90,7 @@ public class KotlinxSerializationConverter(
         return when (format) {
             is StringFormat -> {
                 val content = format.encodeToString(serializer as KSerializer<Any>, value)
-                TextContent(content, contentType.withCharset(charset))
+                TextContent(content, contentType.withCharsetIfNeeded(charset))
             }
             is BinaryFormat -> {
                 val content = format.encodeToByteArray(serializer as KSerializer<Any>, value)
