@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CallValidatorTest {
     private var firstHandler = 0
     private var secondHandler = 0
