@@ -9,6 +9,7 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlin.coroutines.*
 import kotlin.reflect.*
 
 /**
@@ -36,15 +37,25 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig, PluginInstance>
 
         if (!cacheRawRequest) return@on body
 
-        val cacheValue = cache[ByteArray::class] as? ByteArray
+        val cacheValue = cache[DoubleReceiveCache::class] as? DoubleReceiveCache
         if (cacheValue != null) {
-            return@on ByteReadChannel(cacheValue)
+            return@on cacheValue.read()
         }
 
         val value = body as? ByteReadChannel ?: return@on body
-        val content = value.readRemaining().readBytes()
-        cache[ByteArray::class] = content
-        return@on ByteReadChannel(content)
+
+        val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
+            FileCache(value, context = coroutineContext)
+        } else {
+            MemoryCache(body, coroutineContext)
+        }
+
+        call.afterFinish {
+            content.dispose()
+        }
+
+        cache[DoubleReceiveCache::class] = content
+        return@on content.read()
     }
 
     on(ReceiveBodyTransformed) { call, body ->
