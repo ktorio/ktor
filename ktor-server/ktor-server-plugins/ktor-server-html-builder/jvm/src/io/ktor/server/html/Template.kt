@@ -36,6 +36,11 @@ public open class Placeholder<TOuter> {
 public open class PlaceholderList<TOuter, TInner> {
     private var items = ArrayList<PlaceholderItem<TInner>>()
 
+    public val size: Int
+        get() {
+            return items.size
+        }
+
     public operator fun invoke(meta: String = "", content: TInner.(Placeholder<TInner>) -> Unit = {}) {
         val placeholder = PlaceholderItem<TInner>(items.size, items)
         placeholder(meta, content)
@@ -43,6 +48,8 @@ public open class PlaceholderList<TOuter, TInner> {
     }
 
     public fun isEmpty(): Boolean = items.size == 0
+
+    public fun isNotEmpty(): Boolean = isEmpty().not()
 
     public fun apply(destination: TOuter, render: TOuter.(PlaceholderItem<TInner>) -> Unit) {
         for (item in items) {
