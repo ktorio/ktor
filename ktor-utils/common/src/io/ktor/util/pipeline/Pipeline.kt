@@ -461,7 +461,7 @@ public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
 ) {
     // A list of executed plugins with their handlers must be attached to the call's coroutine context
     // in order to be available from the IntelliJ debugger any time inside the call.
-    addToContextInDebugMode(PluginsTrace()) {
+    initContextInDebugMode {
         execute(context, Unit)
     }
 }

@@ -4,20 +4,32 @@
 
 package io.ktor.util.debug
 
+import io.ktor.util.debug.plugins.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Adds [elements] to the current [CoroutineContext] if Intellij JVM debugger is attached.
- * Similar to [withContext] but will only add [elements] to coroutine context in IDE debug mode.
- * */
-public suspend fun <T> addToContextInDebugMode(
-    vararg elements: AbstractCoroutineContextElement,
+ * Initialize plugins debug mode for [block]
+ */
+public suspend fun <T> initContextInDebugMode(
     block: suspend () -> T
 ): T {
     if (!IntellijIdeaDebugDetector.isDebuggerConnected) return block()
 
-    val debugContext = elements.fold(currentCoroutineContext()) { context, element -> context + element }
+    val debugContext = currentCoroutineContext() + PluginsTrace()
+    return withContext(debugContext) { block() }
+}
+
+/**
+ * Adds [pluginName] to the current [CoroutineContext] if Intellij JVM debugger is attached.
+ */
+public suspend fun <T> addToContextInDebugMode(
+    pluginName: String,
+    block: suspend () -> T
+): T {
+    if (!IntellijIdeaDebugDetector.isDebuggerConnected) return block()
+
+    val debugContext = currentCoroutineContext() + PluginName(pluginName)
     return withContext(debugContext) { block() }
 }
 

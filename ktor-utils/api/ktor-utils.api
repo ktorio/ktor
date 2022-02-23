@@ -680,8 +680,24 @@ public final class io/ktor/util/date/WeekDay$Companion {
 }
 
 public final class io/ktor/util/debug/ContextUtilsKt {
-	public static final fun addToContextInDebugMode ([Lkotlin/coroutines/AbstractCoroutineContextElement;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun addToContextInDebugMode (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun initContextInDebugMode (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun useContextElementInDebugMode (Lkotlin/coroutines/CoroutineContext$Key;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/util/debug/plugins/PluginName : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lio/ktor/util/debug/plugins/PluginName$Key;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/ktor/util/debug/plugins/PluginName;
+	public static synthetic fun copy$default (Lio/ktor/util/debug/plugins/PluginName;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/util/debug/plugins/PluginName;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPluginName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/debug/plugins/PluginName$Key : kotlin/coroutines/CoroutineContext$Key {
 }
 
 public final class io/ktor/util/debug/plugins/PluginTraceElement {
