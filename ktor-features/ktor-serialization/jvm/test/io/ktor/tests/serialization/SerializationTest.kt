@@ -251,7 +251,8 @@ class SerializationTest {
 
         application.routing {
             val model = MyEntity(
-                777, "Cargo",
+                777,
+                "Cargo",
                 listOf(
                     ChildEntity("Qube", 1),
                     ChildEntity("Sphere", 2),
@@ -274,7 +275,10 @@ class SerializationTest {
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""),
+                listOf(
+                    """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                        """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -283,18 +287,23 @@ class SerializationTest {
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
-            setBody("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}""")
+            setBody(
+                """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                    """{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}"""
+            )
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""),
+                listOf(
+                    """MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), """ +
+                        """ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
-
     }
 
     @Serializable
@@ -368,22 +377,32 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(buildJsonObject {
-                    put("a", "1")
-                    put("b", buildJsonObject {
-                        put("c", 3)
-                    })
-                    put("x", JsonNull)
-                })
+                call.respond(
+                    buildJsonObject {
+                        put("a", "1")
+                        put(
+                            "b",
+                            buildJsonObject {
+                                put("c", 3)
+                            }
+                        )
+                        put("x", JsonNull)
+                    }
+                )
             }
             get("/array") {
-                call.respond(buildJsonObject {
-                    put("a", "1")
-                    put("b", buildJsonArray {
-                        add("c")
-                        add(JsonPrimitive(2))
-                    })
-                })
+                call.respond(
+                    buildJsonObject {
+                        put("a", "1")
+                        put(
+                            "b",
+                            buildJsonArray {
+                                add("c")
+                                add(JsonPrimitive(2))
+                            }
+                        )
+                    }
+                )
             }
         }
 
@@ -436,7 +455,8 @@ class SerializationTest {
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals(
-                """[{"type":"io.ktor.tests.serialization.TestSealed.A","valueA":"valueA"},{"type":"io.ktor.tests.serialization.TestSealed.B","valueB":"valueB"}]""",
+                """[{"type":"io.ktor.tests.serialization.TestSealed.A","valueA":"valueA"},""" +
+                    """{"type":"io.ktor.tests.serialization.TestSealed.B","valueB":"valueB"}]""",
                 call.response.content
             )
         }

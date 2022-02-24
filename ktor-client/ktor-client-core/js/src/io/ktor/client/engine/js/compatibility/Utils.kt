@@ -13,7 +13,8 @@ import kotlinx.coroutines.*
 import kotlin.js.Promise
 
 internal suspend fun commonFetch(
-    input: String, init: RequestInit
+    input: String,
+    init: RequestInit
 ): Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal

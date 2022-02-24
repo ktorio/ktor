@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 @file:JvmName("PollersKt")
 
 package io.ktor.utils.io.jvm.javaio
@@ -8,7 +8,6 @@ package io.ktor.utils.io.jvm.javaio
 import java.util.concurrent.locks.*
 
 private val parkingImplLocal = ThreadLocal<Parking<Thread>?>()
-
 
 // NOTE: this following internal functions are called via reflection
 // so making it private or renaming/moving may introduce incompatibility

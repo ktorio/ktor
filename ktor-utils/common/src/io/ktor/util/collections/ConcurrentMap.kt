@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections
 
@@ -198,8 +198,8 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         "This is accidentally does insert instead of get. Use computeIfAbsent or getOrElse instead.",
         level = DeprecationLevel.ERROR
     )
-    public fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
-        return@withLock computeIfAbsent(key, block)
+    public fun getOrDefault(key: Key, block: () -> Value): Value = locked {
+        return@locked computeIfAbsent(key, block)
     }
 
     /**

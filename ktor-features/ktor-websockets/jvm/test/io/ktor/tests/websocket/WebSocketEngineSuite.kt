@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.websocket
 
@@ -262,7 +262,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             socket {
                 negotiateHttpWebSocket()
                 shutdownInput()
-                println("Input closed!")
                 delay(10000)
             }
         }
@@ -658,7 +657,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     Origin: http://localhost:$port
                     Sec-WebSocket-Protocol: chat
                     Sec-WebSocket-Version: 13
-                    """.trimIndent().replace("\n", "\r\n").toByteArray()
+                """.trimIndent().replace(
+                    "\n",
+                    "\r\n"
+                ).toByteArray()
             )
             write("\r\n\r\n".toByteArray())
             flush()

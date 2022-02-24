@@ -9,9 +9,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 
 /**
  * Install client [DigestAuthProvider].
@@ -55,13 +55,17 @@ public class DigestAuthProvider(
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth !is HttpAuthHeader.Parameterized ||
-            auth.parameter("realm") != realm ||
             auth.authScheme != AuthScheme.Digest
         ) return false
 
         val newNonce = auth.parameter("nonce") ?: return false
         val newQop = auth.parameter("qop")
         val newOpaque = auth.parameter("opaque")
+
+        val newRealm = auth.parameter("realm") ?: return false
+        if (newRealm != realm && realm != null) {
+            return false
+        }
 
         serverNonce.value = newNonce
         qop.value = newQop
@@ -83,20 +87,31 @@ public class DigestAuthProvider(
 
         val start = hex(credential)
         val end = hex(makeDigest("$methodName:${url.fullPath}"))
-        val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
-        val token = makeDigest(tokenSequence.joinToString(":"))
+        val tokenSequence = if (actualQop == null) {
+            listOf(start, nonce, end)
+        } else {
+            listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
+        }
 
-        val auth = HttpAuthHeader.Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
-            realm?.let { this["realm"] = it }
-            serverOpaque?.let { this["opaque"] = it }
-            this["username"] = username
-            this["nonce"] = nonce
-            this["cnonce"] = clientNonce
-            this["response"] = hex(token)
-            this["uri"] = url.fullPath
-            actualQop?.let { this["qop"] = it }
-            this["nc"] = nonceCount.toString()
-        })
+        val token = makeDigest(tokenSequence.joinToString(":"))
+        val realm = realm ?: request.attributes.getOrNull(AuthHeaderAttribute)?.let { auth ->
+            (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
+        }
+
+        val auth = HttpAuthHeader.Parameterized(
+            AuthScheme.Digest,
+            linkedMapOf<String, String>().apply {
+                realm?.let { this["realm"] = it }
+                serverOpaque?.let { this["opaque"] = it }
+                this["username"] = username
+                this["nonce"] = nonce
+                this["cnonce"] = clientNonce
+                this["response"] = hex(token)
+                this["uri"] = url.fullPath
+                actualQop?.let { this["qop"] = it }
+                this["nc"] = nonceCount.toString()
+            }
+        )
 
         request.headers {
             append(HttpHeaders.Authorization, auth.render())

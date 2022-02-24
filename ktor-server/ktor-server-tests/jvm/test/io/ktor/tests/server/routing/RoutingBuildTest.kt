@@ -30,14 +30,17 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentOptionalParameterRouteSelector)
             }
             it("should have second level child with name 'new'") {
-                assertEquals("new", (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name)
+                assertEquals(
+                    "new",
+                    (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name
+                )
             }
         }
 
         on("adding routing rules manually") {
             val entry = routing()
             entry.createChild(PathSegmentConstantRouteSelector("foo"))
-                    .createChild(PathSegmentOptionalParameterRouteSelector("new"))
+                .createChild(PathSegmentOptionalParameterRouteSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {
@@ -97,6 +100,5 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentTailcardRouteSelector)
             }
         }
-
     }
 }

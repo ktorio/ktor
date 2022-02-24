@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio.websocket
 
@@ -131,7 +131,9 @@ public expect sealed class Frame private constructor(
             fin: Boolean,
             frameType: FrameType,
             data: ByteArray,
-            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+            rsv1: Boolean,
+            rsv2: Boolean,
+            rsv3: Boolean
         ): Frame
     }
 }

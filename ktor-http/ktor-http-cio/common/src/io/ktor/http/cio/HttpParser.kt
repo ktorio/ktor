@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.cio
 
@@ -36,12 +36,9 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
             val version = parseVersion(builder, range)
             skipSpaces(builder, range)
 
-            if (range.start != range.end) throw ParserException(
-                "Extra characters in request line: ${builder.substring(
-                    range.start,
-                    range.end
-                )}"
-            )
+            if (range.start != range.end) {
+                throw ParserException("Extra characters in request line: ${builder.substring(range.start, range.end)}")
+            }
             if (uri.isEmpty()) throw ParserException("URI is not specified")
             if (version.isEmpty()) throw ParserException("HTTP version is not specified")
 
@@ -134,7 +131,6 @@ internal suspend fun parseHeaders(
         throw t
     }
 }
-
 
 private fun parseHttpMethod(text: CharSequence, range: MutableRange): HttpMethod {
     skipSpaces(text, range)

@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io.core
 
 /**
@@ -39,7 +40,6 @@ public actual interface Output : Appendable, Closeable {
     public actual fun writeDouble(v: Double) {
         writeDouble(v)
     }
-
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT")

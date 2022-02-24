@@ -110,7 +110,9 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
         launch(asyncDispatchers.dispatcher) {
             val call = AsyncServletApplicationCall(
-                application, request, response,
+                application,
+                request,
+                response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,

@@ -54,8 +54,12 @@ internal class CurlClientEngine(
             rawHeaders.release()
 
             HttpResponseData(
-                status, requestTime, headers, version.fromCurl(),
-                body, callContext
+                status,
+                requestTime,
+                headers,
+                version.fromCurl(),
+                body,
+                callContext
             )
         }
     }

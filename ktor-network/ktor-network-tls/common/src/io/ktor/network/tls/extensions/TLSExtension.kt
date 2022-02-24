@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.tls.extensions
 
@@ -21,7 +21,9 @@ public enum class TLSExtensionType(public val code: Short) {
 
     public companion object {
         public fun byCode(code: Int): TLSExtensionType =
-            values().find { it.code == code.toShort() } ?: throw TLSException("Unknown server hello extension type: $code")
+            values().find { it.code == code.toShort() } ?: throw TLSException(
+                "Unknown server hello extension type: $code"
+            )
     }
 }
 

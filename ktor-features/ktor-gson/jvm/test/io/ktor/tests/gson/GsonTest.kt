@@ -66,7 +66,8 @@ class GsonTest {
 
         application.routing {
             val model = MyEntity(
-                777, "Cargo",
+                777,
+                "Cargo",
                 listOf(
                     ChildEntity("Qube", 1),
                     ChildEntity("Sphere", 2),
@@ -89,7 +90,10 @@ class GsonTest {
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""),
+                listOf(
+                    """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                        """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -98,18 +102,23 @@ class GsonTest {
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
-            setBody("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}""")
+            setBody(
+                """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                    """{"item":"Sphere","quantity":2},{"item":"$uc", "quantity":3}]}"""
+            )
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(
-                listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""),
+                listOf(
+                    """MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), """ +
+                        """ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""
+                ),
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
-
     }
 
     private data class TextPlainData(val x: Int)
@@ -202,9 +211,7 @@ class GsonTest {
             assertEquals("OK", it.response.content)
         }
     }
-
 }
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
-

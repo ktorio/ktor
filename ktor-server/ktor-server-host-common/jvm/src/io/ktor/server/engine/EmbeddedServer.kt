@@ -12,7 +12,8 @@ import kotlin.coroutines.*
 /**
  * Factory interface for creating [ApplicationEngine] instances
  */
-public interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> {
+public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration> {
     /**
      * Creates an engine from the given [environment] and [configure] script
      */
@@ -26,7 +27,7 @@ public interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConf
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
+embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -43,7 +44,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
+CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -70,8 +71,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], [environment] and [configure] script
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     environment: ApplicationEngineEnvironment,
     configure: TConfiguration.() -> Unit = {}

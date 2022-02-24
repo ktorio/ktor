@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features.json.tests
 
@@ -48,10 +48,10 @@ class KotlinxSerializerTest {
 @Serializable
 data class TestEntry(val a: String, val b: Int)
 
-inline fun <reified T> indexListUnwrapper(
-) = object : JsonTransformingSerializer<List<T>>(ListSerializer<T>(serializer<T>())) {
-    override fun transformDeserialize(element: JsonElement): JsonElement {
-        return if (element is JsonArray) element else element.jsonObject.values.firstOrNull { it is JsonArray }
-            ?: error("Collection not found in json")
+inline fun <reified T> indexListUnwrapper() =
+    object : JsonTransformingSerializer<List<T>>(ListSerializer<T>(serializer<T>())) {
+        override fun transformDeserialize(element: JsonElement): JsonElement {
+            return if (element is JsonArray) element else element.jsonObject.values.firstOrNull { it is JsonArray }
+                ?: error("Collection not found in json")
+        }
     }
-}

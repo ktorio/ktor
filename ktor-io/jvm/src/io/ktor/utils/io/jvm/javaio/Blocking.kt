@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.utils.io.jvm.javaio
 
@@ -301,7 +301,8 @@ private fun ensureParkingAllowed() {
     if (!isParkingAllowed()) {
         error(
             "Using blocking primitives on this dispatcher is not allowed. " +
-                "Consider using async channel instead or use blocking primitives in withContext(Dispatchers.IO) instead."
+                "Consider using async channel instead or " +
+                "use blocking primitives in withContext(Dispatchers.IO) instead."
         )
     }
 }

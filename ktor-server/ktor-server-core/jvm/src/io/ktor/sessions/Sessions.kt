@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.sessions
 
@@ -237,7 +237,7 @@ private data class SessionProviderData<S : Any>(var value: S?, val incoming: Boo
 private val SessionKey = AttributeKey<SessionData>("SessionKey")
 
 /**
- * This exception is thrown when HTTP response has been already sent but an attempt to modify session is made
+ * This exception is thrown when HTTP response has already been sent but an attempt to modify session is made
  */
 @InternalAPI
 public class TooLateSessionSetException :

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.testing.suites
 
@@ -146,15 +146,27 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         val fileContentHead = String(file.reader().use { input -> CharArray(32).also { input.read(it) } })
 
-        withUrl("/", {
-            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
-        }) {
+        withUrl(
+            "/",
+            {
+                header(
+                    HttpHeaders.Range,
+                    RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString()
+                )
+            }
+        ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(fileContentHead.substring(0, 1), readText())
         }
-        withUrl("/", {
-            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
-        }) {
+        withUrl(
+            "/",
+            {
+                header(
+                    HttpHeaders.Range,
+                    RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString()
+                )
+            }
+        ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(fileContentHead.substring(1, 3), readText())
         }
@@ -240,17 +252,21 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
         createAndStartServer {
             handle {
                 val parameters = call.receiveOrNull<Parameters>()
-                if (parameters != null)
+                if (parameters != null) {
                     call.respond(parameters.formUrlEncode())
-                else
+                } else {
                     call.respond(HttpStatusCode.UnsupportedMediaType)
+                }
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            body = TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded)
-        }) {
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                body = TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded)
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("a=1", readText())
         }
@@ -268,43 +284,55 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         createAndStartServer {
             get("/chunked") {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeFully(data)
-                        channel.close()
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeFully(data)
+                            channel.close()
+                        }
                     }
-                })
+                )
             }
             get("/pseudo-chunked") {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override val contentLength: Long? get() = size
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeFully(data)
-                        channel.close()
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override val contentLength: Long? get() = size
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeFully(data)
+                            channel.close()
+                        }
                     }
-                })
+                )
             }
             get("/array") {
-                call.respond(object : OutgoingContent.ByteArrayContent() {
-                    override val contentLength: Long? get() = size
-                    override fun bytes(): ByteArray = data
-                })
+                call.respond(
+                    object : OutgoingContent.ByteArrayContent() {
+                        override val contentLength: Long? get() = size
+                        override fun bytes(): ByteArray = data
+                    }
+                )
             }
             get("/array-chunked") {
-                call.respond(object : OutgoingContent.ByteArrayContent() {
-                    override fun bytes(): ByteArray = data
-                })
+                call.respond(
+                    object : OutgoingContent.ByteArrayContent() {
+                        override fun bytes(): ByteArray = data
+                    }
+                )
             }
             get("/read-channel") {
-                call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                })
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                    }
+                )
             }
             get("/fixed-read-channel") {
-                call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override val contentLength: Long? get() = size
-                    override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                })
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override val contentLength: Long? get() = size
+                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                    }
+                )
             }
         }
 
@@ -457,21 +485,29 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             route("/echo") {
                 handle {
                     val response = call.receiveChannel().toByteArray()
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override fun readFrom() = ByteReadChannel(response)
-                    })
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override fun readFrom() = ByteReadChannel(response)
+                        }
+                    )
                 }
             }
         }
 
-        withUrl("/echo", {
-            method = HttpMethod.Post
-            body = WriterContent({
-                append("POST test\n")
-                append("Another line")
-                flush()
-            }, ContentType.Text.Plain)
-        }) {
+        withUrl(
+            "/echo",
+            {
+                method = HttpMethod.Post
+                body = WriterContent(
+                    {
+                        append("POST test\n")
+                        append("Another line")
+                        flush()
+                    },
+                    ContentType.Text.Plain
+                )
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("POST test\nAnother line", readText())
         }
@@ -487,11 +523,13 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-//            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = ByteArrayContent("POST content".toByteArray())
-        }) {
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                body = ByteArrayContent("POST content".toByteArray())
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("POST content", readText())
         }
@@ -505,10 +543,13 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            body = "Hello"
-        }) {
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                body = "Hello"
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
         }
@@ -525,9 +566,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${
-                                part.provider().readText()
-                            }\n"
+                            "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
                         )
                     }
 
@@ -538,29 +577,39 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            val contentType = ContentType.MultiPart.FormData
-                .withParameter("boundary", "***bbb***")
-                .withCharset(Charsets.ISO_8859_1)
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                val contentType = ContentType.MultiPart.FormData
+                    .withParameter("boundary", "***bbb***")
+                    .withCharset(Charsets.ISO_8859_1)
 
-            body = WriterContent({
-                append("--***bbb***\r\n")
-                append("Content-Disposition: form-data; name=\"a story\"\r\n")
-                append("\r\n")
-                append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
-                append("--***bbb***\r\n")
-                append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
-                append("Content-Type: text/plain\r\n")
-                append("\r\n")
-                append("File content goes here\r\n")
-                append("--***bbb***--\r\n")
-                flush()
-            }, contentType)
-        }) {
+                body = WriterContent(
+                    {
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                        append("\r\n")
+                        append(
+                            "Hi user. The snake you gave me for free ate all the birds. " +
+                                "Please take it back ASAP.\r\n"
+                        )
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                        append("Content-Type: text/plain\r\n")
+                        append("\r\n")
+                        append("File content goes here\r\n")
+                        append("--***bbb***--\r\n")
+                        flush()
+                    },
+                    contentType
+                )
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals(
-                "a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n",
+                "a story=Hi user. The snake you gave me for free ate all the birds. " +
+                    "Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n",
                 readText()
             )
         }
@@ -579,9 +628,8 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${
-                                part.streamProvider().bufferedReader().lineSequence().count()
-                            }\n"
+                            "file:${part.name},${part.originalFileName}," +
+                                "${part.streamProvider().bufferedReader().lineSequence().count()}\n"
                         )
                     }
 
@@ -592,33 +640,42 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            val contentType = ContentType.MultiPart.FormData
-                .withParameter("boundary", "***bbb***")
-                .withCharset(Charsets.ISO_8859_1)
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                val contentType = ContentType.MultiPart.FormData
+                    .withParameter("boundary", "***bbb***")
+                    .withCharset(Charsets.ISO_8859_1)
 
-            body = WriterContent({
-                append("--***bbb***\r\n")
-                append("Content-Disposition: form-data; name=\"a story\"\r\n")
-                append("\r\n")
-                append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
-                append("--***bbb***\r\n")
-                append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
-                append("Content-Type: text/plain\r\n")
-                append("\r\n")
-                withContext(coroutineContext) {
-                    repeat(numberOfLines) {
-                        append("File content goes here\r\n")
-                    }
-                }
-                append("--***bbb***--\r\n")
-                flush()
-            }, contentType)
-        }) {
+                body = WriterContent(
+                    {
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                        append("\r\n")
+                        append(
+                            "Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n"
+                        )
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                        append("Content-Type: text/plain\r\n")
+                        append("\r\n")
+                        withContext(coroutineContext) {
+                            repeat(numberOfLines) {
+                                append("File content goes here\r\n")
+                            }
+                        }
+                        append("--***bbb***--\r\n")
+                        flush()
+                    },
+                    contentType
+                )
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals(
-                "a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,$numberOfLines\n",
+                "a story=Hi user. The snake you gave me for free ate all the birds. " +
+                    "Please take it back ASAP.\nfile:attachment,original.txt,$numberOfLines\n",
                 readText()
             )
         }
@@ -632,10 +689,13 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            body = "Hello"
-        }) {
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                body = "Hello"
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
         }
@@ -649,10 +709,13 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/", {
-            method = HttpMethod.Post
-            body = ByteArrayContent("Hello".toByteArray(), ContentType.Text.Plain)
-        }) {
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                body = ByteArrayContent("Hello".toByteArray(), ContentType.Text.Plain)
+            }
+        ) {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
         }

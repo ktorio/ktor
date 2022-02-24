@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.netty
 
@@ -128,7 +128,10 @@ class NettyHttp2LocalConnectionPointTest {
 
     @Test
     fun testRemoteAddressResolved() {
-        val address = InetSocketAddress(Inet4Address.getByAddress("z", byteArrayOf(192.toByte(), 168.toByte(), 1, 1)), 7777)
+        val address = InetSocketAddress(
+            Inet4Address.getByAddress("z", byteArrayOf(192.toByte(), 168.toByte(), 1, 1)),
+            7777
+        )
         val point = point(remoteAddress = address) {
         }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.utils
 
@@ -48,20 +48,21 @@ class CacheControlMergeTest {
     @Test
     fun testTripleMergeNoMaxAge() {
         assertEquals(
-            listOf(NoCache(Visibility.Private)), merge(
+            listOf(NoCache(Visibility.Private)),
+            merge(
                 NoCache(Visibility.Private),
                 NoCache(null),
                 NoCache(Visibility.Public),
             )
         )
         assertEquals(
-            listOf(NoCache(Visibility.Public)), merge(
+            listOf(NoCache(Visibility.Public)),
+            merge(
                 NoCache(Visibility.Public),
                 NoCache(null),
                 NoCache(Visibility.Public),
             )
         )
-
     }
 
     @Test

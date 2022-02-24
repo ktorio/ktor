@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.network.selector
 
 import io.ktor.util.*

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.selector
 
@@ -46,7 +46,10 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
  * Creates a NIO entity via [create] and calls [setup] on it. If any exception happens then the entity will be closed
  * and an exception will be propagated.
  */
-public inline fun <C : Closeable, R> SelectorManager.buildOrClose(create: SelectorProvider.() -> C, setup: C.() -> R): R {
+public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
+    create: SelectorProvider.() -> C,
+    setup: C.() -> R
+): R {
     while (true) {
         val result = create(provider)
 

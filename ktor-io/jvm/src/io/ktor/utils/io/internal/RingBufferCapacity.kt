@@ -146,5 +146,6 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
     fun isFull(): Boolean = _availableForWrite.value == 0
 
     override fun toString(): String =
-        "RingBufferCapacity[read: $availableForRead, write: $availableForWrite, flush: $pendingToFlush, capacity: $totalCapacity]"
+        "RingBufferCapacity[read: $availableForRead, write: $availableForWrite, " +
+            "flush: $pendingToFlush, capacity: $totalCapacity]"
 }

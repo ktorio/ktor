@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.netty
 
@@ -42,8 +42,7 @@ public abstract class NettyApplicationRequest(
     override fun receiveChannel(): ByteReadChannel = requestBodyChannel
 
     private val contentMultipart = lazy {
-        if (!isMultipart())
-            throw IOException("The request content is not multipart encoded")
+        if (!isMultipart()) throw IOException("The request content is not multipart encoded")
         val decoder = newDecoder()
         NettyMultiPartData(decoder, context.alloc(), requestBodyChannel)
     }

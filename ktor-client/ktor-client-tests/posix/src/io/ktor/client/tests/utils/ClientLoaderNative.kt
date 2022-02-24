@@ -7,13 +7,12 @@ package io.ktor.client.tests.utils
 import io.ktor.client.engine.*
 import kotlinx.coroutines.*
 
-
 private class TestFailure(val name: String, val cause: Throwable) {
     override fun toString(): String = buildString {
-        appendln("Test failed with engine: $name")
-        appendln(cause)
+        appendLine("Test failed with engine: $name")
+        appendLine(cause)
         for (stackline in cause.getStackTrace()) {
-            appendln("\t$stackline")
+            appendLine("\t$stackline")
         }
     }
 }

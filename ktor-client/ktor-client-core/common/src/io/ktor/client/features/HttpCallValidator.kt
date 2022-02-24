@@ -1,16 +1,17 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.features.HttpCallValidator.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.*
 import kotlin.native.concurrent.*
 
 /**
@@ -66,8 +67,13 @@ public class HttpCallValidator internal constructor(
         internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()
 
         /**
-         * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+         * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
          */
+
+        @Deprecated(
+            "This property is ignored. Please use `expectSuccess` property in HttpClientConfig. " +
+                "This is going to become internal."
+        )
         public var expectSuccess: Boolean = true
 
         /**
@@ -103,6 +109,7 @@ public class HttpCallValidator internal constructor(
         override fun install(feature: HttpCallValidator, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {
+                    context.attributes.computeIfAbsent(ExpectSuccessAttributeKey) { feature.expectSuccess }
                     proceedWith(it)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
@@ -124,10 +131,7 @@ public class HttpCallValidator internal constructor(
             }
 
             scope[HttpSend].intercept { call, _ ->
-                val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: feature.expectSuccess
-                if (expectSuccess) {
-                    feature.validateResponse(call.response)
-                }
+                feature.validateResponse(call.response)
                 call
             }
         }
@@ -141,9 +145,12 @@ public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Co
     install(HttpCallValidator, block)
 }
 
+/**
+ * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
+ */
 public var HttpRequestBuilder.expectSuccess: Boolean
     get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
 @SharedImmutable
-private val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")
+internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")

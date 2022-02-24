@@ -1,11 +1,11 @@
 package kotlinx.coroutines.experimental.io
 
+import io.ktor.utils.io.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlin.coroutines.intrinsics.*
-import io.ktor.utils.io.internal.*
 import java.lang.Exception
 import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 import kotlin.test.*
 
 class CancellableReusableContinuationTest {

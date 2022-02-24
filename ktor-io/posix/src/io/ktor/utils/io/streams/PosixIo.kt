@@ -2,10 +2,10 @@
 
 package io.ktor.utils.io.streams
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.internal.utils.*
+import kotlinx.cinterop.*
 import platform.posix.*
 
 @ExperimentalIoApi
@@ -129,7 +129,6 @@ public fun fread(destination: Memory, offset: Long, length: Long, stream: CPoint
     return result.convert()
 }
 
-
 @Deprecated("Use read(Memory) instead.")
 public fun read(fildes: Int, buffer: Buffer): ssize_t {
     var bytesRead: ssize_t
@@ -159,7 +158,6 @@ public fun read(fildes: Int, destination: Memory, offset: Int, length: Int): Int
 
 @ExperimentalIoApi
 public fun read(fildes: Int, destination: Memory, offset: Long, length: Long): Long {
-
     val maxLength = minOf<Long>(
         ssize_t.MAX_VALUE.convert(),
         length
@@ -208,7 +206,9 @@ public fun recvfrom(
 
 @ExperimentalIoApi
 public fun sendto(
-    socket: KX_SOCKET, buffer: Buffer, flags: Int,
+    socket: KX_SOCKET,
+    buffer: Buffer,
+    flags: Int,
     addr: CValuesRef<sockaddr>,
     addr_len: KX_SOCKADDR_LEN
 ): ssize_t {

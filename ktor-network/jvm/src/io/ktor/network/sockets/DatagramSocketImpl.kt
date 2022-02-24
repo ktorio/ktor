@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.util.network.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.core.*
 import java.nio.*
 import java.nio.channels.*
 
@@ -17,7 +17,9 @@ internal class DatagramSocketImpl(
     override val channel: DatagramChannel,
     selector: SelectorManager
 ) : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(
-    channel, selector, DefaultDatagramByteBufferPool
+    channel,
+    selector,
+    DefaultDatagramByteBufferPool
 ) {
     private val socket = channel.socket()!!
 
@@ -87,5 +89,4 @@ internal class DatagramSocketImpl(
         DefaultDatagramByteBufferPool.recycle(buffer)
         return datagram
     }
-
 }

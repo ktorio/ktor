@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http.content
 
@@ -117,14 +117,17 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
         builder[HttpHeaders.LastModified] = lastModified.toHttpDate()
     }
 
-    private fun List<String>.parseDates(): List<GMTDate>? = filter { it.isNotBlank() }.
-        mapNotNull { try {
-            it.fromHttpToGmtDate()
-        } catch (_: Throwable) {
-            // according to RFC7232 sec 3.3 illegal dates should be ignored
-            null
-        }
-    }.takeIf { it.isNotEmpty() }
+    private fun List<String>.parseDates(): List<GMTDate>? =
+        filter { it.isNotBlank() }
+            .mapNotNull {
+                try {
+                    it.fromHttpToGmtDate()
+                } catch (_: Throwable) {
+                    // according to RFC7232 sec 3.3 illegal dates should be ignored
+                    null
+                }
+            }
+            .takeIf { it.isNotEmpty() }
 }
 
 /**
@@ -237,8 +240,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
         public fun parse(headerValue: String): List<EntityTagVersion> {
             val rawEntries = parseHeaderValue(headerValue)
             return rawEntries.map { entry ->
-                check (entry.quality == 1.0) { "entity-tag quality parameter is not allowed: ${entry.quality}."}
-                check (entry.params.isEmpty()) { "entity-tag parameters are not allowed: ${entry.params}." }
+                check(entry.quality == 1.0) { "entity-tag quality parameter is not allowed: ${entry.quality}." }
+                check(entry.params.isEmpty()) { "entity-tag parameters are not allowed: ${entry.params}." }
 
                 parseSingle(entry.value)
             }

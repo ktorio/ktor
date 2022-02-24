@@ -74,8 +74,10 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
                     .render()
             )
         } else {
-            log.trace("No configuration provided: neither application.conf " +
-                "nor system properties nor command line options (-config or -P:ktor...=) provided")
+            log.trace(
+                "No configuration provided: neither application.conf " +
+                    "nor system properties nor command line options (-config or -P:ktor...=) provided"
+            )
         }
 
         val host = argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath) ?: "0.0.0.0"
@@ -98,34 +100,38 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
 
         if (sslPort != null) {
             if (sslKeyStorePath == null) {
-                throw IllegalArgumentException("SSL requires keystore: use -sslKeyStore=path or $hostSslKeyStore config")
+                throw IllegalArgumentException(
+                    "SSL requires keystore: use -sslKeyStore=path or $hostSslKeyStore config"
+                )
             }
             if (sslKeyStorePassword == null) {
                 throw IllegalArgumentException("SSL requires keystore password: use $hostSslKeyStorePassword config")
             }
             if (sslPrivateKeyPassword == null) {
-                throw IllegalArgumentException("SSL requires certificate password: use $hostSslPrivateKeyPassword config")
+                throw IllegalArgumentException(
+                    "SSL requires certificate password: use $hostSslPrivateKeyPassword config"
+                )
             }
 
             val keyStoreFile = File(sslKeyStorePath).let { file ->
-                if (file.exists() || file.isAbsolute)
-                    file
-                else
-                    File(".", sslKeyStorePath).absoluteFile
+                if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile
             }
             val keyStore = KeyStore.getInstance("JKS").apply {
                 FileInputStream(keyStoreFile).use {
                     load(it, sslKeyStorePassword.toCharArray())
                 }
 
-                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) {
+                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray())) {
                     "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath"
                 }
             }
 
-            sslConnector(keyStore, sslKeyAlias,
+            sslConnector(
+                keyStore,
+                sslKeyAlias,
                 { sslKeyStorePassword.toCharArray() },
-                { sslPrivateKeyPassword.toCharArray() }) {
+                { sslPrivateKeyPassword.toCharArray() }
+            ) {
                 this.host = host
                 this.port = sslPort.toInt()
                 this.keyStorePath = keyStoreFile

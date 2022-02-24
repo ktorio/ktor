@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.routing
 
@@ -59,8 +59,6 @@ internal class RouteSelectorTest {
             segments = listOf("PARAM"),
             segmentIndex = 0,
             name = "param",
-            prefix = null,
-            suffix = null,
             isOptional = false
         )
 
@@ -122,5 +120,41 @@ internal class RouteSelectorTest {
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
+    }
+
+    @Test
+    fun testEvaluateWithTrailingSlashAndOptional() {
+        val evaluation = evaluatePathSegmentParameter(
+            segments = listOf("foo", ""),
+            segmentIndex = 1,
+            name = "param",
+            isOptional = true
+        )
+
+        assertEquals(evaluation, RouteSelectorEvaluation.Missing.copy(segmentIncrement = 1))
+    }
+
+    @Test
+    fun testEvaluateWithoutTrailingSlashAndOptional() {
+        val evaluation = evaluatePathSegmentParameter(
+            segments = listOf("foo"),
+            segmentIndex = 1,
+            name = "param",
+            isOptional = true
+        )
+
+        assertEquals(evaluation, RouteSelectorEvaluation.Missing)
+    }
+
+    @Test
+    fun testEvaluateWithTrailingSlashAndNonOptional() {
+        val evaluation = evaluatePathSegmentParameter(
+            segments = listOf("foo", ""),
+            segmentIndex = 1,
+            name = "param",
+            isOptional = false
+        )
+
+        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
     }
 }

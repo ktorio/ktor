@@ -13,7 +13,6 @@ import io.ktor.server.testing.*
 import org.junit.*
 import org.junit.Assert.*
 
-
 class DropwizardMetricsTests {
 
     @Test

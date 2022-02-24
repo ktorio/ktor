@@ -255,7 +255,10 @@ class BasicAuthTest {
     }
 
     private fun TestApplicationEngine.handleRequestWithBasic(
-        url: String, user: String, pass: String, charset: Charset = Charsets.ISO_8859_1
+        url: String,
+        user: String,
+        pass: String,
+        charset: Charset = Charsets.ISO_8859_1
     ) =
         handleRequest {
             uri = url
@@ -278,7 +281,6 @@ class BasicAuthTest {
     private fun Application.configureServer(
         validate: suspend (UserPasswordCredential) -> Principal? = {
             if (it.name == it.password) UserIdPrincipal(it.name) else null
-
         }
     ) {
         install(Authentication) {

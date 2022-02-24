@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -22,9 +22,9 @@ public val Path.extension: String get() = fileName.toString().substringAfterLast
 public fun Path.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Relative path $relativePath beginning with .. is invalid")
     }
-    check(!normalized.isAbsolute) { "Bad relative path $relativePath"}
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return resolve(normalized).toFile()
 }
@@ -49,10 +49,9 @@ private fun Path.dropLeadingTopDirs(): Path {
 public fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Relative path $relativePath beginning with .. is invalid")
     }
     check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return File(this, normalized.toString())
 }
-

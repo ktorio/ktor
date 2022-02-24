@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.engine
 
@@ -40,7 +40,9 @@ public interface ApplicationEngineEnvironment : ApplicationEnvironment {
 /**
  * Creates [ApplicationEngineEnvironment] using [ApplicationEngineEnvironmentBuilder].
  */
-public fun applicationEngineEnvironment(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
+public fun applicationEngineEnvironment(
+    builder: ApplicationEngineEnvironmentBuilder.() -> Unit
+): ApplicationEngineEnvironment {
     return ApplicationEngineEnvironmentBuilder().build(builder)
 }
 

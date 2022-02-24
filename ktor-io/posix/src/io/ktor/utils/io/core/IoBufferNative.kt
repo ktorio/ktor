@@ -1,11 +1,12 @@
 @file:Suppress("DEPRECATION_ERROR", "DEPRECATION", "RedundantModalityModifier")
+
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.contracts.*
 import kotlin.native.concurrent.*
@@ -16,15 +17,22 @@ internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-public actual class IoBuffer actual constructor(
+public actual class IoBuffer internal actual constructor(
     memory: Memory,
-    origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(memory, origin) {
+    origin: ChunkBuffer?,
+    parentPool: ObjectPool<IoBuffer>?
+) : Input, Output, ChunkBuffer(memory, origin, parentPool as? ObjectPool<ChunkBuffer>) {
     internal var refCount by shared(1)
 
     private val contentCapacity: Int get() = memory.size32
 
-    public constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(Memory.of(content, contentCapacity), null)
+    public actual constructor(
+        memory: Memory,
+        origin: ChunkBuffer?,
+    ) : this(memory, origin, null)
+
+    public constructor(content: CPointer<ByteVar>, contentCapacity: Int) :
+        this(Memory.of(content, contentCapacity), null)
 
     override val endOfInput: Boolean get() = !canRead()
 
@@ -131,7 +139,6 @@ public actual class IoBuffer actual constructor(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: LongArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
-
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -335,7 +342,8 @@ public actual class IoBuffer actual constructor(
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        public actual val ReservedSize: Int get() = Buffer.ReservedSize
+        public actual val ReservedSize: Int
+            get() = Buffer.ReservedSize
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
@@ -352,7 +360,9 @@ public actual class IoBuffer actual constructor(
             }
 
             override fun recycle(instance: IoBuffer) {
-                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.refCount == 0) {
+                    "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}"
+                }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
             }
@@ -364,7 +374,9 @@ public actual class IoBuffer actual constructor(
             }
 
             override fun recycle(instance: IoBuffer) {
-                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.refCount == 0) {
+                    "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}"
+                }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
             }
         }
@@ -389,12 +401,16 @@ private object BufferPoolNativeWorkaround : DefaultPool<IoBuffer>(BUFFER_VIEW_PO
     override fun validateInstance(instance: IoBuffer) {
         super.validateInstance(instance)
 
-        require(instance.referenceCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})" }
+        require(instance.referenceCount == 0) {
+            "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})"
+        }
         require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
     }
 
     override fun disposeInstance(instance: IoBuffer) {
-        require(instance.referenceCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}" }
+        require(instance.referenceCount == 0) {
+            "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}"
+        }
         nativeHeap.free(instance.memory)
     }
 }

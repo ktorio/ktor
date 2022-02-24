@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.util.*
-
 
 /**
  * [Feature] is used to set request default parameters.
@@ -26,7 +25,6 @@ public class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) 
             }
         }
     }
-
 }
 
 /**

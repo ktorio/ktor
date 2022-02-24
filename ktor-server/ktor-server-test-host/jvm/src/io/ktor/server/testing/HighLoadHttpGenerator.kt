@@ -4,8 +4,8 @@
 
 package io.ktor.server.testing
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
@@ -32,7 +32,8 @@ import kotlin.text.toByteArray
  * but load generator provides absolutely no diagnostics.
  */
 public class HighLoadHttpGenerator(
-    public val host: String, port: Int,
+    public val host: String,
+    port: Int,
     public val numberOfConnections: Int,
     public val queueSize: Int,
     public val highPressure: Boolean,
@@ -40,15 +41,25 @@ public class HighLoadHttpGenerator(
 ) {
 
     public constructor(
-        url: String, host: String, port: Int,
-        numberConnections: Int, queueSize: Int, highPressure: Boolean
+        url: String,
+        host: String,
+        port: Int,
+        numberConnections: Int,
+        queueSize: Int,
+        highPressure: Boolean
+    ) : this(
+        host,
+        port,
+        numberConnections,
+        queueSize,
+        highPressure,
+        {
+            requestLine(HttpMethod.Get, url, "HTTP/1.1")
+            headerLine(HttpHeaders.Host, "$host:$port")
+            headerLine(HttpHeaders.Accept, "*/*")
+            emptyLine()
+        }
     )
-        : this(host, port, numberConnections, queueSize, highPressure, {
-        requestLine(HttpMethod.Get, url, "HTTP/1.1")
-        headerLine(HttpHeaders.Host, "$host:$port")
-        headerLine(HttpHeaders.Accept, "*/*")
-        emptyLine()
-    })
 
     private val remote = InetSocketAddress(host, port)
     private val request = RequestResponseBuilder().apply(builder).build()
@@ -77,9 +88,9 @@ public class HighLoadHttpGenerator(
         CODE
     }
 
-    private inner class ClientState(internal val channel: SocketChannel) {
+    private inner class ClientState(val channel: SocketChannel) {
         private val current = requestByteBuffer.duplicate()
-        internal var remaining = 0
+        var remaining = 0
             private set
 
         private var parseState = ParseState.HTTP
@@ -91,7 +102,7 @@ public class HighLoadHttpGenerator(
         var readPending: Boolean = false
         var currentOps = 0
 
-        public fun calcOps(): Int {
+        private fun calcOps(): Int {
             var ops = 0
             if (writePending) {
                 ops = ops or SelectionKey.OP_WRITE
@@ -421,7 +432,8 @@ public class HighLoadHttpGenerator(
             val bb = ByteBuffer.allocateDirect(65536)!!
             bb.order(ByteOrder.BIG_ENDIAN)
 
-            while (!cancelled) {
+            var connectFailureInRowCount = 0
+            while (!cancelled && connectFailureInRowCount < 100) {
                 if (connectionsCount < numberOfConnections) {
                     val ch = provider.openSocketChannel()!!
                     ch.configureBlocking(false)
@@ -437,8 +449,11 @@ public class HighLoadHttpGenerator(
                             client.currentOps = SelectionKey.OP_CONNECT
                         }
                         connectionsCount++
+                        connectFailureInRowCount = 0
                     } catch (t: Throwable) {
+                        ch.close()
                         connectErrors.incrementAndGet()
+                        connectFailureInRowCount++
 //                            println("connect() or register() failed: $t")
                     }
                 }
@@ -446,6 +461,8 @@ public class HighLoadHttpGenerator(
                 for (idx in 0 until writeReady.size) {
                     if (cancelled) break
                     val c = writeReady[idx]
+                    if (!c.channel.isConnected) continue
+
                     try {
                         if (!c.doWrite()) {
                             c.writePending = true
@@ -477,6 +494,7 @@ public class HighLoadHttpGenerator(
                 for (idx in 0 until readReady.size) {
                     if (cancelled) break
                     val c = readReady[idx]
+                    if (!c.channel.isConnected) continue
 
                     try {
                         while (true) {
@@ -497,7 +515,6 @@ public class HighLoadHttpGenerator(
 
                             break
                         }
-
                     } catch (t: Throwable) {
 //                            println("read() failed: $t")
                         readErrors.incrementAndGet()
@@ -531,9 +548,11 @@ public class HighLoadHttpGenerator(
                         val key = iter.next()!!
                         val client = key.attachment() as ClientState
 
-                        if (client.channel.isConnectionPending) {
+                        if (!client.channel.isOpen) {
+                            client.close()
+                        } else if (client.channel.isConnectionPending) {
                             try {
-                                client.channel.finishConnect()
+                                check(client.channel.finishConnect())
                                 writeReady.add(client)
                             } catch (t: Throwable) {
                                 client.close()
@@ -568,6 +587,20 @@ public class HighLoadHttpGenerator(
             }
         }
     }
+
+    private fun stat(): String = StringBuilder().apply {
+        appendLine("count: ${count.get()}")
+        appendLine("errors: read ${readErrors.get()}, write ${writeErrors.get()}, connect: ${connectErrors.get()}")
+        if (codeCounts.any { it.get() > 0 }) {
+            appendLine("statuses:")
+            codeCounts.forEachIndexed { idx, a ->
+                val cnt = a.get()
+                if (cnt > 0) {
+                    appendLine("  $idx    $cnt")
+                }
+            }
+        }
+    }.toString()
 
     public companion object {
         private val HTTP11 = "HTTP/1.1".toByteArray()
@@ -664,6 +697,7 @@ public class HighLoadHttpGenerator(
                 threads.forEach { it.interrupt() }
                 joiner.join()
                 println("Terminated.")
+                println(loadGenerator.stat())
             }
         }
 
@@ -717,17 +751,7 @@ public class HighLoadHttpGenerator(
                 println("There are threads get stuck")
             }
 
-            with(manager) {
-                println("count: ${count.get()}")
-                println("errors: read ${readErrors.get()}, write ${writeErrors.get()}, connect: ${connectErrors.get()}")
-                println("statuses:")
-                codeCounts.forEachIndexed { idx, a ->
-                    val cnt = a.get()
-                    if (cnt > 0) {
-                        println("  $idx    $cnt")
-                    }
-                }
-            }
+            println(manager.stat())
         }
     }
 }

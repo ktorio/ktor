@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.sockets
 
@@ -16,18 +16,18 @@ import java.net.*
  */
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual class ConnectTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
-) : ConnectException(message) {
-}
+    message: String,
+    override val cause: Throwable?
+) : ConnectException(message)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual class SocketTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
+    message: String,
+    override val cause: Throwable?
 ) : java.net.SocketTimeoutException(message)
-
 
 /**
  * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to

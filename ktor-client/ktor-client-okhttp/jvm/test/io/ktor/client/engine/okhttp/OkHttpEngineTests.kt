@@ -44,12 +44,14 @@ class OkHttpEngineTests {
     @Test
     fun testPreconfigured() = runBlocking {
         var preconfiguredClientCalled = false
-        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(object : Interceptor {
-            override fun intercept(chain: Interceptor.Chain): Response {
-                preconfiguredClientCalled = true
-                return chain.proceed(chain.request())
+        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(
+            object : Interceptor {
+                override fun intercept(chain: Interceptor.Chain): Response {
+                    preconfiguredClientCalled = true
+                    return chain.proceed(chain.request())
+                }
             }
-        }).connectTimeout(1, TimeUnit.MILLISECONDS).build()
+        ).connectTimeout(1, TimeUnit.MILLISECONDS).build()
 
         HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }

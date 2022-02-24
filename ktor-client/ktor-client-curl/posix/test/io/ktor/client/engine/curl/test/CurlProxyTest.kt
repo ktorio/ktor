@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.curl.test
 
@@ -24,7 +24,6 @@ class CurlProxyTest {
      * Copied from ktor-client-tests
      */
     private val TEST_SERVER: String = "http://127.0.0.1:8080"
-
 
     /**
      * Proxy server url for tests.

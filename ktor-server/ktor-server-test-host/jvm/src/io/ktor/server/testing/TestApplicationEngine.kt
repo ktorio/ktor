@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.testing
 
@@ -15,10 +15,10 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
-import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 /**
@@ -138,7 +138,10 @@ public class TestApplicationEngine(
      * Make a test request
      */
     @OptIn(InternalAPI::class)
-    public fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+    public fun handleRequest(
+        closeRequest: Boolean = true,
+        setup: TestApplicationRequest.() -> Unit
+    ): TestApplicationCall {
         val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
 
         val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
@@ -273,9 +276,12 @@ public fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
 
     hookRequests(
         processRequest = { setup ->
-            addHeader(HttpHeaders.Cookie, trackedCookies.joinToString("; ") {
-                (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter()
-            })
+            addHeader(
+                HttpHeaders.Cookie,
+                trackedCookies.joinToString("; ") {
+                    (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter()
+                }
+            )
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.date
 
@@ -63,6 +63,7 @@ public enum class Month(public val value: String) {
          * Lookup an instance by [ordinal]
          */
         public fun from(ordinal: Int): Month = values()[ordinal]
+
         /**
          * Lookup an instance by short month name [Month.value]
          */
@@ -144,7 +145,6 @@ public operator fun GMTDate.plus(duration: Duration): GMTDate = GMTDate(timestam
  */
 @ExperimentalTime
 public operator fun GMTDate.minus(duration: Duration): GMTDate = GMTDate(timestamp - duration.toLongMilliseconds())
-
 
 /**
  * Truncate to seconds by discarding sub-second part

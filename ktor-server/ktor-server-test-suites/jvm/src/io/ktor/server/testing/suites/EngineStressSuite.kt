@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING")
 
@@ -15,9 +15,10 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
@@ -48,6 +49,9 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
     public override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
+
+    @get:org.junit.Rule
+    val timout1 = CoroutinesTimeout(200000L, true)
 
     @Test
     public fun singleConnectionSingleThreadNoPipelining() {
@@ -164,6 +168,8 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
 
         HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 1, 10, true, gracefulMillis, timeMillis)
 
+        sleepWhileServerIsRestoring()
+
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
         }
@@ -178,6 +184,8 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         }
 
         HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 100, 10, true, gracefulMillis, timeMillis)
+
+        sleepWhileServerIsRestoring()
 
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
@@ -194,6 +202,8 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
 
         HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
 
+        sleepWhileServerIsRestoring()
+
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
         }
@@ -203,24 +213,26 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     public fun testHttpUpgrade() {
         createAndStartServer {
             handle {
-                call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(
-                        input: ByteReadChannel,
-                        output: ByteWriteChannel,
-                        engineContext: CoroutineContext,
-                        userContext: CoroutineContext
-                    ): Job {
-                        return launch(engineContext) {
-                            try {
-                                output.writeFully(endMarkerCrLfBytes)
-                                output.flush()
-                                delay(200)
-                            } finally {
-                                output.close()
+                call.respond(
+                    object : OutgoingContent.ProtocolUpgrade() {
+                        override suspend fun upgrade(
+                            input: ByteReadChannel,
+                            output: ByteWriteChannel,
+                            engineContext: CoroutineContext,
+                            userContext: CoroutineContext
+                        ): Job {
+                            return launch(engineContext) {
+                                try {
+                                    output.writeFully(endMarkerCrLfBytes)
+                                    output.flush()
+                                    delay(200)
+                                } finally {
+                                    output.close()
+                                }
                             }
                         }
                     }
-                })
+                )
             }
         }
 
@@ -288,31 +300,42 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     public fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        val bb: ByteBuffer = ByteBuffer.allocate(1024)
-                        Random().nextBytes(bb.array())
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            val bb: ByteBuffer = ByteBuffer.allocate(1024)
+                            Random().nextBytes(bb.array())
 
-                        for (i in 1..1024 * 1024) {
-                            bb.clear()
-                            while (bb.hasRemaining()) {
-                                channel.writeFully(bb)
+                            for (i in 1..1024 * 1024) {
+                                bb.clear()
+                                while (bb.hasRemaining()) {
+                                    channel.writeFully(bb)
+                                }
                             }
-                        }
 
-                        channel.close()
+                            channel.close()
+                        }
                     }
-                })
+                )
             }
             get("/") {
                 call.respondText("OK")
             }
         }
 
+        println("Starting...")
         HighLoadHttpGenerator.doRun("/ll", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
+
+        sleepWhileServerIsRestoring()
 
         withUrl("/") {
             assertEquals("OK", readText())
         }
+    }
+
+    private fun sleepWhileServerIsRestoring() {
+        // after a high-pressure run it takes time for server to completely recover
+        // so we sleep a little bit before doing a request
+        Thread.sleep(10000)
     }
 }

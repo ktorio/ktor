@@ -17,7 +17,8 @@ import java.net.*
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.request(
-    url: URL, block: HttpRequestBuilder.() -> Unit = {}
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     this.url.takeFrom(url)
     block()

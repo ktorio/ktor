@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.jetty
 
@@ -36,12 +36,13 @@ class MultipleDispatchOnTimeout {
             module {
                 intercept(ApplicationCallPipeline.Call) {
                     callCount.incrementAndGet()
-                    val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
-                    //                    println("Timeout is: $timeout")
+                    val timeout = Math.max(
+                        (call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout,
+                        0
+                    )
                     Thread.sleep(timeout + 1000)
                     call.respondTextWriter {
                         write("A ok!")
-
                     }
                 }
             }
@@ -65,5 +66,4 @@ class MultipleDispatchOnTimeout {
             jetty.stop(1, 5, TimeUnit.SECONDS)
         }
     }
-
 }

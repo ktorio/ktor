@@ -10,35 +10,48 @@ import kotlin.test.*
 class RangesTest {
     @Test
     fun testParseClosed() {
-        assertEquals(RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 499))),
-                parseRangesSpecifier("bytes=0-499"))
+        assertEquals(
+            RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 499))),
+            parseRangesSpecifier("bytes=0-499")
+        )
     }
 
     @Test
     fun testParseClosedSecond() {
-        assertEquals(RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(500, 999))),
-                parseRangesSpecifier("bytes=500-999"))
+        assertEquals(
+            RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(500, 999))),
+            parseRangesSpecifier("bytes=500-999")
+        )
     }
 
     @Test
     fun testParseFinalBytes() {
-        assertEquals(RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Suffix(500))),
-                parseRangesSpecifier("bytes=-500"))
+        assertEquals(
+            RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Suffix(500))),
+            parseRangesSpecifier("bytes=-500")
+        )
     }
 
     @Test
     fun testParseFirstAndLastByteOnly() {
-        assertEquals(RangesSpecifier(RangeUnits.Bytes, listOf(
-                ContentRange.Bounded(0, 0),
-                ContentRange.Suffix(1)
-        )),
-                parseRangesSpecifier("bytes=0-0,-1"))
+        assertEquals(
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 0),
+                    ContentRange.Suffix(1)
+                )
+            ),
+            parseRangesSpecifier("bytes=0-0,-1")
+        )
     }
 
     @Test
     fun testParseBytesFrom() {
-        assertEquals(RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.TailFrom(9500))),
-                parseRangesSpecifier("bytes=9500-"))
+        assertEquals(
+            RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.TailFrom(9500))),
+            parseRangesSpecifier("bytes=9500-")
+        )
     }
 
     @Test
@@ -80,93 +93,117 @@ class RangesTest {
 
     @Test
     fun testResolveRanges() {
-        val ranges = listOf(ContentRange.Bounded(0, 10),
-                ContentRange.TailFrom(11),
-                ContentRange.Suffix(5))
+        val ranges = listOf(
+            ContentRange.Bounded(0, 10),
+            ContentRange.TailFrom(11),
+            ContentRange.Suffix(5)
+        )
 
         assertEquals(
-                listOf(0..10,
-                        11..14,
-                        10..14),
-                ranges.toLongRanges(15)
+            listOf(0..10, 11..14, 10..14),
+            ranges.toLongRanges(15)
         )
     }
 
     @Test
     fun testMergeRanges() {
-        val ranges = longRanges(0 .. 10, 12 .. 13)
-        assertEquals(longRanges(0 .. 10, 12 .. 13), ranges.mergeRangesKeepOrder())
+        val ranges = longRanges(0..10, 12..13)
+        assertEquals(longRanges(0..10, 12..13), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesReverse() {
-        val ranges = longRanges(12 .. 13, 0 .. 10)
-        assertEquals(longRanges(12 .. 13, 0 .. 10), ranges.mergeRangesKeepOrder())
+        val ranges = longRanges(12..13, 0..10)
+        assertEquals(longRanges(12..13, 0..10), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesJustOneByte() {
-        val ranges = longRanges(500 .. 600, 601 .. 999)
-        assertEquals(longRanges(500 .. 999), ranges.mergeRangesKeepOrder())
+        val ranges = longRanges(500..600, 601..999)
+        assertEquals(longRanges(500..999), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesIntersection() {
-        val ranges = longRanges(500 .. 700, 601 .. 999)
-        assertEquals(longRanges(500 .. 999), ranges.mergeRangesKeepOrder())
+        val ranges = longRanges(500..700, 601..999)
+        assertEquals(longRanges(500..999), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesIntersectionOneInsideAnother() {
-        val ranges = longRanges(0 .. 100, 10 .. 50)
+        val ranges = longRanges(0..100, 10..50)
 
-        assertEquals(longRanges(0 .. 100), ranges.mergeRangesKeepOrder())
+        assertEquals(longRanges(0..100), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesSameStart() {
-        val ranges = longRanges(0 .. 10, 0 .. 50)
+        val ranges = longRanges(0..10, 0..50)
 
-        assertEquals(longRanges(0 .. 50), ranges.mergeRangesKeepOrder())
+        assertEquals(longRanges(0..50), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeRangesMultiple() {
-        val ranges = longRanges(100 .. 200, 10 .. 15, 80 .. 99)
+        val ranges = longRanges(100..200, 10..15, 80..99)
         assertEquals(longRanges(80..200, 10..15), ranges.mergeRangesKeepOrder())
     }
 
     @Test
     fun testMergeToSingle() {
-        assertEquals(0L..100L, RangesSpecifier(RangeUnits.Bytes, listOf(
-                ContentRange.Bounded(0, 0),
-                ContentRange.Bounded(90, 100),
-                ContentRange.Bounded(5, 7)
-        )).mergeToSingle(1000))
+        assertEquals(
+            0L..100L,
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 0),
+                    ContentRange.Bounded(90, 100),
+                    ContentRange.Bounded(5, 7)
+                )
+            ).mergeToSingle(1000)
+        )
     }
 
     @Test
     fun testMergeRangeSpecifier() {
-        assertEquals(listOf(0L..99L), RangesSpecifier(RangeUnits.Bytes, listOf(
-                ContentRange.Bounded(0, 0),
-                ContentRange.Bounded(1, 90),
-                ContentRange.Suffix(10)
-        )).merge(100))
+        assertEquals(
+            listOf(0L..99L),
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 0),
+                    ContentRange.Bounded(1, 90),
+                    ContentRange.Suffix(10)
+                )
+            ).merge(100)
+        )
 
-        assertEquals(listOf(0L..99L), RangesSpecifier(RangeUnits.Bytes, listOf(
-                ContentRange.Bounded(0, 0),
-                ContentRange.Bounded(1, 90),
-                ContentRange.TailFrom(90)
-        )).merge(100))
+        assertEquals(
+            listOf(0L..99L),
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 0),
+                    ContentRange.Bounded(1, 90),
+                    ContentRange.TailFrom(90)
+                )
+            ).merge(100)
+        )
     }
 
     @Test
     fun testRenderRanges() {
-        assertEquals("bytes=0-0,1-,-1", RangesSpecifier(RangeUnits.Bytes, listOf(
-                ContentRange.Bounded(0, 0),
-                ContentRange.TailFrom(1),
-                ContentRange.Suffix(1)
-        )).toString())
+        assertEquals(
+            "bytes=0-0,1-,-1",
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 0),
+                    ContentRange.TailFrom(1),
+                    ContentRange.Suffix(1)
+                )
+            ).toString()
+        )
     }
 
     @Test

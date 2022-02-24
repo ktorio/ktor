@@ -19,7 +19,7 @@ public val OAuthKey: Any = "OAuth"
 /**
  * Represents an OAuth provider for [Authentication] feature
  */
-public class OAuthAuthenticationProvider internal constructor(config : Configuration) : AuthenticationProvider(config) {
+public class OAuthAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
 
     internal val client: HttpClient = config.client
     internal val providerLookup: ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
@@ -90,7 +90,8 @@ internal fun OAuthAuthenticationProvider.oauth2() {
             if (cause != null) {
                 context.challenge(OAuthKey, cause) {
                     call.redirectAuthenticateOAuth2(
-                        provider, callbackRedirectUrl,
+                        provider,
+                        callbackRedirectUrl,
                         state = provider.nonceManager.newNonce(),
                         scopes = provider.defaultScopes,
                         interceptor = provider.authorizeUrlInterceptor

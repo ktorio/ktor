@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.http.cio
 
@@ -21,7 +21,7 @@ class HttpParserTest {
     fun parseHeadersSmokeTest(): Unit = test {
         val encodedHeaders = """
             name: value
-            name2:${HTAB}p1${HTAB}p2 p3${HTAB}
+            name2:${HTAB}p1${HTAB}p2 p3$HTAB
         """.trimIndent() + "\r\n\r\n"
         val channel = ByteReadChannel(encodedHeaders)
         val headers = parseHeaders(channel)
@@ -158,7 +158,7 @@ class HttpParserTest {
             """
             HTTP/1.1 100 OK
             """.trimIndent(),
-                """
+            """
             HTTP/1.1 999 OK
             """.trimIndent()
         ).forEach {

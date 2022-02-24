@@ -20,6 +20,10 @@ class FindContainingJarFileTest {
 
     @Test
     fun testEscapedChars() {
-        assertEquals("/Program Files/app.jar", findContainingJarFile("jar:file:/Program%20Files/app.jar!/test").path.replace('\\', '/'))
+        assertEquals(
+            "/Program Files/app.jar",
+            findContainingJarFile("jar:file:/Program%20Files/app.jar!/test")
+                .path.replace('\\', '/')
+        )
     }
 }

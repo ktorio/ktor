@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections
 
@@ -43,10 +43,13 @@ class ConcurrentSetTest {
     fun testToString() {
         assertEquals(emptySet<String>().toString(), ConcurrentSet<String>().toString())
 
-        assertEquals("[0, 1, 2, 3, 4]", ConcurrentSet<Int>().apply {
-            repeat(5) {
-                add(it)
-            }
-        }.toString())
+        assertEquals(
+            "[0, 1, 2, 3, 4]",
+            ConcurrentSet<Int>().apply {
+                repeat(5) {
+                    add(it)
+                }
+            }.toString()
+        )
     }
 }

@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.features.*
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
 import libcurl.*
 
 private class RequestHolders(
@@ -222,7 +222,8 @@ internal class CurlMultiApiHandler : Closeable {
                 if (httpStatusCode.value == 0L) {
                     if (result == CURLE_OPERATION_TIMEDOUT) {
                         return CurlFail(
-                            request, ConnectTimeoutException(request.url, request.connectTimeout)
+                            request,
+                            ConnectTimeoutException(request.url, request.connectTimeout)
                         )
                     }
 
@@ -232,7 +233,9 @@ internal class CurlMultiApiHandler : Closeable {
                         return CurlFail(
                             request,
                             @Suppress("DEPRECATION")
-                            CurlIllegalStateException("TLS verification failed for request: $request. Reason: $errorMessage")
+                            CurlIllegalStateException(
+                                "TLS verification failed for request: $request. Reason: $errorMessage"
+                            )
                         )
                     }
 
@@ -249,8 +252,10 @@ internal class CurlMultiApiHandler : Closeable {
 
                     CurlSuccess(
                         request,
-                        httpStatusCode.value.toInt(), httpProtocolVersion.value.toUInt(),
-                        headers, body
+                        httpStatusCode.value.toInt(),
+                        httpProtocolVersion.value.toUInt(),
+                        headers,
+                        body
                     )
                 }
             } finally {

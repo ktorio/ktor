@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.cio
 
@@ -44,7 +44,7 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
 
         server.start()
         try {
-            delay(1.seconds)
+            delay(1000L)
 
             launch {
                 HttpClient(io.ktor.client.engine.cio.CIO).use { client ->
@@ -55,7 +55,7 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
                 }
             }
 
-            delay(1.seconds)
+            delay(1000L)
         } finally {
             server.stop(1L, 1L, TimeUnit.SECONDS)
         }

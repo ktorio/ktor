@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.ios.certificates
 
@@ -168,7 +168,7 @@ public data class CertificatePinner internal constructor(
             return
         }
 
-        val result = areCertificatesPinned(certificates)
+        val result = hasOnePinnedCertificate(certificates)
         if (result) {
             completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
         } else {
@@ -179,12 +179,12 @@ public data class CertificatePinner internal constructor(
     }
 
     /**
-     * Check each of the certificates to see if they pinned
+     * Confirms that at least one of the certificates is pinned
      */
-    private fun areCertificatesPinned(
+    private fun hasOnePinnedCertificate(
         certificates: List<SecCertificateRef>
-    ): Boolean = certificates.all { certificate ->
-        val publicKey = certificate.getPublicKeyBytes() ?: return@all false
+    ): Boolean = certificates.any { certificate ->
+        val publicKey = certificate.getPublicKeyBytes() ?: return@any false
         // Lazily compute the hashes for each public key.
         var sha1: String? = null
         var sha256: String? = null

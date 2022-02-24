@@ -5,8 +5,8 @@
 package io.ktor.network.util
 
 import io.ktor.util.internal.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.core.Closeable
+import kotlinx.coroutines.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
@@ -69,9 +69,10 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
     }
 
     private class IOThread(
-            private val number: Int,
-            private val tasks: LockFreeLinkedListHead,
-            dispatcherThreadGroup: ThreadGroup) : Thread(dispatcherThreadGroup, "io-thread-$number") {
+        private val number: Int,
+        private val tasks: LockFreeLinkedListHead,
+        dispatcherThreadGroup: ThreadGroup
+    ) : Thread(dispatcherThreadGroup, "io-thread-$number") {
 
         @kotlin.jvm.Volatile
         private var cont: Continuation<Unit>? = null
@@ -133,7 +134,9 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
             // we know that it is always non-null
             // and it will never crash if it is actually null
             val threadCont = ThreadCont
-            if (!threadCont.compareAndSet(this, null, continuation)) throw IllegalStateException("Failed to set continuation")
+            if (!threadCont.compareAndSet(this, null, continuation)) {
+                throw IllegalStateException("Failed to set continuation")
+            }
             if (tasks.next !== tasks && threadCont.compareAndSet(this, continuation, null)) Unit
             else COROUTINE_SUSPENDED
         }
@@ -146,8 +149,11 @@ public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatc
             @Suppress("UNCHECKED_CAST")
             @JvmStatic
             private val ThreadCont =
-                    AtomicReferenceFieldUpdater.newUpdater<IOThread, Continuation<*>>(IOThread::class.java, Continuation::class.java, IOThread::cont.name)
-                            as AtomicReferenceFieldUpdater<IOThread, Continuation<Unit>?>
+                AtomicReferenceFieldUpdater.newUpdater<IOThread, Continuation<*>>(
+                    IOThread::class.java,
+                    Continuation::class.java,
+                    IOThread::cont.name
+                ) as AtomicReferenceFieldUpdater<IOThread, Continuation<Unit>?>
         }
     }
 

@@ -155,7 +155,6 @@ class SessionAuthTest {
         }
     }
 
-
     @Test
     fun testSessionAndForm() {
         withTestApplication {

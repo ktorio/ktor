@@ -1,7 +1,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
@@ -336,14 +335,15 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    private fun checkClosed(n: Int) {
-        if (closed) {
-            throw closedCause ?: prematureClose(n)
+    private fun checkClosed(remaining: Int, closeable: BytePacketBuilder? = null) {
+        closedCause?.let {
+            closeable?.close()
+            throw it
         }
-    }
-
-    private fun prematureClose(n: Int): Exception {
-        return EOFException("$n bytes required but EOF reached")
+        if (closed && availableForRead < remaining) {
+            closeable?.close()
+            throw EOFException("$remaining bytes required but EOF reached")
+        }
     }
 
     private suspend fun readByteSlow(): Byte {
@@ -496,6 +496,8 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
+        checkClosed(size)
+
         val builder = BytePacketBuilder(headerSizeHint)
 
         var remaining = size
@@ -503,6 +505,7 @@ public abstract class ByteChannelSequentialBase(
         remaining -= partSize
         builder.writePacket(readable, partSize)
         afterRead(partSize)
+        checkClosed(remaining, builder)
 
         return if (remaining > 0) readPacketSuspend(builder, remaining)
         else builder.build()
@@ -515,12 +518,14 @@ public abstract class ByteChannelSequentialBase(
             remaining -= partSize
             builder.writePacket(readable, partSize)
             afterRead(partSize)
+            checkClosed(remaining, builder)
 
             if (remaining > 0) {
                 awaitSuspend(1)
             }
         }
 
+        checkClosed(remaining, builder)
         return builder.build()
     }
 

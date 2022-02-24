@@ -178,7 +178,7 @@ private fun checkIconvResult(errno: Int) {
     if (errno == EINVAL) return // too few input bytes
     if (errno == E2BIG) return // too few output buffer bytes
 
-    throw IllegalStateException("Failed to call 'iconv' with error code ${errno}")
+    throw IllegalStateException("Failed to call 'iconv' with error code $errno")
 }
 
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
@@ -259,7 +259,6 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
         iconv_close(cd)
     }
 }
-
 
 internal actual fun CharsetDecoder.decodeBuffer(
     input: Buffer,
@@ -379,7 +378,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
         if (bytesConsumed < inputLength) {
             throw EOFException("Not enough bytes available: had only $bytesConsumed instead of $inputLength")
         }
-        return String(chars, 0, charsCopied)
+        return chars.concatToString(0, 0 + charsCopied)
     } finally {
         iconv_close(cd)
     }

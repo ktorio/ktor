@@ -52,12 +52,14 @@ public actual object ProxyBuilder {
     /**
      * Create socks proxy from [host] and [port].
      */
-    public actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(URLBuilder().apply {
-        protocol = URLProtocol.SOCKS
+    public actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(
+        URLBuilder().apply {
+            protocol = URLProtocol.SOCKS
 
-        this.host = host
-        this.port = port
-    }.build())
+            this.host = host
+            this.port = port
+        }.build()
+    )
 }
 
 /**

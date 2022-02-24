@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.collections
 
@@ -32,24 +32,36 @@ class ConcurrentListTest {
 
         assertEquals(listOf(1), single)
 
-        assertNotEquals(listOf(1), ConcurrentList<Int>().apply {
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1),
+            ConcurrentList<Int>().apply {
+                add(2)
+            }
+        )
 
-        assertNotEquals(listOf(1), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
 
-        assertEquals(listOf(1, 2), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertEquals(
+            listOf(1, 2),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
 
-        assertNotEquals(listOf(1, 2, 3), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1, 2, 3),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
     }
 
     @Test

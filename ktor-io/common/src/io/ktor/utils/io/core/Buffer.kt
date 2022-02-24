@@ -41,6 +41,7 @@ public open class Buffer(public val memory: Memory) {
         private set(value) {
             bufferState.writePosition = value
         }
+
     /**
      * Start gap is a reserved space in the beginning. The reserved space is usually used to write a packet length
      * in the case when it's not known before the packet constructed.

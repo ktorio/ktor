@@ -75,22 +75,6 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testEchoWSS() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            client.webSocket("wss://echo.websocket.org") {
-                outgoing.send(Frame.Text("PING"))
-                val frame = incoming.receive()
-                assertTrue(frame is Frame.Text)
-                assertEquals("PING", frame.readText())
-            }
-        }
-    }
-
-    @Test
     fun testConfiguration() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             WebSockets {

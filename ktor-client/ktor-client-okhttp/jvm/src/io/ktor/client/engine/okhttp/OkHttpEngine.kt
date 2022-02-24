@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.okhttp
 
@@ -118,7 +118,10 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 
     private fun buildResponseData(
-        response: Response, requestTime: GMTDate, body: Any, callContext: CoroutineContext
+        response: Response,
+        requestTime: GMTDate,
+        body: Any,
+        callContext: CoroutineContext
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
@@ -185,7 +188,6 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
             body.convertToOkHttpBody(callContext)
         } else null
-
 
         method(method.value, bodyBytes)
     }

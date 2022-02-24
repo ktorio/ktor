@@ -8,8 +8,7 @@ import kotlin.reflect.*
 internal fun ByteBuffer.isEmpty() = !hasRemaining()
 
 internal fun getIOIntProperty(name: String, default: Int): Int =
-    try { System.getProperty("io.ktor.utils.io.$name") }
-    catch (e: SecurityException) { null }
+    try { System.getProperty("io.ktor.utils.io.$name") } catch (e: SecurityException) { null }
         ?.toIntOrNull() ?: default
 
 @Suppress("LoopToCallChain")

@@ -13,7 +13,8 @@ import kotlin.coroutines.*
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
 public actual suspend fun Socket.tls(
-    coroutineContext: CoroutineContext, config: TLSConfig
+    coroutineContext: CoroutineContext,
+    config: TLSConfig
 ): Socket {
     val reader = openReadChannel()
     val writer = openWriteChannel()

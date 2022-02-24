@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.servlet
 
@@ -20,7 +20,8 @@ public class WebResourcesConfig
     "Direct instantiation will be impossible in 2.0.0. " +
         "Use Route.webResources {} function instead " +
         "or file an issue describing why do you need it."
-) constructor() {
+)
+constructor() {
     /**
      * Path predicates to be included. All files will be served if no include rules specified.
      * A path provided to a predicate is always slash-separated (`/`).

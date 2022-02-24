@@ -1,11 +1,10 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
 import platform.posix.*
-
 
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
@@ -19,7 +18,6 @@ public actual fun generateNonce(): String {
 
     return builder.toString()
 }
-
 
 /**
  * Create [Digest] from specified hash [name].

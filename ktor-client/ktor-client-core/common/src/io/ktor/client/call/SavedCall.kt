@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.call
 
@@ -38,11 +38,14 @@ internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
 }
 
 internal class SavedHttpRequest(
-    override val call: SavedHttpCall, origin: HttpRequest
+    override val call: SavedHttpCall,
+    origin: HttpRequest
 ) : HttpRequest by origin
 
 internal class SavedHttpResponse(
-    override val call: SavedHttpCall, body: ByteArray, origin: HttpResponse
+    override val call: SavedHttpCall,
+    body: ByteArray,
+    origin: HttpResponse
 ) : HttpResponse() {
     private val context = Job()
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.http
 
@@ -84,7 +84,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toInt() ?: 0,
+        maxAge = loweredMap["max-age"]?.toIntClamping() ?: 0,
         expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -194,14 +194,14 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } ->
             throw IllegalArgumentException(
-                "The cookie value contains characters that couldn't be encoded in RAW format. " +
+                "The cookie value contains characters that cannot be encoded in RAW format. " +
                     " Consider URL_ENCODING mode"
             )
         else -> value
     }
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
-            "The cookie value contains characters that couldn't be encoded in DQUOTES format. " +
+            "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
                 "Consider URL_ENCODING mode"
         )
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
@@ -250,3 +250,5 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
     if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
+
+private fun String.toIntClamping(): Int = toLong().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()

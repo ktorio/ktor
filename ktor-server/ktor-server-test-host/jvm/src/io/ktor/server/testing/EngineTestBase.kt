@@ -32,7 +32,6 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-
 @Suppress("KDocMissingDocumentation")
 public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     public val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -281,7 +280,8 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     }
 
     private fun withUrl(
-        urlString: String, port: Int,
+        urlString: String,
+        port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
@@ -304,8 +304,10 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     }
 
     private fun withHttp2(
-        url: String, port: Int,
-        builder: suspend HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
+        url: String,
+        port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit,
+        block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
         withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
             HttpClient(Jetty) {

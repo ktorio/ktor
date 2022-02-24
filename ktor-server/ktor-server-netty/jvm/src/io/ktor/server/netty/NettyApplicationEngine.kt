@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.netty
 
@@ -84,25 +84,31 @@ public class NettyApplicationEngine(
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
-    private val connectionEventGroup: EventLoopGroupProxy by lazy {
-        EventLoopGroupProxy.create(configuration.connectionGroupSize)
+    private val connectionEventGroup: EventLoopGroup by lazy {
+        customBootstrap.config().group() ?: EventLoopGroupProxy.create(configuration.connectionGroupSize)
     }
 
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
-    private val workerEventGroup: EventLoopGroupProxy by lazy {
-        if (configuration.shareWorkGroup) {
+    private val workerEventGroup: EventLoopGroup by lazy {
+        val defaultGroup = if (configuration.shareWorkGroup) {
             EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
         } else {
             EventLoopGroupProxy.create(configuration.workerGroupSize)
         }
+
+        customBootstrap.config().childGroup() ?: defaultGroup
+    }
+
+    private val customBootstrap: ServerBootstrap by lazy {
+        ServerBootstrap().apply(configuration.configureBootstrap)
     }
 
     /**
      * [EventLoopGroupProxy] for processing [ApplicationCall] instances
      */
-    private val callEventGroup: EventLoopGroupProxy by lazy {
+    private val callEventGroup: EventLoopGroup by lazy {
         if (configuration.shareWorkGroup) {
             workerEventGroup
         } else {
@@ -122,28 +128,36 @@ public class NettyApplicationEngine(
 
     private var channels: List<Channel>? = null
     private val bootstraps: List<ServerBootstrap> by lazy {
-        environment.connectors.map { connector ->
-            ServerBootstrap().apply {
-                configuration.configureBootstrap(this)
+        environment.connectors.map(::createBootstrap)
+    }
+
+    private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
+        return customBootstrap.clone().apply {
+            if (config().group() == null && config().childGroup() == null) {
                 group(connectionEventGroup, workerEventGroup)
-                channel(connectionEventGroup.channel.java)
-                childHandler(
-                    NettyChannelInitializer(
-                        pipeline, environment,
-                        callEventGroup,
-                        engineDispatcherWithShutdown,
-                        environment.parentCoroutineContext + dispatcherWithShutdown,
-                        connector,
-                        configuration.requestQueueLimit,
-                        configuration.runningLimit,
-                        configuration.responseWriteTimeoutSeconds,
-                        configuration.requestReadTimeoutSeconds,
-                        configuration.httpServerCodec
-                    )
+            }
+
+            if (config().channelFactory() == null) {
+                channel(getChannelClass().java)
+            }
+
+            childHandler(
+                NettyChannelInitializer(
+                    pipeline,
+                    environment,
+                    callEventGroup,
+                    engineDispatcherWithShutdown,
+                    environment.parentCoroutineContext + dispatcherWithShutdown,
+                    connector,
+                    configuration.requestQueueLimit,
+                    configuration.runningLimit,
+                    configuration.responseWriteTimeoutSeconds,
+                    configuration.requestReadTimeoutSeconds,
+                    configuration.httpServerCodec
                 )
-                if (configuration.tcpKeepAlive) {
-                    option(NioChannelOption.SO_KEEPALIVE, true)
-                }
+            )
+            if (configuration.tcpKeepAlive) {
+                option(NioChannelOption.SO_KEEPALIVE, true)
             }
         }
     }
@@ -228,19 +242,12 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
                 }
             }
 
+            val channelClass = getChannelClass()
+
             return when {
-                KQueue.isAvailable() -> EventLoopGroupProxy(
-                    KQueueServerSocketChannel::class,
-                    KQueueEventLoopGroup(parallelism, factory)
-                )
-                Epoll.isAvailable() -> EventLoopGroupProxy(
-                    EpollServerSocketChannel::class,
-                    EpollEventLoopGroup(parallelism, factory)
-                )
-                else -> EventLoopGroupProxy(
-                    NioServerSocketChannel::class,
-                    NioEventLoopGroup(parallelism, factory)
-                )
+                KQueue.isAvailable() -> EventLoopGroupProxy(channelClass, KQueueEventLoopGroup(parallelism, factory))
+                Epoll.isAvailable() -> EventLoopGroupProxy(channelClass, EpollEventLoopGroup(parallelism, factory))
+                else -> EventLoopGroupProxy(channelClass, NioEventLoopGroup(parallelism, factory))
             }
         }
 
@@ -260,4 +267,10 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
             }
         }
     }
+}
+
+private fun getChannelClass(): KClass<out ServerSocketChannel> = when {
+    KQueue.isAvailable() -> KQueueServerSocketChannel::class
+    Epoll.isAvailable() -> EpollServerSocketChannel::class
+    else -> NioServerSocketChannel::class
 }

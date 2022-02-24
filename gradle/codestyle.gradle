@@ -9,6 +9,10 @@ subprojects {
         ignoreFailures = true
         reporters = ['checkstyle', 'plain']
         experimentalRules = true
-        disabledRules = ['no-wildcard-imports', 'experimental:spacing-between-declarations-with-annotations']
+        disabledRules = [
+            'no-wildcard-imports',
+            'experimental:spacing-between-declarations-with-annotations',
+            'experimental:enum-entry-name-case'
+        ]
     }
 }

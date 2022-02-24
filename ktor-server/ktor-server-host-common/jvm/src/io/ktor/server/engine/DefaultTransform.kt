@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.server.engine
 
@@ -32,8 +32,7 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
 public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
-        if (transformed != null)
-            proceedWith(transformed)
+        if (transformed != null) proceedWith(transformed)
     }
 }
 
@@ -79,8 +78,9 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             }
             else -> null
         }
-        if (transformed != null)
+        if (transformed != null) {
             proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.type in ReusableTypes))
+        }
     }
 }
 
@@ -134,4 +134,3 @@ private suspend fun ByteReadChannel.readText(
         content.release()
     }
 }
-

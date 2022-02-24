@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.routing
 
@@ -341,7 +341,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
  */
 public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityWildcard) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size) {
+        if (segmentIndex < context.segments.size && context.segments[segmentIndex].isNotEmpty()) {
             return RouteSelectorEvaluation.WildcardPath
         }
         return RouteSelectorEvaluation.Failed
@@ -533,29 +533,36 @@ internal fun evaluatePathSegmentParameter(
     segments: List<String>,
     segmentIndex: Int,
     name: String,
-    prefix: String?,
-    suffix: String?,
+    prefix: String? = null,
+    suffix: String? = null,
     isOptional: Boolean
 ): RouteSelectorEvaluation {
-    fun failedEvaluation(): RouteSelectorEvaluation {
-        return if (isOptional) RouteSelectorEvaluation.Missing else RouteSelectorEvaluation.Failed
+    fun failedEvaluation(failedPart: String?): RouteSelectorEvaluation {
+        return when {
+            !isOptional -> RouteSelectorEvaluation.Failed
+            failedPart == null -> RouteSelectorEvaluation.Missing
+            failedPart.isEmpty() -> RouteSelectorEvaluation.Missing.copy(segmentIncrement = 1) // trailing slash
+            else -> RouteSelectorEvaluation.Missing
+        }
     }
 
     if (segmentIndex >= segments.size) {
-        return failedEvaluation()
+        return failedEvaluation(null)
     }
 
     val part = segments[segmentIndex]
+    if (part.isEmpty()) return failedEvaluation(part)
+
     val prefixChecked = when {
         prefix == null -> part
         part.startsWith(prefix) -> part.drop(prefix.length)
-        else -> return failedEvaluation()
+        else -> return failedEvaluation(part)
     }
 
     val suffixChecked = when {
         suffix == null -> prefixChecked
         prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
-        else -> return failedEvaluation()
+        else -> return failedEvaluation(part)
     }
 
     val values = parametersOf(name, suffixChecked)

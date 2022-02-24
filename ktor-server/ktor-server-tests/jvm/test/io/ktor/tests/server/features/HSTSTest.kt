@@ -29,17 +29,23 @@ class HSTSTest {
         withTestApplication {
             application.testApp()
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
                 addHeader(HttpHeaders.XForwardedHost, "some")
-            }).let { call ->
-                assertEquals("max-age=10; includeSubDomains; preload; some=\"va=lue\"", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }.let { call ->
+                assertEquals(
+                    "max-age=10; includeSubDomains; preload; some=\"va=lue\"",
+                    call.response.headers[HttpHeaders.StrictTransportSecurity]
+                )
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
-            }).let { call ->
-                assertEquals("max-age=10; includeSubDomains; preload; some=\"va=lue\"", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }.let { call ->
+                assertEquals(
+                    "max-age=10; includeSubDomains; preload; some=\"va=lue\"",
+                    call.response.headers[HttpHeaders.StrictTransportSecurity]
+                )
             }
         }
     }
@@ -49,10 +55,10 @@ class HSTSTest {
         withTestApplication {
             application.testApp()
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
                 addHeader(HttpHeaders.XForwardedHost, "some:8443")
-            }).let { call ->
+            }.let { call ->
                 assertNull(call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
         }
@@ -66,10 +72,13 @@ class HSTSTest {
                 customDirectives["some"] = null
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
-            }).let { call ->
-                assertEquals("max-age=10; includeSubDomains; preload; some", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }.let { call ->
+                assertEquals(
+                    "max-age=10; includeSubDomains; preload; some",
+                    call.response.headers[HttpHeaders.StrictTransportSecurity]
+                )
             }
         }
     }
@@ -81,10 +90,13 @@ class HSTSTest {
                 customDirectives.clear()
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
-            }).let { call ->
-                assertEquals("max-age=10; includeSubDomains; preload", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }.let { call ->
+                assertEquals(
+                    "max-age=10; includeSubDomains; preload",
+                    call.response.headers[HttpHeaders.StrictTransportSecurity]
+                )
             }
         }
     }
@@ -98,9 +110,9 @@ class HSTSTest {
                 preload = false
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.XForwardedProto, "https")
-            }).let { call ->
+            }.let { call ->
                 assertEquals("max-age=10", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
         }

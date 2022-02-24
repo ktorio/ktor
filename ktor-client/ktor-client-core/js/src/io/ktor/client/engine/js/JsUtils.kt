@@ -36,6 +36,7 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
         method = this@toRaw.method.value
         headers = jsHeaders
         redirect = RequestRedirect.FOLLOW
+        credentials = RequestCredentials.INCLUDE
 
         bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
     }

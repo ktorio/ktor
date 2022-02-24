@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.okhttp
 
@@ -27,7 +27,9 @@ internal class OkHttpWebsocketSession(
 
     override var pingIntervalMillis: Long
         get() = engine.pingIntervalMillis.toLong()
-        set(_) = throw WebSocketException("OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration.")
+        set(_) = throw WebSocketException(
+            "OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration."
+        )
 
     override var timeoutMillis: Long
         get() = engine.readTimeoutMillis.toLong()

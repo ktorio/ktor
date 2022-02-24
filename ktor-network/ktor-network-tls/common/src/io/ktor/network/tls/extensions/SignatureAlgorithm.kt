@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
-
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
@@ -54,7 +53,6 @@ public enum class SignatureAlgorithm(public val code: Byte) {
     ED25519(7),
     ED448(8);
 
-
     public companion object {
         /**
          * Find signature algorithm instance by it's numeric [code]
@@ -85,7 +83,7 @@ public data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgori
 internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = null): HashAndSign? {
     val hash = HashAlgorithm.byCode(hashValue)
     val sign = SignatureAlgorithm.byCode(signValue) ?: return null
-    val oid = oidValue?.let{ OID(it) }
+    val oid = oidValue?.let { OID(it) }
 
     return HashAndSign(hash, sign, oid)
 }
@@ -111,8 +109,9 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
         result += readHashAndSign() ?: continue
     }
 
-    if (remaining.toInt() != length)
+    if (remaining.toInt() != length) {
         throw TLSException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
+    }
 
     return result
 }

@@ -5,6 +5,7 @@
 package io.ktor.tests.jackson
 
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -64,7 +65,6 @@ class JacksonTest {
             register(ContentType.Application.Json, JacksonConverter())
         }
         application.routing {
-
             val model = mapOf("id" to 1, "title" to "Hello, World!", "unicode" to uc)
             get("/") {
                 call.respond(model)
@@ -78,7 +78,7 @@ class JacksonTest {
 
         handleRequest(HttpMethod.Get, "/") {
             addHeader("Accept", "application/json")
-            addHeader("Accept-Charset", "UTF-16" )
+            addHeader("Accept-Charset", "UTF-16")
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
@@ -108,7 +108,15 @@ class JacksonTest {
         }
 
         application.routing {
-            val model = MyEntity(777, "Cargo", listOf(ChildEntity("Qube", 1), ChildEntity("Sphere", 2), ChildEntity(uc, 3)))
+            val model = MyEntity(
+                777,
+                "Cargo",
+                listOf(
+                    ChildEntity("Qube", 1),
+                    ChildEntity("Sphere", 2),
+                    ChildEntity(uc, 3)
+                )
+            )
 
             get("/") {
                 call.respond(model)
@@ -117,7 +125,6 @@ class JacksonTest {
                 val entity = call.receive<MyEntity>()
                 call.respond(entity.toString())
             }
-
         }
 
         handleRequest(HttpMethod.Get, "/") {
@@ -125,22 +132,36 @@ class JacksonTest {
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""), response.content!!.lines())
+            assertEquals(
+                listOf(
+                    """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                        """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
+                ),
+                response.content!!.lines()
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
-            setBody("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}""")
+            setBody(
+                """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
+                    """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
+            )
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""), response.content!!.lines())
+            assertEquals(
+                listOf(
+                    """MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), """ +
+                        """ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""
+                ),
+                response.content!!.lines()
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
-
     }
 
     @Test
@@ -163,9 +184,31 @@ class JacksonTest {
             assertEquals("{\n  \"a\" : 1,\n  \"b\" : 2\n}", response.content)
         }
     }
-}
 
+    @Test
+    fun testCustomKotlinModule() = withTestApplication {
+        application.install(ContentNegotiation) {
+            jackson {
+                registerModule(KotlinModule(nullisSameAsDefault = true))
+            }
+        }
+
+        application.routing {
+            post("/") {
+                call.respond(call.receive<WithDefaultValueEntity>())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.Accept, "application/json")
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("""{"value":null}""")
+        }.response.let { response ->
+            assertEquals("""{"value":"asd"}""", response.content)
+        }
+    }
+}
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
-
+data class WithDefaultValueEntity(val value: String = "asd")

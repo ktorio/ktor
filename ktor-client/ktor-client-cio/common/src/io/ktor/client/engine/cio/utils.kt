@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.engine.cio
 
@@ -20,7 +20,8 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(
-    output: ByteWriteChannel, callContext: CoroutineContext,
+    output: ByteWriteChannel,
+    callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) {
@@ -66,8 +67,9 @@ internal suspend fun HttpRequestData.write(
         }
 
         val content = body
-        if (content is OutgoingContent.NoContent)
+        if (content is OutgoingContent.NoContent) {
             return
+        }
 
         val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
         val channel = chunkedJob?.channel ?: output

@@ -21,16 +21,20 @@ fun resolve(
     headers: Headers = Headers.Empty
 ): RoutingResolveResult {
     return withTestApplication {
-        RoutingResolveContext(routing, TestApplicationCall(application, coroutineContext = coroutineContext).apply {
-            request.method = HttpMethod.Get
-            request.uri = path + buildString {
-                if (!parameters.isEmpty()) {
-                    append("?")
-                    parameters.formUrlEncodeTo(this)
+        RoutingResolveContext(
+            routing,
+            TestApplicationCall(application, coroutineContext = coroutineContext).apply {
+                request.method = HttpMethod.Get
+                request.uri = path + buildString {
+                    if (!parameters.isEmpty()) {
+                        append("?")
+                        parameters.formUrlEncodeTo(this)
+                    }
                 }
-            }
-            headers.flattenForEach { name, value -> request.addHeader(name, value) }
-        }, emptyList()).resolve()
+                headers.flattenForEach { name, value -> request.addHeader(name, value) }
+            },
+            emptyList()
+        ).resolve()
     }
 }
 
@@ -549,7 +553,6 @@ class RoutingResolveTest {
                 assertNull(result.parameters["name"])
             }
         }
-
     }
 
     @Test
@@ -630,7 +633,6 @@ class RoutingResolveTest {
                 assertEquals(varargEntry, result.route)
             }
         }
-
     }
 
     @Test
@@ -669,7 +671,6 @@ class RoutingResolveTest {
                 assertEquals(currentEntry, result.route)
             }
         }
-
     }
 
     @Test
@@ -1041,14 +1042,135 @@ class RoutingResolveTest {
     }
 
     @Test
+    fun testRoutingWithWildcardTrailingPathParameter() = withTestApplication {
+        application.routing {
+            get("test/*") {
+                call.respondText("test")
+            }
+        }
+        on("making /test request") {
+            val result = handleRequest {
+                uri = "test"
+                method = HttpMethod.Get
+            }
+            it("/test should not be called") {
+                assertFalse(result.requestHandled)
+            }
+        }
+        on("making /test/ request") {
+            val result = handleRequest {
+                uri = "test/"
+                method = HttpMethod.Get
+            }
+            it("/test/ should not be called") {
+                assertFalse(result.requestHandled)
+            }
+        }
+        on("making /test/foo request") {
+            val result = handleRequest {
+                uri = "test/foo"
+                method = HttpMethod.Get
+            }
+            it("/test/foo should be called") {
+                assertEquals("test", result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingWithWildcardPathParameter() = withTestApplication {
+        application.routing {
+            get("test/*/foo") {
+                call.respondText("foo")
+            }
+        }
+        on("making /test/foo request") {
+            val result = handleRequest {
+                uri = "test/foo"
+                method = HttpMethod.Get
+            }
+            it("/test/*/foo should not be called") {
+                assertFalse(result.requestHandled)
+            }
+        }
+        on("making /test/bar/foo request") {
+            val result = handleRequest {
+                uri = "test/bar/foo"
+                method = HttpMethod.Get
+            }
+            it("/test/*/foo should be called") {
+                assertEquals("foo", result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingWithNonOptionalTrailingPathParameter() = withTestApplication {
+        application.routing {
+            get("test/{foo}") {
+                call.respondText(call.parameters["foo"]!!)
+            }
+        }
+        on("making /test/ request") {
+            val result = handleRequest {
+                uri = "test/"
+                method = HttpMethod.Get
+            }
+            it("/test/ should not be called") {
+                assertFalse(result.requestHandled)
+            }
+        }
+        on("making /test/foo request") {
+            val result = handleRequest {
+                uri = "test/foo"
+                method = HttpMethod.Get
+            }
+            it("/test/foo should be called") {
+                assertEquals("foo", result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingWithOptionalTrailingPathParameter() = withTestApplication {
+        application.routing {
+            get("test/{foo?}") {
+                call.respondText(call.parameters["foo"] ?: "null")
+            }
+        }
+
+        on("making /test/ request") {
+            val result = handleRequest {
+                uri = "test/"
+                method = HttpMethod.Get
+            }
+            it("/test/ should be called") {
+                assertEquals("null", result.response.content)
+            }
+        }
+
+        on("making /test/foo request") {
+            val result = handleRequest {
+                uri = "test/foo"
+                method = HttpMethod.Get
+            }
+            it("/test/foo should be called") {
+                assertEquals("foo", result.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testRoutingWithTransparentQualitySibling() {
         val root = routing()
         val siblingTop = root.handle(PathSegmentParameterRouteSelector("sibling", "top"))
-        val transparentEntryTop = root.createChild(object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
-            override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+        val transparentEntryTop = root.createChild(
+            object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+                override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                    return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+                }
             }
-        })
+        )
         // inner entry has lower priority then its siblings
         val innerEntryTop = transparentEntryTop.handle(PathSegmentParameterRouteSelector("inner"))
         val siblingBottom = root.handle(PathSegmentParameterRouteSelector("sibling", "bottom"))

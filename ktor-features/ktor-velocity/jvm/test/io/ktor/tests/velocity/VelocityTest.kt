@@ -136,10 +136,11 @@ class VelocityTest {
 
             val repo = getApplicationAttribute(StringResourceLoader.REPOSITORY_NAME_DEFAULT) as StringResourceRepository
             repo.putStringResource(
-                "test.vl", """
+                "test.vl",
+                """
                         <p>Hello, ${bax}id</p>
                         <h1>${bax}title</h1>
-                    """.trimIndent()
+                """.trimIndent()
             )
         }
     }

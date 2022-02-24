@@ -118,7 +118,6 @@ public fun ByteReadPacket.readerUTF8(): Reader {
     }
 }
 
-
 /**
  * Creates [OutputStream] adapter to the builder
  */

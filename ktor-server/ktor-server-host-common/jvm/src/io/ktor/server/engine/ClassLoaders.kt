@@ -8,7 +8,6 @@ import java.lang.reflect.Field
 import java.net.URL
 import java.net.URLClassLoader
 
-
 internal fun ClassLoader.allURLs(): Set<URL> {
     val parentUrls = parent?.allURLs() ?: emptySet()
     if (this is URLClassLoader) {
@@ -58,8 +57,7 @@ private fun ClassLoader.urlClassPathByPackagesList(): List<URL>? {
     val allPackagePaths = ClassLoaderDelegate(this).packagesList().map { it.replace('.', '/') }
         .flatMapTo(HashSet<String>()) { packageName ->
             val segments = packageName.split('/')
-            (1 .. segments.size).
-                map { segments.subList(0, it).joinToString("/") } + packageName
+            (1..segments.size).map { segments.subList(0, it).joinToString("/") } + packageName
         }.sortedBy { it.count { character -> character == '/' } } + ""
 
     return allPackagePaths.flatMap { path -> getResources(path)?.toList() ?: emptyList() }

@@ -21,8 +21,11 @@ import kotlin.test.*
 
 class ContentTest : ClientLoader() {
     private val testSize = listOf(
-        0, 1, // small edge cases
-        4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
+        0,
+        1, // small edge cases
+        4 * 1024 - 1,
+        4 * 1024,
+        4 * 1024 + 1, // ByteChannel edge cases
         10 * 4 * 1024, // 4 chunks
         10 * 4 * (1024 + 8), // 4 chunks
         8 * 1024 * 1024 // big
@@ -37,7 +40,9 @@ class ContentTest : ClientLoader() {
             )
 
             val response = client.submitForm<String>(
-                "$TEST_SERVER/content/news", encodeInQuery = true, formParameters = form
+                "$TEST_SERVER/content/news",
+                encodeInQuery = true,
+                formParameters = form
             )
 
             assertEquals("100", response)
@@ -79,7 +84,9 @@ class ContentTest : ClientLoader() {
                 val content = makeString(size)
                 val requestWithBody = client.echo<String>(content)
                 assertArrayEquals(
-                    "Test fail with size: $size", content.toByteArray(), requestWithBody.toByteArray()
+                    "Test fail with size: $size",
+                    content.toByteArray(),
+                    requestWithBody.toByteArray()
                 )
             }
         }
@@ -163,7 +170,8 @@ class ContentTest : ClientLoader() {
 
         test { client ->
             val response = client.submitFormWithBinaryData<String>(
-                "$TEST_SERVER/content/upload", formData = data()
+                "$TEST_SERVER/content/upload",
+                formData = data()
             )
             val contentString = data().makeString()
             assertEquals(contentString, response)

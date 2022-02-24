@@ -1,3 +1,59 @@
+# 1.5.4
+> Published 30 Apr 2021
+
+* Fixed extra trailing slashes in Route.toString ([KTOR-2427](https://youtrack.jetbrains.com/issue/KTOR-2427))
+* Fixed ByteReadChannel.read related issues ([KTOR-2615](https://youtrack.jetbrains.com/issue/KTOR-2516),
+  [KTOR-2519](https://youtrack.jetbrains.com/issue/KTOR-2519))
+* Fixed silently ignored exceptions in HTML DSL with StatusPages feature ([KTOR-756](https://youtrack.jetbrains.com/issue/KTOR-756))
+* Changed IosHttpRequestException supertype to IOException ([KTOR-2566](https://youtrack.jetbrains.com/issue/KTOR-2566))
+* Fixed utility collection implementation for K/N ([KTOR-2482](https://youtrack.jetbrains.com/issue/KTOR-2482)) 
+* Fixed client Digest auth realm handling ([KTOR-1464](https://github.com/ktorio/ktor/pull/2347))
+
+# 1.5.3
+> Published 2 Apr 2021
+
+*  Upgraded to coroutines 1.4.3 ([KTOR-2254](https://youtrack.jetbrains.com/issue/KTOR-2254))
+*  Upgraded kotlinx.serialization to 1.1.0 ([KTOR-2238](https://youtrack.jetbrains.com/issue/KTOR-2238))
+*  Fixed I/O readRemaining sometimes looses exception ([KTOR-2263](https://youtrack.jetbrains.com/issue/KTOR-2263))
+*  Fixed autoreload with 1.5.x when using embeddedServer NOT in debug mode regression  ([KTOR-2214](https://youtrack.jetbrains.com/issue/KTOR-2214))
+*  Fixed flaky CIOSustainabilityTest.testBlockingConcurrency[jvm] ([KTOR-2265](https://youtrack.jetbrains.com/issue/KTOR-2265))
+*  Resolve 'node-fetch' on libs produced by jsBrowserProductionLibraryDistribution regression  ([KTOR-2230](https://youtrack.jetbrains.com/issue/KTOR-2230))
+*  Updated doc string for FormPart ([KTOR-2173](https://youtrack.jetbrains.com/issue/KTOR-2173))
+*  Fixed java.lang.IllegalStateException: No instance for key AttributeKey: ExpectSuccessAttribyteKey regression  ([KTOR-2389](https://youtrack.jetbrains.com/issue/KTOR-2389))
+*  Supported overriding Kotlin module configuration using jackson dsl function ([KTOR-1692](https://youtrack.jetbrains.com/issue/KTOR-1692))
+*  Fixed CORS can't pass on some none standard orgin on jvm  ([KTOR-469](https://youtrack.jetbrains.com/issue/KTOR-469))
+*  Fixed unexpected exception when using Session feature: "Using blocking primitives on this dispatcher is not allowed" regression jvm  ([KTOR-1452](https://youtrack.jetbrains.com/issue/KTOR-1452))
+*  Fixed NettyApplicationEngine providing a configureBootstrap in the configuration throws IllegalStateException: group set already ([KTOR-2078](https://youtrack.jetbrains.com/issue/KTOR-2078))
+*  Fixed wrong indentation in `Serving Static Content` guide ([KTOR-2017](https://youtrack.jetbrains.com/issue/KTOR-2017))
+*  Fixed InsufficientSpaceException trying to build ByteReadPacket jvm  ([KTOR-960](https://youtrack.jetbrains.com/issue/KTOR-960))
+*  Fixed flaky ProxyTest.testHttpProxy[CIO][jvm] ([KTOR-2082](https://youtrack.jetbrains.com/issue/KTOR-2082))
+*  Fixed invalid assertion for existence of the key in the key store ([KTOR-2311](https://youtrack.jetbrains.com/issue/KTOR-2311))
+*  Fixed incorrect grammar in exception messages ([KTOR-2284](https://youtrack.jetbrains.com/issue/KTOR-2284))
+*  Fixed flaky JavaEngineTests.testThreadLeak[jvm] ([KTOR-2098](https://youtrack.jetbrains.com/issue/KTOR-2098))
+*  Fixed flaky JettyStressTest.highLoadStressTest ([KTOR-2080](https://youtrack.jetbrains.com/issue/KTOR-2080))
+*  Fixed flaky ExceptionsJvmTest.testConnectionClosedDuringRequest[jvm] ([KTOR-2063](https://youtrack.jetbrains.com/issue/KTOR-2063))
+
+# 1.5.2
+> Published 25 Feb 2021
+
+* Fixed Dokka building for master ([KTOR-2206](https://youtrack.jetbrains.com/issue/KTOR-2206))
+* Fixed native build on linux machine ([KTOR-2200](https://youtrack.jetbrains.com/issue/KTOR-2200))
+* Fixed docker doc is incorrect / does not work ([KTOR-2179](https://youtrack.jetbrains.com/issue/KTOR-2179))
+* Fixed crash with Firebase Performance in iOS ([KTOR-642](https://youtrack.jetbrains.com/issue/KTOR-642))
+* Fixed Ktor Client CIO engine Jvm ignores Cipher suites with key strength more than 128 bits. ([KTOR-1914](https://youtrack.jetbrains.com/issue/KTOR-1914))
+* Fixed mandatory Path Segment parameter can be empty, if no explicit route with trailing / is defined ([KTOR-2054](https://youtrack.jetbrains.com/issue/KTOR-2054))
+* Fixed flaky ClientSocketTest.testSelfConnect[jvm] ([KTOR-2060](https://youtrack.jetbrains.com/issue/KTOR-2060))
+* Switch JS Fetch API to Standard Library (org.w3c.fetch.*) ([KTOR-1460](https://youtrack.jetbrains.com/issue/KTOR-1460))
+* Fixed CIO server always start on "0.0.0.0" - does not respect "connector" configuration ([KTOR-334](https://youtrack.jetbrains.com/issue/KTOR-334))
+* Fixed server/netty: IllegalReferenceCountException ([KTOR-1801](https://youtrack.jetbrains.com/issue/KTOR-1801))
+* Fixed digest authentication: cannot successfully pass authentication using curl or web browser ([KTOR-1466](https://youtrack.jetbrains.com/issue/KTOR-1466))
+* Fixed HTTP Client exception is masked by JobCancellationException with Ktor 1.5.0 ([KTOR-1967](https://youtrack.jetbrains.com/issue/KTOR-1967))
+* Fixed changing `requestTimeoutMillis` in config of HttpTimeout feature doesn't change the CIO's timeout ([KTOR-2000](https://youtrack.jetbrains.com/issue/KTOR-2000))
+* Fixed test a POST with MultiPart using TestApplicationEngine does not success or fail ([KTOR-345](https://youtrack.jetbrains.com/issue/KTOR-345))
+* Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
+* Fixed custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
+* Fixed session cookie with very long max age duration ([KTOR-692](https://youtrack.jetbrains.com/issue/KTOR-692))
+
 # 1.5.1
 > Published 27 Jan 2021
 

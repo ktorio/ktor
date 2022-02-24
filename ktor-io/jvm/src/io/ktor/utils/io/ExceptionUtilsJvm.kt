@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.utils.io
 
@@ -98,6 +98,3 @@ private tailrec fun Class<*>.fieldsCount(accumulator: Int = 0): Int {
     val superClass = superclass ?: return totalFields
     return superClass.fieldsCount(totalFields)
 }
-
-
-

@@ -25,7 +25,8 @@ import kotlinx.coroutines.*
  * it is important to perform close sequence properly.
  */
 public fun Route.webSocketRaw(
-    path: String, protocol: String? = null,
+    path: String,
+    protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
 ) {
     webSocketRaw(path, protocol, negotiateExtensions = false, handler)
@@ -187,7 +188,11 @@ public fun Route.webSocket(
  * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
  * a timeout exceeds
  */
-public fun Route.webSocket(path: String, protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
+public fun Route.webSocket(
+    path: String,
+    protocol: String? = null,
+    handler: suspend DefaultWebSocketServerSession.() -> Unit
+) {
     webSocketRaw(path, protocol, negotiateExtensions = true) {
         proceedWebSocket(handler)
     }

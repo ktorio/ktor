@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
@@ -22,6 +23,8 @@ public abstract class NettyApplicationCall(
     public abstract override val response: NettyApplicationResponse
 
     public val responseWriteJob: Job = Job()
+
+    private val messageReleased = atomic(false)
 
     internal suspend fun finish() {
         try {
@@ -50,12 +53,18 @@ public abstract class NettyApplicationCall(
     private fun finishComplete() {
         responseWriteJob.cancel()
         request.close()
-        ReferenceCountUtil.release(requestMessage)
+        releaseRequestMessage()
     }
 
     internal fun dispose() {
         response.close()
         request.close()
-        ReferenceCountUtil.release(requestMessage)
+        releaseRequestMessage()
+    }
+
+    private fun releaseRequestMessage() {
+        if (messageReleased.compareAndSet(expect = false, update = true)) {
+            ReferenceCountUtil.release(requestMessage)
+        }
     }
 }

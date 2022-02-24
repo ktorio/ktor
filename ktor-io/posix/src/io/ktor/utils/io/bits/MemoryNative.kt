@@ -2,9 +2,9 @@
 
 package io.ktor.utils.io.bits
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.internal.utils.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.require
 
@@ -87,7 +87,8 @@ public actual class Memory @DangerousInternalIoApi constructor(
 
         platform.posix.memcpy(
             destination.pointer + destinationOffset,
-            pointer + offset, length.convert()
+            pointer + offset,
+            length.convert()
         )
     }
 
@@ -114,7 +115,8 @@ public actual class Memory @DangerousInternalIoApi constructor(
 
         platform.posix.memcpy(
             destination.pointer + destinationOffset,
-            pointer + offset, length.convert()
+            pointer + offset,
+            length.convert()
         )
     }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.features
 
@@ -28,9 +28,7 @@ class CORSTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/") {
-
-            }.let { call ->
+            handleRequest(HttpMethod.Get, "/") {}.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
@@ -600,7 +598,9 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertTrue { call.response.headers.values(HttpHeaders.AccessControlAllowHeaders).isNotEmpty() }
-                assertTrue { HttpHeaders.Range in call.response.headers[HttpHeaders.AccessControlAllowHeaders].orEmpty() }
+                assertTrue {
+                    HttpHeaders.Range in call.response.headers[HttpHeaders.AccessControlAllowHeaders].orEmpty()
+                }
             }
         }
     }

@@ -14,7 +14,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import org.slf4j.*
 import java.io.*
-import java.lang.reflect.*
 import java.net.*
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
@@ -22,9 +21,6 @@ import java.nio.file.attribute.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 
 /**
  * Implements [ApplicationEngineEnvironment] by loading an [Application] from a folder or jar.
@@ -69,6 +65,8 @@ public class ApplicationEngineEnvironmentReloading(
     private val configModulesNames: List<String> = run {
         config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
     }
+
+    internal val modulesNames: List<String> = configModulesNames
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
@@ -171,7 +169,7 @@ public class ApplicationEngineEnvironmentReloading(
             kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
             Logger::class.java, // slf4j
             ByteReadChannel::class.java,
-            Input::class.java,  // kotlinx-io
+            Input::class.java, // kotlinx-io
             Attributes::class.java
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
@@ -295,12 +293,20 @@ public class ApplicationEngineEnvironmentReloading(
         safeRiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
-            configModulesNames.forEach { name ->
+            modulesNames.forEach { name ->
                 launchModuleByName(name, currentClassLoader, newInstance)
             }
-        }
 
-        modules.forEach { it(newInstance) }
+            modules.forEach { module ->
+                val name = module.methodName()
+
+                try {
+                    launchModuleByName(name, currentClassLoader, newInstance)
+                } catch (_: Throwable) {
+                    module(newInstance)
+                }
+            }
+        }
 
         safeRiseEvent(ApplicationStarted, newInstance)
         return newInstance
@@ -337,90 +343,6 @@ public class ApplicationEngineEnvironmentReloading(
             modules.remove(fqName)
         }
     }
-
-    private fun executeModuleFunction(classLoader: ClassLoader, fqName: String, application: Application) {
-        val name = fqName.lastIndexOfAny(".#".toCharArray())
-
-        if (name == -1) {
-            throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
-        }
-
-        val className = fqName.substring(0, name)
-        val functionName = fqName.substring(name + 1)
-        val clazz = classLoader.loadClassOrNull(className)
-            ?: throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
-
-        val staticFunctions = clazz.methods
-            .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
-            .mapNotNull { it.kotlinFunction }
-            .filter { it.isApplicableFunction() }
-
-        staticFunctions.bestFunction()?.let { moduleFunction ->
-            if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
-                callFunctionWithInjection(null, moduleFunction, application)
-                return
-            }
-        }
-
-        if (Function1::class.java.isAssignableFrom(clazz)) {
-            val constructor = clazz.declaredConstructors.single()
-            if (constructor.parameterCount != 0) {
-                throw RuntimeException("Module function with captured variables cannot be instantiated '$fqName'")
-            }
-            constructor.isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            val function = constructor.newInstance() as Function1<Application, Unit>
-            function(application)
-            return
-        }
-
-        val kclass = clazz.takeIfNotFacade()
-            ?: throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
-
-        kclass.functions
-            .filter { it.name == functionName && it.isApplicableFunction() }
-            .bestFunction()?.let { moduleFunction ->
-                val instance = createModuleContainer(kclass, application)
-                callFunctionWithInjection(instance, moduleFunction, application)
-                return
-            }
-
-        throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
-    }
-
-    private fun createModuleContainer(applicationEntryClass: KClass<*>, application: Application): Any {
-        val objectInstance = applicationEntryClass.objectInstance
-        if (objectInstance != null) return objectInstance
-
-        val constructors = applicationEntryClass.constructors.filter {
-            it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) }
-        }
-
-        val constructor = constructors.bestFunction()
-            ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
-
-        return callFunctionWithInjection(null, constructor, application)
-    }
-
-    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R =
-        entryPoint.callBy(entryPoint.parameters.filterNot { it.isOptional }.associateBy({ it }, { parameter ->
-            when {
-                parameter.kind == KParameter.Kind.INSTANCE -> instance
-                isApplicationEnvironment(parameter) -> this
-                isApplication(parameter) -> application
-                parameter.type.toString().contains("Application") -> {
-                    // It is possible that type is okay, but classloader is not
-                    val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
-                    throw IllegalArgumentException(
-                        "Parameter type ${parameter.type}:{$classLoader} is not supported." +
-                            "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                    )
-                }
-                else -> throw IllegalArgumentException(
-                    "Parameter type '${parameter.type}' of parameter '${parameter.name ?: "<receiver>"}' is not supported"
-                )
-            }
-        }))
 
     public companion object
 }

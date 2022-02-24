@@ -17,7 +17,9 @@ public fun ByteReadPacket.readAvailable(dst: ByteBuffer): Int = readAsMuchAsPoss
  */
 public fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
     val rc = readAsMuchAsPossible(dst, 0)
-    if (dst.hasRemaining()) throw EOFException("Not enough data in packet to fill buffer: ${dst.remaining()} more bytes required")
+    if (dst.hasRemaining()) {
+        throw EOFException("Not enough data in packet to fill buffer: ${dst.remaining()} more bytes required")
+    }
     return rc
 }
 
@@ -124,7 +126,6 @@ public inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -
 public fun BytePacketBuilder.writeFully(src: ByteBuffer) {
     writeFully(src)
 }
-
 
 @PublishedApi
 @Suppress("unused", "DEPRECATION")

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 import java.util.*
 
@@ -14,13 +14,9 @@ val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoole
 repositories {
     if (cacheRedirectorEnabled) {
         maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
-        maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-eap")
-        maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev")
     }
 
     maven("https://plugins.gradle.org/m2")
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
-    maven("https://dl.bintray.com/kotlin/kotlin-dev")
 
     if (buildSnapshotTrain) {
         mavenLocal()

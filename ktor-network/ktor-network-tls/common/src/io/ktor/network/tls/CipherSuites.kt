@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.network.tls
 
@@ -31,6 +31,7 @@ public enum class CipherType {
      * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
      */
     GCM,
+
     /**
      * Cipher Block Chaining.
      * See also: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)
@@ -77,7 +78,6 @@ public data class CipherSuite(
     val keyStrengthInBytes: Int = keyStrength / 8
     val macStrengthInBytes: Int = macStrength / 8
 }
-
 
 /**
  * CIO cipher suites collection

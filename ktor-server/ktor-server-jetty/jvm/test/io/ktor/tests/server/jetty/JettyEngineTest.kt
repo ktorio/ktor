@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.server.jetty
 
@@ -48,23 +48,25 @@ class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApp
     }
 
     private fun Server.addAttributesHandler() {
-        addLifeCycleListener(object : AbstractLifeCycle.AbstractLifeCycleListener() {
-            override fun lifeCycleStarting(event: LifeCycle?) {
-                super.lifeCycleStarting(event)
-                val delegate = handler
-                handler = object : DefaultHandler() {
-                    override fun handle(
-                        target: String?,
-                        baseRequest: Request?,
-                        request: HttpServletRequest?,
-                        response: HttpServletResponse?
-                    ) {
-                        request?.setAttribute("ktor.test.attribute", "135")
-                        delegate?.handle(target, baseRequest, request, response)
+        addLifeCycleListener(
+            object : AbstractLifeCycle.AbstractLifeCycleListener() {
+                override fun lifeCycleStarting(event: LifeCycle?) {
+                    super.lifeCycleStarting(event)
+                    val delegate = handler
+                    handler = object : DefaultHandler() {
+                        override fun handle(
+                            target: String?,
+                            baseRequest: Request?,
+                            request: HttpServletRequest?,
+                            response: HttpServletResponse?
+                        ) {
+                            request?.setAttribute("ktor.test.attribute", "135")
+                            delegate?.handle(target, baseRequest, request, response)
+                        }
                     }
                 }
             }
-        })
+        )
     }
 }
 

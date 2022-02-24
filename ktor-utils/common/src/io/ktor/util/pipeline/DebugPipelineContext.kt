@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util.pipeline
 
@@ -18,7 +18,10 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
     private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject,
     override val coroutineContext: CoroutineContext
-) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject> {
+) : PipelineContext<TSubject, TContext>,
+    @Suppress("DEPRECATION")
+    PipelineExecutor<TSubject> {
+
     /**
      * Subject of this pipeline execution
      */

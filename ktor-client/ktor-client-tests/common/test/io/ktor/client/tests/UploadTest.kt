@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.tests
 
@@ -27,7 +27,7 @@ class UploadTest : ClientLoader() {
     @Test
     fun testUploadWithEmptyContentType() = clientTests {
         test { client ->
-            val result =client.post<String>("$TEST_SERVER/upload/content") {
+            val result = client.post<String>("$TEST_SERVER/upload/content") {
                 body = ByteArrayContent(ByteArray(1024), ContentType("", ""))
             }
 

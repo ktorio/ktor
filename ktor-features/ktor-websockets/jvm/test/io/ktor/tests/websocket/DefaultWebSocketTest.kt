@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.tests.websocket
 
@@ -33,7 +33,9 @@ class DefaultWebSocketTest {
         server2client = ByteChannel()
 
         server = DefaultWebSocketSession(
-            RawWebSocket(client2server, server2client, coroutineContext = parent), -1L, 1000L
+            RawWebSocket(client2server, server2client, coroutineContext = parent),
+            -1L,
+            1000L
         )
         server.start()
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 @file:Suppress("unused")
 @file:OptIn(KtorExperimentalLocationsAPI::class)
@@ -9,9 +9,9 @@ package io.ktor.locations
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlin.reflect.*
 
 /**
@@ -81,7 +81,9 @@ public inline fun <reified T : Any> Route.location(noinline body: Route.() -> Un
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.get(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Get) {
             handle(body)
@@ -97,7 +99,9 @@ public inline fun <reified T : Any> Route.get(noinline body: suspend PipelineCon
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.options(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.options(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Options) {
             handle(body)
@@ -113,7 +117,9 @@ public inline fun <reified T : Any> Route.options(noinline body: suspend Pipelin
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.head(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.head(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Head) {
             handle(body)
@@ -129,7 +135,9 @@ public inline fun <reified T : Any> Route.head(noinline body: suspend PipelineCo
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.post(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Post) {
             handle(body)
@@ -145,7 +153,9 @@ public inline fun <reified T : Any> Route.post(noinline body: suspend PipelineCo
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.put(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.put(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Put) {
             handle(body)
@@ -161,7 +171,9 @@ public inline fun <reified T : Any> Route.put(noinline body: suspend PipelineCon
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.delete(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.delete(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Delete) {
             handle(body)
@@ -177,7 +189,9 @@ public inline fun <reified T : Any> Route.delete(noinline body: suspend Pipeline
  * @param body receives an instance of typed location [T] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.patch(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+public inline fun <reified T : Any> Route.patch(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+): Route {
     return location(T::class) {
         method(HttpMethod.Patch) {
             handle(body)
@@ -202,7 +216,9 @@ public fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Ro
  * Class [T] **must** be annotated with [Location].
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> Route.handle(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
+public inline fun <reified T : Any> Route.handle(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+) {
     return handle(T::class, body)
 }
 
@@ -214,7 +230,10 @@ public inline fun <reified T : Any> Route.handle(noinline body: suspend Pipeline
  * @param body receives an instance of typed location [dataClass] as first parameter.
  */
 @KtorExperimentalLocationsAPI
-public fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
+public fun <T : Any> Route.handle(
+    dataClass: KClass<T>,
+    body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+) {
     intercept(ApplicationCallPipeline.Features) {
         call.attributes.put(LocationInstanceKey, locations.resolve<T>(dataClass, call))
     }

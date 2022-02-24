@@ -110,14 +110,16 @@ public open class Route(
         }
     }
 
-    override fun toString(): String = when {
-        parent == null -> "/$selector"
-        parent.parent == null -> parent.toString().let { parentText ->
-            when {
-                parentText.endsWith('/') -> "$parentText$selector"
-                else -> "$parentText/$selector"
+    override fun toString(): String {
+        return when (val parentRoute = parent?.toString()) {
+            null -> when (selector) {
+                is TrailingSlashRouteSelector -> "/"
+                else -> "/$selector"
+            }
+            else -> when (selector) {
+                is TrailingSlashRouteSelector -> if (parentRoute.endsWith('/')) parentRoute else "$parentRoute/"
+                else -> if (parentRoute.endsWith('/')) "$parentRoute$selector" else "$parentRoute/$selector"
             }
         }
-        else -> "$parent/$selector"
     }
 }

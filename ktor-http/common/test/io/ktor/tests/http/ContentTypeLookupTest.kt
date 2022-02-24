@@ -17,7 +17,13 @@ class ContentTypeLookupTest {
 
     @Test
     fun testExtensionMultiple() {
-        assertEquals(listOf(ContentType.parse("audio/x-pn-realaudio-plugin"), ContentType.parse("application/x-rpm")), ContentType.fromFileExtension(".rpm"))
+        assertEquals(
+            listOf(
+                ContentType.parse("audio/x-pn-realaudio-plugin"),
+                ContentType.parse("application/x-rpm")
+            ),
+            ContentType.fromFileExtension(".rpm")
+        )
     }
 
     @Test

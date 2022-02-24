@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.client.request.forms
 
@@ -31,7 +31,6 @@ public class FormDataContent(
     override fun bytes(): ByteArray = content
 }
 
-
 /**
  * [OutgoingContent] for multipart/form-data formatted request.
  *
@@ -42,7 +41,7 @@ public class MultiPartFormDataContent(
 ) : OutgoingContent.WriteChannelContent() {
     private val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
-    private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n\r\n".toByteArray()
+    private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n".toByteArray()
 
     private val BODY_OVERHEAD_SIZE = LAST_BOUNDARY_BYTES.size
     private val PART_OVERHEAD_SIZE = RN_BYTES.size * 2 + BOUNDARY_BYTES.size

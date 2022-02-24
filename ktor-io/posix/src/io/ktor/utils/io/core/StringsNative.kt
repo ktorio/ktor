@@ -1,8 +1,8 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.charsets.*
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.cinterop.*
 
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
@@ -31,4 +31,3 @@ internal actual fun String.getCharsInternal(dst: CharArray, dstOffset: Int) {
         dst[dstIndex++] = this[srcIndex]
     }
 }
-

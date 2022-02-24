@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
 package io.ktor.util
 
@@ -10,10 +10,7 @@ package io.ktor.util
  * @param name is a name of the attribute for diagnostic purposes
  */
 public class AttributeKey<T>(public val name: String) {
-    override fun toString(): String = if (name.isEmpty())
-        super.toString()
-    else
-        "AttributeKey: $name"
+    override fun toString(): String = if (name.isEmpty()) super.toString() else "AttributeKey: $name"
 }
 
 /**

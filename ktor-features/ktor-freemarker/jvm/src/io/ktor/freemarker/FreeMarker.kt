@@ -73,8 +73,9 @@ public class FreeMarker(private val config: Configuration) {
         }
 
         init {
-            if (etag != null)
+            if (etag != null) {
                 versions += EntityTagVersion(etag)
+            }
         }
     }
 }
