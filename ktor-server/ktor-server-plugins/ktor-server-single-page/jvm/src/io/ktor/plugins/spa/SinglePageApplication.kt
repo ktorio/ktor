@@ -40,11 +40,11 @@ public val SinglePageApplication: ApplicationPlugin<Application, SPAConfig, Plug
         application.routing {
             static(applicationRoute) {
                 if (usePackageNames) {
-                    resourceWithDefaultContent(filesPath, defaultPage, ignoredFiles)
+                    resourceWithDefault(filesPath, defaultPage, ignoredFiles)
                     defaultResource(defaultPage, filesPath)
                 } else {
                     staticRootFolder = File(filesPath)
-                    filesWithDefaultFile(".", defaultPage, ignoredFiles)
+                    filesWithDefault(".", defaultPage, ignoredFiles)
                     default(defaultPage)
                 }
             }
