@@ -26,7 +26,7 @@ import java.io.*
  * }
  * ```
  */
-public val SinglePageApplication: ApplicationPlugin<Application, SPAConfig, PluginInstance> =
+public val SinglePageApplication: ApplicationPlugin<SPAConfig> =
     createApplicationPlugin(
         "SinglePageApplication",
         { SPAConfig() }
