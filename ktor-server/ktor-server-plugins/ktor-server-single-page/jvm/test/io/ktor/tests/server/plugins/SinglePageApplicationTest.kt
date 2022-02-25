@@ -5,12 +5,43 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.plugins.spa.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
 class SinglePageApplicationTest {
+    @Test
+    fun fullWithFilesTest() = testApplication {
+        install(SinglePageApplication) {
+            filesPath = "jvm/test/io/ktor/tests/server/plugins"
+            applicationRoute = "selected"
+            defaultPage = "Empty3.kt"
+            ignoreFiles { it.contains("Empty2.kt") }
+        }
+
+        client.get("/selected").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
+
+        client.get("/selected/a").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
+
+        client.get("/selected/Empty2.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
+
+        client.get("/selected/Empty1.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty1)
+        }
+    }
+
     @Test
     fun testPageGet() = testApplication {
         install(SinglePageApplication) {
@@ -19,36 +50,39 @@ class SinglePageApplicationTest {
             defaultPage = "Empty3.kt"
         }
 
-        assertEquals(client.get("/selected/Empty1.kt").status, HttpStatusCode.OK)
-
-        assertEquals(client.get("/selected").status, HttpStatusCode.OK)
-    }
-
-    @Test
-    fun testIgnoreRoutes() = testApplication {
-        install(SinglePageApplication) {
-            filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            defaultPage = "SinglePageApplicationTest.kt"
-            ignoreFiles { it.contains("Empty1.kt") }
-            ignoreFiles { it.endsWith("Empty2.kt") }
+        client.get("/selected/Empty1.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty1)
         }
 
-        assertEquals(HttpStatusCode.OK, client.get("/Empty3.kt").status)
-        assertEquals(HttpStatusCode.OK, client.get("/").status)
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty2.kt").status)
+        client.get("/selected").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
     }
 
     @Test
     fun testIgnoreAllRoutes() = testApplication {
         install(SinglePageApplication) {
             filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            defaultPage = "SinglePageApplicationTest.kt"
+            defaultPage = "Empty3.kt"
             ignoreFiles { true }
         }
 
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.kt").status)
+        client.get("/").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
+
+        client.get("/a").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
+
+        client.get("/Empty1.kt").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText().trimIndent(), empty3)
+        }
     }
 
     @Test
@@ -60,6 +94,8 @@ class SinglePageApplicationTest {
         }
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/SinglePageApplicationTest.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/a").status)
         assertEquals(HttpStatusCode.OK, client.get("/").status)
     }
 
@@ -75,9 +111,8 @@ class SinglePageApplicationTest {
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty3.class").status)
         assertEquals(HttpStatusCode.OK, client.get("/").status)
-
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.class").status)
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty2.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/Empty2.class").status)
     }
 
     @Test
@@ -85,12 +120,14 @@ class SinglePageApplicationTest {
         install(SinglePageApplication) {
             useResources = true
             filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "SinglePageApplicationTest.kt"
+            defaultPage = "SinglePageApplicationTest.class"
             ignoreFiles { true }
         }
 
-        assertEquals(HttpStatusCode.Forbidden, client.get("/Empty1.class").status)
-        assertEquals(HttpStatusCode.Forbidden, client.get("/").status)
+        assertEquals(HttpStatusCode.OK, client.get("/SinglePageApplicationTest.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
+        assertEquals(HttpStatusCode.OK, client.get("/a").status)
+        assertEquals(HttpStatusCode.OK, client.get("/").status)
     }
 
     @Test
@@ -101,4 +138,32 @@ class SinglePageApplicationTest {
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty1.kt").status)
     }
+
+    private val empty1 = """
+        package io.ktor.tests.server.plugins/*
+         * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+         */
+
+        // required for tests
+        class Empty1
+    """.trimIndent()
+
+
+    private val empty2 = """
+        package io.ktor.tests.server.plugins/*
+         * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+         */
+
+        // required for tests
+        class Empty2
+    """.trimIndent()
+
+    private val empty3 = """
+        package io.ktor.tests.server.plugins/*
+         * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+         */
+
+        // required for tests
+        class Empty3
+    """.trimIndent()
 }
