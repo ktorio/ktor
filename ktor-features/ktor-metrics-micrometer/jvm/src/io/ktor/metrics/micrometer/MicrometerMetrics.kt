@@ -45,7 +45,8 @@ public class MicrometerMetrics private constructor(
     private val registry: MeterRegistry,
     timerDistributionConfig: DistributionStatisticConfig,
     private val distinctNotRegisteredRoutes: Boolean,
-    private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
+    private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit,
+    private val defaultTags: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Timer.Builder,
 ) {
 
     @Deprecated(
@@ -55,8 +56,9 @@ public class MicrometerMetrics private constructor(
     public constructor(
         registry: MeterRegistry,
         timerDistributionConfig: DistributionStatisticConfig,
-        timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
-    ) : this(registry, timerDistributionConfig, true, timerBuilder)
+        timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit,
+        defaultTags: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Timer.Builder
+    ) : this(registry, timerDistributionConfig, true, timerBuilder, defaultTags)
 
     private val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
 
@@ -113,6 +115,22 @@ public class MicrometerMetrics private constructor(
 
         internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
 
+        internal var defaultTags: Timer.Builder.(ApplicationCall, Throwable?) -> Timer.Builder = { call, throwable ->
+            val route =
+                call.attributes[measureKey].route ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
+            tags(
+                listOf(
+                    of("address", call.request.local.let { "${it.host}:${it.port}" }),
+                    of("method", call.request.httpMethod.value),
+                    of("route", route),
+                    of("status", call.response.status()?.value?.toString() ?: "n/a"),
+                    of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
+                )
+            )
+            this
+        }
+
+
         /**
          * Configure micrometer timers
          */
@@ -124,7 +142,7 @@ public class MicrometerMetrics private constructor(
     private fun CallMeasure.recordDuration(call: ApplicationCall) {
         timer.stop(
             Timer.builder(requestTimeTimerName)
-                .addDefaultTags(call, throwable)
+                .defaultTags(call, throwable)
                 .customize(call, throwable)
                 .register(registry)
         )
@@ -133,19 +151,6 @@ public class MicrometerMetrics private constructor(
     private fun Timer.Builder.customize(call: ApplicationCall, throwable: Throwable?) =
         this.apply { timerBuilder(call, throwable) }
 
-    private fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
-        val route = call.attributes[measureKey].route ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
-        tags(
-            listOf(
-                of("address", call.request.local.let { "${it.host}:${it.port}" }),
-                of("method", call.request.httpMethod.value),
-                of("route", route),
-                of("status", call.response.status()?.value?.toString() ?: "n/a"),
-                of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
-            )
-        )
-        return this
-    }
 
     private fun before(call: ApplicationCall) {
         active?.incrementAndGet()
@@ -205,7 +210,7 @@ public class MicrometerMetrics private constructor(
         public val activeRequestsGaugeName: String
             get() = "$baseName.requests.active"
 
-        private val measureKey = AttributeKey<CallMeasure>("metrics")
+        internal val measureKey = AttributeKey<CallMeasure>("metrics")
 
         override val key: AttributeKey<MicrometerMetrics> = AttributeKey("metrics")
 
@@ -230,7 +235,8 @@ public class MicrometerMetrics private constructor(
                 configuration.registry,
                 configuration.distributionStatisticConfig,
                 configuration.distinctNotRegisteredRoutes,
-                configuration.timerBuilder
+                configuration.timerBuilder,
+                configuration.defaultTags
             )
 
             configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
@@ -267,7 +273,7 @@ public class MicrometerMetrics private constructor(
     }
 }
 
-private data class CallMeasure(
+internal data class CallMeasure(
     val timer: Timer.Sample,
     var route: String? = null,
     var throwable: Throwable? = null
