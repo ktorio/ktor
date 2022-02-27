@@ -4,13 +4,12 @@
 
 package io.ktor.client.engine
 
-import io.ktor.client.*
 import io.ktor.util.*
 
 /**
  * Base configuration for [HttpClientEngine].
  */
-@HttpClientDsl
+@KtorDsl
 public open class HttpClientEngineConfig {
     /**
      * Network threads count advice.
@@ -28,11 +27,4 @@ public open class HttpClientEngineConfig {
      * See [ProxyBuilder] to create proxy.
      */
     public var proxy: ProxyConfig? = null
-
-    @Deprecated(
-        "Response config is deprecated. See [HttpPlainText] feature for charset configuration",
-        level = DeprecationLevel.ERROR
-    )
-    public val response: Nothing get() =
-        error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] instead.")
 }

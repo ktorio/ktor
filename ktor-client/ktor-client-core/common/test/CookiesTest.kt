@@ -1,4 +1,4 @@
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
@@ -18,14 +18,54 @@ class CookiesTest {
         )
         storage.addCookie("http://localhost/", cookie)
 
+        val plugin = HttpCookies(storage, emptyList())
+        val builder = HttpRequestBuilder()
+
+        plugin.captureHeaderCookies(builder)
+        plugin.sendCookiesWith(builder)
+
+        assertEquals(
+            "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10",
+            builder.headers[HttpHeaders.Cookie]
+        )
+    }
+
+    @Test
+    fun testRequestCookiesAreNotDroppedWhenEmptyStorage() = testSuspend {
+        val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
+        val builder = HttpRequestBuilder()
+
+        builder.cookie("test", "value")
+        feature.captureHeaderCookies(builder)
+        feature.sendCookiesWith(builder)
+
+        assertEquals("test=value", builder.headers[HttpHeaders.Cookie])
+    }
+
+    @Test
+    fun testRequestCookiesArePreservedWhenAddingCookiesFromStorage() = testSuspend {
+        val storage = AcceptAllCookiesStorage()
+        storage.addCookie("http://localhost/", parseServerSetCookieHeader("SOMECOOKIE=somevalue;"))
         val feature = HttpCookies(storage, emptyList())
         val builder = HttpRequestBuilder()
 
+        builder.cookie("test", "value")
+        feature.captureHeaderCookies(builder)
         feature.sendCookiesWith(builder)
 
-        assertEquals(
-            "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10;",
-            builder.headers[HttpHeaders.Cookie]
-        )
+        val renderedCookies = builder.headers[HttpHeaders.Cookie]!!.split(";")
+        assertContains(renderedCookies, "test=value")
+        assertContains(renderedCookies, "SOMECOOKIE=somevalue")
+    }
+
+    @Test
+    fun testNoCookieHeaderWhenEmptyStorageAndNoRequestCookies() = testSuspend {
+        val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
+        val builder = HttpRequestBuilder()
+
+        feature.captureHeaderCookies(builder)
+        feature.sendCookiesWith(builder)
+
+        assertNull(builder.headers[HttpHeaders.Cookie])
     }
 }

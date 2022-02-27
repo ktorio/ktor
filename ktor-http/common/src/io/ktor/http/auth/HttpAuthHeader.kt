@@ -10,16 +10,9 @@ import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import kotlin.native.concurrent.*
 
-@ThreadLocal
 private val TOKEN_EXTRA = setOf('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~')
-
-@ThreadLocal
 private val TOKEN68_EXTRA = setOf('-', '.', '_', '~', '+', '/')
-
-@ThreadLocal
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
-
-@ThreadLocal
 private val escapeRegex: Regex = "\\\\.".toRegex()
 
 /**
@@ -177,7 +170,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         }
 
         override fun hashCode(): Int {
-            return Hash.combine(authScheme.toLowerCase(), blob.toLowerCase())
+            return Hash.combine(authScheme.lowercase(), blob.lowercase())
         }
     }
 
@@ -259,7 +252,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         }
 
         override fun hashCode(): Int {
-            return Hash.combine(authScheme.toLowerCase(), parameters)
+            return Hash.combine(authScheme.lowercase(), parameters)
         }
     }
 

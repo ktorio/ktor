@@ -12,14 +12,6 @@ import kotlinx.coroutines.*
 import java.security.*
 
 /**
- * Create a digest function with the specified [algorithm] and [salt]
- */
-@Suppress("DeprecatedCallableAddReplaceWith")
-@Deprecated("Use getDigestFunction with non-constant salt.", level = DeprecationLevel.ERROR)
-public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray =
-    getDigestFunction(algorithm) { salt }
-
-/**
  * Create a digest function with the specified [algorithm] and [salt] provider.
  * @param algorithm digest algorithm name
  * @param salt a function computing a salt for a particular hash input value
@@ -46,7 +38,8 @@ public actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
  */
 public actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
 
-private inline class DigestImpl(val delegate: MessageDigest) : Digest {
+@JvmInline
+private value class DigestImpl(val delegate: MessageDigest) : Digest {
     override fun plusAssign(bytes: ByteArray) {
         delegate.update(bytes)
     }
@@ -62,7 +55,7 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 public actual fun generateNonce(): String {
-    val nonce = seedChannel.poll()
+    val nonce = seedChannel.tryReceive().getOrNull()
     if (nonce != null) return nonce
 
     return generateNonceBlocking()

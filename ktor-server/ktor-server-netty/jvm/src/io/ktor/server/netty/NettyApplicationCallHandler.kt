@@ -4,12 +4,12 @@
 
 package io.ktor.server.netty
 
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
@@ -26,8 +26,7 @@ internal class NettyApplicationCallHandler(
     logger: Logger
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     override val coroutineContext: CoroutineContext = userCoroutineContext +
-        CallHandlerCoroutineName +
-        DefaultUncaughtExceptionHandler(logger)
+        CallHandlerCoroutineName + DefaultUncaughtExceptionHandler(logger)
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
@@ -36,7 +35,6 @@ internal class NettyApplicationCallHandler(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 

@@ -5,6 +5,7 @@
 package io.ktor.client.request
 
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 
 /**
@@ -26,15 +27,15 @@ public var HttpRequestBuilder.port: Int
     }
 
 /**
- * Sets a single header of [key] with a specific [value] if the value is not null.
+ * Appends a single header of [key] with a specific [value] if the value is not null.
  */
-public fun HttpRequestBuilder.header(key: String, value: Any?): Unit =
+public fun HttpMessageBuilder.header(key: String, value: Any?): Unit =
     value?.let { headers.append(key, it.toString()) } ?: Unit
 
 /**
- * Sets a single header of [key] with a specific [value] if the value is not null.
+ * Appends a single header of [key] with a specific [value] if the value is not null.
  */
-public fun HttpRequestBuilder.cookie(
+public fun HttpMessageBuilder.cookie(
     name: String,
     value: String,
     maxAge: Int = 0,
@@ -66,14 +67,28 @@ public fun HttpRequestBuilder.cookie(
 }
 
 /**
- * Sets a single URL query parameter of [key] with a specific [value] if the value is not null. Can not be used to set
+ * Appends a single URL query parameter of [key] with a specific [value] if the value is not null. Can not be used to set
  * form parameters in the body.
  */
 public fun HttpRequestBuilder.parameter(key: String, value: Any?): Unit =
     value?.let { url.parameters.append(key, it.toString()) } ?: Unit
 
 /**
- * Sets the `Accept` header with a specific [contentType].
+ * Appends the `Accept` header with a specific [contentType].
  */
-public fun HttpRequestBuilder.accept(contentType: ContentType): Unit =
+public fun HttpMessageBuilder.accept(contentType: ContentType): Unit =
     headers.append(HttpHeaders.Accept, contentType.toString())
+
+/**
+ * Appends the [HttpHeaders.Authorization] to Basic Authorization with the provided [username] and [password].
+ * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ */
+public fun HttpMessageBuilder.basicAuth(username: String, password: String): Unit =
+    header(HttpHeaders.Authorization, "Basic ${"$username:$password".encodeBase64()}")
+
+/**
+ * Appends the [HttpHeaders.Authorization] to Bearer Authorization with the provided [token].
+ * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ */
+public fun HttpMessageBuilder.bearerAuth(token: String): Unit =
+    header(HttpHeaders.Authorization, "Bearer $token")

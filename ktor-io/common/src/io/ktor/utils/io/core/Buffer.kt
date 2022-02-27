@@ -3,7 +3,6 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.EOFException
 import kotlin.contracts.*
@@ -14,9 +13,7 @@ import kotlin.contracts.*
  * Concurrent unsafe: the same memory could be shared between different instances of [Buffer] however you can't
  * read/write using the same [Buffer] instance from different threads.
  */
-@DangerousInternalIoApi
 public open class Buffer(public val memory: Memory) {
-    private val bufferState: BufferSharedState = BufferSharedState(memory.size32)
 
     /**
      * Current read position. It is always non-negative and will never run ahead of the [writePosition].
@@ -24,11 +21,8 @@ public open class Buffer(public val memory: Memory) {
      * This position is affected by [discard], [rewind], [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var readPosition: Int
-        get() = bufferState.readPosition
-        private set(value) {
-            bufferState.readPosition = value
-        }
+    public var readPosition: Int = 0
+        private set
 
     /**
      * Current write position. It is always non-negative and will never run ahead of the [limit].
@@ -36,21 +30,15 @@ public open class Buffer(public val memory: Memory) {
      * * This position is affected by [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var writePosition: Int
-        get() = bufferState.writePosition
-        private set(value) {
-            bufferState.writePosition = value
-        }
+    public var writePosition: Int = 0
+        private set
 
     /**
      * Start gap is a reserved space in the beginning. The reserved space is usually used to write a packet length
      * in the case when it's not known before the packet constructed.
      */
-    public var startGap: Int
-        get() = bufferState.startGap
-        private set(value) {
-            bufferState.startGap = value
-        }
+    public var startGap: Int = 0
+        private set
 
     /**
      * Write position limit. No bytes could be written ahead of this limit. When the limit is less than the [capacity]
@@ -59,11 +47,8 @@ public open class Buffer(public val memory: Memory) {
      * primitive value (e.g. `kotlin.Int`) is separated into two chunks so bytes from the second chain could be copied
      * to the reserved space of the first chunk and then the whole value could be read at once.
      */
-    public var limit: Int
-        get() = bufferState.limit
-        private set(value) {
-            bufferState.limit = value
-        }
+    public var limit: Int = memory.size32
+        private set
 
     /**
      * Number of bytes reserved in the end.
@@ -71,7 +56,7 @@ public open class Buffer(public val memory: Memory) {
     public inline val endGap: Int get() = capacity - limit
 
     /**
-     * Buffer's capacity (including reserved [startGap] and [endGap]. Value for released buffer is unspecified.
+     * Buffer's capacity (including reserved [startGap] and [endGap]). Value for released buffer is unspecified.
      */
     public val capacity: Int = memory.size32
 
@@ -84,17 +69,6 @@ public open class Buffer(public val memory: Memory) {
      * Size of the free space available for writing in bytes.
      */
     public inline val writeRemaining: Int get() = limit - writePosition
-
-    /**
-     * User data: could be a session, connection or anything useful
-     */
-    @Deprecated("Will be removed. Inherit Buffer and add required fields instead.")
-    @ExperimentalIoApi
-    public var attachment: Any?
-        get() = bufferState.attachment
-        set(value) {
-            bufferState.attachment = value
-        }
 
     /**
      * Discard [count] readable bytes.
@@ -111,21 +85,6 @@ public open class Buffer(public val memory: Memory) {
         readPosition = newReadPosition
     }
 
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public fun discard(count: Int): Int {
-        val size = minOf(count, readRemaining)
-        discardExact(size)
-        return size
-    }
-
-    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    public final fun discard(count: Long): Long {
-        val size = minOf(count, readRemaining.toLong()).toInt()
-        discardExact(size)
-        return size.toLong()
-    }
-
-    @DangerousInternalIoApi
     public fun commitWritten(count: Int) {
         val newWritePosition = writePosition + count
         if (count < 0 || newWritePosition > limit) {
@@ -376,14 +335,12 @@ public open class Buffer(public val memory: Memory) {
          * when several instances of [io.ktor.utils.io.core.internal.ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
-        @DangerousInternalIoApi
         public const val ReservedSize: Int = 8
 
         /**
          * The empty buffer singleton: it has zero capacity for read and write.
          */
-        @Suppress("DEPRECATION")
-        public val Empty: Buffer get() = IoBuffer.Empty
+        public val Empty: Buffer get() = ChunkBuffer.Empty
     }
 }
 
@@ -403,7 +360,7 @@ public inline fun Buffer.canWrite(): Boolean = limit > writePosition
  * No read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
-@DangerousInternalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -420,7 +377,7 @@ public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: 
  * o read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
-@DangerousInternalIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun Buffer.write(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -481,7 +438,6 @@ internal fun Buffer.restoreStartGap(size: Int) {
     releaseStartGap(readPosition - size)
 }
 
-@ExperimentalIoApi
 public class InsufficientSpaceException(message: String = "Not enough free space") : Exception(message) {
     public constructor(
         size: Int,

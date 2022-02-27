@@ -4,15 +4,16 @@
 
 package io.ktor.server.netty.http2
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
+import io.ktor.server.response.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.*
+import io.netty.util.AttributeKey
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import java.lang.reflect.*
@@ -39,7 +40,7 @@ internal class NettyHttp2Handler(
             is Http2DataFrame -> {
                 context.applicationCall?.request?.apply {
                     val eof = message.isEndStream
-                    contentActor.offer(message)
+                    contentActor.trySend(message).isSuccess
                     if (eof) {
                         contentActor.close()
                     }
@@ -68,6 +69,7 @@ internal class NettyHttp2Handler(
         ctx.close()
     }
 
+    @OptIn(InternalAPI::class)
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
         val requestQueue = NettyRequestQueue(1, 1)
         val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue, handlerJob)
@@ -88,6 +90,7 @@ internal class NettyHttp2Handler(
         responseWriter.ensureRunning()
     }
 
+    @Suppress("DEPRECATION")
     @UseHttp2Push
     internal fun startHttp2PushPromise(context: ChannelHandlerContext, builder: ResponsePushBuilder) {
         val channel = context.channel() as Http2StreamChannel
@@ -103,19 +106,12 @@ internal class NettyHttp2Handler(
 
         val promisedStreamId = connection.local().incrementAndGetNextStreamId()
         val headers = DefaultHttp2Headers().apply {
-            val url = builder.url
-            val parameters = url.parameters
-
-            val pathAndQuery = if (parameters.isEmpty()) url.encodedPath else buildString {
-                append(url.encodedPath)
-                append('?')
-                parameters.build().formUrlEncodeTo(this)
-            }
+            val url = builder.url.build()
 
             method(builder.method.value)
-            authority(builder.url.host + ":" + builder.url.port)
-            scheme(builder.url.protocol.name)
-            path(pathAndQuery)
+            authority(url.hostWithPort)
+            scheme(url.protocol.name)
+            path(url.encodedPathAndQuery)
         }
 
         val bs = Http2StreamChannelBootstrap(channel.parent()).handler(this)
@@ -177,10 +173,14 @@ internal class NettyHttp2Handler(
         get() = javaClass.findIdField()
 
     private tailrec fun Class<*>.findIdField(): Field {
-        val f = try { getDeclaredField("id") } catch (t: NoSuchFieldException) { null }
-        if (f != null) {
-            f.isAccessible = true
-            return f
+        val idField = try {
+            getDeclaredField("id")
+        } catch (t: NoSuchFieldException) {
+            null
+        }
+        if (idField != null) {
+            idField.isAccessible = true
+            return idField
         }
 
         val superclass = superclass ?: throw NoSuchFieldException("id field not found")
@@ -194,12 +194,12 @@ internal class NettyHttp2Handler(
         override val message: String
             get() = "Got close frame with code $errorCode"
 
-        override fun createCopy(): Http2ClosedChannelException? = Http2ClosedChannelException(errorCode).also {
+        override fun createCopy(): Http2ClosedChannelException = Http2ClosedChannelException(errorCode).also {
             it.initCause(this)
         }
     }
 
-    public companion object {
+    companion object {
         private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?

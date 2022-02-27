@@ -5,7 +5,6 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
-import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.*
@@ -156,7 +155,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    public suspend fun negotiate() {
+    suspend fun negotiate() {
         digest.use {
             sendClientHello()
             serverHello = receiveServerHello()
@@ -377,8 +376,9 @@ internal class TLSClientHandshake(
 
             if (hasHashAndSignInCommon) return@find false
 
-            info.authorities.isEmpty() ||
-                candidate.certificateChain.map { X500Principal(it.issuerDN.name) }.any { it in info.authorities }
+            info.authorities.isEmpty() || candidate.certificateChain
+                .map { X500Principal(it.issuerX500Principal.name) }
+                .any { it in info.authorities }
         }
 
         sendHandshakeRecord(TLSHandshakeType.Certificate) {

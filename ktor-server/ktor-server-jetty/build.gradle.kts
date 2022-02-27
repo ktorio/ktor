@@ -1,9 +1,10 @@
 description = ""
 val jetty_version: String by extra
+val logback_version: String by extra
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 api(project(":ktor-server:ktor-server-host-common"))
                 api(project(":ktor-server:ktor-server-servlet"))
@@ -15,7 +16,7 @@ kotlin {
                 api("org.eclipse.jetty.http2:http2-server:$jetty_version")
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-core"))
                 api(project(":ktor-server:ktor-server-test-host"))
@@ -23,6 +24,8 @@ kotlin {
                 api("org.eclipse.jetty:jetty-servlet:$jetty_version")
 
                 api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
+                api("ch.qos.logback:logback-classic:$logback_version")
             }
         }
     }

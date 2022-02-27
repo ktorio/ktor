@@ -2,7 +2,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import java.nio.*
 
@@ -28,23 +28,13 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 
     /**
-     * Byte order that is used for multi-byte read operations
-     * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var readByteOrder: ByteOrder
-
-    /**
      * Number of bytes read from the channel.
-     * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
+     * It is not guaranteed to be atomic so could be updated in the middle of long-running read operation.
      */
     public actual val totalBytesRead: Long
 
@@ -69,7 +59,7 @@ public actual interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
     public suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
@@ -77,20 +67,19 @@ public actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
     public suspend fun readFully(dst: ByteBuffer): Int
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
-     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [WritePacket].
+     * and not enough bytes available.
      */
-    public actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readPacket(size: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
-     * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    public actual suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readRemaining(limit: Long): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed
@@ -135,20 +124,11 @@ public actual interface ByteReadChannel {
     public actual suspend fun readFloat(): Float
 
     /**
-     * For every available bytes range invokes [visitor] function until it return false or end of stream encountered
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
-        consumeEachBufferRange(visitor)
-    }
-
-    /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet.
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    @ExperimentalIoApi
     public actual fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
@@ -157,7 +137,6 @@ public actual interface ByteReadChannel {
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    @ExperimentalIoApi
     public actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     @Suppress("DEPRECATION")
@@ -258,7 +237,10 @@ public actual interface ByteReadChannel {
         max: Long
     ): Long
 
-    public suspend fun awaitContent()
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
@@ -306,7 +288,7 @@ public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: L
 }
 
 private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Long): Long {
-    val buffer = IoBuffer.Pool.borrow()
+    val buffer = ChunkBuffer.Pool.borrow()
     val dstNeedsFlush = !dst.autoFlush
 
     try {
@@ -332,7 +314,7 @@ private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Lon
         dst.close(t)
         throw t
     } finally {
-        buffer.release(IoBuffer.Pool)
+        buffer.release(ChunkBuffer.Pool)
     }
 }
 

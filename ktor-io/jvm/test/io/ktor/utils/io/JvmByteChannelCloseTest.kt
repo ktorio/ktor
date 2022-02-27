@@ -5,6 +5,7 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.channels.*
 
 class JvmReadPacketWithExceptionByteChannelCloseTest : ByteChannelCloseTest(
@@ -19,7 +20,7 @@ class JvmSequentialReadPacketWithExceptionByteChannelCloseTest : ByteChannelClos
     { readPacket(Int.MAX_VALUE) }
 ) {
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
-        return ByteChannelSequentialJVM(IoBuffer.Empty, autoFlush)
+        return ByteChannelSequentialJVM(ChunkBuffer.Empty, autoFlush)
     }
 }
 
@@ -35,6 +36,6 @@ class JvmSequentialReadFullyWithExceptionByteChannelCloseTest : ByteChannelClose
     { readFully(ByteArray(10)) }
 ) {
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
-        return ByteChannelSequentialJVM(IoBuffer.Empty, autoFlush)
+        return ByteChannelSequentialJVM(ChunkBuffer.Empty, autoFlush)
     }
 }

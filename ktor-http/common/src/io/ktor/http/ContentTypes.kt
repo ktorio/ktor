@@ -100,8 +100,8 @@ public class ContentType private constructor(
             parameters == other.parameters
 
     override fun hashCode(): Int {
-        var result = contentType.toLowerCase().hashCode()
-        result += 31 * result + contentSubtype.toLowerCase().hashCode()
+        var result = contentType.lowercase().hashCode()
+        result += 31 * result + contentSubtype.lowercase().hashCode()
         result += 31 * parameters.hashCode()
         return result
     }
@@ -176,6 +176,18 @@ public class ContentType private constructor(
             ContentType("application", "x-www-form-urlencoded")
 
         public val Pdf: ContentType = ContentType("application", "pdf")
+        public val Xlsx: ContentType = ContentType(
+            "application",
+            "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        public val Docx: ContentType = ContentType(
+            "application",
+            "vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        public val Pptx: ContentType = ContentType(
+            "application",
+            "vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
         public val ProtoBuf: ContentType = ContentType("application", "protobuf")
         public val Wasm: ContentType = ContentType("application", "wasm")
         public val ProblemJson: ContentType = ContentType("application", "problem+json")

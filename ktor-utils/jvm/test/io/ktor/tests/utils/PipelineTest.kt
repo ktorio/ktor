@@ -431,19 +431,4 @@ class PipelineTest {
         pipeline.insertPhaseAfter(before, after)
         checkBeforeAfterPipeline(after, before, pipeline)
     }
-
-    private suspend fun interceptor1(context: PipelineContext<String, Unit>, content: String) {
-        yield()
-        context.proceedWith("$content first")
-    }
-
-    private suspend fun interceptor2(context: PipelineContext<String, Unit>, content: String) {
-        yield()
-        context.proceedWith("$content second")
-    }
-
-    private suspend fun interceptor3(context: PipelineContext<String, Unit>, content: String) {
-        yield()
-        error(content)
-    }
 }

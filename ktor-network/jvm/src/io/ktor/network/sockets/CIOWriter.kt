@@ -8,7 +8,6 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import java.nio.*
@@ -42,7 +41,7 @@ internal fun CoroutineScope.attachForWritingImpl(
                 buffer.flip()
 
                 while (buffer.hasRemaining()) {
-                    var rc = 0
+                    var rc: Int
 
                     timeout.withTimeout {
                         do {
@@ -62,7 +61,11 @@ internal fun CoroutineScope.attachForWritingImpl(
             pool.recycle(buffer)
             if (nioChannel is SocketChannel) {
                 try {
-                    nioChannel.socket().shutdownOutput()
+                    if (java7NetworkApisAvailable) {
+                        nioChannel.shutdownOutput()
+                    } else {
+                        nioChannel.socket().shutdownOutput()
+                    }
                 } catch (ignore: ClosedChannelException) {
                 }
             }
@@ -70,7 +73,6 @@ internal fun CoroutineScope.attachForWritingImpl(
     }
 }
 
-@OptIn(ExperimentalIoApi::class)
 internal fun CoroutineScope.attachForWritingDirectImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,
@@ -80,6 +82,7 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
 ): ReaderJob = reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             val timeout = if (socketOptions?.socketTimeout != null) {
                 createTimeout("writing-direct", socketOptions.socketTimeout) {
@@ -119,7 +122,11 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
         selectable.interestOp(SelectInterest.WRITE, false)
         if (nioChannel is SocketChannel) {
             try {
-                nioChannel.socket().shutdownOutput()
+                if (java7NetworkApisAvailable) {
+                    nioChannel.shutdownOutput()
+                } else {
+                    nioChannel.socket().shutdownOutput()
+                }
             } catch (ignore: ClosedChannelException) {
             }
         }

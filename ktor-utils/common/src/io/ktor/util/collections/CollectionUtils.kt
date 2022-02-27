@@ -4,14 +4,11 @@
 
 package io.ktor.util.collections
 
-import io.ktor.util.*
+@Deprecated("Will be dropped with new memory model enabled by default", ReplaceWith("mutableListOf(values)"))
+public fun <T> sharedListOf(vararg values: T): MutableList<T> = mutableListOf(*values)
 
-internal fun <T> sharedListOf(vararg values: T): MutableList<T> {
-    if (PlatformUtils.IS_NATIVE) {
-        return ConcurrentList<T>().apply {
-            addAll(values)
-        }
-    }
+@Deprecated("Will be dropped with new memory model enabled by default", ReplaceWith("mutableMapOf()"))
+public fun <K : Any, V : Any> sharedMap(initialCapacity: Int = 8): MutableMap<K, V> = LinkedHashMap(initialCapacity)
 
-    return values.mapTo(ArrayList(values.size)) { it }
-}
+@Deprecated("Will be dropped with new memory model enabled by default", ReplaceWith("mutableListOf<V>()"))
+public fun <V> sharedList(): MutableList<V> = mutableListOf()

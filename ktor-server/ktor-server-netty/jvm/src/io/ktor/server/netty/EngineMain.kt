@@ -4,7 +4,7 @@
 
 package io.ktor.server.netty
 
-import io.ktor.config.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
 
@@ -32,22 +32,20 @@ public object EngineMain {
         deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
             requestQueueLimit = it
         }
+        deploymentConfig.propertyOrNull("runningLimit")?.getString()?.toInt()?.let {
+            runningLimit = it
+        }
         deploymentConfig.propertyOrNull("shareWorkGroup")?.getString()?.toBoolean()?.let {
             shareWorkGroup = it
         }
         deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
             responseWriteTimeoutSeconds = it
         }
+        deploymentConfig.propertyOrNull("requestReadTimeoutSeconds")?.getString()?.toInt()?.let {
+            requestReadTimeoutSeconds = it
+        }
+        deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
+            tcpKeepAlive = it
+        }
     }
-}
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Use EngineMain instead",
-    replaceWith = ReplaceWith("EngineMain"),
-    level = DeprecationLevel.HIDDEN
-)
-public object DevelopmentEngine {
-    @JvmStatic
-    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

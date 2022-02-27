@@ -6,7 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
@@ -34,7 +34,7 @@ class CommonHttpClientTest {
         val engine = client.engine
         client.close()
 
-        // When the engine is provided by Ktor factory is should be closed together with the client.
+        // When the engine is provided by Ktor factory it should be closed together with the client.
         assertFalse { engine.isActive }
     }
 
@@ -42,21 +42,22 @@ class CommonHttpClientTest {
     fun testHttpClientClosesInstalledFeatures() {
         val client = HttpClient(MockEngine) {
             engine { addHandler { respond("") } }
-            install(TestFeature)
+            install(TestPlugin)
         }
         client.close()
-        assertTrue(client.feature(TestFeature)!!.closed)
+        assertTrue(client.plugin(TestPlugin).closed)
     }
-    class TestFeature : Closeable {
-        var closed by shared(false)
+
+    class TestPlugin : Closeable {
+        var closed = false
         override fun close() {
             closed = true
         }
 
-        companion object : HttpClientFeature<Unit, TestFeature> {
-            override val key: AttributeKey<TestFeature> = AttributeKey("TestFeature")
-            override fun install(feature: TestFeature, scope: HttpClient) = Unit
-            override fun prepare(block: Unit.() -> Unit): TestFeature = TestFeature()
+        companion object : HttpClientPlugin<Unit, TestPlugin> {
+            override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
+            override fun install(plugin: TestPlugin, scope: HttpClient) = Unit
+            override fun prepare(block: Unit.() -> Unit): TestPlugin = TestPlugin()
         }
     }
 }

@@ -6,10 +6,10 @@ package io.ktor.server.netty.cio
 
 import io.ktor.http.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.http2.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -23,7 +23,8 @@ import kotlin.coroutines.*
 
 private const val UNFLUSHED_LIMIT = 65536
 
-internal class NettyResponsePipeline(
+@OptIn(InternalAPI::class)
+internal class NettyResponsePipeline constructor(
     private val dst: ChannelHandlerContext,
     initialEncapsulation: WriterEncapsulation,
     private val requestQueue: NettyRequestQueue,
@@ -54,7 +55,7 @@ internal class NettyResponsePipeline(
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
 
-    public fun ensureRunning() {
+    fun ensureRunning() {
         responses.start()
     }
 
@@ -92,7 +93,7 @@ internal class NettyResponsePipeline(
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
             @OptIn(ExperimentalCoroutinesApi::class)
-            val e = incoming.receiveOrNull()
+            val e = incoming.receiveCatching().getOrNull()
 
             if (e != null && e.ensureRunning()) {
                 running.addLast(e)
@@ -103,7 +104,7 @@ internal class NettyResponsePipeline(
 
     private fun pollReady(): Boolean {
         for (index in 1..(readyQueueSize - ready.size)) {
-            val e = incoming.poll() ?: return false
+            val e = incoming.tryReceive().getOrNull() ?: return false
             ready.addLast(e)
         }
         return true
@@ -198,7 +199,7 @@ internal class NettyResponsePipeline(
         val requestMessageFuture = if (response.isUpgradeResponse()) {
             processUpgrade(responseMessage)
         } else {
-            dst.write(responseMessage)
+            dst.writeAndFlush(responseMessage)
         }
 
         tryFill()
@@ -225,6 +226,14 @@ internal class NettyResponsePipeline(
         }
     }
 
+    private fun trailerMessage(response: NettyApplicationResponse): Any? {
+        return if (response is NettyHttp2ApplicationResponse) {
+            response.trailerMessage()
+        } else {
+            null
+        }
+    }
+
     private suspend fun processEmpty(call: NettyApplicationCall, lastFuture: ChannelFuture) {
         return finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
@@ -239,10 +248,11 @@ internal class NettyResponsePipeline(
 
         val encapsulation = encapsulation
         val future = dst.write(encapsulation.transform(buffer, true))
-        finishCall(call, encapsulation.endOfStream(true), future)
+
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(true)
+        finishCall(call, lastMessage, future)
     }
 
-    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyGeneral(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
@@ -254,6 +264,7 @@ internal class NettyResponsePipeline(
         var unflushedBytes = 0
         var lastFuture: ChannelFuture = requestMessageFuture
 
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             while (true) {
                 val buffer = request(0, 1)
@@ -285,10 +296,10 @@ internal class NettyResponsePipeline(
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false), lastFuture)
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(false)
+        finishCall(call, lastMessage, lastFuture)
     }
 
-    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyFlusher(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
@@ -300,6 +311,7 @@ internal class NettyResponsePipeline(
         var unflushedBytes = 0
         var lastFuture: ChannelFuture = requestMessageFuture
 
+        @Suppress("DEPRECATION")
         channel.lookAheadSuspend {
             while (true) {
                 val buffer = request(0, 1)
@@ -331,10 +343,12 @@ internal class NettyResponsePipeline(
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false), lastFuture)
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(false)
+        finishCall(call, lastMessage, lastFuture)
     }
 }
 
+@OptIn(InternalAPI::class)
 private fun NettyApplicationResponse.isUpgradeResponse() =
     status()?.value == HttpStatusCode.SwitchingProtocols.value
 

@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -16,7 +17,9 @@ import kotlin.coroutines.*
 
 internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteArray) : HttpClientCall(client) {
 
-    /** Returns new read channel of a response body */
+    /**
+     * Returns a channel with [responseBody] data.
+     */
     override suspend fun getResponseContent(): ByteReadChannel {
         return ByteReadChannel(responseBody)
     }
@@ -48,18 +51,18 @@ internal class SavedHttpResponse(
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
+    @OptIn(InternalAPI::class)
     override val content: ByteReadChannel = ByteReadChannel(body)
 }
 
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
+@OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
-    val currentClient = client ?: error("Failed to save call in different native thread.")
-
     val responseBody = response.content.readRemaining().readBytes()
 
-    return SavedHttpCall(currentClient, responseBody).also { result ->
+    return SavedHttpCall(client, responseBody).also { result ->
         result.request = SavedHttpRequest(result, request)
         result.response = SavedHttpResponse(result, responseBody, response)
     }

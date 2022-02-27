@@ -10,7 +10,6 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
@@ -33,8 +32,8 @@ internal class RequestBodyHandler(
         try {
             while (true) {
                 @OptIn(ExperimentalCoroutinesApi::class)
-                val event = queue.poll()
-                    ?: run { current?.flush(); queue.receiveOrNull() }
+                val event = queue.tryReceive().getOrNull()
+                    ?: run { current?.flush(); queue.receiveCatching().getOrNull() }
                     ?: break
 
                 if (event is ByteBufHolder) {
@@ -66,40 +65,42 @@ internal class RequestBodyHandler(
         }
     }
 
-    public fun upgrade(): ByteReadChannel {
+    fun upgrade(): ByteReadChannel {
         tryOfferChannelOrToken(Upgrade)
         return newChannel()
     }
 
-    public fun newChannel(): ByteReadChannel {
+    fun newChannel(): ByteReadChannel {
         val bc = ByteChannel()
         tryOfferChannelOrToken(bc)
         return bc
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun tryOfferChannelOrToken(token: Any) {
-        try {
-            if (!queue.offer(token)) {
-                throw IllegalStateException(
-                    "Unable to start request processing: failed to offer $token to the HTTP pipeline queue"
-                )
-            }
-        } catch (closedCause: ClosedSendChannelException) {
-            throw CancellationException("HTTP pipeline has been terminated.", closedCause)
+        val result = queue.trySend(token)
+        if (result.isSuccess) return
+
+        if (queue.isClosedForSend) {
+            throw CancellationException("HTTP pipeline has been terminated.", result.exceptionOrNull())
         }
+
+        throw IllegalStateException(
+            "Unable to start request processing: failed to offer " +
+                "$token to the HTTP pipeline queue. " +
+                "Queue closed: ${queue.isClosedForSend}"
+        )
     }
 
-    public fun close() {
+    fun close() {
         queue.close()
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
-        if (msg is ByteBufHolder) {
-            handleBytesRead(msg)
-        } else if (msg is ByteBuf) {
-            handleBytesRead(msg)
-        } else {
-            ctx.fireChannelRead(msg)
+        when (msg) {
+            is ByteBufHolder -> handleBytesRead(msg)
+            is ByteBuf -> handleBytesRead(msg)
+            else -> ctx.fireChannelRead(msg)
         }
     }
 
@@ -132,7 +133,7 @@ internal class RequestBodyHandler(
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
             val e = try {
-                queue.poll()
+                queue.tryReceive().getOrNull()
             } catch (t: Throwable) {
                 null
             } ?: break
@@ -155,7 +156,7 @@ internal class RequestBodyHandler(
     }
 
     private fun handleBytesRead(content: ReferenceCounted) {
-        if (!queue.offer(content)) {
+        if (!queue.trySend(content).isSuccess) {
             content.release()
             throw IllegalStateException("Unable to process received buffer: queue offer failed")
         }

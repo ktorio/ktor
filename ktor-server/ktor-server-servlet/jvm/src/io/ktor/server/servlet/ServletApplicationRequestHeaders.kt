@@ -10,7 +10,6 @@ import java.util.*
 import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
-@EngineAPI
 public class ServletApplicationRequestHeaders(
     private val servletRequest: HttpServletRequest
 ) : Headers {

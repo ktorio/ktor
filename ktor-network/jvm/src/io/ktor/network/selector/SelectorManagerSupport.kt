@@ -31,7 +31,17 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     protected abstract fun publishInterest(selectable: Selectable)
 
     public final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
-        require(selectable.interestedOps and interest.flag != 0)
+        val interestedOps = selectable.interestedOps
+        val flag = interest.flag
+        if (interestedOps and flag == 0) {
+            val message = if (selectable.isClosed) {
+                "Selectable is closed"
+            } else {
+                "Selectable is invalid state: $interestedOps, $flag"
+            }
+
+            throw IllegalArgumentException(message)
+        }
 
         suspendCancellableCoroutine<Unit> { c ->
             c.invokeOnCancellation {

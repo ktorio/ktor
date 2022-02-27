@@ -6,17 +6,15 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.tests.utils.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import org.apache.http.*
 import org.junit.*
 import java.net.*
 import kotlin.io.use
 
+@Suppress("BlockingMethodInNonBlockingContext", "ControlFlowWithEmptyBody")
 class ExceptionsJvmTest {
 
     @Test
@@ -25,11 +23,12 @@ class ExceptionsJvmTest {
 
         client.use {
             assertFailsWith<ConnectionClosedException> {
-                it.get<HttpResponse>("$TCP_SERVER/errors/few-bytes")
+                it.get("$TCP_SERVER/errors/few-bytes")
             }
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testConnectionClosedDuringRequest(): Unit = runBlocking {
         val server = ServerSocket(0)
@@ -58,7 +57,7 @@ class ExceptionsJvmTest {
         HttpClient(Apache).use { client ->
             repeat(100) {
                 assertFailsWith<ConnectionClosedException> {
-                    client.get<HttpResponse>("http://127.0.0.1:$port")
+                    client.get("http://127.0.0.1:$port")
                 }
             }
         }

@@ -4,25 +4,26 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import javax.servlet.http.*
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public abstract class ServletApplicationResponse(
     call: ApplicationCall,
-    protected val servletResponse: HttpServletResponse
+    protected val servletResponse: HttpServletResponse,
+    private val managedByEngineHeaders: Set<String>
 ) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
+        override val managedByEngineHeaders = this@ServletApplicationResponse.managedByEngineHeaders
+
         override fun engineAppendHeader(name: String, value: String) {
             servletResponse.addHeader(name, value)
         }
@@ -48,21 +49,22 @@ public abstract class ServletApplicationResponse(
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
-            if (!completed) {
-                completed = true
-                if (responseJob.isInitialized()) {
-                    responseJob.value.apply {
-                        channel.close()
-                        join()
-                    }
-                } else {
-                    try {
-                        @Suppress("BlockingMethodInNonBlockingContext")
-                        servletResponse.flushBuffer()
-                    } catch (cause: Throwable) {
-                        throw ChannelWriteException(exception = cause)
-                    }
+            if (completed) return@intercept
+            completed = true
+
+            if (responseJob.isInitialized()) {
+                responseJob.value.apply {
+                    channel.close()
+                    join()
                 }
+                return@intercept
+            }
+
+            try {
+                @Suppress("BlockingMethodInNonBlockingContext")
+                servletResponse.flushBuffer()
+            } catch (cause: Throwable) {
+                throw ChannelWriteException(exception = cause)
             }
         }
     }

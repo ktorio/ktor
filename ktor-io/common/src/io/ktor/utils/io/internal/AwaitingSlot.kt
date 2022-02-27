@@ -17,15 +17,11 @@ import kotlinx.coroutines.*
 internal class AwaitingSlot {
     private val suspension: AtomicRef<CompletableJob?> = atomic(null)
 
-    init {
-        makeShared()
-    }
-
     /**
      * Wait for other [sleep] or resume.
      */
-    public suspend fun sleep() {
-        if (trySuspend()) {
+    suspend fun sleep(sleepCondition: () -> Boolean) {
+        if (trySuspend(sleepCondition)) {
             return
         }
 
@@ -35,14 +31,14 @@ internal class AwaitingSlot {
     /**
      * Resume waiter.
      */
-    public fun resume() {
+    fun resume() {
         suspension.getAndSet(null)?.complete()
     }
 
     /**
      * Cancel waiter.
      */
-    public fun cancel(cause: Throwable?) {
+    fun cancel(cause: Throwable?) {
         val continuation = suspension.getAndSet(null) ?: return
 
         if (cause != null) {
@@ -52,11 +48,11 @@ internal class AwaitingSlot {
         }
     }
 
-    private suspend fun trySuspend(): Boolean {
+    private suspend fun trySuspend(sleepCondition: () -> Boolean): Boolean {
         var suspended = false
 
         val job = Job()
-        if (suspension.compareAndSet(null, job)) {
+        if (suspension.compareAndSet(null, job) && sleepCondition()) {
             suspended = true
             job.join()
         }

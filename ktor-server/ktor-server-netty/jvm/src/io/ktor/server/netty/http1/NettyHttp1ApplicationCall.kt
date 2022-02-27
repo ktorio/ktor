@@ -4,7 +4,8 @@
 
 package io.ktor.server.netty.http1
 
-import io.ktor.application.*
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
@@ -27,6 +28,7 @@ internal class NettyHttp1ApplicationCall(
         httpRequest,
         requestBodyChannel
     )
+
     override val response = NettyHttp1ApplicationResponse(
         this,
         context,

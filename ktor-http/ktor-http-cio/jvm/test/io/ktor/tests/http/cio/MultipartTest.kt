@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {
@@ -213,6 +213,7 @@ class MultipartTest {
         assertEquals(380, fileContent.length)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testMultipartFormDataChunkedEncoded() = runBlocking {
         val body = """
@@ -337,6 +338,7 @@ class MultipartTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testEmptyPayload() = runBlocking {
         val body = "POST /add HTTP/1.1\r\n" +
@@ -393,6 +395,27 @@ class MultipartTest {
 
         mp.consumeEach {
             fail("Should be no events but got $it")
+        }
+    }
+
+    @Test
+    fun testNoCRLFAfterBoundaryDelimiter() {
+        val body = "--boundary\r\n" +
+            "Content-Disposition: form-data; name=\"key\"\r\n\r\n" +
+            "value\r\n" +
+            "--boundary--"
+
+        val input = ByteReadChannel(body.toByteArray())
+
+        runBlocking {
+            val events = parseMultipart(
+                input,
+                "multipart/form-data; boundary=boundary",
+                body.length.toLong()
+            ).toList()
+
+            assertEquals(1, events.size)
+            assertEquals("value", (events[0] as MultipartEvent.MultipartPart).body.readRemaining().readText())
         }
     }
 

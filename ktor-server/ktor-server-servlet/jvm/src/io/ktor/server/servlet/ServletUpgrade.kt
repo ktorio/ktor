@@ -18,7 +18,6 @@ import kotlin.coroutines.*
 /**
  * Servlet upgrade processing
  */
-@EngineAPI
 public interface ServletUpgrade {
     /**
      * Perform HTTP upgrade using engine's native API
@@ -36,8 +35,8 @@ public interface ServletUpgrade {
  * The default servlet upgrade implementation using Servlet API.
  * Please note that some servlet containers may not support it or it may be broken.
  */
-@EngineAPI
 public object DefaultServletUpgrade : ServletUpgrade {
+    @OptIn(InternalAPI::class)
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,
@@ -73,7 +72,6 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 // so we can't pass [UpgradeRequest] through a constructor
 // we also can't make it internal due to the same reason
 @InternalAPI
-@EngineAPI
 @Suppress("KDocMissingDocumentation")
 public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile

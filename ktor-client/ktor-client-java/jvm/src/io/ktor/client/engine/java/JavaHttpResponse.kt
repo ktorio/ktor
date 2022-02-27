@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.java
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.future.*
 import java.net.http.*

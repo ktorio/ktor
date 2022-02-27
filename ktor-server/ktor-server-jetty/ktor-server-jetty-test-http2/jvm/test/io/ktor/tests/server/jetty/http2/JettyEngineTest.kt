@@ -13,8 +13,23 @@ class JettyEngineHttp2CompressionTest :
 class JettyEngineHttp2ContentTest :
     ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
-class JettyEngineHttp2HttpServerTest :
-    HttpServerTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyEngineHttp2HttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    override fun testFlushingHeaders() {
+        // no op
+    }
+}
+
+class JettyEngineHttp2HttpServerJvmTest :
+    HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
 class JettyEngineHttp2SustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+
+class JettyEngineServerPluginsTest :
+    ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}

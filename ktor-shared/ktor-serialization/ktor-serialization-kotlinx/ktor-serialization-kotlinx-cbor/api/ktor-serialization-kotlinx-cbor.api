@@ -1,0 +1,6 @@
+public final class io/ktor/serialization/kotlinx/cbor/CborSupportKt {
+	public static final fun cbor (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/cbor/Cbor;Lio/ktor/http/ContentType;)V
+	public static synthetic fun cbor$default (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/cbor/Cbor;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
+	public static final fun getDefaultCbor ()Lkotlinx/serialization/cbor/Cbor;
+}
+

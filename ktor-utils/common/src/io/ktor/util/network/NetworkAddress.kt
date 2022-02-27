@@ -11,7 +11,7 @@ package io.ktor.util.network
  *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
-public expect class NetworkAddress
+public expect abstract class NetworkAddress
 
 /**
  * Represents remote endpoint with [hostname] and [port].
@@ -25,11 +25,13 @@ public expect fun NetworkAddress(hostname: String, port: Int): NetworkAddress
 /**
  * Network address hostname.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val NetworkAddress.hostname: String
 
 /**
  * Network address port.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val NetworkAddress.port: Int
 
 @Suppress("KDocMissingDocumentation")

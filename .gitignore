@@ -36,3 +36,6 @@ bin/
 .DS_Store
 
 hs_err_pid*.log
+
+gradle-user-home
+

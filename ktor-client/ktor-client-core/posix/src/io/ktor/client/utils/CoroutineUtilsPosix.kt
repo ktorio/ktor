@@ -5,6 +5,7 @@
 package io.ktor.client.utils
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 
@@ -16,16 +17,3 @@ public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
 ): CoroutineDispatcher = Unconfined
-
-internal actual fun checkCoroutinesVersion() {
-    try {
-        val parent = Job()
-        parent.freeze()
-        Job(parent)
-    } catch (cause: Throwable) {
-        val message = "Ktor native HttpClient requires kotlinx.coroutines version with `native-mt` suffix" +
-            " (like `1.3.9-native-mt`). Consider checking the dependencies."
-
-        throw Error(message)
-    }
-}

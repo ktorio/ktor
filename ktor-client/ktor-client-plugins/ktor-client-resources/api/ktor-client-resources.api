@@ -1,0 +1,13 @@
+public final class io/ktor/client/plugins/resources/BuildersKt {
+	public static final fun resources (Lio/ktor/client/HttpClient;)Lio/ktor/resources/Resources;
+}
+
+public final class io/ktor/client/plugins/resources/Resources : io/ktor/client/plugins/HttpClientPlugin {
+	public static final field INSTANCE Lio/ktor/client/plugins/resources/Resources;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/resources/Resources;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/resources/Resources;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+

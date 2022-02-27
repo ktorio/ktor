@@ -4,9 +4,11 @@
 
 package io.ktor.server.netty
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.util.*
 import io.ktor.util.*
+import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
@@ -26,6 +28,7 @@ import kotlin.reflect.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
+@OptIn(InternalAPI::class)
 public class NettyApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit = {}
@@ -77,6 +80,11 @@ public class NettyApplicationEngine(
          * User-provided function to configure Netty's [HttpServerCodec]
          */
         public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
+
+        /**
+         * User-provided function to configure Netty's [ChannelPipeline]
+         */
+        public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
     }
 
     private val configuration = Configuration().apply(configure)
@@ -116,12 +124,12 @@ public class NettyApplicationEngine(
         }
     }
 
-    private val dispatcherWithShutdown: DispatcherWithShutdown by lazy {
-        DispatcherWithShutdown(NettyDispatcher)
+    private val nettyDispatcher: CoroutineDispatcher by lazy {
+        NettyDispatcher
     }
 
-    private val engineDispatcherWithShutdown by lazy {
-        DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    private val workerDispatcher by lazy {
+        workerEventGroup.asCoroutineDispatcher()
     }
 
     private var cancellationDeferred: CompletableJob? = null
@@ -146,14 +154,15 @@ public class NettyApplicationEngine(
                     pipeline,
                     environment,
                     callEventGroup,
-                    engineDispatcherWithShutdown,
-                    environment.parentCoroutineContext + dispatcherWithShutdown,
+                    workerDispatcher,
+                    environment.parentCoroutineContext + nettyDispatcher,
                     connector,
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds,
                     configuration.requestReadTimeoutSeconds,
-                    configuration.httpServerCodec
+                    configuration.httpServerCodec,
+                    configuration.channelPipelineConfig
                 )
             )
             if (configuration.tcpKeepAlive) {
@@ -177,6 +186,9 @@ public class NettyApplicationEngine(
             channels = bootstraps.zip(environment.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
+            val connectors = channels!!.zip(environment.connectors)
+                .map { it.second.withPort(it.first.localAddress().port) }
+            resolvedConnectors.complete(connectors)
         } catch (cause: BindException) {
             terminate()
             throw cause
@@ -201,8 +213,6 @@ public class NettyApplicationEngine(
         environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 
-        dispatcherWithShutdown.prepareShutdown()
-        engineDispatcherWithShutdown.prepareShutdown()
         try {
             val shutdownConnections =
                 connectionEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
@@ -221,9 +231,6 @@ public class NettyApplicationEngine(
 
             environment.stop()
         } finally {
-            dispatcherWithShutdown.completeShutdown()
-            engineDispatcherWithShutdown.completeShutdown()
-
             channelFutures.forEach { it.sync() }
         }
     }

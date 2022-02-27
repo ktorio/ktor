@@ -5,7 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.compression.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -17,9 +17,9 @@ class HttpStatementTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testExecute() = clientTests(listOf("curl")) {
+    fun testExecute() = clientTests {
         test { client ->
-            client.request<HttpStatement>("$TEST_SERVER/content/stream").execute {
+            client.prepareGet("$TEST_SERVER/content/stream").execute {
                 val expected = buildPacket {
                     repeat(42) {
                         writeInt(42)
@@ -31,8 +31,8 @@ class HttpStatementTest : ClientLoader() {
                 assertArrayEquals("Invalid content", expected, actual)
             }
 
-            val response = client.request<HttpStatement>("$TEST_SERVER/content/hello").execute()
-            assertEquals("hello", response.receive<String>())
+            val response = client.prepareGet("$TEST_SERVER/content/hello").execute()
+            assertEquals("hello", response.body())
         }
     }
 
@@ -45,10 +45,10 @@ class HttpStatementTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<HttpResponse>("$TEST_SERVER/compression/gzip")
+            val response = client.get("$TEST_SERVER/compression/gzip")
             assertTrue(!response.coroutineContext[Job]!!.isCompleted)
 
-            val content = response.receive<String>()
+            val content = response.body<String>()
             assertEquals("Compressed response!", content)
             assertTrue(response.coroutineContext[Job]!!.isCompleted)
         }

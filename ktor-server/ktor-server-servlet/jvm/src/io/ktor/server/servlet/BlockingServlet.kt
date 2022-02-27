@@ -4,8 +4,8 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
 import io.ktor.http.content.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -19,11 +19,12 @@ internal class BlockingServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
-    override val coroutineContext: CoroutineContext
-) : BaseApplicationCall(application), CoroutineScope {
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : BaseApplicationCall(application), ApplicationCallWithContext {
     override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
     override val response: BlockingServletApplicationResponse =
-        BlockingServletApplicationResponse(this, servletResponse, coroutineContext)
+        BlockingServletApplicationResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
 
     init {
         putResponseAttribute()
@@ -46,8 +47,9 @@ private class BlockingServletApplicationRequest(
 internal class BlockingServletApplicationResponse(
     call: ApplicationCall,
     servletResponse: HttpServletResponse,
-    override val coroutineContext: CoroutineContext
-) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         reader(UnsafeBlockingTrampoline, autoFlush = false) {
             val buffer = ArrayPool.borrow()

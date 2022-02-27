@@ -57,6 +57,11 @@ public sealed class OutgoingContent {
     }
 
     /**
+     * Trailers to set when sending this content, will be ignored if request is not in HTTP2 mode
+     */
+    public open fun trailers(): Headers? = null
+
+    /**
      * Variant of a [OutgoingContent] without a payload
      */
     public abstract class NoContent : OutgoingContent()
@@ -74,6 +79,7 @@ public sealed class OutgoingContent {
         /**
          * Provides [ByteReadChannel] for the given range of the content
          */
+        @OptIn(DelicateCoroutinesApi::class)
         public open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) {
             ByteReadChannel.Empty
         } else {
@@ -110,7 +116,7 @@ public sealed class OutgoingContent {
      * Variant of a [OutgoingContent] for upgrading an HTTP connection
      */
     public abstract class ProtocolUpgrade : OutgoingContent() {
-        final override val status: HttpStatusCode?
+        final override val status: HttpStatusCode
             get() = HttpStatusCode.SwitchingProtocols
 
         /**

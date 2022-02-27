@@ -62,7 +62,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(
 }
 
 /**
- * Write all [src] buffer remaining bytes and change it's position accordingly
+ * Write all remaining [src] buffer bytes and change its position accordingly
  */
 public fun BytePacketBuilder.writeFully(src: CPointer<ByteVar>, size: Int) {
     var remaining = size

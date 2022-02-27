@@ -7,6 +7,7 @@ package io.ktor.tests.http
 
 import io.ktor.http.*
 import java.net.*
+import java.util.*
 import kotlin.test.*
 
 class URLBuilderTestJvm {
@@ -55,8 +56,8 @@ class URLBuilderTestJvm {
             takeFrom(URI.create(urlStr2))
         }
 
-        assertEquals(urlStr1, url1.buildString())
-        assertEquals(urlStr2, url2.buildString())
+        assertEquals("http://localhost/", url1.buildString())
+        assertEquals("http://localhost/?param1=foo", url2.buildString())
     }
 
     @Test
@@ -81,7 +82,10 @@ class URLBuilderTestJvm {
     @Test
     fun testCapitalize() {
         val url = URLBuilder().apply {
-            takeFrom(URI.create("custom://localhost:8080/path".capitalize()))
+            val uri = "custom://localhost:8080/path".replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
+            takeFrom(URI.create(uri))
         }
 
         assertEquals("custom://localhost:8080/path", url.buildString())

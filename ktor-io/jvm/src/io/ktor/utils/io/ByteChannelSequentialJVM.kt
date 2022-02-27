@@ -1,14 +1,16 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.nio.*
 
-@Suppress("EXPERIMENTAL_FEATURE_WARNING")
-@ExperimentalIoApi
-public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
-    ByteChannelSequentialBase(initial, autoFlush) {
+@Suppress("DEPRECATION", "OverridingDeprecatedMember")
+public class ByteChannelSequentialJVM(
+    initial: ChunkBuffer,
+    autoFlush: Boolean
+) : ByteChannelSequentialBase(initial, autoFlush) {
 
     @Volatile
     private var attachedJob: Job? = null
@@ -20,7 +22,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(cause)
+                cancel(cause.unwrapCancellationException())
             }
         }
     }
@@ -84,9 +86,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
     }
 
     override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
-        if (closed) {
-            throw closedCause ?: ClosedSendChannelException("Channel closed for read")
-        }
+        closedCause?.let { throw it }
 
         if (availableForRead < min) {
             return -1
@@ -94,7 +94,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
 
         prepareFlushedBytes()
 
-        var result = 0
+        var result: Int
         readable.readDirect(min) {
             val position = it.position()
             block(it)
@@ -146,30 +146,11 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         return count
     }
 
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
-        val readable = readable
-        var invokedWithLast = false
-
-        while (true) {
-            readable.readDirect(1) { bb: ByteBuffer ->
-                val last = closed && bb.remaining() == availableForRead
-                visitor(bb, last)
-                if (last) {
-                    invokedWithLast = true
-                }
-            }
-            if (!await(1)) break
-        }
-
-        if (!invokedWithLast) {
-            visitor(ByteBuffer.allocate(0), true)
-        }
-    }
-
+    @Deprecated("Use read { } instead.")
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R =
         visitor(Session(this))
 
+    @Deprecated("Use read { } instead.")
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R =
         visitor(Session(this))
 
@@ -215,6 +196,9 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
         }
     }
 
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
     override suspend fun awaitContent() {
         await(1)
     }
@@ -228,7 +212,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
             return 0
         }
 
-        var result = 0
+        var result: Int
         writable.writeDirect(min) {
             val position = it.position()
             block(it)
@@ -254,7 +238,7 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
                 throw closedCause ?: ClosedSendChannelException("Channel closed for write")
             }
 
-            var shouldContinue: Boolean = false
+            var shouldContinue: Boolean
             awaitAtLeastNBytesAvailableForWrite(1)
             val result = writable.writeByteBufferDirect(1) {
                 shouldContinue = block(it)

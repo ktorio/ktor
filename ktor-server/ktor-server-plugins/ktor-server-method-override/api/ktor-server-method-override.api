@@ -1,0 +1,10 @@
+public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideConfig {
+	public fun <init> ()V
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun setHeaderName (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/plugins/methodoverride/XHttpMethodOverrideKt {
+	public static final fun getXHttpMethodOverride ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

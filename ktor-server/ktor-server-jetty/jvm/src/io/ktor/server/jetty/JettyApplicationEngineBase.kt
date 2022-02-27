@@ -4,7 +4,7 @@
 
 package io.ktor.server.jetty
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
@@ -13,7 +13,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
-public open class JettyApplicationEngineBase @EngineAPI constructor(
+public open class JettyApplicationEngineBase(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
 ) : BaseApplicationEngine(environment) {
@@ -49,6 +49,11 @@ public open class JettyApplicationEngineBase @EngineAPI constructor(
 
         server.start()
         cancellationDeferred = stopServerOnCancellation()
+
+        val connectors = server.connectors.zip(environment.connectors)
+            .map { it.second.withPort((it.first as ServerConnector).localPort) }
+        resolvedConnectors.complete(connectors)
+
         if (wait) {
             server.join()
             stop(1, 5, TimeUnit.SECONDS)

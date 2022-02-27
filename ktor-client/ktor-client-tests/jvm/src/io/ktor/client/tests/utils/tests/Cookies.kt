@@ -4,12 +4,11 @@
 
 package io.ktor.client.tests.utils.tests
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.util.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlin.test.*
 
 public fun Application.cookiesTest() {
@@ -64,8 +63,12 @@ public fun Application.cookiesTest() {
                 call.respond("OK")
             }
             get("/FOO") {
-                assertTrue(call.request.cookies.rawCookies.isEmpty())
-                call.respond("OK")
+                val cookies = call.request.cookies
+                if (cookies.rawCookies.isNotEmpty()) {
+                    call.respond(HttpStatusCode.BadRequest, "Cookies: ${cookies.rawCookies.entries.joinToString()}")
+                } else {
+                    call.respond("OK")
+                }
             }
             get("/expire") {
                 call.request.cookies.rawCookies.forEach { (name, _) ->

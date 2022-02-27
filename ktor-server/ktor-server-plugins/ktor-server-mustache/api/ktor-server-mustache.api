@@ -1,0 +1,24 @@
+public final class io/ktor/server/mustache/MustacheConfig {
+	public fun <init> ()V
+	public final fun getMustacheFactory ()Lcom/github/mustachejava/MustacheFactory;
+	public final fun setMustacheFactory (Lcom/github/mustachejava/MustacheFactory;)V
+}
+
+public final class io/ktor/server/mustache/MustacheContent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/Object;
+	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/mustache/MustacheKt {
+	public static final fun getMustache ()Lio/ktor/server/application/ApplicationPlugin;
+}
+
+public final class io/ktor/server/mustache/RespondTemplateKt {
+	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

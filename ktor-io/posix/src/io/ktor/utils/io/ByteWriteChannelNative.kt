@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 
 /**
@@ -31,26 +32,31 @@ public actual interface ByteWriteChannel {
     public actual val autoFlush: Boolean
 
     /**
-     * Byte order that is used for multi-byte write operations
-     * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var writeByteOrder: ByteOrder
-
-    /**
      * Number of bytes written to the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of write operation.
      */
-    @Deprecated("Counter is no longer supported")
     public actual val totalBytesWritten: Long
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
+
+    /**
+     * Invokes [block] if it is possible to write at least [min] byte
+     * providing buffer to it so lambda can write to the buffer
+     * up to [Buffer.writeRemaining] bytes. If there are no [min] bytes spaces available then the invocation returns -1.
+     *
+     * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for write but the provided byte buffer could have only 2 remaining bytes:
+     * in this case you have to invoke write again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for write, should be positive
+     * @param block to be invoked when at least [min] bytes free capacity available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    public fun writeAvailable(min: Int, block: (Buffer) -> Unit): Int
 
     /**
      * Writes as much as possible and only suspends if buffer is full
@@ -60,7 +66,7 @@ public actual interface ByteWriteChannel {
     /**
      * Writes as much as possible and only suspends if buffer is full
      */
-    public actual suspend fun writeAvailable(src: IoBuffer): Int
+    public actual suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes as much as possible and only suspends if buffer is full
@@ -82,12 +88,6 @@ public actual interface ByteWriteChannel {
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
      * Crashes if channel get closed while writing.
      */
-    public actual suspend fun writeFully(src: IoBuffer)
-
-    /**
-     * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
-     * Crashes if channel get closed while writing.
-     */
     public suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
 
     /**
@@ -98,7 +98,6 @@ public actual interface ByteWriteChannel {
 
     @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")
-    @ExperimentalIoApi
     public actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**
@@ -142,7 +141,6 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeFloat(f: Float)
 
-    @ExperimentalIoApi
     public actual suspend fun awaitFreeSpace()
 
     /**

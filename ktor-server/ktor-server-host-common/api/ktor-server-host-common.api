@@ -1,9 +1,9 @@
 public abstract interface class io/ktor/server/engine/ApplicationEngine {
-	public abstract fun getApplication ()Lio/ktor/application/Application;
+	public abstract fun getApplication ()Lio/ktor/server/application/Application;
 	public abstract fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public abstract fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
 	public abstract fun stop (JJ)V
-	public abstract synthetic fun stop (JJLjava/util/concurrent/TimeUnit;)V
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -18,13 +18,13 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 }
 
 public final class io/ktor/server/engine/ApplicationEngine$DefaultImpls {
-	public static fun getApplication (Lio/ktor/server/engine/ApplicationEngine;)Lio/ktor/application/Application;
+	public static fun getApplication (Lio/ktor/server/engine/ApplicationEngine;)Lio/ktor/server/application/Application;
 	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
-	public static synthetic fun stop (Lio/ktor/server/engine/ApplicationEngine;JJLjava/util/concurrent/TimeUnit;)V
+	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
 }
 
-public abstract interface class io/ktor/server/engine/ApplicationEngineEnvironment : io/ktor/application/ApplicationEnvironment {
-	public abstract fun getApplication ()Lio/ktor/application/Application;
+public abstract interface class io/ktor/server/engine/ApplicationEngineEnvironment : io/ktor/server/application/ApplicationEnvironment {
+	public abstract fun getApplication ()Lio/ktor/server/application/Application;
 	public abstract fun getConnectors ()Ljava/util/List;
 	public abstract fun start ()V
 	public abstract fun stop ()V
@@ -34,7 +34,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public fun <init> ()V
 	public final fun build (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public final fun getClassLoader ()Ljava/lang/ClassLoader;
-	public final fun getConfig ()Lio/ktor/config/ApplicationConfig;
+	public final fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public final fun getConnectors ()Ljava/util/List;
 	public final fun getDevelopmentMode ()Z
 	public final fun getLog ()Lorg/slf4j/Logger;
@@ -44,7 +44,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public final fun getWatchPaths ()Ljava/util/List;
 	public final fun module (Lkotlin/jvm/functions/Function1;)V
 	public final fun setClassLoader (Ljava/lang/ClassLoader;)V
-	public final fun setConfig (Lio/ktor/config/ApplicationConfig;)V
+	public final fun setConfig (Lio/ktor/server/config/ApplicationConfig;)V
 	public final fun setDevelopmentMode (Z)V
 	public final fun setLog (Lorg/slf4j/Logger;)V
 	public final fun setParentCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
@@ -58,17 +58,17 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentKt {
 
 public final class io/ktor/server/engine/ApplicationEngineEnvironmentReloading : io/ktor/server/engine/ApplicationEngineEnvironment {
 	public static final field Companion Lio/ktor/server/engine/ApplicationEngineEnvironmentReloading$Companion;
-	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Z)V
-	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getApplication ()Lio/ktor/application/Application;
+	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getClassLoader ()Ljava/lang/ClassLoader;
-	public fun getConfig ()Lio/ktor/config/ApplicationConfig;
+	public fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public fun getConnectors ()Ljava/util/List;
 	public fun getDevelopmentMode ()Z
 	public fun getLog ()Lorg/slf4j/Logger;
-	public fun getMonitor ()Lio/ktor/application/ApplicationEvents;
+	public fun getMonitor ()Lio/ktor/events/Events;
 	public fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getRootPath ()Ljava/lang/String;
 	public final fun reload ()V
@@ -87,9 +87,9 @@ public final class io/ktor/server/engine/ApplicationEngineJvmKt {
 	public static final fun stop (Lio/ktor/server/engine/ApplicationEngine;JJLjava/util/concurrent/TimeUnit;)V
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/application/ApplicationCall {
-	public fun <init> (Lio/ktor/application/Application;)V
-	public final fun getApplication ()Lio/ktor/application/Application;
+public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server/application/ApplicationCall {
+	public fun <init> (Lio/ktor/server/application/Application;)V
+	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getParameters ()Lio/ktor/http/Parameters;
 	public abstract fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
@@ -101,31 +101,32 @@ public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/applic
 public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/server/engine/ApplicationEngine {
 	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/ktor/server/engine/EnginePipeline;)V
 	public synthetic fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lio/ktor/server/engine/EnginePipeline;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getApplication ()Lio/ktor/application/Application;
+	public fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getEnvironment ()Lio/ktor/server/engine/ApplicationEngineEnvironment;
 	public final fun getPipeline ()Lio/ktor/server/engine/EnginePipeline;
-	public synthetic fun stop (JJLjava/util/concurrent/TimeUnit;)V
+	protected final fun getResolvedConnectors ()Lkotlinx/coroutines/CompletableDeferred;
+	public fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor/server/engine/ApplicationEngine$Configuration {
 	public fun <init> ()V
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/request/ApplicationRequest {
-	public fun <init> (Lio/ktor/application/ApplicationCall;)V
-	public final fun getCall ()Lio/ktor/application/ApplicationCall;
-	public fun getPipeline ()Lio/ktor/request/ApplicationReceivePipeline;
+public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/server/request/ApplicationRequest {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/response/ApplicationResponse {
+public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/server/response/ApplicationResponse {
 	public static final field Companion Lio/ktor/server/engine/BaseApplicationResponse$Companion;
-	public fun <init> (Lio/ktor/application/ApplicationCall;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
-	protected fun getBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public final fun getCall ()Lio/ktor/application/ApplicationCall;
-	public fun getCookies ()Lio/ktor/response/ResponseCookies;
-	public final fun getPipeline ()Lio/ktor/response/ApplicationSendPipeline;
-	public fun push (Lio/ktor/response/ResponsePushBuilder;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public fun getCookies ()Lio/ktor/server/response/ResponseCookies;
+	public final fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
+	public fun isCommitted ()Z
+	public fun push (Lio/ktor/server/response/ResponsePushBuilder;)V
 	protected fun respondFromBytes ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun respondFromChannel (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun respondNoContent (Lio/ktor/http/content/OutgoingContent$NoContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -151,8 +152,8 @@ public final class io/ktor/server/engine/BaseApplicationResponse$BodyLengthIsToo
 }
 
 public final class io/ktor/server/engine/BaseApplicationResponse$Companion {
-	public final fun getEngineResponseAtributeKey ()Lio/ktor/util/AttributeKey;
-	public final fun setupSendPipeline (Lio/ktor/response/ApplicationSendPipeline;)V
+	public final fun getEngineResponseAttributeKey ()Lio/ktor/util/AttributeKey;
+	public final fun setupSendPipeline (Lio/ktor/server/response/ApplicationSendPipeline;)V
 }
 
 public final class io/ktor/server/engine/BaseApplicationResponse$InvalidHeaderForContent : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
@@ -165,9 +166,14 @@ public final class io/ktor/server/engine/BaseApplicationResponse$ResponseAlready
 	public fun <init> ()V
 }
 
+public final class io/ktor/server/engine/CommandLineJvmKt {
+	public static final fun commandLineEnvironment ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public static synthetic fun commandLineEnvironment$default ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+}
+
 public final class io/ktor/server/engine/CommandLineKt {
 	public static final fun commandLineEnvironment ([Ljava/lang/String;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
-	public static final fun loadCommonConfiguration (Lio/ktor/server/engine/BaseApplicationEngine$Configuration;Lio/ktor/config/ApplicationConfig;)V
+	public static final fun loadCommonConfiguration (Lio/ktor/server/engine/BaseApplicationEngine$Configuration;Lio/ktor/server/config/ApplicationConfig;)V
 }
 
 public final class io/ktor/server/engine/ConnectorType {
@@ -188,15 +194,15 @@ public final class io/ktor/server/engine/ConnectorType$Companion {
 }
 
 public final class io/ktor/server/engine/DefaultEnginePipelineKt {
-	public static final fun defaultEnginePipeline (Lio/ktor/application/ApplicationEnvironment;)Lio/ktor/server/engine/EnginePipeline;
+	public static final fun defaultEnginePipeline (Lio/ktor/server/application/ApplicationEnvironment;)Lio/ktor/server/engine/EnginePipeline;
 	public static final fun defaultExceptionStatusCode (Ljava/lang/Throwable;)Lio/ktor/http/HttpStatusCode;
-	public static final fun handleFailure (Lio/ktor/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun logError (Lio/ktor/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun handleFailure (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun logError (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/engine/DefaultTransformKt {
-	public static final fun installDefaultTransformations (Lio/ktor/request/ApplicationReceivePipeline;)V
-	public static final fun installDefaultTransformations (Lio/ktor/response/ApplicationSendPipeline;)V
+	public static final fun installDefaultTransformations (Lio/ktor/server/request/ApplicationReceivePipeline;)V
+	public static final fun installDefaultTransformations (Lio/ktor/server/response/ApplicationSendPipeline;)V
 }
 
 public final class io/ktor/server/engine/DefaultUncaughtExceptionHandler : kotlinx/coroutines/CoroutineExceptionHandler {
@@ -214,12 +220,11 @@ public final class io/ktor/server/engine/EmbeddedServerKt {
 	public static final fun embeddedServer (Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static final fun embeddedServer (Lio/ktor/server/engine/ApplicationEngineFactory;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static final fun embeddedServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
+	public static final fun embeddedServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;[Lio/ktor/server/engine/EngineConnectorConfig;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lio/ktor/server/engine/ApplicationEngineFactory;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
-}
-
-public abstract interface annotation class io/ktor/server/engine/EngineAPI : java/lang/annotation/Annotation {
+	public static synthetic fun embeddedServer$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;[Lio/ktor/server/engine/EngineConnectorConfig;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 }
 
 public class io/ktor/server/engine/EngineConnectorBuilder : io/ktor/server/engine/EngineConnectorConfig {
@@ -240,9 +245,13 @@ public abstract interface class io/ktor/server/engine/EngineConnectorConfig {
 	public abstract fun getType ()Lio/ktor/server/engine/ConnectorType;
 }
 
+public final class io/ktor/server/engine/EngineConnectorConfigJvmKt {
+	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
+	public static final fun withPort (Lio/ktor/server/engine/EngineConnectorConfig;I)Lio/ktor/server/engine/EngineConnectorConfig;
+}
+
 public final class io/ktor/server/engine/EngineConnectorConfigKt {
 	public static final fun connector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
-	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/engine/EngineContextCancellationHelperKt {
@@ -256,8 +265,8 @@ public final class io/ktor/server/engine/EnginePipeline : io/ktor/util/pipeline/
 	public fun <init> (Z)V
 	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getDevelopmentMode ()Z
-	public final fun getReceivePipeline ()Lio/ktor/request/ApplicationReceivePipeline;
-	public final fun getSendPipeline ()Lio/ktor/response/ApplicationSendPipeline;
+	public final fun getReceivePipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
+	public final fun getSendPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 }
 
 public final class io/ktor/server/engine/EnginePipeline$Companion {
@@ -271,11 +280,18 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 	public fun getKeyStore ()Ljava/security/KeyStore;
 	public fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
 	public fun getKeyStorePath ()Ljava/io/File;
+	public fun getPort ()I
 	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public fun getTrustStore ()Ljava/security/KeyStore;
+	public fun getTrustStorePath ()Ljava/io/File;
 	public fun setKeyAlias (Ljava/lang/String;)V
 	public fun setKeyStore (Ljava/security/KeyStore;)V
 	public fun setKeyStorePassword (Lkotlin/jvm/functions/Function0;)V
 	public fun setKeyStorePath (Ljava/io/File;)V
+	public fun setPort (I)V
+	public fun setPrivateKeyPassword (Lkotlin/jvm/functions/Function0;)V
+	public fun setTrustStore (Ljava/security/KeyStore;)V
+	public fun setTrustStorePath (Ljava/io/File;)V
 }
 
 public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
@@ -284,23 +300,19 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 	public abstract fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
 	public abstract fun getKeyStorePath ()Ljava/io/File;
 	public abstract fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public abstract fun getTrustStore ()Ljava/security/KeyStore;
+	public abstract fun getTrustStorePath ()Ljava/io/File;
 }
 
 public final class io/ktor/server/engine/ShutDownUrl {
 	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public final fun doShutdown (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getApplicationCallPlugin ()Lio/ktor/server/application/BaseApplicationPlugin;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/engine/ShutDownUrl$ApplicationCallFeature : io/ktor/application/ApplicationFeature {
-	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$ApplicationCallFeature;
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ShutDownUrl;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/engine/ShutDownUrl$Configuration {
+public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
@@ -308,14 +320,14 @@ public final class io/ktor/server/engine/ShutDownUrl$Configuration {
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/engine/ShutDownUrl$EngineFeature : io/ktor/application/ApplicationFeature {
-	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$EngineFeature;
+public final class io/ktor/server/engine/ShutDownUrl$EnginePlugin : io/ktor/server/application/BaseApplicationPlugin {
+	public static final field INSTANCE Lio/ktor/server/engine/ShutDownUrl$EnginePlugin;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/engine/EnginePipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ShutDownUrl;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/engine/ShutdownHookKt {
+public final class io/ktor/server/engine/ShutdownHookJvmKt {
 	public static final fun addShutdownHook (Lio/ktor/server/engine/ApplicationEngine;Lkotlin/jvm/functions/Function0;)V
 }
 

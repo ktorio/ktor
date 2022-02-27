@@ -5,8 +5,9 @@
 package io.ktor.server.jetty
 
 import io.ktor.http.*
-import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
+import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
@@ -26,6 +27,7 @@ private val JettyKtorCounter = AtomicLong()
 
 private const val THREAD_KEEP_ALIVE_TIME = 1L
 
+@OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,
@@ -43,24 +45,20 @@ internal class JettyKtorHandler(
     ) { r ->
         Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
     }
-    private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
+    private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private val handlerJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext =
-        environment.parentCoroutineContext +
-            handlerJob +
-            DefaultUncaughtExceptionHandler(environment.log)
+        environment.parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
-        dispatcher.prepareShutdown()
         try {
             super.destroy()
             executor.shutdownNow()
         } finally {
             handlerJob.cancel()
-            dispatcher.completeShutdown()
         }
     }
 
@@ -90,7 +88,7 @@ internal class JettyKtorHandler(
                     response,
                     engineContext = engineDispatcher,
                     userContext = dispatcher,
-                    coroutineContext = coroutineContext
+                    coroutineContext = this@launch.coroutineContext
                 )
 
                 try {

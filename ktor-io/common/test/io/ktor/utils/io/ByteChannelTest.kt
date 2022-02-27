@@ -6,7 +6,6 @@ package io.ktor.utils.io
 
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -121,7 +120,7 @@ class ByteChannelTest {
         val total = withMemory(1024) {
             channel.peekTo(it, destinationOffset = 16, min = 1, max = Long.MAX_VALUE)
         }
-        assertEquals(1024 - 16, total)
+        assertEquals(1008L, total)
     }
 
     @Test
@@ -137,7 +136,7 @@ class ByteChannelTest {
         val total = withMemory(1024) {
             channel.peekTo(it, destinationOffset = 0, offset = 16, min = 1, max = Long.MAX_VALUE)
         }
-        assertEquals(1024 - 16, total)
+        assertEquals(1008L, total)
     }
 
     @Test
@@ -153,7 +152,7 @@ class ByteChannelTest {
         val total = withMemory(1024) {
             channel.peekTo(it, destinationOffset = 16, offset = 16, min = 1, max = Long.MAX_VALUE)
         }
-        assertEquals(1024 - 16, total)
+        assertEquals(1008L, total)
     }
 
     @Test

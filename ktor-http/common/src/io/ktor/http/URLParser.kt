@@ -77,35 +77,32 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     // Path
     if (startIndex >= endIndex) {
-        encodedPath = if (urlString[endIndex - 1] == '/') "/" else ""
+        encodedPathSegments = if (urlString[endIndex - 1] == '/') listOf("", "") else listOf("")
         return this
     }
 
-    encodedPath = if (slashCount == 0) {
+    encodedPathSegments = if (slashCount == 0) {
         // Relative path
-        val lastSlashIndex = encodedPath.lastIndexOf('/')
-
-        if (lastSlashIndex != encodedPath.length - 1) {
-            // Current path does not end in slash, get rid of last path segment.
-            if (lastSlashIndex != -1) {
-                encodedPath.substring(0, lastSlashIndex + 1)
-            } else {
-                "/"
-            }
-        } else {
-            // keep the whole path
-            encodedPath
-        }
+        // last item is either file name or empty string for directories
+        encodedPathSegments.dropLast(1)
     } else {
-        // overwrite the path
-        ""
+        emptyList()
     }
 
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
-    val rawPath = urlString.substring(startIndex, pathEnd)
-
-    encodedPath += rawPath.encodeURLPath()
-    startIndex = pathEnd
+    if (pathEnd > startIndex) {
+        val rawPath = urlString.substring(startIndex, pathEnd)
+        val basePath = when {
+            encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
+            else -> encodedPathSegments
+        }
+        val relativePath = when (slashCount) {
+            1 -> listOf("")
+            else -> emptyList()
+        } + rawPath.split('/')
+        encodedPathSegments = basePath + relativePath
+        startIndex = pathEnd
+    }
 
     // Query
     if (startIndex < endIndex && urlString[startIndex] == '?') {
@@ -155,7 +152,10 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
 
     val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
 
-    parseQueryStringTo(parameters, urlString.substring(startIndex + 1, fragmentStart))
+    val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart), decode = false)
+    rawParameters.forEach { key, values ->
+        encodedParameters.appendAll(key, values)
+    }
 
     return fragmentStart
 }
@@ -251,4 +251,4 @@ private fun String.indexOfColonInHostPort(startIndex: Int, endIndex: Int): Int {
     return -1
 }
 
-private fun Char.isLetter(): Boolean = toLowerCase() in 'a'..'z'
+private fun Char.isLetter(): Boolean = lowercaseChar() in 'a'..'z'

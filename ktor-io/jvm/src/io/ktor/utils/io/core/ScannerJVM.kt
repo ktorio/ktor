@@ -9,7 +9,7 @@ internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
 
 private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): Int {
     val bb = buffer.memory.buffer
-    val array = bb.array()!!
+    val array = bb.array()
     val start = bb.arrayOffset() + bb.position() + buffer.readPosition
     var i = start
     val end = i + buffer.readRemaining
@@ -31,7 +31,7 @@ internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimite
 
 private fun discardUntilDelimitersImplArrays(buffer: Buffer, delimiter1: Byte, delimiter2: Byte): Int {
     val bb = buffer.memory.buffer
-    val array = bb.array()!!
+    val array = bb.array()
     val start = bb.arrayOffset() + bb.position() + buffer.readPosition
     var i = start
     val end = i + buffer.readRemaining
@@ -149,7 +149,6 @@ internal fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-@Deprecated("Rewrite to Memory.copyTo")
 private inline fun ByteBuffer.copyUntilDirect(
     predicate: (Byte) -> Boolean,
     dst: ByteArray,
@@ -176,7 +175,7 @@ private inline fun ByteBuffer.copyUntilArrays(
     offset: Int,
     length: Int
 ): Int {
-    val array = array()!!
+    val array = array()
     val start = bufferOffset + position() + arrayOffset()
     var i = start
     val end = i + minOf(length, remaining())
@@ -194,7 +193,7 @@ private inline fun ByteBuffer.copyUntilArrays(
 
 private inline fun Buffer.copyUntilArrays(predicate: (Byte) -> Boolean, dst: Output): Int {
     val bb = memory.buffer
-    val array = bb.array()!!
+    val array = bb.array()
     var i = bb.position() + bb.arrayOffset() + readPosition
     val sourceEndPosition = bb.position() + bb.arrayOffset() + writePosition
     var copiedTotal = 0

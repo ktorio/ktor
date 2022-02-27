@@ -4,7 +4,7 @@
 
 package io.ktor.server.jetty
 
-import io.ktor.config.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
 
@@ -30,15 +30,4 @@ public object EngineMain {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
     }
-}
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Use EngineMain instead",
-    replaceWith = ReplaceWith("EngineMain"),
-    level = DeprecationLevel.HIDDEN
-)
-public object DevelopmentEngine {
-    @JvmStatic
-    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

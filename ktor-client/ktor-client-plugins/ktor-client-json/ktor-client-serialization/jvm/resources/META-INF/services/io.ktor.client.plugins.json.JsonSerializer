@@ -1,0 +1,1 @@
+io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer

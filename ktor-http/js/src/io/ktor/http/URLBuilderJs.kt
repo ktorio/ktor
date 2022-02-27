@@ -6,13 +6,20 @@ package io.ktor.http
 
 import io.ktor.util.*
 import kotlinx.browser.*
+import org.w3c.dom.*
+import org.w3c.workers.*
 
 /**
  * Hostname of current origin.
  *
  * It uses "localhost" for all platforms except js.
  */
-internal actual val URLBuilder.Companion.originHost: String?
-    get() = if (PlatformUtils.IS_BROWSER) {
-        window.location.origin
-    } else null
+public actual val URLBuilder.Companion.origin: String
+    get() = when {
+        PlatformUtils.IS_BROWSER -> if (window !== undefined) {
+            window.location.origin
+        } else {
+            js("self.location.origin") as String
+        }
+        else -> "http://localhost"
+    }

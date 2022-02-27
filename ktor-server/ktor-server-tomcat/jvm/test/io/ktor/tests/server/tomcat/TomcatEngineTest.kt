@@ -4,15 +4,19 @@
 
 package io.ktor.tests.server.tomcat
 
-import io.ktor.application.*
 import io.ktor.client.statement.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.network.tls.certificates.*
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
 import org.apache.catalina.core.*
 import org.apache.tomcat.util.descriptor.web.*
+import java.io.*
 import java.util.logging.*
 import javax.servlet.*
 import javax.servlet.Filter
@@ -40,8 +44,25 @@ class TomcatContentTest :
     }
 }
 
-class TomcatHttpServerTest :
-    HttpServerTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+class TomcatHttpServerCommonTest :
+    HttpServerCommonTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    // silence tomcat logger
+    init {
+        listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
+            Logger.getLogger(it).apply { level = Level.WARNING }
+        }
+    }
+
+    internal class AttributeFilter : Filter {
+        override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+            request.setAttribute("ktor.test.attribute", "135")
+            chain.doFilter(request, response)
+        }
+    }
+}
+
+class TomcatHttpServerJvmTest :
+    HttpServerJvmTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -56,13 +77,6 @@ class TomcatHttpServerTest :
         super.testUpgrade()
     }
 
-    override fun configure(configuration: TomcatApplicationEngine.Configuration) {
-        super.configure(configuration)
-        configuration.configureTomcat = {
-            addAttributesFilter()
-        }
-    }
-
     @Test
     fun testServletAttributes() {
         createAndStartServer {
@@ -74,7 +88,14 @@ class TomcatHttpServerTest :
         }
 
         withUrl("/tomcat/attributes") {
-            assertEquals("135", call.response.readText())
+            assertEquals("135", call.response.bodyAsText())
+        }
+    }
+
+    override fun configure(configuration: TomcatApplicationEngine.Configuration) {
+        super.configure(configuration)
+        configuration.configureTomcat = {
+            addAttributesFilter()
         }
     }
 
@@ -137,3 +158,35 @@ class TomcatSustainabilityTestSuite :
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
+
+class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
+
+class TomcatClientCertTest :
+    ClientCertTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+
+    override fun sslConnectorBuilder(): EngineSSLConnectorBuilder {
+        val serverKeyStorePath = File.createTempFile("serverKeys", "jks")
+
+        return EngineSSLConnectorBuilder(
+            keyAlias = "mykey",
+            keyStore = ca.generateCertificate(file = serverKeyStorePath, keyType = KeyType.Server),
+            keyStorePassword = { "changeit".toCharArray() },
+            privateKeyPassword = { "changeit".toCharArray() },
+        ).apply {
+            keyStorePath = serverKeyStorePath
+            port = 0
+
+            val trustStorePath = File.createTempFile("trustStore", "jks")
+            trustStore = ca.trustStore(trustStorePath)
+            this.trustStorePath = trustStorePath
+        }
+    }
+}
+
+class TomcatServerPluginsTest :
+    ServerPluginsTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
+    }
+}

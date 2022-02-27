@@ -30,7 +30,7 @@ public fun WritableByteChannel.writePacket(builder: BytePacketBuilder.() -> Unit
 public fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
     try {
         while (true) {
-            var rc = 0
+            var rc: Int
 
             p.read { node: Buffer ->
                 node.readDirect {
@@ -59,7 +59,7 @@ public fun ReadableByteChannel.readPacketExact(n: Long): ByteReadPacket = readPa
 public fun ReadableByteChannel.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
 
 /**
- * Read a packet of at most [n] bytes. Resulting packet could be empty however this function does always reads
+ * Read a packet of at most [n] bytes. Resulting packet could be empty however this function always reads
  * as much bytes as possible. You also can use it with non-blocking channels
  */
 public fun ReadableByteChannel.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
@@ -113,18 +113,6 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 }
 
 /**
- * Does the same as [ReadableByteChannel.read] but to a [IoBuffer] instance
- */
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun ReadableByteChannel.read(buffer: IoBuffer): Int {
-    if (buffer.writeRemaining == 0) return 0
-    val rc = read(buffer.writeBuffer)
-    buffer.afterWrite()
-    return rc
-}
-
-/**
  * Does the same as [ReadableByteChannel.read] but to a [Buffer] instance
  */
 @Deprecated("Use read(Memory) instead.")
@@ -148,15 +136,6 @@ public fun ReadableByteChannel.read(
 ): Int {
     val nioBuffer = destination.buffer.sliceSafe(destinationOffset, maxLength)
     return read(nioBuffer)
-}
-
-/**
- * Does the same as [WritableByteChannel.write] but from a [IoBuffer] instance
- */
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun WritableByteChannel.write(buffer: IoBuffer): Int {
-    return write(buffer.readBuffer)
 }
 
 /**

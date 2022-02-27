@@ -11,19 +11,15 @@ public actual interface Type
 public object JsType : Type
 
 @OptIn(ExperimentalStdlibApi::class)
-public actual inline fun <reified T> typeInfo(): TypeInfo = try {
-    typeInfoImpl(JsType, T::class, typeOf<T>())
-} catch (_: dynamic) {
-    typeInfoImpl(JsType, T::class, null)
-}
+public actual inline fun <reified T> typeInfo(): TypeInfo = typeInfoImpl(JsType, T::class, tryGetType<T>())
 
 public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
-    TypeInfoImpl(kClass, reifiedType, kType)
+    TypeInfo(kClass, reifiedType, kType)
 
 /**
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = JsType

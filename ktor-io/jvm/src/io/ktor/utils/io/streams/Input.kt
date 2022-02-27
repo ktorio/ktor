@@ -10,11 +10,12 @@ import java.io.*
 internal class InputStreamAsInput(
     private val stream: InputStream,
     pool: ObjectPool<ChunkBuffer>
-) : AbstractInput(pool = pool) {
+) : Input(pool = pool) {
 
     override fun fill(destination: Memory, offset: Int, length: Int): Int {
         if (destination.buffer.hasArray() && !destination.buffer.isReadOnly) {
-            return stream.read(destination.buffer.array(), destination.buffer.arrayOffset() + offset, length)
+            return stream
+                .read(destination.buffer.array(), destination.buffer.arrayOffset() + offset, length)
                 .coerceAtLeast(0)
         }
 

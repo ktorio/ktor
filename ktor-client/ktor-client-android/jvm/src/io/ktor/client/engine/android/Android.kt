@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 
 /**
  * [HttpClientEngineFactory] using a [UrlConnection] based backend implementation without additional dependencies
- * with the the associated configuration [AndroidEngineConfig].
+ * with the associated configuration [AndroidEngineConfig].
  */
 public object Android : HttpClientEngineFactory<AndroidEngineConfig> {
     override fun create(block: AndroidEngineConfig.() -> Unit): HttpClientEngine =

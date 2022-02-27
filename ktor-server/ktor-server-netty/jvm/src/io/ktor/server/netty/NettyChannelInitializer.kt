@@ -16,15 +16,16 @@ import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
+import java.io.*
 import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
+import javax.net.ssl.*
 import kotlin.coroutines.*
 
 /**
  * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
  */
-@EngineAPI
 public class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEngineEnvironment,
@@ -36,9 +37,37 @@ public class NettyChannelInitializer(
     private val runningLimit: Int,
     private val responseWriteTimeout: Int,
     private val requestReadTimeout: Int,
-    private val httpServerCodec: () -> HttpServerCodec
+    private val httpServerCodec: () -> HttpServerCodec,
+    private val channelPipelineConfig: ChannelPipeline.() -> Unit
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
+
+    internal constructor(
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEngineEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        requestQueueLimit: Int,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec
+    ) : this(
+        enginePipeline,
+        environment,
+        callEventGroup,
+        engineContext,
+        userContext,
+        connector,
+        requestQueueLimit,
+        runningLimit,
+        responseWriteTimeout,
+        requestReadTimeout,
+        httpServerCodec,
+        {}
+    )
 
     init {
         if (connector is EngineSSLConnectorConfig) {
@@ -69,6 +98,7 @@ public class NettyChannelInitializer(
                         )
                     )
                 }
+                connector.trustManagerFactory()?.let { this.trustManager(it) }
             }
                 .build()
         }
@@ -78,7 +108,13 @@ public class NettyChannelInitializer(
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
             if (connector is EngineSSLConnectorConfig) {
-                addLast("ssl", sslContext!!.newHandler(ch.alloc()))
+                val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
+                    if (connector.hasTrustStore()) {
+                        useClientMode = false
+                        needClientAuth = true
+                    }
+                }
+                addLast("ssl", SslHandler(sslEngine))
 
                 if (alpnProvider != null) {
                     addLast(NegotiatedPipelineInitializer())
@@ -95,10 +131,12 @@ public class NettyChannelInitializer(
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
                 val handler = NettyHttp2Handler(enginePipeline, environment.application, callEventGroup, userContext)
+                @Suppress("DEPRECATION")
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
                 pipeline.channel().closeFuture().addListener {
                     handler.cancel()
                 }
+                channelPipelineConfig(pipeline)
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val requestQueue = NettyRequestQueue(requestQueueLimit, runningLimit)
@@ -120,6 +158,7 @@ public class NettyChannelInitializer(
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
+                    channelPipelineConfig()
                 }
 
                 pipeline.context("codec").fireChannelActive()
@@ -128,6 +167,19 @@ public class NettyChannelInitializer(
                 environment.log.error("Unsupported protocol $protocol")
                 pipeline.close()
             }
+        }
+    }
+
+    private fun EngineSSLConnectorConfig.hasTrustStore() = trustStore != null || trustStorePath != null
+
+    private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
+        val trustStore = trustStore ?: trustStorePath?.let { file ->
+            FileInputStream(file).use { fis ->
+                KeyStore.getInstance("JKS").also { it.load(fis, null) }
+            }
+        }
+        return trustStore?.let { store ->
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(store) }
         }
     }
 
@@ -146,7 +198,6 @@ public class NettyChannelInitializer(
         }
     }
 
-    @EngineAPI
     public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
 
@@ -158,7 +209,7 @@ public class NettyChannelInitializer(
             }
 
             try {
-                if (OpenSsl.isAlpnSupported()) {
+                if (SslProvider.isAlpnSupported(SslProvider.OPENSSL)) {
                     return SslProvider.OPENSSL
                 }
             } catch (ignore: Throwable) {

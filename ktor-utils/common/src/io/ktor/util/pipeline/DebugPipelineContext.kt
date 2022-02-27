@@ -4,6 +4,7 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.util.*
 import kotlin.coroutines.*
 
 /**
@@ -12,21 +13,17 @@ import kotlin.coroutines.*
  * @param interceptors list of interceptors to execute
  * @param subject object representing subject that goes along the pipeline
  */
-@ContextDsl
+@KtorDsl
 internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
-    override val context: TContext,
-    private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
+    context: TContext,
+    private val interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>,
     subject: TSubject,
     override val coroutineContext: CoroutineContext
-) : PipelineContext<TSubject, TContext>,
-    @Suppress("DEPRECATION")
-    PipelineExecutor<TSubject> {
-
+) : PipelineContext<TSubject, TContext>(context) {
     /**
      * Subject of this pipeline execution
      */
     override var subject: TSubject = subject
-        private set
 
     private var index = 0
 
@@ -79,7 +76,8 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
             }
             val executeInterceptor = interceptors[index]
             this.index = index + 1
-            executeInterceptor.invoke(this, subject)
+            @Suppress("UNCHECKED_CAST")
+            (executeInterceptor as PipelineInterceptor<TSubject, TContext>).invoke(this, subject)
         } while (true)
 
         return subject

@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 
 /**
  * [HttpClientEngineFactory] using `org.apache.httpcomponents.httpasyncclient`
- * with the the associated configuration [ApacheEngineConfig].
+ * with the associated configuration [ApacheEngineConfig].
  *
  * Supports HTTP/2 and HTTP/1.x requests.
  */

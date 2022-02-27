@@ -7,6 +7,7 @@ package io.ktor.client.engine
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -16,7 +17,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 internal val CALL_COROUTINE = CoroutineName("call-context")
 
 /**
@@ -54,16 +54,28 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     @InternalAPI
     public fun install(client: HttpClient) {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
-            val requestData = HttpRequestBuilder().apply {
+            val builder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
-                body = content
-            }.build()
+                setBody(content)
+            }
 
+            client.monitor.raise(HttpRequestIsReadyForSending, builder)
+
+            val requestData = builder.build()
             validateHeaders(requestData)
             checkExtensions(requestData)
 
             val responseData = executeWithinCallContext(requestData)
             val call = HttpClientCall(client, requestData, responseData)
+
+            val response = call.response
+            client.monitor.raise(HttpResponseReceived, response)
+
+            response.coroutineContext.job.invokeOnCompletion {
+                if (it != null) {
+                    client.monitor.raise(HttpResponseCancelled, response)
+                }
+            }
 
             proceedWith(call)
         }
@@ -72,9 +84,9 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Create call context and use it as a coroutine context to [execute] request.
      */
+    @OptIn(InternalAPI::class)
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
-        callContext.makeShared()
 
         val context = callContext + KtorCallContextElement(callContext)
         return async(context) {
@@ -125,7 +137,14 @@ public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(
  * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
  * call coroutine's name is "call-context".
  */
-internal expect suspend fun HttpClientEngine.createCallContext(parentJob: Job): CoroutineContext
+internal suspend fun HttpClientEngine.createCallContext(parentJob: Job): CoroutineContext {
+    val callJob = Job(parentJob)
+    val callContext = coroutineContext + callJob + CALL_COROUTINE
+
+    attachToUserJob(callJob)
+
+    return callContext
+}
 
 /**
  * Validates request headers and fails if there are unsafe headers supplied

@@ -105,7 +105,7 @@ private fun ByteBuffer.decodeASCIILine_buffer(out: CharArray, offset: Int, lengt
 private fun ByteBuffer.decodeASCII3_array(out: CharArray, offset: Int, length: Int): Int {
     var pos = offset
     val end = offset + length
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 
@@ -114,7 +114,7 @@ private fun ByteBuffer.decodeASCII3_array(out: CharArray, offset: Int, length: I
             val b = array[srcPos]
             if (b < 0) break
 
-            out[pos] = b.toChar()
+            out[pos] = b.toInt().toChar()
 
             pos++
             srcPos++
@@ -143,7 +143,7 @@ private fun ByteBuffer.decodeASCII3_buffer(out: CharArray, offset: Int, length: 
                 pushBack = true
                 break
             }
-            out[pos] = b.toChar()
+            out[pos] = b.toInt().toChar()
             pos++
         }
     }
@@ -163,7 +163,7 @@ private inline fun ByteBuffer.decodeASCII3_array(
 ): Long {
     var pos = offset
     val end = offset + length
-    val array = array()!!
+    val array = array()
     var srcPos = arrayOffset() + position()
     val srcEnd = srcPos + remaining()
 
@@ -172,7 +172,7 @@ private inline fun ByteBuffer.decodeASCII3_array(
             val b = array[srcPos]
             if (b < 0) break
 
-            val ch = b.toChar()
+            val ch = b.toInt().toChar()
             if (!predicate(ch)) {
                 position(srcPos - arrayOffset())
                 return decodeUtf8Result(pos - offset, -1)
@@ -213,7 +213,7 @@ private inline fun ByteBuffer.decodeASCII3_buffer(
                 break
             }
 
-            val ch = b.toChar()
+            val ch = b.toInt().toChar()
             if (!predicate(ch)) {
                 pushBack = true
                 predicateFailed = true

@@ -4,10 +4,12 @@
 
 package io.ktor.tests.server.netty
 
-import io.ktor.application.*
-import io.ktor.config.*
+import io.ktor.events.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.logging.*
 import io.mockk.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
@@ -18,7 +20,7 @@ import java.util.concurrent.*
 class NettyConfigurationTest {
     private val environment: ApplicationEngineEnvironment get() {
         val config = MapApplicationConfig()
-        val events = ApplicationEvents()
+        val events = Events()
 
         val env = mockk<ApplicationEngineEnvironment>()
         every { env.developmentMode } returns false
@@ -28,6 +30,10 @@ class NettyConfigurationTest {
         every { env.start() } just Runs
         every { env.connectors } returns listOf(EngineConnectorBuilder())
         every { env.parentCoroutineContext } returns Dispatchers.Default
+        every { env.application } returns mockk<Application>().apply {
+            every { coroutineContext } returns Job()
+        }
+        every { env.log } returns KtorSimpleLogger("test-logger")
         return env
     }
 
@@ -105,6 +111,7 @@ class NettyConfigurationTest {
             }
             every { isRegistered } returns true
             every { eventLoop() } returns DefaultEventLoop()
+            every { localAddress() } returns mockk()
             every { isOpen } returns true
             every { bind(any(), any()) } returns mockk {
                 every { addListener(any()) } returns mockk()

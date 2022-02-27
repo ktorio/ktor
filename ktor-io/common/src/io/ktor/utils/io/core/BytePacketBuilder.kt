@@ -4,18 +4,7 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.pool.*
-import kotlin.Boolean
-import kotlin.Char
-import kotlin.CharSequence
-import kotlin.Deprecated
-import kotlin.DeprecationLevel
-import kotlin.Int
-import kotlin.PublishedApi
-import kotlin.String
-import kotlin.Suppress
-import kotlin.jvm.*
 
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.
@@ -35,14 +24,8 @@ import kotlin.jvm.*
  * ```
  */
 public class BytePacketBuilder(
-    private var headerSizeHint: Int = 0,
-    pool: ObjectPool<ChunkBuffer>
-) : @Suppress("DEPRECATION_ERROR")
-BytePacketBuilderPlatformBase(pool) {
-
-    init {
-        require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
-    }
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+) : Output(pool) {
 
     /**
      * Number of bytes written to the builder after the creation or the last reset.
@@ -78,43 +61,16 @@ BytePacketBuilderPlatformBase(pool) {
     final override fun flush(source: Memory, offset: Int, length: Int) {
     }
 
-    override fun append(c: Char): BytePacketBuilder {
-        return super.append(c) as BytePacketBuilder
+    override fun append(value: Char): BytePacketBuilder {
+        return super.append(value) as BytePacketBuilder
     }
 
-    override fun append(csq: CharSequence?): BytePacketBuilder {
-        return super.append(csq) as BytePacketBuilder
+    override fun append(value: CharSequence?): BytePacketBuilder {
+        return super.append(value) as BytePacketBuilder
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
-        return super.append(csq, start, end) as BytePacketBuilder
-    }
-
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(c: Char): BytePacketBuilderBase = append(c)
-
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(csq: CharSequence?): BytePacketBuilderBase = append(csq)
-
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase = append(csq, start, end)
-
-    /**
-     * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
-     * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
-     * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
-     * otherwise an unexpected behaviour may occur.
-     */
-    @Suppress("unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
-        return preview(block)
+    override fun append(value: CharSequence?, startIndex: Int, endIndex: Int): BytePacketBuilder {
+        return super.append(value, startIndex, endIndex) as BytePacketBuilder
     }
 
     /**
@@ -122,27 +78,11 @@ BytePacketBuilderPlatformBase(pool) {
      */
     public fun build(): ByteReadPacket {
         val size = size
-        val head = stealAll()
 
-        return when (head) {
+        return when (val head = stealAll()) {
             null -> ByteReadPacket.Empty
             else -> ByteReadPacket(head, size.toLong(), pool)
         }
-    }
-
-    /**
-     * Discard all written bytes and prepare to build another packet.
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun reset() {
-        release()
-    }
-
-    @PublishedApi
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    @Suppress("unused")
-    internal fun preview(): ByteReadPacket {
-        return preview()
     }
 
     override fun toString(): String {

@@ -4,7 +4,8 @@
 
 package io.ktor.server.tomcat
 
-import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
 import kotlinx.atomicfu.*
@@ -25,8 +26,10 @@ import kotlin.coroutines.*
 /**
  * Tomcat application engine that runs it in embedded mode
  */
-public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
-    BaseApplicationEngine(environment) {
+public class TomcatApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit
+) : BaseApplicationEngine(environment) {
     /**
      * Tomcat engine specific configuration builder
      */
@@ -45,6 +48,8 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
     private var cancellationDeferred: CompletableJob? = null
 
     private val ktorServlet = object : KtorServlet() {
+        override val managedByEngineHeaders: Set<String>
+            get() = setOf(HttpHeaders.TransferEncoding)
         override val enginePipeline: EnginePipeline
             get() = this@TomcatApplicationEngine.pipeline
         override val application: Application
@@ -76,21 +81,33 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                             if (ktorConnector.keyStorePath == null) {
                                 throw IllegalArgumentException(
                                     "Tomcat requires keyStorePath. Make sure you're setting " +
-                                        "the property in the EngineSSLConnectorConfig class used"
+                                        "the property in the EngineSSLConnectorConfig class."
                                 )
                             }
 
-                            setAttribute("keyAlias", ktorConnector.keyAlias)
-                            setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
-                            setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
-                            setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                            setAttribute("clientAuth", false)
-                            setAttribute("sslProtocol", "TLS")
-                            setAttribute("SSLEnabled", true)
+                            if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
+                                throw IllegalArgumentException(
+                                    "Tomcat requires trustStorePath for client certificate authentication." +
+                                        "Make sure you're setting the property in the EngineSSLConnectorConfig class."
+                                )
+                            }
+                            if (ktorConnector.trustStorePath != null) {
+                                setProperty("clientAuth", "true")
+                                setProperty("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
+                            } else {
+                                setProperty("clientAuth", "false")
+                            }
+
+                            setProperty("keyAlias", ktorConnector.keyAlias)
+                            setProperty("keystorePass", String(ktorConnector.keyStorePassword()))
+                            setProperty("keyPass", String(ktorConnector.privateKeyPassword()))
+                            setProperty("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                            setProperty("sslProtocol", "TLS")
+                            setProperty("SSLEnabled", "true")
 
                             val sslImpl = chooseSSLImplementation()
 
-                            setAttribute("sslImplementationName", sslImpl.name)
+                            setProperty("sslImplementationName", sslImpl.name)
 
                             if (sslImpl.simpleName == "OpenSSLImplementation") {
                                 addUpgradeProtocol(Http2Protocol())
@@ -122,6 +139,11 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
     override fun start(wait: Boolean): TomcatApplicationEngine {
         environment.start()
         server.start()
+
+        val connectors = server.service.findConnectors().zip(environment.connectors)
+            .map { it.second.withPort(it.first.localPort) }
+        resolvedConnectors.complete(connectors)
+
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.server.await()
@@ -131,14 +153,14 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        if (stopped.compareAndSet(false, true)) {
-            cancellationDeferred?.complete()
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-            server.stop()
-            environment.stop()
-            server.destroy()
-            tempDirectory.toFile().deleteRecursively()
-        }
+        if (!stopped.compareAndSet(expect = false, update = true)) return
+
+        cancellationDeferred?.complete()
+        environment.monitor.raise(ApplicationStopPreparing, environment)
+        server.stop()
+        environment.stop()
+        server.destroy()
+        tempDirectory.toFile().deleteRecursively()
     }
 
     public companion object {

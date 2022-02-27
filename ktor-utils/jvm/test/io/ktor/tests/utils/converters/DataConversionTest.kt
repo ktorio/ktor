@@ -7,6 +7,7 @@ package io.ktor.tests.utils.converters
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
 import java.math.*
+import java.util.*
 import kotlin.test.*
 
 class DataConversionTest {
@@ -55,5 +56,15 @@ class DataConversionTest {
 
         val toValues = DefaultConversionService.toValues(converted)
         assertEquals(listOf("B"), toValues)
+    }
+
+    @Test
+    fun testDefaultConversionUUID() {
+        val id = UUID.randomUUID()
+        val converted = DefaultConversionService.fromValues(listOf(id.toString()), typeInfo<UUID>())
+        assertEquals(id, converted)
+
+        val toValues = DefaultConversionService.toValues(converted)
+        assertEquals(listOf(id.toString()), toValues)
     }
 }

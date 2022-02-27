@@ -4,12 +4,13 @@
 
 package io.ktor.client.tests.utils.tests
 
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.cachingheaders.*
+import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.date.*
 import java.util.concurrent.atomic.*
 
@@ -48,7 +49,7 @@ internal fun Application.cacheTestServer() {
              */
             get("/etag") {
                 val current = counter.incrementAndGet()
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 call.withETag("0") {
                     call.respondText(current.toString())
                 }

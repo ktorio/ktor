@@ -4,11 +4,10 @@
 
 package io.ktor.client.tests.utils
 
-import io.ktor.client.features.logging.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.util.*
+import io.ktor.websocket.*
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 class FrameLogger(val logger: Logger) : WebSocketExtension<FrameLogger.Config> {
     override val factory: WebSocketExtensionFactory<Config, FrameLogger> = FrameLogger
 

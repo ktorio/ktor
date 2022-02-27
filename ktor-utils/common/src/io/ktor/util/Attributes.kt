@@ -6,15 +6,48 @@ package io.ktor.util
 
 /**
  * Specifies a key for an attribute in [Attributes]
- * @param T is type of the value stored in the attribute
- * @param name is a name of the attribute for diagnostic purposes
+ * @param T is a type of the value stored in the attribute
+ * @param name is a name of the attribute for diagnostic purposes. Can't be blank
  */
-public class AttributeKey<T>(public val name: String) {
-    override fun toString(): String = if (name.isEmpty()) super.toString() else "AttributeKey: $name"
+public class AttributeKey<T : Any>(public val name: String) {
+    init {
+        if (name.isEmpty()) {
+            throw IllegalStateException("Name can't be blank")
+        }
+    }
+
+    override fun toString(): String = "AttributeKey: $name"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as AttributeKey<*>
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }
 
 /**
- * Create attributes instance suitable for the particular platform
+ * A version of [AttributeKey] that overrides [equals] and [hashCode] using [name]
+ * @param T is a type of the value stored in the attribute
+ * @param name is a name of the attribute
+ */
+@Suppress("DEPRECATION")
+@Deprecated(
+    "Please use `AttributeKey` class instead",
+    replaceWith = ReplaceWith("AttributeKey")
+)
+public typealias EquatableAttributeKey<T> = AttributeKey<T>
+
+/**
+ * Creates an attributes instance suitable for the particular platform
  */
 public expect fun Attributes(concurrent: Boolean = false): Attributes
 

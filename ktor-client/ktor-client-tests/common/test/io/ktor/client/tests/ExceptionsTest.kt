@@ -7,7 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -34,9 +33,9 @@ class ExceptionsTest : ClientLoader() {
         }
 
         try {
-            client.get<String>("www.google.com")
+            client.get("www.google.com").body<String>()
         } catch (exception: ResponseException) {
-            val text = exception.response?.readText()
+            val text = exception.response.bodyAsText()
             assertEquals(HttpStatusCode.BadRequest.description, text)
         }
     }
@@ -54,7 +53,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.PermanentRedirect,
             message = "Some redirect",
             exceptionType = RedirectResponseException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testTextInClientRequestException() =
@@ -62,7 +63,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.Conflict,
             message = "Some conflict",
             exceptionType = ClientRequestException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testTextInServerRequestException() =
@@ -70,7 +73,9 @@ class ExceptionsTest : ClientLoader() {
             code = HttpStatusCode.VariantAlsoNegotiates,
             message = "Some variant",
             exceptionType = ServerResponseException::class
-        )
+        ) {
+            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+        }
 
     @Test
     fun testBinaryGarbageInExceptionMessage() = testTextInException(
@@ -94,7 +99,8 @@ class ExceptionsTest : ClientLoader() {
     private fun testTextInException(
         code: HttpStatusCode,
         message: String,
-        exceptionType: KClass<out ResponseException>
+        exceptionType: KClass<out ResponseException>,
+        customValidation: (ResponseException) -> Unit = { }
     ) = testSuspend {
         if (PlatformUtils.IS_NATIVE) return@testSuspend
 
@@ -108,7 +114,7 @@ class ExceptionsTest : ClientLoader() {
         }
 
         try {
-            client.get<String>("www.google.com")
+            client.get("www.google.com").body<String>()
         } catch (exception: ResponseException) {
             assertTrue(
                 exceptionType.isInstance(exception),
@@ -119,24 +125,25 @@ class ExceptionsTest : ClientLoader() {
                 exception.message!!.endsWith("Text: \"$message\""),
                 "Exception message must contain response text"
             )
+            customValidation(exception)
         }
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl", "CIO")) {
+    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl", "CIO", "Darwin")) {
         test { client ->
             val requestBuilder = HttpRequestBuilder()
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
 
             assertFailsWith<IllegalStateException> {
-                client.get<HttpStatement>(requestBuilder).execute { response ->
+                client.prepareGet(requestBuilder).execute { response ->
                     try {
-                        CoroutineScope(response.coroutineContext)
-                            .launch { throw IllegalStateException("failed on receive") }
-                            .join()
+                        CoroutineScope(response.coroutineContext).launch {
+                            throw IllegalStateException("failed on receive")
+                        }.join()
                     } catch (cause: Exception) {
                     }
-                    response.receive<String>()
+                    response.body<String>()
                 }
             }
 

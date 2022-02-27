@@ -14,8 +14,20 @@ class JettyBlockingServletContainerCompressionTest :
 class JettyBlockingServletContainerContentTest :
     ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
 
-class JettyBlockingServletContainerHttpServerTest :
-    HttpServerTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
+class JettyBlockingServletContainerHttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
+    override fun testFlushingHeaders() {
+        // no op
+    }
+}
+
+class JettyBlockingServletContainerHttpServerJvmTest :
+    HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
+
     @Ignore
     override fun testUpgrade() {
     }
@@ -25,3 +37,13 @@ class JettyBlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
     )
+
+class JettyBlockingServletServerPluginTest :
+    ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}

@@ -8,9 +8,6 @@ import java.nio.charset.CharsetDecoder
 
 public actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
-public actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
-    BytePacketBuilder(headerSizeHint, ChunkBuffer.Pool)
-
 public actual typealias EOFException = java.io.EOFException
 
 /**
@@ -27,7 +24,7 @@ public fun ByteReadPacket.readByteBuffer(
     return bb
 }
 
-@Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"))
+@Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"), DeprecationLevel.ERROR)
 public fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }

@@ -1,0 +1,16 @@
+public final class io/ktor/server/plugins/httpsredirect/HttpsRedirectConfig {
+	public fun <init> ()V
+	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
+	public final fun excludePrefix (Ljava/lang/String;)V
+	public final fun excludeSuffix (Ljava/lang/String;)V
+	public final fun getExcludePredicates ()Ljava/util/List;
+	public final fun getPermanentRedirect ()Z
+	public final fun getSslPort ()I
+	public final fun setPermanentRedirect (Z)V
+	public final fun setSslPort (I)V
+}
+
+public final class io/ktor/server/plugins/httpsredirect/HttpsRedirectKt {
+	public static final fun getHttpsRedirect ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

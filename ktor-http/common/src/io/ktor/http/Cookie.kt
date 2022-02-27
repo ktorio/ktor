@@ -36,11 +36,7 @@ public data class Cookie(
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
     val extensions: Map<String, String?> = emptyMap()
-) {
-    @Suppress("unused", "KDocMissingDocumentation")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun getMaxAge(): Int = maxAge
-}
+)
 
 /**
  * Cooke encoding strategy
@@ -67,7 +63,6 @@ public enum class CookieEncoding {
     BASE64_ENCODING
 }
 
-@SharedImmutable
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 
 /**
@@ -95,8 +90,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     )
 }
 
-@ThreadLocal
-private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
+private val clientCookieHeaderPattern = """(^|;)\s*([^;=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
 /**
  * Parse client's `Cookie` header value
@@ -133,22 +127,10 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
 }
 
 /**
- * Format `Set-Cookie` header value
+ * Format `Cookie` header value
  */
 public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
-    renderSetCookieHeader(
-        name,
-        value,
-        encoding,
-        maxAge,
-        expires,
-        domain,
-        path,
-        secure,
-        httpOnly,
-        extensions,
-        includeEncoding = false
-    )
+    "$name=${encodeCookieValue(value, encoding)}"
 }
 
 /**
@@ -223,7 +205,6 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
-@SharedImmutable
 private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
 
 private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped

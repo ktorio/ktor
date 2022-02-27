@@ -4,13 +4,14 @@
 
 package io.ktor.client.tests.utils.tests
 
-import io.ktor.application.*
-import io.ktor.auth.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.websocket.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import kotlinx.coroutines.*
 import java.security.*
 
 internal fun Application.authTestServer() {
@@ -108,12 +109,25 @@ internal fun Application.authTestServer() {
 
                     call.respond(HttpStatusCode.OK)
                 }
+                get("test-refresh-no-www-authenticate-header") {
+                    val token = call.request.headers["Authorization"]
+                    if (token.isNullOrEmpty() || token.contains("invalid")) {
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond(HttpStatusCode.OK)
+                }
                 route("token") {
                     get("first") {
                         call.respond("first")
                     }
                     get("second") {
+                        delay(call.parameters["delay"]?.toLong() ?: 0)
                         call.respond("second")
+                    }
+                    get("refresh-401") {
+                        call.respond(HttpStatusCode.Unauthorized)
                     }
                 }
                 get("first") {

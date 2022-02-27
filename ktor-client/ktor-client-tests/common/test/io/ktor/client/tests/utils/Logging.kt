@@ -4,7 +4,7 @@
 
 package io.ktor.client.tests.utils
 
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.util.collections.*
 import kotlin.test.*
 
@@ -16,8 +16,9 @@ import kotlin.test.*
  * - "!!!" the log entry is flaky: it's required but it's content is changing
  * - "+++" the log entry is required but the exact place is not known
  */
+@Suppress("DEPRECATION")
 internal class TestLogger(private vararg val expectedLog: String) : Logger {
-    private val log = ConcurrentList<String>()
+    private val log = mutableListOf<String>()
 
     override fun log(message: String) {
         log += message
@@ -35,8 +36,8 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         val stashed = ArrayList<String>()
 
         while (expectedIndex < expectedLog.size && actualIndex < log.size) {
-            var expected = expectedLog[expectedIndex].toLowerCase()
-            val actual = log[actualIndex].toLowerCase()
+            var expected = expectedLog[expectedIndex].lowercase()
+            val actual = log[actualIndex].lowercase()
 
             var flaky = false
             var optional = false
@@ -96,7 +97,7 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         }
 
         while (actualIndex < log.size && stashed.isNotEmpty()) {
-            val actual = log[actualIndex].toLowerCase()
+            val actual = log[actualIndex].lowercase()
             if (actual in stashed) {
                 actualIndex++
                 stashed.remove(actual)

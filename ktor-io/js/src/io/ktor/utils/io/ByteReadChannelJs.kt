@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
 
 /**
@@ -27,23 +28,13 @@ public actual interface ByteReadChannel {
     public actual val isClosedForWrite: Boolean
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 
     /**
-     * Byte order that is used for multi-byte read operations
-     * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var readByteOrder: ByteOrder
-
-    /**
      * Number of bytes read from the channel.
-     * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
+     * It is not guaranteed to be atomic so could be updated in the middle of long-running read operation.
      */
     public actual val totalBytesRead: Long
 
@@ -53,7 +44,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
 
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     public suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
 
@@ -63,21 +54,20 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
 
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     public suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
-     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
+     * and not enough bytes available.
      */
-    public actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readPacket(size: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
-     * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    public actual suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readRemaining(limit: Long): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed
@@ -177,6 +167,11 @@ public actual interface ByteReadChannel {
     public actual suspend fun discard(max: Long): Long
 
     /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
+
+    /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
      * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
      * bytes then it will trigger the underlying source reading first and after that will
@@ -205,7 +200,7 @@ public actual interface ByteReadChannel {
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy {
-            ByteChannelJS(IoBuffer.Empty, false).apply {
+            ByteChannelJS(ChunkBuffer.Empty, false).apply {
                 close(null)
             }
         }

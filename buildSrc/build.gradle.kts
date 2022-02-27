@@ -18,6 +18,7 @@ repositories {
     }
 
     maven("https://plugins.gradle.org/m2")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
 
     if (buildSnapshotTrain) {
         mavenLocal()
@@ -44,4 +45,5 @@ dependencies {
     println("Used kotlin version in buildSrc: " + version("kotlin"))
     implementation(kotlin("gradle-plugin", version("kotlin")))
     implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
+    implementation("org.jmailen.gradle:kotlinter-gradle:${version("ktlint")}")
 }

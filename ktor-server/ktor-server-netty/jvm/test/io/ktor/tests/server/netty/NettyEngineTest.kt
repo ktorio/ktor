@@ -6,7 +6,6 @@ package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -28,7 +27,11 @@ class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicati
     }
 }
 
-class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyHttpServerCommonTest :
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyHttpServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
@@ -39,7 +42,11 @@ class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApp
     }
 }
 
-class NettyHttp2ServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyHttp2ServerCommonTest :
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyHttp2ServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
         enableHttp2 = true
@@ -63,3 +70,16 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
 }
 
 class NettyConfigTest : ConfigTestSuite(Netty)
+
+class NettyConnectionTest : ConnectionTestSuite(Netty)
+
+class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+    Netty
+) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
+    }
+}

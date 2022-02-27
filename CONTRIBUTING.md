@@ -40,14 +40,13 @@ Run the following commands to install `libcurl` and `libncurses`:
 
 ```
         sudo apt-get update
-        sudo apt-get libcurl
         sudo apt-get install libncurses5 libncursesw5 libtinfo5
         sudo apt-get install libcurl4-openssl-dev
 ```
 
 **macOS** 
 
-To easiest way to install `libcurl` and 'libncurses` on macOS is to use [Hombrew](https://brew.sh). Run the following commands:
+The easiest way to install `libcurl` and 'libncurses` on macOS is to use [Homebrew](https://brew.sh). Run the following commands:
 
 ```
     brew install curl

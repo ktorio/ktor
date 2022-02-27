@@ -6,13 +6,15 @@ package io.ktor.util
 
 import io.ktor.util.collections.*
 
+private const val ATTRIBUTES_INITIAL_CAPACITY = 32
+
 /**
  * Create native specific attributes instance.
  */
 public actual fun Attributes(concurrent: Boolean): Attributes = AttributesNative()
 
 private class AttributesNative : Attributes {
-    private val map = ConcurrentMap<AttributeKey<*>, Any>()
+    private val map = ConcurrentMap<AttributeKey<*>, Any>(ATTRIBUTES_INITIAL_CAPACITY)
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
@@ -29,10 +31,7 @@ private class AttributesNative : Attributes {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
-        map[key]?.let { return it as T }
-        return block().also { result ->
-            map[key] = result
-        }
+        return map.computeIfAbsent(key, block) as T
     }
 
     override val allKeys: List<AttributeKey<*>>

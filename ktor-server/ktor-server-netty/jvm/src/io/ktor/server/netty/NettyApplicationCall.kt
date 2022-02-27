@@ -4,34 +4,40 @@
 
 package io.ktor.server.netty
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public abstract class NettyApplicationCall(
     application: Application,
     public val context: ChannelHandlerContext,
     private val requestMessage: Any
 ) : BaseApplicationCall(application) {
 
+    @OptIn(InternalAPI::class)
     public abstract override val request: NettyApplicationRequest
+    @OptIn(InternalAPI::class)
     public abstract override val response: NettyApplicationResponse
 
     public val responseWriteJob: Job = Job()
 
     private val messageReleased = atomic(false)
 
+    override fun afterFinish(handler: (Throwable?) -> Unit) {
+        responseWriteJob.invokeOnCompletion(handler)
+    }
+
     internal suspend fun finish() {
         try {
+            @OptIn(InternalAPI::class)
             response.ensureResponseSent()
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             finishComplete()
-            throw t
+            throw cause
         }
 
         if (responseWriteJob.isCompleted) {
@@ -50,12 +56,14 @@ public abstract class NettyApplicationCall(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun finishComplete() {
         responseWriteJob.cancel()
         request.close()
         releaseRequestMessage()
     }
 
+    @OptIn(InternalAPI::class)
     internal fun dispose() {
         response.close()
         request.close()

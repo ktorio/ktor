@@ -9,7 +9,6 @@ package io.ktor.client.tests.utils
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.test.dispatcher.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -33,16 +32,18 @@ const val TCP_SERVER: String = "http://127.0.0.1:8082"
  */
 fun testWithEngine(
     engine: HttpClientEngine,
+    timeoutMillis: Long = 60 * 1000L,
     block: suspend TestClientBuilder<*>.() -> Unit
-) = testWithClient(HttpClient(engine), block)
+) = testWithClient(HttpClient(engine), timeoutMillis, block)
 
 /**
  * Perform test with selected [client].
  */
 private fun testWithClient(
     client: HttpClient,
+    timeout: Long,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = testSuspend {
+) = testSuspend(timeoutMillis = timeout) {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
     concurrency(builder.concurrency) { threadId ->
@@ -59,11 +60,13 @@ private fun testWithClient(
 /**
  * Perform test with selected client engine [factory].
  */
+@OptIn(DelicateCoroutinesApi::class)
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
+    timeoutMillis: Long = 60L * 1000L,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = testSuspend {
+) = testSuspend(timeoutMillis = timeoutMillis) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {
@@ -104,7 +107,6 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
     }
 }
 
-@InternalAPI
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
     var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
@@ -114,17 +116,14 @@ class TestClientBuilder<T : HttpClientEngineConfig>(
     var concurrency: Int = 1
 )
 
-@InternalAPI
 fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
     config = block
 }
 
-@InternalAPI
 fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
     test = block
 }
 
-@InternalAPI
-fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit { // ktlint-disable no-unit-return
+fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit) { // ktlint-disable no-unit-return
     after = block
 }

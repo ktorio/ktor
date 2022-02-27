@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 
 /**
  * Channel for asynchronous writing of sequences of bytes.
@@ -30,23 +31,13 @@ public actual interface ByteWriteChannel {
     public actual val autoFlush: Boolean
 
     /**
-     * Byte order that is used for multi-byte write operations
-     * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public actual var writeByteOrder: ByteOrder
-
-    /**
      * Number of bytes written to the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of write operation.
      */
     public actual val totalBytesWritten: Long
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public actual val closedCause: Throwable?
 
@@ -55,7 +46,7 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
-    public actual suspend fun writeAvailable(src: IoBuffer): Int
+    public actual suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
@@ -63,15 +54,12 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
-    public actual suspend fun writeFully(src: IoBuffer)
-
     public actual suspend fun writeFully(src: Buffer)
 
     public actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 
     @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")
-    @ExperimentalIoApi
     public actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**
@@ -115,7 +103,6 @@ public actual interface ByteWriteChannel {
      */
     public actual suspend fun writeFloat(f: Float)
 
-    @ExperimentalIoApi
     public actual suspend fun awaitFreeSpace()
 
     /**

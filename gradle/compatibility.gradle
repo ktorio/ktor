@@ -6,8 +6,10 @@ apiValidation {
         'ktor-client-tests',
         'ktor-client-js',
         'ktor-client-json-tests',
+        'ktor-client-content-negotiation-tests',
+        'ktor-serialization-kotlinx-tests',
         'ktor-client',
-        'ktor-client-features',
+        'ktor-client-plugins',
         'ktor-server-test-suites',
     ].toSet()
 
@@ -15,6 +17,7 @@ apiValidation {
         excludeList += [
             'ktor-client-curl',
             'ktor-client-ios',
+            'ktor-client-darwin',
         ]
     }
 
@@ -26,7 +29,8 @@ apiValidation {
         project(":ktor-utils"),
         project(":ktor-io"),
         project(":ktor-server"),
-        project(":ktor-features"),
+        project(":ktor-server:ktor-server-plugins"),
+        project(":ktor-shared"),
     ]
 
     while (!queue.isEmpty()) {

@@ -6,11 +6,13 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 class ByteChannelNativeConcurrentTest {
     private val TEST_SIZE = 10 * 1024
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testReadWriteByte() {
         val channel = ByteChannel()
@@ -29,6 +31,7 @@ class ByteChannelNativeConcurrentTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testReadWriteBlock() {
         val channel = ByteChannel()
@@ -54,4 +57,36 @@ class ByteChannelNativeConcurrentTest {
     }
 
     private fun createBlock(size: Int): ByteArray = ByteArray(size) { it.toByte() }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun testFlushBeforeAndAfterWrite() = runBlocking {
+        val latch = Channel<Unit>()
+        val channel = ByteChannel()
+
+        val dispatcher1 = newSingleThreadContext("test-1")
+        val dispatcher2 = newSingleThreadContext("test-2")
+        try {
+            val first = launch(dispatcher1) {
+                repeat(1000) {
+                    latch.send(Unit)
+                    channel.readByte()
+                }
+            }
+            val second = launch(dispatcher2) {
+                repeat(1000) {
+                    latch.receive()
+                    channel.flush()
+                    channel.writeByte(42)
+                    channel.flush()
+                }
+            }
+
+            first.join()
+            second.join()
+        } finally {
+            dispatcher1.close()
+            dispatcher2.close()
+        }
+    }
 }

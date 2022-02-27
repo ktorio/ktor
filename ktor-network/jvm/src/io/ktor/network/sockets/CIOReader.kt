@@ -8,8 +8,6 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.nio.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import java.nio.*
@@ -63,7 +61,11 @@ internal fun CoroutineScope.attachForReadingImpl(
             pool.recycle(buffer)
             if (nioChannel is SocketChannel) {
                 try {
-                    nioChannel.socket().shutdownInput()
+                    if (java7NetworkApisAvailable) {
+                        nioChannel.shutdownInput()
+                    } else {
+                        nioChannel.socket().shutdownInput()
+                    }
                 } catch (ignore: ClosedChannelException) {
                 }
             }
@@ -71,7 +73,6 @@ internal fun CoroutineScope.attachForReadingImpl(
     }
 }
 
-@OptIn(ExperimentalIoApi::class)
 internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,
@@ -116,7 +117,11 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     } finally {
         if (nioChannel is SocketChannel) {
             try {
-                nioChannel.socket().shutdownInput()
+                if (java7NetworkApisAvailable) {
+                    nioChannel.shutdownInput()
+                } else {
+                    nioChannel.socket().shutdownInput()
+                }
             } catch (ignore: ClosedChannelException) {
             }
         }

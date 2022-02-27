@@ -9,7 +9,7 @@ import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
 /**
- * Data conversion feature to serialize and deserialize types using [converters] registry
+ * Data conversion plugin to serialize and deserialize types using [converters] registry
  */
 public class DataConversion(configuration: Configuration) : ConversionService {
     private val converters: Map<KClass<*>, ConversionService> = configuration.converters.toMap()
@@ -31,6 +31,7 @@ public class DataConversion(configuration: Configuration) : ConversionService {
     /**
      * Data conversion service configuration
      */
+    @KtorDsl
     public class Configuration {
         internal val converters = mutableMapOf<KClass<*>, ConversionService>()
 
@@ -77,13 +78,13 @@ public class DelegatingConversionService(
 ) : ConversionService {
 
     override fun fromValues(values: List<String>, type: TypeInfo): Any? {
-        if (decoder == null) throw IllegalStateException("Decoder was not specified for type '$klass'")
-        return decoder!!(values)
+        val currentDecoder = decoder ?: throw IllegalStateException("Decoder was not specified for type '$klass'")
+        return currentDecoder(values)
     }
 
     override fun toValues(value: Any?): List<String> {
-        if (encoder == null) throw IllegalStateException("Encoder was not specified for type '$klass'")
-        return encoder!!(value)
+        val currentDecoder = encoder ?: throw IllegalStateException("Encoder was not specified for type '$klass'")
+        return currentDecoder(value)
     }
 
     /**

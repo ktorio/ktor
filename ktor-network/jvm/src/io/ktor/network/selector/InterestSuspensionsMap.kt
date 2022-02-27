@@ -4,12 +4,10 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.*
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class InterestSuspensionsMap {
     @Volatile
     @Suppress("unused")
@@ -54,6 +52,7 @@ public class InterestSuspensionsMap {
 
     public fun removeSuspension(interest: SelectInterest): CancellableContinuation<Unit>? =
         updater(interest).getAndSet(this, null)
+
     public fun removeSuspension(interestOrdinal: Int): CancellableContinuation<Unit>? =
         updaters[interestOrdinal].getAndSet(this, null)
 
@@ -77,8 +76,9 @@ public class InterestSuspensionsMap {
             ) as AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?>
         }.toTypedArray()
 
-        private fun updater(interest: SelectInterest):
-            AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?> =
-                updaters[interest.ordinal]
+        private fun updater(
+            interest: SelectInterest
+        ): AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?> =
+            updaters[interest.ordinal]
     }
 }

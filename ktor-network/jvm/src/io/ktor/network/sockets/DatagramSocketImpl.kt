@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -21,15 +20,27 @@ internal class DatagramSocketImpl(
     selector,
     DefaultDatagramByteBufferPool
 ) {
-    private val socket = channel.socket()!!
+    override val localAddress: SocketAddress
+        get() {
+            val localAddress = if (java7NetworkApisAvailable) {
+                channel.localAddress
+            } else {
+                channel.socket().localSocketAddress
+            }
+            return localAddress?.toSocketAddress()
+                ?: throw IllegalStateException("Channel is not yet bound")
+        }
 
-    override val localAddress: NetworkAddress
-        get() = socket.localSocketAddress
-            ?: throw IllegalStateException("Channel is not yet bound")
-
-    override val remoteAddress: NetworkAddress
-        get() = socket.remoteSocketAddress
-            ?: throw IllegalStateException("Channel is not yet connected")
+    override val remoteAddress: SocketAddress
+        get() {
+            val remoteAddress = if (java7NetworkApisAvailable) {
+                channel.remoteAddress
+            } else {
+                channel.socket().remoteSocketAddress
+            }
+            return remoteAddress?.toSocketAddress()
+                ?: throw IllegalStateException("Channel is not yet connected")
+        }
 
     private val sender: SendChannel<Datagram> = DatagramSendChannel(channel, this)
 
@@ -67,7 +78,7 @@ internal class DatagramSocketImpl(
 
         interestOp(SelectInterest.READ, false)
         buffer.flip()
-        val datagram = Datagram(buildPacket { writeFully(buffer) }, address)
+        val datagram = Datagram(buildPacket { writeFully(buffer) }, address.toSocketAddress())
         DefaultDatagramByteBufferPool.recycle(buffer)
         return datagram
     }
@@ -85,7 +96,7 @@ internal class DatagramSocketImpl(
 
         interestOp(SelectInterest.READ, false)
         buffer.flip()
-        val datagram = Datagram(buildPacket { writeFully(buffer) }, address)
+        val datagram = Datagram(buildPacket { writeFully(buffer) }, address.toSocketAddress())
         DefaultDatagramByteBufferPool.recycle(buffer)
         return datagram
     }

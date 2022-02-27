@@ -11,7 +11,7 @@ package io.ktor.util.network
  *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
-public actual class NetworkAddress internal constructor(
+public actual abstract class NetworkAddress internal constructor(
     internal val hostname: String,
     internal val port: Int,
     internal val address: String
@@ -37,6 +37,6 @@ public actual val NetworkAddress.port: Int
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
 public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
-    NetworkAddress(hostname, port, hostname)
+    object : NetworkAddress(hostname, port, hostname) {}
 
 public actual class UnresolvedAddressException : IllegalArgumentException()

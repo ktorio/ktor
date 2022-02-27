@@ -12,12 +12,11 @@ import java.nio.*
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
-@InternalAPI
 public val HttpClientDefaultPool: ByteBufferPool = ByteBufferPool()
 
 @InternalAPI
 @Deprecated(
-    level = DeprecationLevel.WARNING,
+    level = DeprecationLevel.ERROR,
     message = "ByteBufferPool is moved to `io` module",
     replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
 )

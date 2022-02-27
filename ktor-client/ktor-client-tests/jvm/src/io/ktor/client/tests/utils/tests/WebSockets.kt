@@ -1,8 +1,8 @@
 package io.ktor.client.tests.utils.tests
 
-import io.ktor.application.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.serialization.*
@@ -26,6 +26,7 @@ internal fun Application.webSockets() {
 
             webSocket("headers") {
                 val headers = call.request.headers.toMap()
+                @OptIn(ExperimentalSerializationApi::class)
                 val headersJson = Json.encodeToString(headers)
                 send(Frame.Text(headersJson))
             }

@@ -6,18 +6,17 @@ package io.ktor.client.tests.utils
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.network.sockets.Socket
 import kotlinx.coroutines.*
 import java.io.*
-import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(DelicateCoroutinesApi::class)
 internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) : CoroutineScope, Closeable {
     private val selector = ActorSelectorManager(Dispatchers.IO)
     override val coroutineContext: CoroutineContext
 
     init {
-        val server = aSocket(selector).tcp().bind(InetSocketAddress(port))
+        val server = aSocket(selector).tcp().bind(port = port)
 
         coroutineContext = GlobalScope.launch {
             while (isActive) {

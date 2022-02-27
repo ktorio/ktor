@@ -6,7 +6,12 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
 internal open class SelectableBase(override val channel: SelectableChannel) : Selectable {
+    private val _isClosed = AtomicBoolean(false)
+
     override val suspensions = InterestSuspensionsMap()
+
+    override val isClosed: Boolean
+        get() = _isClosed.get()
 
     @Volatile
     override var interestedOps: Int = 0
@@ -22,6 +27,8 @@ internal open class SelectableBase(override val channel: SelectableChannel) : Se
     }
 
     override fun close() {
+        if (!_isClosed.compareAndSet(false, true)) return
+
         interestedOps = 0
         suspensions.invokeForEachPresent {
             resumeWithException(ClosedChannelCancellationException())

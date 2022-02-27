@@ -16,7 +16,6 @@ import io.ktor.utils.io.core.internal.*
  *
  * @return number of bytes consumed, possibly 0
  */
-@ExperimentalIoApi
 public suspend inline fun ByteReadChannel.read(
     desiredSize: Int = 1,
     block: (source: Memory, start: Long, endExclusive: Long) -> Int
@@ -38,7 +37,7 @@ public suspend inline fun ByteReadChannel.read(
 @Deprecated("Use read { } instead.")
 public interface ReadSession {
     /**
-     * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
+     * Number of bytes available for read. However it does not necessarily mean that all available bytes could be
      * requested at once
      */
     public val availableForRead: Int
@@ -61,7 +60,7 @@ public interface ReadSession {
      * @throws Throwable if the channel has been closed with an exception or cancelled
      */
     @Suppress("DEPRECATION")
-    public fun request(atLeast: Int = 1): IoBuffer?
+    public fun request(atLeast: Int = 1): ChunkBuffer?
 }
 
 @Suppress("DEPRECATION")
@@ -73,7 +72,7 @@ public interface SuspendableReadSession : ReadSession {
      * @return true if there are [atLeast] bytes available or false if end of stream encountered (there still could be
      * bytes available but less than [atLeast])
      * @throws Throwable if the channel has been closed with an exception or cancelled
-     * @throws IllegalArgumentException if [atLeast] is negative to too big (usually bigger that 4088)
+     * @throws IllegalArgumentException if [atLeast] is negative to too big (usually bigger than 4088)
      */
     public suspend fun await(atLeast: Int = 1): Boolean
 }

@@ -7,7 +7,6 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-import kotlin.native.concurrent.*
 
 /**
  * An HTTP parser exception
@@ -17,6 +16,7 @@ public class ParserException(message: String) : Exception(message)
 private const val HTTP_LINE_LIMIT = 8192
 private const val HTTP_STATUS_CODE_MIN_RANGE = 100
 private const val HTTP_STATUS_CODE_MAX_RANGE = 999
+private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
 
 /**
  * Parse an HTTP request line and headers
@@ -125,6 +125,11 @@ internal suspend fun parseHeaders(
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
 
+        val host = headers[HttpHeaders.Host]
+        if (host != null && host.any { hostForbiddenSymbols.contains(it) }) {
+            error("Host cannot contain any of the following symbols: $hostForbiddenSymbols")
+        }
+
         return headers
     } catch (t: Throwable) {
         headers.release()
@@ -164,7 +169,6 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
     return s
 }
 
-@SharedImmutable
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
 
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {
@@ -261,8 +265,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
     var valueLastIndex = index
 
     while (index < end) {
-        val ch = text[index]
-        when (ch) {
+        when (val ch = text[index]) {
             HTAB, ' ' -> {
             }
             '\r', '\n' -> characterIsNotAllowed(text, ch)
@@ -281,7 +284,7 @@ private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {
 }
 
 private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
-    throw ParserException("Character with code ${(ch.toInt() and 0xff)} is not allowed in header names, \n$text")
+    throw ParserException("Character with code ${(ch.code and 0xff)} is not allowed in header names, \n$text")
 
 private fun isDelimiter(ch: Char): Boolean {
     return ch <= ' ' || ch in "\"(),/:;<=>?@[\\]{}"

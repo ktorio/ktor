@@ -4,19 +4,23 @@
 
 package io.ktor.server.testing.suites
 
-import io.ktor.application.*
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
+import io.ktor.server.plugins.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -213,25 +217,25 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         assertFails {
             withUrl("/read-more") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/write-more") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/read-less") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/write-less") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
     }
@@ -251,6 +255,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertTrue(job!!.isCancelled)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testEmbeddedServerCancellation() {
         val parent = Job()
@@ -261,7 +266,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             // ensure the server is running
-            assertEquals("OK", call.receive<String>())
+            assertEquals("OK", call.body<String>())
         }
 
         parent.cancel()
@@ -280,7 +285,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertFailsWith<IOException> {
             // ensure that the server is not running anymore
             withUrl("/") {
-                call.receive<String>()
+                call.body<String>()
                 fail("Shouldn't happen")
             }
         }
@@ -298,8 +303,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         val text = "text body"
 
-        withUrl("/", { body = text; }) {
-            val actual = readText()
+        withUrl("/", { setBody(text) }) {
+            val actual = bodyAsText()
             assertEquals(text, actual)
         }
     }
@@ -315,11 +320,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         for (i in 1..100) {
             withUrl("/?i=$i") {
                 assertEquals(200, status.value)
-                assertEquals("OK $i", readText())
+                assertEquals("OK $i", bodyAsText())
             }
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     open fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
@@ -377,6 +383,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertEquals(count * multiplier, completed.get())
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testBigFile() {
         val file = File("build/large-file.dat")
@@ -634,6 +641,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    class CustomFail(message: String) : Throwable(message)
+
     @Test
     public fun testErrorInApplicationCallPipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
@@ -647,7 +656,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {
-                        throw IllegalStateException("Failed in phase $phase")
+                        throw CustomFail("Failed in phase $phase")
                     }
 
                     routing {
@@ -695,7 +704,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl(
                     "/",
-                    { method = HttpMethod.Post; body = "body" }
+                    { method = HttpMethod.Post; setBody("body") }
                 ) {
                     assertEquals("Failed in phase $phase", InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
@@ -720,7 +729,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             .forEach { phase ->
                 var intercepted = false
                 val server = createServer(log = logger) {
-                    intercept(ApplicationCallPipeline.Setup) {
+                    intercept(ApplicationCallPipeline.Setup) setup@{
                         call.response.pipeline.intercept(phase) {
                             if (intercepted) return@intercept
                             intercepted = true
@@ -737,7 +746,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/", { intercepted = false }) {
-                    val text = receive<String>()
+                    body<String>()
                     assertEquals("Failed in phase $phase", InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
                     assertEquals("Failed in phase $phase", exceptions[0].message)
@@ -780,6 +789,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     public fun testRespondBlockingLarge() {
         val server = createServer {

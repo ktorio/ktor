@@ -44,6 +44,7 @@ public fun Output.writeDoubleLittleEndian(value: Double) {
     writePrimitiveTemplate(value, { writeDouble(it) }, { reverseByteOrder() })
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Output.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asShortArray(), offset, length)
 }
@@ -68,6 +69,7 @@ public fun Buffer.writeDoubleLittleEndian(value: Double) {
     writePrimitiveTemplate(value, { writeDouble(it) }, { reverseByteOrder() })
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asShortArray(), offset, length)
 }
@@ -81,6 +83,7 @@ public fun Output.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, le
     )
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Output.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asIntArray(), offset, length)
 }
@@ -94,6 +97,7 @@ public fun Output.writeFullyLittleEndian(source: IntArray, offset: Int = 0, leng
     )
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Output.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asLongArray(), offset, length)
 }
@@ -134,6 +138,7 @@ public fun Buffer.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, le
     )
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asIntArray(), offset, length)
 }
@@ -147,6 +152,7 @@ public fun Buffer.writeFullyLittleEndian(source: IntArray, offset: Int = 0, leng
     )
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public fun Buffer.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asLongArray(), offset, length)
 }

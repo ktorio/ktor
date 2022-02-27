@@ -4,11 +4,11 @@
 
 package io.ktor.tests.server.jetty
 
-import io.ktor.application.*
 import io.ktor.client.statement.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.jetty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.suites.*
 import org.eclipse.jetty.server.*
@@ -22,7 +22,14 @@ class JettyCompressionTest :
 
 class JettyContentTest : ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
-class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+class JettyHttpServerCommonTest :
+    HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    override fun testFlushingHeaders() {
+        // no op
+    }
+}
+
+class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
 ) {
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
@@ -42,8 +49,8 @@ class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApp
             }
         }
 
-        withUrl("/tomcat/attributes") {
-            assertEquals("135", call.response.readText())
+        withUrl("/tomcat/attributes", {}) {
+            assertEquals("135", call.response.bodyAsText())
         }
     }
 
@@ -74,3 +81,14 @@ class JettySustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
+
+class JettyConnectionTest : ConnectionTestSuite(Jetty)
+
+class JettyServerPluginsTest : ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty
+) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}

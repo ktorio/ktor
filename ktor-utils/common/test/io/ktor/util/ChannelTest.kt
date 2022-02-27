@@ -13,6 +13,25 @@ import kotlin.test.*
 class ChannelTest {
 
     @Test
+    fun testCopyToFlushesDestination() = testSuspend {
+        val source = ByteChannel()
+        val destination = ByteChannel()
+
+        launch(Dispatchers.Unconfined) {
+            source.copyTo(destination)
+        }
+
+        launch(Dispatchers.Unconfined) {
+            source.writeByte(1)
+            source.flush()
+        }
+
+        val byte = destination.readByte()
+        assertEquals(1, byte)
+        source.close()
+    }
+
+    @Test
     fun testCopyToBoth() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val source = ByteChannel()
@@ -38,6 +57,7 @@ class ChannelTest {
         assertArrayEquals(data, results[1])
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelSource() = testSuspend {
         val source = ByteChannel()
@@ -67,6 +87,7 @@ class ChannelTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelFirstReader() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }
@@ -97,6 +118,7 @@ class ChannelTest {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelSecondReader() = testSuspend {
         val data = ByteArray(16 * 1024) { it.toByte() }

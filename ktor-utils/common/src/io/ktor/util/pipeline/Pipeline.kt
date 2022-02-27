@@ -6,14 +6,19 @@ package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.collections.*
-import io.ktor.utils.io.*
+import io.ktor.util.debug.*
+import io.ktor.util.debug.plugins.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
 
+internal typealias PipelineInterceptorFunction<TSubject, TContext> =
+    (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
+
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
+@Suppress("DEPRECATION")
 public open class Pipeline<TSubject : Any, TContext : Any>(
     vararg phases: PipelinePhase
 ) {
@@ -27,9 +32,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      */
     public open val developmentMode: Boolean = false
 
-    private val phasesRaw: MutableList<Any> = sharedListOf(*phases)
+    private val phasesRaw: MutableList<Any> = mutableListOf(*phases)
 
-    private var interceptorsQuantity by shared(0)
+    private var interceptorsQuantity = 0
 
     /**
      * Phases of this pipeline
@@ -42,28 +47,21 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     /**
      * @return `true` if there are no interceptors installed regardless number of phases
      */
-    @InternalAPI
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
-    private val _interceptors: AtomicRef<List<suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit>?> =
+    private val _interceptors: AtomicRef<List<PipelineInterceptorFunction<TSubject, TContext>>?> =
         atomic(null)
 
-    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>?
+    private var interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>?
         get() = _interceptors.value
         set(value) {
             _interceptors.value = value
         }
 
-    /**
-     * share between pipelines/contexts
-     */
-    private var interceptorsListShared: Boolean by shared(false)
+    private var interceptorsListShared: Boolean = false
 
-    /**
-     * interceptors list is shared with pipeline phase content
-     */
-    private var interceptorsListSharedPhase: PipelinePhase? by shared(null)
+    private var interceptorsListSharedPhase: PipelinePhase? = null
 
     public constructor(
         phase: PipelinePhase,
@@ -90,7 +88,15 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     }
 
     /**
-     * Inserts [phase] after the [reference] phase
+     * Inserts [phase] after the [reference] phase. If there are other phases inserted after [reference], then [phase]
+     * will be inserted after them.
+     * Example:
+     * ```
+     * val pipeline = Pipeline<String, String>(a)
+     * pipeline.insertPhaseAfter(a, b)
+     * pipeline.insertPhaseAfter(a, c)
+     * assertEquals(listOf(a, b, c), pipeline.items)
+     * ```
      */
     public fun insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -99,12 +105,29 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         if (index == -1) {
             throw InvalidPhaseException("Phase $reference was not registered for this pipeline")
         }
+        // insert after the last phase that has Relation.After on [reference]
+        var lastRelatedPhaseIndex = index
+        for (i in index + 1..phasesRaw.lastIndex) {
+            val relation = (phasesRaw[i] as? PhaseContent<*, *>)?.relation ?: break
+            val relatedTo = (relation as? PipelinePhaseRelation.After)?.relativeTo ?: continue
+            lastRelatedPhaseIndex = if (relatedTo == reference) i else lastRelatedPhaseIndex
+        }
 
-        phasesRaw.add(index + 1, PhaseContent<TSubject, TContext>(phase, PipelinePhaseRelation.After(reference)))
+        phasesRaw.add(
+            lastRelatedPhaseIndex + 1,
+            PhaseContent<TSubject, TContext>(phase, PipelinePhaseRelation.After(reference))
+        )
     }
 
     /**
-     * Inserts [phase] before the [reference] phase
+     * Inserts [phase] before the [reference] phase.
+     * Example:
+     * ```
+     * val pipeline = Pipeline<String, String>(c)
+     * pipeline.insertPhaseBefore(c, a)
+     * pipeline.insertPhaseBefore(c, b)
+     * assertEquals(listOf(a, b, c), pipeline.items)
+     * ```
      */
     public fun insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -124,6 +147,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         val phaseContent = findPhase(phase)
             ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
+        @Suppress("UNCHECKED_CAST")
+        block as PipelineInterceptorFunction<TSubject, TContext>
+
         if (tryAddToPhaseFastPath(phase, block)) {
             interceptorsQuantity++
             return
@@ -142,14 +168,42 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     public open fun afterIntercepted() {
     }
 
-    /**
-     * Merges another pipeline into this pipeline, maintaining relative phases order
-     */
-    public fun merge(from: Pipeline<TSubject, TContext>) {
-        if (fastPathMerge(from)) {
-            return
-        }
+    public fun interceptorsForPhase(phase: PipelinePhase): List<PipelineInterceptor<TSubject, TContext>> {
+        @Suppress("UNCHECKED_CAST")
+        return phasesRaw.filterIsInstance<PhaseContent<*, *>>()
+            .firstOrNull { phaseOrContent -> phaseOrContent.phase == phase }
+            ?.sharedInterceptors() as List<PipelineInterceptor<TSubject, TContext>>?
+            ?: emptyList()
+    }
 
+    public fun mergePhases(from: Pipeline<TSubject, TContext>) {
+        val fromPhases = from.phasesRaw
+        val toInsert = fromPhases.toMutableList()
+        // the worst case is O(n^2), but it will happen only
+        // when all phases were inserted before each other into the second pipeline
+        // (see test testDependantPhasesLastCommon).
+        // in practice, it will be linear time for most cases
+        while (toInsert.isNotEmpty()) {
+            val iterator = toInsert.iterator()
+            while (iterator.hasNext()) {
+                val fromPhaseOrContent = iterator.next()
+
+                val fromPhase = (fromPhaseOrContent as? PipelinePhase)
+                    ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
+
+                if (hasPhase(fromPhase)) {
+                    iterator.remove()
+                } else {
+                    val inserted = insertRelativePhase(fromPhaseOrContent, fromPhase)
+                    if (inserted) {
+                        iterator.remove()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun mergeInterceptors(from: Pipeline<TSubject, TContext>) {
         if (interceptorsQuantity == 0) {
             setInterceptorsListFromAnotherPipeline(from)
         } else {
@@ -157,30 +211,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
         val fromPhases = from.phasesRaw
-        for (index in 0..fromPhases.lastIndex) {
-            val fromPhaseOrContent = fromPhases[index]
-
-            val fromPhase =
-                (fromPhaseOrContent as? PipelinePhase) ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
-
-            if (!hasPhase(fromPhase)) {
-                val fromPhaseRelation = when {
-                    fromPhaseOrContent === fromPhase -> PipelinePhaseRelation.Last
-                    else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
-                }
-
-                when (fromPhaseRelation) {
-                    is PipelinePhaseRelation.Last -> addPhase(fromPhase)
-                    is PipelinePhaseRelation.Before -> insertPhaseBefore(
-                        fromPhaseRelation.relativeTo,
-                        fromPhase
-                    )
-                    is PipelinePhaseRelation.After -> insertPhaseAfter(
-                        fromPhaseRelation.relativeTo,
-                        fromPhase
-                    )
-                }
-            }
+        fromPhases.forEach { fromPhaseOrContent ->
+            val fromPhase = (fromPhaseOrContent as? PipelinePhase)
+                ?: (fromPhaseOrContent as PhaseContent<*, *>).phase
 
             if (fromPhaseOrContent is PhaseContent<*, *> && !fromPhaseOrContent.isEmpty) {
                 @Suppress("UNCHECKED_CAST")
@@ -192,13 +225,25 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
     }
 
-    internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptor<TSubject, TContext>> =
+    /**
+     * Merges another pipeline into this pipeline, maintaining relative phases order
+     */
+    public fun merge(from: Pipeline<TSubject, TContext>) {
+        if (fastPathMerge(from)) {
+            return
+        }
+
+        mergePhases(from)
+        mergeInterceptors(from)
+    }
+
+    internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptorFunction<TSubject, TContext>> =
         findPhase(phase)?.sharedInterceptors() ?: emptyList()
 
     /**
      * For tests only
      */
-    internal fun interceptorsForTests(): List<PipelineInterceptor<TSubject, TContext>> {
+    internal fun interceptorsForTests(): List<PipelineInterceptorFunction<TSubject, TContext>> {
         return interceptors ?: cacheInterceptors()
     }
 
@@ -207,8 +252,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         context: TContext,
         subject: TSubject,
         coroutineContext: CoroutineContext
-    ): PipelineExecutor<TSubject> =
-        pipelineExecutorFor(context, sharedInterceptorsList(), subject, coroutineContext, developmentMode)
+    ): PipelineContext<TSubject, TContext> =
+        pipelineContextFor(context, sharedInterceptorsList(), subject, coroutineContext, developmentMode)
 
     private fun findPhase(phase: PipelinePhase): PhaseContent<TSubject, TContext>? {
         val phasesList = phasesRaw
@@ -254,7 +299,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         return false
     }
 
-    private fun cacheInterceptors(): List<PipelineInterceptor<TSubject, TContext>> {
+    private fun cacheInterceptors(): List<PipelineInterceptorFunction<TSubject, TContext>> {
         val interceptorsQuantity = interceptorsQuantity
         if (interceptorsQuantity == 0) {
             notSharedInterceptorsList(emptyList())
@@ -268,19 +313,18 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
                 val phaseContent =
                     phases[phaseIndex] as? PhaseContent<TSubject, TContext> ?: continue
 
-                if (!phaseContent.isEmpty) {
-                    val interceptors = phaseContent.sharedInterceptors()
-                    setInterceptorsListFromPhase(phaseContent)
-                    return interceptors
-                }
+                if (phaseContent.isEmpty) continue
+
+                val interceptors = phaseContent.sharedInterceptors()
+                setInterceptorsListFromPhase(phaseContent)
+                return interceptors
             }
         }
 
-        val destination: MutableList<suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit> = sharedListOf()
+        val destination: MutableList<PipelineInterceptorFunction<TSubject, TContext>> = mutableListOf()
         for (phaseIndex in 0..phases.lastIndex) {
             @Suppress("UNCHECKED_CAST")
-            val phase = phases[phaseIndex] as? PhaseContent<TSubject, TContext>
-                ?: continue
+            val phase = phases[phaseIndex] as? PhaseContent<TSubject, TContext> ?: continue
 
             phase.addTo(destination)
         }
@@ -307,19 +351,21 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
                 continue
             }
 
-            if (fromPhaseOrContent is PhaseContent<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                fromPhaseOrContent as PhaseContent<TSubject, TContext>
-
-                phasesRaw.add(
-                    PhaseContent(
-                        fromPhaseOrContent.phase,
-                        fromPhaseOrContent.relation,
-                        fromPhaseOrContent.sharedInterceptors()
-                    )
-                )
+            if (fromPhaseOrContent !is PhaseContent<*, *>) {
                 continue
             }
+
+            @Suppress("UNCHECKED_CAST")
+            fromPhaseOrContent as PhaseContent<TSubject, TContext>
+
+            phasesRaw.add(
+                PhaseContent(
+                    fromPhaseOrContent.phase,
+                    fromPhaseOrContent.relation,
+                    fromPhaseOrContent.sharedInterceptors()
+                )
+            )
+            continue
         }
 
         interceptorsQuantity += from.interceptorsQuantity
@@ -327,7 +373,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         return true
     }
 
-    private fun sharedInterceptorsList(): List<PipelineInterceptor<TSubject, TContext>> {
+    private fun sharedInterceptorsList(): List<PipelineInterceptorFunction<TSubject, TContext>> {
         if (interceptors == null) {
             cacheInterceptors()
         }
@@ -342,7 +388,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         interceptorsListSharedPhase = null
     }
 
-    private fun notSharedInterceptorsList(list: List<PipelineInterceptor<TSubject, TContext>>) {
+    private fun notSharedInterceptorsList(list: List<PipelineInterceptorFunction<TSubject, TContext>>) {
         interceptors = list
         interceptorsListShared = false
         interceptorsListSharedPhase = null
@@ -360,7 +406,10 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         interceptorsListSharedPhase = null
     }
 
-    private fun tryAddToPhaseFastPath(phase: PipelinePhase, block: PipelineInterceptor<TSubject, TContext>): Boolean {
+    private fun tryAddToPhaseFastPath(
+        phase: PipelinePhase,
+        block: PipelineInterceptorFunction<TSubject, TContext>
+    ): Boolean {
         val currentInterceptors = interceptors
         if (phasesRaw.isEmpty() || currentInterceptors == null) {
             return false
@@ -383,6 +432,24 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
         return false
     }
+
+    private fun insertRelativePhase(fromPhaseOrContent: Any, fromPhase: PipelinePhase): Boolean {
+        val fromPhaseRelation = when {
+            fromPhaseOrContent === fromPhase -> PipelinePhaseRelation.Last
+            else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
+        }
+
+        when {
+            fromPhaseRelation is PipelinePhaseRelation.Last ->
+                addPhase(fromPhase)
+            fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
+                insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
+            fromPhaseRelation is PipelinePhaseRelation.After ->
+                insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+            else -> return false
+        }
+        return true
+    }
 }
 
 /**
@@ -391,7 +458,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 @Suppress("NOTHING_TO_INLINE")
 public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
     context: TContext
-): Unit = execute(context, Unit)
+) {
+    // A list of executed plugins with their handlers must be attached to the call's coroutine context
+    // in order to be available from the IntelliJ debugger any time inside the call.
+    addToContextInDebugMode(PluginsTrace()) {
+        execute(context, Unit)
+    }
+}
 
 /**
  * Intercepts an untyped pipeline when the subject is of the given type
@@ -410,7 +483,7 @@ public inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>
 }
 
 /**
- * Represents an interceptor type which is a suspend extension function for context
+ * Represents an interceptor type which is a suspend extension function for a context
  */
 public typealias PipelineInterceptor<TSubject, TContext> =
     suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit

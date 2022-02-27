@@ -1,0 +1,19 @@
+public final class io/ktor/server/metrics/micrometer/MicrometerMetricsConfig {
+	public fun <init> ()V
+	public final fun getDistinctNotRegisteredRoutes ()Z
+	public final fun getDistributionStatisticConfig ()Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;
+	public final fun getMeterBinders ()Ljava/util/List;
+	public final fun getMetricName ()Ljava/lang/String;
+	public final fun getRegistry ()Lio/micrometer/core/instrument/MeterRegistry;
+	public final fun setDistinctNotRegisteredRoutes (Z)V
+	public final fun setDistributionStatisticConfig (Lio/micrometer/core/instrument/distribution/DistributionStatisticConfig;)V
+	public final fun setMeterBinders (Ljava/util/List;)V
+	public final fun setMetricName (Ljava/lang/String;)V
+	public final fun setRegistry (Lio/micrometer/core/instrument/MeterRegistry;)V
+	public final fun timers (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/metrics/micrometer/MicrometerMetricsKt {
+	public static final fun getMicrometerMetrics ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

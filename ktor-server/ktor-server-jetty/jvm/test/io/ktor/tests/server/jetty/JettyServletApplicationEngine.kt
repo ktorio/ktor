@@ -13,15 +13,15 @@ import javax.servlet.*
 /**
  * The factory and engine are only suitable for testing. You shouldn't use it for production code.
  */
-internal class Servlet(private val async: Boolean) :
-    ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+internal class Servlet(
+    private val async: Boolean
+) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
     override fun create(
         environment: ApplicationEngineEnvironment,
         configure: JettyApplicationEngineBase.Configuration.() -> Unit
     ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, configure, async)
 }
 
-@OptIn(EngineAPI::class)
 internal class JettyServletApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit,

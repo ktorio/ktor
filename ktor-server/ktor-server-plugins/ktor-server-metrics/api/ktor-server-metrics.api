@@ -1,0 +1,14 @@
+public final class io/ktor/server/metrics/dropwizard/DropwizardMetricsConfig {
+	public fun <init> ()V
+	public final fun getBaseName ()Ljava/lang/String;
+	public final fun getRegisterJvmMetricSets ()Z
+	public final fun getRegistry ()Lcom/codahale/metrics/MetricRegistry;
+	public final fun setBaseName (Ljava/lang/String;)V
+	public final fun setRegisterJvmMetricSets (Z)V
+	public final fun setRegistry (Lcom/codahale/metrics/MetricRegistry;)V
+}
+
+public final class io/ktor/server/metrics/dropwizard/DropwizardMetricsKt {
+	public static final fun getDropwizardMetrics ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

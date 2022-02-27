@@ -1,19 +1,19 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.system.*
 
 /**
- * Shutdown URL feature. It stops application when requested particular url
+ * Shutdown URL plugin. It stops application when requested particular url
  *
  * @property url to handle
  * @property exitCode is a function to compute process exit code
@@ -50,51 +50,45 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     }
 
     /**
-     * A feature to install into engine pipeline
+     * A plugin to install into engine pipeline
      */
-    public object EngineFeature : ApplicationFeature<EnginePipeline, Configuration, ShutDownUrl> {
+    public object EnginePlugin : BaseApplicationPlugin<EnginePipeline, Config, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
-        override fun install(pipeline: EnginePipeline, configure: Configuration.() -> Unit): ShutDownUrl {
-            val config = Configuration()
+        override fun install(pipeline: EnginePipeline, configure: Config.() -> Unit): ShutDownUrl {
+            val config = Config()
             configure(config)
 
-            val feature = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
+            val plugin = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
             pipeline.intercept(EnginePipeline.Before) {
-                if (call.request.uri == feature.url) {
-                    feature.doShutdown(call)
+                if (call.request.uri == plugin.url) {
+                    plugin.doShutdown(call)
                 }
             }
 
-            return feature
+            return plugin
         }
     }
 
     /**
-     * A feature to install into application call pipeline
+     * A plugin to install into application call pipeline
      */
-    public object ApplicationCallFeature : ApplicationFeature<ApplicationCallPipeline, Configuration, ShutDownUrl> {
-        override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
+    public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
+        createApplicationPlugin("shutdown.url", ::Config) {
+            val plugin = ShutDownUrl(pluginConfig.shutDownUrl, pluginConfig.exitCodeSupplier)
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ShutDownUrl {
-            val config = Configuration()
-            configure(config)
-
-            val feature = ShutDownUrl(config.shutDownUrl, config.exitCodeSupplier)
-            pipeline.intercept(ApplicationCallPipeline.Features) {
-                if (call.request.uri == feature.url) {
-                    feature.doShutdown(call)
+            onCall { call ->
+                if (call.request.uri == plugin.url) {
+                    plugin.doShutdown(call)
                 }
             }
-
-            return feature
         }
-    }
 
     /**
      * Shutdown url configuration builder
      */
-    public class Configuration {
+    @KtorDsl
+    public class Config {
         /**
          * URI to handle shutdown requests
          */

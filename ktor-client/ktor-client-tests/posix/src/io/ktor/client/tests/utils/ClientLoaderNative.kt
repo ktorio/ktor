@@ -5,7 +5,7 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
-import kotlinx.coroutines.*
+import io.ktor.util.*
 
 private class TestFailure(val name: String, val cause: Throwable) {
     override fun toString(): String = buildString {
@@ -20,29 +20,28 @@ private class TestFailure(val name: String, val cause: Throwable) {
 /**
  * Helper interface to test client.
  */
-public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
+actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
     /**
      * Perform test against all clients from dependencies.
      */
-    public actual fun clientTests(
+    @OptIn(InternalAPI::class)
+    actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         if (skipEngines.any { it.startsWith("native") }) return
 
-        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }.toSet()
-        val filteredEngines = engines.filter {
-            val name = it.toString().toLowerCase()
+        val skipEnginesLowerCase = skipEngines.map { it.lowercase() }.toSet()
+        val filteredEngines: List<HttpClientEngineFactory<HttpClientEngineConfig>> = engines.filter {
+            val name = it.toString().lowercase()
             !skipEnginesLowerCase.contains(name) && !skipEnginesLowerCase.contains("native:$name")
         }
 
         val failures = mutableListOf<TestFailure>()
         for (engine in filteredEngines) {
             val result = runCatching {
-                testWithEngine(engine) {
-                    withTimeout(timeoutSeconds.toLong() * 1000L) {
-                        block()
-                    }
+                testWithEngine(engine, timeoutMillis = timeoutSeconds.toLong() * 1000L) {
+                    block()
                 }
             }
 
@@ -58,7 +57,7 @@ public actual abstract class ClientLoader actual constructor(private val timeout
         error(failures.joinToString("\n"))
     }
 
-    public actual fun dumpCoroutines() {
+    actual fun dumpCoroutines() {
         error("Debug probes unsupported native.")
     }
 }

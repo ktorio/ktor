@@ -1,18 +1,20 @@
 // ktlint-disable filename
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.nio.channels.*
 
-@InternalAPI
 public actual interface Selectable : Closeable, DisposableHandle {
     /**
      * Current selectable suspensions map
      */
-    @InternalAPI
     public val suspensions: InterestSuspensionsMap
+
+    /**
+     * Indicated if the selectable is closed.
+     */
+    public val isClosed: Boolean
 
     /**
      * current interests

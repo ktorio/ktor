@@ -6,7 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -20,7 +20,7 @@ class LoggingMockedTests {
     @Test
     fun testLogRequestWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -31,7 +31,7 @@ class LoggingMockedTests {
             "BODY START",
             "",
             "BODY END",
-            "REQUEST http://localhost/ failed with exception: CustomError[BAD REQUEST]"
+            "REQUEST ${URLBuilder.origin}/ failed with exception: CustomError[BAD REQUEST]"
         )
 
         config {
@@ -49,7 +49,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get<HttpResponse>()
+                client.get { url(port = DEFAULT_PORT) }
             } catch (_: Throwable) {
                 failed = true
             }
@@ -65,7 +65,7 @@ class LoggingMockedTests {
     @Test
     fun testLogResponseWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -78,9 +78,9 @@ class LoggingMockedTests {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost/",
+            "FROM: ${URLBuilder.origin}/",
             "COMMON HEADERS",
-            "+++RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
+            "+++RESPONSE ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]",
             "BODY Content-Type: null",
             "BODY START",
             "Hello",
@@ -89,7 +89,7 @@ class LoggingMockedTests {
 
         config {
             engine {
-                addHandler { request ->
+                addHandler {
                     respondOk("Hello")
                 }
             }
@@ -109,9 +109,9 @@ class LoggingMockedTests {
             if (PlatformUtils.IS_NATIVE) return@test
 
             var failed = false
-            client.get<HttpStatement>().execute {
+            client.prepareGet { url(port = DEFAULT_PORT) }.execute {
                 try {
-                    it.receive<String>()
+                    it.body<String>()
                 } catch (_: CustomError) {
                     failed = true
                 }
@@ -130,7 +130,7 @@ class LoggingMockedTests {
     @Test
     fun testLogResponseWithExceptionSingle() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost/",
+            "REQUEST: ${URLBuilder.origin}/",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -143,15 +143,15 @@ class LoggingMockedTests {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost/",
+            "FROM: ${URLBuilder.origin}/",
             "COMMON HEADERS",
-            "RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
-            "REQUEST http://localhost/ failed with exception: CustomError[PARSE ERROR]"
+            "RESPONSE ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]",
+            "REQUEST ${URLBuilder.origin}/ failed with exception: CustomError[PARSE ERROR]"
         )
 
         config {
             engine {
-                addHandler { request ->
+                addHandler {
                     respondOk("Hello")
                 }
             }
@@ -170,7 +170,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get<String>()
+                client.get { url(port = DEFAULT_PORT) }
             } catch (_: CustomError) {
                 failed = true
             }
@@ -236,7 +236,7 @@ class LoggingMockedTests {
 
         test { client ->
             val input = buildPacket { writeText("Hello") }
-            client.submitFormWithBinaryData<String>(
+            client.submitFormWithBinaryData(
                 "http://localhost/",
                 formData {
                     appendInput(
@@ -249,7 +249,7 @@ class LoggingMockedTests {
                         )
                     ) { input }
                 }
-            )
+            ).body<String>()
         }
 
         after {
@@ -301,8 +301,8 @@ class LoggingMockedTests {
         }
 
         test { client ->
-            client.get<String>(urlString = "http://somewhere/filtered_path")
-            client.get<String>(urlString = "http://somewhere/not_filtered_path")
+            client.get(urlString = "http://somewhere/filtered_path")
+            client.get(urlString = "http://somewhere/not_filtered_path")
         }
 
         after {

@@ -1,5 +1,5 @@
 kotlin.sourceSets {
-    val jsMain by getting {
+    jsMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
         }

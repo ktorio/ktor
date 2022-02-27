@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
@@ -18,6 +20,30 @@ public actual abstract class Charset(internal val _name: String) {
 
             return CharsetImpl(name)
         }
+
+        public actual fun isSupported(charset: String): Boolean = when (charset) {
+            "UTF-8", "utf-8", "UTF8", "utf8" -> true
+            "ISO-8859-1", "iso-8859-1" -> true
+            "UTF-16", "utf-16", "UTF16", "utf16" -> true
+            else -> false
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Charset) return false
+
+        if (_name != other._name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return _name.hashCode()
+    }
+
+    override fun toString(): String {
+        return _name
     }
 }
 
@@ -46,7 +72,6 @@ private fun iconvCharsetName(name: String) = when (name) {
     else -> name
 }
 
-@SharedImmutable
 private val negativePointer = (-1L).toCPointer<IntVar>()
 
 private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
@@ -115,7 +140,7 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
             }
 
             dst.writeWhileSize(writeSize) { dstBuffer ->
-                var written: Int = 0
+                var written = 0
 
                 dstBuffer.writeDirect { buffer ->
                     var read = 0
@@ -181,7 +206,6 @@ private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDec
 
 public actual val CharsetDecoder.charset: Charset get() = _charset
 
-@SharedImmutable
 private val platformUtf16: String = if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
@@ -207,8 +231,8 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
                     val rem = max - copied
                     if (rem == 0) return@takeWhileSize 0
 
-                    var written: Int = 0
-                    var read = 0
+                    var written: Int
+                    var read: Int
 
                     srcView.readDirect { src ->
                         val length = srcView.readRemaining.convert<size_t>()
@@ -330,8 +354,8 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
                     val rem = inputLength - charsCopied
                     if (rem == 0) return@takeWhileSize 0
 
-                    var written: Int = 0
-                    var read = 0
+                    var written: Int
+                    var read: Int
 
                     srcView.readDirect { src ->
                         val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).convert<size_t>()

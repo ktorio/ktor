@@ -4,20 +4,18 @@
 
 package io.ktor.client.tests.utils
 
-import io.ktor.application.*
 import io.ktor.client.tests.utils.tests.*
-import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.websocket.*
 
-@OptIn(ExperimentalWebSocketExtensionApi::class)
 internal fun Application.tests() {
-    install(WebSockets) {
-        maxFrameSize = 4 * 1024
+    install(io.ktor.server.websocket.WebSockets) {
+        maxFrameSize = 4 * 1024L
 
         extensions {
             install(WebSocketDeflateExtension)
@@ -32,7 +30,7 @@ internal fun Application.tests() {
     contentTestServer()
     fullFormTest()
     redirectTest()
-    featuresTest()
+    pluginsTest()
     webSockets()
     multiPartFormDataTest()
     headersTestServer()
@@ -43,6 +41,7 @@ internal fun Application.tests() {
     uploadTest()
     jsonTest()
     multithreadedTest()
+    eventsTest()
 
     routing {
         post("/echo") {

@@ -4,7 +4,8 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.features.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
@@ -14,7 +15,7 @@ public class BuildersTest : ClientLoader() {
     @Test
     public fun getEmptyResponseTest() = clientTests {
         test { client ->
-            val response = client.get<String>("$TEST_SERVER/builders/empty")
+            val response = client.get("$TEST_SERVER/builders/empty").body<String>()
             assertEquals("", response)
         }
     }
@@ -23,7 +24,7 @@ public class BuildersTest : ClientLoader() {
     public fun testNotFound() = clientTests {
         test { client ->
             assertFailsWith<ResponseException> {
-                client.get<String>("$TEST_SERVER/builders/notFound")
+                client.get("$TEST_SERVER/builders/notFound").body<String>()
             }
         }
     }
@@ -39,7 +40,7 @@ public class BuildersTest : ClientLoader() {
                 }
             }
 
-            assertEquals("hello", client.get<String>(path = "builders/hello"))
+            assertEquals("hello", client.get {}.body())
         }
     }
 }

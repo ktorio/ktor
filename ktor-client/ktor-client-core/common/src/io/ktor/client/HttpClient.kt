@@ -6,10 +6,11 @@ package io.ktor.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.utils.checkCoroutinesVersion
+import io.ktor.client.utils.*
+import io.ktor.events.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
@@ -24,7 +25,7 @@ import kotlin.coroutines.*
  * The [HttpClientEngine] is selected from the dependencies.
  * https://ktor.io/clients/http-client/engines.html
  */
-@HttpClientDsl
+@KtorDsl
 public expect fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
@@ -33,7 +34,7 @@ public expect fun HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
  * and an optional [block] for configuring this client.
  */
-@HttpClientDsl
+@KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
     block: HttpClientConfig<T>.() -> Unit = {}
@@ -55,7 +56,7 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engine]
  * and a [block] for configuring this client.
  */
-@HttpClientDsl
+@KtorDsl
 public fun HttpClient(
     engine: HttpClientEngine,
     block: HttpClientConfig<*>.() -> Unit
@@ -67,12 +68,12 @@ public fun HttpClient(
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
  * @property engine: [HttpClientEngine] for executing requests.
  */
-@OptIn(InternalCoroutinesApi::class)
+@OptIn(InternalCoroutinesApi::class, InternalAPI::class)
 public class HttpClient(
     public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
-    private var manageEngine: Boolean by shared(false)
+    private var manageEngine: Boolean = false
 
     internal constructor(
         engine: HttpClientEngine,
@@ -114,26 +115,18 @@ public class HttpClient(
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
-     * Dispatcher handles io operations.
-     */
-    @Deprecated(
-        "[dispatcher] is deprecated. Use coroutineContext instead.",
-        replaceWith = ReplaceWith("coroutineContext"),
-        level = DeprecationLevel.ERROR
-    )
-    public val dispatcher: CoroutineDispatcher
-        get() = engine.dispatcher
-
-    /**
      * Client engine config.
      */
     public val engineConfig: HttpClientEngineConfig = engine.config
 
+    /**
+     * Provides events on client lifecycle
+     */
+    public val monitor: Events = Events()
+
     internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
-        checkCoroutinesVersion()
-
         if (manageEngine) {
             clientJob.invokeOnCompletion {
                 if (it != null) {
@@ -146,8 +139,9 @@ public class HttpClient(
 
         sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
             check(call is HttpClientCall) { "Error: HttpClientCall expected, but found $call(${call::class})." }
-            val receivedCall = receivePipeline.execute(call, call.response).call
-            proceedWith(receivedCall)
+            val response = receivePipeline.execute(Unit, call.response)
+            call.response = response
+            proceedWith(call)
         }
 
         with(userConfig) {
@@ -160,6 +154,7 @@ public class HttpClient(
             }
 
             config.install(HttpSend)
+            config.install(HttpCallValidator)
 
             if (followRedirects) {
                 config.install(HttpRedirect)
@@ -172,23 +167,24 @@ public class HttpClient(
             config.install(this@HttpClient)
         }
 
-        makeShared()
+        responsePipeline.intercept(HttpResponsePipeline.Receive) {
+            try {
+                proceed()
+            } catch (cause: Throwable) {
+                monitor.raise(HttpResponseReceiveFailed, HttpResponseReceiveFail(context.response, cause))
+                throw cause
+            }
+        }
     }
 
     /**
-     * Creates a new [HttpRequest] from a request [data] and a specific client [call].
+     * Creates a new [HttpClientCall] from a request [builder].
      */
-    @Deprecated(
-        "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith(
-            "this.request<HttpResponse>(builder)",
-            "io.ktor.client.statement.*"
-        )
-    )
-    @InternalAPI
-    public suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
-        requestPipeline.execute(builder, builder.body) as HttpClientCall
+    internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall {
+        monitor.raise(HttpRequestCreated, builder)
+
+        return requestPipeline.execute(builder, builder.body) as HttpClientCall
+    }
 
     /**
      * Check if the specified [capability] is supported by this client.
@@ -217,13 +213,13 @@ public class HttpClient(
         val success = closed.compareAndSet(false, true)
         if (!success) return
 
-        val installedFeatures = attributes[FEATURE_INSTALLED_LIST]
+        val installedFeatures = attributes[PLUGIN_INSTALLED_LIST]
         installedFeatures.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")
-            val feature = installedFeatures[key as AttributeKey<Any>]
+            val plugin = installedFeatures[key as AttributeKey<Any>]
 
-            if (feature is Closeable) {
-                feature.close()
+            if (plugin is Closeable) {
+                plugin.close()
             }
         }
 

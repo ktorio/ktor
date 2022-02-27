@@ -1,0 +1,70 @@
+public final class io/ktor/server/plugins/forwardedheaders/ForwardedHeaderValue {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/server/plugins/forwardedheaders/ForwardedHeaderValue;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/forwardedheaders/ForwardedHeaderValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/plugins/forwardedheaders/ForwardedHeaderValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBy ()Ljava/lang/String;
+	public final fun getForParam ()Ljava/lang/String;
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getOthers ()Ljava/util/Map;
+	public final fun getProto ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/forwardedheaders/ForwardedHeadersConfig {
+	public fun <init> ()V
+	public final fun extractValue (Lkotlin/jvm/functions/Function2;)V
+	public final fun skipKnownProxies (Ljava/util/List;)V
+	public final fun skipLastProxies (I)V
+	public final fun useFirstValue ()V
+	public final fun useLastValue ()V
+}
+
+public final class io/ktor/server/plugins/forwardedheaders/ForwardedHeadersKt {
+	public static final fun getFORWARDED_PARSED_KEY ()Lio/ktor/util/AttributeKey;
+	public static final fun getForwardedHeaders ()Lio/ktor/server/application/ApplicationPlugin;
+}
+
+public final class io/ktor/server/plugins/forwardedheaders/XForwardedHeaderValues {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/plugins/forwardedheaders/XForwardedHeaderValues;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/forwardedheaders/XForwardedHeaderValues;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/plugins/forwardedheaders/XForwardedHeaderValues;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getForHeader ()Ljava/lang/String;
+	public final fun getHostHeader ()Ljava/lang/String;
+	public final fun getHttpsFlagHeader ()Ljava/lang/String;
+	public final fun getPortHeader ()Ljava/lang/String;
+	public final fun getProtoHeader ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/forwardedheaders/XForwardedHeadersConfig {
+	public fun <init> ()V
+	public final fun extractEdgeProxy (Lkotlin/jvm/functions/Function2;)V
+	public final fun getForHeaders ()Ljava/util/List;
+	public final fun getHostHeaders ()Ljava/util/ArrayList;
+	public final fun getHttpsFlagHeaders ()Ljava/util/List;
+	public final fun getPortHeaders ()Ljava/util/List;
+	public final fun getProtoHeaders ()Ljava/util/List;
+	public final fun skipKnownProxies (Ljava/util/List;)V
+	public final fun skipLastProxies (I)V
+	public final fun useFirstProxy ()V
+	public final fun useLastProxy ()V
+}
+
+public final class io/ktor/server/plugins/forwardedheaders/XForwardedHeadersKt {
+	public static final fun getXForwardedHeaders ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

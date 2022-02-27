@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.http.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
@@ -68,17 +69,17 @@ class CIOHttpClientTest {
 
         val port = portSync.take()
         val client = HttpClient(CIO)
-        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
+        val response = client.request("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
-            body = "request-body"
+            setBody("request-body")
         }
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.readText())
+            assertEquals("ok", response.bodyAsText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
@@ -158,22 +159,24 @@ class CIOHttpClientTest {
         val port = portSync.await()
 
         val client = HttpClient(CIO)
-        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
+        val response = client.request("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
-            body = TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
-                HeadersBuilder().apply {
-                    appendAll(hh)
-                    append(HttpHeaders.TransferEncoding, "chunked")
-                }.build()
-            }
+            setBody(
+                TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
+                    HeadersBuilder().apply {
+                        appendAll(hh)
+                        append(HttpHeaders.TransferEncoding, "chunked")
+                    }.build()
+                }
+            )
         }
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.readText())
+            assertEquals("ok", response.bodyAsText())
 
             val receivedHeaders = headersSync.await()
             assertEquals("value", receivedHeaders["header"])

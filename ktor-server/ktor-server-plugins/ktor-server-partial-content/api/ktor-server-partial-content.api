@@ -1,0 +1,10 @@
+public final class io/ktor/server/plugins/partialcontent/PartialContentConfig {
+	public fun <init> ()V
+	public final fun getMaxRangeCount ()I
+	public final fun setMaxRangeCount (I)V
+}
+
+public final class io/ktor/server/plugins/partialcontent/PartialContentKt {
+	public static final fun getPartialContent ()Lio/ktor/server/application/RouteScopedPlugin;
+}
+

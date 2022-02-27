@@ -10,14 +10,15 @@ import java.security.*
 
 internal fun Digest(): Digest = Digest(BytePacketBuilder())
 
-internal inline class Digest(val state: BytePacketBuilder) : Closeable {
+@JvmInline
+internal value class Digest(val state: BytePacketBuilder) : Closeable {
 
-    public fun update(packet: ByteReadPacket) = synchronized(this) {
+    fun update(packet: ByteReadPacket) = synchronized(state) {
         if (packet.isEmpty) return
         state.writePacket(packet.copy())
     }
 
-    public fun doHash(hashName: String): ByteArray = synchronized(this) {
+    fun doHash(hashName: String): ByteArray = synchronized(state) {
         state.preview { handshakes: ByteReadPacket ->
             val digest = MessageDigest.getInstance(hashName)!!
 

@@ -46,4 +46,46 @@ class PipelinePhasesTest {
         phases1.merge(phases2)
         assertEquals(listOf(b, c, a), phases1.items)
     }
+
+    @Test
+    fun testDependantPhasesNoCommon() {
+        val pipeline1 = Pipeline<String, String>(a)
+        val pipeline2 = Pipeline<String, String>(c)
+        pipeline2.insertPhaseBefore(c, b)
+        pipeline1.merge(pipeline2)
+        assertEquals(listOf(a, b, c), pipeline1.items)
+    }
+
+    @Test
+    fun testDependantPhasesLastCommon() {
+        val pipeline1 = Pipeline<String, String>(c)
+        val pipeline2 = Pipeline<String, String>(c)
+        pipeline2.insertPhaseBefore(c, b)
+        pipeline2.insertPhaseBefore(b, a)
+        assertEquals(listOf(a, b, c), pipeline2.items)
+        pipeline1.merge(pipeline2)
+        assertEquals(listOf(a, b, c), pipeline1.items)
+    }
+
+    @Test
+    fun testDependantPhasesOrderAfter() {
+        val pipeline1 = Pipeline<String, String>(a)
+        val pipeline2 = Pipeline<String, String>(a)
+        pipeline2.insertPhaseAfter(a, b)
+        pipeline2.insertPhaseAfter(a, c)
+        assertEquals(listOf(a, b, c), pipeline2.items)
+        pipeline1.merge(pipeline2)
+        assertEquals(listOf(a, b, c), pipeline1.items)
+    }
+
+    @Test
+    fun testDependantPhasesOrderBefore() {
+        val pipeline1 = Pipeline<String, String>(c)
+        val pipeline2 = Pipeline<String, String>(c)
+        pipeline2.insertPhaseBefore(c, a)
+        pipeline2.insertPhaseBefore(c, b)
+        assertEquals(listOf(a, b, c), pipeline2.items)
+        pipeline1.merge(pipeline2)
+        assertEquals(listOf(a, b, c), pipeline1.items)
+    }
 }

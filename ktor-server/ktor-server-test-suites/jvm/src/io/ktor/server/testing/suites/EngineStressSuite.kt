@@ -6,14 +6,14 @@
 
 package io.ktor.server.testing.suites
 
-import io.ktor.application.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
@@ -172,7 +172,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -189,7 +189,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -206,7 +206,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -278,7 +278,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -293,7 +293,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
 
         withUrl("/") {
-            assertEquals("OK", readText())
+            assertEquals("OK", bodyAsText())
         }
     }
 
@@ -330,7 +330,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals("OK", readText())
+            assertEquals("OK", bodyAsText())
         }
     }
 

@@ -1,17 +1,11 @@
 package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.internal.utils.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
-@Suppress("unused")
-@SharedImmutable
-private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
-
-@SharedImmutable
-private val KnownPosixErrors = mapOf<Int, String>(
+private val KnownPosixErrors = mapOf(
     EBADF to "EBADF",
     EWOULDBLOCK to "EWOULDBLOCK",
     EAGAIN to "EAGAIN",
@@ -36,54 +30,37 @@ private val KnownPosixErrors = mapOf<Int, String>(
  * @property errno error code that caused this exception
  * @property message error text
  */
-@ExperimentalIoApi
 public sealed class PosixException(public val errno: Int, message: String) : Exception(message) {
-    @ExperimentalIoApi
     public class BadFileDescriptorException(message: String) : PosixException(EBADF, message)
 
-    @ExperimentalIoApi
     public class TryAgainException(errno: Int = EAGAIN, message: String) : PosixException(errno, message)
 
-    @ExperimentalIoApi
     public class BadMessageException(message: String) : PosixException(EBADMSG, message)
 
-    @ExperimentalIoApi
     public class InterruptedException(message: String) : PosixException(EINTR, message)
 
-    @ExperimentalIoApi
     public class InvalidArgumentException(message: String) : PosixException(EINVAL, message)
 
-    @ExperimentalIoApi
     public class ConnectionResetException(message: String) : PosixException(ECONNRESET, message)
 
-    @ExperimentalIoApi
     public class ConnectionRefusedException(message: String) : PosixException(ECONNREFUSED, message)
 
-    @ExperimentalIoApi
     public class ConnectionAbortedException(message: String) : PosixException(ECONNABORTED, message)
 
-    @ExperimentalIoApi
     public class NotConnectedException(message: String) : PosixException(ENOTCONN, message)
 
-    @ExperimentalIoApi
     public class TimeoutIOException(message: String) : PosixException(ETIMEDOUT, message)
 
-    @ExperimentalIoApi
     public class NotSocketException(message: String) : PosixException(ENOTSOCK, message)
 
-    @ExperimentalIoApi
     public class AddressAlreadyInUseException(message: String) : PosixException(EADDRINUSE, message)
 
-    @ExperimentalIoApi
     public class NoSuchFileException(message: String) : PosixException(ENOENT, message)
 
-    @ExperimentalIoApi
     public class OverflowException(message: String) : PosixException(EOVERFLOW, message)
 
-    @ExperimentalIoApi
     public class NoMemoryException(message: String) : PosixException(ENOMEM, message)
 
-    @ExperimentalIoApi
     public class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
 
     public companion object {
@@ -95,7 +72,6 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
          * @param posixFunctionName optional function name to be included to the exception message
          * @return an instance of [PosixException] or it's subtype
          */
-        @ExperimentalIoApi
         public fun forErrno(
             errno: Int = platform.posix.errno,
             posixFunctionName: String? = null
@@ -107,8 +83,8 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
             }
 
             val message = when {
-                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + strerror(errno)
-                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${strerror(errno)}"
+                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + posixErrorToString(errno)
+                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${posixErrorToString(errno)}"
             }
 
             when (errno) {
@@ -141,14 +117,4 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
 internal fun PosixException.wrapIO(): IOException =
     IOException("I/O operation failed due to posix error code $errno", this)
 
-private tailrec fun MemScope.strerror(errno: Int, size: size_t = 8192.convert()): String {
-    val message = allocArray<ByteVar>(size.toLong())
-    val result = strerror_r(errno, message, size)
-    if (result == ERANGE) {
-        return strerror(errno, size * 2.convert())
-    }
-    if (result != 0) {
-        return "Unknown error ($errno)"
-    }
-    return message.toKString()
-}
+private fun posixErrorToString(errno: Int): String = strerror(errno)?.toKString() ?: "Unknown error code: $errno"

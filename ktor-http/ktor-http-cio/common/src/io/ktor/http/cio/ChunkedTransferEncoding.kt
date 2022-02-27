@@ -16,9 +16,6 @@ import kotlin.native.concurrent.*
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
 
-private const val DEFAULT_BYTE_BUFFER_SIZE = 4088
-
-@ThreadLocal
 private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
     object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
         override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
@@ -43,9 +40,10 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
 /**
  * Start a chunked stream decoder coroutine
  */
+@Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
     writer(coroutineContext) {
-        decodeChunked(input, channel, contentLength)
+        decodeChunked(input, channel)
     }
 
 /**
@@ -55,6 +53,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws ParserException if the format is invalid.
  */
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
+    @Suppress("DEPRECATION_ERROR")
     return decodeChunked(input, out, -1L)
 }
 
@@ -63,8 +62,10 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
  */
 @Deprecated(
     "The contentLength is ignored for chunked transfer encoding",
-    ReplaceWith("decodeChunked(input, out)")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("decodeChunked(input, out)")
 )
+@Suppress("UNUSED_PARAMETER")
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
@@ -114,6 +115,7 @@ public typealias EncoderJob = ReaderJob
 /**
  * Start chunked stream encoding coroutine
  */
+@OptIn(DelicateCoroutinesApi::class)
 public suspend fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext
@@ -151,13 +153,8 @@ private fun ByteReadChannel.rethrowCloseCause() {
     if (cause != null) throw cause
 }
 
-@SharedImmutable
 private const val CrLfShort: Short = 0x0d0a
-
-@ThreadLocal
 private val CrLf = "\r\n".toByteArray()
-
-@ThreadLocal
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
 private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {

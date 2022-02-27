@@ -5,7 +5,6 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -17,7 +16,8 @@ import java.net.*
  */
 public class URIFileContent(
     public val uri: URI,
-    override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)
+    override val contentType: ContentType = ContentType.defaultForFilePath(uri.path),
+    override val contentLength: Long? = null,
 ) : OutgoingContent.ReadChannelContent() {
     public constructor(url: URL, contentType: ContentType = ContentType.defaultForFilePath(url.path)) : this(
         url.toURI(),

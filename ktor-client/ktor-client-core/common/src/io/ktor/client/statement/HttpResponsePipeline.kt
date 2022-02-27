@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.TypeInfo
-import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
 
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
@@ -55,7 +54,7 @@ public class HttpResponsePipeline(
  */
 public class HttpReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<HttpResponse, HttpClientCall>(Before, State, After) {
+) : Pipeline<HttpResponse, Unit>(Before, State, After) {
     public companion object Phases {
         /**
          * The earliest phase that happens before any other
@@ -79,9 +78,4 @@ public class HttpReceivePipeline(
  * @param expectedType: information about expected type.
  * @param response: current response state.
  */
-public data class HttpResponseContainer(val expectedType: DeprecatedTypeInfo, val response: Any) {
-    public constructor(expectedType: TypeInfo, response: Any) : this(
-        DeprecatedTypeInfo(expectedType.type, expectedType.reifiedType, expectedType.kotlinType),
-        response
-    )
-}
+public data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)

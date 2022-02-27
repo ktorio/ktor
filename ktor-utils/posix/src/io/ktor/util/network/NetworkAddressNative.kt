@@ -8,17 +8,20 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 
-public actual class NetworkAddress constructor(
+/**
+ * Represents remote endpoint with [hostname] and [port].
+ *
+ * The address will be resolved after construction.
+ *
+ * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
+ */
+public actual abstract class NetworkAddress constructor(
     public val hostname: String,
     public val port: Int,
     explicitAddress: Any? = null
 ) {
     @InternalAPI
     public var explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
-
-    init {
-        makeShared()
-    }
 
     /**
      * Resolve current socket address.
@@ -28,10 +31,18 @@ public actual class NetworkAddress constructor(
 }
 
 public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
-    NetworkAddress(hostname, port, null)
+    object : NetworkAddress(hostname, port, null) {}
 
-public actual val NetworkAddress.hostname: String get() = hostname
+@Suppress("FunctionName")
+public fun ResolvedNetworkAddress(hostname: String, port: Int, explicitAddress: Any?): NetworkAddress =
+    object : NetworkAddress(hostname, port, explicitAddress) {}
 
-public actual val NetworkAddress.port: Int get() = port
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+public actual val NetworkAddress.hostname: String
+    get() = hostname
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+public actual val NetworkAddress.port: Int
+    get() = port
 
 public actual class UnresolvedAddressException : IllegalArgumentException()

@@ -1,0 +1,4 @@
+public final class io/ktor/server/plugins/autohead/AutoHeadResponseKt {
+	public static final fun getAutoHeadResponse ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

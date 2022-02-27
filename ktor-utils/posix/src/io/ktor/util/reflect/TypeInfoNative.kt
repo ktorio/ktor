@@ -17,12 +17,12 @@ public actual inline fun <reified T> typeInfo(): TypeInfo {
 
 @PublishedApi
 internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
-    TypeInfoImpl(kClass, reifiedType, kType)
+    TypeInfo(kClass, reifiedType, kType)
 
 /**
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
-internal actual val KType.platformType: Type
+public actual val KType.platformType: Type
     get() = this

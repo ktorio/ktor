@@ -8,7 +8,6 @@ import io.ktor.util.*
 import kotlin.native.concurrent.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
-@SharedImmutable
 private val HeaderFieldValueSeparators =
     setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
 
@@ -33,11 +32,11 @@ public abstract class HeaderValueWithParameters(
     override fun toString(): String = when {
         parameters.isEmpty() -> content
         else -> {
-            val size = content.length + parameters.sumBy { it.name.length + it.value.length + 3 }
+            val size = content.length + parameters.sumOf { it.name.length + it.value.length + 3 }
             StringBuilder(size).apply {
                 append(content)
-                for (index in 0 until parameters.size) {
-                    val (name, value) = parameters[index]
+                for (element in parameters) {
+                    val (name, value) = element
                     append("; ")
                     append(name)
                     append("=")
@@ -68,7 +67,6 @@ public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParame
 /**
  * Escape using double quotes if needed or keep as is if no dangerous strings found
  */
-@InternalAPI
 public fun String.escapeIfNeeded(): String = when {
     checkNeedEscape() -> quote()
     else -> this
@@ -77,7 +75,7 @@ public fun String.escapeIfNeeded(): String = when {
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.escapeIfNeededTo(out: StringBuilder) {
     when {
-        checkNeedEscape() -> out.append(this.quote())
+        checkNeedEscape() -> out.append(quote())
         else -> out.append(this)
     }
 }
@@ -126,14 +124,12 @@ private fun String.isQuoted(): Boolean {
 /**
  * Escape string using double quotes
  */
-@InternalAPI
 public fun String.quote(): String = buildString { this@quote.quoteTo(this) }
 
 private fun String.quoteTo(out: StringBuilder) {
     out.append("\"")
     for (i in 0 until length) {
-        val ch = this[i]
-        when (ch) {
+        when (val ch = this[i]) {
             '\\' -> out.append("\\\\")
             '\n' -> out.append("\\n")
             '\r' -> out.append("\\r")

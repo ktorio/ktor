@@ -22,7 +22,6 @@ import kotlin.coroutines.*
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-@OptIn(ExperimentalIoApi::class)
 public fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
@@ -85,25 +84,13 @@ public fun File.readChannel(
 }
 
 /**
- * Open a write channel for file and launch a coroutine to read from it.
- * The coroutine is launched on [Dispatchers.IO].
- */
-@Deprecated(
-    "Pool is not required here anymore so use writeChannel without specifying a pool.",
-    ReplaceWith("writeChannel()"),
-    level = DeprecationLevel.ERROR
-)
-public fun File.writeChannel(
-    @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
-): ByteWriteChannel = writeChannel()
-
-/**
  * Open a write channel for the file and launch a coroutine to read from it.
  * Please note that file writing is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun File.writeChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteWriteChannel = GlobalScope.reader(CoroutineName("file-writer") + coroutineContext, autoFlush = true) {

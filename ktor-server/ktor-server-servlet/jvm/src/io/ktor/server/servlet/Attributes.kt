@@ -4,9 +4,9 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
-import io.ktor.request.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
 import io.ktor.util.*
 import javax.servlet.*
 
@@ -22,7 +22,6 @@ public val ApplicationRequest.servletRequestAttributes: Map<String, Any>
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
 
-@EngineAPI
 public fun ApplicationCall.putServletAttributes(request: ServletRequest) {
     val servletAttributes = request.attributeNames?.asSequence()?.associateWith { attributeName ->
         request.getAttribute(attributeName)

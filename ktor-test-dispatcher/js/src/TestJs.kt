@@ -10,7 +10,11 @@ import kotlin.coroutines.*
 /**
  * Test runner for js suspend tests.
  */
+@OptIn(DelicateCoroutinesApi::class)
 public actual fun testSuspend(
     context: CoroutineContext,
+    timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
-): dynamic = GlobalScope.promise(block = block, context = context)
+): dynamic = GlobalScope.promise(block = {
+    withTimeout(timeoutMillis, block)
+}, context = context)

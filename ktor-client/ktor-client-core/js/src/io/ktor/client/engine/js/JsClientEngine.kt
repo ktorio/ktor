@@ -6,8 +6,8 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
-import io.ktor.client.features.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -28,6 +28,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
@@ -57,18 +58,18 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
     // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
     // so it can be accessed inside js("") function
-    private fun createWebSocket(urlString_capturingHack: String, headers: Headers): WebSocket {
-        return if (PlatformUtils.IS_NODE) {
+    @Suppress("UNUSED_PARAMETER", "UnsafeCastFromDynamic", "UNUSED_VARIABLE", "LocalVariableName")
+    private fun createWebSocket(urlString_capturingHack: String, headers: Headers): WebSocket =
+        if (PlatformUtils.IS_NODE) {
             val ws_capturingHack = js("eval('require')('ws')")
             val headers_capturingHack: dynamic = object {}
             headers.forEach { name, values ->
                 headers_capturingHack[name] = values.joinToString(",")
             }
-            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack } )")
+            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
         } else {
             js("new WebSocket(urlString_capturingHack)")
         }
-    }
 
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
@@ -105,7 +106,9 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     val eventListener = { event: Event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> continuation.resumeWithException(WebSocketException(JSON.stringify(event)))
+            "error" -> {
+                continuation.resumeWithException(WebSocketException(event.asString()))
+            }
         }
     }
 
@@ -122,6 +125,10 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     }
 }
 
+private fun Event.asString(): String = buildString {
+    append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
+}
+
 private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
@@ -134,4 +141,5 @@ private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
  * Wrapper for javascript `error` objects.
  * @property origin: fail reason
  */
+@Suppress("MemberVisibilityCanBePrivate")
 public class JsError(public val origin: dynamic) : Throwable("Error from javascript[$origin].")

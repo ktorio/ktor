@@ -4,10 +4,12 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -23,14 +25,12 @@ class JsonTest : ClientLoader() {
     @Test
     fun testUserGenerics() = clientTests(listOf("js")) {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
             val expected = Result<User>("ok", User("hello"))
-            val response = client.get<Result<User>>("$TEST_SERVER/json/user-generic")
+            val response = client.get("$TEST_SERVER/json/user-generic").body<Result<User>>()
 
             assertEquals(expected, response)
         }

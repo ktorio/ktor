@@ -11,10 +11,13 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.date.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.reflect.*
 
 /**
  * A request for [HttpClient], first part of [HttpClientCall].
@@ -43,14 +46,6 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
      */
     public val attributes: Attributes
 
-    @Deprecated(
-        "Binary compatibility.",
-        level = DeprecationLevel.HIDDEN
-    )
-    @Suppress("unused", "KDocMissingDocumentation")
-    public val executionContext: Job
-        get() = coroutineContext[Job]!!
-
     /**
      * An [OutgoingContent] representing the request body
      */
@@ -60,6 +55,7 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
 /**
  * Class for building [HttpRequestData].
  */
+@Suppress("DEPRECATION")
 public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
@@ -80,16 +76,26 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * The [body] for this request. Initially [EmptyContent].
      */
     public var body: Any = EmptyContent
+        @InternalAPI public set
+
+    /**
+     * The [KType] of [body] for this request. Null for default types that don't need serialization.
+     */
+    public var bodyType: TypeInfo?
+        get() = attributes.getOrNull(BodyTypeAttributeKey)
+        @InternalAPI set(value) {
+            if (value != null) {
+                attributes.put(BodyTypeAttributeKey, value)
+            } else {
+                attributes.remove(BodyTypeAttributeKey)
+            }
+        }
 
     /**
      * A deferred used to control the execution of this request.
      */
     public var executionContext: Job = SupervisorJob()
-        .also { it.makeShared() }
-        internal set(value) {
-            value.makeShared()
-            field = value
-        }
+        internal set
 
     /**
      * Call specific attributes.
@@ -104,6 +110,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Create immutable [HttpRequestData]
      */
+    @OptIn(InternalAPI::class)
     public fun build(): HttpRequestData = HttpRequestData(
         url.build(),
         method,
@@ -132,11 +139,13 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Mutates [this] copying all the data but execution context from another [builder] using it as base.
      */
+    @OptIn(InternalAPI::class)
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
+        bodyType = builder.bodyType
         url.takeFrom(builder.url)
-        url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
+        url.encodedPathSegments = url.encodedPathSegments
         headers.appendAll(builder.headers)
         attributes.putAll(builder.attributes)
 
@@ -146,8 +155,9 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Set capability configuration.
      */
+    @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
-        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
+        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
         capabilities[key] = capability
     }
 
@@ -175,7 +185,7 @@ public class HttpRequestData @InternalAPI constructor(
     public val attributes: Attributes
 ) {
     /**
-     * Retrieve extension by it's key.
+     * Retrieve extension by its key.
      */
     public fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
@@ -210,14 +220,16 @@ public class HttpResponseData constructor(
 /**
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
  */
-public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
+public fun HttpMessageBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
  */
+@OptIn(InternalAPI::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
     attributes.putAll(request.attributes)
@@ -232,9 +244,11 @@ public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(ur
 /**
  * Sets the [HttpRequestBuilder] from [request].
  */
+@OptIn(InternalAPI::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
     attributes.putAll(request.attributes)
@@ -250,32 +264,28 @@ public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> 
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
+ * Pass `null` to keep existing value in the [URLBuilder].
  */
 public fun HttpRequestBuilder.url(
-    scheme: String = "http",
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    scheme: String? = null,
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: URLBuilder.() -> Unit = {}
-): Unit { // ktlint-disable filename no-unit-return
-    url.apply {
-        protocol = URLProtocol.createOrDefault(scheme)
-        this.host = host
-        this.port = port
-        encodedPath = path
-        block(url)
-    }
+) {
+    url.set(scheme, host, port, path, block)
 }
 
 /**
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
+ * Pass `null` to keep existing value in the [URLBuilder].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
-    scheme: String = "http",
-    host: String = "localhost",
-    port: Int = DEFAULT_PORT,
-    path: String = "/",
+    scheme: String? = null,
+    host: String? = null,
+    port: Int? = null,
+    path: String? = null,
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 

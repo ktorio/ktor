@@ -4,20 +4,20 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
 import io.ktor.http.content.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
+import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@EngineAPI
 public open class AsyncServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
@@ -25,8 +25,9 @@ public open class AsyncServletApplicationCall(
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
     upgrade: ServletUpgrade,
-    parentCoroutineContext: CoroutineContext
-) : BaseApplicationCall(application), CoroutineScope {
+    parentCoroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : BaseApplicationCall(application), ApplicationCallWithContext {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 
@@ -41,7 +42,8 @@ public open class AsyncServletApplicationCall(
             engineContext,
             userContext,
             upgrade,
-            parentCoroutineContext + engineContext
+            parentCoroutineContext + engineContext,
+            managedByEngineHeaders
         ).also {
             putResponseAttribute(it)
         }
@@ -53,7 +55,6 @@ public open class AsyncServletApplicationCall(
 }
 
 @Suppress("KDocMissingDocumentation")
-@EngineAPI
 public class AsyncServletApplicationRequest(
     call: ApplicationCall,
     servletRequest: HttpServletRequest,
@@ -67,14 +68,11 @@ public class AsyncServletApplicationRequest(
 
     override fun receiveChannel(): ByteReadChannel = inputStreamChannel
 
-    @EngineAPI
     internal fun upgraded() {
         upgraded = true
     }
 }
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,
@@ -82,8 +80,9 @@ public open class AsyncServletApplicationResponse(
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val servletUpgradeImpl: ServletUpgrade,
-    override val coroutineContext: CoroutineContext
-) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
+    override val coroutineContext: CoroutineContext,
+    managedByEngineHeaders: Set<String> = emptySet()
+) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 

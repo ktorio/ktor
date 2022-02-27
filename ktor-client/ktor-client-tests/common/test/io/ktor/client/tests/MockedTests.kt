@@ -4,12 +4,14 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -29,12 +31,12 @@ class MockedTests {
             val text = "{}"
             val response: String = client.post {
                 url(url)
-                body = text
+                setBody(text)
                 headers {
                     append("Authorization", "Bearer $accessToken")
                     append(HttpHeaders.ContentType, "application/json")
                 }
-            }
+            }.body()
 
             assertEquals("content", response)
         }
@@ -43,9 +45,7 @@ class MockedTests {
     @Test
     fun testWithLongJson() = testWithEngine(MockEngine) {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
 
             engine {
                 // these differ by one char at the end
@@ -67,8 +67,8 @@ class MockedTests {
         }
 
         test { client ->
-            client.get<Book>("http://localhost/long.json")
-            client.get<Book>("http://localhost/longer.json")
+            client.get("http://localhost/long.json").body<Book>()
+            client.get("http://localhost/longer.json").body<Book>()
         }
     }
 
@@ -95,14 +95,11 @@ class MockedTests {
         }
 
         test { client ->
-            client.get<Unit>("http://api.deutschebahn.com/freeplan/v1/departureBoard/8000096?date=2020-06-14T20:21:22")
+            client.get("http://api.deutschebahn.com/freeplan/v1/departureBoard/8000096?date=2020-06-14T20:21:22")
+                .body<Unit>()
         }
     }
 }
 
 @Serializable
-data class Book(val author: String, val name: String, val text: String) {
-    companion object {
-        val kSerializer = serializer()
-    }
-}
+data class Book(val author: String, val name: String, val text: String)

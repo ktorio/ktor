@@ -33,7 +33,7 @@ internal actual suspend fun openTLSSession(
 private class TLSSocket(
     private val input: ReceiveChannel<TLSRecord>,
     private val output: SendChannel<TLSRecord>,
-    socket: Socket,
+    private val socket: Socket,
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope, Socket by socket {
 
@@ -82,5 +82,9 @@ private class TLSSocket(
         } finally {
             output.close()
         }
+    }
+
+    override fun dispose() {
+        socket.dispose()
     }
 }

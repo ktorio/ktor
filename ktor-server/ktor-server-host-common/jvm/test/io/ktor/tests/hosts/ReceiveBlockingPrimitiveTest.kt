@@ -1,32 +1,27 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.hosts
 
-import io.ktor.application.*
-import io.ktor.request.*
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
+import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import kotlin.concurrent.*
-import kotlin.reflect.*
 import kotlin.test.*
 
-@OptIn(ExperimentalStdlibApi::class)
 class ReceiveBlockingPrimitiveTest {
-    private val pipeline = ApplicationReceivePipeline()
-
-    init {
-        pipeline.installDefaultTransformations()
-    }
-
     @Test
     fun testBlockingPrimitiveUsuallyAllowed() {
         testOnThread { call ->
-            receiveInputStream(pipeline, call)
+            call.receive<InputStream>().close()
         }
     }
 
@@ -36,7 +31,7 @@ class ReceiveBlockingPrimitiveTest {
             testOnThread { call ->
                 markParkingProhibited()
 
-                receiveInputStream(pipeline, call)
+                call.receive<InputStream>().close()
             }
         }.let { cause ->
             assertTrue(cause.message!!.startsWith("Acquiring blocking primitives "))
@@ -69,22 +64,31 @@ class ReceiveBlockingPrimitiveTest {
         }
     }
 
-    private suspend fun receiveInputStream(
-        pipeline: ApplicationReceivePipeline,
-        call: ApplicationCall
-    ) {
-        val request = ApplicationReceiveRequest(typeOf<InputStream>(), ByteChannel())
-        val transformed = pipeline.execute(call, request)
-        val stream = transformed.value as InputStream
-        @Suppress("BlockingMethodInNonBlockingContext")
-        stream.close()
-    }
-
     private class TestCall : BaseApplicationCall(Application(applicationEngineEnvironment {})) {
-        override val request: BaseApplicationRequest
-            get() = error("Shouldn't be invoked")
+        init {
+            application.receivePipeline.installDefaultTransformations()
+        }
+        override val request: BaseApplicationRequest = object : BaseApplicationRequest(this) {
+            override val queryParameters: Parameters
+                get() = TODO("Not yet implemented")
+            override val rawQueryParameters: Parameters
+                get() = TODO("Not yet implemented")
+            override val headers: Headers
+                get() = TODO("Not yet implemented")
+            override val local: RequestConnectionPoint
+                get() = TODO("Not yet implemented")
+            override val cookies: RequestCookies
+                get() = TODO("Not yet implemented")
+
+            override fun receiveChannel(): ByteReadChannel = ByteReadChannel.Empty
+        }
+
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
+
+        override fun afterFinish(handler: (Throwable?) -> Unit) {
+            error("afterFinish is not available for TestCall")
+        }
 
         fun close() {
             application.dispose()

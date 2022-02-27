@@ -5,13 +5,12 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.*
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.tests.utils.assertFailsWith
 import io.ktor.http.*
-import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -27,15 +26,18 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/with-delay") {
+            val response = client.get("$TEST_URL/with-delay") {
                 parameter("delay", 20)
-            }
+            }.body<String>()
             assertEquals("Text", response)
         }
     }
 
     @Test
     fun testGetWithExceptionAndTryAgain() = clientTests {
+        config {
+            expectSuccess = true
+        }
         test { client ->
             val requestBuilder = HttpRequestBuilder().apply {
                 method = HttpMethod.Get
@@ -46,12 +48,12 @@ class HttpTimeoutTest : ClientLoader() {
             val job = requestBuilder.executionContext
             assertTrue { job.isActive }
 
-            assertFails { client.request<String>(requestBuilder) }
+            assertFails { client.request(requestBuilder).body<String>() }
             assertTrue { job.isActive }
 
             requestBuilder.url("$TEST_URL/with-delay")
 
-            val response = client.request<String>(requestBuilder)
+            val response = client.request(requestBuilder).body<String>()
 
             assertEquals("Text", response)
             assertTrue { job.isActive }
@@ -68,12 +70,12 @@ class HttpTimeoutTest : ClientLoader() {
             val requestBuilder = HttpRequestBuilder().apply {
                 method = HttpMethod.Get
                 url("$TEST_URL/with-delay")
-                parameter("delay", 60 * 1000)
+                parameter("delay", 60000)
             }
 
             val exception = assertFails {
                 withTimeout(500) {
-                    client.request<String>(requestBuilder)
+                    client.request(requestBuilder).body<String>()
                 }
             }
 
@@ -89,7 +91,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.head<HttpResponse>("$TEST_URL/with-delay?delay=10")
+            val response = client.head("$TEST_URL/with-delay?delay=10")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
@@ -104,28 +106,28 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.head<HttpResponse>("$TEST_URL/with-delay?delay=1000")
+                client.head("$TEST_URL/with-delay?delay=1000")
             }
         }
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests(listOf("Curl")) {
+    fun testGetWithCancellation() = clientTests {
         config {
             install(HttpTimeout) {
-                requestTimeoutMillis = 500
+                requestTimeoutMillis = 5000
             }
 
             test { client ->
                 val requestBuilder = HttpRequestBuilder().apply {
                     method = HttpMethod.Get
                     url("$TEST_URL/with-stream")
-                    parameter("delay", 2000)
+                    parameter("delay", 7000)
                 }
 
-                client.request<ByteReadChannel>(requestBuilder).cancel()
+                client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                delay(2000) // Channel is closing asynchronously.
+                delay(5000) // Channel is closing asynchronously.
                 assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
             }
         }
@@ -139,9 +141,9 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFails {
-                client.get<String>("$TEST_URL/with-delay") {
+                client.get("$TEST_URL/with-delay") {
                     parameter("delay", 5000)
-                }
+                }.body<String>()
             }
         }
     }
@@ -154,11 +156,11 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFails {
-                client.get<String>("$TEST_URL/with-delay") {
+                client.get("$TEST_URL/with-delay") {
                     parameter("delay", 5000)
 
                     timeout { requestTimeoutMillis = 10 }
-                }
+                }.body<String>()
             }
         }
     }
@@ -170,11 +172,11 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpResponse>("$TEST_URL/with-delay") {
+            val response = client.request("$TEST_URL/with-delay") {
                 method = HttpMethod.Get
                 parameter("delay", 10)
             }
-            val result: String = response.receive()
+            val result: String = response.body()
 
             assertEquals("Text", result)
         }
@@ -187,29 +189,29 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpResponse>("$TEST_URL/with-delay") {
+            val response = client.request("$TEST_URL/with-delay") {
                 method = HttpMethod.Get
                 parameter("delay", 10)
 
                 timeout { requestTimeoutMillis = 1000 }
             }
-            val result: String = response.receive()
+            val result: String = response.body()
 
             assertEquals("Text", result)
         }
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Curl", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel>("$TEST_URL/with-stream") {
+            val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
                 parameter("delay", 500)
-            }
+            }.body<ByteReadChannel>()
 
             assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
@@ -218,21 +220,42 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Curl", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout)
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel>("$TEST_URL/with-stream") {
+            val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
                 parameter("delay", 10000)
 
                 timeout { requestTimeoutMillis = 1000 }
-            }
+            }.body<ByteReadChannel>()
             assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
+        }
+    }
+
+    @Test
+    fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js")) {
+        config {
+            install(HttpTimeout)
+        }
+
+        test { client ->
+            val response = client.prepareGet("$TEST_URL/with-stream") {
+                parameter("delay", 10000)
+                timeout { requestTimeoutMillis = 1000 }
+            }.body<ByteReadChannel>()
+            assertFailsWith<HttpRequestTimeoutException> {
+                response.readUTF8Line()
+            }
+            val result = client.get("$TEST_URL/with-delay?delay=1") {
+                timeout { requestTimeoutMillis = 10000 }
+            }.bodyAsText()
+            assertEquals("Text", result)
         }
     }
 
@@ -243,9 +266,9 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<ByteArray>("$TEST_URL/with-stream") {
+            val response = client.get("$TEST_URL/with-stream") {
                 parameter("delay", 10)
-            }
+            }.body<ByteArray>()
 
             assertEquals("Text", String(response))
         }
@@ -258,11 +281,11 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<ByteArray>("$TEST_URL/with-stream") {
+            val response = client.get("$TEST_URL/with-stream") {
                 parameter("delay", 10)
 
                 timeout { requestTimeoutMillis = 1000 }
-            }
+            }.body<ByteArray>()
 
             assertEquals("Text", String(response))
         }
@@ -276,9 +299,9 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<ByteArray>("$TEST_URL/with-stream") {
-                    parameter("delay", 400)
-                }
+                client.get("$TEST_URL/with-stream") {
+                    parameter("delay", 4000)
+                }.body<ByteArray>()
             }
         }
     }
@@ -291,44 +314,46 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<ByteArray>("$TEST_URL/with-stream") {
+                client.get("$TEST_URL/with-stream") {
                     parameter("delay", 400)
 
                     timeout { requestTimeoutMillis = 1000 }
-                }
+                }.body<ByteArray>()
             }
         }
     }
 
+    // Js can't configure test timeout in browser
     @Test
-    fun testRedirect() = clientTests {
+    fun testRedirect() = clientTests(listOf("js")) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/with-redirect") {
+            val response = client.get("$TEST_URL/with-redirect") {
                 parameter("delay", 20)
                 parameter("count", 2)
-            }
+            }.body<String>()
 
             assertEquals("Text", response)
         }
     }
 
+    // Js can't configure test timeout in browser
     @Test
-    fun testRedirectPerRequestAttributes() = clientTests {
+    fun testRedirectPerRequestAttributes() = clientTests(listOf("js")) {
         config {
             install(HttpTimeout)
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_URL/with-redirect") {
+            val response = client.get("$TEST_URL/with-redirect") {
                 parameter("delay", 20)
                 parameter("count", 2)
 
-                timeout { requestTimeoutMillis = 1000 }
-            }
+                timeout { requestTimeoutMillis = 10000 }
+            }.body<String>()
             assertEquals("Text", response)
         }
     }
@@ -341,10 +366,10 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<String>("$TEST_URL/with-redirect") {
+                client.get("$TEST_URL/with-redirect") {
                     parameter("delay", 1000)
                     parameter("count", 5)
-                }
+                }.body<String>()
             }
         }
     }
@@ -357,12 +382,12 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<String>("$TEST_URL/with-redirect") {
+                client.get("$TEST_URL/with-redirect") {
                     parameter("delay", 1000)
                     parameter("count", 5)
 
                     timeout { requestTimeoutMillis = 20 }
-                }
+                }.body<String>()
             }
         }
     }
@@ -375,10 +400,10 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<String>("$TEST_URL/with-redirect") {
+                client.get("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
-                }
+                }.body<String>()
             }
         }
     }
@@ -391,25 +416,25 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.get<String>("$TEST_URL/with-redirect") {
+                client.get("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
 
                     timeout { requestTimeoutMillis = 400 }
-                }
+                }.body<String>()
             }
         }
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "iOS", "CIO")) {
+    fun testConnectTimeout() = clientTests(listOf("Js", "Darwin", "CIO")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
 
         test { client ->
             assertFailsWith<ConnectTimeoutException> {
-                client.get<String>("http://www.google.com:81")
+                client.get("http://www.google.com:81").body<String>()
             }
         }
     }
@@ -423,7 +448,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             assertFails {
                 try {
-                    client.get<String>("http://localhost:11")
+                    client.get("http://localhost:11").body<String>()
                 } catch (_: ConnectTimeoutException) {
                     /* Ignore. */
                 }
@@ -432,68 +457,68 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "iOS", "CIO")) {
+    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "Darwin", "CIO")) {
         config {
             install(HttpTimeout)
         }
 
         test { client ->
             assertFailsWith<ConnectTimeoutException> {
-                client.get<String>("http://www.google.com:81") {
+                client.get("http://www.google.com:81") {
                     timeout { connectTimeoutMillis = 1000 }
-                }
+                }.body<String>()
             }
         }
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
 
         test { client ->
             assertFailsWith<SocketTimeoutException> {
-                client.get<String>("$TEST_URL/with-stream") {
+                client.get("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
-                }
+                }.body<String>()
             }
         }
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "native:CIO", "Java")) {
         config {
             install(HttpTimeout)
         }
 
         test { client ->
             assertFailsWith<SocketTimeoutException> {
-                client.get<String>("$TEST_URL/with-stream") {
+                client.get("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
 
                     timeout { socketTimeoutMillis = 1000 }
-                }
+                }.body<String>()
             }
         }
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Curl", "Android", "native:CIO")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
 
         test { client ->
             assertFailsWith<SocketTimeoutException> {
-                client.post("$TEST_URL/slow-read") { body = makeString(4 * 1024 * 1024) }
+                client.post("$TEST_URL/slow-read") { setBody(makeString(4 * 1024 * 1024)) }
             }
         }
     }
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        listOf("Js", "Curl", "Android", "native:CIO")
+        listOf("Js", "Android", "native:CIO")
     ) {
         config {
             install(HttpTimeout)
@@ -502,7 +527,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             assertFailsWith<SocketTimeoutException> {
                 client.post("$TEST_URL/slow-read") {
-                    body = makeString(4 * 1024 * 1024)
+                    setBody(makeString(4 * 1024 * 1024))
                     timeout { socketTimeoutMillis = 500 }
                 }
             }
@@ -546,12 +571,12 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testNotInstalledFeatures() = clientTests {
+    fun testNotInstalledPlugins() = clientTests {
         test { client ->
             assertFailsWith<IllegalArgumentException> {
-                client.get<String>("https://www.google.com") {
+                client.get("https://www.google.com") {
                     timeout { requestTimeoutMillis = 1000 }
-                }
+                }.body<String>()
             }
         }
     }

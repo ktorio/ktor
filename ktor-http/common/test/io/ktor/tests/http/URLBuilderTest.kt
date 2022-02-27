@@ -11,17 +11,17 @@ import kotlin.test.*
 internal class URLBuilderTest {
     @Test
     fun testParseSchemeWithDigits() {
-        testBuildString("a123://google.com")
+        testBuildString("a123://google.com/")
     }
 
     @Test
     fun testParseSchemeWithDotsPlusAndMinusSigns() {
-        testBuildString("a.+-://google.com")
+        testBuildString("a.+-://google.com/")
     }
 
     @Test
     fun testParseSchemeWithCapitalCharacters() {
-        testBuildString("HTTP://google.com")
+        testBuildString("HTTP://google.com/")
     }
 
     @Test
@@ -30,10 +30,10 @@ internal class URLBuilderTest {
             val char = index.toChar()
 
             if (char in 'a'..'z' || char in 'A'..'Z') {
-                testBuildString("${char}http://google.com")
+                testBuildString("${char}http://google.com/")
             } else {
                 assertFails("Character $char is not allowed at the first position in the scheme.") {
-                    testBuildString("${char}http://google.com")
+                    testBuildString("${char}http://google.com/")
                 }
             }
         }
@@ -102,7 +102,7 @@ internal class URLBuilderTest {
         val url = URLBuilder("https://httpstat.us/301")
         url.takeFrom("https://httpstats.us")
 
-        assertEquals("", url.encodedPath)
+        assertEquals("/", url.encodedPath)
     }
 
     @Test
@@ -156,7 +156,7 @@ internal class URLBuilderTest {
     fun rewriteHost() {
         val url = URLBuilder("https://example.com/api/v1")
         url.takeFrom("//other.com")
-        assertEquals("https://other.com", url.buildString())
+        assertEquals("https://other.com/", url.buildString())
     }
 
     @Test
@@ -182,14 +182,22 @@ internal class URLBuilderTest {
     }
 
     @Test
-    fun retainEmptyPath() {
+    fun testEmptyPath() {
         val url = URLBuilder("http://www.test.com")
-        assertEquals("", url.encodedPath)
+        assertEquals("/", url.encodedPath)
     }
 
     @Test
     fun testSurrogateInPath() {
         val url = URLBuilder("http://www.ktor.io/path/🐕")
+        assertEquals("/path/🐕", url.encodedPath)
+    }
+
+    @Test
+    fun testSurrogateInPathNotEncoded() {
+        val url = URLBuilder().apply {
+            appendPathSegments(listOf("path", "🐕"))
+        }
         assertEquals("/path/%F0%9F%90%95", url.encodedPath)
     }
 
@@ -198,16 +206,117 @@ internal class URLBuilderTest {
         val url = URLBuilder().apply {
             host = "ktor.io"
             port = 80
-            path("id+test&test~test#test")
+            pathSegments = listOf("id+test&test~test#test")
         }.buildString()
 
         assertEquals("http://ktor.io/id+test&test~test%23test", url)
+    }
+
+    @Test
+    fun testFragmentSetters() {
+        val urlBuilder = URLBuilder()
+
+        urlBuilder.fragment = "as df"
+        assertEquals(urlBuilder.encodedFragment, "as%20df")
+
+        urlBuilder.encodedFragment = "as%25df"
+        assertEquals("as%df", urlBuilder.fragment)
+    }
+
+    @Test
+    fun testPathSetters() {
+        val urlBuilder = URLBuilder()
+
+        urlBuilder.pathSegments = listOf("as df")
+        assertEquals(listOf("as%20df"), urlBuilder.encodedPathSegments)
+        assertEquals("/as%20df", urlBuilder.encodedPath)
+
+        urlBuilder.encodedPathSegments = listOf("as%25df")
+        assertEquals(listOf("as%df"), urlBuilder.pathSegments)
+        assertEquals("/as%25df", urlBuilder.encodedPath)
+
+        urlBuilder.encodedPath = "as%3Ddf"
+        assertEquals(listOf("as=df"), urlBuilder.pathSegments)
+        assertEquals(listOf("as%3Ddf"), urlBuilder.encodedPathSegments)
+    }
+
+    @Test
+    fun testUserSetters() {
+        val urlBuilder = URLBuilder()
+
+        urlBuilder.encodedUser = "as%20df"
+        assertEquals("as df", urlBuilder.user)
+
+        urlBuilder.user = "as%df"
+        assertEquals("as%25df", urlBuilder.encodedUser)
+    }
+
+    @Test
+    fun testPasswordSetters() {
+        val urlBuilder = URLBuilder().apply { user = "asd" }
+
+        urlBuilder.encodedPassword = "as%20df"
+        assertEquals("as df", urlBuilder.password)
+
+        urlBuilder.password = "as%df"
+        assertEquals("as%25df", urlBuilder.encodedPassword)
+    }
+
+    @Test
+    fun testQuerySetters() {
+        val urlBuilder = URLBuilder()
+
+        urlBuilder.encodedParameters.append("as%20df", "as%25df")
+        assertEquals("as%df", urlBuilder.parameters["as df"])
+
+        urlBuilder.parameters.remove("as df")
+
+        urlBuilder.parameters.append("as%df", "as df")
+        assertEquals("as+df", urlBuilder.encodedParameters["as%25df"])
+    }
+
+    @Test
+    fun testBuiltUrlDoesNotMutate() {
+        val builder = URLBuilder()
+        builder.parameters.append("key", "value1")
+        builder.appendPathSegments("path1")
+        val url = builder.build()
+
+        builder.parameters.append("key", "value2")
+        builder.appendPathSegments("path2")
+
+        assertEquals(listOf("value1"), url.parameters.getAll("key"))
+        assertEquals(listOf("path1"), url.pathSegments)
+    }
+
+    @Test
+    fun testCanBuildMultipleTimes() {
+        val builder = URLBuilder()
+
+        builder.parameters.append("key", "value1")
+        builder.appendPathSegments("path1")
+        val url1 = builder.build()
+
+        builder.parameters.append("key", "value2")
+        builder.appendPathSegments("path2")
+        val url2 = builder.build()
+
+        assertEquals(listOf("value1"), url1.parameters.getAll("key"))
+        assertEquals(listOf("path1"), url1.pathSegments)
+        assertEquals(listOf("value1", "value2"), url2.parameters.getAll("key"))
+        assertEquals(listOf("path1", "path2"), url2.pathSegments)
+    }
+
+    @Test
+    fun fromStringWithTrailingSlashAppendsSinglePathSegment() {
+        val url = URLBuilder("https://example.com/").appendPathSegments("foo")
+        assertEquals("https://example.com/foo", url.buildString())
     }
 
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
     private fun testBuildString(url: String) {
-        assertEquals(url.toLowerCase(), URLBuilder(url).buildString().toLowerCase())
+        assertEquals(url.lowercase(), URLBuilder(url).buildString().lowercase())
     }
 }

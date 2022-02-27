@@ -9,10 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 import kotlin.random.*
 
-@ThreadLocal
 private val RN_BYTES = "\r\n".toByteArray()
 
 /**
@@ -37,9 +35,10 @@ public class FormDataContent(
  * @param parts: form part data
  */
 public class MultiPartFormDataContent(
-    parts: List<PartData>
+    parts: List<PartData>,
+    public val boundary: String = generateBoundary(),
+    override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 ) : OutgoingContent.WriteChannelContent() {
-    private val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
     private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n".toByteArray()
 
@@ -58,12 +57,12 @@ public class MultiPartFormDataContent(
             is PartData.FileItem -> {
                 val headers = headersBuilder.build().readBytes()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
-                PreparedPart(headers, part.provider, size)
+                PreparedPart.InputPart(headers, part.provider, size)
             }
             is PartData.BinaryItem -> {
                 val headers = headersBuilder.build().readBytes()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
-                PreparedPart(headers, part.provider, size)
+                PreparedPart.InputPart(headers, part.provider, size)
             }
             is PartData.FormItem -> {
                 val bytes = buildPacket { writeText(part.value) }.readBytes()
@@ -75,14 +74,17 @@ public class MultiPartFormDataContent(
 
                 val headers = headersBuilder.build().readBytes()
                 val size = bytes.size + PART_OVERHEAD_SIZE + headers.size
-                PreparedPart(headers, provider, size.toLong())
+                PreparedPart.InputPart(headers, provider, size.toLong())
+            }
+            is PartData.BinaryChannelItem -> {
+                val headers = headersBuilder.build().readBytes()
+                val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
+                PreparedPart.ChannelPart(headers, part.provider, size)
             }
         }
     }
 
     override val contentLength: Long?
-
-    override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     init {
         var rawLength: Long? = 0
@@ -110,8 +112,15 @@ public class MultiPartFormDataContent(
                 channel.writeFully(part.headers)
                 channel.writeFully(RN_BYTES)
 
-                part.provider().use { input ->
-                    input.copyTo(channel)
+                when (part) {
+                    is PreparedPart.InputPart -> {
+                        part.provider().use { input ->
+                            input.copyTo(channel)
+                        }
+                    }
+                    is PreparedPart.ChannelPart -> {
+                        part.provider().copyTo(channel)
+                    }
                 }
 
                 channel.writeFully(RN_BYTES)
@@ -132,11 +141,14 @@ private fun generateBoundary(): String = buildString {
     }
 }.take(70)
 
-private class PreparedPart(
-    val headers: ByteArray,
-    val provider: () -> Input,
-    val size: Long?
-)
+private sealed class PreparedPart(val headers: ByteArray, val size: Long?) {
+    class InputPart(headers: ByteArray, val provider: () -> Input, size: Long?) : PreparedPart(headers, size)
+    class ChannelPart(
+        headers: ByteArray,
+        val provider: () -> ByteReadChannel,
+        size: Long?
+    ) : PreparedPart(headers, size)
+}
 
 private suspend fun Input.copyTo(channel: ByteWriteChannel) {
     if (this is ByteReadPacket) {

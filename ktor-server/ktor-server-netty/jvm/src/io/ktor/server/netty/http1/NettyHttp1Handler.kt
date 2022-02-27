@@ -4,10 +4,11 @@
 
 package io.ktor.server.netty.http1
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
@@ -82,6 +83,7 @@ internal class NettyHttp1Handler(
         }
     }
 
+    @OptIn(InternalAPI::class)
     override fun channelActive(ctx: ChannelHandlerContext) {
         if (!configured) {
             configured = true

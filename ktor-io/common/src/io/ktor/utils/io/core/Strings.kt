@@ -39,9 +39,9 @@ public fun Input.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE): S
 }
 
 /**
- * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
+ * Reads UTF-8 line and append all line characters to [out] except line endings. Supports CR, LF and CR+LF
  * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
- * if empty
+ * is empty
  */
 public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
     var decoded = 0
@@ -98,6 +98,7 @@ public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
  * @throws BufferLimitExceededException
  * @returns a string of characters read before delimiter
  */
+@Suppress("unused")
 public fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX_VALUE): String {
     return buildString {
         readUTF8UntilDelimiterTo(this, delimiters, limit)
@@ -146,22 +147,12 @@ public fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, l
 public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     val delimitersCount = delimiters.length
     if (delimitersCount == 1 && delimiters[0].isAsciiChar()) {
-        return readUntilDelimiter(delimiters[0].toByte(), out).toInt()
+        return readUntilDelimiter(delimiters[0].code.toByte(), out).toInt()
     } else if (delimitersCount == 2 && delimiters[0].isAsciiChar() && delimiters[1].isAsciiChar()) {
-        return readUntilDelimiters(delimiters[0].toByte(), delimiters[1].toByte(), out).toInt()
+        return readUntilDelimiters(delimiters[0].code.toByte(), delimiters[1].code.toByte(), out).toInt()
     }
 
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
-}
-
-@Suppress("unused", "DEPRECATION_ERROR")
-@Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
-public fun Input.readUTF8UntilDelimiterTo(
-    out: BytePacketBuilderBase,
-    delimiters: String,
-    limit: Int = Int.MAX_VALUE
-): Int {
-    return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
 }
 
 /**
@@ -212,19 +203,6 @@ public fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray 
     }
 
     if (size == array.size) array else array.copyOf(size)
-}
-
-/**
- * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
- * @return number of characters copied to [out]
- */
-@Deprecated(
-    "Use CharsetDecoder.decode instead",
-    ReplaceWith("decoder.decode(this, out, max)", "io.ktor.utils.io.charsets.decode"),
-    level = DeprecationLevel.ERROR
-)
-public fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
-    return decoder.decode(this, out, max)
 }
 
 /**
@@ -302,26 +280,6 @@ public fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets
 }
 
 /**
- * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
- */
-@Deprecated(
-    "Use the implementation with Charset instead",
-    ReplaceWith(
-        "writeText(text, fromIndex, toIndex, encoder.charset)",
-        "io.ktor.utils.io.charsets.charset"
-    ),
-    level = DeprecationLevel.ERROR
-)
-public fun Output.writeText(
-    text: CharSequence,
-    fromIndex: Int = 0,
-    toIndex: Int = text.length,
-    encoder: CharsetEncoder
-) {
-    encoder.encodeToImpl(this, text, fromIndex, toIndex)
-}
-
-/**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
  */
 public fun Output.writeText(
@@ -376,7 +334,7 @@ private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: In
 internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun Char.isAsciiChar() = toInt() <= 0x7f
+private inline fun Char.isAsciiChar() = code <= 0x7f
 
 private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
     var decoded = 0

@@ -4,13 +4,13 @@
 
 package io.ktor.client.tests.utils.tests
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
-internal fun Application.featuresTest() {
+internal fun Application.pluginsTest() {
     routing {
-        route("features") {
+        route("plugins") {
             get("body") {
                 val size = call.parameters["size"]!!.toInt()
                 val text = "x".repeat(size)

@@ -6,7 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -14,14 +14,17 @@ import io.ktor.http.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class CallValidatorTest {
-    private var firstHandler by shared(0)
-    private var secondHandler by shared(0)
-    private var handleTriggered by shared(false)
-    private var validator by shared(0)
+    private var firstHandler = 0
+    private var secondHandler = 0
+    private var handleTriggered = false
+    private var validator = 0
 
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
+        var thirdHandler = 0
+
         config {
             engine {
                 addHandler { respondOk() }
@@ -36,22 +39,29 @@ class CallValidatorTest {
                     secondHandler++
                     assertTrue(it is CallValidatorTestException)
                 }
+
+                handleResponseExceptionWithRequest { cause, request ->
+                    thirdHandler++
+                    assertTrue(cause is CallValidatorTestException)
+                    assertNotNull(request)
+                }
             }
         }
 
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
-            var thirdHandler = false
+            var fourthHandler = false
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
-                thirdHandler = true
+                fourthHandler = true
             }
 
             assertEquals(1, firstHandler)
             assertEquals(1, secondHandler)
-            assertTrue(thirdHandler)
+            assertEquals(1, thirdHandler)
+            assertTrue(fourthHandler)
         }
     }
 
@@ -66,15 +76,21 @@ class CallValidatorTest {
                     assertTrue(it is CallValidatorTestException)
                     firstHandler++
                 }
+                handleResponseExceptionWithRequest { cause, request ->
+                    assertTrue(cause is CallValidatorTestException)
+                    assertNotNull(request)
+                    secondHandler++
+                }
             }
         }
         test { client ->
             try {
-                client.request<HttpResponse>()
+                client.request()
             } catch (_: CallValidatorTestException) {
             }
 
             assertEquals(1, firstHandler)
+            assertEquals(1, secondHandler)
         }
     }
 
@@ -94,7 +110,7 @@ class CallValidatorTest {
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
             }
 
@@ -118,7 +134,7 @@ class CallValidatorTest {
         test { client ->
             client.receivePipeline.intercept(HttpReceivePipeline.State) { throw CallValidatorTestException() }
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
             }
 
@@ -151,7 +167,7 @@ class CallValidatorTest {
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
                 handleTriggered = true
             }
@@ -181,7 +197,7 @@ class CallValidatorTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Awesome response", response)
             assertEquals(1, validator)
         }
@@ -206,7 +222,7 @@ class CallValidatorTest {
         }
 
         test { client ->
-            client.get<HttpResponse>()
+            client.get {}
             assertEquals(1, validator)
         }
     }
@@ -225,11 +241,11 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<HttpResponse>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -248,11 +264,11 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}.body<String>()
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -271,18 +287,18 @@ class CallValidatorTest {
 
         test { client ->
             // expectSuccess default
-            val response = client.get<HttpResponse>()
+            val response = client.get {}
             assertEquals(900, response.status.value)
 
             // expectSuccess overwritten
             try {
-                client.get<HttpResponse> {
+                client.get {
                     expectSuccess = true
                 }
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -301,18 +317,18 @@ class CallValidatorTest {
 
         test { client ->
             // expectSuccess overwritten
-            val response = client.get<HttpResponse> {
+            val response = client.get {
                 expectSuccess = false
             }
             assertEquals(900, response.status.value)
 
             // expectSuccess default
             try {
-                client.get<HttpResponse>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -336,11 +352,11 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -364,7 +380,7 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: IllegalStateException) {
                 assertEquals("My custom error", cause.message)
@@ -391,7 +407,7 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String> { expectSuccess = false }
+                client.get { expectSuccess = false }
                 fail("Should fail")
             } catch (cause: IllegalStateException) {
                 assertEquals("My custom error", cause.message)

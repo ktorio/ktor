@@ -5,21 +5,23 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
-class ContentTest : ClientLoader() {
+class ContentTest : ClientLoader(5 * 60) {
     private val testSize = listOf(
         0,
         1, // small edge cases
@@ -39,11 +41,11 @@ class ContentTest : ClientLoader() {
                 "page" to listOf("10")
             )
 
-            val response = client.submitForm<String>(
+            val response = client.submitForm(
                 "$TEST_SERVER/content/news",
                 encodeInQuery = true,
                 formParameters = form
-            )
+            ).body<String>()
 
             assertEquals("100", response)
         }
@@ -63,6 +65,11 @@ class ContentTest : ClientLoader() {
 
     @Test
     fun testByteReadChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
@@ -78,7 +85,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
+    fun testString() = clientTests(listOf("Js", "Darwin", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -109,7 +116,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
+    fun testTextContent() = clientTests(listOf("Js", "Darwin", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -140,7 +147,7 @@ class ContentTest : ClientLoader() {
                 "token" to listOf("abcdefg")
             )
 
-            val response = client.submitForm<String>("$TEST_SERVER/content/sign", formParameters = form)
+            val response = client.submitForm("$TEST_SERVER/content/sign", formParameters = form).body<String>()
             assertEquals("success", response)
         }
     }
@@ -169,50 +176,65 @@ class ContentTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.submitFormWithBinaryData<String>(
+            val response = client.submitFormWithBinaryData(
                 "$TEST_SERVER/content/upload",
                 formData = data()
-            )
+            ).body<String>()
             val contentString = data().makeString()
             assertEquals(contentString, response)
         }
     }
 
     @Test
+    fun testMultipartWithByteReadChannel() = clientTests {
+        test { client ->
+            val response = client.submitFormWithBinaryData(
+                "$TEST_SERVER/echo",
+                formData = formData {
+                    append("channel", ChannelProvider { ByteReadChannel("from channel") })
+                }
+            ).body<String>()
+
+            assertContains(response, "Content-Disposition: form-data; name=channel")
+            assertContains(response, "from channel")
+        }
+    }
+
+    @Test
     fun testFormDataWithContentLength() = clientTests(listOf("Js")) {
         test { client ->
-            client.submitForm<Unit> {
+            client.submitForm {
                 url("$TEST_SERVER/content/file-upload")
                 method = HttpMethod.Put
 
-                body = MultiPartFormDataContent(
-                    formData {
-                        appendInput(
-                            "image",
-                            Headers.build {
-                                append(HttpHeaders.ContentType, "image/jpg")
-                                append(HttpHeaders.ContentDisposition, "filename=hello.jpg")
-                            },
-                            size = 4
-                        ) { buildPacket { writeInt(42) } }
-                    }
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            appendInput(
+                                "image",
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, "image/jpg")
+                                    append(HttpHeaders.ContentDisposition, "filename=hello.jpg")
+                                },
+                                size = 4
+                            ) { buildPacket { writeInt(42) } }
+                        }
+                    )
                 )
-            }
+            }.body<Unit>()
         }
     }
 
     @Test
     fun testJsonPostWithEmptyBody() = clientTests {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(ContentNegotiation) { json() }
         }
 
         test { client ->
-            val response = client.post<String>("$TEST_SERVER/echo") {
+            val response = client.post("$TEST_SERVER/echo") {
                 contentType(ContentType.Application.Json)
-            }
+            }.body<String>()
 
             assertEquals("", response)
         }
@@ -224,9 +246,9 @@ class ContentTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.post<String>("$TEST_SERVER/echo") {
-                body = EmptyContent
-            }
+            val response = client.post("$TEST_SERVER/echo") {
+                setBody(EmptyContent)
+            }.body<String>()
 
             assertEquals("", response)
         }
@@ -234,35 +256,35 @@ class ContentTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Curl")) {
+    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
         test { client ->
-            val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
+            val content = client.get("$TEST_SERVER/content/stream").body<ByteReadChannel>()
             content.cancel()
         }
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl", "CIO")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "CIO")) {
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+            client.prepareGet("$TEST_SERVER/content/stream").execute {
             }
         }
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js", "Curl")) {
+    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+            client.prepareGet("$TEST_SERVER/content/stream").execute {
                 it.cancel()
             }
         }
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "Curl", "CIO")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "CIO")) {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
-                client.get<ByteArray>("$TEST_SERVER/content/stream")
+                client.get("$TEST_SERVER/content/stream").body<ByteArray>()
             }
 
             assertNull(result)
@@ -272,6 +294,6 @@ class ContentTest : ClientLoader() {
     private suspend inline fun <reified Response : Any> HttpClient.echo(
         body: Any
     ): Response = post("$TEST_SERVER/content/echo") {
-        this.body = body
-    }
+        setBody(body)
+    }.body()
 }

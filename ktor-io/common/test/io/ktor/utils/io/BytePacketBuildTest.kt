@@ -5,9 +5,7 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
-import kotlin.test.Test
 
 open class BytePacketBuildTest {
     open val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
@@ -37,7 +35,7 @@ open class BytePacketBuildTest {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 1 + 2 + 4 + 8 + 4 + 8 + 8 + 3 + 5, p.remaining)
+        assertEquals(45L, p.remaining)
         val ba = ByteArray(2)
         p.readFully(ba)
 
@@ -75,7 +73,7 @@ open class BytePacketBuildTest {
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(9999 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals(10034L, p.remaining)
 
         p.readFully(ByteArray(9999))
         assertEquals(0x12, p.readByte())
@@ -183,7 +181,7 @@ open class BytePacketBuildTest {
         try {
             p.readInt()
             fail()
-        } catch (expected: EOFException) {
+        } catch (_: EOFException) {
         } finally {
             p.release()
         }
@@ -285,7 +283,7 @@ open class BytePacketBuildTest {
     }
 
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
-        val builder = BytePacketBuilder(0, pool)
+        val builder = BytePacketBuilder(pool)
         try {
             block(builder)
             return builder.build()
@@ -298,8 +296,8 @@ open class BytePacketBuildTest {
     private fun String.toByteArray0(): ByteArray {
         val result = ByteArray(length)
 
-        for (i in 0 until length) {
-            val v = this[i].toInt() and 0xff
+        for (i in indices) {
+            val v = this[i].code and 0xff
             if (v > 0x7f) fail()
             result[i] = v.toByte()
         }
@@ -308,6 +306,6 @@ open class BytePacketBuildTest {
     }
 
     companion object {
-        public const val PACKET_BUFFER_SIZE: Int = 4096
+        const val PACKET_BUFFER_SIZE: Int = 4096
     }
 }

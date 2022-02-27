@@ -4,10 +4,10 @@
 
 package io.ktor.tests.server.jetty.http2
 
-import io.ktor.application.*
-import io.ktor.response.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import io.ktor.server.response.*
 import io.ktor.server.servlet.*
 import org.slf4j.*
 import java.net.*
@@ -15,7 +15,6 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
-@OptIn(EngineAPI::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 class MultipleDispatchOnTimeout {
 

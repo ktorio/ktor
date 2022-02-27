@@ -4,19 +4,20 @@
 
 package io.ktor.client.tests
 
-import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -46,8 +47,8 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     public fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
-            val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
-            assertEquals("hello", statement.execute().readText())
+            val statement = client.prepareGet("http://localhost:$serverPort/hello")
+            assertEquals("hello", statement.execute().bodyAsText())
         }
 
         val latch = ArrayBlockingQueue<Result<Unit>>(1)
@@ -67,9 +68,9 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     }
 
     @Test
-    public fun configCopiesOldFeaturesAndInterceptors() {
-        val customFeatureKey = AttributeKey<Boolean>("customFeature")
-        val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
+    public fun configCopiesOldPluginsAndInterceptors() {
+        val customPluginKey = AttributeKey<Boolean>("customPlugin")
+        val anotherCustomPluginKey = AttributeKey<Boolean>("anotherCustomPlugin")
 
         val originalClient = HttpClient(factory) {
             useDefaultTransformers = false
@@ -78,43 +79,43 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
                 port = serverPort
                 url.path("empty")
             }
-            install("customFeature") {
-                attributes.put(customFeatureKey, true)
+            install("customPlugin") {
+                attributes.put(customPluginKey, true)
             }
         }
 
         // check everything was installed in original
         val originalRequest = runBlocking {
-            originalClient.request<HttpResponse>(HttpRequestBuilder())
+            originalClient.request(HttpRequestBuilder())
         }.request
         assertEquals("/empty", originalRequest.url.fullPath)
 
-        assertTrue(originalClient.attributes.contains(customFeatureKey), "no custom feature installed")
+        assertTrue(originalClient.attributes.contains(customPluginKey), "no custom plugin installed")
 
         // create a new client, copying the original, with:
         // - a reconfigured DefaultRequest
-        // - a new custom feature
+        // - a new custom plugin
         val newClient = originalClient.config {
             install(DefaultRequest) {
                 port = serverPort
                 url.path("hello")
             }
-            install("anotherCustomFeature") {
-                attributes.put(anotherCustomFeatureKey, true)
+            install("anotherCustomPlugin") {
+                attributes.put(anotherCustomPluginKey, true)
             }
         }
 
-        // check the custom feature remained installed
+        // check the custom plugin remained installed
         // and that we override the DefaultRequest
         val newRequest = runBlocking {
-            newClient.request<HttpResponse>(HttpRequestBuilder())
+            newClient.request(HttpRequestBuilder())
         }.request
         assertEquals("/hello", newRequest.url.fullPath)
 
-        assertTrue(newClient.attributes.contains(customFeatureKey), "no custom feature installed")
+        assertTrue(newClient.attributes.contains(customPluginKey), "no custom plugin installed")
 
-        // check the new custom feature is there too
-        assertTrue(newClient.attributes.contains(anotherCustomFeatureKey), "no other custom feature installed")
+        // check the new custom plugin is there too
+        assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
     }
 
     @Test
@@ -124,9 +125,9 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         channel.writeAvailable("text".toByteArray())
         channel.close(SendException())
         assertFailsWith<SendException>("Error on write") {
-            client.post<String>("http://localhost:$serverPort/echo") {
-                body = channel
-            }
+            client.post("http://localhost:$serverPort/echo") {
+                setBody(channel)
+            }.body<String>()
         }
     }
 

@@ -20,7 +20,7 @@ public actual fun Throwable.printStack() {
 
 /**
  * This file is a copy of the [kotlinx.coroutines.internal.ExceptionConstructor] with a single difference:
- * [tryCopyException] takes additional argument with cause to use in recovered exception.
+ * [tryCopyException] takes additional argument with cause using in recovered exception.
  */
 
 private val throwableFields = Throwable::class.java.fieldsCountOrDefault(-1)
@@ -33,7 +33,7 @@ private val exceptionCtors: WeakHashMap<Class<out Throwable>, Ctor> = WeakHashMa
 /**
  * Try copy [exception] using [cause] as cause.
  */
-@DangerousInternalIoApi
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalCoroutinesApi::class)
 public fun <E : Throwable> tryCopyException(exception: E, cause: Throwable): E? {
     // Fast path for CopyableThrowable

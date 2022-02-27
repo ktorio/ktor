@@ -4,9 +4,11 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -47,9 +49,9 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Content", response)
-            client.post<Unit>(body = "Hello, Test!")
+            client.post { setBody("Hello, Test!") }
         }
     }
 
@@ -89,9 +91,9 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Content", response)
-            client.post<Unit>(body = "Hello, Test!")
+            client.post { setBody("Hello, Test!") }
         }
     }
 
@@ -131,9 +133,9 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Content", response)
-            client.post<Unit>(body = "Hello, Test!")
+            client.post { setBody("Hello, Test!") }
         }
     }
 
@@ -173,9 +175,9 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Content", response)
-            client.post<Unit>(body = "Hello, Test!")
+            client.post { setBody("Hello, Test!") }
         }
     }
 
@@ -202,7 +204,7 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get { }.bodyAsText()
             assertEquals("Content", response)
         }
     }
@@ -230,7 +232,7 @@ class CharsetTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get { }.bodyAsText()
             assertEquals("Content", response)
         }
     }

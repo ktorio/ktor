@@ -7,6 +7,7 @@ package io.ktor.client.request.forms
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.contracts.*
 
@@ -48,6 +49,13 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                     partHeaders.append(HttpHeaders.ContentLength, size.toString())
                 }
                 PartData.BinaryItem(value.block, {}, partHeaders.build())
+            }
+            is ChannelProvider -> {
+                val size = value.size
+                if (size != null) {
+                    partHeaders.append(HttpHeaders.ContentLength, size.toString())
+                }
+                PartData.BinaryChannelItem(value.block, partHeaders.build())
             }
             is Input -> error("Can't use [Input] as part of form: $value. Consider using [InputProvider] instead.")
             else -> error("Unknown form content type: $value")
@@ -122,16 +130,10 @@ public class FormBuilder internal constructor() {
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Append a pair [key]:[ChannelProvider] with optional [headers].
      */
-    @Suppress("UNUSED_PARAMETER")
-    @Deprecated(
-        "Input is not reusable. Please use [InputProvider] instead.",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("appendInput(key, headers) { /* create fresh input here */ }")
-    )
-    public fun append(key: String, value: Input, headers: Headers = Headers.Empty) {
-        error("Input is not reusable. Please use [InputProvider] instead.")
+    public fun append(key: String, value: ChannelProvider, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
     }
 
     /**
@@ -167,6 +169,13 @@ public inline fun FormBuilder.append(
  * @param block: content generator
  */
 public class InputProvider(public val size: Long? = null, public val block: () -> Input)
+
+/**
+ * Supplies a new [ByteReadChannel]
+ * @property size is total amount of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
+ * @param block returns a new [ByteReadChannel]
+ */
+public class ChannelProvider(public val size: Long? = null, public val block: () -> ByteReadChannel)
 
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.

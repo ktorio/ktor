@@ -2,6 +2,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 
 /**
  * Channel for asynchronous writing of sequences of bytes.
@@ -29,23 +30,13 @@ public expect interface ByteWriteChannel {
     public val autoFlush: Boolean
 
     /**
-     * Byte order that is used for multi-byte write operations
-     * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
-     */
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    public var writeByteOrder: ByteOrder
-
-    /**
      * Number of bytes written to the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of write operation.
      */
     public val totalBytesWritten: Long
 
     /**
-     * An closure cause exception or `null` if closed successfully or not yet closed
+     * A closure causes exception or `null` if closed successfully or not yet closed
      */
     public val closedCause: Throwable?
 
@@ -54,7 +45,7 @@ public expect interface ByteWriteChannel {
      */
     public suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
-    public suspend fun writeAvailable(src: IoBuffer): Int
+    public suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
@@ -62,14 +53,12 @@ public expect interface ByteWriteChannel {
      */
     public suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
-    public suspend fun writeFully(src: IoBuffer)
-
     public suspend fun writeFully(src: Buffer)
 
     public suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")
-    @ExperimentalIoApi
     public suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**
@@ -116,7 +105,6 @@ public expect interface ByteWriteChannel {
     /**
      * Invokes [block] when at least 1 byte is available for write.
      */
-    @ExperimentalIoApi
     public suspend fun awaitFreeSpace()
 
     /**
@@ -178,21 +166,11 @@ public fun ByteWriteChannel.close(): Boolean = close(null)
 
 public suspend fun ByteWriteChannel.writeStringUtf8(s: CharSequence) {
     val packet = buildPacket {
-        writeStringUtf8(s)
+        writeText(s)
     }
 
     return writePacket(packet)
 }
-
-/*
-TODO
-public suspend fun ByteWriteChannel.writeStringUtf8(s: CharBuffer) {
-    val packet = buildPacket {
-        writeStringUtf8(s)
-    }
-
-    return writePacket(packet)
-}*/
 
 public suspend fun ByteWriteChannel.writeStringUtf8(s: String) {
     val packet = buildPacket {
@@ -210,11 +188,11 @@ public suspend fun ByteWriteChannel.writeBoolean(b: Boolean) {
  * Writes UTF16 character
  */
 public suspend fun ByteWriteChannel.writeChar(ch: Char) {
-    return writeShort(ch.toInt())
+    return writeShort(ch.code)
 }
 
-public suspend inline fun ByteWriteChannel.writePacket(headerSizeHint: Int = 0, builder: BytePacketBuilder.() -> Unit) {
-    return writePacket(buildPacket(headerSizeHint, builder))
+public suspend inline fun ByteWriteChannel.writePacket(builder: BytePacketBuilder.() -> Unit) {
+    return writePacket(buildPacket(builder))
 }
 
 public suspend fun ByteWriteChannel.writePacketSuspend(builder: suspend BytePacketBuilder.() -> Unit) {

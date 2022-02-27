@@ -3,34 +3,26 @@
 */
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
-
-@SharedImmutable
+private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }
 private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
-
-@SharedImmutable
 private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
 
 /**
  * https://tools.ietf.org/html/rfc3986#section-2
  */
-@SharedImmutable
 private val URL_PROTOCOL_PART = listOf(
     ':', '/', '?', '#', '[', ']', '@', // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // sub-components
     '-', '.', '_', '~', '+' // unreserved
-).map { it.toByte() }
+).map { it.code.toByte() }
 
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
-@SharedImmutable
 private val VALID_PATH_PART = listOf(
     ':', '@',
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
@@ -41,16 +33,7 @@ private val VALID_PATH_PART = listOf(
  * Oauth specific percent encoding
  * https://tools.ietf.org/html/rfc5849#section-3.6
  */
-@SharedImmutable
-private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.toByte() }
-
-internal val LETTERS_AND_NUMBERS = ('a'..'z').toSet() + ('A'..'Z').toSet() + ('0'..'9').toSet()
-
-/**
- * https://tools.ietf.org/html/rfc7230#section-3.2.6
- */
-internal val TOKENS: Set<Char> =
-    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') + LETTERS_AND_NUMBERS
+private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
 
 /**
  * Encode url part as specified in
@@ -64,8 +47,8 @@ public fun String.encodeURLQueryComponent(
     val content = charset.newEncoder().encode(this@encodeURLQueryComponent)
     content.forEach {
         when {
-            it == ' '.toByte() -> if (spaceToPlus) append('+') else append("%20")
-            it in URL_ALPHABET || (!encodeFull && it in URL_PROTOCOL_PART) -> append(it.toChar())
+            it == ' '.code.toByte() -> if (spaceToPlus) append('+') else append("%20")
+            it in URL_ALPHABET || (!encodeFull && it in URL_PROTOCOL_PART) -> append(it.toInt().toChar())
             else -> append(it.percentEncode())
         }
     }
@@ -123,8 +106,8 @@ public fun String.encodeURLParameter(
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
     content.forEach {
         when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toChar())
-            spaceToPlus && it == ' '.toByte() -> append('+')
+            it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toInt().toChar())
+            spaceToPlus && it == ' '.code.toByte() -> append('+')
             else -> append(it.percentEncode())
         }
     }

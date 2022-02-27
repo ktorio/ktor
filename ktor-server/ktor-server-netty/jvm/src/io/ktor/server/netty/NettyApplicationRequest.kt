@@ -4,11 +4,10 @@
 
 package io.ktor.server.netty
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
+import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -17,8 +16,6 @@ import kotlinx.coroutines.*
 import java.io.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-@InternalAPI
 public abstract class NettyApplicationRequest(
     call: ApplicationCall,
     override val coroutineContext: CoroutineContext,
@@ -35,6 +32,11 @@ public abstract class NettyApplicationRequest(
         override fun names() = decoder.parameters().keys
         override fun entries() = decoder.parameters().entries
         override fun isEmpty() = decoder.parameters().isEmpty()
+    }
+
+    override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        val queryStartIndex = uri.indexOf('?').takeIf { it != -1 } ?: return@lazy Parameters.Empty
+        parseQueryString(uri, startIndex = queryStartIndex + 1, decode = false)
     }
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)

@@ -5,49 +5,33 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.atomicfu.*
 import kotlinx.atomicfu.locks.*
 import kotlin.math.*
-
-@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-public suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
-    return joinToImpl(dst, closeOnEnd)
-}
-
-@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-public suspend fun ByteChannelSequentialBase.copyTo(
-    dst: ByteChannelSequentialBase,
-    limit: Long = Long.MAX_VALUE
-): Long {
-    return copyToSequentialImpl(dst, limit)
-}
 
 private const val EXPECTED_CAPACITY: Long = 4088L
 
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
-@Suppress("OverridingDeprecatedMember")
-@DangerousInternalIoApi
+@Suppress("OverridingDeprecatedMember", "DEPRECATION")
 public abstract class ByteChannelSequentialBase(
-    initial: IoBuffer,
+    initial: ChunkBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
+    private val _lastReadView: AtomicRef<ChunkBuffer> = atomic(ChunkBuffer.Empty)
 
-    @Suppress("unused", "DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
+    private val _totalBytesRead = atomic(0L)
+    private val _totalBytesWritten = atomic(0L)
 
-    private val state = ByteChannelSequentialBaseSharedState()
+    protected var closed: Boolean by atomic(false)
 
-    protected var closed: Boolean
-        get() = state.closed
-        set(value) {
-            state.closed = value
-        }
-
-    protected val writable: BytePacketBuilder = BytePacketBuilder(0, pool)
+    protected val writable: BytePacketBuilder = BytePacketBuilder(pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
+
+    private var lastReadAvailable: Int by atomic(0)
+    private var lastReadView: ChunkBuffer by atomic(ChunkBuffer.Empty)
 
     private val slot = AwaitingSlot()
 
@@ -62,53 +46,17 @@ public abstract class ByteChannelSequentialBase(
     override val availableForWrite: Int
         get() = maxOf(0, EXPECTED_CAPACITY.toInt() - totalPending())
 
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    override var readByteOrder: ByteOrder
-        get() = state.readByteOrder
-        set(value) {
-            state.readByteOrder = value
-        }
-
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    override var writeByteOrder: ByteOrder
-        get() = state.writeByteOrder
-        set(value) {
-            state.writeByteOrder = value
-        }
-
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty && flushSize == 0 && writable.isEmpty
 
     override val isClosedForWrite: Boolean
         get() = closed
 
-    private var _totalBytesRead: Long
-        get() = state.totalBytesRead
-        set(value) {
-            state.totalBytesRead = value
-        }
+    override val totalBytesRead: Long
+        get() = _totalBytesRead.value
 
-    override val totalBytesRead: Long get() = state.totalBytesRead
-
-    private var _totalBytesWritten: Long
-        get() = state.totalBytesWritten
-        set(value) {
-            state.totalBytesWritten = value
-        }
-
-    override val totalBytesWritten: Long get() = state.totalBytesWritten
-
-    final override var closedCause: Throwable?
-        get() = state.closedCause
-        private set(value) {
-            state.closedCause = value
-        }
+    override val totalBytesWritten: Long get() = _totalBytesWritten.value
+    final override var closedCause: Throwable? by atomic(null)
 
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
@@ -116,14 +64,14 @@ public abstract class ByteChannelSequentialBase(
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
         while (availableForWrite < count && !closed) {
             if (!flushImpl()) {
-                slot.sleep()
+                slot.sleep { availableForWrite < count && !closed }
             }
         }
     }
 
     internal suspend fun awaitAtLeastNBytesAvailableForRead(count: Int) {
         while (availableForRead < count && !closed) {
-            slot.sleep()
+            slot.sleep { availableForRead < count && !closed }
         }
     }
 
@@ -133,6 +81,7 @@ public abstract class ByteChannelSequentialBase(
 
     private fun flushImpl(): Boolean {
         if (writable.isEmpty) {
+            slot.resume()
             return false
         }
 
@@ -187,42 +136,33 @@ public abstract class ByteChannelSequentialBase(
         afterWrite(1)
     }
 
-    private inline fun <T : Any> reverseWrite(value: () -> T, reversed: () -> T): T {
-        @Suppress("DEPRECATION_ERROR")
-        return if (writeByteOrder == ByteOrder.BIG_ENDIAN) {
-            value()
-        } else {
-            reversed()
-        }
-    }
-
     override suspend fun writeShort(s: Short) {
         awaitAtLeastNBytesAvailableForWrite(2)
-        writable.writeShort(reverseWrite({ s }, { s.reverseByteOrder() }))
+        writable.writeShort(s)
         afterWrite(2)
     }
 
     override suspend fun writeInt(i: Int) {
         awaitAtLeastNBytesAvailableForWrite(4)
-        writable.writeInt(reverseWrite({ i }, { i.reverseByteOrder() }))
+        writable.writeInt(i)
         afterWrite(4)
     }
 
     override suspend fun writeLong(l: Long) {
         awaitAtLeastNBytesAvailableForWrite(8)
-        writable.writeLong(reverseWrite({ l }, { l.reverseByteOrder() }))
+        writable.writeLong(l)
         afterWrite(8)
     }
 
     override suspend fun writeFloat(f: Float) {
         awaitAtLeastNBytesAvailableForWrite(4)
-        writable.writeFloat(reverseWrite({ f }, { f.reverseByteOrder() }))
+        writable.writeFloat(f)
         afterWrite(4)
     }
 
     override suspend fun writeDouble(d: Double) {
         awaitAtLeastNBytesAvailableForWrite(8)
-        writable.writeDouble(reverseWrite({ d }, { d.reverseByteOrder() }))
+        writable.writeDouble(d)
         afterWrite(8)
     }
 
@@ -231,10 +171,6 @@ public abstract class ByteChannelSequentialBase(
         val size = packet.remaining.toInt()
         writable.writePacket(packet)
         afterWrite(size)
-    }
-
-    override suspend fun writeFully(src: IoBuffer) {
-        writeFully(src as Buffer)
     }
 
     override suspend fun writeFully(src: Buffer) {
@@ -273,7 +209,7 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    override suspend fun writeAvailable(src: IoBuffer): Int {
+    override suspend fun writeAvailable(src: ChunkBuffer): Int {
         val srcRemaining = src.readRemaining
         if (srcRemaining == 0) return 0
         val size = minOf(srcRemaining, availableForWrite)
@@ -298,8 +234,8 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    @ExperimentalIoApi
     @Suppress("DEPRECATION")
+    @Deprecated("Use write { } instead.")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = beginWriteSession()
         visitor(session)
@@ -308,9 +244,9 @@ public abstract class ByteChannelSequentialBase(
     @Suppress("DEPRECATION")
     override fun beginWriteSession(): WriterSuspendSession {
         return object : WriterSuspendSession {
-            override fun request(min: Int): IoBuffer? {
+            override fun request(min: Int): ChunkBuffer? {
                 if (availableForWrite == 0) return null
-                return writable.prepareWriteHead(min) as IoBuffer
+                return writable.prepareWriteHead(min)
             }
 
             override fun written(n: Int) {
@@ -365,59 +301,24 @@ public abstract class ByteChannelSequentialBase(
 
     override suspend fun readShort(): Short {
         return if (readable.hasBytes(2)) {
-            readable.readShort().reverseRead().also { afterRead(2) }
+            readable.readShort().also { afterRead(2) }
         } else {
             readShortSlow()
         }
     }
 
     private suspend fun readShortSlow(): Short {
-        readNSlow(2) { return readable.readShort().reverseRead().also { afterRead(2) } }
-    }
-
-    @Deprecated("Consider providing consumed count of bytes", level = DeprecationLevel.ERROR)
-    protected fun afterRead() {
-        afterRead(0)
+        readNSlow(2) { return readable.readShort().also { afterRead(2) } }
     }
 
     protected fun afterRead(count: Int) {
-        _totalBytesRead += count
+        addBytesRead(count)
         slot.resume()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Short.reverseRead(): Short = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Int.reverseRead(): Int = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Long.reverseRead(): Long = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Float.reverseRead(): Float = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Double.reverseRead(): Double = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
     }
 
     override suspend fun readInt(): Int {
         return if (readable.hasBytes(4)) {
-            readable.readInt().reverseRead().also { afterRead(4) }
+            readable.readInt().also { afterRead(4) }
         } else {
             readIntSlow()
         }
@@ -425,13 +326,13 @@ public abstract class ByteChannelSequentialBase(
 
     private suspend fun readIntSlow(): Int {
         readNSlow(4) {
-            return readable.readInt().reverseRead().also { afterRead(4) }
+            return readable.readInt().also { afterRead(4) }
         }
     }
 
     override suspend fun readLong(): Long {
         return if (readable.hasBytes(8)) {
-            readable.readLong().reverseRead().also { afterRead(8) }
+            readable.readLong().also { afterRead(8) }
         } else {
             readLongSlow()
         }
@@ -439,38 +340,38 @@ public abstract class ByteChannelSequentialBase(
 
     private suspend fun readLongSlow(): Long {
         readNSlow(8) {
-            return readable.readLong().reverseRead().also { afterRead(8) }
+            return readable.readLong().also { afterRead(8) }
         }
     }
 
     override suspend fun readFloat(): Float = if (readable.hasBytes(4)) {
-        readable.readFloat().reverseRead().also { afterRead(4) }
+        readable.readFloat().also { afterRead(4) }
     } else {
         readFloatSlow()
     }
 
     private suspend fun readFloatSlow(): Float {
         readNSlow(4) {
-            return readable.readFloat().reverseRead().also { afterRead(4) }
+            return readable.readFloat().also { afterRead(4) }
         }
     }
 
     override suspend fun readDouble(): Double = if (readable.hasBytes(8)) {
-        readable.readDouble().reverseRead().also { afterRead(8) }
+        readable.readDouble().also { afterRead(8) }
     } else {
         readDoubleSlow()
     }
 
     private suspend fun readDoubleSlow(): Double {
         readNSlow(8) {
-            return readable.readDouble().reverseRead().also { afterRead(8) }
+            return readable.readDouble().also { afterRead(8) }
         }
     }
 
-    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
+    override suspend fun readRemaining(limit: Long): ByteReadPacket {
         ensureNotFailed()
 
-        val builder = BytePacketBuilder(headerSizeHint)
+        val builder = BytePacketBuilder()
 
         val size = minOf(limit, readable.remaining)
         builder.writePacket(readable, size)
@@ -503,10 +404,10 @@ public abstract class ByteChannelSequentialBase(
         return builder.build()
     }
 
-    override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
+    override suspend fun readPacket(size: Int): ByteReadPacket {
         checkClosed(size)
 
-        val builder = BytePacketBuilder(headerSizeHint)
+        val builder = BytePacketBuilder()
 
         var remaining = size
         val partSize = minOf(remaining.toLong(), readable.remaining).toInt()
@@ -547,7 +448,7 @@ public abstract class ByteChannelSequentialBase(
         return -1
     }
 
-    override suspend fun readAvailable(dst: IoBuffer): Int = readAvailable(dst as Buffer)
+    override suspend fun readAvailable(dst: ChunkBuffer): Int = readAvailable(dst as Buffer)
 
     internal suspend fun readAvailable(dst: Buffer): Int {
         closedCause?.let { throw it }
@@ -569,7 +470,7 @@ public abstract class ByteChannelSequentialBase(
         return size
     }
 
-    override suspend fun readFully(dst: IoBuffer, n: Int) {
+    override suspend fun readFully(dst: ChunkBuffer, n: Int) {
         readFully(dst as Buffer, n)
     }
 
@@ -641,18 +542,6 @@ public abstract class ByteChannelSequentialBase(
         return readBoolean()
     }
 
-    private var lastReadAvailable: Int
-        get() = state.lastReadAvailable
-        set(value) {
-            state.lastReadAvailable = value
-        }
-
-    private var lastReadView: ChunkBuffer
-        get() = state.lastReadView
-        set(value) {
-            state.lastReadView = value
-        }
-
     private fun completeReading() {
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
@@ -709,7 +598,7 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    override fun request(atLeast: Int): IoBuffer? {
+    override fun request(atLeast: Int): ChunkBuffer? {
         closedCause?.let { throw it }
 
         completeReading()
@@ -717,12 +606,12 @@ public abstract class ByteChannelSequentialBase(
         return requestNextView(atLeast)
     }
 
-    private fun requestNextView(atLeast: Int): IoBuffer? {
+    private fun requestNextView(atLeast: Int): ChunkBuffer? {
         if (readable.isEmpty) {
             prepareFlushedBytes()
         }
 
-        val view = readable.prepareReadHead(atLeast) as IoBuffer?
+        val view = readable.prepareReadHead(atLeast)
 
         if (view == null) {
             lastReadView = ChunkBuffer.Empty
@@ -795,7 +684,6 @@ public abstract class ByteChannelSequentialBase(
             return false
         }
 
-        @OptIn(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead(size)
             if (await(size)) readable
@@ -858,7 +746,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     @Suppress("DEPRECATION")
-    private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
+    private suspend fun writeAvailableSuspend(src: ChunkBuffer): Int {
         awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)
     }
@@ -868,13 +756,8 @@ public abstract class ByteChannelSequentialBase(
         return writeAvailable(src, offset, length)
     }
 
-    @Deprecated("Consider providing written count of bytes", level = DeprecationLevel.ERROR)
-    protected fun afterWrite() {
-        afterWrite(0)
-    }
-
     protected fun afterWrite(count: Int) {
-        _totalBytesWritten += count
+        addBytesWritten(count)
 
         if (closed) {
             writable.release()
@@ -889,6 +772,13 @@ public abstract class ByteChannelSequentialBase(
         flush()
         awaitAtLeastNBytesAvailableForWrite(1)
         ensureNotClosed()
+    }
+
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    override suspend fun awaitContent() {
+        await(1)
     }
 
     final override suspend fun peekTo(
@@ -906,7 +796,7 @@ public abstract class ByteChannelSequentialBase(
 
             await(desiredSize)
 
-            val buffer = request(1) ?: IoBuffer.Empty
+            val buffer = request(1) ?: ChunkBuffer.Empty
             if (buffer.readRemaining > offset) {
                 bytesCopied = minOf(buffer.readRemaining.toLong() - offset, max, destination.size - destinationOffset)
                 buffer.memory.copyTo(destination, offset, bytesCopied, destinationOffset)
@@ -914,5 +804,13 @@ public abstract class ByteChannelSequentialBase(
         }
 
         return bytesCopied
+    }
+
+    private fun addBytesRead(count: Int) {
+        _totalBytesRead.addAndGet(count.toLong())
+    }
+
+    private fun addBytesWritten(count: Int) {
+        _totalBytesWritten.addAndGet(count.toLong())
     }
 }

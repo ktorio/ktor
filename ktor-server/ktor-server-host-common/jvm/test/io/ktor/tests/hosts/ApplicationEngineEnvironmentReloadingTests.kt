@@ -2,15 +2,17 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("unused", "UNUSED_PARAMETER")
+
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
-import io.ktor.application.*
-import io.ktor.config.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -492,7 +494,7 @@ class ApplicationEngineEnvironmentReloadingTests {
     @Test
     fun `interceptor is invoked when added before environment start`() {
         val engine = TestApplicationEngine(createTestEnvironment())
-        engine.application.intercept(ApplicationCallPipeline.Features) {
+        engine.application.intercept(ApplicationCallPipeline.Plugins) {
             call.response.header("Custom", "Value")
         }
         engine.start()

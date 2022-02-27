@@ -57,13 +57,14 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
     val crc = CRC32()
-    val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
+    val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, true)
     val input = pool.borrow()
     val compressed = pool.borrow()
 
@@ -103,6 +104,7 @@ public fun ByteReadChannel.deflated(
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
+@OptIn(DelicateCoroutinesApi::class)
 public fun ByteWriteChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,

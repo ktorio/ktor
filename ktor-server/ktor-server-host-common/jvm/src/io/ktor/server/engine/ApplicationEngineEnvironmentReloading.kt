@@ -1,18 +1,20 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
 
-import io.ktor.application.*
-import io.ktor.config.*
+import io.ktor.events.*
+import io.ktor.events.EventDefinition
 import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
@@ -27,14 +29,13 @@ import kotlin.coroutines.*
  *
  * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
  */
-@EngineAPI
 public class ApplicationEngineEnvironmentReloading(
     override val classLoader: ClassLoader,
     override val log: Logger,
     override val config: ApplicationConfig,
     override val connectors: List<EngineConnectorConfig>,
-    private val modules: List<Application.() -> Unit>,
-    private val watchPaths: List<String> = emptyList(),
+    internal val modules: List<Application.() -> Unit>,
+    internal val watchPaths: List<String> = emptyList(),
     override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     override val rootPath: String = "",
     override val developmentMode: Boolean = true
@@ -77,7 +78,7 @@ public class ApplicationEngineEnvironmentReloading(
         }
     }
 
-    override val monitor: ApplicationEvents = ApplicationEvents()
+    override val monitor: Events = Events()
 
     override val application: Application
         get() = currentApplication()
@@ -166,10 +167,10 @@ public class ApplicationEngineEnvironmentReloading(
         log.debug("Java Home: $jre")
         log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
 
-        // we shouldn't watch URL for ktor-server-core classes, even if they match patterns,
+        // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
-            ApplicationEnvironment::class.java, // ktor-server-core
+            ApplicationEnvironment::class.java, // ktor-server
             ApplicationEngineEnvironment::class.java, // ktor-server-host-common
             Pipeline::class.java, // ktor-parsing
             HttpStatusCode::class.java, // ktor-http
@@ -278,7 +279,7 @@ public class ApplicationEngineEnvironmentReloading(
             } catch (cause: Throwable) {
                 destroyApplication()
                 if (watchPatterns.isNotEmpty()) {
-                    watcher?.close()
+                    cleanupWatcher()
                 }
 
                 throw cause
@@ -293,7 +294,7 @@ public class ApplicationEngineEnvironmentReloading(
             destroyApplication()
         }
         if (watchPatterns.isNotEmpty()) {
-            watcher?.close()
+            cleanupWatcher()
         }
     }
 
@@ -356,6 +357,13 @@ public class ApplicationEngineEnvironmentReloading(
             block()
         } finally {
             modules.remove(fqName)
+        }
+    }
+
+    private fun cleanupWatcher() {
+        try {
+            watcher?.close()
+        } catch (_: NoClassDefFoundError) {
         }
     }
 

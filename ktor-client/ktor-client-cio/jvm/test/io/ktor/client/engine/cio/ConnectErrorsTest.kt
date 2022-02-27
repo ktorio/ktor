@@ -4,16 +4,16 @@
 
 package io.ktor.client.engine.cio
 
-import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.network.tls.certificates.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -38,12 +38,12 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testConnectAfterConnectionErrors(): Unit = runBlocking<Unit> {
+    fun testConnectAfterConnectionErrors(): Unit = runBlocking {
         val client = HttpClient(CIO) {
             engine {
                 maxConnectionsCount = 1
                 endpoint.connectTimeout = SOCKET_CONNECT_TIMEOUT
-                endpoint.connectRetryAttempts = 3
+                endpoint.connectAttempts = 3
             }
         }
 
@@ -52,7 +52,7 @@ class ConnectErrorsTest {
 
             repeat(5) {
                 try {
-                    client.request<HttpResponse>("http://localhost:${serverSocket.localPort}/")
+                    client.request("http://localhost:${serverSocket.localPort}/")
                     fail("Shouldn't reach here")
                 } catch (_: java.net.ConnectException) {
                 }
@@ -74,7 +74,7 @@ class ConnectErrorsTest {
                     }
                 }
                 withTimeout(10000L) {
-                    assertEquals("OK", client.get<String>("http://localhost:${serverSocket.localPort}/"))
+                    assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 }
                 thread.join()
             }
@@ -82,7 +82,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testLateServerStart(): Unit = runBlocking<Unit> {
+    fun testLateServerStart(): Unit = runBlocking {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
 
@@ -96,7 +96,7 @@ class ConnectErrorsTest {
 
                 endpoint {
                     connectTimeout = SOCKET_CONNECT_TIMEOUT
-                    connectRetryAttempts = 1
+                    connectAttempts = 1
                 }
 
                 https {
@@ -105,7 +105,6 @@ class ConnectErrorsTest {
                 }
             }
         ).use { client ->
-
             val serverPort = ServerSocket(0).use { it.localPort }
             val server = embeddedServer(
                 Netty,
@@ -125,14 +124,14 @@ class ConnectErrorsTest {
             )
 
             try {
-                client.get<String>(scheme = "https", path = "/", port = serverPort)
+                client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
             } catch (_: java.net.ConnectException) {
             }
 
             try {
                 server.start()
 
-                val message = client.get<String>(scheme = "https", path = "/", port = serverPort)
+                val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)
             } finally {
                 server.stop(0, 0, TimeUnit.MILLISECONDS)

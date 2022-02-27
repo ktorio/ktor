@@ -6,6 +6,10 @@ package io.ktor.util.date
 
 import kotlin.js.*
 
+/**
+ * Create new gmt date from the [timestamp].
+ * @param timestamp is a number of epoch milliseconds (it is `now` by default).
+ */
 public actual fun GMTDate(timestamp: Long?): GMTDate {
     val date = timestamp?.toDouble()?.let { Date(it) } ?: Date()
 
@@ -34,6 +38,9 @@ public actual fun GMTDate(timestamp: Long?): GMTDate {
     }
 }
 
+/**
+ * Create an instance of [GMTDate] from the specified date/time components
+ */
 public actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate {
     val timestamp = Date.UTC(year, month.ordinal, dayOfMonth, hours, minutes, seconds).toLong()
     return GMTDate(timestamp)

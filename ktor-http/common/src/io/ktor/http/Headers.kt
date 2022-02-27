@@ -26,10 +26,8 @@ public interface Headers : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class HeadersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+public class HeadersBuilder(size: Int = 8) : StringValuesBuilderImpl(true, size) {
     override fun build(): Headers {
-        require(!built) { "HeadersBuilder can only build a single Headers instance" }
-        built = true
         return HeadersImpl(values)
     }
 
@@ -79,7 +77,6 @@ public fun headersOf(name: String, values: List<String>): Headers = HeadersSingl
  */
 public fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = HeadersImpl(pairs.asList().toMap())
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public class HeadersImpl(
     values: Map<String, List<String>> = emptyMap()
@@ -87,7 +84,6 @@ public class HeadersImpl(
     override fun toString(): String = "Headers ${entries()}"
 }
 
-@InternalAPI
 @Suppress("KDocMissingDocumentation")
 public class HeadersSingleImpl(
     name: String,

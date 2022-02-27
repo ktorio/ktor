@@ -10,17 +10,10 @@ import io.ktor.util.*
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
  */
 public interface Parameters : StringValues {
-    /**
-     * Returns a [UrlEncodingOption] instance
-     */
-    public val urlEncodingOption: UrlEncodingOption
-        get() = UrlEncodingOption.DEFAULT
-
     public companion object {
         /**
          * Empty [Parameters] instance
          */
-        @Suppress("DEPRECATION_ERROR")
         public val Empty: Parameters = EmptyParameters
 
         /**
@@ -33,36 +26,20 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilder(
-    size: Int = 8,
-    public var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
-) : StringValuesBuilder(true, size) {
-
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    public constructor(size: Int = 8) : this(size, UrlEncodingOption.DEFAULT)
-
-    override fun build(): Parameters {
-        require(!built) { "ParametersBuilder can only build a single Parameters instance" }
-        built = true
-        return ParametersImpl(values, urlEncodingOption)
-    }
+public interface ParametersBuilder : StringValuesBuilder {
+    override fun build(): Parameters
 }
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Empty parameters is internal",
-    replaceWith = ReplaceWith("Parameters.Empty"),
-    level = DeprecationLevel.ERROR
-)
-public object EmptyParameters : Parameters {
-    override val caseInsensitiveName: Boolean get() = true
-    override fun getAll(name: String): List<String>? = null
-    override fun names(): Set<String> = emptySet()
-    override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
-    override fun isEmpty(): Boolean = true
-    override fun toString(): String = "Parameters ${entries()}"
+public fun ParametersBuilder(size: Int = 8): ParametersBuilder = ParametersBuilderImpl(size)
 
-    override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
+@Suppress("KDocMissingDocumentation")
+public class ParametersBuilderImpl(
+    size: Int = 8
+) : StringValuesBuilderImpl(true, size), ParametersBuilder {
+    override fun build(): Parameters {
+        return ParametersImpl(values)
+    }
 }
 
 /**
@@ -81,25 +58,23 @@ public fun parametersOf(name: String, value: String): Parameters = ParametersSin
 public fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 
 /**
+ * Creates a parameters instance from the entries of the given [map]
+ */
+public fun parametersOf(map: Map<String, List<String>>): Parameters = ParametersImpl(map)
+
+/**
  * Creates a parameters instance from the specified [pairs]
  */
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class ParametersImpl(
-    values: Map<String, List<String>> = emptyMap(),
-    override val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+    values: Map<String, List<String>> = emptyMap()
 ) : Parameters, StringValuesImpl(true, values) {
-
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    public constructor(values: Map<String, List<String>> = emptyMap()) : this(values, UrlEncodingOption.DEFAULT)
-
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
 public class ParametersSingleImpl(name: String, values: List<String>) : Parameters,
     StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Parameters ${entries()}"
@@ -119,4 +94,15 @@ public operator fun Parameters.plus(other: Parameters): Parameters = when {
             "Cannot concatenate Parameters with case-sensitive and case-insensitive names"
         )
     }
+}
+
+internal object EmptyParameters : Parameters {
+    override val caseInsensitiveName: Boolean get() = true
+    override fun getAll(name: String): List<String>? = null
+    override fun names(): Set<String> = emptySet()
+    override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
+    override fun isEmpty(): Boolean = true
+    override fun toString(): String = "Parameters ${entries()}"
+
+    override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }

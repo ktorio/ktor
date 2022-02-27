@@ -6,11 +6,12 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.http.HttpRequest
@@ -34,6 +35,7 @@ internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     )
 }
 
+@OptIn(InternalAPI::class)
 internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext): HttpRequest {
     val builder = HttpRequest.newBuilder(url.toURI())
 
@@ -56,6 +58,7 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     return builder.build()
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal fun OutgoingContent.convertToHttpRequestBody(
     callContext: CoroutineContext
 ): HttpRequest.BodyPublisher = when (this) {

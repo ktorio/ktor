@@ -4,22 +4,23 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
 import javax.servlet.http.*
 
-@Suppress("KDocMissingDocumentation")
-@EngineAPI
 public abstract class ServletApplicationRequest(
     call: ApplicationCall,
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
-    override val queryParameters: Parameters by lazy {
-        servletRequest.queryString?.let { parseQueryString(it) } ?: Parameters.Empty
+    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
+
+    override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        val uri = servletRequest.queryString ?: return@lazy Parameters.Empty
+        parseQueryString(uri, decode = false)
     }
 
     override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)

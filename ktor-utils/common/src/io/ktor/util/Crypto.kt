@@ -11,7 +11,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
-@SharedImmutable
 private val digits = "0123456789abcdef".toCharArray()
 
 /**
@@ -49,13 +48,11 @@ public fun hex(s: String): ByteArray {
 /**
  * Generates a nonce string. Could block if the system's entropy source is empty
  */
-@InternalAPI
 public expect fun generateNonce(): String
 
 /**
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  */
-@InternalAPI
 public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
         writeText(generateNonce())
@@ -71,13 +68,11 @@ public expect fun sha1(bytes: ByteArray): ByteArray
  * Create [Digest] from specified hash [name].
  */
 @Suppress("FunctionName")
-@InternalAPI
 public expect fun Digest(name: String): Digest
 
 /**
  * Stateful digest class specified to calculate digest.
  */
-@InternalAPI
 public interface Digest {
     /**
      * Add [bytes] to digest value.

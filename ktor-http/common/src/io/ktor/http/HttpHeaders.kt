@@ -120,8 +120,7 @@ public object HttpHeaders {
     public val XForwardedProto: String = "X-Forwarded-Proto"
     public val XForwardedFor: String = "X-Forwarded-For"
 
-    @PublicAPICandidate("2.0.0")
-    internal val XForwardedPort: String = "X-Forwarded-Port"
+    public val XForwardedPort: String = "X-Forwarded-Port"
 
     public val XRequestId: String = "X-Request-ID"
     public val XCorrelationId: String = "X-Correlation-ID"
@@ -185,7 +184,7 @@ public class UnsafeHeaderException(header: String) : IllegalArgumentException(
 public class IllegalHeaderNameException(public val headerName: String, public val position: Int) :
     IllegalArgumentException(
         "Header name '$headerName' contains illegal character '${headerName[position]}'" +
-            " (code ${(headerName[position].toInt() and 0xff)})"
+            " (code ${(headerName[position].code and 0xff)})"
     )
 
 /**
@@ -197,7 +196,7 @@ public class IllegalHeaderNameException(public val headerName: String, public va
 public class IllegalHeaderValueException(public val headerValue: String, public val position: Int) :
     IllegalArgumentException(
         "Header value '$headerValue' contains illegal character '${headerValue[position]}'" +
-            " (code ${(headerValue[position].toInt() and 0xff)})"
+            " (code ${(headerValue[position].code and 0xff)})"
     )
 
 private fun isDelimiter(ch: Char): Boolean = ch in "\"(),/:;<=>?@[\\]{}"

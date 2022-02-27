@@ -2,10 +2,8 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.native.concurrent.*
 import kotlin.test.*
 
-@SharedImmutable
 private val SIZES = intArrayOf(0, 1, 2, 3, 10, 100, 4087, 4088, 4089, 4095, 4096, 4097, 8191, 8192, 8193, 65537)
 
 class ReadBufferTest {
@@ -17,7 +15,7 @@ class ReadBufferTest {
         reserveEndGap(8)
 
         repeat(writeRemaining) { index ->
-            append(charForIndex(index))
+            writeByte(charForIndex(index).code.toByte())
         }
     }
     private val initialBufferSize = buffer.readRemaining
@@ -51,7 +49,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -75,7 +73,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -86,7 +84,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readAvailableIoBufferFromBuffer() {
+    fun readAvailableChunkBufferFromBuffer() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -99,7 +97,7 @@ class ReadBufferTest {
                     val rc = buffer.readAvailable(dst, size)
                     assertEquals(size, rc)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -112,7 +110,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readFullyIoBufferFromBuffer() {
+    fun readFullyChunkBufferFromBuffer() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -124,7 +122,7 @@ class ReadBufferTest {
                     assertEquals(initialBufferSize - offset, buffer.readRemaining)
                     buffer.readFully(dst, size)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -151,7 +149,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -175,7 +173,7 @@ class ReadBufferTest {
 
                 val expected =
                     byteArrayOf(0x7f) + (offset until offset + size).map {
-                        charForIndex(it).toByte()
+                        charForIndex(it).code.toByte()
                     }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
@@ -186,7 +184,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readAvailableIoBufferFromPacket() {
+    fun readAvailableChunkBufferFromPacket() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -199,7 +197,7 @@ class ReadBufferTest {
                     val rc = packet.readAvailable(dst, size)
                     assertEquals(size, rc)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {
@@ -212,7 +210,7 @@ class ReadBufferTest {
     }
 
     @Test
-    fun readFullyIoBufferFromPacket() {
+    fun readFullyChunkBufferFromPacket() {
         var offset = 0
         for (size in SIZES) {
             if (size <= buffer.readRemaining) {
@@ -224,7 +222,7 @@ class ReadBufferTest {
                     assertEquals(initialPacketSize - offset, packet.remaining)
                     packet.readFully(dst, size)
 
-                    val expected = (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray()
+                    val expected = (offset until offset + size).map { charForIndex(it).code.toByte() }.toByteArray()
 
                     assertEquals(expected.hexdump(), dst.readBytes().hexdump())
                 } finally {

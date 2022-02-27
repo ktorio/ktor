@@ -4,15 +4,13 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
-import org.slf4j.event.*
-import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import javax.servlet.*
 import javax.servlet.http.*
@@ -21,10 +19,12 @@ import kotlin.coroutines.*
 /**
  * A base class for servlet engine implementations
  */
-@EngineAPI
 @OptIn(InternalAPI::class)
 public abstract class KtorServlet : HttpServlet(), CoroutineScope {
-    private val asyncDispatchers = lazy { AsyncDispatchers() }
+    /**
+     * Set of headers that will be managed my the engine and should not be added manually
+     */
+    protected open val managedByEngineHeaders: Set<String> = emptySet()
 
     /**
      * Current application instance. Could be lazy
@@ -46,10 +46,10 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
-    override val coroutineContext: CoroutineContext =
-        Dispatchers.Unconfined + SupervisorJob() +
-            CoroutineName("servlet") +
-            DefaultUncaughtExceptionHandler { logger }
+    override val coroutineContext: CoroutineContext = Dispatchers.Unconfined +
+        SupervisorJob() +
+        CoroutineName("servlet") +
+        DefaultUncaughtExceptionHandler { logger }
 
     /**
      * Called by the servlet container when loading the servlet (on load)
@@ -64,8 +64,6 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     override fun destroy() {
         coroutineContext.cancel()
-        // Note: container will not call service again, so asyncDispatcher cannot get initialized if it was not yet
-        if (asyncDispatchers.isInitialized()) asyncDispatchers.value.destroy()
     }
 
     /**
@@ -106,17 +104,16 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
             timeout = 0L
         }
 
-        val asyncDispatchers = asyncDispatchers.value
-
-        launch(asyncDispatchers.dispatcher) {
+        launch(Dispatchers.IO) {
             val call = AsyncServletApplicationCall(
                 application,
                 request,
                 response,
-                engineContext = asyncDispatchers.engineDispatcher,
-                userContext = asyncDispatchers.dispatcher,
+                engineContext = Dispatchers.IO,
+                userContext = Dispatchers.IO,
                 upgrade = upgrade,
-                parentCoroutineContext = coroutineContext
+                parentCoroutineContext = coroutineContext,
+                managedByEngineHeaders
             )
 
             try {
@@ -139,7 +136,13 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     private fun blockingService(request: HttpServletRequest, response: HttpServletResponse) {
         runBlocking(coroutineContext) {
-            val call = BlockingServletApplicationCall(application, request, response, coroutineContext)
+            val call = BlockingServletApplicationCall(
+                application,
+                request,
+                response,
+                this@runBlocking.coroutineContext,
+                managedByEngineHeaders
+            )
             enginePipeline.execute(call)
         }
     }
@@ -148,27 +151,4 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 /**
  * Attribute that is added by ktor servlet to application attributes to hold [ServletContext] instance.
  */
-@InternalAPI
 public val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")
-
-private class AsyncDispatchers {
-    val engineExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
-    val engineDispatcher = DispatcherWithShutdown(engineExecutor.asCoroutineDispatcher())
-
-    val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
-    val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
-
-    public fun destroy() {
-        engineDispatcher.prepareShutdown()
-        dispatcher.prepareShutdown()
-        try {
-            executor.shutdownNow()
-            engineExecutor.shutdown()
-            executor.awaitTermination(1L, TimeUnit.SECONDS)
-            engineExecutor.awaitTermination(1L, TimeUnit.SECONDS)
-        } finally {
-            engineDispatcher.completeShutdown()
-            dispatcher.completeShutdown()
-        }
-    }
-}

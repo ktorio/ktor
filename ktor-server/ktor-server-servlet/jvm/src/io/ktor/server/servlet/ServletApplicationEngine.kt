@@ -5,8 +5,8 @@
 package io.ktor.server.servlet
 
 import com.typesafe.config.*
-import io.ktor.application.*
-import io.ktor.config.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import org.slf4j.*
@@ -108,7 +108,6 @@ public open class ServletApplicationEngine : KtorServlet() {
          * An application engine environment instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        @EngineAPI
         public const val ApplicationEngineEnvironmentAttributeKey: String =
             "_ktor_application_engine_environment_instance"
 
@@ -116,7 +115,6 @@ public open class ServletApplicationEngine : KtorServlet() {
          * An application engine pipeline instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        @EngineAPI
         public const val ApplicationEnginePipelineAttributeKey: String = "_ktor_application_engine_pipeline_instance"
 
         private val jettyUpgrade by lazy {

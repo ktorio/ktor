@@ -7,13 +7,11 @@ package io.ktor.util
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.experimental.*
-import kotlin.native.concurrent.*
 
 private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 private const val BASE64_MASK: Byte = 0x3f
 private const val BASE64_PAD = '='
 
-@SharedImmutable
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
 }
@@ -21,7 +19,6 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
 /**
  * Encode [String] in base64 format and UTF-8 character encoding.
  */
-@InternalAPI
 public fun String.encodeBase64(): String = buildPacket {
     writeText(this@encodeBase64)
 }.encodeBase64()
@@ -29,7 +26,6 @@ public fun String.encodeBase64(): String = buildPacket {
 /**
  * Encode [ByteArray] in base64 format
  */
-@InternalAPI
 public fun ByteArray.encodeBase64(): String = buildPacket {
     writeFully(this@encodeBase64)
 }.encodeBase64()
@@ -37,7 +33,6 @@ public fun ByteArray.encodeBase64(): String = buildPacket {
 /**
  * Encode [ByteReadPacket] in base64 format
  */
-@InternalAPI
 public fun ByteReadPacket.encodeBase64(): String = buildString {
     val data = ByteArray(3)
     while (remaining > 0) {
@@ -61,13 +56,11 @@ public fun ByteReadPacket.encodeBase64(): String = buildString {
 /**
  * Decode [String] from base64 format encoded in UTF-8.
  */
-@InternalAPI
 public fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = Charsets.UTF_8)
 
 /**
  * Decode [String] from base64 format
  */
-@InternalAPI
 public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
     writeText(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64Bytes().readBytes()
@@ -75,7 +68,6 @@ public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
 /**
  * Decode [ByteReadPacket] from base64 format
  */
-@InternalAPI
 public fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)
 
@@ -92,14 +84,6 @@ public fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
         }
     }
 }
-
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun String.decodeBase64(): String = decodeBase64String()
-
-@Suppress("unused", "KDocMissingDocumentation")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun ByteReadPacket.decodeBase64(): String = decodeBase64Bytes().readText()
 
 internal fun ByteArray.clearFrom(from: Int) {
     (from until size).forEach { this[it] = 0 }

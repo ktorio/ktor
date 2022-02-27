@@ -5,15 +5,15 @@
 package io.ktor.client.engine.java
 
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
-import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
@@ -52,6 +52,7 @@ internal suspend fun HttpClient.executeWebSocketRequest(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 internal class JavaHttpWebSocket(
     private val callContext: CoroutineContext,
     private val httpClient: HttpClient,
@@ -81,7 +82,6 @@ internal class JavaHttpWebSocket(
     override val outgoing: SendChannel<Frame>
         get() = _outgoing
 
-    @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
 
@@ -128,6 +128,7 @@ internal class JavaHttpWebSocket(
         }
     }
 
+    @OptIn(InternalAPI::class)
     suspend fun getResponse(): HttpResponseData {
         val builder = httpClient.newWebSocketBuilder()
 
@@ -162,22 +163,22 @@ internal class JavaHttpWebSocket(
     }
 
     override fun onText(webSocket: WebSocket, data: CharSequence, last: Boolean): CompletionStage<*> = async {
-        _incoming.offer(Frame.Text(last, data.toString().toByteArray()))
+        _incoming.trySend(Frame.Text(last, data.toString().toByteArray())).isSuccess
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage<*> = async {
-        _incoming.offer(Frame.Binary(last, data))
+        _incoming.trySend(Frame.Binary(last, data)).isSuccess
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onPing(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.offer(Frame.Ping(message))
+        _incoming.trySend(Frame.Ping(message)).isSuccess
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.offer(Frame.Pong(message))
+        _incoming.trySend(Frame.Pong(message)).isSuccess
         webSocket.request(1)
     }.asCompletableFuture()
 
@@ -199,7 +200,8 @@ internal class JavaHttpWebSocket(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        DeprecationLevel.ERROR
     )
     override fun terminate() {
         socketJob.cancel()
