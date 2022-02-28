@@ -148,16 +148,6 @@ class SinglePageApplicationTest {
         class Empty1
     """.trimIndent()
 
-
-    private val empty2 = """
-        package io.ktor.tests.server.plugins/*
-         * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-         */
-
-        // required for tests
-        class Empty2
-    """.trimIndent()
-
     private val empty3 = """
         package io.ktor.tests.server.plugins/*
          * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
