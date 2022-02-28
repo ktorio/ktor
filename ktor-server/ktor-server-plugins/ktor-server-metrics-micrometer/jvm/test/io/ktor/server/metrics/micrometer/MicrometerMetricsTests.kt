@@ -6,6 +6,7 @@ package io.ktor.server.metrics.micrometer
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -239,7 +240,7 @@ class MicrometerMetricsTests {
             registry = testRegistry
             defaultTags = { call, _ ->
                 val route =
-                    call.attributes[MicrometerMetrics.measureKey].route
+                    call.attributes[MicrometerMetricsConfig.measureKey].route
                         ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
                 tags(
                     listOf(
@@ -259,7 +260,7 @@ class MicrometerMetricsTests {
             uri = "/uri"
         }
 
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+        with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
                 assertTag("status", "404")
