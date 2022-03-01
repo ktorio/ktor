@@ -37,11 +37,9 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
                     config.defaultPage,
                     shouldFileBeIgnored
                 )
-                defaultResource(config.defaultPage, config.filesPath)
             } else {
                 staticRootFolder = File(config.filesPath)
                 filesWithDefault(".", config.defaultPage, shouldFileBeIgnored)
-                default(config.defaultPage)
             }
         }
     }

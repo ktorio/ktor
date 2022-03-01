@@ -99,6 +99,25 @@ class SinglePageApplicationTest {
     }
 
     @Test
+    fun fullWithResourcesTest() = testApplication {
+        application {
+            routing {
+                singlePageApplication {
+                    useResources = true
+                    filesPath = "io.ktor.server.http.spa"
+                    applicationRoute = "selected"
+                    defaultPage = "Empty3.class"
+                    ignoreFiles { it.contains("Empty2.class") }
+                }
+            }
+        }
+        assertEquals(client.get("/selected").status, HttpStatusCode.OK)
+        assertEquals(client.get("/selected/a").status, HttpStatusCode.OK)
+        assertEquals(client.get("/selected/Empty2.kt").status, HttpStatusCode.OK)
+        assertEquals(client.get("/selected/Empty1.kt").status, HttpStatusCode.OK)
+    }
+
+    @Test
     fun testResources() = testApplication {
         application {
             routing {
