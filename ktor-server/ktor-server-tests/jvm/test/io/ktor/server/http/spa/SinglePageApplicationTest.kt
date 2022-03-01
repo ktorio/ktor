@@ -2,23 +2,28 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.plugins
+package io.ktor.server.http.spa
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.plugins.spa.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
 class SinglePageApplicationTest {
     @Test
     fun fullWithFilesTest() = testApplication {
-        install(SinglePageApplication) {
-            filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            applicationRoute = "selected"
-            defaultPage = "Empty3.kt"
-            ignoreFiles { it.contains("Empty2.kt") }
+        application {
+            routing {
+                singlePageApplication {
+                    filesPath = "jvm/test/io/ktor/server/http/spa"
+                    applicationRoute = "selected"
+                    defaultPage = "Empty3.kt"
+                    ignoreFiles { it.contains("Empty2.kt") }
+                }
+            }
         }
 
         client.get("/selected").let {
@@ -44,10 +49,14 @@ class SinglePageApplicationTest {
 
     @Test
     fun testPageGet() = testApplication {
-        install(SinglePageApplication) {
-            filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            applicationRoute = "selected"
-            defaultPage = "Empty3.kt"
+        application {
+            routing {
+                singlePageApplication {
+                    filesPath = "jvm/test/io/ktor/server/http/spa"
+                    applicationRoute = "selected"
+                    defaultPage = "Empty3.kt"
+                }
+            }
         }
 
         client.get("/selected/Empty1.kt").let {
@@ -63,10 +72,14 @@ class SinglePageApplicationTest {
 
     @Test
     fun testIgnoreAllRoutes() = testApplication {
-        install(SinglePageApplication) {
-            filesPath = "jvm/test/io/ktor/tests/server/plugins"
-            defaultPage = "Empty3.kt"
-            ignoreFiles { true }
+        application {
+            routing {
+                singlePageApplication {
+                    filesPath = "jvm/test/io/ktor/server/http/spa"
+                    defaultPage = "Empty3.kt"
+                    ignoreFiles { true }
+                }
+            }
         }
 
         client.get("/").let {
@@ -87,10 +100,14 @@ class SinglePageApplicationTest {
 
     @Test
     fun testResources() = testApplication {
-        install(SinglePageApplication) {
-            useResources = true
-            filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "SinglePageApplicationTest.class"
+        application {
+            routing {
+                singlePageApplication {
+                    useResources = true
+                    filesPath = "io.ktor.server.http.spa"
+                    defaultPage = "SinglePageApplicationTest.class"
+                }
+            }
         }
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
@@ -101,12 +118,16 @@ class SinglePageApplicationTest {
 
     @Test
     fun testIgnoreResourceRoutes() = testApplication {
-        install(SinglePageApplication) {
-            useResources = true
-            filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "SinglePageApplicationTest.class"
-            ignoreFiles { it.contains("Empty1.class") }
-            ignoreFiles { it.endsWith("Empty2.class") }
+        application {
+            routing {
+                singlePageApplication {
+                    useResources = true
+                    filesPath = "io.ktor.server.http.spa"
+                    defaultPage = "SinglePageApplicationTest.class"
+                    ignoreFiles { it.contains("Empty1.class") }
+                    ignoreFiles { it.endsWith("Empty2.class") }
+                }
+            }
         }
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty3.class").status)
@@ -117,11 +138,15 @@ class SinglePageApplicationTest {
 
     @Test
     fun testIgnoreAllResourceRoutes() = testApplication {
-        install(SinglePageApplication) {
-            useResources = true
-            filesPath = "io.ktor.tests.server.plugins"
-            defaultPage = "SinglePageApplicationTest.class"
-            ignoreFiles { true }
+        application {
+            routing {
+                singlePageApplication {
+                    useResources = true
+                    filesPath = "io.ktor.server.http.spa"
+                    defaultPage = "SinglePageApplicationTest.class"
+                    ignoreFiles { true }
+                }
+            }
         }
 
         assertEquals(HttpStatusCode.OK, client.get("/SinglePageApplicationTest.class").status)
@@ -132,26 +157,34 @@ class SinglePageApplicationTest {
 
     @Test
     fun testShortcut() = testApplication {
-        install(SinglePageApplication) {
-            angular("jvm/test/io/ktor/tests/server/plugins")
+        application {
+            routing {
+                singlePageApplication {
+                    angular("jvm/test/io/ktor/server/http/spa")
+                }
+            }
         }
 
         assertEquals(HttpStatusCode.OK, client.get("/Empty1.kt").status)
     }
 
     private val empty1 = """
-        package io.ktor.tests.server.plugins/*
+        /*
          * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
          */
+
+        package io.ktor.server.http.spa
 
         // required for tests
         class Empty1
     """.trimIndent()
 
     private val empty3 = """
-        package io.ktor.tests.server.plugins/*
+        /*
          * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
          */
+
+        package io.ktor.server.http.spa
 
         // required for tests
         class Empty3

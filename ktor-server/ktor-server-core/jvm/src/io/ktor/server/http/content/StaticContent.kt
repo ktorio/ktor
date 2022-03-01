@@ -128,15 +128,14 @@ public fun Route.files(folder: String): Unit = files(File(folder))
 /**
  * Sets up routing to serve all files from [folder]
  * Serves [defaultFile] if not existing file is requested
- * Serves [defaultFile] if the requested file should be ignored
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
  */
-@OptIn(InternalAPI::class)
-public fun Route.filesWithDefault(
+internal fun Route.filesWithDefault(
     folder: String,
     defaultFile: String,
-    ignoredFiles: List<(String) -> Boolean>
+    shouldFileBeIgnored: (String) -> Boolean
 ): Unit =
-    filesWithDefaultFile(File(folder), File(defaultFile), ignoredFiles)
+    filesWithDefaultFile(File(folder), File(defaultFile), shouldFileBeIgnored)
 
 /**
  * Sets up routing to serve all files from [folder]
@@ -154,13 +153,12 @@ public fun Route.files(folder: File) {
 /**
  * Sets up routing to serve all files from [folder].
  * Serves [defaultFile] if not existing file is requested
- * Serves [defaultFile] if the requested file should be ignored
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
  */
-@OptIn(InternalAPI::class)
-public fun Route.filesWithDefaultFile(
+internal fun Route.filesWithDefaultFile(
     folder: File,
     defaultFile: File,
-    ignoredFiles: List<(String) -> Boolean>
+    shouldFileBeIgnored: (String) -> Boolean
 ) {
     val dir = staticRootFolder.combine(folder)
 
@@ -168,7 +166,7 @@ public fun Route.filesWithDefaultFile(
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
 
-        if (ignoredFiles.firstOrNull { it.invoke(relativePath) } != null) {
+        if (shouldFileBeIgnored.invoke(relativePath)) {
             call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
         }
 
@@ -266,19 +264,18 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 /**
  * Sets up routing to serve all resources in [resourcePackage].
  * Serves [defaultFile] if not existing file is requested
- * Serves [defaultFile] if the requested file should be ignored
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
  */
-@OptIn(InternalAPI::class)
-public fun Route.resourceWithDefault(
+internal fun Route.resourceWithDefault(
     resourcePackage: String? = null,
     defaultResource: String,
-    ignoredFiles: List<(String) -> Boolean>
+    shouldFileBeIgnored: (String) -> Boolean
 ) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
 
-        if (ignoredFiles.firstOrNull { it.invoke(relativePath) } != null) {
+        if (shouldFileBeIgnored.invoke(relativePath)) {
             call.resolveResource(defaultResource, packageName)?.let {
                 call.respond(it)
             }
