@@ -74,9 +74,16 @@ public abstract class NettyApplicationResponse(
     }
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any
+
+    /**
+     * Returns http response object with [data] content
+     */
     protected open fun responseMessage(chunked: Boolean, data: ByteArray): Any = responseMessage(chunked, true)
 
-    internal open fun trailerMessage(): Any? {
+    /**
+     * Returns http trailer message
+     */
+    internal open fun prepareTrailerMessage(): Any? {
         return null
     }
 

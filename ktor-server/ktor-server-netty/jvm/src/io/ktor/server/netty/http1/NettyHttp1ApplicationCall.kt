@@ -41,16 +41,16 @@ internal class NettyHttp1ApplicationCall(
         putResponseAttribute()
     }
 
-    override fun transform(buf: ByteBuf, isLastContent: Boolean): Any {
+    override fun prepareMessage(buf: ByteBuf, isLastContent: Boolean): Any {
         if (isByteBufferContent) {
-            return super.transform(buf, isLastContent)
+            return super.prepareMessage(buf, isLastContent)
         }
         return DefaultHttpContent(buf)
     }
 
-    override fun endOfStream(lastTransformed: Boolean): Any? {
+    override fun prepareEndOfStreamMessage(lastTransformed: Boolean): Any? {
         if (isByteBufferContent) {
-            return super.endOfStream(lastTransformed)
+            return super.prepareEndOfStreamMessage(lastTransformed)
         }
         return LastHttpContent.EMPTY_LAST_CONTENT
     }

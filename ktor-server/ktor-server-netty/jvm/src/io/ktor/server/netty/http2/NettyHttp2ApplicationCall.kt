@@ -27,16 +27,16 @@ internal class NettyHttp2ApplicationCall(
         putResponseAttribute()
     }
 
-    override fun transform(buf: ByteBuf, isLastContent: Boolean): Any {
+    override fun prepareMessage(buf: ByteBuf, isLastContent: Boolean): Any {
         if (isByteBufferContent) {
-            return super.transform(buf, isLastContent)
+            return super.prepareMessage(buf, isLastContent)
         }
         return DefaultHttp2DataFrame(buf, isLastContent)
     }
 
-    override fun endOfStream(lastTransformed: Boolean): Any? {
+    override fun prepareEndOfStreamMessage(lastTransformed: Boolean): Any? {
         if (isByteBufferContent) {
-            return super.endOfStream(lastTransformed)
+            return super.prepareEndOfStreamMessage(lastTransformed)
         }
         return if (lastTransformed) null else DefaultHttp2DataFrame(true)
     }

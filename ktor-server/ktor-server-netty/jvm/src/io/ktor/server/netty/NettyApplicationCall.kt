@@ -26,7 +26,10 @@ public abstract class NettyApplicationCall(
 
     internal lateinit var previousCallFinished: ChannelPromise
 
-    internal lateinit var callFinished: ChannelPromise
+    /**
+     * Set success when the response is ready to read or failed if a response is cancelled
+     */
+    internal lateinit var finishedEvent: ChannelPromise
 
     public val responseWriteJob: Job = Job()
 
@@ -34,14 +37,26 @@ public abstract class NettyApplicationCall(
 
     internal var isByteBufferContent = false
 
-    internal open fun transform(buf: ByteBuf, isLastContent: Boolean): Any {
+    /**
+     * Returns http content object with [buf] content if [isByteBufferContent] is false,
+     * [buf] otherwise.
+     */
+    internal open fun prepareMessage(buf: ByteBuf, isLastContent: Boolean): Any {
         return buf
     }
 
-    internal open fun endOfStream(lastTransformed: Boolean): Any? {
+    /**
+     * Returns the 'end of content' http marker if [isByteBufferContent] is false,
+     * null otherwise
+     */
+    internal open fun prepareEndOfStreamMessage(lastTransformed: Boolean): Any? {
         return null
     }
 
+    /**
+     * Add [MessageToByteEncoder] to the channel handler pipeline if http upgrade is supported,
+     * [IllegalStateException] otherwise
+     */
     internal open fun upgrade(dst: ChannelHandlerContext) {
         throw IllegalStateException("Already upgraded")
     }
@@ -57,7 +72,7 @@ public abstract class NettyApplicationCall(
             @OptIn(InternalAPI::class)
             response.ensureResponseSent()
         } catch (cause: Throwable) {
-            callFinished.setFailure(cause)
+            finishedEvent.setFailure(cause)
             finishComplete()
             throw cause
         }

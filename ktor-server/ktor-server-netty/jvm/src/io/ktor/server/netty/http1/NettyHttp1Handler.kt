@@ -110,13 +110,17 @@ internal class NettyHttp1Handler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val call = getNettyApplicationCall(context, message)
+        val call = prepareCallFromRequest(context, message)
 
         context.fireChannelRead(call)
         responseWriter.processResponse(call)
     }
 
-    private fun getNettyApplicationCall(
+    /**
+     * Returns netty application call with [message] as a request
+     * and channel for request body
+     */
+    private fun prepareCallFromRequest(
         context: ChannelHandlerContext,
         message: HttpRequest
     ): NettyHttp1ApplicationCall {
@@ -127,7 +131,7 @@ internal class NettyHttp1Handler(
                 skipEmpty = true
                 null
             }
-            else -> handleContent(context, message)
+            else -> prepareRequestContentChannel(context, message)
         }?.also {
             currentRequest = it
         }
@@ -142,7 +146,7 @@ internal class NettyHttp1Handler(
         )
     }
 
-    private fun handleContent(context: ChannelHandlerContext, message: HttpRequest): ByteReadChannel {
+    private fun prepareRequestContentChannel(context: ChannelHandlerContext, message: HttpRequest): ByteReadChannel {
         return when (message) {
             is HttpContent -> {
                 val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
