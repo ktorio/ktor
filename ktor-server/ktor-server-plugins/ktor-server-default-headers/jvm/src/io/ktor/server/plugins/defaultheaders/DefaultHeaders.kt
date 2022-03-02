@@ -12,8 +12,8 @@ import kotlinx.atomicfu.*
 import java.util.*
 
 /**
- * Configuration for DefaultHeaders plugin. Configure other headers
- * in addition to the Date and Server provided by DefaultHeaders.
+ * A configuration for the [DefaultHeaders] plugin.
+ * Allows you to configure additional default headers.
  */
 public class DefaultHeadersConfig {
     /**
@@ -22,20 +22,29 @@ public class DefaultHeadersConfig {
     internal val headers = HeadersBuilder()
 
     /**
-     * Adds standard header property [name] with the specified [value].
+     * Adds a standard header with the specified [name] and [value].
      */
     public fun header(name: String, value: String): Unit = headers.append(name, value)
 
     /**
-     * Provides time source. Useful for testing.
+     * Provides a time source. Useful for testing.
      */
     public var clock: () -> Long = { System.currentTimeMillis() }
     internal val cachedDateText: AtomicRef<String> = atomic("")
 }
 
 /**
- * Adds the standard `Date` and `Server` HTTP headers and provides the ability
- * to add additional default headers into each response.
+ * A plugin that adds the standard `Date` and `Server` HTTP headers into each response and allows you to:
+ * - add additional default headers;
+ * - override the `Server` header.
+ *
+ * The example below shows how to add a custom header:
+ * ```kotlin
+ * install(DefaultHeaders) {
+ *     header("Custom-Header", "Some value")
+ * }
+ * ```
+ * You can learn more from [Default headers](https://ktor.io/docs/default-headers.html).
  */
 public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRouteScopedPlugin(
     "DefaultHeaders",
