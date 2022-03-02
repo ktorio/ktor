@@ -15,7 +15,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
 
 @Deprecated(
-    "Please use ContentNegotiation plugin and its converters"
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client" // ktlint-disable max-line-length
 )
 public class JacksonSerializer(
     jackson: ObjectMapper = jacksonObjectMapper(),

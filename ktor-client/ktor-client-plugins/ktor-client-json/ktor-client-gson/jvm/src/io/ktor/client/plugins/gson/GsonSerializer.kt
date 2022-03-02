@@ -15,7 +15,9 @@ import io.ktor.utils.io.core.*
 /**
  * [JsonSerializer] using [Gson] as backend.
  */
-@Deprecated("Please use ContentNegotiation plugin and its converters")
+@Deprecated(
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client" // ktlint-disable max-line-length
+)
 public class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
     private val backend: Gson = GsonBuilder().apply(block).create()
 

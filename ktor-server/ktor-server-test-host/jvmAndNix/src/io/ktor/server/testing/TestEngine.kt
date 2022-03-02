@@ -43,7 +43,7 @@ public fun TestApplicationEngine.handleRequest(
 /**
  * Starts a test application engine, passes it to the [test] function and stops it
  */
-@Deprecated("Please use new `testApplication` API")
+@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withApplication(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
@@ -61,7 +61,7 @@ public fun <R> withApplication(
 /**
  * Starts a test application engine, passes it to the [test] function and stops it
  */
-@Deprecated("Please use new `testApplication` API")
+@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment(), test = test)
 }
@@ -69,7 +69,7 @@ public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
 /**
  * Starts a test application engine, passes it to the [test] function and stops it
  */
-@Deprecated("Please use new `testApplication` API")
+@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
@@ -80,7 +80,7 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 /**
  * Starts a test application engine, passes it to the [test] function and stops it
  */
-@Deprecated("Please use new `testApplication` API")
+@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withTestApplication(
     moduleFunction: Application.() -> Unit,
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
