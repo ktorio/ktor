@@ -11,7 +11,7 @@ import io.ktor.util.*
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
  * The [HttpClientEngine] is selected from the dependencies.
- * https://ktor.io/clients/http-client/engines.html
+ * https://ktor.io/docs/http-client-engines.html
  */
 @OptIn(InternalAPI::class)
 @KtorDsl

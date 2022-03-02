@@ -32,7 +32,7 @@ public class Routing(
 
     /**
      * Register a route resolution trace function.
-     * See https://ktor.io/servers/plugins/routing.html#tracing for details
+     * See https://ktor.io/docs/tracing-routes.html for details
      */
     public fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)

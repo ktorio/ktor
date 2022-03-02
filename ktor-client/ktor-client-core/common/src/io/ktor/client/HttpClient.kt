@@ -23,7 +23,7 @@ import kotlin.coroutines.*
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
  * The [HttpClientEngine] is selected from the dependencies.
- * https://ktor.io/clients/http-client/engines.html
+ * https://ktor.io/docs/http-client-engines.html
  */
 @KtorDsl
 public expect fun HttpClient(
