@@ -60,18 +60,12 @@ public final class io/ktor/server/netty/Netty : io/ktor/server/engine/Applicatio
 }
 
 public abstract class io/ktor/server/netty/NettyApplicationCall : io/ktor/server/engine/BaseApplicationCall {
-	public field callFinished Lio/netty/channel/ChannelPromise;
-	public field previousCallFinished Lio/netty/channel/ChannelPromise;
 	public fun <init> (Lio/ktor/server/application/Application;Lio/netty/channel/ChannelHandlerContext;Ljava/lang/Object;)V
 	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
-	public final fun getCallFinished ()Lio/netty/channel/ChannelPromise;
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
-	public final fun getPreviousCallFinished ()Lio/netty/channel/ChannelPromise;
 	public abstract fun getRequest ()Lio/ktor/server/netty/NettyApplicationRequest;
 	public abstract fun getResponse ()Lio/ktor/server/netty/NettyApplicationResponse;
 	public final fun getResponseWriteJob ()Lkotlinx/coroutines/Job;
-	public final fun setCallFinished (Lio/netty/channel/ChannelPromise;)V
-	public final fun setPreviousCallFinished (Lio/netty/channel/ChannelPromise;)V
 }
 
 public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
@@ -162,5 +156,9 @@ public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/chann
 }
 
 public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
+}
+
+public final class io/ktor/server/netty/cio/NettyResponsePipelineException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
 }
 
