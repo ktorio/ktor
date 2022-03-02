@@ -19,7 +19,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-@Deprecated("Please use ContentNegotiation plugin and its converters")
+@Deprecated("Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client")
 public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {

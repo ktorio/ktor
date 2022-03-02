@@ -12,7 +12,7 @@ import io.ktor.utils.io.core.*
 /**
  * Client json serializer.
  */
-@Deprecated("Please use ContentNegotiation plugin and its converters")
+@Deprecated("Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client")
 public interface JsonSerializer {
     /**
      * Convert data object to [OutgoingContent].

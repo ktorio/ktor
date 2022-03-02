@@ -39,7 +39,7 @@ public expect fun defaultSerializer(): JsonSerializer
  * @property serializer that is used to serialize and deserialize request/response bodies
  * @property acceptContentTypes that are allowed when receiving content
  */
-@Deprecated("Please use ContentNegotiation plugin")
+@Deprecated("Please use ContentNegotiation plugin: https://ktor.io/docs/migrating-2.html#serialization-client")
 public class JsonPlugin internal constructor(
     public val serializer: JsonSerializer,
     public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
@@ -170,7 +170,7 @@ public class JsonPlugin internal constructor(
 /**
  * Install [JsonPlugin].
  */
-@Deprecated("Please use ContentNegotiation plugin")
+@Deprecated("Please use ContentNegotiation plugin: https://ktor.io/docs/migrating-2.html#serialization-client")
 public fun HttpClientConfig<*>.Json(block: JsonPlugin.Config.() -> Unit) {
     install(JsonPlugin, block)
 }
