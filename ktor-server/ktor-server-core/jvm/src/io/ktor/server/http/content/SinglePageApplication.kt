@@ -16,8 +16,12 @@ import java.io.*
  * with index.html as a default file:
  *
  * ```
- * install(SinglePageApplication) {
- *   filesPath = "application/project_path"
+ * application {
+ *     routing {
+ *        singlePageApplication {
+ *           filesPath = "application/project_path"
+ *         }
+ *     }
  * }
  * ```
  */
@@ -25,22 +29,20 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
     val config = SPAConfig()
     configBuilder.invoke(config)
 
-    application.routing {
-        static(config.applicationRoute) {
-            val shouldFileBeIgnored = { filePath: String ->
-                config.ignoredFiles.firstOrNull { it.invoke(filePath) } != null
-            }
+    static(config.applicationRoute) {
+        val shouldFileBeIgnored = { filePath: String ->
+            config.ignoredFiles.firstOrNull { it.invoke(filePath) } != null
+        }
 
-            if (config.useResources) {
-                resourceWithDefault(
-                    config.filesPath,
-                    config.defaultPage,
-                    shouldFileBeIgnored
-                )
-            } else {
-                staticRootFolder = File(config.filesPath)
-                filesWithDefault(".", config.defaultPage, shouldFileBeIgnored)
-            }
+        if (config.useResources) {
+            resourceWithDefault(
+                config.filesPath,
+                config.defaultPage,
+                shouldFileBeIgnored
+            )
+        } else {
+            staticRootFolder = File(config.filesPath)
+            filesWithDefault(".", config.defaultPage, shouldFileBeIgnored)
         }
     }
 }
