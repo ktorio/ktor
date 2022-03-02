@@ -4,20 +4,30 @@
 
 package io.ktor.util
 
+import io.ktor.util.internal.*
+import io.ktor.util.internal.SUCCESS
 import kotlinx.cinterop.*
 import platform.windows.*
 
 @OptIn(ExperimentalUnsignedTypes::class)
 internal actual fun secureRandom(bytes: ByteArray) {
-    val result = bytes.toUByteArray().usePinned { pinned ->
-        BCryptGenRandom(
+    bytes.toUByteArray().usePinned { pinned ->
+        val result = BCryptGenRandom(
             null,
             pinned.addressOf(0),
             bytes.size.convert(),
             BCRYPT_USE_SYSTEM_PREFERRED_RNG
         )
+        if (result != 0) {
+            error("Can't generate random values using BCryptGenRandom: $result")
+        }
+        bytes.copyUByteArray(pinned.get())
     }
-    if (result < 0) {
-        error("Can't generate random values using BCryptGenRandom: $result")
+}
+
+@OptIn(ExperimentalUnsignedTypes::class)
+private fun ByteArray.copyUByteArray(bytes: UByteArray) {
+    for (i in indices) {
+        set(i, bytes[i].toByte())
     }
 }
