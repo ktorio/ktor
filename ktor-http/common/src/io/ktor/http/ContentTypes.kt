@@ -287,7 +287,7 @@ public fun ContentType.withCharset(charset: Charset): ContentType =
  * if charset is not ignored by this [ContentType]
  */
 public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
-    if (charset.name == "UTF-8" && contentType == "application" && contentSubtype == "json") {
+    if (contentType.lowercase() == "application" && contentSubtype.lowercase() == "json") {
         this
     } else {
         withParameter("charset", charset.name)
