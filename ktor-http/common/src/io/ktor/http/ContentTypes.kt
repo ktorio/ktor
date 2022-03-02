@@ -284,7 +284,7 @@ public fun ContentType.withCharset(charset: Charset): ContentType =
 
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value
- * if charset is not ignored by this [ContentType]
+ * if [ContentType] is not ignored
  */
 public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
     if (contentType.lowercase() == "application" && contentSubtype.lowercase() == "json") {
