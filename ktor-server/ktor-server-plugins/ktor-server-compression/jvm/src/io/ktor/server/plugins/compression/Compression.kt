@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * The default minimal content size to compress
+ * The default minimal content size to compress.
  */
 internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
 
@@ -43,7 +43,22 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
 }
 
 /**
- * A plugin for compressing a response based on specific conditions and the ability of the client to decompress it
+ * A plugin that provides the capability to compress a response body.
+ * You can use different compression algorithms, including `gzip` and `deflate`,
+ * specify the required conditions for compressing data (such as a content type or response size),
+ * or even compress data based on specific request parameters.
+ *
+ * The example below shows how to compress JavaScript content using `gzip` with the specified priority:
+ * ```kotlin
+ * install(Compression) {
+ *     gzip {
+ *         priority = 0.9
+ *         matchContentType(ContentType.Application.JavaScript)
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more from [Compression](https://ktor.io/docs/compression.html).
  */
 public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScopedPlugin(
     "Compression",
