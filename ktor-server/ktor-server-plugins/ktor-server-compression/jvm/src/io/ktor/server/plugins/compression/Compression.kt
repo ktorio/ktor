@@ -43,12 +43,12 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
 }
 
 /**
- * A plugin that provides the capability to compress outgoing content.
+ * A plugin that provides the capability to compress a response body.
  * You can use different compression algorithms, including `gzip` and `deflate`,
  * specify the required conditions for compressing data (such as a content type or response size),
  * or even compress data based on specific request parameters.
  *
- * The example below shows how to compress JavaScript using `gzip` with the specified priority:
+ * The example below shows how to compress JavaScript content using `gzip` with the specified priority:
  * ```kotlin
  * install(Compression) {
  *     gzip {
