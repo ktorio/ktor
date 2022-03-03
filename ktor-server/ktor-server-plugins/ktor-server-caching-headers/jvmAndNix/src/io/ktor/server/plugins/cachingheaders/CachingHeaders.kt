@@ -9,7 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 
 /**
- * A configuration for the [CachingHeaders] plugin
+ * A configuration for the [CachingHeaders] plugin.
  */
 public class CachingHeadersConfig {
     internal val optionsProviders = mutableListOf<(OutgoingContent) -> CachingOptions?>()
@@ -19,7 +19,9 @@ public class CachingHeadersConfig {
     }
 
     /**
-     * Registers a function that can provide caching options for a given [OutgoingContent]
+     * Provides caching options for a given [OutgoingContent].
+     *
+     * @see [CachingHeaders]
      */
     public fun options(provider: (OutgoingContent) -> CachingOptions?) {
         optionsProviders.add(provider)
@@ -27,8 +29,21 @@ public class CachingHeadersConfig {
 }
 
 /**
- * A plugin that adds the capability to configure the Cache-Control and Expires headers using [CachingOptions].
- * It invokes [CachingHeadersConfig.optionsProviders] for every response and use first non-null [CachingOptions]
+ * A plugin that adds the capability to configure the `Cache-Control` and `Expires` headers used for HTTP caching.
+ * The example below shows how to add the `Cache-Control` header with the `max-age` option for CSS and JSON:
+ * ```kotlin
+ * install(CachingHeaders) {
+ *     options { outgoingContent ->
+ *         when (outgoingContent.contentType?.withoutParameters()) {
+ *             ContentType.Text.CSS -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
+ *             ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 60))
+ *             else -> null
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more from [Caching headers](https://ktor.io/docs/caching.html).
  */
 public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRouteScopedPlugin(
     "Caching Headers",
