@@ -10,6 +10,7 @@ import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.response.*
+import io.ktor.utils.io.charsets.*
 
 private val NOT_ACCEPTABLE = HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
 
@@ -38,11 +39,15 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
             }.distinct()
         }
 
+        val acceptCharset = call.request.headers.suitableCharsetOrNull()
+
         // Pick the first one that can convert the subject successfully
         val converted: OutgoingContent? = suitableConverters.firstNotNullOfOrNull {
             it.converter.serialize(
-                contentType = it.contentType,
-                charset = call.request.headers.suitableCharset(),
+                contentType = acceptCharset?.let { charset ->
+                    it.contentType.withCharset(charset)
+                } ?: it.contentType,
+                charset = acceptCharset ?: Charsets.UTF_8,
                 typeInfo = call.response.responseType!!,
                 value = subject
             )

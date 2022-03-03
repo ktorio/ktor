@@ -19,6 +19,8 @@ public abstract interface class io/ktor/serialization/ContentConverter {
 public final class io/ktor/serialization/ContentConverterKt {
 	public static final fun suitableCharset (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
 	public static synthetic fun suitableCharset$default (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
+	public static final fun suitableCharsetOrNull (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
+	public static synthetic fun suitableCharsetOrNull$default (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
 }
 
 public final class io/ktor/serialization/JsonConvertException : io/ktor/serialization/ContentConvertException {
