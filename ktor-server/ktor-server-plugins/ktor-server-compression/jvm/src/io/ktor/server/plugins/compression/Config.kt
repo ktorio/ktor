@@ -10,55 +10,55 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 
 /**
- * A configuration for the [Compression] plugin
+ * A configuration for the [Compression] plugin.
  */
 public data class CompressionOptions(
     /**
-     * Provides access to a map of encoders
+     * Provides access to a map of encoders.
      */
     val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
     /**
-     * Conditions for all encoders
+     * Conditions for all encoders.
      */
     val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean> = emptyList()
 )
 
 /**
- * An encoder configuration
+ * An encoder configuration for the [Compression] plugin.
  */
 public data class CompressionEncoderConfig(
     /**
-     * An encoder name matched against an entry in the `Accept-Encoding` header
+     * An encoder name matched against an entry in the `Accept-Encoding` header.
      */
     val name: String,
     /**
-     * An encoder implementation
+     * An encoder implementation.
      */
     val encoder: CompressionEncoder,
     /**
-     * Conditions for an encoder
+     * Conditions for an encoder.
      */
     val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean>,
     /**
-     * A priority of an encoder
+     * A priority of an encoder.
      */
     val priority: Double
 )
 
 /**
- * A configuration for the [Compression] plugin
+ * A configuration for the [Compression] plugin.
  */
 @KtorDsl
 public class CompressionConfig : ConditionsHolderBuilder {
     /**
-     * Provides access to a map of encoders
+     * Provides access to a map of encoders.
      */
     public val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
 
     override val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
-     * Appends an encoder with the specified [name] and [block] configuration
+     * Appends an encoder with the specified [name] and [block] configuration.
      */
     public fun encoder(
         name: String,
@@ -74,7 +74,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
     }
 
     /**
-     * Appends the default configuration with the `gzip`, `deflate`, and `identity` encoders
+     * Appends the default configuration with the `gzip`, `deflate`, and `identity` encoders.
      */
     public fun default() {
         gzip()
@@ -83,7 +83,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
     }
 
     /**
-     * Builds [CompressionOptions]
+     * Builds [CompressionOptions].
      */
     internal fun buildOptions(): CompressionOptions = CompressionOptions(
         encoders = encoders.mapValues { (_, builder) ->
@@ -108,17 +108,17 @@ public class CompressionConfig : ConditionsHolderBuilder {
 }
 
 /**
- * A builder for conditions
+ * A builder for conditions.
  */
 public interface ConditionsHolderBuilder {
     /**
-     * Preconditions applied to every response object to check if it should be compressed
+     * Preconditions applied to every response object to check if it should be compressed.
      */
     public val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
 }
 
 /**
- * A builder for compression encoder configuration
+ * A builder for compression encoder configuration.
  * @property name of encoder
  * @property encoder instance
  */
@@ -133,7 +133,7 @@ public class CompressionEncoderBuilder internal constructor(
     override val conditions: ArrayList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
-     * A priority for this encoder
+     * A priority for this encoder.
      */
     public var priority: Double = 1.0
 
@@ -153,14 +153,14 @@ public class CompressionEncoderBuilder internal constructor(
 }
 
 /**
- * Appends the `gzip` encoder with the [block] configuration
+ * Appends the `gzip` encoder with the [block] configuration.
  */
 public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("gzip", GzipEncoder, block)
 }
 
 /**
- * Appends the `deflate` encoder with the [block] configuration and the 0.9 priority
+ * Appends the `deflate` encoder with the [block] configuration and the 0.9 priority.
  */
 public fun CompressionConfig.deflate(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("deflate", DeflateEncoder) {
@@ -170,7 +170,7 @@ public fun CompressionConfig.deflate(block: CompressionEncoderBuilder.() -> Unit
 }
 
 /**
- * Appends the `identity` encoder with the [block] configuration
+ * Appends the `identity` encoder with the [block] configuration.
  */
 public fun CompressionConfig.identity(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("identity", IdentityEncoder, block)
@@ -224,7 +224,7 @@ public fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentT
 }
 
 /**
- * Configures default compression options
+ * Configures default compression options.
  */
 private fun ConditionsHolderBuilder.defaultConditions() {
     excludeContentType(

@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * The default minimal content size to compress
+ * The default minimal content size to compress.
  */
 internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
 

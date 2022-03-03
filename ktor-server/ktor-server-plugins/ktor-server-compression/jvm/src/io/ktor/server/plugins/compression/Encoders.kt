@@ -10,16 +10,16 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A [Compression] encoder
+ * A [Compression] encoder.
  */
 public interface CompressionEncoder {
     /**
-     * Tries to estimate a compressed length based on the [originalLength] or return `null` if it's impossible
+     * Provides an estimation for the compressed length based on the [originalLength] or return `null` if it's impossible.
      */
     public fun predictCompressedLength(originalLength: Long): Long? = null
 
     /**
-     * Wraps [readChannel] into a compressing [ByteReadChannel]
+     * Wraps [readChannel] into a compressing [ByteReadChannel].
      */
     public fun compress(
         readChannel: ByteReadChannel,
@@ -27,7 +27,7 @@ public interface CompressionEncoder {
     ): ByteReadChannel
 
     /**
-     * Wraps [writeChannel] into a compressing [ByteWriteChannel]
+     * Wraps [writeChannel] into a compressing [ByteWriteChannel].
      */
     public fun compress(
         writeChannel: ByteWriteChannel,
@@ -36,7 +36,7 @@ public interface CompressionEncoder {
 }
 
 /**
- * Implementation of the `gzip` encoder
+ * Implementation of the `gzip` encoder.
  */
 public object GzipEncoder : CompressionEncoder {
     override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
@@ -47,7 +47,7 @@ public object GzipEncoder : CompressionEncoder {
 }
 
 /**
- * Implementation of the `deflate` encoder
+ * Implementation of the `deflate` encoder.
  */
 public object DeflateEncoder : CompressionEncoder {
     override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
@@ -58,7 +58,7 @@ public object DeflateEncoder : CompressionEncoder {
 }
 
 /**
- *  Implementation of the `identity` encoder
+ *  Implementation of the `identity` encoder.
  */
 public object IdentityEncoder : CompressionEncoder {
     override fun predictCompressedLength(originalLength: Long): Long = originalLength
