@@ -12,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
- * A configuration for the [ConditionalHeaders] plugin
+ * A configuration for the [ConditionalHeaders] plugin.
  */
 @KtorDsl
 public class ConditionalHeadersConfig {
@@ -27,7 +27,9 @@ public class ConditionalHeadersConfig {
     }
 
     /**
-     * Registers a function that can fetch version list for a given [ApplicationCall] and [OutgoingContent]
+     * Registers a function that can fetch a version list for a given [ApplicationCall] and [OutgoingContent].
+     *
+     * @see [ConditionalHeaders]
      */
     public fun version(provider: suspend (ApplicationCall, OutgoingContent) -> List<Version>) {
         versionProviders.add(provider)
@@ -38,7 +40,7 @@ internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, Ou
     AttributeKey("ConditionalHeadersKey")
 
 /**
- * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
+ * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
  */
 public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
     val versionProviders = application.attributes.getOrNull(VersionProvidersKey)
@@ -47,6 +49,27 @@ public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<V
 
 /**
  * A plugin that avoids sending the body of content if it has not changed since the last request.
+ * This is achieved by using the following headers:
+ * - The `Last-Modified` response header contains a resource modification time.
+ *    For example, if the client request contains the `If-Modified-Since` value,
+ *    Ktor will send a full response only if a resource has been modified after the given date.
+ * - The `Etag` response header is an identifier for a specific resource version.
+ *    For instance, if the client request contains the `If-None-Match` value,
+ *    Ktor won't send a full response in case this value matches the `Etag`.
+ *
+ * The code snippet below shows how to add a `Etag` and `Last-Modified` headers for `CSS`:
+ * ```kotlin
+ * install(ConditionalHeaders) {
+ *     version { call, outgoingContent ->
+ *         when (outgoingContent.contentType?.withoutParameters()) {
+ *             ContentType.Text.CSS -> listOf(EntityTagVersion("abc123"), LastModifiedVersion(Date(1646387527500)))
+ *             else -> emptyList()
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more from [Conditional headers](https://ktor.io/docs/conditional-headers.html).
  */
 public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = createRouteScopedPlugin(
     "ConditionalHeaders",
@@ -91,9 +114,9 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 }
 
 /**
- * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it
- * produces 410 Precondition Failed or 304 Not modified responses when necessary.
- * Otherwise, sets ETag header and delegates to the [block] function
+ * Checks the current [etag] value and pass it through conditions supplied by the remote client.
+ * Depending on the conditions, it produces `410 Precondition Failed` or `304 Not modified` responses when necessary.
+ * Otherwise, sets the `ETag` header and delegates to the [block] function
  *
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
@@ -116,7 +139,7 @@ public suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = t
 }
 
 /**
- * Retrieves LastModified and ETag versions from this [OutgoingContent] headers
+ * Retrieves the `LastModified` and `ETag` versions from this [OutgoingContent] headers.
  */
 @Deprecated(
     "Use versions or headers.parseVersions()",
@@ -133,7 +156,7 @@ public val OutgoingContent.defaultVersions: List<Version>
     }
 
 /**
- * Retrieves LastModified and ETag versions from headers.
+ * Retrieves the `LastModified` and `ETag` versions from headers.
  */
 public fun Headers.parseVersions(): List<Version> {
     val lastModifiedHeaders = getAll(HttpHeaders.LastModified) ?: emptyList()
