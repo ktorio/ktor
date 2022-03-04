@@ -270,7 +270,11 @@ internal class NettyHttpResponsePipeline constructor(
      * Writes body and trailer message to the channel if response body size is up to 65536 bytes.
      * Makes flush if needed.
      */
-    private suspend fun respondWithSmallBody(call: NettyApplicationCall, response: NettyApplicationResponse, size: Int) {
+    private suspend fun respondWithSmallBody(
+        call: NettyApplicationCall,
+        response: NettyApplicationResponse,
+        size: Int
+    ) {
         val buffer = context.alloc().buffer(size)
         val channel = response.responseChannel
         val start = buffer.writerIndex()

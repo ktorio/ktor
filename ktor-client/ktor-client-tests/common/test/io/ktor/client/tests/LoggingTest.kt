@@ -462,7 +462,7 @@ class LoggingTest : ClientLoader() {
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             "???[response body omitted]",
-            "???Compressed response!",  // Curl engine
+            "???Compressed response!", // Curl engine
             "BODY END"
         )
         config {
