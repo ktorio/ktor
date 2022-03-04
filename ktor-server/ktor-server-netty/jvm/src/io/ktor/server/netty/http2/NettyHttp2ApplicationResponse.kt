@@ -6,7 +6,6 @@ package io.ktor.server.netty.http2
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -45,7 +44,7 @@ internal class NettyHttp2ApplicationResponse constructor(
         return DefaultHttp2HeadersFrame(responseHeaders, last)
     }
 
-    fun trailerMessage(): Any? {
+    override fun prepareTrailerMessage(): Any? {
         return if (responseTrailers.isEmpty) null else DefaultHttp2HeadersFrame(responseTrailers, true)
     }
 

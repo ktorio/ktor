@@ -139,14 +139,12 @@ public class NettyChannelInitializer(
                 channelPipelineConfig(pipeline)
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
-                val requestQueue = NettyRequestQueue(requestQueueLimit, runningLimit)
                 val handler = NettyHttp1Handler(
                     enginePipeline,
                     environment,
                     callEventGroup,
                     engineContext,
-                    userContext,
-                    requestQueue
+                    userContext
                 )
 
                 with(pipeline) {

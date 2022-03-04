@@ -14,8 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
 internal class RequestBodyHandler(
-    val context: ChannelHandlerContext,
-    private val requestQueue: NettyRequestQueue
+    val context: ChannelHandlerContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
 
@@ -61,13 +60,22 @@ internal class RequestBodyHandler(
             current?.close()
             queue.close()
             consumeAndReleaseQueue()
-            requestQueue.cancel()
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun upgrade(): ByteReadChannel {
-        tryOfferChannelOrToken(Upgrade)
-        return newChannel()
+        val result = queue.trySend(Upgrade)
+        if (result.isSuccess) return newChannel()
+
+        if (queue.isClosedForSend) {
+            throw CancellationException("HTTP pipeline has been terminated.", result.exceptionOrNull())
+        }
+        throw IllegalStateException(
+            "Unable to start request processing: failed to offer " +
+                "$Upgrade to the HTTP pipeline queue. " +
+                "Queue closed: ${queue.isClosedForSend}"
+        )
     }
 
     fun newChannel(): ByteReadChannel {
@@ -124,9 +132,7 @@ internal class RequestBodyHandler(
     }
 
     private fun requestMoreEvents() {
-        if (requestQueue.canRequestMoreEvents()) {
-            context.read()
-        }
+        context.read()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

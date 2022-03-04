@@ -75,6 +75,14 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
             }
         )
     }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
+    }
 }
 
 class JettySustainabilityTest :
