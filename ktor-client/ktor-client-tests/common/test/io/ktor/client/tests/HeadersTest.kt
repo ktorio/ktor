@@ -77,7 +77,6 @@ class HeadersTest : ClientLoader() {
             try {
                 client.get("$TEST_SERVER/headers") {
                     header(HttpHeaders.ContentLength, 0)
-                    header(HttpHeaders.ContentType, ContentType.Application.Json)
                     header(HttpHeaders.TransferEncoding, "chunked")
                     header(HttpHeaders.Upgrade, "upgrade")
                 }
@@ -89,6 +88,44 @@ class HeadersTest : ClientLoader() {
                 "Header(s) ${HttpHeaders.UnsafeHeadersList} are controlled by the engine and cannot be set explicitly"
 
             assertEquals(expected, message)
+        }
+    }
+
+    @Test
+    fun testContentTypeHeaderOverride() = clientTests {
+        test { client ->
+            val body = "test"
+            client.post("$TEST_SERVER/headers/content-type") {
+                contentType(ContentType.Application.FormUrlEncoded)
+                setBody(body)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("application/x-www-form-urlencoded", it.bodyAsText())
+            }
+
+            client.post("$TEST_SERVER/headers/content-type") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("application/json", it.bodyAsText())
+            }
+
+            client.put("$TEST_SERVER/headers/content-type") {
+                contentType(ContentType.Application.FormUrlEncoded)
+                setBody(body)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("application/x-www-form-urlencoded", it.bodyAsText())
+            }
+
+            client.put("$TEST_SERVER/headers/content-type") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("application/json", it.bodyAsText())
+            }
         }
     }
 

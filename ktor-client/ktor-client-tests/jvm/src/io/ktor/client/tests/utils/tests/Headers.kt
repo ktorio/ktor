@@ -52,6 +52,16 @@ internal fun Application.headersTestServer() {
 
                 call.respond(HttpStatusCode.OK)
             }
+            route("/content-type") {
+                post {
+                    val message = call.request.header(HttpHeaders.ContentType) ?: ""
+                    call.respond(HttpStatusCode.OK, message)
+                }
+                put {
+                    val message = call.request.header(HttpHeaders.ContentType) ?: ""
+                    call.respond(HttpStatusCode.OK, message)
+                }
+            }
         }
 
         route("/headers-merge") {
