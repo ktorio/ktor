@@ -6,8 +6,8 @@ package io.ktor.server.plugins.callloging
 
 import io.ktor.server.application.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.slf4j.*
 import org.slf4j.*
-import kotlin.coroutines.*
 
 internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
 
@@ -16,7 +16,7 @@ internal suspend inline fun withMDC(
     call: ApplicationCall,
     crossinline block: suspend () -> Unit
 ) {
-    withContext(MDCSurvivalElement(mdcEntries.setup(call))) {
+    withContext(MDCContext(mdcEntries.setup(call))) {
         try {
             block()
         } finally {
@@ -41,31 +41,4 @@ internal fun List<MDCEntry>.cleanup() {
     forEach {
         MDC.remove(it.name)
     }
-}
-
-internal class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
-    override val key: CoroutineContext.Key<*> get() = Key
-
-    private val snapshot = copyMDC() + mdc
-
-    override fun restoreThreadContext(context: CoroutineContext, oldState: Map<String, String>) {
-        putMDC(oldState)
-    }
-
-    override fun updateThreadContext(context: CoroutineContext): Map<String, String> {
-        val mdcCopy = copyMDC()
-        putMDC(snapshot)
-        return mdcCopy
-    }
-
-    private fun copyMDC() = MDC.getCopyOfContextMap()?.toMap() ?: emptyMap()
-
-    private fun putMDC(oldState: Map<String, String>) {
-        MDC.clear()
-        oldState.entries.forEach { (k, v) ->
-            MDC.put(k, v)
-        }
-    }
-
-    private object Key : CoroutineContext.Key<MDCSurvivalElement>
 }

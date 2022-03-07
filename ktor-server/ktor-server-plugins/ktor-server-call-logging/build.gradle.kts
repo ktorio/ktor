@@ -4,12 +4,14 @@
 
 description = ""
 val jansi_version: String by project.extra
+val coroutines_version: String by project
 
 kotlin {
     sourceSets {
         jvmMain {
             dependencies {
                 implementation("org.fusesource.jansi:jansi:$jansi_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
             }
         }
 

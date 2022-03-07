@@ -15,6 +15,12 @@ kotlin.sourceSets {
         }
     }
 
+    jvmMain {
+        dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
+        }
+    }
+
     jsMain {
         dependencies {
             api(npm("node-fetch", node_fetch_version))

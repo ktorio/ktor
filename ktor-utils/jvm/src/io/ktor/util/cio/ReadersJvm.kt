@@ -21,7 +21,5 @@ public suspend inline fun ByteReadChannel.pass(buffer: ByteBuffer, block: (ByteB
         block(buffer)
     }
 
-    if (this is ByteChannel) {
-        closedCause?.let { throw it }
-    }
+    closedCause?.let { throw it }
 }
