@@ -14,7 +14,18 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
- * A CORS plugin that allows you to configure allowed hosts, HTTP methods, headers set by the client, and so on.
+ * A plugin that allows you to configure handling cross-origin requests.
+ * This plugin allows you to configure allowed hosts, HTTP methods, headers set by the client, and so on.
+ *
+ * The configuration below allows requests from the specified address and allows sending the `Content-Type` header:
+ * ```kotlin
+ * install(CORS) {
+ *     host("0.0.0.0:5000")
+ *     header(HttpHeaders.ContentType)
+ * }
+ * ```
+ *
+ * You can learn more from [CORS](https://ktor.io/docs/cors.html).
  */
 public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS", ::CORSConfig) {
     val numberRegex = "[0-9]+".toRegex()
@@ -56,12 +67,8 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
     )
 
     /**
-     * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
-     * plugin installation
-     */
-    /**
-     * Plugin's call interceptor that does all the job. Usually there is no need to install it as it is done during
-     * plugin installation
+     * A plugin's [call] interceptor that does all the job. Usually there is no need to install it as it is done during
+     * a plugin installation.
      */
     onCall { call ->
         if (!allowsAnyHost || allowCredentials) {
@@ -129,7 +136,7 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
 }
 
 /**
- * CORS plugin configuration
+ * A configuration for the [CORS] plugin.
  */
 @KtorDsl
 public class CORSConfig {
@@ -138,19 +145,19 @@ public class CORSConfig {
     public companion object {
 
         /**
-         * The default CORS max age value
+         * The default CORS max age value.
          */
         public const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
 
         /**
-         * Default HTTP methods that are always allowed by CORS
+         * Default HTTP methods that are always allowed by CORS.
          */
         public val CorsDefaultMethods: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
 
         /**
          * Default HTTP headers that are always allowed by CORS
-         * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
-         * Please note that `Content-Type` header simplicity depends on it's value.
+         * (simple request headers according to https://www.w3.org/TR/cors/#simple-header).
+         * Note that `Content-Type` header simplicity depends on its value.
          */
         public val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
             HttpHeaders.Accept,
@@ -160,8 +167,8 @@ public class CORSConfig {
         )
 
         /**
-         * Default HTTP headers that are always allowed by CORS to be used in response
-         * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
+         * Default HTTP headers that are always allowed by CORS to be used in a response
+         * (simple request headers according to https://www.w3.org/TR/cors/#simple-header).
          */
         public val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
             HttpHeaders.CacheControl,
@@ -173,7 +180,7 @@ public class CORSConfig {
         )
 
         /**
-         * The allowed set of content types that are allowed by CORS without preflight check
+         * The allowed set of content types that are allowed by CORS without preflight check.
          */
         @Suppress("unused")
         public val CorsSimpleContentTypes: Set<ContentType> =
@@ -189,39 +196,42 @@ public class CORSConfig {
     }
 
     /**
-     * Allowed CORS hosts
+     * Allowed [CORS] hosts.
      */
     public val hosts: MutableSet<String> = HashSet()
 
     /**
-     * Allowed CORS headers
+     * Allowed [CORS] headers.
      */
     @OptIn(InternalAPI::class)
     public val headers: MutableSet<String> = CaseInsensitiveSet()
 
     /**
-     * Allowed HTTP methods
+     * Allowed [CORS] HTTP methods.
      */
     public val methods: MutableSet<HttpMethod> = HashSet()
 
     /**
-     * Exposed HTTP headers that could be accessed by a client
+     * Exposed HTTP headers that could be accessed by a client.
      */
     @OptIn(InternalAPI::class)
     public val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
 
     /**
-     * Allow sending credentials
+     * Allows passing credential information (such as cookies or authentication information)
+     * with cross-origin requests.
+     * This property sets the `Access-Control-Allow-Credentials` response header to `true`.
      */
     public var allowCredentials: Boolean = false
 
     /**
-     * If present represents the prefix for headers which are permitted in cors requests.
+     * If present represents the prefix for headers which are permitted in CORS requests.
      */
     public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
-     * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
+     * Specifies how long the response to the preflight request can be cached
+     * without sending another preflight request.
      */
     public var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
         set(newMaxAge) {
@@ -230,12 +240,12 @@ public class CORSConfig {
         }
 
     /**
-     * Allow requests from the same origin
+     * Allows requests from the same origin.
      */
     public var allowSameOrigin: Boolean = true
 
     /**
-     * Allow sending requests with non-simple content-types. The following content types are considered simple:
+     * Allows sending requests with non-simple content-types. The following content types are considered simple:
      * - `text/plain`
      * - `application/x-www-form-urlencoded`
      * - `multipart/form-data`
@@ -243,17 +253,18 @@ public class CORSConfig {
     public var allowNonSimpleContentTypes: Boolean = false
 
     /**
-     * Allow requests from any host
+     * Allows requests from any host.
      */
     public fun anyHost() {
         hosts.add("*")
     }
 
     /**
-     * Allow requests from the specified domains and schemes. A wildcard is supported for either the host or any
-     * subdomain. If you specify a wildcard in the host, you cannot add specific subdomains. Otherwise you can mix
-     * wildcard and non-wildcard subdomains as long as the wildcard is always in front of the domain,
-     * e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
+     * Allows requests from the specified domains and schemes.
+     * A wildcard is supported for either the host or any subdomain.
+     * If you specify a wildcard in the host, you cannot add specific subdomains.
+     * Otherwise, you can mix wildcard and non-wildcard subdomains as long as
+     * the wildcard is always in front of the domain, e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
      */
     public fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
         if (host == "*") {
@@ -298,8 +309,9 @@ public class CORSConfig {
     }
 
     /**
-     * Allow to expose [header]. It adds the [header] to `Access-Control-Expose-Headers` if it is not a
-     * simple response header.
+     * Allows exposing the [header] using `Access-Control-Expose-Headers`.
+     * The `Access-Control-Expose-Headers` header adds the specified headers
+     * to the allowlist that JavaScript in browsers can access.
      */
     public fun exposeHeader(header: String) {
         if (header !in CorsSimpleResponseHeaders) {
@@ -308,7 +320,7 @@ public class CORSConfig {
     }
 
     /**
-     * Allow to send `X-Http-Method-Override` header
+     * Allows using the `X-Http-Method-Override` header for the actual [CORS] request.
      */
     @Suppress("unused")
     public fun allowXHttpMethodOverride() {
@@ -316,21 +328,21 @@ public class CORSConfig {
     }
 
     /**
-     * Allow headers prefixed with [headerPrefix]
+     * Allows using headers prefixed with [headerPrefix] for the actual [CORS] request.
      */
     public fun allowHeadersPrefixed(headerPrefix: String) {
         this.headerPredicates.add { name -> name.startsWith(headerPrefix) }
     }
 
     /**
-     * Allow headers that match [predicate]
+     * Allows using headers matching [predicate] for the actual [CORS] request.
      */
     public fun allowHeaders(predicate: (String) -> Boolean) {
         this.headerPredicates.add(predicate)
     }
 
     /**
-     * Allow sending [header]
+     * Allow using a specified [header] for the actual [CORS] request.
      */
     public fun header(header: String) {
         if (header.equals(HttpHeaders.ContentType, ignoreCase = true)) {
@@ -344,10 +356,10 @@ public class CORSConfig {
     }
 
     /**
-     * Please note that CORS operates ONLY with REAL HTTP methods
-     * and will never consider overridden methods via `X-Http-Method-Override`.
-     * However you can add them here if you are implementing CORS at client side from the scratch
-     * that you generally don't need to do.
+     * Adds a specified [method] to a list of methods allowed by [CORS].
+     *
+     * Note that CORS operates with real HTTP methods only and
+     * doesn't handle method overridden by `X-Http-Method-Override`.
      */
     public fun method(method: HttpMethod) {
         if (method !in CorsDefaultMethods) {
