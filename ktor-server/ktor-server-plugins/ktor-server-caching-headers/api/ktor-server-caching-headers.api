@@ -1,6 +1,6 @@
 public final class io/ktor/server/plugins/cachingheaders/CachingHeadersConfig {
 	public fun <init> ()V
-	public final fun options (Lkotlin/jvm/functions/Function1;)V
+	public final fun options (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/plugins/cachingheaders/CachingHeadersKt {
