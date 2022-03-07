@@ -6,8 +6,8 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                api("org.apache.velocity:velocity-engine-core:2.3")
-                api("org.apache.velocity.tools:velocity-tools-generic:3.1")
+                api(libs.velocity)
+                api(libs.velocity.tools)
             }
         }
     }

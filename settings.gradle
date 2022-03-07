@@ -10,8 +10,8 @@ pluginManagement {
     }
     resolutionStrategy {
         eachPlugin {
-            if (requested.id.id == "kotlin2js") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            if (requested.id.id == "kotlinx-atomicfu") {
+                useModule("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${requested.version}")
             }
         }
     }
@@ -86,8 +86,6 @@ include ':ktor-client:ktor-client-features:ktor-client-auth-basic'
 include ':ktor-client:ktor-client-features:ktor-client-logging'
 include ':ktor-client:ktor-client-features:ktor-client-encoding'
 include ':ktor-client:ktor-client-features:ktor-client-websockets'
-//include ':ktor-client:ktor-client-features:ktor-client-tracing'
-//include ':ktor-client:ktor-client-features:ktor-client-tracing:ktor-client-tracing-stetho'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-mustache'
 include ':ktor-features:ktor-thymeleaf'

@@ -1,12 +1,13 @@
 
-kotlin.sourceSets {
-    commonMain.dependencies {
-        api "org.jetbrains.kotlin:kotlin-stdlib-common"
-        api group: "org.jetbrains.kotlinx", name: "kotlinx-coroutines-core", version: coroutines_version
-    }
-    commonTest.dependencies {
-        api "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
-        api "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(kotlin("test-common"))
+        }
     }
 }
 

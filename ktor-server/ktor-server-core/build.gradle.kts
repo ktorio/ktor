@@ -1,19 +1,14 @@
 description = ""
 
-val typesafe_config_version: String by extra
-val kotlin_version: String by extra
-val mockk_version: String by extra
-val jansi_version: String by project.extra
-
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
 
-            api("com.typesafe:config:$typesafe_config_version")
-            api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
+            api(libs.typesafe.config)
+            api(libs.kotlin.reflect)
+            implementation(libs.jansi)
         }
     }
     val jvmTest by getting {
@@ -21,7 +16,7 @@ kotlin.sourceSets {
             api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-network"))
             api(project(":ktor-server:ktor-server-test-host"))
-            implementation("io.mockk:mockk:$mockk_version")
+            implementation(libs.mockk)
         }
     }
 }

@@ -3,10 +3,9 @@ import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 val ideaActive: Boolean by project.extra
-val serialization_version: String by project.extra
 
 plugins {
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization") version "1.6.10"
 }
 
 kotlin {
@@ -52,7 +51,7 @@ kotlin {
                             val winTests = tasks.getByName("mingwX64Test") as KotlinNativeTest
                             winTests.environment(
                                 "PATH",
-                                "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
+                                "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin" // ktlint-disable max-line-length
                             )
                         }
                     }

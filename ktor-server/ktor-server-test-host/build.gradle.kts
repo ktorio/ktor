@@ -1,11 +1,6 @@
 description = ""
 
-val jetty_alpn_boot_version: String? by extra
-val logback_version: String by extra
-val jetty_version: String by extra
-val coroutines_version: String by extra
-val junit_version: String by extra
-val kotlin_version: String by extra
+val need_alpn_boot: Boolean by extra
 
 kotlin.sourceSets {
     val jvmMain by getting {
@@ -22,24 +17,24 @@ kotlin.sourceSets {
             // so shouldn"t increase the size of the final artifact.
             api(project(":ktor-features:ktor-websockets"))
 
-            api("ch.qos.logback:logback-classic:$logback_version")
-            api("org.eclipse.jetty.http2:http2-client:$jetty_version")
-            api("org.eclipse.jetty:jetty-client:$jetty_version")
-            api("org.eclipse.jetty.http2:http2-http-client-transport:$jetty_version")
+            api(libs.logback.classic)
+            api(libs.jetty.client)
+            api(libs.jetty.http2.client)
+            api(libs.jetty.http2.client.transport)
 
-            if (jetty_alpn_boot_version != null) {
-                api("org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
+            if (need_alpn_boot) {
+                api(libs.jetty.alpn.boot)
             }
 
-            api("junit:junit:$junit_version")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+            api(libs.junit)
+            api(libs.kotlinx.coroutines.debug)
         }
     }
 
     val jvmTest by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+            api(libs.kotlin.test.junit)
         }
     }
 }

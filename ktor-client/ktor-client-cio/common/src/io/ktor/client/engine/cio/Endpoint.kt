@@ -7,22 +7,15 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.http.cio.*
-import io.ktor.http.content.*
 import io.ktor.network.sockets.*
-import io.ktor.network.sockets.Connection
 import io.ktor.network.tls.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.sync.*
 import kotlin.coroutines.*
 
 internal class Endpoint(
@@ -50,7 +43,7 @@ internal class Endpoint(
 
                 delay(remaining)
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         } finally {
             deliveryPoint.close()
             onDone()
@@ -82,7 +75,8 @@ internal class Endpoint(
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
-        if (deliveryPoint.trySend(task).isSuccess) return
+        @Suppress("DEPRECATION")
+        if (deliveryPoint.offer(task)) return
 
         val connections = connections.value
         if (connections < config.endpoint.maxConnectionsPerRoute) {

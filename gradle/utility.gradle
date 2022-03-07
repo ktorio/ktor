@@ -36,9 +36,9 @@ switch (java_version) {
     case '1.8.0_232':
     case '1.8.0_241':
     case '1.8.0_242':
-        project.ext.jetty_alpn_boot_version = "8.1.13.v20181017"
+        project.ext.need_alpn_boot = true
         break
     default:
-        project.ext.jetty_alpn_boot_version = null
+        project.ext.need_alpn_boot = false
         break
 }

@@ -3,74 +3,11 @@
  */
 
 import org.jetbrains.dokka.gradle.*
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.*
 import org.jetbrains.kotlin.konan.target.*
-
-buildscript {
-    /*
-     * These property group is used to build ktor against Kotlin compiler snapshot.
-     * How does it work:
-     * When build_snapshot_train is set to true, kotlin_version property is overridden with kotlin_snapshot_version,
-     * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
-     * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
-     * DO NOT change the name of these properties without adapting kotlinx.train build chain.
-     */
-    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"].let { it != null && it != "" }
-    val build_snapshot_train: Boolean by extra
-    if (build_snapshot_train) {
-        extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-        val kotlin_version: String? by extra
-        if (kotlin_version == null) {
-            throw IllegalArgumentException(
-                "'kotlin_snapshot_version' should be defined when building with snapshot compiler"
-            )
-        }
-        repositories {
-            mavenLocal()
-            maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
-        }
-
-        configurations.classpath {
-            resolutionStrategy.eachDependency {
-                if (requested.group == "org.jetbrains.kotlin") {
-                    useVersion(kotlin_version!!)
-                }
-            }
-        }
-    }
-    // These three flags are enabled in train builds for JVM IR compiler testing
-    extra["jvm_ir_enabled"] = rootProject.properties["enable_jvm_ir"] != null
-    extra["jvm_ir_api_check_enabled"] = rootProject.properties["enable_jvm_ir_api_check"] != null
-    // This flag is also used in settings.gradle to exclude native-only projects
-    extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        google()
-        gradlePluginPortal()
-    }
-
-    val kotlin_version: String by extra
-    val atomicfu_version: String by extra
-    val validator_version: String by extra
-    val android_gradle_version: String by extra
-    val ktlint_version: String by extra
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version")
-        classpath("com.android.tools.build:gradle:$android_gradle_version")
-        classpath("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
-    }
-
-    CacheRedirector.configureBuildScript(rootProject, this)
-}
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
-val native_targets_enabled: Boolean by extra
 val projectVersion = project.version as String
 val version = if (projectVersion.endsWith("-SNAPSHOT")) {
     projectVersion.dropLast("-SNAPSHOT".length)
@@ -100,11 +37,7 @@ val experimentalAnnotations: List<String> by extra
  * `darwin` is subset of `posix`.
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
-val platforms = mutableListOf("common", "jvm", "js")
-
-if (native_targets_enabled) {
-    platforms += listOf("posix", "darwin")
-}
+val platforms = mutableListOf("common", "jvm", "js", "posix", "darwin")
 
 extra["skipPublish"] = mutableListOf<String>()
 extra["nonDefaultProjectStructure"] = mutableListOf("ktor-bom")
@@ -134,30 +67,28 @@ val disabledExplicitApiModeProjects = listOf(
     "ktor-server-tests"
 )
 
-apply(from = "gradle/compatibility.gradle")
-
 plugins {
     id("org.jetbrains.dokka") version "1.4.32"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
+    id("kotlinx-atomicfu") version "0.17.1" apply false
 }
+
+apply(from = "gradle/compatibility.gradle")
 
 allprojects {
     group = "io.ktor"
     version = configuredVersion
     extra["hostManager"] = HostManager()
 
-    setupTrainForSubproject()
-
     repositories {
         mavenLocal()
         mavenCentral()
-        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
     }
-
-    CacheRedirector.configure(this)
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
+    apply(plugin = "kotlinx-atomicfu")
     apply(plugin = "kotlin-multiplatform")
 
     apply(from = rootProject.file("gradle/utility.gradle"))
@@ -166,7 +97,9 @@ allprojects {
     extra["nativeCompilations"] = mutableListOf<String>()
 
     platforms.forEach { platform ->
-        if (projectNeedsPlatform(this, platform)) {
+        val projectNeedsPlatform = projectNeedsPlatform(this, platform)
+
+        if (projectNeedsPlatform) {
             if (platform == "js") {
                 configureJsModules()
             } else {
@@ -214,11 +147,6 @@ if (project.hasProperty("enableCodeStyle")) {
 }
 
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
-filterSnapshotTests()
-
-if (project.hasProperty("enable-coverage")) {
-    apply(from = "gradle/jacoco.gradle")
-}
 
 subprojects {
     plugins.apply("org.jetbrains.dokka")
@@ -237,4 +165,8 @@ if (docs != null) {
     tasks.withType<DokkaMultiModuleTask> {
         pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.versioning.VersioningPlugin" to """{ "version": "$configuredVersion", "olderVersionsDir":"$docs" }"""))
     }
+}
+
+rootProject.plugins.withType<NodeJsRootPlugin> {
+    rootProject.extensions.getByType<NodeJsRootExtension>().nodeVersion = "16.14.0"
 }

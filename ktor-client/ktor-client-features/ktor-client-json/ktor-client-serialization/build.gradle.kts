@@ -1,6 +1,4 @@
 
-val serialization_version = extra["serialization_version"]
-
 plugins {
     id("kotlinx-serialization")
 }
@@ -8,7 +6,7 @@ plugins {
 kotlin.sourceSets {
     val commonMain by getting {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
+            api(libs.kotlinx.serialization.json)
             api(project(":ktor-client:ktor-client-features:ktor-client-json"))
         }
     }

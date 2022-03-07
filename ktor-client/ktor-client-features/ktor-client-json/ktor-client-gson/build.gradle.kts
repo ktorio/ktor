@@ -1,10 +1,9 @@
-val gson_version: String by project.extra
 
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-json"))
-            api("com.google.code.gson:gson:$gson_version")
+            api(libs.gson)
         }
     }
     val jvmTest by getting {

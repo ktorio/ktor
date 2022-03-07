@@ -1,8 +1,6 @@
 
-val serialization_version: String by project.extra
-
 plugins {
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization") version "1.6.10"
 }
 
 kotlin.sourceSets {
@@ -15,7 +13,7 @@ kotlin.sourceSets {
 
     val jvmTest by getting {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
+            api(libs.kotlinx.serialization.core)
             api(project(":ktor-client:ktor-client-features:ktor-client-json"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
