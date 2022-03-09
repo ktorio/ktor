@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -31,12 +32,21 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
         }
         else -> null
     }
+    val credentialsKey: AttributeKey<*>? = attributes.allKeys.firstOrNull { it.name == "credentials" }
 
     return buildObject {
         method = this@toRaw.method.value
         headers = jsHeaders
         redirect = RequestRedirect.FOLLOW
-        credentials = RequestCredentials.INCLUDE
+        credentialsKey?.let {
+            val credentialsValue = attributes[credentialsKey as AttributeKey<String>]
+            credentials = when(credentialsValue.toLowerCase()) {
+                "include" -> RequestCredentials.INCLUDE
+                "omit" -> RequestCredentials.OMIT
+                "same-origin" -> RequestCredentials.SAME_ORIGIN
+                else -> null
+            }
+        }
 
         bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
     }
