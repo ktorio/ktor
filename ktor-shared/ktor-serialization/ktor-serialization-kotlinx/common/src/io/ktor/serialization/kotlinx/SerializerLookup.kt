@@ -14,8 +14,13 @@ internal fun serializerFromTypeInfo(
     typeInfo: TypeInfo,
     module: SerializersModule
 ): KSerializer<*> {
-    return module.getContextual(typeInfo.type)
-        ?: typeInfo.kotlinType?.let { module.serializerOrNull(it) }
+    return typeInfo.kotlinType
+        ?.let { type ->
+            if (type.arguments.isEmpty()) null // fallback to simple case because of
+            // https://github.com/Kotlin/kotlinx.serialization/issues/1870
+            else module.serializerOrNull(type)
+        }
+        ?: module.getContextual(typeInfo.type)
         ?: typeInfo.type.serializer()
 }
 
