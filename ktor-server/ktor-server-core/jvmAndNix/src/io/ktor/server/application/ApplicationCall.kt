@@ -41,13 +41,6 @@ public interface ApplicationCall {
      * Parameters associated with this call.
      */
     public val parameters: Parameters
-
-    /**
-     * Allows you to execute a [handler] after the current call is finished.
-     *
-     * @param cause An exception that can take place before the call has finished.
-     * */
-    public fun afterFinish(handler: (cause: Throwable?) -> Unit)
 }
 
 /**
@@ -63,9 +56,3 @@ public var ApplicationCall.receiveType: TypeInfo
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)
     }
-
-public interface ApplicationCallWithContext : ApplicationCall, CoroutineScope {
-    override fun afterFinish(handler: (Throwable?) -> Unit) {
-        coroutineContext.job.invokeOnCompletion(handler)
-    }
-}

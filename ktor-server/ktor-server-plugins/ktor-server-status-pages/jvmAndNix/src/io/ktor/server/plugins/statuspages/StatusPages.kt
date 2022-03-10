@@ -5,8 +5,8 @@
 package io.ktor.server.plugins.statuspages
 
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import kotlin.reflect.*
@@ -33,11 +33,11 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
         return exceptions[key]
     }
 
-    onCallRespond.afterTransform { call, body: OutgoingContent ->
-        if (call.attributes.contains(statusPageMarker)) return@afterTransform
+    on(ResponseBodyReadyForSend) { call, content ->
+        if (call.attributes.contains(statusPageMarker)) return@on
 
-        val status = body.status ?: return@afterTransform
-        val handler = statuses[status] ?: return@afterTransform
+        val status = content.status ?: return@on
+        val handler = statuses[status] ?: return@on
         call.attributes.put(statusPageMarker, Unit)
         try {
             handler(call, status)

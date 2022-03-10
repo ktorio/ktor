@@ -7,6 +7,7 @@ package io.ktor.server.plugins.conditionalheaders
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -89,8 +90,8 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
         return VersionCheckResult.OK
     }
 
-    onCallRespond.afterTransform { call, message ->
-        val versions = call.versionsFor(message)
+    on(ResponseBodyReadyForSend) { call, content ->
+        val versions = call.versionsFor(content)
 
         if (versions.isNotEmpty()) {
             val headers = Headers.build {
@@ -105,10 +106,7 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 
         val checkResult = checkVersions(call, versions)
         if (checkResult != VersionCheckResult.OK) {
-            transformBody {
-                HttpStatusCodeContent(checkResult.statusCode)
-            }
-            return@afterTransform
+            transformBodyTo(HttpStatusCodeContent(checkResult.statusCode))
         }
     }
 }

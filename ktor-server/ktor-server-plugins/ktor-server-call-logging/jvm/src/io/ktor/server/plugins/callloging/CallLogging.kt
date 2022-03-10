@@ -6,6 +6,7 @@ package io.ktor.server.plugins.callloging
 
 import io.ktor.events.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import org.slf4j.event.*
 
 /**
@@ -45,11 +46,8 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
 }
 
 private fun PluginBuilder<CallLoggingConfig>.logCompletedCalls(logSuccess: (ApplicationCall) -> Unit) {
-    onCall { call ->
-        call.afterFinish {
-            if (it == null) return@afterFinish
-            logSuccess(call)
-        }
+    on(ResponseSent) { call ->
+        logSuccess(call)
     }
 }
 

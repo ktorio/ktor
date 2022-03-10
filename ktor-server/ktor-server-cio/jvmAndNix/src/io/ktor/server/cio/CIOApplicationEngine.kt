@@ -119,7 +119,6 @@ public class CIOApplicationEngine(
                 upgraded,
                 remoteAddress,
                 localAddress,
-                this@withContext.coroutineContext
             )
 
             try {

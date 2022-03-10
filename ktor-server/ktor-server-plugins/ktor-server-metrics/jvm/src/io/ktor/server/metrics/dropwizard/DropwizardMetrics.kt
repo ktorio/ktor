@@ -8,6 +8,8 @@ import com.codahale.metrics.*
 import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
 
@@ -60,7 +62,7 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             exceptions.mark()
         }
 
-        on(CallRouted) { call ->
+        on(MonitoringEvent(Routing.RoutingCallStarted)) { call ->
             val name = call.route.toString()
             val meter = pluginConfig.registry.meter(name(pluginConfig.baseName, name, "meter"))
             val timer = pluginConfig.registry.timer(name(pluginConfig.baseName, name, "timer"))
@@ -72,7 +74,7 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             )
         }
 
-        on(RoutedCallProcessed) { call ->
+        on(MonitoringEvent(Routing.RoutingCallFinished)) { call ->
             val routingMetrics = call.attributes.take(routingMetricsKey)
             val status = call.response.status()?.value ?: 0
             val statusMeter =
@@ -81,7 +83,8 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             routingMetrics.context.stop()
         }
 
-        on(BeforeCall) { call ->
+        @OptIn(InternalAPI::class)
+        on(Metrics) { call ->
             active.inc()
             call.attributes.put(measureKey, CallMeasure(duration.time()))
         }

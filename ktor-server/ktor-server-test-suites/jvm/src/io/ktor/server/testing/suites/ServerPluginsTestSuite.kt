@@ -59,67 +59,23 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     val plugin = createApplicationPlugin("F") {
-        onCall { call ->
+        onCall {
             sendEvent("onCall")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
-        onCallReceive { call ->
+        onCallReceive { _ ->
             sendEvent("onCallReceive")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
-        onCallRespond { call, _ ->
+        onCallRespond { _ ->
             sendEvent("onCallRespond")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
-        }
-        onCallRespond.afterTransform { call, _ ->
-            sendEvent("onCallRespond.afterTransform")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
     }
 
-    val expectedEventsForCall = listOf(
-        "onCall",
-        "onCallReceive",
-        "onCallRespond",
-        "onCallRespond.afterTransform",
-        "afterFinish",
-        "afterFinish",
-        "afterFinish",
-        "afterFinish"
-    )
+    val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
 
     override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         super.plugins(application, routingConfigurer)
 
         application.install(plugin)
-    }
-
-    @Test
-    fun testAfterFinishOrder() {
-        createAndStartServer {
-            get("/request") {
-                val data = call.receive<String>()
-                call.respondText("response: $data")
-            }
-        }
-
-        setNumberOfEvents(expectedEventsForCall.size)
-
-        assertEvents(expectedEventsForCall, 20000) { checker ->
-            withUrl("/request") { checker() }
-        }
     }
 
     @Test

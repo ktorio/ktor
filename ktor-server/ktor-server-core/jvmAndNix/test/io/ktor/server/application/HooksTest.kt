@@ -5,6 +5,7 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -58,15 +59,19 @@ class HooksTest {
     }
 
     @Test
-    fun testShutdownHook() {
+    fun testMonitoringEventHook() {
         class State {
+            var startCalled = false
             var shutdownCalled = false
         }
 
         val state = State()
         val shutdownHandler = createApplicationPlugin("ShutdownHandler") {
-            on(Shutdown) {
+            on(MonitoringEvent(ApplicationStopped)) {
                 state.shutdownCalled = true
+            }
+            on(MonitoringEvent(ApplicationStarted)) {
+                state.startCalled = true
             }
         }
 
@@ -80,7 +85,7 @@ class HooksTest {
             }
 
             client.get("/")
-
+            assertTrue(state.startCalled)
             assertFalse(state.shutdownCalled)
         }
 

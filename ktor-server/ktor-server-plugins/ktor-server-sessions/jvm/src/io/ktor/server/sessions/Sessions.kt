@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 
-private object BeforeSendHook : Hook<suspend (ApplicationCall) -> Unit> {
+private object BeforeSend : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
             handler(call)
@@ -38,7 +38,7 @@ public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin
     }
 
     // When response is being sent, call each provider to update/remove session data
-    on(BeforeSendHook) { call ->
+    on(BeforeSend) { call ->
 
         /*
          If sessionData is not available it means response happened before Session plugin got a chance to deserialize the data.

@@ -6,7 +6,6 @@ public final class io/ktor/server/application/Application : io/ktor/server/appli
 }
 
 public abstract interface class io/ktor/server/application/ApplicationCall {
-	public abstract fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public abstract fun getApplication ()Lio/ktor/server/application/Application;
 	public abstract fun getAttributes ()Lio/ktor/util/Attributes;
 	public abstract fun getParameters ()Lio/ktor/http/Parameters;
@@ -42,14 +41,6 @@ public final class io/ktor/server/application/ApplicationCallPipeline$Applicatio
 public final class io/ktor/server/application/ApplicationCallPipelineKt {
 	public static final fun getApplication (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/server/application/Application;
 	public static final fun getCall (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/server/application/ApplicationCall;
-}
-
-public abstract interface class io/ktor/server/application/ApplicationCallWithContext : io/ktor/server/application/ApplicationCall, kotlinx/coroutines/CoroutineScope {
-	public abstract fun afterFinish (Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class io/ktor/server/application/ApplicationCallWithContext$DefaultImpls {
-	public static fun afterFinish (Lio/ktor/server/application/ApplicationCallWithContext;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/application/ApplicationConfigExtensionsKt {
@@ -98,12 +89,6 @@ public class io/ktor/server/application/CallContext {
 	public final fun getPluginConfig ()Ljava/lang/Object;
 }
 
-public final class io/ktor/server/application/CallFailed : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/application/CallFailed;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
-}
-
 public final class io/ktor/server/application/CreatePluginUtilsKt {
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
@@ -150,14 +135,6 @@ public final class io/ktor/server/application/OnCallReceiveContext : io/ktor/ser
 	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/server/application/OnCallRespond {
-	public abstract fun afterTransform (Lkotlin/jvm/functions/Function4;)V
-}
-
-public final class io/ktor/server/application/OnCallRespondAfterTransformContext : io/ktor/server/application/CallContext {
-	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/application/OnCallRespondContext : io/ktor/server/application/CallContext {
 	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -171,7 +148,6 @@ public abstract class io/ktor/server/application/PluginBuilder {
 	public abstract fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getApplicationConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
-	public final fun getOnCallRespond ()Lio/ktor/server/application/OnCallRespond;
 	public abstract fun getPluginConfig ()Ljava/lang/Object;
 	public final fun on (Lio/ktor/server/application/Hook;Ljava/lang/Object;)V
 	public final fun onCall (Lkotlin/jvm/functions/Function3;)V
@@ -189,12 +165,6 @@ public abstract interface class io/ktor/server/application/RouteScopedPlugin : i
 
 public final class io/ktor/server/application/RouteScopedPluginKt {
 	public static final fun findPluginInRoute (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/application/Shutdown : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/application/Shutdown;
-	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/application/TransformBodyContext {
@@ -215,6 +185,47 @@ public final class io/ktor/server/application/debug/PluginName : kotlin/coroutin
 }
 
 public final class io/ktor/server/application/debug/PluginName$Key : kotlin/coroutines/CoroutineContext$Key {
+}
+
+public final class io/ktor/server/application/hooks/CallFailed : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/CallFailed;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/application/hooks/CallSetup : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/CallSetup;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/application/hooks/Metrics : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/Metrics;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/application/hooks/MonitoringEvent : io/ktor/server/application/Hook {
+	public fun <init> (Lio/ktor/events/EventDefinition;)V
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseBodyReadyForSend;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function4;)V
+}
+
+public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend$Context {
+	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
+	public final fun transformBodyTo (Lio/ktor/http/content/OutgoingContent;)V
+}
+
+public final class io/ktor/server/application/hooks/ResponseSent : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseSent;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract interface class io/ktor/server/config/ApplicationConfig {
@@ -1073,9 +1084,8 @@ public final class io/ktor/server/routing/Routing$Plugin : io/ktor/server/applic
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/routing/RoutingApplicationCall : io/ktor/server/application/ApplicationCallWithContext {
+public final class io/ktor/server/routing/RoutingApplicationCall : io/ktor/server/application/ApplicationCall, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lio/ktor/server/routing/Route;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
-	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
