@@ -15,6 +15,6 @@ class CryptoTest {
         js("window.msCrypto = window.crypto")
         js("Object.defineProperty(window, 'crypto', {writable: true})")
         js("delete window.crypto")
-        assertEquals(16, generateNonce().length)
+        assertEquals(32, generateNonce().length)
     }
 }

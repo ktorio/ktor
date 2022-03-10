@@ -7,6 +7,7 @@ package io.ktor.websocket
 import io.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
+import kotlin.random.*
 
 @Suppress("KDocMissingDocumentation")
 public class Serializer {
@@ -95,7 +96,7 @@ public class Serializer {
     private fun setMaskBuffer(mask: Boolean) {
         if (mask) {
             maskBuffer = ByteBuffer.allocate(4).apply {
-                putInt(generateNonce().hashCode())
+                putInt(Random.nextInt())
                 clear()
             }
         } else {
