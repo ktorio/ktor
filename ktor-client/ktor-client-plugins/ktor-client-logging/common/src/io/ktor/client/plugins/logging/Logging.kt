@@ -16,7 +16,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 
 /**
  * A client's logging plugin.
@@ -26,8 +25,6 @@ public class Logging private constructor(
     public var level: LogLevel,
     public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
 ) {
-
-    private val mutex = Mutex()
 
     /**
      * [Logging] plugin configuration
@@ -57,56 +54,59 @@ public class Logging private constructor(
         }
     }
 
-    private suspend fun beginLogging() {
-        mutex.lock()
-    }
-
-    private fun doneLogging() {
-        mutex.unlock()
-    }
-
     private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
-        if (level.info) {
-            logger.log("REQUEST: ${Url(request.url)}")
-            logger.log("METHOD: ${request.method}")
-        }
-
         val content = request.body as OutgoingContent
+        val message = buildString {
+            if (level.info) {
+                appendLine("REQUEST: ${Url(request.url)}")
+                appendLine("METHOD: ${request.method}")
+            }
 
-        if (level.headers) {
-            logger.log("COMMON HEADERS")
-            logHeaders(request.headers.entries())
+            if (level.headers) {
+                appendLine("COMMON HEADERS")
+                logHeaders(request.headers.entries())
 
-            logger.log("CONTENT HEADERS")
-            content.contentLength?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
-            content.contentType?.let { logger.logHeader(HttpHeaders.ContentType, it.toString()) }
-            logHeaders(content.headers.entries())
+                appendLine("CONTENT HEADERS")
+                content.contentLength?.let { logHeader(HttpHeaders.ContentLength, it.toString()) }
+                content.contentType?.let { logHeader(HttpHeaders.ContentType, it.toString()) }
+                logHeaders(content.headers.entries())
+            }
         }
-
+        if (message.isNotEmpty()) {
+            logger.log(message.trim())
+        }
         return if (level.body) {
             logRequestBody(content)
         } else null
     }
 
     private fun logResponse(response: HttpResponse) {
-        if (level.info) {
-            logger.log("RESPONSE: ${response.status}")
-            logger.log("METHOD: ${response.call.request.method}")
-            logger.log("FROM: ${response.call.request.url}")
-        }
+        val message = buildString {
+            if (level.info) {
+                appendLine("RESPONSE: ${response.status}")
+                appendLine("METHOD: ${response.call.request.method}")
+                appendLine("FROM: ${response.call.request.url}")
+            }
 
-        if (level.headers) {
-            logger.log("COMMON HEADERS")
-            logHeaders(response.headers.entries())
+            if (level.headers) {
+                appendLine("COMMON HEADERS")
+                logHeaders(response.headers.entries())
+            }
+        }
+        if (message.isNotEmpty()) {
+            logger.log(message.trim())
         }
     }
 
-    private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel): Unit = with(logger) {
-        log("BODY Content-Type: $contentType")
-        log("BODY START")
-        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
-        log(message)
-        log("BODY END")
+    private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel) {
+        val message = buildString {
+            appendLine("BODY Content-Type: $contentType")
+            appendLine("BODY START")
+            val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
+            appendLine(message)
+            append("BODY END")
+        }
+        logger.log(message)
     }
 
     private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
@@ -121,32 +121,33 @@ public class Logging private constructor(
         }
     }
 
-    private fun logHeaders(headers: Set<Map.Entry<String, List<String>>>) {
+    private fun Appendable.logHeaders(headers: Set<Map.Entry<String, List<String>>>) {
         val sortedHeaders = headers.toList().sortedBy { it.key }
 
         sortedHeaders.forEach { (key, values) ->
-            logger.logHeader(key, values.joinToString("; "))
+            logHeader(key, values.joinToString("; "))
         }
     }
 
-    private fun Logger.logHeader(key: String, value: String) {
-        log("-> $key: $value")
+    private fun Appendable.logHeader(key: String, value: String) {
+        appendLine("-> $key: $value")
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
-        logger.log("BODY Content-Type: ${content.contentType}")
+        val bodyLog = StringBuilder()
+        bodyLog.appendLine("BODY Content-Type: ${content.contentType}")
 
         val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
             val text = channel.tryReadText(charset) ?: "[request body omitted]"
-            logger.log("BODY START")
-            logger.log(text)
-            logger.log("BODY END")
+            bodyLog.appendLine("BODY START")
+            bodyLog.appendLine(text)
+            bodyLog.append("BODY END")
+            logger.log(bodyLog.toString())
         }
-
         return content.observe(channel)
     }
 
@@ -163,12 +164,9 @@ public class Logging private constructor(
             scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
                 val response = if (plugin.filters.isEmpty() || plugin.filters.any { it(context) }) {
                     try {
-                        plugin.beginLogging()
                         plugin.logRequest(context)
                     } catch (_: Throwable) {
                         null
-                    } finally {
-                        plugin.doneLogging()
                     }
                 } else null
 
@@ -183,16 +181,11 @@ public class Logging private constructor(
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
                 try {
-                    plugin.beginLogging()
                     plugin.logResponse(response.call.response)
                     proceedWith(subject)
                 } catch (cause: Throwable) {
                     plugin.logResponseException(response.call.request, cause)
                     throw cause
-                } finally {
-                    if (!plugin.level.body) {
-                        plugin.doneLogging()
-                    }
                 }
             }
 
@@ -213,8 +206,6 @@ public class Logging private constructor(
                 try {
                     plugin.logResponseBody(it.contentType(), it.content)
                 } catch (_: Throwable) {
-                } finally {
-                    plugin.doneLogging()
                 }
             }
 
