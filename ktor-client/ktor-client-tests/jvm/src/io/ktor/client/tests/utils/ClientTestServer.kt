@@ -57,6 +57,10 @@ internal fun Application.tests() {
             val size = call.request.queryParameters["size"]!!.toInt()
             call.respondBytes(makeArray(size))
         }
+        post("/content-type") {
+            val contentType = call.request.header(HttpHeaders.ContentType)
+            call.respondText(contentType ?: "")
+        }
     }
 }
 

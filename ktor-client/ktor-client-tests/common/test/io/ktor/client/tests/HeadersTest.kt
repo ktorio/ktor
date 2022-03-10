@@ -27,6 +27,19 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
+    fun testContentNegotiationMediaType() = clientTests(listOf("Java", "Curl", "Js", "Darwin")) {
+        test { client ->
+            client.preparePost("$TEST_SERVER/content-type") {
+                contentType(ContentType.Application.Json)
+                setBody("123")
+            }.execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("application/json", it.bodyAsText())
+            }
+        }
+    }
+
+    @Test
     fun testHeadersMerge() = clientTests(listOf("Js")) {
         test { client ->
             client.get("$TEST_SERVER/headers-merge") {

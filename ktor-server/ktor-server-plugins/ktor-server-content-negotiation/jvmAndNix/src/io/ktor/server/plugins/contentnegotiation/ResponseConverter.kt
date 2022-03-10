@@ -43,10 +43,11 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
 
         // Pick the first one that can convert the subject successfully
         val converted: OutgoingContent? = suitableConverters.firstNotNullOfOrNull {
+            val contentType = acceptCharset?.let { charset ->
+                it.contentType.withCharset(charset)
+            }
             it.converter.serialize(
-                contentType = acceptCharset?.let { charset ->
-                    it.contentType.withCharset(charset)
-                } ?: it.contentType,
+                contentType = contentType ?: it.contentType,
                 charset = acceptCharset ?: Charsets.UTF_8,
                 typeInfo = call.response.responseType!!,
                 value = subject

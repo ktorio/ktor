@@ -71,22 +71,4 @@ class ExceptionsJvmTest {
             }
         }
     }
-
-    @Test
-    fun testContentNegotioationMediaType() = runBlocking {
-        val client = HttpClient(Apache) {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-
-        val response = client.post("https://httpbin.org/post") {
-            contentType(ContentType.Application.Json)
-            setBody(123)
-        }.bodyAsText()
-
-        assertTrue(
-            """"Content-Type": "application/json",""".toRegex().containsMatchIn(response)
-        )
-    }
 }

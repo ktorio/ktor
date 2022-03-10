@@ -66,5 +66,12 @@ internal fun Application.headersTestServer() {
                 }
             }
         }
+
+        route("/content-type") {
+            post {
+                val contentType = call.request.headers[HttpHeaders.ContentType]
+                call.respondText(contentType ?: "")
+            }
+        }
     }
 }
