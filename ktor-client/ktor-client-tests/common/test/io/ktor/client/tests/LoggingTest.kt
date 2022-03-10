@@ -630,4 +630,31 @@ class LoggingTest : ClientLoader() {
             testLogger.verify()
         }
     }
+
+    @Test
+    fun testStatusAtLeastStrategy() = clientTests(listOf("native:CIO")) {
+        val testLogger = TestLogger()
+
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+                strategy = StatusAtLeastStrategy(HttpStatusCode.BadRequest)
+            }
+        }
+
+        test { client ->
+            val response = client.request {
+                method = HttpMethod.Post
+                setBody("test")
+                url("$TEST_SERVER/content/echo")
+            }.body<ByteReadChannel>()
+            assertNotNull(response)
+            assertEquals("test", response.readRemaining().readText())
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
 }
