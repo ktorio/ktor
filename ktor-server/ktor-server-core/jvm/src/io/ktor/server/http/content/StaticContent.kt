@@ -127,8 +127,8 @@ public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
  * Sets up routing to serve all files from [folder].
- * Serves [defaultFile] if not existing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
 internal fun Route.filesWithDefault(
     folder: String,
@@ -152,8 +152,8 @@ public fun Route.files(folder: File) {
 
 /**
  * Sets up routing to serve all files from [folder].
- * Serves [defaultFile] if not existing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
 internal fun Route.filesWithDefaultFile(
     folder: File,
@@ -263,8 +263,8 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 
 /**
  * Sets up routing to serve all resources in [resourcePackage].
- * Serves [defaultFile] if not existing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored]
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
 internal fun Route.resourceWithDefault(
     resourcePackage: String? = null,
