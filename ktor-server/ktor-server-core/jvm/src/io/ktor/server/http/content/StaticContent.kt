@@ -126,6 +126,18 @@ public fun Route.file(remotePath: String, localPath: File) {
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
+ * Sets up routing to serve all files from [folder].
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
+ */
+internal fun Route.filesWithDefault(
+    folder: String,
+    defaultFile: String,
+    shouldFileBeIgnored: (String) -> Boolean
+): Unit =
+    filesWithDefaultFile(File(folder), File(defaultFile), shouldFileBeIgnored)
+
+/**
  * Sets up routing to serve all files from [folder]
  */
 public fun Route.files(folder: File) {
@@ -135,6 +147,35 @@ public fun Route.files(folder: File) {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val file = dir.combineSafe(relativePath)
         call.respondStaticFile(file, compressedTypes)
+    }
+}
+
+/**
+ * Sets up routing to serve all files from [folder].
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
+ */
+internal fun Route.filesWithDefaultFile(
+    folder: File,
+    defaultFile: File,
+    shouldFileBeIgnored: (String) -> Boolean
+) {
+    val dir = staticRootFolder.combine(folder)
+
+    val compressedTypes = staticContentEncodedTypes
+    get("{$pathParameterName...}") {
+        val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
+
+        if (shouldFileBeIgnored.invoke(relativePath)) {
+            call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
+        }
+
+        val file = dir.combineSafe(relativePath)
+        call.respondStaticFile(file, compressedTypes)
+
+        if (!call.isHandled) {
+            call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
+        }
     }
 }
 
@@ -216,6 +257,37 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
         val content = call.resolveResource(resource, packageName)
         if (content != null) {
             call.respond(content)
+        }
+    }
+}
+
+/**
+ * Sets up routing to serve all resources in [resourcePackage].
+ * Serves [defaultFile] if a missing file is requested.
+ * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
+ */
+internal fun Route.resourceWithDefault(
+    resourcePackage: String? = null,
+    defaultResource: String,
+    shouldFileBeIgnored: (String) -> Boolean
+) {
+    val packageName = staticBasePackage.combinePackage(resourcePackage)
+    get("{$pathParameterName...}") {
+        val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
+
+        if (shouldFileBeIgnored.invoke(relativePath)) {
+            call.resolveResource(defaultResource, packageName)?.let {
+                call.respond(it)
+            }
+        }
+
+        val content = call.resolveResource(relativePath, packageName)
+        if (content != null) {
+            call.respond(content)
+        } else {
+            call.resolveResource(defaultResource, packageName)?.let {
+                call.respond(it)
+            }
         }
     }
 }

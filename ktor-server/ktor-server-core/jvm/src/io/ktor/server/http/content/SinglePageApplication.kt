@@ -2,69 +2,54 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.plugins.spa
+package io.ktor.server.http.content
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.http.content.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import java.io.*
 
 /**
- * A plugin that allows you to serve a single-page application
+ * Serves a single-page application.
+ * You can learn more from [Serving single-page applications](https://ktor.io/docs/serving-spa.html).
  *
- * A basic plugin configuration for the application served from the filesPath folder
- * with index.html as a default file:
+ * A basic configuration for the application served from the `filesPath` folder
+ * with `index.html` as a default file:
  *
  * ```
- * install(SinglePageApplication) {
- *   filesPath = "application/project_path"
+ * application {
+ *     routing {
+ *        singlePageApplication {
+ *           filesPath = "application/project_path"
+ *         }
+ *     }
  * }
  * ```
  */
-public val SinglePageApplication: ApplicationPlugin<SPAConfig> = createApplicationPlugin(
-    "SinglePageApplication",
-    { SPAConfig() }
-) {
-    val defaultPage: String = pluginConfig.defaultPage
-    val applicationRoute: String = pluginConfig.applicationRoute
-    val filesPath: String = pluginConfig.filesPath
-    val ignoredFiles: MutableList<(String) -> Boolean> = pluginConfig.ignoredFiles
-    val usePackageNames: Boolean = pluginConfig.useResources
+public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
+    val config = SPAConfig()
+    configBuilder.invoke(config)
 
-    fun isUriStartWith(uri: String) =
-        uri.startsWith(applicationRoute) || uri.startsWith("/$applicationRoute")
-
-    application.routing {
-        static(applicationRoute) {
-            if (usePackageNames) {
-                resources(filesPath)
-                defaultResource(defaultPage, filesPath)
-            } else {
-                staticRootFolder = File(filesPath)
-                files(".")
-                default(defaultPage)
-            }
+    static(config.applicationRoute) {
+        val shouldFileBeIgnored = { filePath: String ->
+            config.ignoredFiles.firstOrNull { it.invoke(filePath) } != null
         }
-    }
 
-    onCall { call ->
-        val requestUrl = call.request.uri
-
-        if (!isUriStartWith(requestUrl)) return@onCall
-
-        if (ignoredFiles.firstOrNull { it.invoke(requestUrl) } != null) {
-            call.respond(HttpStatusCode.Forbidden)
+        if (config.useResources) {
+            resourceWithDefault(
+                config.filesPath,
+                config.defaultPage,
+                shouldFileBeIgnored
+            )
+        } else {
+            staticRootFolder = File(config.filesPath)
+            filesWithDefault(".", config.defaultPage, shouldFileBeIgnored)
         }
     }
 }
 
 /**
- * Configuration for the [SinglePageApplication] plugin
+ * Configuration for the [Route.singlePageApplication] plugin.
  */
 public class SPAConfig(
     /**
