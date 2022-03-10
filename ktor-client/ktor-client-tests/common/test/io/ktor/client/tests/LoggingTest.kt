@@ -174,7 +174,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.prepareRequest {
+            client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -185,10 +185,7 @@ class LoggingTest : ClientLoader() {
                 setBody(content)
             }.execute {
                 it.bodyAsText()
-                it
             }
-
-            response.coroutineContext[Job]!!.join()
         }
 
         after {
@@ -233,7 +230,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.prepareRequest {
+            client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -244,10 +241,7 @@ class LoggingTest : ClientLoader() {
                 setBody(byteArrayOf(-77, 111))
             }.execute {
                 it.readBytes()
-                it
             }
-
-            response.coroutineContext[Job]!!.join()
         }
 
         after {
@@ -256,7 +250,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogRedirect() = clientTests(listOf("js", "Curl", "CIO")) {
+    fun testLogRedirect() = clientTests(listOf("js", "Curl", "CIO", "Java")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/logging/301",
             "METHOD: HttpMethod(value=GET)",
@@ -315,15 +309,12 @@ class LoggingTest : ClientLoader() {
         test { client ->
             testLogger.reset()
 
-            val response = client.prepareRequest {
+            client.prepareRequest {
                 method = HttpMethod.Get
                 url.takeFrom("$TEST_SERVER/logging/301")
             }.execute {
                 it.bodyAsText()
-                it
             }
-
-            response.coroutineContext[Job]!!.join()
         }
 
         after {

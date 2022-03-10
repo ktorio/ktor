@@ -197,17 +197,12 @@ class LoggingMockedTests {
             "!!! BODY Content-Type: multipart/form-data; " +
                 "boundary=41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5",
             "BODY START",
-            """!!!
-                
-
-                --41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5
-                Content-Disposition: form-data; name=file; file; name=""; filename=""
-
-                Hello
-                --41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5--
-
-
-            """.trimIndent(),
+            "!!!--41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5",
+            """Content-Disposition: form-data; name=file; file; name=""; filename=""""",
+            "",
+            "Hello",
+            """!!!--41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5--""",
+            "",
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=POST)",
