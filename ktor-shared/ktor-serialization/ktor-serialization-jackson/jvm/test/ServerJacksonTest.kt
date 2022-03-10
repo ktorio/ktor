@@ -41,7 +41,7 @@ class ServerJacksonTest {
             assertNotNull(response.content)
             assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
         }
 
         handleRequest(HttpMethod.Post, "/") {
@@ -139,7 +139,7 @@ class ServerJacksonTest {
                 response.content!!.lines()
             )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
         }
 
         handleRequest(HttpMethod.Post, "/") {

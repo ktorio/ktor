@@ -52,12 +52,18 @@ public interface ContentConverter {
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
  */
-public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset =
+    suitableCharsetOrNull(defaultCharset) ?: defaultCharset
+
+/**
+ * Detect suitable charset for an application call by `Accept` header or fallback to null
+ */
+public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_8): Charset? {
     for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) when {
         charset == "*" -> return defaultCharset
         Charset.isSupported(charset) -> return Charset.forName(charset)
     }
-    return defaultCharset
+    return null
 }
 
 /**
