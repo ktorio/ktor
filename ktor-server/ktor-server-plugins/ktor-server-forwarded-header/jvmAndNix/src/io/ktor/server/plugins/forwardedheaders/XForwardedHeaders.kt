@@ -10,33 +10,38 @@ import io.ktor.server.plugins.*
 import io.ktor.util.*
 
 /**
- * Configuration options for [XForwardedHeaders] plugin. Allows for defining how XForwarded-Headers
- * should behave.
+ * A configuration for the [XForwardedHeaders] plugin.
  */
 @KtorDsl
 public class XForwardedHeadersConfig {
     /**
-     * Host name X-header names. Default are `X-Forwarded-Server` and `X-Forwarded-Host`
+     * Gets headers used to identify the original host requested by the client.
+     * Default are `X-Forwarded-Server` and `X-Forwarded-Host`.
      */
     public val hostHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
 
     /**
-     * Protocol X-header names. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`
+     * Gets headers used to identify the protocol (HTTP or HTTPS) that a client used
+     * to connect to a proxy or load balancer. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`.
+     *
      */
     public val protoHeaders: MutableList<String> = mutableListOf(HttpHeaders.XForwardedProto, "X-Forwarded-Protocol")
 
     /**
-     * `X-Forwarded-For` header names
+     * Gets headers used to identify the originating IP address of a client connecting to
+     * a server through a proxy or a load balancer.
      */
     public val forHeaders: MutableList<String> = mutableListOf(HttpHeaders.XForwardedFor)
 
     /**
-     * HTTPS/TLS flag header names. Default are `X-Forwarded-SSL` and `Front-End-Https`
+     * Gets headers used to identify whether HTTPS/TLS is used between
+     * the client and the front-end server. Default are `X-Forwarded-SSL` and `Front-End-Https`.
      */
     public val httpsFlagHeaders: MutableList<String> = mutableListOf("X-Forwarded-SSL", "Front-End-Https")
 
     /**
-     * Names of headers used to identify the destination port. The default is `X-Forwarded-Port`
+     * Gets headers used to identify the destination port.
+     * The default is `X-Forwarded-Port`.
      */
     public val portHeaders: MutableList<String> = mutableListOf("X-Forwarded-Port")
 
@@ -48,14 +53,14 @@ public class XForwardedHeadersConfig {
 
     /**
      * Custom logic to extract the value from the X-Forward-* headers when multiple values are present.
-     * You need to modify [MutableOriginConnectionPoint] based on headers from [XForwardedHeaderValues]
+     * You need to modify [MutableOriginConnectionPoint] based on headers from [XForwardedHeaderValues].
      */
     public fun extractEdgeProxy(block: (MutableOriginConnectionPoint, XForwardedHeaderValues) -> Unit) {
         xForwardedHeadersHandler = block
     }
 
     /**
-     * Takes the first value from the X-Forward-* headers when multiple values are present
+     * Takes the first value from the `X-Forward-*` headers when multiple values are present.
      */
     public fun useFirstProxy() {
         extractEdgeProxy { connectionPoint, headers ->
@@ -64,7 +69,7 @@ public class XForwardedHeadersConfig {
     }
 
     /**
-     * Takes the last value from the X-Forward-* headers when multiple values are present
+     * Takes the last value from the `X-Forward-*` headers when multiple values are present.
      */
     public fun useLastProxy() {
         extractEdgeProxy { connectionPoint, headers ->
@@ -73,7 +78,7 @@ public class XForwardedHeadersConfig {
     }
 
     /**
-     * Takes the [proxiesCount]-before-last value from the X-Forward-* headers when multiple values are present
+     * Takes the [proxiesCount]-before-last value from the `X-Forward-*` headers when multiple values are present.
      */
     public fun skipLastProxies(proxiesCount: Int) {
         extractEdgeProxy { connectionPoint, headers ->
@@ -85,7 +90,7 @@ public class XForwardedHeadersConfig {
 
     /**
      * Removes known [hosts] from the end of the list and takes the last value
-     * from X-Forward-* headers when multiple values are present
+     * from `X-Forward-*` headers when multiple values are present.
      * */
     public fun skipKnownProxies(hosts: List<String>) {
         extractEdgeProxy { connectionPoint, headers ->
@@ -162,34 +167,37 @@ public class XForwardedHeadersConfig {
 }
 
 /**
- * Values of X-Forward-* headers. Each property may contain multiple comma-separated values.
+ * Values of the `X-Forward-*` headers. Each property may contain multiple comma-separated values.
  */
 public data class XForwardedHeaderValues(
     /**
-     * Comma-separated list of values for [XForwardedHeadersConfig.protoHeaders] header
+     * A comma-separated list of values for the [XForwardedHeadersConfig.protoHeaders] header.
      */
     public val protoHeader: String?,
     /**
-     * Comma-separated list of values for [XForwardedHeadersConfig.forHeaders] header
+     * A comma-separated list of values for the [XForwardedHeadersConfig.forHeaders] header.
      */
     public val forHeader: String?,
     /**
-     * Comma-separated list of values for [XForwardedHeadersConfig.hostHeaders] header
+     * A comma-separated list of values for the [XForwardedHeadersConfig.hostHeaders] header.
      */
     public val hostHeader: String?,
     /**
-     * Comma-separated list of values for [XForwardedHeadersConfig.httpsFlagHeaders] header
+     * A comma-separated list of values for the [XForwardedHeadersConfig.httpsFlagHeaders] header.
      */
     public val httpsFlagHeader: String?,
     /**
-     * Comma-separated list of values for [XForwardedHeadersConfig.portHeaders] header
+     * A comma-separated list of values for the [XForwardedHeadersConfig.portHeaders] header.
      */
     public val portHeader: String?
 )
 
 /**
- * [XForwardedHeaders] plugin allows you to obtain information headers from the original request in reverse proxy
- * setups. For more information see https://datatracker.ietf.org/doc/html/rfc7239
+ * A plugin that allows you to handle reverse proxy headers to get information
+ * about the original request when a Ktor server is placed behind a reverse proxy.
+ *
+ * To learn how to install and use [XForwardedHeaders], see
+ * [Forwarded headers](https://ktor.io/docs/forward-headers.html).
  */
 public val XForwardedHeaders: ApplicationPlugin<XForwardedHeadersConfig> = createApplicationPlugin(
     "XForwardedHeaders",
