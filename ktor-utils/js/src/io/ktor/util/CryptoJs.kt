@@ -8,8 +8,6 @@ import kotlinx.coroutines.*
 import org.khronos.webgl.*
 import kotlin.js.*
 
-private const val NONCE_SIZE_IN_BYTES = 16
-
 /**
  * Generates a nonce string.
  */

@@ -16,8 +16,6 @@ private val SECURE_RANDOM_PROVIDER_NAME: String =
 
 private const val SECURE_RESEED_PERIOD = 30_000
 
-private const val NONCE_SIZE_IN_BYTES = 16
-
 private const val SECURE_NONCE_COUNT = 8
 
 private const val INSECURE_NONCE_COUNT_FACTOR = 4
