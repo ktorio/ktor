@@ -10,10 +10,11 @@ import io.ktor.server.routing.*
 import java.io.*
 
 /**
- * Serves a single-page application
+ * Serves a single-page application.
+ * You can learn more from [Serving single-page applications](https://ktor.io/docs/serving-spa.html).
  *
- * A basic configuration for the application served from the filesPath folder
- * with index.html as a default file:
+ * A basic configuration for the application served from the `filesPath` folder
+ * with `index.html` as a default file:
  *
  * ```
  * application {
@@ -48,7 +49,7 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
 }
 
 /**
- * Configuration for the [Route.singlePageApplication]
+ * Configuration for the [Route.singlePageApplication] plugin.
  */
 public class SPAConfig(
     /**
