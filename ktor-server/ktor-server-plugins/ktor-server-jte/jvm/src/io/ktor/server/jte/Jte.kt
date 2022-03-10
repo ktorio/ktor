@@ -37,10 +37,7 @@ public class JteConfig {
  * A plugin that allows you to use jte templates as views within your application.
  * Provides the ability to respond with [JteContent]
  */
-public val Jte: ApplicationPlugin<Application, JteConfig, PluginInstance> = createApplicationPlugin(
-    "jte",
-    ::JteConfig
-) {
+public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::JteConfig) {
 
     val templateEngine = pluginConfig.templateEngine
 
