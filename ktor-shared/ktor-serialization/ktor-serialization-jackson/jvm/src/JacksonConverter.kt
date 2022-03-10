@@ -38,7 +38,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
                     objectmapper.writeValue(this.writer(charset = charset), value)
                 }
             },
-            contentType.withCharset(charset)
+            contentType.withCharsetIfNeeded(charset)
         )
     }
 

@@ -27,7 +27,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         typeInfo: TypeInfo,
         value: Any
     ): OutgoingContent {
-        return TextContent(gson.toJson(value), contentType.withCharset(charset))
+        return TextContent(gson.toJson(value), contentType.withCharsetIfNeeded(charset))
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
