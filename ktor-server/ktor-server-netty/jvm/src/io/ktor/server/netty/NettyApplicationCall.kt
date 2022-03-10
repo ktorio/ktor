@@ -63,10 +63,6 @@ public abstract class NettyApplicationCall(
 
     internal abstract fun isContextCloseRequired(): Boolean
 
-    override fun afterFinish(handler: (Throwable?) -> Unit) {
-        responseWriteJob.invokeOnCompletion(handler)
-    }
-
     internal suspend fun finish() {
         try {
             @OptIn(InternalAPI::class)

@@ -21,7 +21,7 @@ internal class BlockingServletApplicationCall(
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application), CoroutineScope {
     override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
     override val response: BlockingServletApplicationResponse =
         BlockingServletApplicationResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
