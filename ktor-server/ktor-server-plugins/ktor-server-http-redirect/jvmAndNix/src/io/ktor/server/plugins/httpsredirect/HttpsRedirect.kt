@@ -12,28 +12,27 @@ import io.ktor.server.util.*
 import io.ktor.util.*
 
 /**
- * Redirect plugin configuration
+ * A configuration for the [HttpsRedirect] plugin.
  */
 @KtorDsl
 public class HttpsRedirectConfig {
     /**
-     * HTTPS port (443 by default) to redirect to
+     * Specifies an HTTPS port (443 by default) used to redirect HTTP requests.
      */
     public var sslPort: Int = URLProtocol.HTTPS.defaultPort
 
     /**
-     * Use permanent redirect or temporary
+     * Specifies whether to use permanent or temporary redirect.
      */
     public var permanentRedirect: Boolean = true
 
     /**
-     * The list of call predicates for redirect exclusion.
-     * Any call matching any of the predicates will not be redirected by this plugin.
+     * Allows you to disable redirection for calls matching specified conditions.
      */
     public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
 
     /**
-     * Exclude calls with paths matching the [pathPrefix] from being redirected to https by this plugin.
+     * Allows you to disable redirection for calls with a path matching [pathPrefix].
      */
     public fun excludePrefix(pathPrefix: String) {
         exclude { call ->
@@ -42,7 +41,7 @@ public class HttpsRedirectConfig {
     }
 
     /**
-     * Exclude calls with paths matching the [pathSuffix] from being redirected to https by this plugin.
+     * Allows you to disable redirection for calls with a path matching [pathSuffix].
      */
     public fun excludeSuffix(pathSuffix: String) {
         exclude { call ->
@@ -51,7 +50,7 @@ public class HttpsRedirectConfig {
     }
 
     /**
-     * Exclude calls matching the [predicate] from being redirected to https by this plugin.
+     * Allows you to disable redirection for calls matching the specified [predicate].
      */
     public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
         excludePredicates.add(predicate)
@@ -59,7 +58,18 @@ public class HttpsRedirectConfig {
 }
 
 /**
- * A plugin that redirects non-secure HTTP calls to HTTPS
+ * A plugin that redirects all HTTP requests to the HTTPS counterpart before processing the call.
+ *
+ * The code snippet below shows how to configure the desired HTTPS port and
+ * return `301 Moved Permanently` for the requested resource:
+ * ```kotlin
+ * install(HttpsRedirect) {
+ *     sslPort = 8443
+ *     permanentRedirect = true
+ * }
+ * ```
+ *
+ * You can learn more from [HttpsRedirect](https://ktor.io/docs/https-redirect.html).
  */
 public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplicationPlugin(
     "HttpsRedirect",
