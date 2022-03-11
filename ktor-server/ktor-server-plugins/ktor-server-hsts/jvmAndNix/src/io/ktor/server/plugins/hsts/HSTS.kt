@@ -11,22 +11,23 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
- * HSTS configuration
+ *  A configuration for the [HSTS] plugin.
  */
 @KtorDsl
 public class HSTSConfig {
     /**
-     * Consents that the policy allows including the domain into web browser preloading list
+     * Specifies the `preload` HSTS directive, which allows you to include your domain name
+     * in the HSTS preload list.
      */
     public var preload: Boolean = false
 
     /**
-     * Adds includeSubDomains directive, which applies this policy to this domain and any subdomains
+     * Specifies the `includeSubDomains` directive, which applies this policy to any subdomains as well.
      */
     public var includeSubDomains: Boolean = true
 
     /**
-     * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
+     * Specifies how long (in seconds) the client should keep the host in a list of known HSTS hosts:
      */
     public var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE
         set(newMaxAge) {
@@ -35,7 +36,7 @@ public class HSTSConfig {
         }
 
     /**
-     * Any custom directives supported by specific user-agent
+     * Allows you to add custom directives supported by a specific user agent.
      */
     public val customDirectives: MutableMap<String, String?> = HashMap()
 }
@@ -43,13 +44,20 @@ public class HSTSConfig {
 internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
 
 /**
- * HSTS plugin that appends `Strict-Transport-Security` HTTP header to every response.
- * See https://ktor.io/docs/hsts.html for details
- * See RFC 6797 https://tools.ietf.org/html/rfc6797
+ * A plugin that appends the `Strict-Transport-Security` HTTP header to every response.
+ *
+ * The [HSTS] configuration below specifies how long the client
+ * should keep the host in a list of known HSTS hosts:
+ * ```kotlin
+ * install(HSTS) {
+ *     maxAgeInSeconds = 10
+ * }
+ * ```
+ * You can learn more from [HSTS](https://ktor.io/docs/hsts.html).
  */
 public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS", ::HSTSConfig) {
     /**
-     * Constructed `Strict-Transport-Security` header value
+     * A constructed `Strict-Transport-Security` header value.
      */
     val headerValue: String = buildString {
         append("max-age=")
