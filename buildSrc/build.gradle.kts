@@ -12,4 +12,5 @@ repositories {
 
 dependencies {
     implementation(kotlin("gradle-plugin", libs.versions.kotlin.version.get()))
+    implementation(kotlin("serialization", libs.versions.kotlin.version.get()))
 }

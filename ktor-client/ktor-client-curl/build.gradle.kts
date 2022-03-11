@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 val ideaActive: Boolean by project.extra
 
 plugins {
-    kotlin("plugin.serialization") version "1.6.10"
+    kotlin("plugin.serialization")
 }
 
 kotlin {
