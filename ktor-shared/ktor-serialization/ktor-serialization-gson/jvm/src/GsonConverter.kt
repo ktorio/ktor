@@ -17,7 +17,7 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 /**
- * GSON converter for [ContentNegotiation] plugin
+ * A GSON converter for the [ContentNegotiation] plugin.
  */
 public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
@@ -61,7 +61,9 @@ internal class ExcludedTypeGsonException(
 }
 
 /**
- * Register Gson to [ContentNegotiation] plugin
+ * Registers the `application/json` content type to the [ContentNegotiation] plugin using GSON.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
 public fun Configuration.gson(
     contentType: ContentType = ContentType.Application.Json,

@@ -61,7 +61,9 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
 }
 
 /**
- * Register Jackson converter into [ContentNegotiation] plugin
+ * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
 public fun Configuration.jackson(
     contentType: ContentType = ContentType.Application.Json,

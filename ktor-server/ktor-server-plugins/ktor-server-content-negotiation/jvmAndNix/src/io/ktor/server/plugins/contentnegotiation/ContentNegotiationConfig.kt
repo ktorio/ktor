@@ -10,7 +10,7 @@ import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
- * Configuration type for [ContentNegotiation] plugin
+ * A configuration for the [ContentNegotiation] plugin.
  */
 @KtorDsl
 public class ContentNegotiationConfig : Configuration {
@@ -24,12 +24,12 @@ public class ContentNegotiationConfig : Configuration {
     )
 
     /**
-     * Checks that `ContentType` header value of the response suits `Accept` header value of the request
+     * Checks that the `ContentType` header value of a response suits the `Accept` header value of a request.
      */
     public var checkAcceptHeaderCompliance: Boolean = false
 
     /**
-     * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
+     * Registers a [contentType] to a specified [converter] with an optional converter [configuration].
      */
     public override fun <T : ContentConverter> register(
         contentType: ContentType,
@@ -41,13 +41,15 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     /**
-     * Register a custom accepted content types [contributor]. A [contributor] function takes [ApplicationCall]
-     * and a list of content types accepted according to [HttpHeaders.Accept] header or provided by the previous
-     * contributor if exists. Result of this [contributor] should be a list of accepted content types
-     * with quality. A [contributor] could either keep or replace input list of accepted content types depending
-     * on use-case. For example a contributor taking `format=json` request parameter could replace the original
+     * Registers a custom accepted content types [contributor].
+     * A [contributor] function takes [io.ktor.server.application.ApplicationCall] and
+     * a list of content types accepted according to the [HttpHeaders.Accept] header or provided by the previous
+     * contributor if exists.
+     * The result of this [contributor] should be a list of accepted content types with a quality.
+     * A [contributor] could either keep or replace input list of accepted content types depending
+     * on a use case. For example, a contributor taking the `format=json` request parameter could replace the original
      * content types list with the specified one from the uri argument.
-     * Note that the returned list of accepted types will be sorted according to quality using [sortedByQuality]
+     * Note that the returned list of accepted types will be sorted according to the quality using [sortedByQuality],
      * so a custom [contributor] may keep it unsorted and should not rely on input list order.
      */
     public fun accept(contributor: AcceptHeaderContributor) {
@@ -55,9 +57,9 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     /**
-     * Add a type to the list of types that should be ignored by [ContentNegotiation].
+     * Adds a type to the list of types that should be ignored by [ContentNegotiation].
      *
-     * The list contains [HttpStatusCode] type by default.
+     * The list contains the [HttpStatusCode] type by default.
      */
     public inline fun <reified T> ignoreType() {
         ignoredTypes.add(T::class)

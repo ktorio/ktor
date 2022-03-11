@@ -11,7 +11,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 
 /**
- * Specifies which [converter] to use for a particular [contentType]
+ * Specifies which [converter] to use for a particular [contentType].
  * @param contentType is an instance of [ContentType] for this registration
  * @param converter is an instance of [ContentConverter] for this registration
  */

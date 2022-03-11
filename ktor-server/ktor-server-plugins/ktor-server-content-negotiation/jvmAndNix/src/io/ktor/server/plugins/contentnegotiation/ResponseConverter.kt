@@ -65,7 +65,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
 }
 
 /**
- * Returns a list of content types sorted by quality, number of asterisks and number of parameters.
+ * Returns a list of content types sorted by the quality, number of asterisks, and number of parameters.
  * @see parseAndSortContentTypeHeader
  */
 private fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQuality> = sortedWith(
