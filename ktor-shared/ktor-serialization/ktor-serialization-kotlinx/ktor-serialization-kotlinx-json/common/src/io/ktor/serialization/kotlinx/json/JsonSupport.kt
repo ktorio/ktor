@@ -43,7 +43,7 @@ public val DefaultJson: Json = Json {
  *     json(Json {
  *         prettyPrint = true
  *         isLenient = true
- *     }
+ *     })
  * }
  * ```
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
