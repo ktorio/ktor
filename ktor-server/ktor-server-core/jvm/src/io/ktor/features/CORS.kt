@@ -93,15 +93,6 @@ public class CORS(configuration: Configuration) {
                 }
         )
 
-    init {
-        if (configuration.allowCredentials) {
-            require(!allowsAnyHost) {
-                "AnyHost * is not allowed in combination with Allow-Credentials, see " +
-                    "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSNotSupportingCredentials."
-            }
-        }
-    }
-
     /**
      * Feature's call interceptor that does all the job. Usually there is no need to install it as it is done during
      * feature installation
@@ -116,8 +107,7 @@ public class CORS(configuration: Configuration) {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
         when (checkOrigin(origin, call.request.origin)) {
-            OriginCheckResult.OK -> {
-            }
+            OriginCheckResult.OK -> {}
             OriginCheckResult.SkipCORS -> return
             OriginCheckResult.Failed -> {
                 context.respondCorsFailed()
@@ -193,7 +183,7 @@ public class CORS(configuration: Configuration) {
     }
 
     private fun ApplicationCall.accessControlAllowOrigin(origin: String) {
-        if (allowsAnyHost) {
+        if (allowsAnyHost && !allowCredentials) {
             response.header(HttpHeaders.AccessControlAllowOrigin, "*")
         } else {
             response.header(HttpHeaders.AccessControlAllowOrigin, origin)
