@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
 /**
- * Functional type for accepted content types contributor
+ * A functional type for accepted content types contributor.
  * @see ContentNegotiation.Configuration.accept
  */
 public typealias AcceptHeaderContributor = (
@@ -26,7 +26,7 @@ public typealias AcceptHeaderContributor = (
 ) -> List<ContentTypeWithQuality>
 
 /**
- * Pair of [ContentType] and [quality] usually parsed from [HttpHeaders.Accept] headers.
+ * A pair of [ContentType] and [quality] usually parsed from the [HttpHeaders.Accept] headers.
  * @param contentType
  * @param quality
  */
@@ -37,12 +37,12 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
 }
 
 /**
- * This plugin provides automatic content conversion according to Content-Type and Accept headers
+ * A plugin that serves two primary purposes:
+ * - Negotiating media types between the client and server. For this, it uses the `Accept` and `Content-Type` headers.
+ * - Serializing/deserializing the content in a specific format.
+ *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
  *
- * See normative documents:
- *
- * * https://tools.ietf.org/html/rfc7231#section-5.3
- * * https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
 public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = createRouteScopedPlugin(
     "ContentNegotiation",
@@ -53,7 +53,7 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 }
 
 /**
- * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
+ * Detects a suitable charset for an application call by using the `Accept` header or fallbacks to [defaultCharset].
  */
 public fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
