@@ -17,6 +17,7 @@
 * Update slf4j to 1.7.36
 * Update node-fetch to 2.6.7
 * Update js ws package to 8.5.0
+* Revert wrong check to prevent anyHost with allowCredentials ([KTOR-2872](https://youtrack.jetbrains.com/issue/KTOR-2872)
 
 # 1.6.7
 > Published 6 December 2021
