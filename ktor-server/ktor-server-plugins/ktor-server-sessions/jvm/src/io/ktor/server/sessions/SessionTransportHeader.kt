@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 
 /**
- * SessionTransport that sets or gets the specific header [name],
+ * A session transport that sets or gets the specific header [name],
  * applying/un-applying the specified transforms defined by [transformers].
  *
  * @property name is a header name

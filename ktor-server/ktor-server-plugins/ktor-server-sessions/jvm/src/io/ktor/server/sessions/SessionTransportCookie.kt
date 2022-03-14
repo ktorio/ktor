@@ -10,7 +10,7 @@ import io.ktor.util.date.*
 public const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days
 
 /**
- * SessionTransport that adds a Set-Cookie header and reads Cookie header
+ * A session transport that adds the `Set-Cookie` header and reads the `Cookie` header
  * for the specified cookie [name], and a specific cookie [configuration] after
  * applying/un-applying the specified transforms defined by [transformers].
  *
@@ -62,13 +62,11 @@ public class SessionTransportCookie(
 }
 
 /**
- * Cookie configuration being used to send sessions
+ * A configuration used to specify cookie attributes for [Sessions].
  */
 public class CookieConfiguration {
     /**
-     * Cookie time to live duration or 0 for session cookies.
-     * Session cookies are client-driven. For example, a web browser usually removes session
-     * cookies at browser or window close unless the session is restored.
+     * Specifies the number of seconds until the cookie expires.
      */
     public var maxAgeInSeconds: Long = DEFAULT_SESSION_MAX_AGE
         set(newMaxAge) {
@@ -77,32 +75,41 @@ public class CookieConfiguration {
         }
 
     /**
-     * Cookie encoding
+     * Specifies a cookie encoding.
      */
     public var encoding: CookieEncoding = CookieEncoding.URI_ENCODING
 
     /**
-     * Cookie domain
+     * Specifies the host to which the cookie is sent.
      */
     public var domain: String? = null
 
     /**
      * Cookie path
+     *
+     * Specifies the cookie path.
      */
     public var path: String? = "/"
 
     /**
-     * Send cookies only over secure connection
+     * Enables transferring cookies via a secure connection only and
+     * protects session data from HTTPS downgrade attacks.
      */
     public var secure: Boolean = false
 
     /**
-     * This cookie is only for transferring over HTTP(s) and shouldn't be accessible via JavaScript
+     * Specifies whether cookie access is forbidden from JavaScript.
      */
     public var httpOnly: Boolean = true
 
     /**
-     * Any additional extra cookie parameters
+     * Allows you to add custom cookie attributes, which are not exposed explicitly.
+     * For example, you can pass the `SameSite` attribute in the following way:
+     * ```kotlin
+     * cookie<UserSession>("user_session") {
+     *     cookie.extensions["SameSite"] = "lax"
+     * }
+     * ```
      */
     public val extensions: MutableMap<String, String?> = mutableMapOf()
 }

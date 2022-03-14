@@ -7,19 +7,19 @@ package io.ktor.server.sessions
 import io.ktor.util.*
 
 /**
- * Sessions configuration builder
+ * A configuration for the [Sessions] plugin.
  */
 @KtorDsl
 public class SessionsConfig {
     private val registered = ArrayList<SessionProvider<*>>()
 
     /**
-     * List of session providers to be registered
+     * Gets a list of session providers to be registered.
      */
     public val providers: List<SessionProvider<*>> get() = registered.toList()
 
     /**
-     * Register a session [provider]
+     * Registers a session [provider].
      */
     public fun register(provider: SessionProvider<*>) {
         registered.firstOrNull { it.name == provider.name }?.let { alreadyRegistered ->

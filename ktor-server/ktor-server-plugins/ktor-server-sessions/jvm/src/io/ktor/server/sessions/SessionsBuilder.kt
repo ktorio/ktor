@@ -8,7 +8,8 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 /**
- * Configure sessions to get it from cookie using session [storage]
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
@@ -18,7 +19,8 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>,
 }
 
 /**
- * Configure sessions to get it from cookie using session [storage]
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage: SessionStorage) {
@@ -42,9 +44,11 @@ internal fun <S : Any> SessionsConfig.cookie(
 }
 
 /**
- * Configures a session using a cookie with the specified [name] using it as a session id.
- * The actual content of the session is stored at server side using the specified [storage].
- * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(
@@ -59,7 +63,11 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
 }
 
 /**
- * Configure sessions to get it from cookie using session [storage]
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.cookie(
@@ -75,7 +83,8 @@ public inline fun <S : Any> SessionsConfig.cookie(
 
 // header by id
 /**
- * Configure sessions to get it from HTTP header using session [storage]
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
@@ -85,15 +94,17 @@ public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>,
 }
 
 /**
- * Configure sessions to get it from HTTP header using session [storage]
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String, storage: SessionStorage) {
     header<S>(name, storage, {})
 }
 
 /**
- * Configures a session using a header with the specified [name] using it as a session id.
- * The actual content of the session is stored at server side using the specified [storage].
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.header(
@@ -108,8 +119,9 @@ public inline fun <reified S : Any> SessionsConfig.header(
 }
 
 /**
- * Configures a session using a header with the specified [name] using it as a session id.
- * The actual content of the session is stored at server side using the specified [storage].
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
 @Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION_ERROR")
@@ -146,7 +158,7 @@ internal fun <S : Any> SessionsConfig.header(
 
 // cookie by value
 /**
- * Configure sessions to serialize to/from HTTP cookie
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
  */
 @Deprecated("Use reified type parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>) {
@@ -156,7 +168,7 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>)
 }
 
 /**
- * Configure sessions to serialize to/from HTTP cookie
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
@@ -167,9 +179,20 @@ public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
 }
 
 /**
- * Configures a session using a cookie with the specified [name] using it as for the actual session content
- * optionally transformed by specified transforms in [block].
- * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
+ *
+ * For example, the code snippet below shows how to specify a cookie's path and expiration time:
+ * ```kotlin
+ * install(Sessions) {
+ *     cookie<UserSession>("user_session") {
+ *         cookie.path = "/"
+ *         cookie.maxAgeInSeconds = 10
+ *     }
+ * }
+ * ```
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(
@@ -183,7 +206,10 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
 }
 
 /**
- * Configure sessions to serialize to/from HTTP cookie configuring it by [block]
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.cookie(
@@ -210,7 +236,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 
 // header by value
 /**
- * Configure sessions to serialize to/from HTTP header
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>) {
@@ -220,15 +246,23 @@ public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>)
 }
 
 /**
- * Configure sessions to serialize to/from HTTP header
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
+ *
+ * In the example below, session data will be passed to the client using the `cart_session` custom header.
+ * ```kotlin
+ * install(Sessions) {
+ *     header<CartSession>("cart_session")
+ * }
+ * ```
+ * On the client side, you need to append this header to each request to get session data.
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String) {
     header<S>(name, {})
 }
 
 /**
- * Configures a session using a header with the specified [name] using it for the actual session content
- * optionally transformed by specified transforms in [block].
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.header(
@@ -242,8 +276,8 @@ public inline fun <reified S : Any> SessionsConfig.header(
 }
 
 /**
- * Configures a session using a header with the specified [name] using it for the actual session content
- * and apply [block] function to configure serializataion and optional transformations
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
 @Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.header(
@@ -260,7 +294,9 @@ public inline fun <S : Any> SessionsConfig.header(
 }
 
 /**
- * Cookie session configuration builder
+ * A configuration that allows you to configure additional cookie settings for [Sessions], for example:
+ * - add cookie attributes;
+ * - sign and encrypt session data.
  */
 public class CookieIdSessionBuilder<S : Any>
 @PublishedApi
@@ -273,21 +309,21 @@ internal constructor(
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
-     * Register session ID generation function
+     * Registers a function used to generate a session ID.
      */
     public fun identity(f: () -> String) {
         sessionIdProvider = f
     }
 
     /**
-     * Current session ID provider function
+     * A function used to provide a current session ID.
      */
     public var sessionIdProvider: () -> String = { generateSessionId() }
         private set
 }
 
 /**
- * Cookie session configuration builder
+ * A configuration that allows you to configure additional cookie settings for [Sessions].
  * @property type - session instance type
  */
 public open class CookieSessionBuilder<S : Any>
@@ -300,32 +336,32 @@ internal constructor(
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
-     * Session instance serializer
+     * Specifies a serializer used to serialize session data.
      */
     public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
     /**
-     * Registered session transformers
+     * Gets transformers used to sign and encrypt session data.
      */
     public val transformers: List<SessionTransportTransformer> get() = _transformers
 
     /**
-     * Register a session [transformer]. Useful for encryption, signing and so on
+     * Registers a [transformer] used to sign and encrypt session data.
      */
     public fun transform(transformer: SessionTransportTransformer) {
         _transformers.add(transformer)
     }
 
     /**
-     * Cookie header configuration
+     * Gets a configuration used to specify additional cookie attributes for [Sessions].
      */
     public val cookie: CookieConfiguration = CookieConfiguration()
 }
 
 /**
- * Header session configuration builder
+ * A configuration that allows you to configure header settings for [Sessions].
  * @property type session instance type
  */
 public open class HeaderSessionBuilder<S : Any>
@@ -339,19 +375,19 @@ internal constructor(
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
-     * Session instance serializer
+     * Specifies a serializer used to serialize session data.
      */
     public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
     /**
-     * Registered session transformers
+     * Gets transformers used to sign and encrypt session data.
      */
     public val transformers: List<SessionTransportTransformer> get() = _transformers
 
     /**
-     * Register a session [transformer]. Useful for encryption, signing and so on
+     * Registers a [transformer] used to sign and encrypt session data.
      */
     public fun transform(transformer: SessionTransportTransformer) {
         _transformers.add(transformer)
@@ -359,7 +395,7 @@ internal constructor(
 }
 
 /**
- * Header session configuration builder
+ * A configuration that allows you to configure header settings for [Sessions].
  */
 public class HeaderIdSessionBuilder<S : Any>
 @PublishedApi
@@ -372,14 +408,14 @@ internal constructor(
     public constructor(type: KClass<S>) : this(type, type.starProjectedType)
 
     /**
-     * Register session ID generation function
+     * Registers a function used to generate a session ID.
      */
     public fun identity(f: () -> String) {
         sessionIdProvider = f
     }
 
     /**
-     * Current session ID provider function
+     * A function used to provide a current session ID.
      */
     public var sessionIdProvider: () -> String = { generateSessionId() }
         private set

@@ -7,21 +7,21 @@ package io.ktor.server.sessions
 import io.ktor.server.application.*
 
 /**
- * SessionTransport [receive], [send] or [clear] a session from/to an [ApplicationCall].
+ * A session transport used to [receive], [send], or [clear] a session from/to an [ApplicationCall].
  */
 public interface SessionTransport {
     /**
-     * Gets session information from a [call] and returns a String if success or null if failed.
+     * Gets a session information from a [call] and returns a [String] if success or null if failed.
      */
     public fun receive(call: ApplicationCall): String?
 
     /**
-     * Sets session information represented by [value] to a [call].
+     * Sets a session information represented by [value] to a [call].
      */
     public fun send(call: ApplicationCall, value: String)
 
     /**
-     * Clears session information from a specific [call].
+     * Clears a session information from a specific [call].
      */
     public fun clear(call: ApplicationCall)
 }
