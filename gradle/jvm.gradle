@@ -14,15 +14,9 @@ if (project.name in project.ext.jdk11Modules) {
     jdk = 7
 }
 
-apply plugin: "kotlinx-atomicfu"
-
 kotlin {
     jvm {
         compilations.all {
-            if (rootProject.ext.jvm_ir_enabled) {
-                kotlinOptions.useIR = true
-            }
-
             kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses", "-Xuse-14-inline-classes-mangling-scheme"]
         }
     }
@@ -39,37 +33,22 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
+            api(libs.kotlin.stdlib)
             if (jdk > 6) {
-                api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
+                api(libs.kotlin.stdlib.jdk7)
             }
             if (jdk > 7) {
-                api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
+                api(libs.kotlin.stdlib.jdk8)
+                api(libs.kotlinx.coroutines.jdk8)
             }
 
-            api group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
+            api(libs.slf4j.api)
         }
 
         jvmTest.dependencies {
-            api 'org.jetbrains.kotlin:kotlin-test'
-            api 'org.jetbrains.kotlin:kotlin-test-junit'
-            api "junit:junit:$junit_version"
-
-            api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
-            api group: 'junit', name: 'junit', version: junit_version
-
-            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
-        }
-    }
-}
-
-dependencies {
-    if (jdk > 7) {
-        jvmMainApi(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version) {
-            exclude(module: 'kotlin-stdlib')
-            exclude(module: 'kotlin-stdlib-jvm')
-            exclude(module: 'kotlin-stdlib-jdk8')
-            exclude(module: 'kotlin-stdlib-jdk7')
+            api(libs.junit)
+            api(libs.kotlin.test.junit)
+            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 }

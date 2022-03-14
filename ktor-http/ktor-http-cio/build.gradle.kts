@@ -2,8 +2,6 @@ description = ""
 
 extra["commonStructure"] = false
 
-val coroutines_version: String by extra
-
 kotlin.sourceSets {
     val commonMain by getting {
         dependencies {
@@ -19,7 +17,7 @@ kotlin.sourceSets {
 
     val jvmTest by getting {
         dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

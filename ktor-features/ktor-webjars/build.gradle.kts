@@ -4,12 +4,12 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                api("org.webjars:webjars-locator-core:0.48")
+                api(libs.webjars.locator)
             }
         }
         val jvmTest by getting {
             dependencies {
-                api("org.webjars:jquery:3.3.1")
+                api(libs.webjars.jquery)
             }
         }
     }

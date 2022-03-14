@@ -1,4 +1,3 @@
-val netty_version: String by project.extra
 
 kotlin.sourceSets {
     val commonMain by getting {
@@ -10,7 +9,7 @@ kotlin.sourceSets {
     val jvmTest by getting {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-            api("io.netty:netty-handler:$netty_version")
+            api(libs.netty.handler)
         }
     }
 }

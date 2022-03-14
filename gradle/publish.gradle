@@ -70,8 +70,6 @@ def repositoryId = System.getenv("REPOSITORY_ID")
 if (repositoryId != null) {
     println("Using predefined repository: $repositoryId")
     publishingUrl = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
-} else {
-    println("Can't get predefined repository, using default $publishingUrl")
 }
 
 publishing {

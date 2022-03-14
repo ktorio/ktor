@@ -1,4 +1,3 @@
-apply plugin: 'binary-compatibility-validator'
 
 apiValidation {
     def excludeList = [
@@ -9,14 +8,9 @@ apiValidation {
         'ktor-client',
         'ktor-client-features',
         'ktor-server-test-suites',
+        'ktor-client-curl',
+        'ktor-client-ios',
     ].toSet()
-
-    if (rootProject.ext.native_targets_enabled) {
-        excludeList += [
-            'ktor-client-curl',
-            'ktor-client-ios',
-        ]
-    }
 
     def projects = [].toSet()
     def queue = [

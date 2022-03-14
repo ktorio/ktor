@@ -5,7 +5,7 @@
 kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
-            api("io.pebbletemplates:pebble:3.1.5")
+            api(libs.pebble)
         }
     }
 }

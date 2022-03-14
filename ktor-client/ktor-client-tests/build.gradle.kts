@@ -8,15 +8,10 @@ import java.net.*
 
 description = "Common tests for client"
 
-val junit_version: String by project.extra
-val kotlin_version: String by project.extra
-val logback_version: String by project.extra
-val coroutines_version: String by project
-
 val ideaActive: Boolean by project.extra
 
 plugins {
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
 }
 
 open class KtorTestServer : DefaultTask() {
@@ -74,10 +69,10 @@ kotlin.sourceSets {
             api(project(":ktor-features:ktor-auth"))
             api(project(":ktor-features:ktor-websockets"))
             api(project(":ktor-features:ktor-serialization"))
-            api("ch.qos.logback:logback-classic:$logback_version")
-            api("junit:junit:$junit_version")
-            api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+            api(libs.logback.classic)
+            api(libs.junit)
+            api(libs.kotlin.test.junit)
+            api(libs.kotlinx.coroutines.debug)
         }
     }
 
@@ -138,9 +133,6 @@ rootProject.allprojects {
     configure(tasks) {
         dependsOn(startTestServer)
         kotlin.sourceSets {
-            if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) {
-                return@sourceSets
-            }
             if (ideaActive) {
                 if (name == "posixTest") {
                     getByName(name) {
@@ -188,14 +180,5 @@ gradle.buildFinished {
     if (startTestServer.server != null) {
         startTestServer.server?.close()
         println("[TestServer] stop")
-    }
-}
-
-// TODO: this test is failing on JVM IR
-if (rootProject.ext.get("jvm_ir_enabled") as Boolean) {
-    tasks.named<Test>("jvmTest") {
-        filter {
-            excludeTest("io.ktor.client.tests.MultithreadedTest", "numberTest")
-        }
     }
 }

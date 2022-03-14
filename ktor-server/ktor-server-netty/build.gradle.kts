@@ -1,10 +1,5 @@
 description = ""
 
-val netty_version: String by extra
-val jetty_alpn_api_version: String by extra
-val netty_tcnative_version: String by extra
-val mockk_version: String by extra
-
 val enableAlpnProp = project.hasProperty("enableAlpn")
 val osName = System.getProperty("os.name").toLowerCase()
 val nativeClassifier: String? = if (enableAlpnProp) {
@@ -21,13 +16,13 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
 
-            api("io.netty:netty-codec-http2:$netty_version")
-            api("org.eclipse.jetty.alpn:alpn-api:$jetty_alpn_api_version")
+            api(libs.netty.codec.http2)
+            api(libs.jetty.alpn.api)
+            api(libs.netty.transport.native.kqueue)
+            api(libs.netty.transport.native.epoll)
 
-            api("io.netty:netty-transport-native-kqueue:$netty_version")
-            api("io.netty:netty-transport-native-epoll:$netty_version")
             if (nativeClassifier != null) {
-                api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
+                api(libs.netty.tcnative.boringssl.static)
             }
         }
     }
@@ -37,9 +32,9 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-core"))
 
-            api("io.netty:netty-tcnative:$netty_tcnative_version")
-            api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
-            implementation("io.mockk:mockk:$mockk_version")
+            api(libs.netty.tcnative)
+            api(libs.netty.tcnative.boringssl.static)
+            implementation(libs.mockk)
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }
