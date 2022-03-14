@@ -3,20 +3,3 @@
  */
 
 description = ""
-val logback_version: String by extra
-
-kotlin {
-    sourceSets {
-        val jvmAndNixTest by getting {
-            dependencies {
-                api(project(":ktor-server:ktor-server-test-host"))
-            }
-        }
-
-        jvmTest {
-            dependencies {
-                api("ch.qos.logback:logback-classic:$logback_version")
-            }
-        }
-    }
-}

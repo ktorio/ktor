@@ -42,6 +42,18 @@ fun Project.configureTargets() {
         if (hasPosix || hasDarwin) extra.set("hasNative", true)
 
         sourceSets {
+            val commonMain by getting {
+                dependencies {
+                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+                }
+            }
+
+            val commonTest by getting {
+                dependencies {
+                    implementation(kotlin("test"))
+                }
+            }
+
             if (hasPosix) {
                 val posixMain by creating
                 val posixTest by creating
@@ -74,32 +86,13 @@ fun Project.configureTargets() {
                 val desktopTest by creating
             }
 
-            if (hasCommon) {
-                val commonMain by getting {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-common")
-                        api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-                    }
-                }
-
-                val commonTest by getting {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-test-common:$kotlin_version")
-                        api("org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version")
-                    }
-                }
-            }
-
             if (hasJvmAndNix) {
                 val jvmAndNixMain by creating {
                     findByName("commonMain")?.let { dependsOn(it) }
                 }
 
                 val jvmAndNixTest by creating {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-test-common:$kotlin_version")
-                        api("org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version")
-                    }
+                    findByName("commonTest")?.let { dependsOn(it) }
                 }
             }
 
@@ -135,6 +128,7 @@ fun Project.configureTargets() {
                 }
 
                 val nixTest by getting {
+                    findByName("posixTest")?.let { dependsOn(it) }
                     findByName("jvmAndNixTest")?.let { dependsOn(it) }
                 }
 
