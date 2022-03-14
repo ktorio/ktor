@@ -220,7 +220,7 @@ class OAuth2Test {
         assertEquals("/authorize", url.path)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.query)
+        val query = parseQueryString(url.rawQuery)
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
@@ -242,7 +242,7 @@ class OAuth2Test {
         assertEquals("/authorize", url.path)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.query)
+        val query = parseQueryString(url.rawQuery)
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
@@ -265,7 +265,7 @@ class OAuth2Test {
         assertEquals("/authorize", url.path)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.query)
+        val query = parseQueryString(url.rawQuery)
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
