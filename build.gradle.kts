@@ -53,14 +53,12 @@ buildscript {
     val kotlin_version: String by extra
     val atomicfu_version: String by extra
     val validator_version: String by extra
-    val android_gradle_version: String by extra
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version")
         classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
         classpath("org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version")
-        classpath("com.android.tools.build:gradle:$android_gradle_version")
     }
 
     CacheRedirector.configureBuildScript(rootProject, this)
