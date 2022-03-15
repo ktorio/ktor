@@ -20,7 +20,7 @@
 * Revert wrong check to prevent anyHost with allowCredentials ([KTOR-2872](https://youtrack.jetbrains.com/issue/KTOR-2872)
 
 # 2.0.0-beta-1
-
+> Published 23 December 2021
 * EAP Naming: main-number conflicts with dependencies ([KTOR-2724](https://youtrack.jetbrains.com/issue/KTOR-2724))
 * ktor.io/learn typo ([KTOR-3563](https://youtrack.jetbrains.com/issue/KTOR-3563))
 * Multiple messages around upgrading to new version ([KTOR-3494](https://youtrack.jetbrains.com/issue/KTOR-3494))
