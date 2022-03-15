@@ -1,3 +1,24 @@
+# 1.6.8
+> Published 14 March 2022
+
+* Update Gradle to 7.4
+* Update Kotlin to 1.6.10
+* Migrate gradle to version catalog
+* Update logback version to 1.2.11 ([KTOR-3935](https://youtrack.jetbrains.com/issue/KTOR-3935))
+* Update atomicfu to 0.17.1
+* Update netty to 4.1.74.Final
+* Update netty-tcnative to 2.0.45.Final
+* Update jetty to 9.4.45.v20220203
+* Update tomcat to 9.0.59
+* Update apache to 4.1.5
+* Update okhttp to 4.9.3
+* Update gson to 2.9.0
+* Update jackson 2.13.1
+* Update slf4j to 1.7.36
+* Update node-fetch to 2.6.7
+* Update js ws package to 8.5.0
+* Revert wrong check to prevent anyHost with allowCredentials ([KTOR-2872](https://youtrack.jetbrains.com/issue/KTOR-2872)
+
 # 2.0.0-beta-1
 
 * EAP Naming: main-number conflicts with dependencies ([KTOR-2724](https://youtrack.jetbrains.com/issue/KTOR-2724))
