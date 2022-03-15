@@ -68,7 +68,7 @@ val disabledExplicitApiModeProjects = listOf(
 )
 
 plugins {
-    id("org.jetbrains.dokka") version "1.4.32"
+    id("org.jetbrains.dokka") version "1.6.10"
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
     id("kotlinx-atomicfu") version "0.17.1" apply false
 }
@@ -150,6 +150,9 @@ println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinComp
 
 subprojects {
     plugins.apply("org.jetbrains.dokka")
+    dependencies {
+        dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
+    }
 
     tasks.withType<DokkaTaskPartial> {
         dokkaSourceSets.configureEach {
@@ -163,6 +166,11 @@ subprojects {
 val docs: String? by extra
 if (docs != null) {
     tasks.withType<DokkaMultiModuleTask> {
+        dependencies {
+            dokkaPlugin("org.jetbrains.dokka:all-modules-page-plugin:1.6.10")
+            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
+        }
+
         pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.versioning.VersioningPlugin" to """{ "version": "$configuredVersion", "olderVersionsDir":"$docs" }"""))
     }
 }
