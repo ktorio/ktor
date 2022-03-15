@@ -765,6 +765,36 @@ class CORSTest {
     }
 
     @Test
+    fun testAnyHeaderWithPrefixRequestIgnoresCase() = testApplication {
+        install(CORS) {
+            anyHost()
+            allowHeadersPrefixed("Сustom1-")
+            allowHeadersPrefixed("custom2-")
+        }
+        routing {
+            post("/") {
+                call.respond("OK")
+            }
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://host")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+            header(HttpHeaders.AccessControlRequestHeaders, "сustom1-header")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://host")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+            header(HttpHeaders.AccessControlRequestHeaders, "Custom2-header")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+    }
+
+    @Test
     fun testAnyHeaderWithPrefixMergesHeadersWithConfiguration() {
         withTestApplication {
             application.install(CORS) {
