@@ -6,12 +6,6 @@
 
 package io.ktor.server.websocket
 
-import io.ktor.util.cio.*
-import io.ktor.utils.io.pool.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.nio.*
 import java.time.*
 
 /**
@@ -32,17 +26,6 @@ public inline var DefaultWebSocketServerSession.timeout: Duration
     set(newDuration) {
         timeoutMillis = newDuration.toMillis()
     }
-
-/**
- * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [period] to [outgoing] channel,
- * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
- */
-public fun CoroutineScope.pinger(
-    outgoing: SendChannel<Frame>,
-    period: Duration,
-    timeout: Duration,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = pinger(outgoing, period.toMillis(), timeout.toMillis(), pool)
 
 public fun WebSockets(
     pingInterval: Duration?,

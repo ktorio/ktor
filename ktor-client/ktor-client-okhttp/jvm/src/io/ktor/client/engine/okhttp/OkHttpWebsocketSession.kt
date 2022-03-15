@@ -40,8 +40,8 @@ internal class OkHttpWebsocketSession(
         set(_) = throw WebSocketException("Masking switch is not supported in OkHttp engine.")
 
     override var maxFrameSize: Long
-        get() = throw WebSocketException("OkHttp websocket doesn't support max frame size.")
-        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttpEngine.")
+        get() = Long.MAX_VALUE
+        set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
 
     private val _incoming = Channel<Frame>()
     private val _closeReason = CompletableDeferred<CloseReason?>()

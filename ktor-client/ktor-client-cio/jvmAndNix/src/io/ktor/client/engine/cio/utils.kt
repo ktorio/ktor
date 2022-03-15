@@ -16,6 +16,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.errors.EOFException
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -135,7 +136,8 @@ internal suspend fun readResponse(
         val version = HttpProtocolVersion.parse(rawResponse.version)
 
         if (status == HttpStatusCode.SwitchingProtocols) {
-            return startWebSocketSession(status, requestTime, headers, version, callContext, input, output)
+            val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
+            return HttpResponseData(status, requestTime, headers, version, session, callContext)
         }
 
         val body = when {

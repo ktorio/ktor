@@ -29,7 +29,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
-    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Main
+    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Unconfined
 
     @Suppress("DEPRECATION")
     protected val exceptions = mutableListOf<Throwable>()
@@ -122,7 +122,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(Routing, routingConfigurer)
     }
 

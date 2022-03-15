@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -220,13 +221,14 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
     }
 }
 
+@OptIn(InternalAPI::class)
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.plugin(WebSockets)
 
-    val session = DefaultWebSocketSessionImpl(
+    val session = DefaultWebSocketSession(
         this,
-        webSockets.pingInterval?.toMillis() ?: -1L,
-        webSockets.timeout.toMillis()
+        webSockets.pingIntervalMillis,
+        webSockets.timeoutMillis
     ).apply {
         val extensions = call.attributes[WebSockets.EXTENSIONS_KEY]
         start(extensions)
@@ -240,7 +242,7 @@ private suspend fun CoroutineScope.joinSession() {
     coroutineContext[Job]!!.join()
 }
 
-private suspend fun DefaultWebSocketSessionImpl.handleServerSession(
+private suspend fun DefaultWebSocketSession.handleServerSession(
     call: ApplicationCall,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {

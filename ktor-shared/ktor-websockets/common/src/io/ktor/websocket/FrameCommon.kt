@@ -122,11 +122,6 @@ public expect sealed class Frame private constructor(
         /**
          * Create a particular [Frame] instance by frame type
          */
-        public fun byType(fin: Boolean, frameType: FrameType, data: ByteArray): Frame
-
-        /**
-         * Create a particular [Frame] instance by frame type
-         */
         public fun byType(
             fin: Boolean,
             frameType: FrameType,

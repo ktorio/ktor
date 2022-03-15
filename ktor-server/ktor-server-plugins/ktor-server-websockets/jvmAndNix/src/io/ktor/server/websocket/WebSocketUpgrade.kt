@@ -96,8 +96,11 @@ public class WebSocketUpgrade(
 
         webSocket.launch(WebSocketHandlerCoroutineName) {
             try {
-                webSocket.start(handle)
+                webSocket.handle()
+                webSocket.flush()
             } catch (cause: Throwable) {
+            } finally {
+                webSocket.cancel()
             }
         }
 

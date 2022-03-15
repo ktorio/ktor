@@ -6,18 +6,18 @@ package io.ktor.tests.websocket
 
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.Rule
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultWebSocketTest {
-    @get:Rule
-    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
+//    @get:Rule
+//    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
 
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
@@ -25,7 +25,7 @@ class DefaultWebSocketTest {
 
     private lateinit var server: DefaultWebSocketSession
 
-    private lateinit var client: RawWebSocket
+    private lateinit var client: WebSocketSession
 
     @OptIn(InternalAPI::class)
     @BeforeTest
@@ -74,10 +74,10 @@ class DefaultWebSocketTest {
         val pingsMessages = (1..5).map { "ping $it" }
 
         pingsMessages.forEach {
-            client.send(Frame.Ping(it.toByteArray()))
+            client.send(Frame.Ping(it.encodeToByteArray()))
         }
         pingsMessages.forEach {
-            assertEquals(it, (client.incoming.receive() as Frame.Pong).readBytes().toString(Charsets.UTF_8))
+            assertEquals(it, String((client.incoming.receive() as Frame.Pong).readBytes(), charset = Charsets.UTF_8))
         }
 
         client.close()

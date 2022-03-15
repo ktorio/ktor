@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.util.logging.*
@@ -37,6 +38,8 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         parent: CoroutineContext = EmptyCoroutineContext,
         routingConfigurer: Routing.() -> Unit
     ): TEngine
+
+    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit)
 
     protected fun withUrl(
         path: String,

@@ -473,7 +473,7 @@ class WebSocketTest {
                 }
 
                 assertTrue("Expected FrameTooBigException, but found $exception") {
-                    exception is WebSocketReader.FrameTooBigException
+                    exception is FrameTooBigException
                 }
             }
         }
@@ -513,7 +513,7 @@ class WebSocketTest {
                 setBody(sendBuffer.array())
             }.let { call ->
                 validateCloseWithBigFrame(call)
-                assertTrue { exception is WebSocketReader.FrameTooBigException }
+                assertTrue { exception is FrameTooBigException }
             }
         }
     }
@@ -556,7 +556,7 @@ class WebSocketTest {
                 runBlocking {
                     executed.join()
                 }
-                assertTrue { exception is WebSocketReader.FrameTooBigException }
+                assertTrue { exception is FrameTooBigException }
             }
         }
     }

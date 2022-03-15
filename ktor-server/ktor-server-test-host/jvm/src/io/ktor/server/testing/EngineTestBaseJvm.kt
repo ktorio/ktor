@@ -29,7 +29,6 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
-import kotlin.concurrent.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
@@ -165,7 +164,7 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(CallLogging)
         application.install(Routing, routingConfigurer)
     }
