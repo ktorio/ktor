@@ -5,7 +5,9 @@
 package io.ktor.server.sessions
 
 /**
- * Serializes session from and to [String]
+ * Serializes a session data from and to [String].
+ *
+ * @see [Sessions]
  */
 public interface SessionSerializer<T> {
     /**

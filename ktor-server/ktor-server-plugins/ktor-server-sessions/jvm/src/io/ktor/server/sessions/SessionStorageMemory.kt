@@ -7,12 +7,11 @@ package io.ktor.server.sessions
 import java.util.concurrent.*
 
 /**
- * [SessionStorage] that stores session contents into memory.
+ * A storage that keeps session data in memory.
  *
- * Since it doesn't use any TTL sessions, memory usage will increase while the application is running
- * and session information will be discarded once the server stops.
+ * Note that [SessionStorageMemory] is intended for development only.
  *
- * This is intended for development.
+ * @see [Sessions]
  */
 public class SessionStorageMemory : SessionStorage {
     private val sessions = ConcurrentHashMap<String, String>()

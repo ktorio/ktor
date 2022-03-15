@@ -8,7 +8,9 @@ import io.ktor.util.*
 import java.io.*
 
 /**
- * Creates a session storage that serializes them into regular files under the specified [rootDir]
+ * Creates a storage that serializes a session's data to a file under the [rootDir] directory.
+ *
+ * @see [Sessions]
  */
 @OptIn(InternalAPI::class)
 public fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {

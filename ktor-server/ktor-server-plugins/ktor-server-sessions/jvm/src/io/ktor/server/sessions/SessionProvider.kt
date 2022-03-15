@@ -7,7 +7,7 @@ package io.ktor.server.sessions
 import kotlin.reflect.*
 
 /**
- * Specifies a provider for a session with the specific [name] and [type]
+ * Specifies a provider for a session with the specific [name] and [type].
  *
  * @param transport specifies the [SessionTransport] for this provider
  * @param tracker specifies the [SessionTracker] for this provider

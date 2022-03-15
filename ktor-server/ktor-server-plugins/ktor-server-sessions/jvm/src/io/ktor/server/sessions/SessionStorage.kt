@@ -5,7 +5,9 @@
 package io.ktor.server.sessions
 
 /**
- * Represents a way to [write], [read] and [invalidate] session bits.
+ * A storage that provides the ability to [write], [read], and [invalidate] session data.
+ *
+ * @see [Sessions]
  */
 public interface SessionStorage {
     /**
@@ -14,18 +16,17 @@ public interface SessionStorage {
     public suspend fun write(id: String, value: String)
 
     /**
-     * Invalidates session [id].
+     * Invalidates a session with the [id] identifier.
+     * This method prevents a session [id] from being accessible after this call.
      *
-     * This method prevents session [id] from being accessible after this call.
-     *
-     * @throws NoSuchElementException when session [id] is not found.
+     * @throws NoSuchElementException when a session [id] is not found.
      */
     public suspend fun invalidate(id: String)
 
     /**
-     * Reads session by [id]
+     * Reads a session with the [id] identifier.
      *
-     * @throws NoSuchElementException when session [id] is not found.
+     * @throws NoSuchElementException when a session [id] is not found.
      */
     public suspend fun read(id: String): String
 }

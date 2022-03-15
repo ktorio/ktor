@@ -5,19 +5,18 @@
 package io.ktor.server.sessions
 
 /**
- * Represents a session cookie transformation. Useful for such things like signing and encryption
+ * A transformer used to sign and encrypt session data.
  */
 public interface SessionTransportTransformer {
     /**
-     * Un-apply a transformation for [transportValue] representing a transformed session.
-     * Returns null if it fails.
+     * Untransforms a [transportValue] that represents a transformed session.
      *
      * @return Untransformed value or null
      */
     public fun transformRead(transportValue: String): String?
 
     /**
-     * Apply a transformation for [transportValue] representing a session.
+     * Transforms a [transportValue] that represents session data.
      *
      * @return Transformed value
      */
@@ -36,7 +35,7 @@ public fun List<SessionTransportTransformer>.transformRead(cookieValue: String?)
 }
 
 /**
- * Applies a list of session transformations to a [value] representing session string.
+ * Applies a list of session transformations to a [value] representing session data.
  *
  * @return A string containing all the transformations applied.
  */

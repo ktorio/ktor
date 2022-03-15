@@ -18,7 +18,7 @@ import kotlin.reflect.jvm.*
 private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
 
 /**
- * Creates the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for the type [T].
  */
 @Suppress("DEPRECATION_ERROR", "UNUSED")
 @Deprecated(
@@ -30,7 +30,7 @@ public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflect
     defaultSessionSerializer<T>() as SessionSerializerReflection<T>
 
 /**
- * Creates the default [SessionSerializer] for class [type]
+ * Creates the default [SessionSerializer] for the class [type].
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated(
@@ -42,22 +42,22 @@ public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflect
     defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
 /**
- * Creates the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for the type [T].
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
     defaultSessionSerializer(typeOf<T>())
 
 /**
- * Creates the default [SessionSerializer] by [typeInfo]
+ * Creates the default [SessionSerializer] by [typeInfo].
  */
 @Suppress("DEPRECATION_ERROR")
 public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
 
 /**
- * Default reflection-based session serializer that does it via reflection.
- * Serialized format is textual and optimized for size as it is could be transferred via HTTP headers or cookies
+ * A default reflection-based session serializer.
+ * A serialized format is textual and optimized for size as it could be transferred via HTTP headers or cookies.
  *
  * @property type is a session instance class handled by this serializer
  */

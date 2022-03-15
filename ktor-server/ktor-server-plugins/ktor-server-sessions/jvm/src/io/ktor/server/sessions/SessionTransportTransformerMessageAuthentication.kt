@@ -10,9 +10,11 @@ import javax.crypto.*
 import javax.crypto.spec.*
 
 /**
- * Session transformer that appends an [algorithm] MAC (Message Authentication Code) hash of the input.
- * Where the input is either a session contents or a previous transformation.
- * It uses a specified [keySpec] when generating the Mac hash.
+ * A transformer used to sign session data.
+ * This transformer appends an [algorithm] MAC (Message Authentication Code) hash of the session data.
+ * It uses a specified [keySpec] when generating the MAC hash.
+ *
+ * @see [Sessions]
  *
  * @property keySpec is a secret key spec for message authentication
  * @property algorithm is a message authentication algorithm name
