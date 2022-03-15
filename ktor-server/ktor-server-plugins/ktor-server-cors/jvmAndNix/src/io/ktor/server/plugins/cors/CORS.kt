@@ -331,7 +331,8 @@ public class CORSConfig {
      * Allows using headers prefixed with [headerPrefix] for the actual [CORS] request.
      */
     public fun allowHeadersPrefixed(headerPrefix: String) {
-        this.headerPredicates.add { name -> name.startsWith(headerPrefix) }
+        val prefix = headerPrefix.lowercase()
+        this.headerPredicates.add { name -> name.startsWith(prefix) }
     }
 
     /**
