@@ -17,7 +17,7 @@ class DefaultHeadersTest {
     fun testDate(): Unit = withTestApplication {
         var now = 1569882841014
         application.install(DefaultHeaders) {
-            clock = { now }
+            clock = DefaultHeadersConfig.Clock { now }
         }
 
         application.intercept(ApplicationCallPipeline.Call) {

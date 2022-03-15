@@ -237,6 +237,16 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         mergeInterceptors(from)
     }
 
+    /**
+     * Reset current pipeline from other.
+     */
+    public fun resetFrom(from: Pipeline<TSubject, TContext>) {
+        phasesRaw.clear()
+        check(interceptorsQuantity == 0)
+
+        fastPathMerge(from)
+    }
+
     internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptorFunction<TSubject, TContext>> =
         findPhase(phase)?.sharedInterceptors() ?: emptyList()
 
@@ -442,10 +452,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         when {
             fromPhaseRelation is PipelinePhaseRelation.Last ->
                 addPhase(fromPhase)
+
             fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
                 insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
+
             fromPhaseRelation is PipelinePhaseRelation.After ->
                 insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+
             else -> return false
         }
         return true

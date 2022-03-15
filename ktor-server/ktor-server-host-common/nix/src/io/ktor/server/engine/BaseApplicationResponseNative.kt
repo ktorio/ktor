@@ -41,7 +41,7 @@ public actual abstract class BaseApplicationResponse actual constructor(
     public actual final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
         call.application.environment.developmentMode
     ).apply {
-        merge(call.application.sendPipeline)
+        resetFrom(call.application.sendPipeline)
     }
 
     /**

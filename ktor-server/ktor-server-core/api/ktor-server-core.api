@@ -172,21 +172,6 @@ public final class io/ktor/server/application/TransformBodyContext {
 	public final fun getRequestedType ()Lio/ktor/util/reflect/TypeInfo;
 }
 
-public final class io/ktor/server/application/debug/PluginName : kotlin/coroutines/AbstractCoroutineContextElement {
-	public static final field Key Lio/ktor/server/application/debug/PluginName$Key;
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lio/ktor/server/application/debug/PluginName;
-	public static synthetic fun copy$default (Lio/ktor/server/application/debug/PluginName;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/application/debug/PluginName;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getPluginName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/application/debug/PluginName$Key : kotlin/coroutines/CoroutineContext$Key {
-}
-
 public final class io/ktor/server/application/hooks/CallFailed : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/hooks/CallFailed;
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
@@ -1221,13 +1206,13 @@ public final class io/ktor/server/routing/RoutingResolveResult$Success : io/ktor
 
 public final class io/ktor/server/routing/RoutingResolveTrace {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/util/List;)V
+	public final fun addCandidate (Ljava/util/List;)V
 	public final fun begin (Lio/ktor/server/routing/Route;I)V
 	public final fun buildText ()Ljava/lang/String;
 	public final fun finish (Lio/ktor/server/routing/Route;ILio/ktor/server/routing/RoutingResolveResult;)V
 	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public final fun getSegments ()Ljava/util/List;
 	public final fun registerFinalResult (Lio/ktor/server/routing/RoutingResolveResult;)V
-	public final fun registerSuccessResults (Ljava/util/List;)V
 	public final fun skip (Lio/ktor/server/routing/Route;ILio/ktor/server/routing/RoutingResolveResult;)V
 	public fun toString ()Ljava/lang/String;
 }

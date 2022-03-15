@@ -41,8 +41,7 @@ public class Routing(
     @OptIn(InternalAPI::class)
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
-        val resolveResult = resolveContext.resolve()
-        when (resolveResult) {
+        when (val resolveResult = resolveContext.resolve()) {
             is RoutingResolveResult.Success ->
                 executeResult(context, resolveResult.route, resolveResult.parameters)
             is RoutingResolveResult.Failure ->

@@ -68,7 +68,7 @@ internal object NettyDispatcher : CoroutineDispatcher() {
         nettyContext.executor().execute(block)
     }
 
-    public class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
+    class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 

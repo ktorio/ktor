@@ -31,7 +31,18 @@ public class DefaultHeadersConfig {
     /**
      * Provides a time source. Useful for testing.
      */
-    public var clock: () -> Long = { System.currentTimeMillis() }
+    public var clock: Clock = Clock { System.currentTimeMillis() }
+
+    /**
+     * Utility interface for obtaining timestamp.
+     */
+    public fun interface Clock {
+        /**
+         * Get current timestamp.
+         */
+        public fun now(): Long
+    }
+
     internal val cachedDateText: AtomicRef<String> = atomic("")
 }
 
@@ -55,10 +66,12 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
     val ktorPackageVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
         pluginConfig::class.java.`package`.implementationVersion ?: "debug"
     } else "debug"
+
     val headers = pluginConfig.headers.build()
     val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
     val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
-    var cachedDateTimeStamp: Long = 0L
+    var cachedDateTimeStamp = 0L
+
     val calendar = object : ThreadLocal<Calendar>() {
         override fun initialValue(): Calendar {
             return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
@@ -71,7 +84,7 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
 
     fun calculateDateHeader(): String {
         val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = pluginConfig.clock()
+        val currentTimeStamp = pluginConfig.clock.now()
         if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
             cachedDateTimeStamp = currentTimeStamp
             pluginConfig.cachedDateText.value = now(currentTimeStamp).toHttpDate()

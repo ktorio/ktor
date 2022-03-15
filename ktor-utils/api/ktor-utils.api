@@ -884,6 +884,7 @@ public class io/ktor/util/pipeline/Pipeline {
 	public final fun isEmpty ()Z
 	public final fun merge (Lio/ktor/util/pipeline/Pipeline;)V
 	public final fun mergePhases (Lio/ktor/util/pipeline/Pipeline;)V
+	public final fun resetFrom (Lio/ktor/util/pipeline/Pipeline;)V
 }
 
 public abstract class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {

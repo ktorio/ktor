@@ -36,7 +36,7 @@ internal class NettyApplicationCallHandler(
 
         launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
-                call is NettyHttp1ApplicationCall && !call.request.httpRequest.isValid() -> {
+                call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
                     respondError400BadRequest(call)
                 }
                 else ->
@@ -71,12 +71,14 @@ internal class NettyApplicationCallHandler(
     }
 }
 
-internal fun HttpRequest.isValid(): Boolean {
-    if (decoderResult().isFailure) {
+internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
+    if (httpRequest.decoderResult().isFailure) {
         return false
     }
 
-    val encodings = headers().getAll(HttpHeaders.TransferEncoding) ?: return true
+    if (!headers.contains(HttpHeaders.TransferEncoding)) return true
+
+    val encodings = headers.getAll(HttpHeaders.TransferEncoding) ?: return true
     if (!encodings.hasValidTransferEncoding()) {
         return false
     }
