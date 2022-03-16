@@ -13,10 +13,13 @@ import kotlin.coroutines.*
 import kotlin.reflect.*
 
 /**
- * This plugin provides ability to invoke [ApplicationCall.receive] several times.
+ * A plugin that provides the ability to receive a request body several times
+ * with no [RequestAlreadyConsumedException] exception.
+ * This might be useful if a plugin is already consumed a request body, so you cannot receive it inside a route handler.
+ * For example, you can use `DoubleReceive` to log a request body using the `CallLogging` plugin and
+ * then receive a body one more time inside the `post` route handler.
  *
- * Please note that all content will be stored into memory by default, it can cause high memory consumption.
- * If you want to limit it, consider using [DoubleReceiveConfig.maxSize] method.
+ * You can learn more from [DoubleReceive](https://ktor.io/docs/double-receive.html).
  *
  */
 public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteScopedPlugin(

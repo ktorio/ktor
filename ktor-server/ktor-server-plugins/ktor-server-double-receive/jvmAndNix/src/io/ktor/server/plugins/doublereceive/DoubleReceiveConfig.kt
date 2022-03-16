@@ -10,7 +10,7 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 
 /**
- * [DoubleReceive] Plugin configuration.
+ * A configuration for the [DoubleReceive] plugin.
  */
 @KtorDsl
 public class DoubleReceiveConfig {
@@ -18,27 +18,29 @@ public class DoubleReceiveConfig {
     internal val shouldUseFileCache = mutableListOf<(ApplicationCall) -> Boolean>()
 
     /**
-     * Cache request before applying any transformations.
+     * Caches a request before applying any transformations.
      *
-     * This is useful for example when you want to use receive request body twice with different types or receive data
-     * as stream multiple times.
+     * This is useful, for example, when you want to receive a request body twice with different types or receive data
+     * as a stream multiple times.
+     *
+     * @see [DoubleReceive]
      */
     public var cacheRawRequest: Boolean = true
 
     /**
-     * Add filter to [DoubleReceive] plugin.
-     * Can be called multiple times, if any of [block]s returns `true`, the request body will not be cached in memory.
+     * Adds a filter to the [DoubleReceive] plugin.
+     * Can be called multiple times; if any of [block]s returns `true`, a request body will not be cached in memory.
      */
     public fun excludeFromCache(block: (call: ApplicationCall, body: Any) -> Boolean) {
         filters += block
     }
 
     /**
-     * Specifies if a temp file should be used to cache request body.
+     * Specifies if a temp file should be used to cache a request body.
      *
      * Works only if [cacheRawRequest] is `true`.
      *
-     * Can be called multiple times, and if any of [block]s returns `true`, the request body will be cached in file.
+     * Can be called multiple times; if any of [block]s returns `true`, the request body will be cached in file.
      * Otherwise, it will be cached in memory.
      */
     public fun useFileForCache(block: (call: ApplicationCall) -> Boolean = { true }) {
@@ -46,7 +48,7 @@ public class DoubleReceiveConfig {
     }
 
     /**
-     * Exclude requests with content size greater than [maxSize] from cache.
+     * Excludes requests with a content size greater than [maxSize] from cache.
      */
     public fun maxSize(limit: Long) {
         excludeFromCache { call, _ ->
@@ -56,7 +58,7 @@ public class DoubleReceiveConfig {
     }
 
     /**
-     * Exclude specific type from caching.
+     * Excludes a specific type from caching.
      */
     public inline fun <reified T : Any> exclude() {
         val excludeType = typeInfo<T>()
