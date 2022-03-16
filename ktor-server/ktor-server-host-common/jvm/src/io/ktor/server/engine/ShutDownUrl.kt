@@ -71,20 +71,6 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     }
 
     /**
-     * A plugin to install into application call pipeline
-     */
-    public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
-        createApplicationPlugin("shutdown.url", ::Config) {
-            val plugin = ShutDownUrl(pluginConfig.shutDownUrl, pluginConfig.exitCodeSupplier)
-
-            onCall { call ->
-                if (call.request.uri == plugin.url) {
-                    plugin.doShutdown(call)
-                }
-            }
-        }
-
-    /**
      * Shutdown url configuration builder
      */
     @KtorDsl
@@ -98,5 +84,22 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
          * A function that provides process exit code by an application call
          */
         public var exitCodeSupplier: ApplicationCall.() -> Int = { 0 }
+    }
+
+    public companion object {
+
+        /**
+         * A plugin to install into application call pipeline
+         */
+        public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
+            createApplicationPlugin("shutdown.url", ::Config) {
+                val plugin = ShutDownUrl(pluginConfig.shutDownUrl, pluginConfig.exitCodeSupplier)
+
+                onCall { call ->
+                    if (call.request.uri == plugin.url) {
+                        plugin.doShutdown(call)
+                    }
+                }
+            }
     }
 }
