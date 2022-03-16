@@ -193,6 +193,7 @@ public fun Route.authenticate(
 /**
  * A config for [AuthenticationInterceptors] plugin
  */
+@KtorDsl
 public class RouteAuthenticationConfig {
     internal var configurations: List<String?> = listOf(null)
     internal var optional: Boolean = false

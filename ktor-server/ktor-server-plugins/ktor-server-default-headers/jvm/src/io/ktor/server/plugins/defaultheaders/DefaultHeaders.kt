@@ -7,6 +7,7 @@ package io.ktor.server.plugins.defaultheaders
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import java.util.*
@@ -15,6 +16,7 @@ import java.util.*
  * A configuration for the [DefaultHeaders] plugin.
  * Allows you to configure additional default headers.
  */
+@KtorDsl
 public class DefaultHeadersConfig {
     /**
      * Provides a builder to append any custom headers to be sent with each request
@@ -48,9 +50,7 @@ public class DefaultHeadersConfig {
  */
 public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRouteScopedPlugin(
     "DefaultHeaders",
-    createConfiguration = {
-        DefaultHeadersConfig()
-    }
+    ::DefaultHeadersConfig
 ) {
     val ktorPackageVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
         pluginConfig::class.java.`package`.implementationVersion ?: "debug"

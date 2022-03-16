@@ -24,7 +24,7 @@ import kotlin.reflect.*
  */
 public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteScopedPlugin(
     "DoubleReceive",
-    { DoubleReceiveConfig() }
+    ::DoubleReceiveConfig
 ) {
     val filters = pluginConfig.filters
     val cacheRawRequest: Boolean = pluginConfig.cacheRawRequest
