@@ -305,11 +305,15 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 }
 
 public final class io/ktor/server/engine/ShutDownUrl {
+	public static final field Companion Lio/ktor/server/engine/ShutDownUrl$Companion;
 	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getApplicationCallPlugin ()Lio/ktor/server/application/BaseApplicationPlugin;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/engine/ShutDownUrl$Companion {
+	public final fun getApplicationCallPlugin ()Lio/ktor/server/application/BaseApplicationPlugin;
 }
 
 public final class io/ktor/server/engine/ShutDownUrl$Config {
