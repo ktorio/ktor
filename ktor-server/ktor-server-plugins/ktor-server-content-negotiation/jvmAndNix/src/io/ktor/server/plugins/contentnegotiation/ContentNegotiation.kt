@@ -46,7 +46,7 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
  */
 public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = createRouteScopedPlugin(
     "ContentNegotiation",
-    { ContentNegotiationConfig() }
+    ::ContentNegotiationConfig
 ) {
     convertRequestBody()
     convertResponseBody()

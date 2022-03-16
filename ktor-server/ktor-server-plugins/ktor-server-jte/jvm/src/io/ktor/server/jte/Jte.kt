@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 
 /**
  * Represents content handled by the [Jte] plugin.
@@ -29,6 +30,7 @@ public class JteContent(
 /**
  * A configuration for the [Jte] plugin, where the Jte [TemplateEngine] can be customized.
  */
+@KtorDsl
 public class JteConfig {
     public lateinit var templateEngine: TemplateEngine
 }

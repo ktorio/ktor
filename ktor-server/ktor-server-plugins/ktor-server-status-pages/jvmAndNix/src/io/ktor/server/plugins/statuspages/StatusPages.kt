@@ -65,6 +65,7 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
 /**
  * A [StatusPages] plugin configuration.
  */
+@KtorDsl
 public class StatusPagesConfig {
     /**
      * Provides access to exception handlers of the exception class.

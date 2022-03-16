@@ -8,10 +8,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.util.*
 
 /**
  * A configuration for the [CachingHeaders] plugin.
  */
+@KtorDsl
 public class CachingHeadersConfig {
     internal val optionsProviders = mutableListOf<(ApplicationCall, OutgoingContent) -> CachingOptions?>()
 
