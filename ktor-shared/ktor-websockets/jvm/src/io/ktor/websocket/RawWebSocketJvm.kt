@@ -21,7 +21,7 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext)
+): WebSocketSession = RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext)
 
 /**
  * Represents a RAW web socket session

@@ -44,7 +44,7 @@ internal class JsWebSocketSession(
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
+        set(_) = throw WebSocketException("Max frame size switch is not supported in Js engine.")
 
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
