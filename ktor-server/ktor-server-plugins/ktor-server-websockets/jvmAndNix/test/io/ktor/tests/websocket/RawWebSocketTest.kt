@@ -4,6 +4,7 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -16,12 +17,7 @@ import kotlin.reflect.*
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class RawWebSocketTest {
-//    @get:Rule
-//    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
-
-    val errors = mutableListOf<Throwable>()
-
+class RawWebSocketTest : BaseTest() {
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
     private lateinit var server2client: ByteChannel
@@ -32,7 +28,7 @@ class RawWebSocketTest {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
         if (cause !is CancellationException && cause !is PlannedIOException) {
-            errors.add(cause)
+            collectUnhandledException(cause)
         }
     }
 
@@ -193,13 +189,6 @@ class RawWebSocketTest {
         launch {
             side.incoming.consumeEach {}
             side.cancel()
-        }
-    }
-
-    private fun runTest(block: suspend CoroutineScope.() -> Unit) {
-        runBlocking(CoroutineName("test-")) {
-            block()
-            assertTrue(errors.isEmpty())
         }
     }
 

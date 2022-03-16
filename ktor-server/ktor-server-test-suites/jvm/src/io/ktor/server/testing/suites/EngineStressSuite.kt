@@ -29,6 +29,8 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(StressSuiteRunner::class)
 abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -49,10 +51,8 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
-
-    @get:org.junit.Rule
-    val timout1 = CoroutinesTimeout(200000L, true)
+    override val timeout: Duration =
+        TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis).seconds
 
     @Test
     fun singleConnectionSingleThreadNoPipelining() {

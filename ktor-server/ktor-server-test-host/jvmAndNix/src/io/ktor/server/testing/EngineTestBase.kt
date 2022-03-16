@@ -14,8 +14,8 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : CoroutineScope {
+    applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+) : BaseTest, CoroutineScope {
 
     override val coroutineContext: CoroutineContext
 

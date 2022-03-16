@@ -4,6 +4,7 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -15,9 +16,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DefaultWebSocketTest {
-//    @get:Rule
-//    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
+class DefaultWebSocketTest: BaseTest() {
 
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
@@ -54,7 +53,7 @@ class DefaultWebSocketTest {
     }
 
     @Test
-    fun closeByClient(): Unit = runBlocking {
+    fun closeByClient(): Unit = runTest {
         val reason = CloseReason(CloseReason.Codes.NORMAL, "test1")
 
         client.close(reason)
@@ -70,7 +69,7 @@ class DefaultWebSocketTest {
     }
 
     @Test
-    fun pingPong(): Unit = runBlocking {
+    fun pingPong(): Unit = runTest {
         val pingsMessages = (1..5).map { "ping $it" }
 
         pingsMessages.forEach {
@@ -87,7 +86,7 @@ class DefaultWebSocketTest {
     }
 
     @Test
-    fun testCancellation(): Unit = runBlocking {
+    fun testCancellation(): Unit = runTest {
         server.cancel()
 
         client.incoming.receiveCatching().getOrNull()
