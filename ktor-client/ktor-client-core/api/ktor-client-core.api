@@ -61,6 +61,10 @@ public final class io/ktor/client/call/DoubleReceiveException : java/lang/Illega
 
 public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/client/call/HttpClientCall$Companion;
+	protected field request Lio/ktor/client/request/HttpRequest;
+	protected field response Lio/ktor/client/statement/HttpResponse;
+	public fun <init> (Lio/ktor/client/HttpClient;)V
+	public fun <init> (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/request/HttpResponseData;)V
 	public final fun body (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun getAllowDoubleReceive ()Z
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
@@ -69,6 +73,8 @@ public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineSc
 	public final fun getRequest ()Lio/ktor/client/request/HttpRequest;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
 	protected fun getResponseContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun setRequest (Lio/ktor/client/request/HttpRequest;)V
+	protected final fun setResponse (Lio/ktor/client/statement/HttpResponse;)V
 	public fun toString ()Ljava/lang/String;
 }
 

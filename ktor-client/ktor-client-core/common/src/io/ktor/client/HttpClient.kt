@@ -12,8 +12,6 @@ import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.events.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -68,7 +66,7 @@ public fun HttpClient(
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
  * @property engine: [HttpClientEngine] for executing requests.
  */
-@OptIn(InternalCoroutinesApi::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 public class HttpClient(
     public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
@@ -140,7 +138,7 @@ public class HttpClient(
         sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
             check(call is HttpClientCall) { "Error: HttpClientCall expected, but found $call(${call::class})." }
             val response = receivePipeline.execute(Unit, call.response)
-            call.response = response
+            call.setResponse(response)
             proceedWith(call)
         }
 
