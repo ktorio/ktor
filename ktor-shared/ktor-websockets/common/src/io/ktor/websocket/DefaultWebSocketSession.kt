@@ -199,7 +199,6 @@ internal class DefaultWebSocketSessionImpl(
             ponger.close()
             filtered.close(cause)
         } finally {
-            println("DEFAULT_INCOMING")
             ponger.close()
             last?.release()
             filtered.close()
@@ -226,7 +225,6 @@ internal class DefaultWebSocketSessionImpl(
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
             raw.closeExceptionally(cause)
         } finally {
-            println("DEFAULT_OUTGOING")
             outgoingToBeProcessed.cancel()
             raw.close()
         }

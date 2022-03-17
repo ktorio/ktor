@@ -73,7 +73,6 @@ internal class RawWebSocketCommon(
         } catch (t: Throwable) {
             _outgoing.close(t)
         } finally {
-            println("WRITER_CLOSED")
             _outgoing.close(CancellationException("WebSocket closed.", null))
             output.close()
         }
@@ -109,7 +108,6 @@ internal class RawWebSocketCommon(
             _incoming.close(cause)
             throw cause
         } finally {
-            println("READER_CLOSED")
             _incoming.close()
         }
     }
