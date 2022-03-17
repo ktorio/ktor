@@ -9,12 +9,12 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import java.io.*
 import java.nio.*
 import java.util.zip.*
+import kotlin.random.*
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -103,6 +103,29 @@ class DeflaterReadChannelTest : CoroutineScope {
         testWriteChannel(text, asyncOf(text))
     }
 
+    @Test
+    fun testGzippedBiggerThan8k() {
+        val text = buildString {
+            for (i in 1..65536) {
+                append(' ' + Random.nextInt(32, 126) % 32)
+            }
+        }
+
+        testReadChannel(text, asyncOf(text))
+        testWriteChannel(text, asyncOf(text))
+    }
+
+    @Test
+    fun testFaultyGzippedBiggerThan8k() {
+        val text = buildString {
+            for (i in 1..65536) {
+                append(' ' + Random.nextInt(32, 126) % 32)
+            }
+        }
+
+        testFaultyWriteChannel(asyncOf(text))
+    }
+
     private fun asyncOf(text: String): ByteReadChannel = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)))
     private fun asyncOf(bb: ByteBuffer): ByteReadChannel = ByteReadChannel(bb)
 
@@ -113,12 +136,37 @@ class DeflaterReadChannelTest : CoroutineScope {
     }
 
     private fun testWriteChannel(expected: String, src: ByteReadChannel) {
-        val channel = ByteChannel()
+        val channel = ByteChannel(true)
         launch {
             src.copyAndClose((channel as ByteWriteChannel).deflated())
         }
 
         val result = channel.toInputStream().ungzip().reader().readText()
         assertEquals(expected, result)
+    }
+
+    private fun testFaultyWriteChannel(src: ByteReadChannel) = runBlocking {
+        var deflateInputChannel: ByteWriteChannel?
+
+        withContext(Dispatchers.IO) {
+            val channel = ByteChannel(true)
+            deflateInputChannel = (channel as ByteWriteChannel).deflated(coroutineContext = coroutineContext)
+
+            // The copy operation will throw the IOException, but in order to simulate a real scenario
+            // we don't want it to stop the execution, we want the deflating process to become aware of the error,
+            // i.e. that it doesn't have an output channel on which to write the gzipped data, so it should stop.
+            launch {
+                try {
+                    src.copyAndClose(deflateInputChannel!!)
+                } catch (_: Exception) {
+                }
+            }
+
+            launch {
+                channel.close(IOException("Broken pipe"))
+            }
+        }
+
+        assertFailsWith(IOException::class) { throw deflateInputChannel!!.closedCause!! }
     }
 }
