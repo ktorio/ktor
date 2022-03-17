@@ -4,12 +4,19 @@ public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/serve
 	public fun getClient ()Lio/ktor/client/HttpClient;
 }
 
+public abstract class io/ktor/server/testing/BaseTest {
+	public fun <init> ()V
+	public final fun collectUnhandledException (Ljava/lang/Throwable;)V
+	public fun getTimeout-UwyO8pc ()J
+	public final fun runTest (Lkotlin/jvm/functions/Function2;)V
+}
+
 public abstract interface class io/ktor/server/testing/ClientProvider {
 	public abstract fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public abstract fun getClient ()Lio/ktor/client/HttpClient;
 }
 
-public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines/CoroutineScope {
+public abstract class io/ktor/server/testing/EngineTestBase : io/ktor/server/testing/BaseTest, kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/server/testing/EngineTestBase$Companion;
 	public static field keyStore Ljava/security/KeyStore;
 	public static field sslContext Ljavax/net/ssl/SSLContext;
@@ -27,16 +34,12 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	protected final fun getEnableCertVerify ()Z
 	protected final fun getEnableHttp2 ()Z
 	protected final fun getEnableSsl ()Z
-	protected final fun getExceptions ()Ljava/util/ArrayList;
 	protected final fun getPort ()I
 	protected final fun getServer ()Lio/ktor/server/engine/ApplicationEngine;
-	protected final fun getSocketReadTimeout ()I
 	protected final fun getSslPort ()I
-	public final fun getTest ()Lorg/junit/rules/TestName;
 	protected final fun getTestDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getTestLog ()Lorg/slf4j/Logger;
-	public fun getTimeout ()J
-	public final fun getTimeoutRule ()Lkotlinx/coroutines/debug/junit4/CoroutinesTimeout;
+	public fun getTimeout-UwyO8pc ()J
 	protected final fun isUnderDebugger ()Z
 	protected fun plugins (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
 	protected final fun setEnableCertVerify (Z)V
