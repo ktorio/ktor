@@ -29,9 +29,8 @@ private fun getDigest(text: String, algorithm: String, salt: (String) -> String)
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-public actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
-    Digest("SHA1").also { it += bytes }.build()
-}
+public actual fun sha1(bytes: ByteArray): ByteArray =
+    MessageDigest.getInstance("SHA1").digest(bytes)
 
 /**
  * Create [Digest] from specified hash [name].
