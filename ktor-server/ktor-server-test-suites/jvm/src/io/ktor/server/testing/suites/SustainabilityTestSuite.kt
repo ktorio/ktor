@@ -70,7 +70,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(InternalServerError.value, status.value)
 
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -81,7 +81,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         withUrl("/respondWrite") {
             assertEquals(HttpStatusCode.OK.value, status.value)
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -645,6 +645,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     public fun testErrorInApplicationCallPipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -680,6 +681,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     public fun testErrorInApplicationReceivePipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -718,6 +720,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     public fun testErrorInApplicationSendPipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -759,6 +762,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     public open fun testErrorInEnginePipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {

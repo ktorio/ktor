@@ -14,7 +14,7 @@ internal fun HashFunction.digest(input: ByteArray, offset: Int = 0, length: Int 
     return digest()
 }
 
-private inline infix fun Int.leftRotate(bitCount: Int): Int {
+private infix fun Int.leftRotate(bitCount: Int): Int {
     return (this shl bitCount) or (this ushr (32 - bitCount))
 }
 
@@ -72,13 +72,13 @@ internal class Sha1 : HashFunction {
     private fun processChunk(input: ByteArray, pos: Int) {
         val words = this.words
 
-        var pos = pos
+        var currentPosition = pos
         for (w in 0 until 16) {
             words[w] =
-                ((input[pos++].toInt() and 0xff) shl 24) or
-                ((input[pos++].toInt() and 0xff) shl 16) or
-                ((input[pos++].toInt() and 0xff) shl 8) or
-                ((input[pos++].toInt() and 0xff))
+                ((input[currentPosition++].toInt() and 0xff) shl 24) or
+                ((input[currentPosition++].toInt() and 0xff) shl 16) or
+                ((input[currentPosition++].toInt() and 0xff) shl 8) or
+                ((input[currentPosition++].toInt() and 0xff))
         }
 
         for (w in 16 until 80) {

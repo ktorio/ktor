@@ -215,7 +215,7 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
         else -> length.toLong()
     }
 
-    val maskKey = when (val mask = maskAndLength and 0x80 != 0) {
+    val maskKey = when (maskAndLength and 0x80 != 0) {
         true -> readInt()
         false -> -1
     }
