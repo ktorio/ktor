@@ -15,7 +15,7 @@ actual abstract class BaseTest actual constructor() {
     actual open val timeout: Duration = 10.seconds
 
     @get:Rule
-    internal val errorCollector = ErrorCollector() //TODO: for some reason, it tracks only one error
+    internal val errorCollector = ErrorCollector() // TODO: for some reason, it tracks only one error
 
     @get:Rule
     internal val coroutinesTimeout

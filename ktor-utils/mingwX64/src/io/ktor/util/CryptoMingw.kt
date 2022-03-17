@@ -4,8 +4,6 @@
 
 package io.ktor.util
 
-import io.ktor.util.internal.*
-import io.ktor.util.internal.SUCCESS
 import kotlinx.cinterop.*
 import platform.windows.*
 

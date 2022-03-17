@@ -76,9 +76,9 @@ internal class Sha1 : HashFunction {
         for (w in 0 until 16) {
             words[w] =
                 ((input[pos++].toInt() and 0xff) shl 24) or
-                    ((input[pos++].toInt() and 0xff) shl 16) or
-                    ((input[pos++].toInt() and 0xff) shl 8) or
-                    ((input[pos++].toInt() and 0xff))
+                ((input[pos++].toInt() and 0xff) shl 16) or
+                ((input[pos++].toInt() and 0xff) shl 8) or
+                ((input[pos++].toInt() and 0xff))
         }
 
         for (w in 16 until 80) {

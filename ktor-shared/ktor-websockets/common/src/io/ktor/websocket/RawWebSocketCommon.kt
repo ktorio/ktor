@@ -15,6 +15,15 @@ import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
 import kotlin.random.*
 
+/**
+ * Creates a RAW web socket session from connection
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ */
 @Suppress("FunctionName")
 public expect fun RawWebSocket(
     input: ByteReadChannel,
@@ -24,10 +33,7 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-/**
- * Represents a RAW web socket session
- */
-//TODO: looks like can be optimized
+// TODO: looks like can be optimized
 @OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
@@ -93,10 +99,10 @@ internal class RawWebSocketCommon(
         } catch (cause: CancellationException) {
             _incoming.cancel(cause)
         } catch (eof: EOFException) {
-            //no more bytes is possible to read
+            // no more bytes is possible to read
         } catch (eof: ClosedReceiveChannelException) {
-            //TODO: this error is effectively EOF in BufferChannel
-            //no more bytes is possible to read
+            // TODO: this error is effectively EOF in BufferChannel
+            // no more bytes is possible to read
         } catch (io: ChannelIOException) {
             _incoming.cancel()
         } catch (cause: Throwable) {
@@ -143,18 +149,19 @@ internal class RawWebSocketCommon(
 
 private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
-    buildPacket { //TODO: optimize?
+    buildPacket { // TODO: optimize?
         repeat(remaining.toInt()) { i ->
             writeByte((readByte().toInt() xor (maskMemory[i % 4].toInt())).toByte())
         }
     }
 }
 
-@InternalAPI //TODO: used in tests
-public suspend fun ByteWriteChannel.writeFrame(
-    frame: Frame,
-    masking: Boolean
-) {
+/**
+ * Serializes WebSocket [Frame] and writes the bits into the [ByteWriteChannel].
+ * If [masking] is true, then data will be masked with random mask
+ */
+@InternalAPI // used in tests
+public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
     val length = frame.data.size
 
     val flagsAndOpcode = frame.fin.flagAt(7) or
@@ -193,11 +200,14 @@ public suspend fun ByteWriteChannel.writeFrame(
     writePacket(maskedData)
 }
 
-@InternalAPI //TODO: used in tests
-public suspend fun ByteReadChannel.readFrame(
-    maxFrameSize: Long,
-    lastOpcode: Int
-): Frame {
+/**
+ * Reads bits from [ByteReadChannel] and converts into Websocket [Frame].
+ *
+ * @param maxFrameSize maximum frame size that could be read
+ * @param lastOpcode last read opcode
+ */
+@InternalAPI // used in tests
+public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int): Frame {
     val flagsAndOpcode = readByte().toInt()
     val maskAndLength = readByte().toInt()
 

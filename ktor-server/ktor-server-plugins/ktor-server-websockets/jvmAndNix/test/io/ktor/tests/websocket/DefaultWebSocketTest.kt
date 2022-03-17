@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DefaultWebSocketTest: BaseTest() {
+class DefaultWebSocketTest : BaseTest() {
 
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel

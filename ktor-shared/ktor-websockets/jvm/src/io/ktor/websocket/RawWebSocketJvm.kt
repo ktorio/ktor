@@ -14,6 +14,15 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.properties.*
 
+/**
+ * Creates a RAW web socket session from connection
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
     input: ByteReadChannel,
@@ -23,9 +32,6 @@ public actual fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession = RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext)
 
-/**
- * Represents a RAW web socket session
- */
 internal class RawWebSocketJvm(
     input: ByteReadChannel,
     output: ByteWriteChannel,

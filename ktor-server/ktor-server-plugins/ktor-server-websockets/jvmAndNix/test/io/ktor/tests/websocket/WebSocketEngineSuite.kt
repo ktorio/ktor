@@ -202,7 +202,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    @Ignore //TODO: fails process on native
+    @Ignore // TODO: fails process on native
     @Test
     fun testRawWebSocketDisconnectDuringSending() = runTest {
         val contextJob = Job()
@@ -668,7 +668,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
-        //TODO: IO?
+        // TODO: IO?
         SelectorManager().use {
             aSocket(it).tcp().connect("localhost", port) {
                 noDelay = true
@@ -677,7 +677,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 val connection = it.connection()
                 try {
                     block(connection)
-                    //TODO: for native, output should be closed explicitly
+                    // TODO: for native, output should be closed explicitly
                     connection.output.close()
                 } catch (cause: Throwable) {
                     throw cause
@@ -685,5 +685,4 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
     }
-
 }

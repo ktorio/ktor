@@ -33,7 +33,7 @@ actual abstract class BaseTest actual constructor() {
             error.addSuppressed(it)
         }
         error.printStackTrace()
-        throw error //suppressed exceptions print wrong in idea
+        throw error // suppressed exceptions print wrong in idea
     }
 
     actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
@@ -44,9 +44,9 @@ actual abstract class BaseTest actual constructor() {
                     runCatching { block() }
                 }
             }.onFailure {
-                if (it is TimeoutCancellationException)
+                if (it is TimeoutCancellationException) {
                     throw TestTimeoutException("Test '$testName' timed out after $timeout", it)
-                else throw it
+                } else throw it
             }.onSuccess { it.getOrThrow() }
         }
     }
