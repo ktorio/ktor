@@ -88,7 +88,7 @@ class CORSTest {
     fun testSimpleRequest() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
             }
 
             application.routing {
@@ -118,7 +118,7 @@ class CORSTest {
     fun testSimpleRequestPort1() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
             }
 
             application.routing {
@@ -149,7 +149,7 @@ class CORSTest {
     fun testSimpleRequestPort2() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host:80")
+                allowHost("my-host:80")
             }
 
             application.routing {
@@ -180,7 +180,7 @@ class CORSTest {
     fun testSimpleRequestExposed() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
                 exposeHeader(HttpHeaders.ETag)
                 exposeHeader(HttpHeaders.Vary)
             }
@@ -209,7 +209,7 @@ class CORSTest {
     fun testSimpleRequestHttps() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host", schemes = listOf("http", "https"))
+                allowHost("my-host", schemes = listOf("http", "https"))
             }
 
             application.routing {
@@ -247,7 +247,7 @@ class CORSTest {
     fun testSimpleRequestSubDomains() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host", subDomains = listOf("www"))
+                allowHost("my-host", subDomains = listOf("www"))
             }
 
             application.routing {
@@ -509,7 +509,7 @@ class CORSTest {
     fun testPreFlightMultipleHeadersRegression(): Unit = withTestApplication {
         application.install(CORS) {
             anyHost()
-            header(HttpHeaders.Range)
+            allowHeader(HttpHeaders.Range)
         }
 
         application.routing {
@@ -536,7 +536,7 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -611,7 +611,7 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                method(HttpMethod.Delete)
+                allowMethod(HttpMethod.Delete)
             }
 
             application.routing {
@@ -690,7 +690,7 @@ class CORSTest {
     fun testPreflightCustomHost() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
                 allowNonSimpleContentTypes = true
             }
 
@@ -800,7 +800,7 @@ class CORSTest {
             application.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -829,7 +829,7 @@ class CORSTest {
             application.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -930,9 +930,9 @@ class CORSTest {
     fun testEmptyAccessControlRequestHeaders() {
         withTestApplication {
             application.install(CORS) {
-                method(HttpMethod.Options)
-                header(HttpHeaders.XForwardedProto)
-                host("host")
+                allowMethod(HttpMethod.Options)
+                allowHeader(HttpHeaders.XForwardedProto)
+                allowHost("host")
                 allowSameOrigin = false
                 allowCredentials = true
                 allowNonSimpleContentTypes = true
@@ -1000,8 +1000,8 @@ class CORSTest {
     fun originWithWildcard() = testApplication {
         install(CORS) {
             allowSameOrigin = true
-            host("domain.com")
-            host("*.domain.com")
+            allowHost("domain.com")
+            allowHost("*.domain.com")
         }
         routing {
             get("") { call.respond("OK") }
@@ -1042,7 +1042,7 @@ class CORSTest {
     fun originWithWildcardAndSubdomain() = testApplication {
         install(CORS) {
             allowSameOrigin = true
-            host("domain.com", subDomains = listOf("foo", "*.bar"))
+            allowHost("domain.com", subDomains = listOf("foo", "*.bar"))
         }
         routing {
             get("") { call.respond("OK") }
@@ -1089,7 +1089,7 @@ class CORSTest {
                 "Expected this message '$expectedMessage' for this host '$host'"
             ) {
                 testApplication {
-                    install(CORS) { host(host) }
+                    install(CORS) { allowHost(host) }
                 }
             }
             assertEquals(expectedMessage, exception.message)
@@ -1109,7 +1109,7 @@ class CORSTest {
                 "Expected this message '$expectedMessage' for sub domains $subDomains"
             ) {
                 testApplication {
-                    install(CORS) { host("domain.com", subDomains = subDomains) }
+                    install(CORS) { allowHost("domain.com", subDomains = subDomains) }
                 }
             }
 
@@ -1131,7 +1131,7 @@ class CORSTest {
                 "Expected this message '$expectedMessage' for sub domains $subDomains"
             ) {
                 testApplication {
-                    install(CORS) { host("*.domain.com", subDomains = subDomains) }
+                    install(CORS) { allowHost("*.domain.com", subDomains = subDomains) }
                 }
             }
             assertEquals(expectedMessage, exception.message)

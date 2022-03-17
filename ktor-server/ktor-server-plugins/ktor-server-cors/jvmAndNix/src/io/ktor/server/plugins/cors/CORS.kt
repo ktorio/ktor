@@ -266,7 +266,7 @@ public class CORSConfig {
      * Otherwise, you can mix wildcard and non-wildcard subdomains as long as
      * the wildcard is always in front of the domain, e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
      */
-    public fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
+    public fun allowHost(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
         if (host == "*") {
             return anyHost()
         }
@@ -324,7 +324,7 @@ public class CORSConfig {
      */
     @Suppress("unused")
     public fun allowXHttpMethodOverride() {
-        header(HttpHeaders.XHttpMethodOverride)
+        allowHeader(HttpHeaders.XHttpMethodOverride)
     }
 
     /**
@@ -345,7 +345,7 @@ public class CORSConfig {
     /**
      * Allow using a specified [header] for the actual [CORS] request.
      */
-    public fun header(header: String) {
+    public fun allowHeader(header: String) {
         if (header.equals(HttpHeaders.ContentType, ignoreCase = true)) {
             allowNonSimpleContentTypes = true
             return
@@ -362,7 +362,7 @@ public class CORSConfig {
      * Note that CORS operates with real HTTP methods only and
      * doesn't handle method overridden by `X-Http-Method-Override`.
      */
-    public fun method(method: HttpMethod) {
+    public fun allowMethod(method: HttpMethod) {
         if (method !in CorsDefaultMethods) {
             methods.add(method)
         }
