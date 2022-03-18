@@ -7,7 +7,7 @@ package io.ktor.server.application
 import io.ktor.util.*
 
 /**
- * Represents a hook that can be registered in [PluginBuilder].
+ * A hook that can be registered in [PluginBuilder].
  */
 @KtorDsl
 public interface Hook<HookHandler> {

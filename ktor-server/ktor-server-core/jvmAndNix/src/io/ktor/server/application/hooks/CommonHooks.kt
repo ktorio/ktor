@@ -13,7 +13,7 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
 /**
- * Is invoked as a first step in processing a call.
+ * A hook that is invoked as a first step in processing a call.
  * Useful for validating, updating a call based on proxy information, etc.
  */
 public object CallSetup : Hook<suspend (ApplicationCall) -> Unit> {
@@ -25,7 +25,7 @@ public object CallSetup : Hook<suspend (ApplicationCall) -> Unit> {
 }
 
 /**
- * Is invoked when a call fails with an exception.
+ * A hook that is invoked when a call fails with an exception.
  */
 public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable) -> Unit> {
 
@@ -48,7 +48,7 @@ public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable
 }
 
 /**
- * A shortcut hook for [ApplicationEnvironment.monitor] subscription
+ * A shortcut hook for [ApplicationEnvironment.monitor] subscription.
  */
 public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     private val event: Event
@@ -61,10 +61,10 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
 }
 
 /**
- * Is invoked before routing and most of the plugins.
- * Useful for measuring, logging, etc.
+ * A hook that is invoked before routing and most of the plugins.
+ * Useful for metrics, logging, etc.
  *
- * Can be renamed or removed from public API in the future
+ * Can be renamed or removed from public API in the future.
  */
 @InternalAPI
 public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
@@ -76,7 +76,7 @@ public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
 }
 
 /**
- * Is invoked when response body comes through all transformations and is ready to be sent.
+ * A hook that is invoked when a response body comes through all transformations and is ready to be sent.
  */
 public object ResponseBodyReadyForSend :
     Hook<suspend ResponseBodyReadyForSend.Context.(ApplicationCall, OutgoingContent) -> Unit> {
@@ -97,7 +97,7 @@ public object ResponseBodyReadyForSend :
 }
 
 /**
- * Is invoked when response was successfully sent to a client.
+ * A hook that is invoked when response was successfully sent to a client.
  * Useful for cleaning up opened resources or finishing measurements.
  */
 public object ResponseSent : Hook<(ApplicationCall) -> Unit> {
