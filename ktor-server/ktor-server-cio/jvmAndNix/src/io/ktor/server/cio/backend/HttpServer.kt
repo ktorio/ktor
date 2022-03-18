@@ -60,7 +60,7 @@ public fun CoroutineScope.httpServer(
 
             try {
                 while (true) {
-                    val client: Socket = server.accept()
+                    val client: Socket = settings.interceptor(server.accept())
 
                     val connection = ServerIncomingConnection(
                         client.openReadChannel(),

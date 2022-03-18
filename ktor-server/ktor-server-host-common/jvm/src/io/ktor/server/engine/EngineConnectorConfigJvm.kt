@@ -42,7 +42,7 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
     /**
      * KeyStore where a certificate is stored
      */
-    public val keyStore: KeyStore
+    public val keyStore: KeyStore //TODO optional?, to use keyStorePath + password instead of KeyStore
 
     /**
      * File where the keystore is located

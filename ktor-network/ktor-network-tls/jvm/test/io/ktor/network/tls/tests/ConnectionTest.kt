@@ -10,6 +10,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.*
@@ -29,6 +30,7 @@ import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
+import kotlin.text.toCharArray
 
 @Suppress("UNCHECKED_CAST")
 class ConnectionTest {
@@ -43,7 +45,6 @@ class ConnectionTest {
             .tcp()
             .connect("www.google.com", port = 443)
             .tls(Dispatchers.Default)
-
         val channel = socket.openWriteChannel()
 
         channel.apply {
@@ -55,6 +56,37 @@ class ConnectionTest {
 
         socket.openReadChannel().readRemaining()
         Unit
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun sslWithoutCloseTest(): Unit = runBlocking {
+        val selectorManager = ActorSelectorManager(Dispatchers.IO)
+        val socket = aSocket(selectorManager)
+            .tcp()
+            .connect("www.google.com", port = 443)
+            .run {
+                val context = SSLContext.getInstance("TLS")
+                context.init(
+                    null,
+                    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also {
+                        it.init(null as KeyStore?)
+                    }.trustManagers,
+                    SecureRandom.getInstance("NativePRNGNonBlocking")
+                )
+                val engine = context.createSSLEngine()
+                engine.useClientMode = true
+                ssl(Dispatchers.Default, engine)
+            }
+
+        val channel = socket.openWriteChannel()
+        channel.apply {
+            writeStringUtf8("GET / HTTP/1.1\r\n")
+            writeStringUtf8("Host: www.google.com\r\n")
+            writeStringUtf8("Connection: close\r\n\r\n")
+            flush()
+        }
+        socket.openReadChannel().readRemaining()
     }
 
     @Test
