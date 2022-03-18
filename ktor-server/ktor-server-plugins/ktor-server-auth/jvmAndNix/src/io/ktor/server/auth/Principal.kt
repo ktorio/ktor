@@ -5,11 +5,11 @@
 package io.ktor.server.auth
 
 /**
- * Marker interface indicating that a class represents credentials for authentication
+ * A marker interface indicating that a class represents credentials for authentication.
  */
 public interface Credential
 
 /**
- * Marker interface indicating that a class represents an authenticated principal
+ * A marker interface indicating that a class represents an authenticated principal.
  */
 public interface Principal

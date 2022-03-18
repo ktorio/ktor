@@ -194,7 +194,7 @@ private suspend fun requestOAuth1aAccessToken(
 }
 
 /**
- * Create an HTTP auth header for OAuth1a obtain token request
+ * Creates an HTTP authentication header for OAuth1a obtain token request.
  */
 @Deprecated(
     "This is going to become internal. Please file a ticket and clarify, why do you need it.",
@@ -209,7 +209,7 @@ public fun createObtainRequestTokenHeader(
 ): HttpAuthHeader.Parameterized = createObtainRequestTokenHeaderInternal(callback, consumerKey, nonce, timestamp)
 
 /**
- * Create an HTTP auth header for OAuth1a obtain token request
+ * Creates an HTTP auth header for OAuth1a obtain token request.
  */
 private fun createObtainRequestTokenHeaderInternal(
     callback: String,
@@ -229,7 +229,7 @@ private fun createObtainRequestTokenHeaderInternal(
 )
 
 /**
- * Create an HTTP auth header for OAuth1a upgrade token request
+ * Creates an HTTP auth header for OAuth1a upgrade token request.
  */
 @Deprecated(
     "This is going to become internal. " +
@@ -245,7 +245,7 @@ internal fun createUpgradeRequestTokenHeader(
 ): HttpAuthHeader.Parameterized = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce, timestamp)
 
 /**
- * Create an HTTP auth header for OAuth1a upgrade token request
+ * Creates an HTTP auth header for OAuth1a upgrade token request.
  */
 private fun createUpgradeRequestTokenHeaderInternal(
     consumerKey: String,
@@ -265,7 +265,7 @@ private fun createUpgradeRequestTokenHeaderInternal(
 )
 
 /**
- * Sign an HTTP auth header
+ * Signs an HTTP auth header.
  */
 @Deprecated(
     "This is going to become internal. " +
@@ -281,7 +281,7 @@ public fun HttpAuthHeader.Parameterized.sign(
 ): HttpAuthHeader.Parameterized = signInternal(method, baseUrl, key, parameters)
 
 /**
- * Sign an HTTP auth header
+ * Signs an HTTP auth header.
  */
 private fun HttpAuthHeader.Parameterized.signInternal(
     method: HttpMethod,
@@ -294,7 +294,7 @@ private fun HttpAuthHeader.Parameterized.signInternal(
 )
 
 /**
- * Build an OAuth1a signature base string as per RFC
+ * Builds an OAuth1a signature base string as per RFC.
  */
 @Deprecated(
     "This is going to become internal. " +
@@ -310,7 +310,7 @@ public fun signatureBaseString(
 ): String = signatureBaseStringInternal(header, method, baseUrl, parameters)
 
 /**
- * Build an OAuth1a signature base string as per RFC
+ * Builds an OAuth1a signature base string as per RFC.
  */
 internal fun signatureBaseStringInternal(
     header: HttpAuthHeader.Parameterized,
@@ -337,17 +337,17 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
         .joinToString("&") { "${it.first}=${it.second}" }
 
 /**
- * Represents an OAuth1a server error
+ * An OAuth1a server error.
  */
 public sealed class OAuth1aException(message: String) : Exception(message) {
 
     /**
-     * Thrown when an OAuth1a server didn't provide access token
+     * Thrown when an OAuth1a server didn't provide access token.
      */
     public class MissingTokenException : OAuth1aException("The OAuth1a server didn't provide access token")
 
     /**
-     * Represents any other OAuth1a error
+     * Represents any other OAuth1a error.
      */
     @Deprecated("This is no longer thrown.", level = DeprecationLevel.ERROR)
     public class UnknownException(message: String) : OAuth1aException(message)

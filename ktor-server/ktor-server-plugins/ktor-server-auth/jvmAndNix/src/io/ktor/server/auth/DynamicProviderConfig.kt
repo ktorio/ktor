@@ -5,7 +5,7 @@
 package io.ktor.server.auth
 
 /**
- * A config that creates provider based on [AuthenticationConfig.provider] block.
+ * A configuration that creates a provider based on the [AuthenticationConfig.provider] block.
  */
 public class DynamicProviderConfig(name: String?) : AuthenticationProvider.Config(name) {
 

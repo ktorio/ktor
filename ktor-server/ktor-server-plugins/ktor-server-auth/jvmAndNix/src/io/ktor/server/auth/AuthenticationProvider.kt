@@ -7,48 +7,48 @@ package io.ktor.server.auth
 import io.ktor.server.application.*
 
 /**
- * Predicate function that accepts an application call and returns `true` or `false`
+ * A predicate function that accepts an application call and returns `true` or `false`.
  */
 public typealias ApplicationCallPredicate = (ApplicationCall) -> Boolean
 
 /**
- * Authentication function that accepts and verifies credentials and returns a principal when verification successful.
+ * An authentication function that accepts and verifies credentials and returns a principal when verification is successful.
  */
 public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Principal?
 
 /**
- * Represents an authentication provider with the given name
+ * An authentication provider with the specified name.
  */
 public abstract class AuthenticationProvider(config: Config) {
     /**
-     * Provider name or `null` for a default provider
+     * A provider name or `null` for a default provider.
      */
     public val name: String? = config.name
 
     /**
-     * Authenticates request based on [AuthenticationContext].
-     * Implementations should either add new [AuthenticationContext.principal] for successful authentication
-     * or register [AuthenticationContext.challenge] for failed ones
+     * Authenticates a request based on [AuthenticationContext].
+     * Implementations should either add a new [AuthenticationContext.principal] for successful authentication
+     * or register [AuthenticationContext.challenge] for failed ones.
      */
     public abstract suspend fun onAuthenticate(context: AuthenticationContext)
 
     /**
-     * Authentication filters specifying if authentication is required for particular [ApplicationCall]
+     * Authentication filters specifying if authentication is required for a particular [ApplicationCall].
      *
-     * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
+     * If there is no filters, authentication is required. If any filter returns `true`, authentication is not required.
      */
     public val skipWhen: List<ApplicationCallPredicate> = config.filterPredicates ?: emptyList()
 
     /**
-     * Authentication provider configuration base class
+     * Serves as the base class for authentication providers.
      * @property name is the name of the provider, or `null` for a default provider.
      */
     public open class Config protected constructor(public val name: String?) {
 
         /**
-         * Authentication filters specifying if authentication is required for particular [ApplicationCall]
+         * Authentication filters specifying if authentication is required for a particular [ApplicationCall].
          *
-         * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
+         * If there is no filters, authentication is required. If any filter returns `true`, authentication is not required.
          */
         internal var filterPredicates: MutableList<ApplicationCallPredicate>? = null
 

@@ -9,14 +9,14 @@ import io.ktor.util.*
 import kotlin.properties.*
 
 /**
- * Represents an authentication context for the call
- * @param call instance of [ApplicationCall] this context is for
+ * An authentication context for a call.
+ * @param call instance of [ApplicationCall] this context is for.
  */
 public class AuthenticationContext(public val call: ApplicationCall) {
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
 
     /**
-     * Retrieves authenticated principal, or returns null if no user was authenticated
+     * Retrieves an authenticated principal, or returns `null` if a user isn't authenticated.
      */
     public var principal: Principal? by Delegates.vetoable(null) { _, old, _ ->
         require(old == null) { "Principal can be only assigned once" }
@@ -24,7 +24,7 @@ public class AuthenticationContext(public val call: ApplicationCall) {
     }
 
     /**
-     * Stores authentication failures for keys provided by authentication mechanisms
+     * Stores authentication failures for keys provided by authentication mechanisms.
      */
     @Suppress("unused")
     @Deprecated("Use allErrors, allFailures or error() function instead", level = DeprecationLevel.ERROR)
@@ -38,7 +38,7 @@ public class AuthenticationContext(public val call: ApplicationCall) {
         get() = _errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
 
     /**
-     * All authentication failures during auth procedure including missing or invalid credentials
+     * All authentication failures during auth procedure including missing or invalid credentials.
      */
     public val allFailures: List<AuthenticationFailedCause>
         get() = _errors.values.toList()
@@ -51,26 +51,26 @@ public class AuthenticationContext(public val call: ApplicationCall) {
     }
 
     /**
-     * Gets an [AuthenticationProcedureChallenge] for this context
+     * Gets an [AuthenticationProcedureChallenge] for this context.
      */
     public val challenge: AuthenticationProcedureChallenge = AuthenticationProcedureChallenge()
 
     /**
      * Sets an authenticated principal for this context.
      *
-     * This method may be called only once per context
+     * This method may be called only once per context.
      */
     public fun principal(principal: Principal) {
         this.principal = principal
     }
 
     /**
-     * Retrieves a principal of type [T], if any
+     * Retrieves a principal of the type [T], if any.
      */
     public inline fun <reified T : Principal> principal(): T? = principal as? T
 
     /**
-     * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user
+     * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user.
      */
     public fun challenge(
         key: Any,

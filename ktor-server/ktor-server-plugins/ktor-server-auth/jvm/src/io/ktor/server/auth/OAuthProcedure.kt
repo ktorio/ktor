@@ -12,12 +12,14 @@ import java.io.*
 private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 /**
- * OAuth provider key
+ * An OAuth provider key.
  */
 public val OAuthKey: Any = "OAuth"
 
 /**
- * Represents an OAuth provider for [Authentication] plugin
+ * An `OAuth` [Authentication] provider.
+ *
+ * @see [oauth]
  */
 public class OAuthAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
@@ -31,21 +33,21 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
     }
 
     /**
-     * OAuth provider configuration
+     * A configuration for the [oauth] authentication provider.
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         /**
-         * HTTP client instance used by this provider to make HTTP calls to OAuth server
+         * An HTTP client instance used to make requests to the OAuth server.
          */
         public lateinit var client: HttpClient
 
         /**
-         * Lookup function to find OAuth server settings for the particular call
+         * A lookup function to find OAuth server settings for the particular call.
          */
         public lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
 
         /**
-         * URL provider that should produce login url for the particular call
+         * Specifies a redirect route that is opened when authorization is completed.
          */
         public lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 
@@ -54,7 +56,10 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
 }
 
 /**
- * Installs OAuth Authentication mechanism
+ * Installs the OAuth [Authentication] provider.
+ * OAuth can be used to authorize users of your application by using external providers,
+ * such as Google, Facebook, Twitter, and so on.
+ * To learn how to configure it, see [OAuth](https://ktor.io/docs/oauth.html).
  */
 public fun AuthenticationConfig.oauth(
     name: String? = null,
