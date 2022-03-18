@@ -16,27 +16,12 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
-@InternalAPI
-internal fun HttpClientCall(
-    client: HttpClient,
-    requestData: HttpRequestData,
-    responseData: HttpResponseData
-): HttpClientCall = HttpClientCall(client).apply {
-    request = DefaultHttpRequest(this, requestData)
-    response = DefaultHttpResponse(this, responseData)
-
-    if (responseData.body !is ByteReadChannel) {
-        @Suppress("DEPRECATION_ERROR")
-        attributes.put(HttpClientCall.CustomResponse, responseData.body)
-    }
-}
-
 /**
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
  *
  * @property client: client that executed the call.
  */
-public open class HttpClientCall internal constructor(
+public open class HttpClientCall(
     public val client: HttpClient
 ) : CoroutineScope {
     private val received: AtomicBoolean = atomic(false)
@@ -52,13 +37,28 @@ public open class HttpClientCall internal constructor(
      * Represents the [request] sent by the client
      */
     public lateinit var request: HttpRequest
-        internal set
+        protected set
 
     /**
      * Represents the [response] sent by the server.
      */
     public lateinit var response: HttpResponse
-        internal set
+        protected set
+
+    @InternalAPI
+    public constructor(
+        client: HttpClient,
+        requestData: HttpRequestData,
+        responseData: HttpResponseData
+    ) : this(client) {
+        this.request = DefaultHttpRequest(this, requestData)
+        this.response = DefaultHttpResponse(this, responseData)
+
+        if (responseData.body !is ByteReadChannel) {
+            @Suppress("DEPRECATION_ERROR")
+            attributes.put(CustomResponse, responseData.body)
+        }
+    }
 
     protected open val allowDoubleReceive: Boolean = false
 
@@ -102,6 +102,14 @@ public open class HttpClientCall internal constructor(
     }
 
     override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
+
+    internal fun setResponse(response: HttpResponse) {
+        this.response = response
+    }
+
+    internal fun setRequest(request: HttpRequest) {
+        this.request = request
+    }
 
     public companion object {
         /**
