@@ -15,7 +15,7 @@ import io.ktor.util.pipeline.*
 import kotlin.random.*
 
 /**
- * Utility class to build an [ApplicationPlugin] instance.
+ * A utility class to build an [ApplicationPlugin] instance.
  **/
 @KtorDsl
 @Suppress("UNUSED_PARAMETER", "DEPRECATION")
@@ -29,13 +29,13 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     public abstract val application: Application
 
     /**
-     * Configuration of current plugin.
+     * A configuration of the current plugin.
      */
     public abstract val pluginConfig: PluginConfig
 
     /**
-     * A pipeline PluginConfig for the current plugin. See [Pipelines](https://ktor.io/docs/pipelines.html)
-     * for more information.
+     * A pipeline [PluginConfig] for the current plugin.
+     * See [Pipelines](https://ktor.io/docs/pipelines.html) for more information.
      **/
     internal abstract val pipeline: ApplicationCallPipeline
 
@@ -45,7 +45,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     public val environment: ApplicationEnvironment? get() = pipeline.environment
 
     /**
-     * Configuration of your current application (incl. host, port and anything else you can define in application.conf).
+     * A configuration of your current application (incl. host, port and anything else you can define in application.conf).
      **/
     public val applicationConfig: ApplicationConfig? get() = environment?.config
 
@@ -62,23 +62,20 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler for every incoming [ApplicationCall].
      *
-     * This block is invoked for every incoming call even if the call is already handled by some different handler.
+     * This block is invoked for every incoming call even if the call is already handled by other handler.
      * There you can handle the call in a way you want: add headers, change the response status, etc. You can also
      * access the external state to calculate stats.
      *
-     * Example:
+     * This example demonstrates how to create a plugin that appends a custom header to each response:
      * ```kotlin
-     *
-     * val plugin = createApplicationPlugin("CallCounterHeader") {
-     *     var counter = 0
-     *
+     * val CustomHeaderPlugin = createApplicationPlugin(name = "CustomHeaderPlugin") {
      *     onCall { call ->
-     *         counter++
-     *         call.response.header("X-Call-Count", "$counter")
+     *         call.response.headers.append("X-Custom-Header", "Hello, world!")
      *     }
      * }
-     *
      * ```
+     *
+     * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
@@ -94,21 +91,10 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every [call.receive()] statement.
-     *
+     * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
-     * You can observe the [receiveRequest] of the body. You can also modify the body using the [transformBody] block.
+     * @see [createApplicationPlugin]
      *
-     * Example:
-     * ```kotlin
-     *
-     * val ReceiveTypeLogger = createApplicationPlugin("ReceiveTypeLogger") {
-     *     onCallReceive { call, body ->
-     *         println("Body is $body")
-     *     }
-     * }
-     *
-     * ```
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
@@ -123,21 +109,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every [call.respond()] statement.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val BodyLimiter = createApplicationPlugin("BodyLimiter") {
-     *     onCallRespond { _: ApplicationCall, body: Any ->
-     *         if (body is ByteArray) {
-     *             check(body.size < 4 * 1024 * 1024) { "Body size is too big: ${body.size} bytes" }
-     *         }
-     *     }
-     *  }
-     *
-     * ```
+     * Specifies the [block] handler that allows you to transform data before sending it to the client.
+     * This handler is executed when the `call.respond` function is invoked in a route handler.
+     * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
@@ -154,15 +128,17 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies a [handler] for a specific [hook]. A [hook] can be a specific place in time or event during the request
-     * processing like application shutdown, exception during call processing, etc.
+     * Specifies a [handler] for a specific [hook].
+     * A [hook] can be a specific place in time or event during the request
+     * processing like application shutdown, an exception during call processing, etc.
+     * @see [createApplicationPlugin]
      *
      * Example:
      * ```kotlin
      * val ResourceManager = createApplicationPlugin("ResourceManager") {
      *     val resources: List<Closeable> = TODO()
      *
-     *     on(Shutdown) {
+     *     on(MonitoringEvent(ApplicationStopped)) {
      *         resources.forEach { it.close() }
      *     }
      * }
@@ -176,21 +152,11 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every [call.receive()] statement.
+     * Specifies the [block] handler that allows you to obtain and transform data received from the client.
+     * This [block] is invoked for every attempt to receive the request body.
+     * @see [createApplicationPlugin]
      *
-     * This [block] will be invoked for every attempt to receive the request body.
-     * You can observe the [receiveRequest] of the body. You can also modify the body using the [transformBody] block.
-     *
-     * Example:
-     * ```kotlin
-     *
-     * val ContentType = createApplicationPlugin("ReceiveTypeLogger") {
-     *     onCallReceive { call ->
-     *         println("Received ${call.request.headers(HttpHeaders.ContentType)} type")
-     *     }
-     * }
-     *
-     * ```
+     * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
         block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall) -> Unit
@@ -199,21 +165,11 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every [call.respond()] statement.
+     * Specifies the [block] handler that allows you to transform data before sending it to the client.
+     * This handler is executed when the `call.respond` function is invoked in a route handler.
+     * @see [createApplicationPlugin]
      *
-     * This [block] is invoked for every attempt to send the response.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val NoKeepAlive = createApplicationPlugin("NoKeepAlive") {
-     *     onCallRespond { call: ApplicationCall ->
-     *         call.respond.header("Connection", "close")
-     *     }
-     *  }
-     *
-     * ```
+     * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
     public fun onCallRespond(
         block: suspend OnCallRespondContext<PluginConfig>.(call: ApplicationCall) -> Unit

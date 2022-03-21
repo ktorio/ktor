@@ -9,8 +9,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * Defines a Plugin that can be installed into [Route]
- * @param TConfig is the configuration object type for this Plugin
+ * Defines a [Plugin](https://ktor.io/docs/plugins.html) that can be installed into a [Route].
+ * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */
 public interface BaseRouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
@@ -18,7 +18,7 @@ public interface BaseRouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
 
 /**
  * Defines a Plugin that can be installed into [Route]
- * @param TConfig is the configuration object type for this Plugin
+ * @param TConfiguration is the configuration object type for this Plugin
  */
 public interface RouteScopedPlugin<TConfiguration : Any> : BaseRouteScopedPlugin<TConfiguration, PluginInstance>
 

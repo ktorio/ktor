@@ -12,7 +12,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * Defines an installable Plugin.
+ * Defines an installable [Plugin](https://ktor.io/docs/plugins.html).
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
@@ -23,18 +23,18 @@ public interface Plugin<
     out TConfiguration : Any,
     TPlugin : Any> {
     /**
-     * A unique key that identifies a plugin
+     * A unique key that identifies a plugin.
      */
     public val key: AttributeKey<TPlugin>
 
     /**
-     * A plugin's installation script
+     * A plugin's installation script.
      */
     public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TPlugin
 }
 
 /**
- * Defines a Plugin that is installed into Application.
+ * Defines a [Plugin](https://ktor.io/docs/plugins.html) that is installed into Application.
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
@@ -45,7 +45,7 @@ public interface BaseApplicationPlugin<
     TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
 
 /**
- * Defines a Plugin that is installed into Application
+ * Defines a [Plugin](https://ktor.io/docs/plugins.html) that is installed into Application.
  * @param TConfiguration is the configuration object type for this Plugin
  */
 public interface ApplicationPlugin<out TConfiguration : Any> :
@@ -54,7 +54,7 @@ public interface ApplicationPlugin<out TConfiguration : Any> :
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 
 /**
- * Returns existing plugin registry or register and returns a new one
+ * Returns the existing plugin registry or registers and returns a new one.
  */
 public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
     get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
@@ -74,14 +74,14 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*
 }
 
 /**
- * Returns plugin instance for this pipeline, or null if plugin is not installed
+ * Returns a plugin instance for this pipeline, or null if the plugin is not installed.
  */
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.pluginOrNull(plugin: Plugin<*, *, F>): F? {
     return pluginRegistry.getOrNull(plugin.key)
 }
 
 /**
- * Installs [plugin] into this pipeline, if it is not yet installed
+ * Installs a [plugin] into this pipeline, if it is not yet installed.
  */
 public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
@@ -172,7 +172,7 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
 }
 
 /**
- * Installs [plugin] into this pipeline, if it is not yet installed
+ * Installs a [plugin] into this pipeline, if it is not yet installed.
  */
 @Deprecated(
     "Installing ApplicationPlugin into routing may lead to unexpected behaviour. " +
@@ -187,7 +187,7 @@ public fun <P : Route, B : Any, F : Any> P.install(
 }
 
 /**
- * Uninstalls all plugins from the pipeline
+ * Uninstalls all plugins from the pipeline.
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
@@ -201,7 +201,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
 }
 
 /**
- * Uninstalls [plugin] from the pipeline
+ * Uninstalls a [plugin] from the pipeline.
  */
 @Suppress("DEPRECATION")
 @Deprecated(
@@ -213,7 +213,7 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
 ): Unit = uninstallPlugin(plugin.key)
 
 /**
- * Uninstalls plugin specified by [key] from the pipeline
+ * Uninstalls a plugin specified by [key] from the pipeline.
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
@@ -229,7 +229,7 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: At
 }
 
 /**
- * Thrown on an attempt to install the plugin with the same key as for the already installed plugin
+ * Thrown on an attempt to install the plugin with the same key as for the already installed plugin.
  */
 @Deprecated(
     message = "Please use DuplicatePluginException instead",
@@ -238,13 +238,13 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: At
 public open class DuplicateApplicationPluginException(message: String) : Exception(message)
 
 /**
- * Thrown on an attempt to install the plugin with the same key as for the already installed plugin
+ * Thrown on an attempt to install the plugin with the same key as for the already installed plugin.
  */
 @Suppress("DEPRECATION")
 public class DuplicatePluginException(message: String) : DuplicateApplicationPluginException(message)
 
 /**
- * Thrown on an attempt to access the plugin that is not yet installed
+ * Thrown on an attempt to access the plugin that is not yet installed.
  * @param key application plugin's attribute key
  */
 @OptIn(ExperimentalCoroutinesApi::class)
