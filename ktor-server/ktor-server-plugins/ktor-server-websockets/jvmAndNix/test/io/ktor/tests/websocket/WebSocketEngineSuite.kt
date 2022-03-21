@@ -31,6 +31,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     private val errors = mutableListOf<Throwable>()
+    override val timeout = 30.seconds
 
     override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(WebSockets)
@@ -202,7 +203,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    @Ignore // TODO: fails process on native
+    @Ignore // fails process on native
     @Test
     fun testRawWebSocketDisconnectDuringSending() = runTest {
         val contextJob = Job()
@@ -239,8 +240,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    //    @Ignore("For now we assume that without any network interactions the socket will remain open.")
-    @Ignore
+    @Ignore // For now we assume that without any network interactions the socket will remain open.
     @Test
     fun testRawWebSocketDisconnectDuringDowntime() = runTest {
         val contextJob = Job()
@@ -668,7 +668,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
-        // TODO: IO?
         SelectorManager().use {
             aSocket(it).tcp().connect("localhost", port) {
                 noDelay = true
@@ -677,7 +676,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 val connection = it.connection()
                 try {
                     block(connection)
-                    // TODO: for native, output should be closed explicitly
+                    // for native, output should be closed explicitly
                     connection.output.close()
                 } catch (cause: Throwable) {
                     throw cause

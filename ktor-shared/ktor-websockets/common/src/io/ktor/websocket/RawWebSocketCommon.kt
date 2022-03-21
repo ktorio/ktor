@@ -33,7 +33,6 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-// TODO: looks like can be optimized
 @OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
@@ -100,7 +99,6 @@ internal class RawWebSocketCommon(
         } catch (eof: EOFException) {
             // no more bytes is possible to read
         } catch (eof: ClosedReceiveChannelException) {
-            // TODO: this error is effectively EOF in BufferChannel
             // no more bytes is possible to read
         } catch (io: ChannelIOException) {
             _incoming.cancel()
@@ -147,7 +145,7 @@ internal class RawWebSocketCommon(
 
 private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
-    buildPacket { // TODO: optimize?
+    buildPacket {
         repeat(remaining.toInt()) { i ->
             writeByte((readByte().toInt() xor (maskMemory[i % 4].toInt())).toByte())
         }
