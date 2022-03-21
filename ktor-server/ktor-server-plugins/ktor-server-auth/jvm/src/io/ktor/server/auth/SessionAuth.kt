@@ -12,9 +12,11 @@ import io.ktor.util.pipeline.*
 import kotlin.reflect.*
 
 /**
- * Represents a session-based authentication provider
+ * A session-based [Authentication] provider.
+ * @see [session]
+ *
  * @property type of session
- * @property challenge to be used if there is no session
+ * @property challengeFunction to be used if there is no session
  * @property validator applied to an application all and session providing a [Principal]
  */
 public class SessionAuthenticationProvider<T : Any> private constructor(
@@ -49,7 +51,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     }
 
     /**
-     * Session auth configuration
+     * A configuration for the [session] authentication provider.
      */
     public class Config<T : Any> @PublishedApi internal constructor(
         name: String?,
@@ -61,14 +63,14 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
 
         /**
-         * A response to send back if authentication failed
+         * Specifies a response to send back if authentication failed.
          */
         public fun challenge(block: SessionAuthChallengeFunction<T>) {
             challengeFunction = block
         }
 
         /**
-         * A response to send back if authentication failed
+         * Specifies a response to send back if authentication failed.
          */
         public fun challenge(redirectUrl: String) {
             challenge {
@@ -77,15 +79,15 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
 
         /**
-         * A response to send back if authentication failed
+         * Specifies a response to send back if authentication failed.
          */
         public fun challenge(redirect: Url) {
             challenge(redirect.toString())
         }
 
         /**
-         * Sets a validation function that will check given [T] session instance and return [Principal],
-         * or null if the session does not correspond to an authenticated principal
+         * Sets a validation function that checks a given [T] session instance and returns [Principal],
+         * or null if the session does not correspond to an authenticated principal.
          */
         public fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
@@ -113,8 +115,10 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 }
 
 /**
- * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
- * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Config.validate] configuration
+ * Installs the session [Authentication] provider.
+ * This provider provides the ability to authenticate a user that already has an associated session.
+ *
+ * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
  */
 public inline fun <reified T : Principal> AuthenticationConfig.session(
     name: String? = null
@@ -125,10 +129,10 @@ public inline fun <reified T : Principal> AuthenticationConfig.session(
 }
 
 /**
- * Provides ability to authenticate users via sessions. It is important to have
- * specified [SessionAuthenticationProvider.Config.validate] and
- * [SessionAuthenticationProvider.Config.challenge] in the lambda
- * to get it work property
+ * Installs the session [Authentication] provider.
+ * This provider provides the ability to authenticate a user that already has an associated session.
+ *
+ * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
  */
 public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null,
@@ -139,7 +143,7 @@ public inline fun <reified T : Any> AuthenticationConfig.session(
 }
 
 /**
- * A context for [SessionAuthChallengeFunction]
+ * A context for [SessionAuthChallengeFunction].
  */
 public class SessionChallengeContext(
     public val call: ApplicationCall
@@ -151,6 +155,6 @@ public class SessionChallengeContext(
 public typealias SessionAuthChallengeFunction<T> = suspend SessionChallengeContext.(T?) -> Unit
 
 /**
- * A key used to register auth challenge
+ * A key used to register authentication challenge.
  */
 public const val SessionAuthChallengeKey: String = "SessionAuth"

@@ -301,10 +301,9 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
 }
 
 /**
- * Implements Resource Owner Password Credentials Grant
- * see http://tools.ietf.org/html/rfc6749#section-4.3
+ * Implements Resource Owner Password Credentials Grant.
  *
- * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
+ * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds.
  */
 public suspend fun verifyWithOAuth2(
     credential: UserPasswordCredential,
@@ -332,7 +331,7 @@ public suspend fun verifyWithOAuth2(
 }
 
 /**
- * List of OAuth2 request parameters for both peers
+ * List of OAuth2 request parameters for both peers.
  */
 @Suppress("KDocMissingDocumentation")
 public object OAuth2RequestParameters {
@@ -349,7 +348,7 @@ public object OAuth2RequestParameters {
 }
 
 /**
- * List of OAuth2 server response parameters
+ * List of OAuth2 server response parameters.
  */
 @Suppress("KDocMissingDocumentation")
 public object OAuth2ResponseParameters {
@@ -371,23 +370,23 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
 }
 
 /**
- * Represents a error during communicating to OAuth2 server
+ * Represents an error during communicating to OAuth2 server.
  * @property errorCode OAuth2 server replied with
  */
 public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
-     * Thrown when OAuth2 server responded error="invalid_grant"
+     * Thrown when OAuth2 server responds with the "invalid_grant" error.
      */
     public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
 
     /**
-     * Thrown when nonce verification failed
+     * Thrown when a nonce verification failed.
      */
     public class InvalidNonce : OAuth2Exception("Nonce verification failed", null)
 
     /**
-     * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
-     * decoded but the response doesn't contain error code nor access token
+     * Thrown when an OAuth2 server responds with a successful HTTP status and expected content type that was successfully
+     * decoded but the response doesn't contain a error code nor access token.
      */
     public class MissingAccessToken : OAuth2Exception(
         "OAuth2 server response is OK neither error nor access token provided",
@@ -395,7 +394,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
     )
 
     /**
-     * Throw when an OAuth2 server replied with error "unsupported_grant_type"
+     * Thrown when an OAuth2 server responds with the "unsupported_grant_type" error.
      * @param grantType that was passed to the server
      */
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -411,7 +410,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
     }
 
     /**
-     * OAuth2 server responded with an error code [errorCode]
+     * Thrown when an OAuth2 server responds with [errorCode].
      * @param errorCode the OAuth2 server replied with
      */
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -10,7 +10,10 @@ import javax.naming.*
 import javax.naming.directory.*
 
 /**
- * Do LDAP authentication and verify [credential] by [doVerify] function
+ * Provides the ability to authenticates an LDAP user.
+ * This function accepts a credential and validates it against a specified LDAP server.
+ *
+ * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
 public fun <K : Credential, P : Any> ldapAuthenticate(
     credential: K,
@@ -31,7 +34,10 @@ public fun <K : Credential, P : Any> ldapAuthenticate(
 }
 
 /**
- * Do LDAP authentication and verify [UserPasswordCredential] by [validate] function and construct [UserIdPrincipal]
+ * Provides the ability to authenticates an LDAP user.
+ * This function accepts [UserPasswordCredential] and validates it against a specified LDAP server.
+ *
+ * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
 public fun ldapAuthenticate(
     credential: UserPasswordCredential,
@@ -49,7 +55,10 @@ public fun ldapAuthenticate(
 }
 
 /**
- * Do LDAP authentication and verify [UserPasswordCredential] by [userDNFormat] and construct [UserIdPrincipal]
+ * Provides the ability to authenticates an LDAP user.
+ * This function accepts [UserPasswordCredential] and validates it against a specified LDAP server.
+ *
+ * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
 public fun ldapAuthenticate(
     credential: UserPasswordCredential,

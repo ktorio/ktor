@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth2")
 
 /**
- * OAuth versions used in configuration
+ * OAuth versions used in configuration.
  */
 @Suppress("KDocMissingDocumentation")
 public enum class OAuthVersion {
@@ -26,7 +26,7 @@ public enum class OAuthVersion {
 }
 
 /**
- * Represents OAuth server settings
+ * OAuth server settings.
  * @property name configuration name
  * @property version OAuth version (1a or 2)
  */
@@ -85,18 +85,18 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 }
 
 /**
- * OAauth callback parameters
+ * OAuth callback parameters.
  */
 public sealed class OAuthCallback {
     /**
-     * An OAuth1a token pair callback parameters
+     * An OAuth1a token pair callback parameters.
      * @property token OAuth1a token
      * @property tokenSecret OAuth1a token secret
      */
     public data class TokenPair(val token: String, val tokenSecret: String) : OAuthCallback()
 
     /**
-     * OAuth2 token callback parameter
+     * An OAuth2 token callback parameter.
      * @property token OAuth2 token provided by server
      * @property state passed from a client (ktor server) during authorization startup
      */
@@ -104,7 +104,7 @@ public sealed class OAuthCallback {
 }
 
 /**
- * OAuth access token acquired from the server
+ * An OAuth access token acquired from the server.
  */
 public sealed class OAuthAccessTokenResponse : Principal {
     /**
@@ -137,7 +137,7 @@ public sealed class OAuthAccessTokenResponse : Principal {
 }
 
 /**
- * OAuth grant types constants
+ * OAuth grant types constants.
  */
 @Suppress("KDocMissingDocumentation")
 public object OAuthGrantTypes {
@@ -146,8 +146,8 @@ public object OAuthGrantTypes {
 }
 
 /**
- * Install both OAuth1a and OAuth2 authentication helpers that do redirect to OAuth server authorization page
- * and handle corresponding callbacks
+ * Installs both OAuth1a and OAuth2 authentication helpers that redirects to an OAuth server authorization page
+ * and handles corresponding callbacks.
  */
 @Suppress("unused")
 @Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
@@ -162,7 +162,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
 }
 
 /**
- * Respond OAuth redirect
+ * Responds with OAuth redirect.
  */
 @Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
@@ -191,7 +191,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
 }
 
 /**
- * Handle OAuth callback. Usually it leads to requesting an access token.
+ * Handles an OAuth callback. Usually it leads to requesting an access token.
  */
 @Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
@@ -207,7 +207,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
 }
 
 /**
- * Handle OAuth callback.
+ * Handles an OAuth callback.
  */
 @Deprecated(
     "Specifying an extra configuration function will be deprecated. " +

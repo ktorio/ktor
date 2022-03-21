@@ -8,15 +8,15 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 
 /**
- * A config for [Authentication] plugin
+ * A configuration for the [Authentication] plugin.
  */
 @KtorDsl
 public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider> = emptyMap()) {
     internal val providers = providers.toMutableMap()
 
     /**
-     * Register a provider with the specified [name] and [configure] it
-     * @throws IllegalArgumentException if there is already provider installed with the same name
+     * Registers a provider with the specified [name] and allows you to [configure] it.
+     * @throws IllegalArgumentException if a provider with the same name is already installed.
      */
     public fun provider(name: String? = null, configure: DynamicProviderConfig.() -> Unit) {
         requireProviderNotRegistered(name)
@@ -26,8 +26,8 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
     }
 
     /**
-     * Register the specified [provider]
-     * @throws IllegalArgumentException if there is already provider installed with the same name
+     * Registers the specified [provider].
+     * @throws IllegalArgumentException if a provider with the same name is already installed.
      */
     public fun register(provider: AuthenticationProvider) {
         requireProviderNotRegistered(provider.name)
@@ -44,29 +44,43 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
 }
 
 /**
- * A plugin that keeps all installed authentication providers.
- * Used together with [AuthenticationInterceptors] via [authenticate] function
- * to provide authentication functionalities for routes.
+ * A plugin that handles authentication and authorization.
+ * Typical usage scenarios include logging in users, granting access to specific resources,
+ * and securely transmitting information between parties.
  *
- * Basic usage:
- * ```kotlin
- * install(Authentication) {
- *   basic { /* configure your auth here */ }
- * }
- * routing {
- *   route("users/{id}") {
- *      get { ... }
- *      authenticate {
- *         post("settings") { ... }
- *      }
- *   }
- * }
- * ```
+ * Ktor supports multiple authentications and authorization schemes, including the `Basic` and `Digest`
+ * HTTP authentication schemes, JSON Web Tokens, OAuth, and so on.
+ *
+ * A configuration of the `Authentication` plugin might look as follows:
+ * 1. Choose and configure an authentication provider.
+ *    The code snippet below shows how to create the `basic` provider:
+ *    ```kotlin
+ *    install(Authentication) {
+ *        basic("auth-basic") {
+ *            // Configure basic authentication
+ *        }
+ *    }
+ *    ```
+ *
+ * 2. Protect a desired resource using the [io.ktor.server.routing.Route.authenticate] function
+ *    that accepts a name of the authentication provider:
+ *    ```kotlin
+ *    routing {
+ *        authenticate("auth-basic") {
+ *            get("/orders") {
+ *                // ...
+ *            }
+ *        }
+ *    }
+ *    ```
+ *
+ * You can learn how to configure various authentication providers from
+ * [Authentication and authorization](https://ktor.io/docs/authentication.html).
  */
 public class Authentication(internal var config: AuthenticationConfig) {
 
     /**
-     * Configure already installed plugin
+     * Configures an already installed plugin.
      */
     public fun configure(block: AuthenticationConfig.() -> Unit) {
         val newConfiguration = config.copy()
@@ -74,6 +88,9 @@ public class Authentication(internal var config: AuthenticationConfig) {
         config = newConfiguration.copy()
     }
 
+    /**
+     * An installation object of the [Authentication] plugin.
+     */
     public companion object : BaseApplicationPlugin<Application, AuthenticationConfig, Authentication> {
         override val key: AttributeKey<Authentication> = AttributeKey("AuthenticationHolder")
 
@@ -85,20 +102,20 @@ public class Authentication(internal var config: AuthenticationConfig) {
 }
 
 /**
- * Retrieves an [AuthenticationContext] for `this` call
+ * Retrieves an [AuthenticationContext] for `this` call.
  */
 public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
- * Retrieves authenticated [Principal] for `this` call
+ * Retrieves an authenticated [Principal] for `this` call.
  */
 public inline fun <reified P : Principal> ApplicationCall.principal(): P? = authentication.principal()
 
 /**
- * Installs [Authentication] plugin if not yet installed and invokes [block] on its config.
- * One is allowed to modify existing authentication configuration only in [authentication]'s block or
- * via [Authentication.configure] function.
+ * Installs the [Authentication] plugin if not yet installed and invokes [block] on its config.
+ * You can modify the existing authentication configuration only in the [authentication]'s block or
+ * using the [Authentication.configure] function.
  * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
  */
 public fun Application.authentication(block: AuthenticationConfig.() -> Unit) {

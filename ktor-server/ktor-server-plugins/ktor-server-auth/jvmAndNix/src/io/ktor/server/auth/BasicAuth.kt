@@ -13,8 +13,10 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
 /**
- * Represents a Basic authentication provider
- * @property name is the name of the provider, or `null` for a default provider
+ * A `basic` [Authentication] provider.
+ *
+ * @see [basic]
+ * @property name is the name of the provider, or `null` for a default provider.
  */
 public class BasicAuthenticationProvider internal constructor(
     config: Config
@@ -49,7 +51,7 @@ public class BasicAuthenticationProvider internal constructor(
     }
 
     /**
-     * Basic auth configuration
+     * A configuration for the [basic] authentication provider.
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
@@ -59,13 +61,13 @@ public class BasicAuthenticationProvider internal constructor(
         }
 
         /**
-         * Specifies realm to be passed in `WWW-Authenticate` header
+         * Specifies a realm to be passed in the `WWW-Authenticate` header.
          */
         public var realm: String = "Ktor Server"
 
         /**
-         * Specifies the charset to be used. It can be either UTF_8 or null.
-         * Setting `null` turns legacy mode on that actually means that ISO-8859-1 is used.
+         * Specifies the charset to be used. It can be either `UTF_8` or `null`.
+         * Setting `null` turns on a legacy mode (`ISO-8859-1`).
          */
         public var charset: Charset? = Charsets.UTF_8
             set(value) {
@@ -78,8 +80,8 @@ public class BasicAuthenticationProvider internal constructor(
             }
 
         /**
-         * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
-         * or null if credential does not correspond to an authenticated principal
+         * Sets a validation function that checks a specified [UserPasswordCredential] instance and
+         * returns [UserIdPrincipal] in a case of successful authentication or null if authentication fails.
          */
         public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
@@ -88,7 +90,9 @@ public class BasicAuthenticationProvider internal constructor(
 }
 
 /**
- * Installs Basic Authentication mechanism
+ * Installs the basic [Authentication] provider.
+ * You can use basic authentication for logging in users and protecting specific routes.
+ * To learn how to configure it, see [Basic authentication](https://ktor.io/docs/basic.html).
  */
 public fun AuthenticationConfig.basic(
     name: String? = null,
@@ -99,12 +103,12 @@ public fun AuthenticationConfig.basic(
 }
 
 /**
- * Retrieves Basic authentication credentials for this [ApplicationRequest]
+ * Retrieves [basic] authentication credentials for this [ApplicationRequest].
  */
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
-            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case
+            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case-
             // sensitive; thus BASIC, or Basic, or basic are all valid.
             if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) {
                 return null

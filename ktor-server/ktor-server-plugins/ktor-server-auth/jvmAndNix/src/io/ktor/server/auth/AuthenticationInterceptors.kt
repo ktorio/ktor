@@ -38,8 +38,8 @@ internal object ChallengeHook : Hook<suspend (ApplicationCall) -> Unit> {
 
 /**
  * A hook that is executed after authentication was checked.
- * Note that this hook executes also for optional authentication or for routes without any authentication,
- * resulting in [ApplicationCall.principal] being `null`
+ * Note that this hook is also executed for optional authentication or for routes without any authentication,
+ * resulting in [ApplicationCall.principal] being `null`.
  */
 public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
     internal val AfterAuthenticationPhase: PipelinePhase = PipelinePhase("AfterAuthentication")
@@ -58,7 +58,7 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
 private val logger = KtorSimpleLogger("Authentication")
 
 /**
- * A plugin that authenticate calls. Usually used via [authenticate] function inside routing.
+ * A plugin that authenticates calls. Usually used via the [authenticate] function inside routing.
  */
 public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConfig> =
     createRouteScopedPlugin("AuthenticationInterceptors", ::RouteAuthenticationConfig) {
@@ -139,33 +139,14 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
     }
 
 /**
- * Creates an authentication route that does handle authentication by the specified providers referred by
- * [configurations] names. `null` could be used to point to the default provider and could be also mixed with other
- * provider names.
- * Other routes, handlers and interceptors could be nested into this node
+ * Creates a route that allows you to define authorization scope for application resources.
+ * This function accepts names of authentication providers defined in the [Authentication] plugin configuration.
+ * @see [Authentication]
  *
- * The [Authentication] plugin need to be installed first otherwise
- * it will fail with [MissingApplicationPluginException] and all providers requested by [configurations] need
- * to be already registered.
- *
- * It is important to note that when [optional] is set, challenges will be skipped only if no credentials are provided.
- *
- * To summarize:
- *
- * optional=false:
- *   - No credentials: challenge is sent and route is NOT executed
- *   - Bad credentials: Unauthorized
- *   - Good credentials: route handler will be executed
- *
- * optional=true:
- *   - No credentials: route handler will be executed with a null [Principal]
- *   - Bad credentials: Unauthorized
- *   - Good credentials: route handler will be executed
- *
- * @param configurations names that point to already registered authentication providers
- * @param optional when set, if no auth is provided by the client, the call will continue but with a null [Principal]
- * @throws MissingApplicationPluginException if no [Authentication] plugin installed first
- * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
+ * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
+ * @param optional when set, if no authentication is provided by the client, a call continues but with a null [Principal].
+ * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
+ * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(
     vararg configurations: String? = arrayOf(null),
@@ -191,7 +172,7 @@ public fun Route.authenticate(
 }
 
 /**
- * A config for [AuthenticationInterceptors] plugin
+ * A configuration for the [AuthenticationInterceptors] plugin.
  */
 @KtorDsl
 public class RouteAuthenticationConfig {
@@ -201,9 +182,9 @@ public class RouteAuthenticationConfig {
 
 /**
  * An authentication route node that is used by [Authentication] plugin
- * and usually created by [Route.authenticate] DSL function so generally there is no need to instantiate it directly
- * unless you are writing an extension
- * @param names of authentication providers to be applied to this route
+ * and usually created by the [Route.authenticate] DSL function, so generally there is no need to instantiate it directly
+ * unless you are writing an extension.
+ * @param names of authentication providers to be applied to this route.
  */
 public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {

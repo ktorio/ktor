@@ -10,13 +10,13 @@ import kotlinx.atomicfu.*
 public typealias ChallengeFunction = suspend (AuthenticationProcedureChallenge, ApplicationCall) -> Unit
 
 /**
- * Represents authentication challenging procedure requested by authentication mechanism
+ * Represents an authentication challenging procedure requested by authentication mechanism.
  */
 public class AuthenticationProcedureChallenge {
     internal val register = mutableListOf<Pair<AuthenticationFailedCause, ChallengeFunction>>()
 
     /**
-     * List of currently installed challenges except errors
+     * List of currently installed challenges except errors.
      */
     internal val challenges: List<ChallengeFunction>
         get() = register.filter { it.first !is AuthenticationFailedCause.Error }.sortedBy {
@@ -28,7 +28,7 @@ public class AuthenticationProcedureChallenge {
         }.map { it.second }
 
     /**
-     * List of currently installed challenges for errors
+     * List of currently installed challenges for errors.
      */
     internal val errorChallenges: List<ChallengeFunction>
         get() = register.filter { it.first is AuthenticationFailedCause.Error }.map { it.second }
@@ -36,7 +36,7 @@ public class AuthenticationProcedureChallenge {
     private val _completed = atomic(false)
 
     /**
-     * Represents if a challenge was successfully sent to the client and challenging should be stopped
+     * Represents whether a challenge is successfully sent to the client and challenging should be stopped.
      */
     public var completed: Boolean
         get() = _completed.value
@@ -45,7 +45,7 @@ public class AuthenticationProcedureChallenge {
         }
 
     /**
-     * Completes a challenging procedure
+     * Completes a challenging procedure.
      */
     public fun complete() {
         completed = true
