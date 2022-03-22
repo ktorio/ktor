@@ -43,7 +43,7 @@ public class RejectedCallIdException(
 }
 
 /**
- * [CallId] plugin's configuration
+ * A configuration for the [CallId] plugin.
  */
 @KtorDsl
 public class CallIdConfig {
@@ -58,19 +58,19 @@ public class CallIdConfig {
     }
 
     /**
-     * [block] will be used to retrieve call id from a call. It should return `null` if no call id found in request
+     * Allows you to retrieve a call ID from [ApplicationCall].
+     * Returns `null` if no call ID is found in a request.
+     *
+     * @see verify
      */
     public fun retrieve(block: CallIdProvider) {
         retrievers.add(block)
     }
 
     /**
-     * [block] function will be applied when there is no call id retrieved. It should generate a string to be used
-     * as call id or `null` if it is impossible to generate call id for some reason.
-     * Note that it should conform to call id verification otherwise it may be discarded or may lead to
-     * complete call rejection
+     * Allows you to generate a call ID if an incoming request doesn't include it.
+     * Generates `null` if it is impossible to generate a call ID for some reason.
      *
-     * @see CallIdVerifier
      * @see verify
      */
     public fun generate(block: CallIdProvider) {
@@ -78,26 +78,35 @@ public class CallIdConfig {
     }
 
     /**
-     * Verify retrieved or generated call ids using the specified [predicate]. Should return `true` for valid
-     * call ids, `false` to ignore an illegal retrieved or generated call id
-     * or throw an [RejectedCallIdException] to reject an [ApplicationCall].
-     * Only one verify condition could be specified.
-     * It is not recommended to disable verification (allow all call id values) as it could be abused
-     * so that it may become a security risk.
-     * By default there is always the default verifier against [CALL_ID_DEFAULT_DICTIONARY]
-     * so all illegal call ids will be discarded.
+     * Verifies a retrieved or generated call ID.
+     * The code below verifies that a call ID is not an empty string:
+     * ```kotlin
+     * verify { callId: String ->
+     *     callId.isNotEmpty()
+     * }
+     * ```
      *
-     * @see [CallIdVerifier] for details.
+     * Note that by default all retrieved/generated call IDs are verified using a default dictionary, which looks as follows:
+     *
+     * ```kotlin
+     * CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxyz0123456789+/=-"
+     * ```
+     *
+     * @see [CallIdVerifier]
      */
     public fun verify(predicate: CallIdVerifier) {
         verifier = predicate
     }
 
     /**
-     * Verify retrieved or generated call ids against the specified [dictionary].
-     * Rejects an [ApplicationCall] if [reject] is `true`
-     * otherwise an illegal call id will be simply ignored.
-     * Only one verify condition or dictionary could be specified
+     * Verifies a retrieved or generated call ID against the specified [dictionary].
+     * Rejects an [ApplicationCall] if [reject] is `true`; otherwise, an illegal call ID is ignored.
+     *
+     * Note that by default all retrieved/generated call IDs are verified using a default dictionary, which looks as follows:
+     *
+     * ```kotlin
+     * CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxyz0123456789+/=-"
+     * ```
      */
     public fun verify(dictionary: String, reject: Boolean = false) {
         val dictionarySet = dictionary.toSet()
@@ -112,15 +121,19 @@ public class CallIdConfig {
     }
 
     /**
-     * Replies with retrieved or generated [CallId]. Usually [replyToHeader] could be used instead.
+     * Allows you to reply with a retrieved or generated call ID by modifying an [ApplicationCall].
+     *
+     * @see [replyToHeader]
      */
     public fun reply(block: (call: ApplicationCall, CallId: String) -> Unit) {
         responseInterceptors.add(block)
     }
 
     /**
-     * Setup retrieve/reply cycle via HTTP request and response headers [headerName].
-     * Identical to [retrieveFromHeader] and [replyToHeader] invocations with the same [headerName]
+     * Allows you to retrieve a call ID and send it in the same header.
+     *
+     * @see [retrieveFromHeader]
+     * @see [replyToHeader]
      */
     public fun header(headerName: String) {
         retrieveFromHeader(headerName)
@@ -128,14 +141,18 @@ public class CallIdConfig {
     }
 
     /**
-     * Fetch call id from a request header named [headerName] that is treated as optional
+     * Retrieves a call ID from a specified request header named [headerName].
+     *
+     * @see [replyToHeader]
      */
     public fun retrieveFromHeader(headerName: String) {
         retrieve { it.request.headers[headerName] }
     }
 
     /**
-     * Replies retrieved or generated CallId using HTTP response header [headerName]
+     * Replies with a call ID using a specified header named [headerName].
+     *
+     * @see [retrieveFromHeader]
      */
     public fun replyToHeader(headerName: String) {
         reply { call, CallId ->
@@ -147,30 +164,17 @@ public class CallIdConfig {
 internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCallId")
 
 /**
- * Retrieves and generates if necessary a call id. A call id (or correlation id) could be retrieved_ from a call
- * via [CallIdConfig.retrieve] function. Multiple retrieve functions could be configured that will be invoked
- * one by one until one of them return non-null value. If no value has been provided by retrievers then a generator
- * could be applied to generate a new call id. Generators could be provided via [CallIdConfig.generate] function.
- * Similar to retrieve, multiple generators could be configured so they will be invoked one by one.
- * Usually call id is passed via [io.ktor.http.HttpHeaders.XRequestId] so
- * one could use [CallIdConfig.retrieveFromHeader] function to retrieve call id from a header.
+ * A plugin that allows you to trace client requests end-to-end by using unique request IDs or call IDs.
+ * Typically, working with a call ID in Ktor might look as follows:
+ * 1. First, you need to obtain a call ID for a specific request in one of the following ways:
+ *    - A reverse proxy (such as Nginx) or cloud provider (such as Heroku) might add a call ID in a specific header,
+ *    for example, `X-Request-Id`. In this case, Ktor allows you to retrieve a call ID.
+ *    - Otherwise, if a request comes without a call ID, you can generate it on the Ktor server.
+ * 2. Next, Ktor verifies a retrieved/generated call ID using a predefined dictionary.
+ * You can also provide your own condition to verify a call ID.
+ * 3. Finally, you can send a call ID to the client in a specific header, for example, `X-Request-Id`.
  *
- * All retrieved or generated call ids are verified against [CALL_ID_DEFAULT_DICTIONARY] by default. Alternatively
- * a custom dictionary or functional predicate could be provided via [CallIdConfig.verify] that could
- * pass a valid call id, discard an illegal call id
- * or reject completely an [ApplicationCall] with [HttpStatusCode.BadRequest] if an [RejectedCallIdException] is thrown.
- * Please note that this rejection functionality is not compatible with [StatusPages] for now and you cannot
- * configure rejection response message.
- *
- * Once a call id is retrieved or generated, it could be accessed via [ApplicationCall.CallId] otherwise it will be
- * always `null`. Also a call id could be replied with response by registering [CallIdConfig.reply] or
- * [CallIdConfig.replyToHeader] so client will be able to know call id in case when it is generated.
- *
- * Please note that call id plugin is only intended for debugging and troubleshooting purposes to correlate
- * client requests with logs in multitier/microservices architecture. So usually it is not guaranteed that call id
- * is strictly random/unique. This is why you should NEVER rely on it's uniqueness.
- *
- * [CallId] plugin will be installed to [BeforeSetup.phase] into [ApplicationCallPipeline].
+ * You can learn more from [CallId](https://ktor.io/docs/call-id.html).
  */
 public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
     "CallId",
@@ -206,8 +210,8 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
 }
 
 /**
- * A call id that is retrieved or generated by [CallId] plugin or `null` (this is possible if there is no
- * call id provided and no generators configured or [CallId] plugin is not installed)
+ * Gets a call ID retrieved or generated by the [CallId] plugin.
+ * Returns `null` if there is no call ID is provided and no generators are configured.
  */
 public val ApplicationCall.callId: String? get() = attributes.getOrNull(CallIdKey)
 
@@ -222,21 +226,23 @@ private fun verifyCallIdAgainstDictionary(callId: String, dictionarySet: Set<Cha
 }
 
 /**
- * The default call id's generator dictionary
+ * The default call ID's generator dictionary.
+ *
+ * @see [CallId]
  */
 public const val CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxyz0123456789+/=-"
 
 /**
- * Generates fixed [length] call ids using the specified [dictionary].
- * Please note that this function generates pseudo-random identifiers via regular [java.util.Random]
+ * Generates a fixed [length] call ID using the specified [dictionary].
+ * Note that this function generates pseudo-random identifiers via regular [java.util.Random]
  * and should not be considered as cryptographically secure.
- * Also note that you should use the same dictionary for [CallIdVerifier] otherwise a generated call id could be
+ * Also note that you need to use the same dictionary for [CallIdVerifier], otherwise a generated call ID could be
  * discarded or may lead to complete call rejection.
  *
  * @see [CallIdConfig.verify]
  *
- * @param length of call ids to be generated, should be positive
- * @param dictionary to be used to generate ids, shouldn't be empty and it shouldn't contain duplicates
+ * @param length of call IDs to be generated, should be positive
+ * @param dictionary to be used to generate IDs, shouldn't be empty and shouldn't contain duplicates
  */
 public fun CallIdConfig.generate(length: Int = 64, dictionary: String = CALL_ID_DEFAULT_DICTIONARY) {
     require(length >= 1) { "Call id should be at least one characters length: $length" }
