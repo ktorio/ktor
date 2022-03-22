@@ -113,23 +113,6 @@ public class WebSocketReader(
         }
     }
 
-    /**
-     * Raised when the frame is bigger than allowed in a current websocket session
-     * @param frameSize size of received or posted frame that is too big
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    public class FrameTooBigException(
-        public val frameSize: Long
-    ) : Exception(), CopyableThrowable<FrameTooBigException> {
-
-        override val message: String
-            get() = "Frame is too big: $frameSize"
-
-        override fun createCopy(): FrameTooBigException = FrameTooBigException(frameSize).also {
-            it.initCause(this)
-        }
-    }
-
     private enum class State {
         HEADER,
         BODY,

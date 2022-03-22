@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -7,12 +7,53 @@ package io.ktor.websocket
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.nio.*
 import kotlin.coroutines.*
+
+/**
+ * Default websocket session with ping-pong and timeout processing and built-in [closeReason] population
+ */
+public interface DefaultWebSocketSession : WebSocketSession {
+
+    /**
+     * Ping interval or `-1L` to disable pinger. Please note that pongs will be handled despite this setting.
+     */
+    public var pingIntervalMillis: Long
+
+    /**
+     * A timeout to wait for pong reply to ping otherwise the session will be terminated immediately.
+     * It doesn't have any effect if [pingIntervalMillis] is `-1` (pinger is disabled).
+     */
+    public var timeoutMillis: Long
+
+    /**
+     * A close reason for this session. It could be `null` if a session is terminated with no close reason
+     * (for example due to connection failure).
+     */
+    public val closeReason: Deferred<CloseReason?>
+
+    /**
+     * Start WebSocket conversation.
+     *
+     * @param negotiatedExtensions specify negotiated extensions list to use in current session.
+     */
+    @InternalAPI
+    public fun start(negotiatedExtensions: List<WebSocketExtension<*>> = emptyList())
+}
+
+/**
+ * Create [DefaultWebSocketSession] from session.
+ */
+public fun DefaultWebSocketSession(
+    session: WebSocketSession,
+    pingInterval: Long = -1L,
+    timeoutMillis: Long = 15000L
+): DefaultWebSocketSession {
+    require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
+    return DefaultWebSocketSessionImpl(session, pingInterval, timeoutMillis)
+}
 
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
 private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
@@ -22,11 +63,10 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 /**
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
  */
-public class DefaultWebSocketSessionImpl(
+internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
-    pingInterval: Long = -1L,
-    override var timeoutMillis: Long = 15000L,
-    private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    pingInterval: Long,
+    timeoutMillis: Long,
 ) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
@@ -45,8 +85,7 @@ public class DefaultWebSocketSessionImpl(
     override val extensions: List<WebSocketExtension<*>>
         get() = _extensions
 
-    override val coroutineContext: CoroutineContext =
-        raw.coroutineContext + context + CoroutineName("ws-default")
+    override val coroutineContext: CoroutineContext = raw.coroutineContext + context + CoroutineName("ws-default")
 
     override var masking: Boolean
         get() = raw.masking
@@ -59,6 +98,19 @@ public class DefaultWebSocketSessionImpl(
         set(value) {
             raw.maxFrameSize = value
         }
+
+    override var pingIntervalMillis: Long = pingInterval
+        set(newValue) {
+            field = newValue
+            runOrCancelPinger()
+        }
+
+    override var timeoutMillis: Long = timeoutMillis
+        set(newValue) {
+            field = newValue
+            runOrCancelPinger()
+        }
+
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
     @OptIn(InternalAPI::class)
@@ -69,15 +121,9 @@ public class DefaultWebSocketSessionImpl(
 
         _extensions.addAll(negotiatedExtensions)
         runOrCancelPinger()
-        runIncomingProcessor(ponger(outgoing, pool))
+        runIncomingProcessor(ponger(outgoing))
         runOutgoingProcessor()
     }
-
-    override var pingIntervalMillis: Long = pingInterval
-        set(newValue) {
-            field = newValue
-            runOrCancelPinger()
-        }
 
     /**
      * Close session with GOING_AWAY reason
@@ -127,12 +173,12 @@ public class DefaultWebSocketSessionImpl(
                                 last = BytePacketBuilder()
                             }
 
-                            last!!.writeFully(frame.buffer)
+                            last!!.writeFully(frame.data)
                             return@consumeEach
                         }
 
                         val frameToSend = last?.let { builder ->
-                            builder.writeFully(frame.buffer)
+                            builder.writeFully(frame.data)
                             Frame.byType(
                                 fin = true,
                                 frame.frameType,
@@ -224,7 +270,7 @@ public class DefaultWebSocketSessionImpl(
 
         val newPinger: SendChannel<Frame.Pong>? = when {
             closed.value -> null
-            interval >= 0L -> pinger(raw.outgoing, interval, timeoutMillis, pool)
+            interval > 0L -> pinger(raw.outgoing, interval, timeoutMillis)
             else -> null
         }
 
@@ -245,11 +291,11 @@ public class DefaultWebSocketSessionImpl(
         packet: BytePacketBuilder?,
         frame: Frame
     ) {
-        val size = frame.buffer.remaining() + (packet?.size ?: 0)
+        val size = frame.data.size + (packet?.size ?: 0)
         if (size > maxFrameSize) {
             packet?.release()
             close(CloseReason(CloseReason.Codes.TOO_BIG, "Frame is too big: $size. Max size is $maxFrameSize"))
-            throw WebSocketReader.FrameTooBigException(size.toLong())
+            throw FrameTooBigException(size.toLong())
         }
     }
 
@@ -259,19 +305,7 @@ public class DefaultWebSocketSessionImpl(
     private fun processOutgoingExtensions(frame: Frame): Frame =
         extensions.fold(frame) { current, extension -> extension.processOutgoingFrame(current) }
 
-    public companion object {
+    companion object {
         private val EmptyPong = Frame.Pong(ByteArray(0), NonDisposableHandle)
-    }
-}
-
-@InternalAPI
-@Suppress("KDocMissingDocumentation")
-public suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
-    try {
-        val me: DefaultWebSocketSession = this@run
-        me.handler()
-        close()
-    } catch (failure: Throwable) {
-        closeExceptionally(failure)
     }
 }

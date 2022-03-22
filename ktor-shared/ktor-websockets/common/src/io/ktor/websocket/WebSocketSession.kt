@@ -11,7 +11,14 @@ import kotlinx.coroutines.channels.*
 /**
  * Represents a web socket session between two peers
  */
-public expect interface WebSocketSession : CoroutineScope {
+public interface WebSocketSession : CoroutineScope {
+    /**
+     * Enable or disable masking output messages by a random xor mask.
+     * Please note that changing this flag on the fly could be applied to the messages already sent (enqueued earlier)
+     * as the sending pipeline works asynchronously
+     */
+    public var masking: Boolean
+
     /**
      * Specifies frame size limit. Connection will be closed if violated
      */
@@ -39,7 +46,9 @@ public expect interface WebSocketSession : CoroutineScope {
      * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
      * raw websocket session.
      */
-    public suspend fun send(frame: Frame)
+    public suspend fun send(frame: Frame) {
+        outgoing.send(frame)
+    }
 
     /**
      * Flush all outstanding messages and suspend until all earlier sent messages will be written. Could be called

@@ -6,7 +6,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
 import platform.iconv.*
 import platform.posix.*
-import kotlin.native.concurrent.*
 
 public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
@@ -15,7 +14,7 @@ public actual abstract class Charset(internal val _name: String) {
     public actual companion object {
         public actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            if (name == "ISO-8859-1" || name == "iso-8859-1") return Charsets.ISO_8859_1
+            if (name == "ISO-8859-1" || name == "iso-8859-1" || name == "ISO_8859_1") return Charsets.ISO_8859_1
             if (name == "UTF-16" || name == "utf-16" || name == "UTF16" || name == "utf16") return Charsets.UTF_16
 
             return CharsetImpl(name)

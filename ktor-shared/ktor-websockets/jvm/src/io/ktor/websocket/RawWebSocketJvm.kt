@@ -4,7 +4,6 @@
 
 package io.ktor.websocket
 
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
@@ -16,9 +15,24 @@ import kotlin.coroutines.*
 import kotlin.properties.*
 
 /**
- * Represents a RAW web socket session
+ * Creates a RAW web socket session from connection
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
  */
-public class RawWebSocket(
+@Suppress("FunctionName")
+public actual fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long,
+    masking: Boolean,
+    coroutineContext: CoroutineContext
+): WebSocketSession = RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext)
+
+internal class RawWebSocketJvm(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
@@ -53,7 +67,7 @@ public class RawWebSocket(
                 for (frame in reader.incoming) {
                     filtered.send(frame)
                 }
-            } catch (cause: WebSocketReader.FrameTooBigException) {
+            } catch (cause: FrameTooBigException) {
                 outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
                 filtered.close(cause)
             } catch (cause: CancellationException) {
@@ -78,15 +92,5 @@ public class RawWebSocket(
     override fun terminate() {
         outgoing.close()
         socketJob.complete()
-    }
-}
-
-@InternalAPI
-public suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
-    try {
-        handler()
-        writer.flush()
-    } finally {
-        cancel()
     }
 }

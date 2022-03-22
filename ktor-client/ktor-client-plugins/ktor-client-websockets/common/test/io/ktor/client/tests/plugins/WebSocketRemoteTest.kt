@@ -15,7 +15,7 @@ import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {
     private val echoWebsocket = "$TEST_WEBSOCKET_SERVER/websockets/echo"
-    private val skipEngines = listOf("Android", "Apache", "Curl", "native:CIO")
+    private val skipEngines = listOf("Android", "Apache", "Curl")
 
     @Test
     fun testRemotePingPong() = clientTests(skipEngines) {

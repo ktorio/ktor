@@ -47,3 +47,10 @@ dependencies {
     implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
     implementation("org.jmailen.gradle:kotlinter-gradle:${version("ktlint")}")
 }
+
+kotlin {
+    jvmToolchain {
+        check(this is JavaToolchainSpec)
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}

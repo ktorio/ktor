@@ -5,34 +5,33 @@
 package io.ktor.tests.websocket
 
 import io.ktor.http.*
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import org.junit.*
-import org.junit.rules.*
-import java.io.*
-import java.net.*
-import java.nio.*
-import java.time.*
-import java.util.*
-import java.util.concurrent.*
-import java.util.concurrent.CancellationException
+import kotlin.random.*
 import kotlin.test.*
-import kotlin.test.Ignore
-import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(InternalAPI::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
-    @get:Rule
-    val errors = ErrorCollector()
+    private val errors = mutableListOf<Throwable>()
+    override val timeout = 30.seconds
 
     override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(WebSockets)
@@ -40,7 +39,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketDisconnectDuringConsuming() {
+    fun testWebSocketDisconnectDuringConsuming() = runTest {
         val closeReasonJob = Job()
         val contextJob = Job()
 
@@ -63,9 +62,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         val result = async {
-            socket {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
+                input.cancel()
                 delay(100)
             }
         }
@@ -83,7 +82,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketDisconnectDuringSending() = runBlocking {
+    fun testWebSocketDisconnectDuringSending() = runTest {
         val closeReasonJob = Job()
         val contextJob = Job()
 
@@ -108,11 +107,11 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        val result = async {
-            socket {
+        val result = async(Dispatchers.Unconfined) {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
-                delay(100)
+                input.cancel()
+                delay(150)
             }
         }
 
@@ -129,7 +128,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketDisconnectDuringDowntime() {
+    fun testWebSocketDisconnectDuringDowntime() = runTest {
         val closeReasonJob = Job()
         val contextJob = Job()
 
@@ -152,9 +151,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         val result = async {
-            socket {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
+                input.cancel()
                 delay(100)
             }
         }
@@ -172,7 +171,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testRawWebSocketDisconnectDuringConsuming() {
+    fun testRawWebSocketDisconnectDuringConsuming() = runTest {
         val contextJob = Job()
 
         createAndStartServer {
@@ -186,10 +185,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         val result = async {
-            socket {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
-                delay(100)
+                input.cancel()
+                delay(1000)
             }
         }
 
@@ -204,8 +203,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Ignore // fails process on native
     @Test
-    fun testRawWebSocketDisconnectDuringSending() = runBlocking {
+    fun testRawWebSocketDisconnectDuringSending() = runTest {
         val contextJob = Job()
 
         createAndStartServer {
@@ -222,9 +222,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         val result = async {
-            socket {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
+                input.cancel()
                 delay(100)
             }
         }
@@ -240,9 +240,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    @Ignore("For now we assume that without any network interactions the socket will remain open.")
+    @Ignore // For now we assume that without any network interactions the socket will remain open.
     @Test
-    fun testRawWebSocketDisconnectDuringDowntime() {
+    fun testRawWebSocketDisconnectDuringDowntime() = runTest {
         val contextJob = Job()
 
         createAndStartServer {
@@ -256,9 +256,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         val result = async {
-            socket {
+            useSocket {
                 negotiateHttpWebSocket()
-                shutdownInput()
+                input.cancel()
                 delay(10000)
             }
         }
@@ -275,28 +275,28 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketGenericSequence() {
-        val collected = LinkedBlockingQueue<String>()
+    fun testWebSocketGenericSequence() = runTest {
+        val collected = Channel<String>(Channel.UNLIMITED)
 
         createAndStartServer {
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->
                         if (frame is Frame.Text) {
-                            collected.add(frame.readText())
+                            collected.send(frame.readText())
                         }
                     }
                 } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
-                    errors.addError(t)
+                    errors.add(t)
                 }
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            outputStream.apply {
+            output.apply {
                 // text message with content "Hello"
                 writeHex("0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f")
                 flush()
@@ -308,50 +308,41 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
             assertCloseFrame()
         }
-
-        assertEquals("Hello", collected.take())
+        assertEquals("Hello", collected.receive())
     }
 
     @Test
-    fun testWebSocketPingPong() {
+    fun testWebSocketPingPong() = runTest {
         createAndStartServer {
             webSocket("/") {
-                timeout = Duration.ofSeconds(120)
-                pingInterval = Duration.ofMillis(50)
+                timeoutMillis = 120.seconds.inWholeMilliseconds
+                pingIntervalMillis = 50.milliseconds.inWholeMilliseconds
 
                 try {
                     incoming.consumeEach {
                     }
                 } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
-                    errors.addError(t)
+                    errors.add(t)
                 }
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
             for (i in 1..5) {
-                val frame = inputStream.readFrame()
+                val frame = input.readFrame(Long.MAX_VALUE, 0)
 
                 assertEquals(FrameType.PING, frame.frameType)
                 assertEquals(true, frame.fin)
-                assertTrue { frame.buffer.hasRemaining() }
+                assertTrue(frame.data.isNotEmpty())
 
-                Serializer().apply {
-                    enqueue(Frame.Pong(frame.buffer.copy()))
-                    val buffer = ByteArray(1024)
-                    val bb = ByteBuffer.wrap(buffer)
-                    serialize(bb)
-                    bb.flip()
-
-                    getOutputStream().write(buffer, 0, bb.remaining())
-                    getOutputStream().flush()
-                }
+                output.writeFrame(Frame.Pong(frame.data), false)
+                output.flush()
             }
 
-            outputStream.apply {
+            output.apply {
                 // close frame with code 1000
                 writeHex("0x88 0x02 0x03 0xe8")
                 flush()
@@ -362,37 +353,37 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testReceiveMessages() {
+    fun testReceiveMessages() = runTest {
         val count = 125
         val template = (1..count).joinToString("") { (it and 0x0f).toString(16) }
         val bytes = template.toByteArray()
 
-        val collected = LinkedBlockingQueue<String>()
+        val collected = Channel<String>(Channel.UNLIMITED)
 
         createAndStartServer {
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->
                         if (frame is Frame.Text) {
-                            collected.add(frame.readText())
+                            collected.send(frame.readText())
                         }
                     }
                 } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
-                    errors.addError(t)
-                    collected.put(t.toString())
+                    errors.add(t)
+                    collected.send(t.toString())
                 }
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            outputStream.apply {
+            output.apply {
                 for (i in 1..count) {
                     writeHex("0x81")
-                    write(i)
-                    write(bytes, 0, i)
+                    writeByte(i.toByte())
+                    writeFully(bytes, 0, i)
                     flush()
                 }
 
@@ -406,14 +397,14 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
         for (i in 1..count) {
             val expected = template.substring(0, i)
-            assertEquals(expected, collected.take())
+            assertEquals(expected, collected.receive())
         }
 
-        assertNull(collected.poll())
+        assertNull(collected.tryReceive().getOrNull())
     }
 
     @Test
-    fun testProduceMessages() {
+    fun testProduceMessages() = runTest {
         val count = 125
         val template = (1..count).joinToString("") { (it and 0x0f).toString(16) }
 
@@ -422,21 +413,22 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 for (i in 1..count) {
                     send(Frame.Text(template.substring(0, i)))
                 }
+                println("FIN")
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            getInputStream().apply {
+            input.apply {
                 for (i in 1..count) {
-                    val f = readFrame()
+                    val f = readFrame(Long.MAX_VALUE, 0)
                     assertEquals(FrameType.TEXT, f.frameType)
-                    assertEquals(template.substring(0, i), f.buffer.decodeString(Charsets.ISO_8859_1))
+                    assertEquals(template.substring(0, i), ByteReadPacket(f.data).readText(Charsets.ISO_8859_1))
                 }
             }
 
-            outputStream.apply {
+            output.apply {
                 // close frame with code 1000
                 writeHex("0x88 0x02 0x03 0xe8")
                 flush()
@@ -447,18 +439,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testBigFrame() {
+    fun testBigFrame() = runTest {
         val content = ByteArray(20 * 1024 * 1024)
-        Random().nextBytes(content)
-
-        val sendBuffer = ByteBuffer.allocate(content.size + 100)
-
-        Serializer().apply {
-            enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
-            serialize(sendBuffer)
-
-            sendBuffer.flip()
-        }
+        Random.nextBytes(content)
 
         createAndStartServer {
             webSocket("/") {
@@ -471,35 +454,24 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            getOutputStream().apply {
-                write(sendBuffer.array(), 0, sendBuffer.remaining())
+            output.apply {
+                writeFrame(Frame.Binary(true, content), false)
                 flush()
             }
 
-            getInputStream().apply {
-                val frame = readFrame()
+            input.apply {
+                val frame = readFrame(Long.MAX_VALUE, 0)
 
                 assertEquals(FrameType.BINARY, frame.frameType)
-                assertEquals(content.size, frame.buffer.remaining())
-
-                val bytes = ByteArray(content.size)
-                frame.buffer.get(bytes)
-
-                assertTrue { bytes.contentEquals(content) }
+                assertEquals(content.size, frame.data.size)
+                assertContentEquals(content, frame.data)
             }
 
-            getOutputStream().apply {
-                Serializer().apply {
-                    enqueue(Frame.Close())
-                    sendBuffer.clear()
-                    serialize(sendBuffer)
-                    sendBuffer.flip()
-                }
-
-                write(sendBuffer.array(), 0, sendBuffer.remaining())
+            output.apply {
+                writeFrame(Frame.Close(), false)
                 flush()
             }
 
@@ -508,7 +480,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testALotOfFrames() {
+    fun testALotOfFrames() = runTest {
         val expectedCount = 100000L
 
         createAndStartServer {
@@ -527,38 +499,19 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
                 } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
-                    errors.addError(t)
+                    errors.add(t)
                 }
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            val sendBuffer = ByteBuffer.allocate(64)
-            outputStream.apply {
+            output.apply {
                 for (i in 1L..expectedCount) {
-                    sendBuffer.clear()
-
-                    Serializer().apply {
-                        enqueue(Frame.Text(true, ByteBuffer.wrap(i.toString().toByteArray())))
-                        serialize(sendBuffer)
-
-                        sendBuffer.flip()
-                    }
-
-                    write(sendBuffer.array(), 0, sendBuffer.remaining())
+                    writeFrame(Frame.Text(true, i.toString().toByteArray()), false)
                 }
-
-                sendBuffer.clear()
-                Serializer().apply {
-                    enqueue(Frame.Close())
-                    sendBuffer.clear()
-                    serialize(sendBuffer)
-                    sendBuffer.flip()
-                }
-
-                write(sendBuffer.array(), 0, sendBuffer.remaining())
+                writeFrame(Frame.Close(), false)
                 flush()
             }
 
@@ -567,38 +520,29 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testServerClosingFirst() {
+    fun testServerClosingFirst() = runTest {
         createAndStartServer {
             webSocket("/") {
                 close(CloseReason(CloseReason.Codes.TRY_AGAIN_LATER, "test"))
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
             // it should be close frame immediately
             assertCloseFrame(CloseReason.Codes.TRY_AGAIN_LATER.code, replyCloseFrame = false)
 
             // we should be able to write close frame back
-            val sendBuffer = ByteBuffer.allocate(64)
-            outputStream.apply {
-                sendBuffer.clear()
-                Serializer().apply {
-                    enqueue(Frame.Close())
-                    sendBuffer.clear()
-                    serialize(sendBuffer)
-                    sendBuffer.flip()
-                }
-
-                write(sendBuffer.array(), 0, sendBuffer.remaining())
+            output.apply {
+                writeFrame(Frame.Close(), false)
                 flush()
             }
         }
     }
 
     @Test
-    open fun testClientClosingFirst() {
+    open fun testClientClosingFirst() = runTest {
         val deferred = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -620,31 +564,26 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        socket {
+        useSocket {
             negotiateHttpWebSocket()
 
-            val serializer = Serializer()
-            val buffer = ByteBuffer.allocate(8192)
-            serializer.enqueue(Frame.Close(CloseReason(CloseReason.Codes.GOING_AWAY, "Completed.")))
-            serializer.serialize(buffer)
+            output.apply {
+                writeFrame(Frame.Close(CloseReason(CloseReason.Codes.GOING_AWAY, "Completed.")), false)
+                flush()
+            }
 
-            getOutputStream().write(buffer.array(), buffer.arrayOffset(), buffer.position())
-            getOutputStream().flush()
-
-            val reply = getInputStream().readFrame() as Frame.Close
+            val reply = input.readFrame(Long.MAX_VALUE, 0) as Frame.Close
             val reason = reply.readReason()
             assertNotNull(reason)
 
-            runBlocking {
-                deferred.await()
-            }
+            deferred.await()
         }
     }
 
-    private fun Socket.negotiateHttpWebSocket() {
+    private suspend fun Connection.negotiateHttpWebSocket() {
         // send upgrade request
-        outputStream.apply {
-            write(
+        output.apply {
+            writeFully(
                 """
                     GET / HTTP/1.1
                     Host: localhost:$port
@@ -657,71 +596,42 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 """.trimIndent().replace(
                     "\n",
                     "\r\n"
-                ).toByteArray()
+                ).encodeToByteArray()
             )
-            write("\r\n\r\n".toByteArray())
+            writeFully("\r\n\r\n".encodeToByteArray())
             flush()
         }
 
-        val status = inputStream.parseStatus()
+        val status = input.parseStatus()
         assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-        val headers = inputStream.parseHeaders()
+        val headers = input.parseHeaders()
         assertEquals("Upgrade", headers[HttpHeaders.Connection])
         assertEquals("websocket", headers[HttpHeaders.Upgrade])
     }
 
-    private fun Socket.assertCloseFrame(
+    private suspend fun Connection.assertCloseFrame(
         closeCode: Short = CloseReason.Codes.NORMAL.code,
         replyCloseFrame: Boolean = true
     ) {
         loop@
-        while (true) {
-            val frame = getInputStream().readFrame()
-
-            when (frame) {
-                is Frame.Ping -> continue@loop
-                is Frame.Close -> {
-                    assertEquals(closeCode, frame.readReason()?.code)
-                    if (replyCloseFrame) close()
-                    break@loop
-                }
-                else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.moveToByteArray())}")
+        while (true) when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
+            is Frame.Ping -> continue@loop
+            is Frame.Close -> {
+                assertEquals(closeCode, frame.readReason()?.code)
+                if (replyCloseFrame) socket.close()
+                break@loop
             }
+            else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
         }
     }
 
-    private fun OutputStream.writeHex(hex: String) = write(fromHexDump(hex))
+    private suspend fun ByteWriteChannel.writeHex(hex: String) = writeFully(fromHexDump(hex))
 
     private fun fromHexDump(hex: String) = hex(hex.replace("0x", "").replace("\\s+".toRegex(), ""))
 
-    private fun InputStream.readFrame(): Frame {
-        val opcodeAndFin = readOrFail()
-        val lenAndMask = readOrFail()
-
-        val frameType = FrameType[opcodeAndFin and 0x0f]
-            ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
-
-        val fin = (opcodeAndFin and 0x80) != 0
-        val len1 = lenAndMask and 0x7f
-        val mask = (lenAndMask and 0x80) != 0
-
-        assertFalse { mask } // we are not going to use masking in these tests
-
-        val length = when (len1) {
-            126 -> readShortBE().toLong()
-            127 -> readLongBE()
-            else -> len1.toLong()
-        }
-
-        assertTrue { len1 < 100000 } // in tests we are not going to use bigger frames
-        // so if we fail here it is likely we have encoded frame wrong or stream is broken
-
-        val bytes = readFully(length.toInt())
-        return Frame.byType(fin, frameType, ByteBuffer.wrap(bytes))
-    }
-
-    private fun InputStream.parseStatus(): HttpStatusCode {
+    //
+    private suspend fun ByteReadChannel.parseStatus(): HttpStatusCode {
         val line = readLineISOCrLf()
 
         assertTrue(line.startsWith("HTTP/1.1"), "status line should start with HTTP version, actual content: $line")
@@ -733,7 +643,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         return HttpStatusCode(statusCodeString.toInt(), message)
     }
 
-    private fun InputStream.parseHeaders(): Headers {
+    private suspend fun ByteReadChannel.parseHeaders(): Headers {
         val builder = HeadersBuilder()
 
         while (true) {
@@ -747,50 +657,31 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    private fun InputStream.readLineISOCrLf(): String {
+    private suspend fun ByteReadChannel.readLineISOCrLf(): String {
         val sb = StringBuilder(256)
 
-        while (true) {
-            val rc = read()
-            if (rc == -1 || rc == 0x0a) {
-                return sb.toString()
-            } else if (rc == 0x0d) {
-            } else {
-                sb.append(rc.toChar())
-            }
+        while (true) when (val rc = readByte().toInt()) {
+            -1, 0x0a -> return sb.toString()
+            0x0d -> {}
+            else -> sb.append(rc.toChar())
         }
     }
 
-    private fun InputStream.readOrFail(): Int {
-        val rc = read()
-        if (rc == -1) {
-            throw EOFException()
-        }
-        return rc
-    }
-
-    private fun InputStream.readShortBE() = (readOrFail() shl 8) or readOrFail()
-    private fun InputStream.readLongBE() = (readOrFail().toLong() shl 56) or
-        (readOrFail().toLong() shl 48) or
-        (readOrFail().toLong() shl 40) or
-        (readOrFail().toLong() shl 32) or
-        (readOrFail().toLong() shl 24) or
-        (readOrFail().toLong() shl 16) or
-        (readOrFail().toLong() shl 8) or
-        readOrFail().toLong()
-
-    private fun InputStream.readFully(size: Int): ByteArray {
-        val array = ByteArray(size)
-        var wasRead = 0
-
-        while (wasRead < size) {
-            val rc = read(array, wasRead, size - wasRead)
-            if (rc == -1) {
-                throw IOException("Unexpected EOF")
+    private suspend inline fun useSocket(block: Connection.() -> Unit) {
+        SelectorManager().use {
+            aSocket(it).tcp().connect("localhost", port) {
+                noDelay = true
+                socketTimeout = 4.minutes.inWholeMilliseconds
+            }.use {
+                val connection = it.connection()
+                try {
+                    block(connection)
+                    // for native, output should be closed explicitly
+                    connection.output.close()
+                } catch (cause: Throwable) {
+                    throw cause
+                }
             }
-            wasRead += rc
         }
-
-        return array
     }
 }

@@ -21,18 +21,20 @@ import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 private val TEST_SELECTOR_MANAGER = SelectorManager()
 
-actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> actual constructor( // ktlint-disable max-line-length
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : CoroutineScope {
+actual abstract class EngineTestBase<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >
+actual constructor(
+    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+) : BaseTest(), CoroutineScope {
     private val testJob = Job()
-    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Main
-
-    @Suppress("DEPRECATION")
-    protected val exceptions = mutableListOf<Throwable>()
+    actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Default
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -83,7 +85,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
             val delegate = KtorSimpleLogger("ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(message: String, cause: Throwable) {
-                    exceptions.add(cause)
+                    collectUnhandledException(cause)
                     println("Critical test exception: $cause")
                     cause.printStackTrace()
                     println("From origin:")
@@ -122,7 +124,7 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         }
     }
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(Routing, routingConfigurer)
     }
 
@@ -139,22 +141,20 @@ actual abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ): Unit = runBlocking {
-        withTimeout(30.seconds.inWholeMilliseconds) {
-            HttpClient(CIO) {
-                followRedirects = false
-                expectSuccess = false
+    ): Unit = runTest {
+        HttpClient(CIO) {
+            followRedirects = false
+            expectSuccess = false
 
-                install(HttpTimeout) {
-                    requestTimeoutMillis = 30.seconds.inWholeMilliseconds
-                }
-            }.use { client ->
-                client.prepareRequest {
-                    url.takeFrom(urlString)
-                    builder()
-                }.execute { response ->
-                    block(response, port)
-                }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30.seconds.inWholeMilliseconds
+            }
+        }.use { client ->
+            client.prepareRequest {
+                url.takeFrom(urlString)
+                builder()
+            }.execute { response ->
+                block(response, port)
             }
         }
     }

@@ -5,13 +5,11 @@
 package io.ktor.websocket
 
 import io.ktor.util.*
-import io.ktor.util.cio.*
-import io.ktor.utils.io.pool.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.nio.*
-import java.nio.charset.*
-import java.util.concurrent.CancellationException
 import kotlin.random.*
 
 private val PongerCoroutineName = CoroutineName("ws-ponger")
@@ -22,54 +20,38 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
  * It is acting for every client's ping frame and replying with corresponding pong
  */
-@OptIn(
-    ExperimentalCoroutinesApi::class,
-    ObsoleteCoroutinesApi::class
-)
-public fun CoroutineScope.ponger(
+internal fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
-    try {
-        consumeEach { frame ->
-            val buffer = frame.buffer.copy(pool)
-            outgoing.send(
-                Frame.Pong(
-                    buffer,
-                    object : DisposableHandle {
-                        override fun dispose() {
-                            pool.recycle(buffer)
-                        }
-                    }
-                )
-            )
+): SendChannel<Frame.Ping> {
+    val channel = Channel<Frame.Ping>(5)
+
+    launch(PongerCoroutineName) {
+        try {
+            channel.consumeEach {
+                outgoing.send(Frame.Pong(it.data))
+            }
+        } catch (_: ClosedSendChannelException) {
         }
-    } catch (_: ClosedSendChannelException) {
     }
+
+    return channel
 }
 
 /**
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
-public fun CoroutineScope.pinger(
+internal fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
     timeoutMillis: Long,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Pong> {
     val actorJob = Job()
 
-    @OptIn(ObsoleteCoroutinesApi::class)
-    val result = actor<Frame.Pong>(
-        actorJob + PingerCoroutineName,
-        capacity = Channel.UNLIMITED,
-        start = CoroutineStart.LAZY
-    ) {
-        // note that this coroutine need to be lazy
-        val buffer = pool.borrow()
-        val encoder = Charsets.ISO_8859_1.newEncoder()
-        val random = Random(System.currentTimeMillis())
+    val channel = Channel<Frame.Pong>(Channel.UNLIMITED)
+
+    launch(actorJob + PingerCoroutineName) {
+        val random = Random(getTimeMillis())
         val pingIdBytes = ByteArray(32)
 
         try {
@@ -78,7 +60,7 @@ public fun CoroutineScope.pinger(
                 // here we expect a timeout, so ignore it
                 withTimeoutOrNull(periodMillis) {
                     while (true) {
-                        receive() // timeout causes loop to break on receive
+                        channel.receive() // timeout causes loop to break on receive
                     }
                 }
 
@@ -86,12 +68,12 @@ public fun CoroutineScope.pinger(
                 val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
 
                 val rc = withTimeoutOrNull(timeoutMillis) {
-                    outgoing.sendPing(buffer, encoder, pingMessage)
+                    outgoing.send(Frame.Ping(pingMessage.toByteArray(Charsets.ISO_8859_1)))
 
                     // wait for valid pong message
                     while (true) {
-                        val msg = receive()
-                        if (msg.buffer.decodeString(Charsets.ISO_8859_1) == pingMessage) break
+                        val msg = channel.receive()
+                        if (String(msg.data, charset = Charsets.ISO_8859_1) == pingMessage) break
                     }
                 }
 
@@ -108,8 +90,6 @@ public fun CoroutineScope.pinger(
         } catch (ignore: CancellationException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: ClosedSendChannelException) {
-        } finally {
-            pool.recycle(buffer)
         }
     }
 
@@ -117,25 +97,5 @@ public fun CoroutineScope.pinger(
         actorJob.cancel()
     }
 
-    return result
-}
-
-private suspend fun SendChannel<Frame.Ping>.sendPing(
-    buffer: ByteBuffer,
-    encoder: CharsetEncoder,
-    content: String
-) = with(buffer) {
-    clear()
-    encoder.reset()
-    encoder.encodeOrFail(this, content)
-    flip()
-
-    send(Frame.Ping(this))
-}
-
-private fun CharsetEncoder.encodeOrFail(buffer: ByteBuffer, content: String) {
-    encode(CharBuffer.wrap(content), buffer, true).apply {
-        if (isError) throwException()
-        else if (isOverflow) throwException()
-    }
+    return channel
 }

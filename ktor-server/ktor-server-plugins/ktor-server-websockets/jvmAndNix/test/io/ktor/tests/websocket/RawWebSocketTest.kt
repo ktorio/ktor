@@ -4,40 +4,31 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.server.testing.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.Rule
-import org.junit.rules.*
-import java.io.*
 import kotlin.reflect.*
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class RawWebSocketTest {
-    @get:Rule
-    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
-
-    @get:Rule
-    val test: TestName = TestName()
-
-    @get:Rule
-    val errors = ErrorCollector()
-
+class RawWebSocketTest : BaseTest() {
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
     private lateinit var server2client: ByteChannel
 
-    private lateinit var server: RawWebSocket
+    private lateinit var server: WebSocketSession
 
-    private lateinit var client: RawWebSocket
+    private lateinit var client: WebSocketSession
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
         if (cause !is CancellationException && cause !is PlannedIOException) {
-            errors.addError(cause)
+            collectUnhandledException(cause)
         }
     }
 
@@ -63,16 +54,16 @@ class RawWebSocketTest {
     @Test
     fun smokeTest(): Unit = runTest {
         val text = "smoke"
-        client.send(Frame.Ping(text.toByteArray()))
+        client.send(Frame.Ping(text.encodeToByteArray()))
 
         val receivedPing = server.incoming.receive()
         assertEquals(FrameType.PING, receivedPing.frameType)
-        assertEquals(text, receivedPing.readBytes().toString(Charsets.ISO_8859_1))
+        assertEquals(text, String(receivedPing.readBytes(), charset = Charsets.ISO_8859_1))
 
-        server.send(Frame.Pong(text.toByteArray()))
+        server.send(Frame.Pong(text.encodeToByteArray()))
         val receivedPong = client.incoming.receive()
         assertEquals(FrameType.PONG, receivedPong.frameType)
-        assertEquals(text, receivedPong.readBytes().toString(Charsets.ISO_8859_1))
+        assertEquals(text, String(receivedPong.readBytes(), charset = Charsets.ISO_8859_1))
 
         client.cancel()
         server.cancel()
@@ -198,12 +189,6 @@ class RawWebSocketTest {
         launch {
             side.incoming.consumeEach {}
             side.cancel()
-        }
-    }
-
-    private fun runTest(block: suspend CoroutineScope.() -> Unit) {
-        runBlocking(CoroutineName("test-${test.methodName}")) {
-            block()
         }
     }
 

@@ -18,10 +18,8 @@ import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
 import org.junit.*
-import org.junit.rules.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -29,15 +27,18 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
-import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration> actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : CoroutineScope {
+    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,7 +53,6 @@ actual abstract class EngineTestBase<
     protected actual var server: TEngine? = null
     protected var callGroupSize: Int = -1
         private set
-    protected val exceptions: ArrayList<Throwable> = ArrayList()
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
     protected actual var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
@@ -72,24 +72,16 @@ actual abstract class EngineTestBase<
     actual override val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
 
-    @get:Rule
-    val test: TestName = TestName()
-
-    open val timeout: Long = if (isUnderDebugger) {
-        1000000
+    override val timeout: Duration = if (isUnderDebugger) {
+        1_000_000.milliseconds
     } else {
-        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(4))
+        System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
     }
-
-    @get:Rule
-    val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
-
-    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
     fun setUpBase() {
-        val method = this.javaClass.getMethod(test.methodName)
-            ?: throw AssertionError("Method ${test.methodName} not found")
+        val method = this.javaClass.getMethod(testName.methodName)
+            ?: throw AssertionError("Method ${testName.methodName} not found")
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
             Assume.assumeTrue("http2 is not enabled", enableHttp2)
@@ -99,7 +91,6 @@ actual abstract class EngineTestBase<
         }
 
         testLog.trace("Starting server on port $port (SSL $sslPort)")
-        exceptions.clear()
     }
 
     @After
@@ -108,9 +99,6 @@ actual abstract class EngineTestBase<
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
             (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
-            if (exceptions.isNotEmpty()) {
-                throw AssertionError("Server exceptions logged, consult log output for more information")
-            }
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
@@ -130,7 +118,7 @@ actual abstract class EngineTestBase<
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
                     t?.let {
-                        exceptions.add(it)
+                        collectUnhandledException(it)
                         println("Critical test exception: $it")
                         it.printStackTrace()
                         println("From origin:")
@@ -165,7 +153,7 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(CallLogging)
         application.install(Routing, routingConfigurer)
     }
@@ -212,7 +200,7 @@ actual abstract class EngineTestBase<
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout))) {
+            withTimeout(minOf(10.seconds, timeout)) {
                 server.environment.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
@@ -271,7 +259,7 @@ actual abstract class EngineTestBase<
     protected inline fun socket(block: Socket.() -> Unit) {
         Socket().use { socket ->
             socket.tcpNoDelay = true
-            socket.soTimeout = socketReadTimeout
+            socket.soTimeout = timeout.inWholeMilliseconds.toInt()
             socket.connect(InetSocketAddress("localhost", port))
 
             block(socket)
@@ -284,20 +272,18 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
-            HttpClient(CIO) {
-                engine {
-                    https.trustManager = trustManager
-                }
-                followRedirects = false
-                expectSuccess = false
-            }.use { client ->
-                client.prepareRequest {
-                    url.takeFrom(urlString)
-                    builder()
-                }.execute { response ->
-                    block(response, port)
-                }
+        HttpClient(CIO) {
+            engine {
+                https.trustManager = trustManager
+            }
+            followRedirects = false
+            expectSuccess = false
+        }.use { client ->
+            client.prepareRequest {
+                url.takeFrom(urlString)
+                builder()
+            }.execute { response ->
+                block(response, port)
             }
         }
     }
@@ -308,20 +294,18 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
-            HttpClient(Jetty) {
-                followRedirects = false
-                expectSuccess = false
-                engine {
-                    pipelining = true
-                    sslContextFactory = SslContextFactory.Client(true)
-                }
-            }.use { client ->
-                client.prepareRequest(url) {
-                    builder()
-                }.execute { response ->
-                    block(response, port)
-                }
+        HttpClient(Jetty) {
+            followRedirects = false
+            expectSuccess = false
+            engine {
+                pipelining = true
+                sslContextFactory = SslContextFactory.Client(true)
+            }
+        }.use { client ->
+            client.prepareRequest(url) {
+                builder()
+            }.execute { response ->
+                block(response, port)
             }
         }
     }
