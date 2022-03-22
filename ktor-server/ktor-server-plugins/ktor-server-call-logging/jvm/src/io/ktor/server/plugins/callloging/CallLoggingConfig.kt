@@ -13,7 +13,7 @@ import org.slf4j.*
 import org.slf4j.event.*
 
 /**
- * Configuration for [CallLogging] plugin
+ * A configuration for the [CallLogging] plugin.
  */
 @KtorDsl
 public class CallLoggingConfig {
@@ -23,40 +23,53 @@ public class CallLoggingConfig {
     internal var isColorsEnabled: Boolean = true
 
     /**
-     * Logging level for [CallLogging], default is [Level.INFO]
+     * Specifies a logging level for the [CallLogging] plugin.
+     * The default level is [Level.INFO].
      */
     public var level: Level = Level.INFO
 
     /**
-     * Customize [Logger], will default to [ApplicationEnvironment.log]
+     * Specifies a [Logger] used to log requests.
+     * By default, uses [ApplicationEnvironment.log].
      */
     public var logger: Logger? = null
 
     /**
-     * Log messages for calls matching a [predicate]
+     * Allows you to add conditions for filtering requests.
+     * In the example below, only requests made to `/api/v1` get into a log:
+     * ```kotlin
+     * filter { call ->
+     *     call.request.path().startsWith("/api/v1")
+     * }
+     * ```
+     *
+     * @see [CallLogging]
      */
     public fun filter(predicate: (ApplicationCall) -> Boolean) {
         filters.add(predicate)
     }
 
     /**
-     * Put a diagnostic context value to [MDC] with the specified [name] and computed using [provider] function.
-     * A value will be available in MDC only during [ApplicationCall] lifetime and will be removed after call
-     * processing.
+     * Puts a diagnostic context value to [MDC] with the specified [name] and computed using the [provider] function.
+     * A value is available in MDC only during [ApplicationCall] lifetime and is removed after a call processing.
+     *
+     * @see [CallLogging]
      */
     public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
         mdcEntries.add(MDCEntry(name, provider))
     }
 
     /**
-     * Configure application call log message.
+     * Allows you to configure a call log message.
+     *
+     * @see [CallLogging]
      */
     public fun format(formatter: (ApplicationCall) -> String) {
         formatCall = formatter
     }
 
     /**
-     * Disables colors in log message in case the default formatter was used.
+     * Disables colors in a log message when a default formatter is used.
      * */
     public fun disableDefaultColors() {
         isColorsEnabled = false
