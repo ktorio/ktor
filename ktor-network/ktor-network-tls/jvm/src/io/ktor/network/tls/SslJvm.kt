@@ -11,26 +11,95 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import java.nio.*
+import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
+import kotlin.synchronized
 
 @InternalAPI
-public fun Socket.ssl(
+public actual fun SslContext(builder: TLSConfigBuilder): SslContext = SslContext(SSLContext.getInstance("TLS").also {
+    it.init(null, arrayOf(builder.build().trustManager), null)
+})
+
+@InternalAPI
+public actual class SslContext(
+    private val jvmContext: SSLContext
+) {
+    public actual constructor() : this(
+        SSLContext.getInstance("TLS").also {
+            it.init(
+                null,
+                arrayOf( //TODO
+                    object : X509TrustManager {
+                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+                    }
+                ),
+//                    TrustManagerFactory . getInstance (TrustManagerFactory.getDefaultAlgorithm()).also {
+//                    it.init(null as KeyStore?)
+//                }.trustManagers,
+                null
+            )
+        }
+    )
+
+    public actual fun createClientEngine(): SslEngine {
+        val engine = jvmContext.createSSLEngine()
+        engine.useClientMode = true
+        return engine
+    }
+
+    public actual fun createClientEngine(peerHost: String, peerPort: Int): SslEngine {
+        val engine = jvmContext.createSSLEngine(peerHost, peerPort)
+        engine.useClientMode = true
+        return engine
+    }
+
+    public actual fun createServerEngine(): SslEngine {
+        val engine = jvmContext.createSSLEngine()
+        engine.useClientMode = false
+        return engine
+    }
+}
+
+@InternalAPI
+public actual typealias SslEngine = SSLEngine
+
+@InternalAPI
+public actual fun Socket.ssl(
     coroutineContext: CoroutineContext,
-    engine: SSLEngine
-): Socket = SslSocket(this, engine, coroutineContext)
+    engine: SslEngine
+): Socket = SslSocket(
+    socket = this,
+    writer = openWriteChannel(),
+    reader = openReadChannel(),
+    engine = engine,
+    coroutineContext = coroutineContext
+)
+
+@InternalAPI
+public actual fun Connection.ssl(
+    coroutineContext: CoroutineContext,
+    engine: SslEngine
+): Connection = SslSocket(socket, output, input, engine, coroutineContext).connection()
 
 private class SslSocket(
     private val socket: Socket,
+    writer: ByteWriteChannel,
+    reader: ByteReadChannel,
     private val engine: SSLEngine,
     override val coroutineContext: CoroutineContext
 ) : Socket, CoroutineScope {
+    private val coroutineName = coroutineContext[CoroutineName]?.name
+
     private val closed = atomic(false)
+
     private val lock = Mutex()
 
     private val buffers = Buffers(engine)
-    private val wrapper = Wrapper(engine, buffers, socket.openWriteChannel())
-    private val unwrapper = Unwrapper(engine, buffers, socket.openReadChannel())
+    private val wrapper = Wrapper(writer)
+    private val unwrapper = Unwrapper(reader)
 
     override val socketContext: Job get() = socket.socketContext
     override val remoteAddress: SocketAddress get() = socket.remoteAddress
@@ -43,16 +112,19 @@ private class SslSocket(
                 var destination = buffers.allocateApplication(0)
                 loop@ while (true) {
                     destination.clear()
-                    //println("READING_BEFORE_UNWRAP: $destination")
+                    //println("[$coroutineName] READING: readAndUnwrap.START")
+                    //println("[$coroutineName] READING_BEFORE_UNWRAP: $destination")
                     val result = unwrapper.readAndUnwrap(destination) { destination = it } ?: break@loop
-                    //println("READING_AFTER_UNWRAP: $destination")
+                    //println("[$coroutineName] READING_AFTER_UNWRAP: $destination")
+                    //println("[$coroutineName] READING: readAndUnwrap.STOP")
+
                     destination.flip()
-                    //println("READING_WRITE_BEFORE: $destination")
+                    //println("[$coroutineName] READING_WRITE_BEFORE: $destination")
                     if (destination.remaining() > 0) {
                         this.channel.writeFully(destination)
                         this.channel.flush()
                     }
-                    //println("READING_WRITE_AFTER: $destination")
+                    //println("[$coroutineName] READING_WRITE_AFTER: $destination")
 
                     handleResult(result)
                     if (result.status == SSLEngineResult.Status.CLOSED) break@loop
@@ -76,15 +148,17 @@ private class SslSocket(
                 val source = buffers.allocateApplication(0)
                 loop@ while (true) {
                     source.clear()
-                    //println("WRITING_READ_BEFORE: $source")
+                    //println("[$coroutineName] WRITING_READ_BEFORE: $source")
                     if (this.channel.readAvailable(source) == -1) break@loop
-                    //println("WRITING_READ_AFTER: $source")
+                    //println("[$coroutineName] WRITING_READ_AFTER: $source")
                     source.flip()
-                    //println("WRITING_BEFORE_SOURCE: $source")
+                    //println("[$coroutineName] WRITING_BEFORE_SOURCE: $source")
                     while (source.remaining() > 0) {
-                        //println("WRITING_BEFORE_WRAP: $source")
+                        //println("[$coroutineName] WRITING: wrapAndWrite.START")
+                        //println("[$coroutineName] WRITING_BEFORE_WRAP: $source")
                         val result = wrapper.wrapAndWrite(source)
-                        //println("WRITING_AFTER_WRAP: $source")
+                        //println("[$coroutineName] WRITING_AFTER_WRAP: $source")
+                        //println("[$coroutineName] WRITING: wrapAndWrite.STOP")
 
                         handleResult(result)
                         if (result.status == SSLEngineResult.Status.CLOSED) break@loop
@@ -132,7 +206,7 @@ private class SslSocket(
         var temp = buffers.allocateApplication(0)
         var status = initialStatus
         while (true) {
-            //println("HANDSHAKE: $status")
+            //println("[$coroutineName] HANDSHAKE: $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_TASK -> {
                     coroutineScope {
@@ -146,12 +220,15 @@ private class SslSocket(
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     temp.clear()
                     temp.flip()
-                    //println("HANDSHAKE: wrapAndWrite")
+                    //println("[$coroutineName] HANDSHAKE: wrapAndWrite.START")
                     status = wrapper.wrapAndWrite(temp).handshakeStatus
+                    //println("[$coroutineName] HANDSHAKE: wrapAndWrite.STOP")
                 }
                 SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
                     temp.clear()
+                    //println("[$coroutineName] HANDSHAKE: readAndUnwrap.START")
                     status = unwrapper.readAndUnwrap(temp) { temp = it }?.handshakeStatus ?: break
+                    //println("[$coroutineName] HANDSHAKE: readAndUnwrap.STOP")
                 }
                 else -> break
             }
@@ -216,9 +293,7 @@ private class SslSocket(
 
     }
 
-    private class Wrapper(
-        private val engine: SSLEngine,
-        private val buffers: Buffers,
+    private inner class Wrapper(
         private val writer: ByteWriteChannel
     ) {
         private val wrapLock = Mutex()
@@ -234,28 +309,28 @@ private class SslSocket(
             var result: SSLEngineResult
             wrapDestination.clear()
             while (true) {
-                //println("WRAP_BEFORE: $wrapDestination")
+                //println("[$coroutineName] WRAP_BEFORE: $wrapDestination")
                 result = engine.wrap(wrapSource, wrapDestination)
-                //println("WRAP_RESULT: $result")
-                //println("WRAP_AFTER: $wrapDestination")
+                //println("[$coroutineName] WRAP_RESULT: $result")
+                //println("[$coroutineName] WRAP_AFTER: $wrapDestination")
                 if (result.status != SSLEngineResult.Status.BUFFER_OVERFLOW) break
-                //println("WRAP_OVERFLOW: $wrapDestination")
+                //println("[$coroutineName] WRAP_OVERFLOW: $wrapDestination")
                 wrapDestination = buffers.reallocatePacket(wrapDestination, flip = true)
-                //println("WRAP_OVERFLOW_REALLOCATE: $wrapDestination")
+                //println("[$coroutineName] WRAP_OVERFLOW_REALLOCATE: $wrapDestination")
             }
-            //println("WRAP_WRITE_BEFORE: $wrapDestination")
+            //println("[$coroutineName] WRAP_WRITE_BEFORE: $wrapDestination")
             if (result.bytesProduced() > 0) {
                 wrapDestination.flip()
-                //println("WRAP_WRITE: $wrapDestination")
+                //println("[$coroutineName] WRAP_WRITE: $wrapDestination")
                 writer.writeFully(wrapDestination)
                 writer.flush()
             }
-            //println("WRAP_WRITE_AFTER: $wrapDestination")
+            //println("[$coroutineName] WRAP_WRITE_AFTER: $wrapDestination")
             return result
         }
 
         suspend fun close(cause: Throwable?): SSLEngineResult = wrapLock.withLock {
-            //println("CLOSE: $cause")
+            //println("[$coroutineName] CLOSE: $cause")
             val temp = buffers.allocateApplication(0)
             var result: SSLEngineResult
             do {
@@ -267,18 +342,19 @@ private class SslSocket(
 
             writer.close(cause)
 
-            return result
+            result
         }
     }
 
-    private class Unwrapper(
-        private val engine: SSLEngine,
-        private val buffers: Buffers,
+    private inner class Unwrapper(
         private val reader: ByteReadChannel
     ) {
         private val unwrapLock = Mutex()
         private var unwrapSource = buffers.allocatePacket(0)
         private var unwrapRemaining = 0
+        
+        //TODO revisit
+        private var unwrapResultCont: CancellableContinuation<SSLEngineResult?>? = null
 
         fun cancel(cause: Throwable?) {
             reader.cancel(cause)
@@ -287,66 +363,97 @@ private class SslSocket(
         suspend inline fun readAndUnwrap(
             initialUnwrapDestination: ByteBuffer,
             updateUnwrapDestination: (ByteBuffer) -> Unit
-        ): SSLEngineResult? = unwrapLock.withLock {
-            var unwrapDestination: ByteBuffer = initialUnwrapDestination
-            var result: SSLEngineResult?
-
-            if (unwrapRemaining > 0) {
-                unwrapSource.compact()
-                unwrapSource.flip()
-            } else {
-                unwrapSource.clear()
-                if (!readData()) return@withLock null
-            }
-
-            //println("UNWRAP_INIT[DST]: $unwrapDestination")
-            //println("UNWRAP_INIT[SRC]: $unwrapSource")
-            while (true) {
-                //println("UNWRAP_BEFORE[DST]: $unwrapDestination")
-                //println("UNWRAP_BEFORE[SRC]: $unwrapSource")
-                result = engine.unwrap(unwrapSource, unwrapDestination)
-                //println("UNWRAP_RESULT: $result")
-                //println("UNWRAP_AFTER[DST]: $unwrapDestination")
-                //println("UNWRAP_AFTER[SRC]: $unwrapSource")
-
-                when (result.status!!) {
-                    SSLEngineResult.Status.BUFFER_UNDERFLOW -> {
-                        //println("UNWRAP_UNDERFLOW_BEFORE[SRC]: $unwrapSource")
-                        if (unwrapSource.limit() == unwrapSource.capacity()) {
-                            //println("UNWRAP_UNDERFLOW_1")
-                            //buffer is too small to read all needed data
-                            unwrapSource = buffers.reallocatePacket(unwrapSource, flip = false)
-                        } else {
-                            //println("UNWRAP_UNDERFLOW_2")
-                            //not all data received
-                            unwrapSource.position(unwrapSource.limit())
-                            unwrapSource.limit(unwrapSource.capacity())
-                        }
-                        //println("UNWRAP_UNDERFLOW_AFTER[SRC]: $unwrapSource")
-                        if (!readData()) return@withLock null
-                    }
-                    SSLEngineResult.Status.BUFFER_OVERFLOW -> {
-                        //println("UNWRAP_OVERFLOW_BEFORE[DST]: $unwrapDestination")
-                        unwrapDestination = buffers.reallocateApplication(unwrapDestination, flip = true)
-                        //println("UNWRAP_OVERFLOW_AFTER[DST]: $unwrapDestination")
-                    }
-                    else -> break
+        ): SSLEngineResult? {
+            if (!unwrapLock.tryLock()) return suspendCancellableCoroutine {
+                synchronized(this) {
+                    unwrapResultCont = it
                 }
             }
-            //println("UNWRAP_FINAL[DST]: $unwrapDestination")
-            //println("UNWRAP_FINAL[SRC]: $unwrapSource")
-            unwrapRemaining = unwrapSource.remaining()
-            if (unwrapDestination !== initialUnwrapDestination) updateUnwrapDestination(unwrapDestination)
-            result
+            try {
+                var unwrapDestination: ByteBuffer = initialUnwrapDestination
+                var result: SSLEngineResult?
+
+                if (unwrapRemaining > 0) {
+                    unwrapSource.compact()
+                    unwrapSource.flip()
+                } else {
+                    unwrapSource.clear()
+                    if (!readData()) {
+                        synchronized(this) {
+                            unwrapResultCont?.resume(null)
+                            unwrapResultCont = null
+                        }
+                        return null
+                    }
+                }
+
+                //println("[$coroutineName] UNWRAP_INIT[DST]: $unwrapDestination")
+                //println("[$coroutineName] UNWRAP_INIT[SRC]: $unwrapSource")
+                while (true) {
+                    //println("[$coroutineName] UNWRAP_BEFORE[DST]: $unwrapDestination")
+                    //println("[$coroutineName] UNWRAP_BEFORE[SRC]: $unwrapSource")
+                    result = engine.unwrap(unwrapSource, unwrapDestination)
+                    //println("[$coroutineName] UNWRAP_RESULT: $result")
+                    //println("[$coroutineName] UNWRAP_AFTER[DST]: $unwrapDestination")
+                    //println("[$coroutineName] UNWRAP_AFTER[SRC]: $unwrapSource")
+
+                    when (result.status!!) {
+                        SSLEngineResult.Status.BUFFER_UNDERFLOW -> {
+                            //println("[$coroutineName] UNWRAP_UNDERFLOW_BEFORE[SRC]: $unwrapSource")
+                            if (unwrapSource.limit() == unwrapSource.capacity()) {
+                                //println("[$coroutineName] UNWRAP_UNDERFLOW_1")
+                                //buffer is too small to read all needed data
+                                unwrapSource = buffers.reallocatePacket(unwrapSource, flip = false)
+                            } else {
+                                //println("[$coroutineName] UNWRAP_UNDERFLOW_2")
+                                //not all data received
+                                unwrapSource.position(unwrapSource.limit())
+                                unwrapSource.limit(unwrapSource.capacity())
+                            }
+                            //println("[$coroutineName] UNWRAP_UNDERFLOW_AFTER[SRC]: $unwrapSource")
+                            if (!readData()) {
+                                synchronized(this) {
+                                    unwrapResultCont?.resume(null)
+                                    unwrapResultCont = null
+                                }
+                                return null
+                            }
+                        }
+                        SSLEngineResult.Status.BUFFER_OVERFLOW -> {
+                            //println("[$coroutineName] UNWRAP_OVERFLOW_BEFORE[DST]: $unwrapDestination")
+                            unwrapDestination = buffers.reallocateApplication(unwrapDestination, flip = true)
+                            //println("[$coroutineName] UNWRAP_OVERFLOW_AFTER[DST]: $unwrapDestination")
+                        }
+                        else -> break
+                    }
+                }
+                //println("[$coroutineName] UNWRAP_FINAL[DST]: $unwrapDestination")
+                //println("[$coroutineName] UNWRAP_FINAL[SRC]: $unwrapSource")
+                unwrapRemaining = unwrapSource.remaining()
+                if (unwrapDestination !== initialUnwrapDestination) updateUnwrapDestination(unwrapDestination)
+                synchronized(this) {
+                    unwrapResultCont?.resume(result)
+                    unwrapResultCont = null
+                }
+                return result
+            } catch (cause: Throwable) {
+                synchronized(this) {
+                    unwrapResultCont?.resumeWithException(cause)
+                    unwrapResultCont = null
+                }
+                throw cause
+            } finally {
+                unwrapLock.unlock()
+            }
         }
 
         private suspend fun readData(): Boolean {
-            //println("UNWRAP_READ_BEFORE[SRC]: $unwrapSource")
+            //println("[$coroutineName] UNWRAP_READ_BEFORE[SRC]: $unwrapSource")
             val read = reader.readAvailable(unwrapSource)
             unwrapSource.flip()
-            //println("UNWRAP_READ_AFTER[SRC]: $unwrapSource")
+            //println("[$coroutineName] UNWRAP_READ_AFTER[SRC]: $unwrapSource")
 
-            //println("UNWRAP_READ_COMPLETE[SRC]: $unwrapSource")
+            //println("[$coroutineName] UNWRAP_READ_COMPLETE[SRC]: $unwrapSource")
             return read != -1
         }
     }

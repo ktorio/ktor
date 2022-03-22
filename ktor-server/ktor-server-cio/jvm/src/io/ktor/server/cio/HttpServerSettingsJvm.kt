@@ -37,7 +37,7 @@ internal actual fun HttpServerSettings(
                 engine.needClientAuth = true
             }
 
-            socket.ssl(Dispatchers.IO, engine)
+            socket.ssl(Dispatchers.IO + CoroutineName("SERVER"), engine)
         }
     }
     return HttpServerSettings(

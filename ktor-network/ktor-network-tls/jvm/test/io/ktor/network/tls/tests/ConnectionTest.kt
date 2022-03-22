@@ -9,6 +9,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.tls.*
+import io.ktor.network.tls.SslContext
 import io.ktor.network.tls.certificates.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
@@ -29,6 +30,7 @@ import java.net.ServerSocket
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
+import kotlin.io.use
 import kotlin.test.*
 import kotlin.text.toCharArray
 
@@ -65,19 +67,7 @@ class ConnectionTest {
         val socket = aSocket(selectorManager)
             .tcp()
             .connect("www.google.com", port = 443)
-            .run {
-                val context = SSLContext.getInstance("TLS")
-                context.init(
-                    null,
-                    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also {
-                        it.init(null as KeyStore?)
-                    }.trustManagers,
-                    SecureRandom.getInstance("NativePRNGNonBlocking")
-                )
-                val engine = context.createSSLEngine()
-                engine.useClientMode = true
-                ssl(Dispatchers.Default, engine)
-            }
+            .ssl(Dispatchers.Default, SslContext().createClientEngine())
 
         val channel = socket.openWriteChannel()
         channel.apply {
@@ -86,7 +76,56 @@ class ConnectionTest {
             writeStringUtf8("Connection: close\r\n\r\n")
             flush()
         }
-        socket.openReadChannel().readRemaining()
+        println(socket.openReadChannel().readRemaining().readText())
+    }
+
+    @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+    @Test
+    fun sslClientServerTest(): Unit = runBlocking {
+        val keyStoreFile = File("build/temp.jks")
+        val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withRSA", keySizeInBits = 4096)
+        val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+        keyManagerFactory.init(keyStore, "changeit".toCharArray())
+        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        trustManagerFactory.init(keyStore)
+
+        val context = SslContext(SSLContext.getInstance("TLS").also {
+            it.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
+        })
+
+        ActorSelectorManager(Dispatchers.IO).use { selector ->
+            val tcp = aSocket(selector).tcp()
+            tcp.bind().use { serverSocket ->
+                val serverJob = GlobalScope.launch {
+                    while (true) serverSocket.accept()
+                        .ssl(Dispatchers.IO + CoroutineName("SERVER"), context.createServerEngine()).use { socket ->
+                            val reader = socket.openReadChannel()
+                            val writer = socket.openWriteChannel()
+                            repeat(3) {
+                                val line = assertNotNull(reader.readUTF8Line())
+                                writer.writeStringUtf8("$line\r\n")
+                                writer.flush()
+                            }
+                            delay(2000) //await reading from client socket
+                        }
+                }
+
+                tcp.connect(serverSocket.localAddress)
+                    .ssl(Dispatchers.IO + CoroutineName("CLIENT"), context.createClientEngine()).use { socket ->
+                        socket.openWriteChannel().apply {
+                            writeStringUtf8("GET / HTTP/1.1\r\n")
+                            writeStringUtf8("Host: www.google.com\r\n")
+                            writeStringUtf8("Connection: close\r\n")
+                            flush()
+                        }
+                        val reader = socket.openReadChannel()
+                        assertNotNull(reader.readUTF8Line())
+                        assertNotNull(reader.readUTF8Line())
+                        assertNotNull(reader.readUTF8Line())
+                    }
+                serverJob.cancelAndJoin()
+            }
+        }
     }
 
     @Test

@@ -1,0 +1,4 @@
+package = openssl
+headers = openssl/ssl.h openssl/err.h
+headerFilter = openssl/*
+linkerOpts.linux = -L/home/oleg/IdeaProjects/learn/ktor/ktor-network/ktor-network-tls/nix/interop/libs/linux -lssl -lcrypto

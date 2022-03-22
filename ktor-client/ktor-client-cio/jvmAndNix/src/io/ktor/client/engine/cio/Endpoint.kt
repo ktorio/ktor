@@ -166,6 +166,7 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
+    @OptIn(InternalAPI::class)
     private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
@@ -204,11 +205,7 @@ internal class Endpoint(
                     if (proxy?.type == ProxyType.HTTP) {
                         startTunnel(requestData, connection.output, connection.input)
                     }
-                    val tlsSocket = connection.tls(coroutineContext) {
-                        takeFrom(config.https)
-                        serverName = serverName ?: address.hostname
-                    }
-                    return tlsSocket.connection()
+                    return connection.ssl(coroutineContext + CoroutineName("CLIENT"), SslContext(config.https).createClientEngine())
                 } catch (cause: Throwable) {
                     try {
                         socket.close()
