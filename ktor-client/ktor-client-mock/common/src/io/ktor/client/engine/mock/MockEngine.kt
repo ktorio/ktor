@@ -21,8 +21,7 @@ import kotlin.jvm.*
  */
 @Suppress("DEPRECATION")
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
-    @OptIn(InternalAPI::class)
-    override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
+    override val dispatcher: CoroutineDispatcher = config.dispatcher
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
         HttpTimeout.Plugin,
         WebSocketCapability,
