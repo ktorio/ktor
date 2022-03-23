@@ -11,12 +11,12 @@ import io.ktor.server.application.*
 import java.io.*
 
 /**
- * Represents a content handled by [FreeMarker] plugin.
+ * A response content handled by the [FreeMarker] plugin.
  *
- * @param template name that is resolved by freemarker
+ * @param template name that is resolved by FreeMarker
  * @param model to be passed during template rendering
- * @param etag value for `E-Tag` header (optional)
- * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class FreeMarkerContent(
     public val template: String,
@@ -27,7 +27,8 @@ public class FreeMarkerContent(
 
 /**
  * A plugin that allows you to use FreeMarker templates as views within your application.
- * Provides the ability to respond with [FreeMarkerContent]
+ * Provides the ability to respond with [FreeMarkerContent].
+ * You can learn more from [FreeMarker](https://ktor.io/docs/freemarker.html).
  */
 public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugin(
     "FreeMarker",

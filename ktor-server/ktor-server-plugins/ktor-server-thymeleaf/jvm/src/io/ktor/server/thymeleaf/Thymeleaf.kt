@@ -12,14 +12,14 @@ import org.thymeleaf.context.*
 import java.util.*
 
 /**
- * Represents a content handled by [Thymeleaf] plugin.
+ * A response content handled by the [io.ktor.server.thymeleaf.Thymeleaf] plugin.
  *
- * @param template name that is resolved by thymeleaf
+ * @param template name that is resolved by Thymeleaf
  * @param model to be passed during template rendering
- * @param etag value for `E-Tag` header (optional)
+ * @param etag value for the `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
  * @param locale object represents a specific geographical, political, or cultural region
- * @param fragments names from the [template] that is resolved by thymeleaf
+ * @param fragments names from the [template] that is resolved by Thymeleaf
  */
 public class ThymeleafContent(
     public val template: String,
@@ -32,7 +32,8 @@ public class ThymeleafContent(
 
 /**
  * A plugin that allows you to use Thymeleaf templates as views within your application.
- * Provides the ability to respond with [Thymeleaf]
+ * Provides the ability to respond with [ThymeleafContent].
+ * You can learn more from [Thymeleaf](https://ktor.io/docs/thymeleaf.html).
  */
 public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugin(
     "Thymeleaf",

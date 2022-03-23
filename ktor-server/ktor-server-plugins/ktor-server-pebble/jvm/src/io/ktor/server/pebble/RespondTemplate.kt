@@ -10,7 +10,7 @@ import io.ktor.server.response.*
 import java.util.*
 
 /**
- * Respond with the specified [template] passing [model]
+ * Responds with the specified [template] passing a data [model].
  *
  * @see PebbleContent
  */

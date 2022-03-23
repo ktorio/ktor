@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 
 /**
- * Respond with the specified [template] passing [model]
+ * Responds with the specified [template] and data [model].
  *
  * @see FreeMarkerContent
  */

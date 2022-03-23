@@ -17,7 +17,8 @@ public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit)
 }
 
 /**
- * VelocityTools ktor plugin. Populates model with standard Velocity tools.
+ * A plugin that allows you to add standard and custom Velocity tools.
+ * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
 @Suppress("UNCHECKED_CAST")
 public val VelocityTools: ApplicationPlugin<EasyFactoryConfiguration> = createApplicationPlugin(

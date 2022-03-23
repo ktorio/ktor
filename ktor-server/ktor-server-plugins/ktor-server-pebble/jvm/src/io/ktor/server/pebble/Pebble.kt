@@ -17,7 +17,7 @@ import java.io.*
 import java.util.*
 
 /**
- * Response content which could be used to respond [ApplicationCalls] like `call.respond(PebbleContent(...))
+ * A response content handled by the [Pebble] plugin.
  *
  * @param template name of the template to be resolved by Pebble
  * @param model which is passed into the template
@@ -35,7 +35,8 @@ public class PebbleContent(
 
 /**
  * A plugin that allows you to use Pebble templates as views within your application.
- * Provides the ability to respond with [PebbleContent]
+ * Provides the ability to respond with [PebbleContent].
+ * You can learn more from [Pebble](https://ktor.io/docs/pebble.html).
  */
 public val Pebble: ApplicationPlugin<PebbleEngine.Builder> = createApplicationPlugin(
     "Pebble",
