@@ -12,6 +12,7 @@ import io.ktor.utils.io.concurrent.*
 
 /**
  * Describes a node in a routing tree.
+ * @see [Application.routing]
  *
  * @param parent is a parent node in the tree, or null for root node.
  * @param selector is an instance of [RouteSelector] for this node.
@@ -40,7 +41,7 @@ public open class Route(
     ) : this(parent, selector, developmentMode = false, environment = environment)
 
     /**
-     * List of child routes for this node
+     * List of child routes for this node.
      */
     public val children: List<Route> get() = childList
 
@@ -53,7 +54,7 @@ public open class Route(
     internal val handlers = mutableListOf<PipelineInterceptor<Unit, ApplicationCall>>()
 
     /**
-     * Creates a child node in this node with a given [selector] or returns an existing one with the same selector
+     * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      */
     public fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
@@ -66,12 +67,12 @@ public open class Route(
     }
 
     /**
-     * Allows using route instance for building additional routes
+     * Allows using a route instance for building additional routes.
      */
     public operator fun invoke(body: Route.() -> Unit): Unit = body()
 
     /**
-     * Installs a handler into this route which will be called when the route is selected for a call
+     * Installs a handler into this route which is called when the route is selected for a call.
      */
     public fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)

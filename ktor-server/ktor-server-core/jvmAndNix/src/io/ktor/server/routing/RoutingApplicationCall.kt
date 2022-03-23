@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Represents an application call being handled by [Routing]
+ * An application call handled by [Routing].
  * @property route is the selected route
  */
 public class RoutingApplicationCall(
@@ -44,7 +44,7 @@ public class RoutingApplicationCall(
 }
 
 /**
- * Represents an application request being handled by [Routing]
+ * An application request handled by [Routing].
  */
 public class RoutingApplicationRequest(
     override val call: RoutingApplicationCall,
@@ -53,7 +53,7 @@ public class RoutingApplicationRequest(
 ) : ApplicationRequest by request
 
 /**
- * Represents an application response being handled by [Routing]
+ * An application response handled by [Routing].
  */
 public class RoutingApplicationResponse(
     override val call: RoutingApplicationCall,
