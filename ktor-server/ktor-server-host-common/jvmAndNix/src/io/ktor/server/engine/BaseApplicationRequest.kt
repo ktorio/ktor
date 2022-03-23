@@ -6,6 +6,7 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 
 /**
  * Base class for implementing [ApplicationRequest]
@@ -14,6 +15,6 @@ public abstract class BaseApplicationRequest(final override val call: Applicatio
     override val pipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(
         call.application.environment.developmentMode
     ).apply {
-        merge(call.application.receivePipeline)
+        resetFrom(call.application.receivePipeline)
     }
 }

@@ -9,24 +9,20 @@ import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.coroutines.*
 
 private const val CHUNKED_VALUE = "chunked"
 
 internal class NettyApplicationCallHandler(
     userCoroutineContext: CoroutineContext,
-    private val enginePipeline: EnginePipeline,
-    logger: Logger
+    private val enginePipeline: EnginePipeline
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    override val coroutineContext: CoroutineContext = userCoroutineContext +
-        CallHandlerCoroutineName + DefaultUncaughtExceptionHandler(logger)
+    override val coroutineContext: CoroutineContext = userCoroutineContext
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
@@ -40,7 +36,7 @@ internal class NettyApplicationCallHandler(
 
         launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
-                call is NettyHttp1ApplicationCall && !call.request.httpRequest.isValid() -> {
+                call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
                     respondError400BadRequest(call)
                 }
                 else ->
@@ -71,16 +67,18 @@ internal class NettyApplicationCallHandler(
     }
 
     companion object {
-        private val CallHandlerCoroutineName = CoroutineName("call-handler")
+        internal val CallHandlerCoroutineName = CoroutineName("call-handler")
     }
 }
 
-internal fun HttpRequest.isValid(): Boolean {
-    if (decoderResult().isFailure) {
+internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
+    if (httpRequest.decoderResult().isFailure) {
         return false
     }
 
-    val encodings = headers().getAll(HttpHeaders.TransferEncoding) ?: return true
+    if (!headers.contains(HttpHeaders.TransferEncoding)) return true
+
+    val encodings = headers.getAll(HttpHeaders.TransferEncoding) ?: return true
     if (!encodings.hasValidTransferEncoding()) {
         return false
     }

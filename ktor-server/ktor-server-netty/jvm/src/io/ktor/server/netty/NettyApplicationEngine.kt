@@ -139,6 +139,11 @@ public class NettyApplicationEngine(
         environment.connectors.map(::createBootstrap)
     }
 
+    private val userContext = environment.parentCoroutineContext +
+        nettyDispatcher +
+        NettyApplicationCallHandler.CallHandlerCoroutineName +
+        DefaultUncaughtExceptionHandler(environment.log)
+
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
         return customBootstrap.clone().apply {
             if (config().group() == null && config().childGroup() == null) {
@@ -155,7 +160,7 @@ public class NettyApplicationEngine(
                     environment,
                     callEventGroup,
                     workerDispatcher,
-                    environment.parentCoroutineContext + nettyDispatcher,
+                    userContext,
                     connector,
                     configuration.requestQueueLimit,
                     configuration.runningLimit,

@@ -61,7 +61,7 @@ internal class NettyHttp1Handler(
 
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
-            addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline, environment.log))
+            addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
         }
         context.fireChannelActive()
     }

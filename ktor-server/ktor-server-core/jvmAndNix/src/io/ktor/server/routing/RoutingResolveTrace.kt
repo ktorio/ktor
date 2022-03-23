@@ -49,8 +49,8 @@ public open class RoutingResolveTraceEntry(
 public class RoutingResolveTrace(public val call: ApplicationCall, public val segments: List<String>) {
     private val stack = Stack<RoutingResolveTraceEntry>()
     private var routing: RoutingResolveTraceEntry? = null
-    private lateinit var successResults: List<List<RoutingResolveResult>>
     private lateinit var finalResult: RoutingResolveResult
+    private val resolveCandidates: MutableList<List<RoutingResolveResult.Success>> = mutableListOf()
 
     private fun register(entry: RoutingResolveTraceEntry) {
         if (stack.empty()) {
@@ -85,10 +85,6 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
         register(RoutingResolveTraceEntry(route, segmentIndex, result))
     }
 
-    public fun registerSuccessResults(successResults: List<List<RoutingResolveResult>>) {
-        this.successResults = successResults
-    }
-
     public fun registerFinalResult(result: RoutingResolveResult) {
         this.finalResult = result
     }
@@ -101,15 +97,15 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
     public fun buildText(): String = buildString {
         appendLine(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
-        if (!this@RoutingResolveTrace::successResults.isInitialized) {
+        if (!this@RoutingResolveTrace::finalResult.isInitialized) {
             return@buildString
         }
         appendLine("Matched routes:")
-        if (successResults.isEmpty()) {
+        if (resolveCandidates.isEmpty()) {
             appendLine("  No results")
         } else {
             appendLine(
-                successResults.joinToString("\n") { path ->
+                resolveCandidates.joinToString("\n") { path ->
                     path.joinToString(" -> ", prefix = "  ") {
                         """"${it.route.selector}""""
                     }
@@ -117,7 +113,15 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
             )
         }
         appendLine("Route resolve result:")
-        appendLine("  $finalResult")
+        append("  $finalResult")
+    }
+
+    /**
+     * Add candidate for resolving.
+     */
+    public fun addCandidate(trait: List<RoutingResolveResult.Success>) {
+        val candidate = List(trait.size) { trait[it] }
+        resolveCandidates.add(candidate)
     }
 }
 

@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.debug.*
+import io.ktor.util.debug.plugins.*
 import io.ktor.util.pipeline.*
 import kotlin.random.*
 
@@ -192,7 +193,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
                         // Information about the plugin name is needed for the Intellij Idea debugger.
                         val key = this@PluginBuilder.key
                         val pluginConfig = this@PluginBuilder.pluginConfig
-                        addToContextInDebugMode(PluginName(key.name)) {
+                        addToContextInDebugMode(key.name) {
                             ijDebugReportHandlerStarted(pluginName = key.name, handler = handlerName)
 
                             // Perform current plugin's handler
