@@ -13,11 +13,11 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 
 /**
- * Represents content handled by the [Jte] plugin.
+ * A response content handled by the [Jte] plugin.
  *
- * @param template file name that is resolved by the jte [TemplateEngine]
+ * @param template file name that is resolved by the Jte [TemplateEngine]
  * @param params to be passed to the template
- * @param etag value for `E-Tag` header (optional)
+ * @param etag value for the `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
  */
 public class JteContent(
@@ -37,7 +37,8 @@ public class JteConfig {
 
 /**
  * A plugin that allows you to use jte templates as views within your application.
- * Provides the ability to respond with [JteContent]
+ * Provides the ability to respond with [JteContent].
+ * You can learn more from [JTE](https://ktor.io/docs/jte.html).
  */
 public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::JteConfig) {
 

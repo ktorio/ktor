@@ -14,14 +14,16 @@ import kotlinx.html.stream.*
 import java.io.*
 
 /**
- * Responds to a client with a HTML response, using specified [block] to build an HTML page
+ * Responds to a client with an HTML response using the specified [block] to build an HTML page.
+ * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
  */
 public suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
     respond(HtmlContent(status, block))
 }
 
 /**
- * Represents an [OutgoingContent] using `kotlinx.html` builder.
+ * Represents an [OutgoingContent] build using `kotlinx.html`.
+ * @see [respondHtml]
  */
 public class HtmlContent(
     override val status: HttpStatusCode? = null,

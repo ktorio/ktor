@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 
 /**
- * Respond with the specified [template] passing [params]
+ * Responds with the specified [template] passing [params].
  *
  * @see JteContent
  */
@@ -21,7 +21,7 @@ public suspend fun ApplicationCall.respondTemplate(
 ): Unit = respond(JteContent(template, params, etag, contentType))
 
 /**
- * Respond with the specified [template] passing [params] as a vararg of [Pair]
+ * Responds with the specified [template] passing [params] as a vararg of [Pair].
  *
  * @see JteContent
  */

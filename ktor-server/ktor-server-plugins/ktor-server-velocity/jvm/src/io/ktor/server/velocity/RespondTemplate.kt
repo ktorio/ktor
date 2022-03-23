@@ -9,7 +9,9 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 
 /**
- * Respond with [template] applying [model]
+ * Responds with the specified [template] and data [model].
+ *
+ * @see VelocityContent
  */
 public suspend fun ApplicationCall.respondTemplate(
     template: String,

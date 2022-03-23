@@ -15,12 +15,12 @@ import io.ktor.utils.io.*
 import java.io.*
 
 /**
- * Response content which could be used to respond [ApplicationCalls] like `call.respond(MustacheContent(...))
+ * A response content handled by the [Mustache] plugin.
  *
- * @param template name of the template to be resolved by Mustache
- * @param model which is passed into the template
- * @param etag value for `E-Tag` header (optional)
- * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
+ * @param template name that is resolved by Mustache
+ * @param model to be passed during template rendering
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class MustacheContent(
     public val template: String,
@@ -36,7 +36,8 @@ public class MustacheConfig {
 
 /**
  * A plugin that allows you to use Mustache templates as views within your application.
- * Provides the ability to respond with [MustacheContent]
+ * Provides the ability to respond with [MustacheContent].
+ * You can learn more from [Mustache](https://ktor.io/docs/mustache.html).
  */
 public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
     val mustacheFactory = pluginConfig.mustacheFactory

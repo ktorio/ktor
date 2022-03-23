@@ -13,12 +13,12 @@ import org.apache.velocity.context.*
 import java.io.*
 
 /**
- * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
+ * A response content handled by the [io.ktor.server.velocity.Velocity] plugin.
  *
- * @param template name to be resolved by velocity
- * @param model to be passed to the template
- * @param etag header value (optional)
- * @param contentType (optional, `text/html` with UTF-8 character encoding by default)
+ * @param template name to be resolved by Velocity
+ * @param model to be passed during template rendering
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class VelocityContent(
     public val template: String,
@@ -46,6 +46,7 @@ internal fun velocityOutgoingContent(
 /**
  * A plugin that allows you to use Velocity templates as views within your application.
  * Provides the ability to respond with [VelocityContent].
+ * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
 public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin("Velocity", ::VelocityEngine) {
 

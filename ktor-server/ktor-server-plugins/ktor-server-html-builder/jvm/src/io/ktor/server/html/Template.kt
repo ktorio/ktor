@@ -7,14 +7,16 @@ package io.ktor.server.html
 import java.util.*
 
 /**
- * A template that expands inside [TOuter]
+ * A template that expands inside [TOuter].
+ * @see [respondHtmlTemplate]
  */
 public interface Template<in TOuter> {
     public fun TOuter.apply()
 }
 
 /**
- * A placeholder that is inserted inside [TOuter]
+ * A placeholder that is inserted inside [TOuter].
+ * @see [respondHtmlTemplate]
  */
 public open class Placeholder<TOuter> {
     private var content: TOuter.(Placeholder<TOuter>) -> Unit = { }
@@ -31,7 +33,8 @@ public open class Placeholder<TOuter> {
 }
 
 /**
- * Placeholder that can appear multiple times
+ * A placeholder that can be used to insert the content that appears multiple times (for example, list items).
+ * @see [respondHtmlTemplate]
  */
 public open class PlaceholderList<TOuter, TInner> {
     private var items = ArrayList<PlaceholderItem<TInner>>()
@@ -57,7 +60,7 @@ public open class PlaceholderList<TOuter, TInner> {
 }
 
 /**
- * Item of a placeholder list when it is expanded
+ * An item of a [PlaceholderList] when it is expanded.
  */
 public class PlaceholderItem<TOuter>(public val index: Int, public val collection: List<PlaceholderItem<TOuter>>) :
     Placeholder<TOuter>() {
@@ -66,7 +69,7 @@ public class PlaceholderItem<TOuter>(public val index: Int, public val collectio
 }
 
 /**
- * Inserts every element of placeholder list
+ * Inserts every element of [PlaceholderList].
  */
 public fun <TOuter, TInner> TOuter.each(
     items: PlaceholderList<TOuter, TInner>,
@@ -76,12 +79,13 @@ public fun <TOuter, TInner> TOuter.each(
 }
 
 /**
- * Inserts placeholder
+ * Inserts [Placeholder].
  */
 public fun <TOuter> TOuter.insert(placeholder: Placeholder<TOuter>): Unit = placeholder.apply(this)
 
 /**
- * A placeholder that is also a template
+ * A placeholder that is also a [Template].
+ * It can be used to insert child templates and create nested layouts.
  */
 public open class TemplatePlaceholder<TTemplate> {
     private var content: TTemplate.() -> Unit = { }
