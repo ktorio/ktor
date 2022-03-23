@@ -9,9 +9,11 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import openssl.*
+import platform.posix.*
 import kotlin.coroutines.*
 
 @InternalAPI
@@ -22,24 +24,45 @@ public actual class SslContext {
     private val ctx = SSL_CTX_new(TLS_method())!!
 
     init {
-        //TODO
+//        require(SSL_CTX_set_cipher_list(ctx, chiperList) > 0)
+        SSL_CTX_set_default_passwd_cb(ctx, staticCFunction { buf, size, rwflag, u ->
+            val password = "password"
+            val array = password.toByteArray()
+            val passwordSize = array.size
+            array.usePinned { memcpy(buf, it.addressOf(0), passwordSize.convert()) }
+            password.length
+        })
+        require(
+            SSL_CTX_use_certificate_file(
+                ctx,
+                "/home/oleg/IdeaProjects/learn/ktor/certificate.crt",
+                SSL_FILETYPE_PEM
+            ) == 1
+        ) { "crt" }
+        require(
+            SSL_CTX_use_PrivateKey_file(
+                ctx,
+                "/home/oleg/IdeaProjects/learn/ktor/key.key",
+                SSL_FILETYPE_PEM
+            ) == 1
+        ) { "key" }
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, null)
     }
 
     public actual fun createClientEngine(): SslEngine {
         val ssl = SSL_new(ctx)!!
         SSL_set_connect_state(ssl)
-        return Ssl(ssl)
+        return Ssl(ssl, "client")
     }
 
     public actual fun createClientEngine(peerHost: String, peerPort: Int): SslEngine {
-        val ssl = SSL_new(ctx)!!
-        SSL_set_connect_state(ssl)
-        return Ssl(ssl)
+        return createClientEngine()
     }
 
     public actual fun createServerEngine(): SslEngine {
-        TODO("Not yet implemented")
+        val ssl = SSL_new(ctx)!!
+        SSL_set_accept_state(ssl)
+        return Ssl(ssl, "server")
     }
 
 }
@@ -80,6 +103,7 @@ private class SslSocket(
     override val localAddress: SocketAddress get() = socket.localAddress
 
     private val pipe = engine.attach(reader, writer)
+    private val cName = engine.cName
 
     override fun attachForReading(channel: ByteChannel): WriterJob =
         writer(CoroutineName("cio-ssl-input"), channel) {
@@ -88,15 +112,16 @@ private class SslSocket(
                 do {
                     val result = this.channel.write { destination, startOffset, endExclusive ->
                         val destinationLength = (endExclusive - startOffset).toInt()
-                        //println("READING START: size=${destination.size} | offset=$startOffset | length=$destinationLength")
+                        //println("[$cName] READING START: size=${destination.size} | offset=$startOffset | length=$destinationLength")
                         if (destinationLength <= 0) {
-                            //println("READING STOP: NO MORE TO WRITE")
+                            //println("[$cName] READING STOP: NO MORE TO WRITE")
                             return@write 0
                         }
-                        var destinationOffset = startOffset.toInt()
+                        val initialOffset = startOffset.toInt()
+                        var destinationOffset = initialOffset
 
-                        while (destinationLength - destinationOffset > 0) {
-                            //println("READING STEP: size=${destination.size} | offset=$destinationOffset | length=$destinationLength")
+                        while (true) {
+                            //println("[$cName] READING STEP: size=${destination.size} | offset=$destinationOffset | length=$destinationLength")
                             val sslError = engine.read(
                                 destination.pointer, destinationOffset, destinationLength,
                                 onSuccess = {
@@ -105,21 +130,25 @@ private class SslSocket(
                                 },
                                 onError = { it }
                             )
+                            pipe.writeFully() //TODO?
 
                             when (sslError) {
                                 null -> {}
-                                SslError.WantRead -> if (pipe.readAvailable() == 0) {
-                                    //println("READING STOP: NO MORE TO READ FROM SOCKET")
-                                    return@write 0
+                                SslError.WantRead -> {
+                                    if (destinationOffset != initialOffset) break //we read some data already
+                                    if (pipe.readAvailable() == 0) {
+                                        //println("[$cName] READING STOP: NO MORE TO READ FROM SOCKET")
+                                        return@write 0
+                                    }
                                 }
                                 else -> TODO("READ_ERROR: $sslError")
                             }
                         }
-                        //println("READING STOP: size=${destination.size} | offset=$destinationOffset | length=$destinationLength")
-                        destinationOffset - startOffset.toInt()
+                        //println("[$cName] READING STOP: size=${destination.size} | offset=$destinationOffset | length=$destinationLength")
+                        destinationOffset - initialOffset
                     }
                     this.channel.flush()
-                    //println("READING STEP RESULT: $result")
+                    //println("[$cName] READING STEP RESULT: $result")
                 } while (result > 0)
             } catch (cause: Throwable) {
                 error = cause
@@ -140,15 +169,15 @@ private class SslSocket(
                 do {
                     val result = this@reader.channel.read { source, startOffset, endExclusive ->
                         val sourceLength = (endExclusive - startOffset).toInt()
-                        //println("WRITING START: size=${source.size} | offset=$startOffset | length=$sourceLength")
+                        //println("[$cName] WRITING START: size=${source.size} | offset=$startOffset | length=$sourceLength")
                         if (sourceLength <= 0) {
-                            //println("WRITING STOP: NO MORE TO READ")
+                            //println("[$cName] WRITING STOP: NO MORE TO READ")
                             return@read 0
                         }
                         var sourceOffset = startOffset.toInt()
 
                         while (sourceLength - sourceOffset > 0) {
-                            //println("WRITING STEP: size=${source.size} | offset=$sourceOffset | length=$sourceLength")
+                            //println("[$cName] WRITING STEP: size=${source.size} | offset=$sourceOffset | length=$sourceLength")
                             val sslError = engine.write(
                                 source.pointer, sourceOffset, sourceLength,
                                 onSuccess = {
@@ -162,16 +191,16 @@ private class SslSocket(
                             when (sslError) {
                                 null -> {}
                                 SslError.WantRead -> if (pipe.readAvailable() == 0) {
-                                    //println("WRITING STOP: NO MORE TO READ FROM SOCKET")
+                                    //println("[$cName] WRITING STOP: NO MORE TO READ FROM SOCKET")
                                     return@read 0
                                 }
                                 else -> TODO("WRITE_ERROR: $sslError")
                             }
                         }
-                        //println("WRITING STOP: size=${source.size} | offset=$sourceOffset | length=$sourceLength")
+                        //println("[$cName] WRITING STOP: size=${source.size} | offset=$sourceOffset | length=$sourceLength")
                         sourceOffset - startOffset.toInt()
                     }
-                    //println("WRITING STEP RESULT: $result")
+                    //println("[$cName] WRITING STEP RESULT: $result")
                 } while (result > 0)
             } catch (cause: Throwable) {
                 error = cause

@@ -11,13 +11,16 @@ import kotlinx.cinterop.*
 import openssl.*
 
 @OptIn(InternalAPI::class)
-internal class Ssl(private val ssl: CPointer<SSL>) : SslEngine() {
+internal class Ssl(
+    private val ssl: CPointer<SSL>,
+    val cName: String
+) : SslEngine() {
     private val lock = SynchronizedObject()
     fun attach(reader: ByteReadChannel, writer: ByteWriteChannel): SslPipe {
         val output = BIO_new(BIO_s_mem())!!
         val input = BIO_new(BIO_s_mem())!!
         SSL_set_bio(s = ssl, rbio = output, wbio = input)
-        return SslPipe(reader, writer, input, output)
+        return SslPipe(reader, writer, input, output, cName)
     }
 
     inline fun <T> write(
@@ -25,10 +28,10 @@ internal class Ssl(private val ssl: CPointer<SSL>) : SslEngine() {
         onSuccess: (consumed: Int) -> T,
         onError: (error: SslError) -> T
     ): T = ssl.operation({
-        //println("ENGINE.WRITE.SUCCESS: $it")
+        println("[$cName] ENGINE.WRITE.SUCCESS: $it")
         onSuccess(it)
     }, {
-        //println("ENGINE.WRITE.ERROR: $it")
+        println("[$cName] ENGINE.WRITE.ERROR: $it")
         onError(it)
     }) {
         SSL_write(this, source + sourceOffset, sourceLength - sourceOffset)
@@ -39,10 +42,10 @@ internal class Ssl(private val ssl: CPointer<SSL>) : SslEngine() {
         onSuccess: (produced: Int) -> T,
         onError: (error: SslError) -> T
     ): T = ssl.operation({
-        //println("ENGINE.READ.SUCCESS: $it")
+        println("[$cName] ENGINE.READ.SUCCESS: $it")
         onSuccess(it)
     }, {
-        //println("ENGINE.READ.ERROR: $it")
+        println("[$cName] ENGINE.READ.ERROR: $it")
         onError(it)
     }) {
         SSL_read(this, destination + destinationOffset, destinationLength - destinationOffset)
