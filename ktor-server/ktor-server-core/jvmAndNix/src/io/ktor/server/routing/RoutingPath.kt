@@ -7,19 +7,19 @@ package io.ktor.server.routing
 import io.ktor.http.*
 
 /**
- * Represents a parsed routing path. Consist of number of segments [parts]
+ * A parsed routing path. Consist of number of segments [parts].
  *
  * @property parts contains parsed routing path segments
  */
 public class RoutingPath private constructor(public val parts: List<RoutingPathSegment>) {
     public companion object {
         /**
-         * A constant for root routing path
+         * A constant for a root routing path.
          */
         public val root: RoutingPath = RoutingPath(listOf())
 
         /**
-         * Parse the specified [path] and create an instance of [RoutingPath].
+         * Parses the specified [path] and creates an instance of [RoutingPath].
          * It handles wildcards and decodes escape characters properly.
          */
         public fun parse(path: String): RoutingPath {
@@ -42,23 +42,23 @@ public class RoutingPath private constructor(public val parts: List<RoutingPathS
 }
 
 /**
- * Represent a single routing path segment
+ * A single routing path segment.
  * @property value - segment text value
  * @property kind - segment kind (constant or parameter)
  */
 public data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind)
 
 /**
- * Possible routing path segment kinds
+ * Possible routing path segment kinds.
  */
 public enum class RoutingPathSegmentKind {
     /**
-     * Corresponds to constant path segment
+     * A constant path segment.
      */
     Constant,
 
     /**
-     * Corresponds to a parameter path segment (wildcard or named parameter or both)
+     * A parameter path segment (a wildcard, a named parameter, or both).
      */
     Parameter
 }

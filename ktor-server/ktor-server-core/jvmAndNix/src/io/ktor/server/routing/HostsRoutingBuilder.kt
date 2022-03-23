@@ -8,11 +8,11 @@ import io.ktor.http.*
 import io.ktor.server.plugins.*
 
 /**
- * Create a route to match request host and port.
+ * Creates a route to match a request's host and port.
  * There are no any host resolutions/transformations applied to a host: a request host is treated as a string.
  *
- * When passes it puts request host and port into
- * call parameters by keys [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter]
+ * When passes, it puts a request host and port into
+ * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
  * @param host exact host name that is treated literally
  * @param port to be tested or `0` to pass all ports
@@ -22,11 +22,11 @@ public fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Rou
 }
 
 /**
- * Create a route to match request host and port.
+ * Creates a route to match a request host and port.
  * There are no any host resolutions/transformations applied to a host: a request host is treated as a string.
  *
- * When passes it puts request host and port into
- * call parameters by keys [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter]
+ * When passes, it puts a request host and port into
+ * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
  * @param hostPattern is a  regular expression to match request host
  * @param port to be tested or `0` to pass all ports
@@ -36,11 +36,11 @@ public fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit
 }
 
 /**
- * Create a route to match request host and port.
+ * Creates a route to match a request host and port.
  * There are no any host resolutions/transformations applied to a host: a request host is treated as a string.
  *
- * When passes it puts request host and port into
- * call parameters by keys [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter]
+ * When passes, it puts request host and port into
+ * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
  * @param hosts a list of exact host names that are treated literally
  * @param ports a list of ports to be passed or empty to pass all ports
@@ -52,11 +52,11 @@ public fun Route.host(hosts: List<String>, ports: List<Int> = emptyList(), build
 }
 
 /**
- * Create a route to match request host and port.
+ * Creates a route to match s request host and port.
  * There are no any host resolutions/transformations applied to a host: a request host is treated as a string.
  *
- * When passes it puts request host and port into
- * call parameters by keys [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter]
+ * When passes, it puts request host and port into
+ * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
  * @param hosts a list of exact host names that are treated literally
  * @param hostPatterns a list of regular expressions to match request host
@@ -75,10 +75,10 @@ public fun Route.host(
 }
 
 /**
- * Create a route to match request port.
+ * Creates a route to match a request port.
  *
- * When passes it puts request host and port into
- * call parameters by keys [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter]
+ * When passes, it puts a request host and port into
+ * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
  * @param ports a list of ports to be passed
  *
@@ -92,7 +92,7 @@ public fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
 }
 
 /**
- * Evaluates a route against a request's host and port
+ * Evaluates a route against a request's host and port.
  * @param hostList contains exact host names
  * @param hostPatterns contains host patterns to match
  * @param portsList contains possible ports or empty to match all ports
@@ -135,12 +135,12 @@ public data class HostRouteSelector(
 
     public companion object {
         /**
-         * Parameter name for [RoutingApplicationCall.parameters] for request host
+         * A parameter name for [RoutingApplicationCall.parameters] for a request host.
          */
         public const val HostNameParameter: String = "\$RequestHost"
 
         /**
-         * Parameter name for [RoutingApplicationCall.parameters] for request port
+         * A parameter name for [RoutingApplicationCall.parameters] for a request port.
          */
         public const val PortParameter: String = "\$RequestPort"
     }

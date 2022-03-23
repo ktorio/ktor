@@ -16,8 +16,10 @@ import io.ktor.util.pipeline.*
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
 /**
- * Root routing node for an [Application]
- * @param application is an instance of [Application] for this routing
+ * A root routing node of an [Application].
+ * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
+ *
+ * @param application is an instance of [Application] for this routing node.
  */
 @KtorDsl
 public class Routing(
@@ -31,8 +33,9 @@ public class Routing(
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
-     * Register a route resolution trace function.
-     * See https://ktor.io/docs/tracing-routes.html for details
+     * Registers a function used to trace route resolution.
+     * Might be useful if you need to understand why a route isn't executed.
+     * To learn more, see [Tracing routes](https://ktor.io/docs/tracing-routes.html).
      */
     public fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)
@@ -100,18 +103,18 @@ public class Routing(
     }
 
     /**
-     * Installable plugin for [Routing]
+     * An installation object of the [Routing] plugin.
      */
     @Suppress("PublicApiImplicitType")
     public companion object Plugin : BaseApplicationPlugin<Application, Routing, Routing> {
 
         /**
-         * Event definition for when a routing-based call processing starts
+         * A definition for an event that is fired when routing-based call processing starts.
          */
         public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
         /**
-         * Event definition for when a routing-based call processing finished
+         * A definition for an event that is fired when routing-based call processing is finished.
          */
         public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> = EventDefinition()
 
@@ -126,7 +129,7 @@ public class Routing(
 }
 
 /**
- * Gets an [Application] for this [Route] by scanning the hierarchy to the root
+ * Gets an [Application] for this [Route] by scanning the hierarchy to the root.
  */
 public val Route.application: Application
     get() = when (this) {
@@ -137,7 +140,8 @@ public val Route.application: Application
     }
 
 /**
- * Gets or installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it
+ * Installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it.
+ * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
 @KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
