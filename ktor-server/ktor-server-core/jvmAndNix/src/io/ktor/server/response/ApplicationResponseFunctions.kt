@@ -17,7 +17,8 @@ import io.ktor.utils.io.charsets.*
 import kotlin.jvm.*
 
 /**
- * Sends a [message] as a response
+ * Sends a [message] as a response.
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 @OptIn(InternalAPI::class)
 @JvmName("respondWithType")
@@ -29,7 +30,8 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
 }
 
 /**
- * Sets [status] and sends a [message] as a response
+ * Sends a [message] as a response with the specified [status] code.
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 @JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
@@ -38,7 +40,8 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(status: Http
 }
 
 /**
- * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect
+ * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
@@ -47,14 +50,16 @@ public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boole
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
- * Unlike the other [respondRedirect] it provides a way to build URL based on current call using [block] function
+ * Unlike the other [respondRedirect], it provides a way to build a URL based on current call using the [block] function.
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
     respondRedirect(url(block), permanent)
 }
 
 /**
- * Responds to a client with a plain text response, using specified [text]
+ * Responds to a client with a plain [text] response.
+ * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
@@ -69,7 +74,8 @@ public suspend fun ApplicationCall.respondText(
 }
 
 /**
- * Responds to a client with a plain text response, using specified [provider] to build a text
+ * Responds to a client with a plain text response, using the specified [provider] to build a text.
+ * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
@@ -83,7 +89,8 @@ public suspend fun ApplicationCall.respondText(
 }
 
 /**
- * Responds to a client with a raw bytes response, using specified [provider] to build a byte array
+ * Responds to a client with a raw bytes response, using the specified [provider] to build a byte array.
+ * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
@@ -96,7 +103,8 @@ public suspend fun ApplicationCall.respondBytes(
 }
 
 /**
- * Responds to a client with a raw bytes response, using specified [bytes]
+ * Responds to a client with a raw bytes response, using specified [bytes].
+ * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
@@ -110,10 +118,10 @@ public suspend fun ApplicationCall.respondBytes(
 }
 
 /**
- * Respond with binary content producer.
+ * Respond with a binary content producer.
  *
- * The [producer] parameter will be called later when engine is ready to produce content. You don't need to close it.
- * Provided [ByteWriteChannel] will be closed automatically.
+ * The [producer] parameter will be called later when an engine is ready to produce content. You don't need to close it.
+ * The provided [ByteWriteChannel] will be closed automatically.
  */
 public suspend fun ApplicationCall.respondBytesWriter(
     contentType: ContentType? = null,
@@ -125,12 +133,12 @@ public suspend fun ApplicationCall.respondBytesWriter(
 }
 
 /**
- * Creates a default [ContentType] based on the given [contentType] and current call
+ * Creates a default [ContentType] based on the given [contentType] and current call.
  *
- * If [contentType] is null, it tries to fetch already set response header "Content-Type". If the header is not available
- * `text/plain` is used. If [contentType] is specified, it uses it
+ * If [contentType] is `null`, it tries to fetch an already set "Content-Type" response header.
+ * If the header is not available, `text/plain` is used. If [contentType] is specified, it uses it.
  *
- * Additionally, if charset is not set for either content type, it appends `; charset=UTF-8` to the content type.
+ * Additionally, if a charset is not set for a content type, it appends `; charset=UTF-8` to the content type.
  */
 public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
     val result = when (contentType) {

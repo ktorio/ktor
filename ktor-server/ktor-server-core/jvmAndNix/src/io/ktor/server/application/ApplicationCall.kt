@@ -14,21 +14,23 @@ import kotlinx.coroutines.*
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
 /**
- * Represents a single act of communication between a client and server.
+ * A single act of communication between a client and server.
+ * @see [io.ktor.server.request.ApplicationRequest]
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 public interface ApplicationCall {
     /**
-     * Application being called
+     * An application being called.
      */
     public val application: Application
 
     /**
-     * [ApplicationRequest] that represents a client request.
+     * An [ApplicationRequest] that is a client request.
      */
     public val request: ApplicationRequest
 
     /**
-     * [ApplicationRequest] that represents a server response.
+     * An [ApplicationResponse] that is a server response.
      */
     public val response: ApplicationResponse
 
@@ -44,7 +46,7 @@ public interface ApplicationCall {
 }
 
 /**
- * Indicates if the response was sent.
+ * Indicates if a response is sent.
  */
 public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
 
