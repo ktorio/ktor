@@ -52,7 +52,6 @@ class OverridingClassLoaderTest {
 
         assertEquals("resource example\n", text)
     }
-
 }
 
 /**
@@ -66,5 +65,4 @@ class ChildLoadedClass(
     override fun invoke(): InputStream? {
         return javaClass.classLoader.getResourceAsStream(resourceName)
     }
-
 }
