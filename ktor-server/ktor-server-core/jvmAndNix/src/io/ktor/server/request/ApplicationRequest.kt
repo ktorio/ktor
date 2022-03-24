@@ -9,47 +9,53 @@ import io.ktor.server.application.*
 import io.ktor.utils.io.*
 
 /**
- * Represents client's request
+ * A client's request.
+ * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
+ * @see [ApplicationCall.request]
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 public interface ApplicationRequest {
     /**
-     * [ApplicationCall] instance this ApplicationRequest is attached to
+     * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
     public val call: ApplicationCall
 
     /**
-     * Pipeline for receiving content
+     * A pipeline for receiving content.
      */
     public val pipeline: ApplicationReceivePipeline
 
     /**
-     * Decoded parameters provided in a URL
+     * Provides access to decoded parameters of a URL query string.
      */
     public val queryParameters: Parameters
 
     /**
-     * Parameters provided in a URL
+     * Provides access to parameters of a URL query string.
      */
     public val rawQueryParameters: Parameters
 
     /**
-     * Headers for this request
+     * Provides access to headers for the current request.
+     * You can also get access to specific headers using dedicated extension functions,
+     * such as [acceptEncoding], [contentType], [cacheControl], and so on.
      */
     public val headers: Headers
 
     /**
-     * Contains http request and connection details such as a host name used to connect, port, scheme and so on.
-     * No proxy headers could affect it. Use [ApplicationRequest.origin] if you need override headers support
+     * Provides access to connection details such as a host name, port, scheme, and so on.
+     * To get information about a request passed through an HTTP proxy or a load balancer,
+     * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
      */
     public val local: RequestConnectionPoint
 
     /**
-     * Cookies for this request
+     * Provides access to cookies for this request.
      */
     public val cookies: RequestCookies
 
     /**
-     * Request's body channel (for content only)
+     * Receives a raw body payload as a channel.
      */
     public fun receiveChannel(): ByteReadChannel
 }

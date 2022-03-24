@@ -17,29 +17,29 @@ import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
- * Pipeline for processing incoming content
+ * A pipeline for processing incoming content.
  * When executed, this pipeline starts with an instance of [ByteReadChannel].
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
 ) : Pipeline<Any, ApplicationCall>(Before, Transform, After) {
     /**
-     * Pipeline phases
+     * Pipeline phases.
      */
     @Suppress("PublicApiImplicitType")
     public companion object Phases {
         /**
-         * Executes before any transformations are made
+         * Executes before any transformations are made.
          */
         public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
-         * Executes transformations
+         * Executes transformations.
          */
         public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
-         * Executes after all transformations
+         * Executes after all transformations.
          */
         public val After: PipelinePhase = PipelinePhase("After")
     }
@@ -71,7 +71,7 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
 
 /**
  * Receives content for this request.
- * @param type instance of `KClass` specifying type to be received.
+ * @param typeInfo instance specifying type to be received.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
@@ -159,8 +159,8 @@ public typealias ContentTransformationException = io.ktor.server.plugins.Content
 
 /**
  * This object is attached to an [ApplicationCall] with [DoubleReceivePreventionTokenKey] when
- * the receive function is invoked. It is used to detect double receive invocation
- * that causes [RequestAlreadyConsumedException] to be thrown unless [DoubleReceive] plugin installed.
+ * the [receive] function is invoked. It is used to detect double receive invocation
+ * that causes [RequestAlreadyConsumedException] to be thrown unless the [DoubleReceive] plugin installed.
  */
 private object DoubleReceivePreventionToken
 

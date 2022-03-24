@@ -8,14 +8,15 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 
 /**
- * Server's response cookies
+ * Server's response cookies.
+ * @see [ApplicationResponse.cookies]
  */
 public class ResponseCookies(
     private val response: ApplicationResponse,
     private val secureTransport: Boolean
 ) {
     /**
-     * Get cookie from response HTTP headers (from `Set-Cookie` header)
+     * Gets a cookie from a response's `Set-Cookie` header.
      */
     public operator fun get(name: String): Cookie? = response.headers
         .values("Set-Cookie")
@@ -23,7 +24,7 @@ public class ResponseCookies(
         .firstOrNull { it.name == name }
 
     /**
-     * Append cookie [item] using `Set-Cookie` HTTP response header
+     * Appends a cookie [item] using the `Set-Cookie` response header.
      */
     public fun append(item: Cookie) {
         if (item.secure && !secureTransport) {
@@ -33,7 +34,7 @@ public class ResponseCookies(
     }
 
     /**
-     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
+     * Appends a cookie using the `Set-Cookie` response header from the specified parameters.
      */
     @Deprecated("Convert maxAge to Long", level = DeprecationLevel.ERROR)
     public fun append(
@@ -52,7 +53,7 @@ public class ResponseCookies(
     }
 
     /**
-     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
+     * Appends a cookie using the `Set-Cookie` response header from the specified parameters.
      */
     public fun append(
         name: String,
@@ -83,7 +84,7 @@ public class ResponseCookies(
     }
 
     /**
-     * Append already expired cookie: useful to remove client cookies
+     * Appends an already expired cookie. Useful to remove client cookies.
      */
     public fun appendExpired(name: String, domain: String? = null, path: String? = null) {
         append(name, "", domain = domain, path = path, expires = GMTDate.START)

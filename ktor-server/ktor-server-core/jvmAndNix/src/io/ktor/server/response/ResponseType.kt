@@ -11,7 +11,7 @@ import kotlin.native.concurrent.*
 private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("ResponseTypeAttributeKey")
 
 /**
- * Type of the response object that was passed in [respond] function.
+ * A type of response object that is passed in the [respond] function.
  * Can be useful for custom serializations.
  */
 public var ApplicationResponse.responseType: TypeInfo?

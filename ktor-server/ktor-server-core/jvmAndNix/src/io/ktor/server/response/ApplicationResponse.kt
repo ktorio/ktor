@@ -8,21 +8,24 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 
 /**
- * Represents server's response
+ * A server's response.
+ * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
+ * @see [ApplicationCall.response]
+ * @see [io.ktor.server.request.ApplicationRequest]
  */
 public interface ApplicationResponse {
     /**
-     * [ApplicationCall] instance this ApplicationResponse is attached to
+     * An [ApplicationCall] instance this [ApplicationResponse] is attached to.
      */
     public val call: ApplicationCall
 
     /**
-     * Pipeline for sending content
+     * A pipeline for sending content.
      */
     public val pipeline: ApplicationSendPipeline
 
     /**
-     * Headers for this response
+     * Provides access to headers for the current response.
      */
     public val headers: ResponseHeaders
 
@@ -32,22 +35,22 @@ public interface ApplicationResponse {
     public val isCommitted: Boolean
 
     /**
-     * Cookies for this response
+     * Provides access to cookies for this response.
      */
     public val cookies: ResponseCookies
 
     /**
-     * Currently set status code for this response, or null if none was set
+     * Returns a response status code or `null` if a status code is not set.
      */
     public fun status(): HttpStatusCode?
 
     /**
-     * Set status for this response
+     * Specifies a status code for a response.
      */
     public fun status(value: HttpStatusCode)
 
     /**
-     * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+     * Produces HTTP/2 push from a server to a client or sets an HTTP/1.x hint header
      * or does nothing. Exact behaviour is up to engine implementation.
      */
     @UseHttp2Push

@@ -8,12 +8,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 
 /**
- * HTTP/2 push builder interface
+ * An HTTP/2 push builder interface.
  *
  * @property url push URL
  * @property headers request headers
  * @property method request method
- * @property versions request versions (last modification date, etag and so on)
+ * @property versions request versions (last modification date, etag, and so on)
  */
 @UseHttp2Push
 public interface ResponsePushBuilder {
