@@ -36,7 +36,10 @@ class OverridingClassLoaderTest {
             val childLoadedClassClazz = it.loadClass("io.ktor.server.engine.ChildLoadedClass")
             val expectedClassloaderPrefix = "io.ktor.server.engine.OverridingClassLoader\$ChildURLClassLoader"
             // Check it was loaded by the child class loader
-            check(childLoadedClassClazz.classLoader.toString().startsWith(expectedClassloaderPrefix))
+            val actualClassLoaderName = childLoadedClassClazz.classLoader.toString()
+            check(actualClassLoaderName.startsWith(expectedClassloaderPrefix)) {
+                "Was loaded by $actualClassLoaderName. Expected something with prefix $expectedClassloaderPrefix"
+            }
 
             // Great. Attempt to use it to load a resource we know exists
             val resourceStream = childLoadedClassClazz.kotlin.primaryConstructor!!
