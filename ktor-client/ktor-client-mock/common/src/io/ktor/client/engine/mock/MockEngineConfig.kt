@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -35,6 +36,11 @@ public class MockEngineConfig : HttpClientEngineConfig() {
      * Should engine reuse handlers.
      */
     public var reuseHandlers: Boolean = true
+
+    /**
+     * Dispatcher to use with [MockEngine].
+     */
+    public var dispatcher: CoroutineDispatcher = Dispatchers.Default
 
     /**
      * Add request handler to [MockEngine]
