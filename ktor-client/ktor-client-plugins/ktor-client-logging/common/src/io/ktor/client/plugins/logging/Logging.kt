@@ -134,7 +134,7 @@ public class Logging private constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
+    private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent {
         val bodyLog = StringBuilder()
         bodyLog.appendLine("BODY Content-Type: ${content.contentType}")
 
