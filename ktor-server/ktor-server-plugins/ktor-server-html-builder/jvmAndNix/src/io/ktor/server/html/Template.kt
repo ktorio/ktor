@@ -4,8 +4,6 @@
 
 package io.ktor.server.html
 
-import java.util.*
-
 /**
  * A template that expands inside [TOuter].
  * @see [respondHtmlTemplate]

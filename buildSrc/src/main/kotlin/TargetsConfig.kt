@@ -136,8 +136,8 @@ fun Project.configureTargets() {
                     getByName("${it.name}Main").dependsOn(nixMain)
                     getByName("${it.name}Test").dependsOn(nixTest)
                 }
-
             }
+
             if (hasDarwin) {
                 val nixMain: KotlinSourceSet? = findByName("nixMain")
                 val darwinMain by getting
