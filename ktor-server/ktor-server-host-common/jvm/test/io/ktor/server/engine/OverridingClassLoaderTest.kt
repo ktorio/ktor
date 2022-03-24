@@ -20,17 +20,24 @@ class OverridingClassLoaderTest {
         }
         // Ok. Then it should be possible to load it through the child class loader also.
 
-        // Contstruct absolute classpath for the test source set
-        val testClassesUrl = checkNotNull(javaClass.getResource("."))
-//            .also { println(it) }
-            .let {
-                URL(
-                    it.toString().replace(
-                        "ktor/ktor-server/ktor-server-host-common/build/classes/kotlin/jvm/main/io/ktor/server/engine/",
-                        "ktor/ktor-server/ktor-server-host-common/build/classes/kotlin/jvm/test/"
-                    )
-                )
+        // Construct absolute classpath for the test source set
+        val thisClassFilename = javaClass.simpleName + ".class"
+        val classLocation = checkNotNull(javaClass.getResource(thisClassFilename)) {
+            "Was not able to locate test class file '$thisClassFilename'"
+        }
+        check(classLocation.protocol == "file"){
+            "Expected class to be located on the file system but was ${classLocation.protocol}"
+        }
+        val testClassesUrl = run {
+            // class location is something like
+            // <AbsoluteFilePrefix>/ktor/ktor-server/ktor-server-host-common/build/classes/atomicfu/jvm/test/io/ktor/server/engine/OverridingClassLoaderTest.class
+            val classLocationString = classLocation.toString()
+            val expectedTestClassPath = "io/ktor/server/engine/OverridingClassLoaderTest.class"
+            check(classLocationString.endsWith(expectedTestClassPath)) {
+                "Expected $classLocationString to end with $expectedTestClassPath"
             }
+            URL(classLocationString.removeSuffix(expectedTestClassPath))
+        }
 
         val text = OverridingClassLoader(listOf(testClassesUrl), thisClassLoader).use {
             val childLoadedClassClazz = it.loadClass("io.ktor.server.engine.ChildLoadedClass")
@@ -38,7 +45,7 @@ class OverridingClassLoaderTest {
             // Check it was loaded by the child class loader
             val actualClassLoaderName = childLoadedClassClazz.classLoader.toString()
             check(actualClassLoaderName.startsWith(expectedClassloaderPrefix)) {
-                "Was loaded by $actualClassLoaderName. Expected something with prefix $expectedClassloaderPrefix"
+                "Was loaded by $actualClassLoaderName. Expected something with prefix $expectedClassloaderPrefix in classpath $testClassesUrl"
             }
 
             // Great. Attempt to use it to load a resource we know exists
