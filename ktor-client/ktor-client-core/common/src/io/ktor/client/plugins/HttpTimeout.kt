@@ -10,7 +10,6 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 
@@ -172,11 +171,20 @@ public fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityCo
  * This exception is thrown in case request timeout exceeded.
  */
 public class HttpRequestTimeoutException(
-    request: HttpRequestBuilder
-) : IOException(
-    "Request timeout has expired [url=${request.url.buildString()}, " +
-        "request_timeout=${request.getCapabilityOrNull(HttpTimeout)?.requestTimeoutMillis ?: "unknown"} ms]"
-)
+    url: String,
+    timeoutMillis: Long?
+) : IOException("Request timeout has expired [url=$url, request_timeout=${timeoutMillis ?: "unknown"} ms]") {
+
+    public constructor(request: HttpRequestBuilder) : this(
+        request.url.buildString(),
+        request.getCapabilityOrNull(HttpTimeout)?.requestTimeoutMillis
+    )
+
+    public constructor(request: HttpRequestData) : this(
+        request.url.toString(),
+        request.getCapabilityOrNull(HttpTimeout)?.requestTimeoutMillis
+    )
+}
 
 /**
  * This exception is thrown in case connect timeout exceeded.
