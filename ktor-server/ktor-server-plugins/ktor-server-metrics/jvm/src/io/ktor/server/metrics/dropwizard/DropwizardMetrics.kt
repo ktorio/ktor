@@ -14,30 +14,35 @@ import io.ktor.util.*
 import java.util.concurrent.*
 
 /**
- * Metrics plugin configuration object that is used during plugin installation.
+ * A configuration for the [DropwizardMetrics] plugin.
  */
 @KtorDsl
 public class DropwizardMetricsConfig {
     /**
-     * Dropwizard metrics base name (prefix)
+     * Specifies the base name (prefix) of Ktor metrics used for monitoring HTTP requests.
+     * @see [DropwizardMetrics]
      */
     public var baseName: String = name("ktor.calls")
 
     /**
-     * Dropwizard metric registry.
+     * Specifies the meter registry for your monitoring system.
+     * @see [DropwizardMetrics]
      */
     public var registry: MetricRegistry = MetricRegistry()
 
     /**
-     * By default, this plugin will register `MetricSet`s from
-     * [metrics-jvm](https://metrics.dropwizard.io/4.1.2/manual/jvm.html) in the configured [MetricRegistry].
-     * Set this to false to not register them.
+     * Allows you to configure a set of metrics for monitoring the JVM.
+     * You can disable these metrics by setting this property to `false`.
+     * @see [DropwizardMetrics]
      */
     public var registerJvmMetricSets: Boolean = true
 }
 
 /**
- * Dropwizard metrics support plugin. See https://ktor.io/docs/dropwizard-metrics.html for details.
+ * A plugin that lets you configure the `Metrics` library to get
+ * useful information about the server and incoming requests.
+ *
+ * You can learn more from [Dropwizard metrics](https://ktor.io/docs/dropwizard-metrics.html).
  */
 public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
     createApplicationPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
