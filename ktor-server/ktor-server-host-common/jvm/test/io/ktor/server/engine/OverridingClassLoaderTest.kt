@@ -25,7 +25,7 @@ class OverridingClassLoaderTest {
         val classLocation = checkNotNull(javaClass.getResource(thisClassFilename)) {
             "Was not able to locate test class file '$thisClassFilename'"
         }
-        check(classLocation.protocol == "file"){
+        check(classLocation.protocol == "file") {
             "Expected class to be located on the file system but was ${classLocation.protocol}"
         }
         val testClassesUrl = run {
@@ -45,7 +45,8 @@ class OverridingClassLoaderTest {
             // Check it was loaded by the child class loader
             val actualClassLoaderName = childLoadedClassClazz.classLoader.toString()
             check(actualClassLoaderName.startsWith(expectedClassloaderPrefix)) {
-                "Was loaded by $actualClassLoaderName. Expected something with prefix $expectedClassloaderPrefix in classpath $testClassesUrl"
+                "Was loaded by $actualClassLoaderName. Expected something with prefix $expectedClassloaderPrefix" +
+                    " in classpath $testClassesUrl"
             }
 
             // Great. Attempt to use it to load a resource we know exists
