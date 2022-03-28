@@ -17,7 +17,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * Represents a test application request
+ * A test application request
  *
  * @property method HTTP method to be sent or executed
  * @property uri HTTP url to sent request to or was sent to
@@ -66,7 +66,7 @@ public class TestApplicationRequest constructor(
     }
 
     /**
-     * Request body channel
+     * Request body channel.
      */
     var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
@@ -81,7 +81,7 @@ public class TestApplicationRequest constructor(
     private var headersMap: MutableMap<String, MutableList<String>>? = mutableMapOf()
 
     /**
-     * Add HTTP request header
+     * Adds an HTTP request header.
      */
     public fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
@@ -102,14 +102,14 @@ public class TestApplicationRequest constructor(
 }
 
 /**
- * Set HTTP request body text content
+ * Sets an HTTP request body text content.
  */
 public fun TestApplicationRequest.setBody(value: String) {
     setBody(value.toByteArray())
 }
 
 /**
- * Set HTTP request body bytes
+ * Sets an HTTP request body bytes.
  */
 public fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
@@ -123,7 +123,7 @@ public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
 }
 
 /**
- * Set multipart HTTP request body
+ * Sets a multipart HTTP request body.
  */
 public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IOBridge) {

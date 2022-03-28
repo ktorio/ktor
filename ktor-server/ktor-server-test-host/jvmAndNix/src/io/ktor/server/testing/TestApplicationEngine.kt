@@ -21,8 +21,8 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * ktor test engine that provides way to simulate application calls to existing application module(s)
- * without actual HTTP connection
+ * A test engine that provides a way to simulate application calls to the existing application module(s)
+ * without actual HTTP connection.
  */
 class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
@@ -35,7 +35,7 @@ class TestApplicationEngine(
     override val coroutineContext: CoroutineContext = testEngineJob
 
     /**
-     * An engine configuration for a test application
+     * An engine configuration for a test application.
      * @property dispatcher to run handlers and interceptors on
      */
     class Configuration : BaseApplicationEngine.Configuration() {
@@ -45,7 +45,8 @@ class TestApplicationEngine(
     internal val configuration = Configuration().apply(configure)
 
     /**
-     * interceptor for engine calls. can be modified to emulate certain engine behaviour (e.g. error handling)
+     * An interceptor for engine calls.
+     * Can be modified to emulate behaviour of a specific engine (e.g. error handling).
      */
     private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit)?> =
         atomic(null)
@@ -57,7 +58,7 @@ class TestApplicationEngine(
         }
 
     /**
-     * An instance of client engine user to be used in [client].
+     * An instance of a client engine to be used in [client].
      */
     val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
 
@@ -140,7 +141,7 @@ class TestApplicationEngine(
     }
 
     /**
-     * Install a hook for test requests
+     * Installs a hook for test requests.
      */
     fun hookRequests(
         processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
@@ -167,7 +168,7 @@ class TestApplicationEngine(
     }
 
     /**
-     * Make a test request
+     * Makes a test request.
      */
     @OptIn(DelicateCoroutinesApi::class)
     fun handleRequest(
@@ -208,7 +209,7 @@ class TestApplicationEngine(
         }
 
     /**
-     * Make a test request that setup a websocket session and wait for completion
+     * Makes a test request that sets up a websocket session and waits for completion.
      */
     fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createWebSocketCall(uri, setup)
@@ -234,7 +235,7 @@ class TestApplicationEngine(
     }
 
     /**
-     * Creates an instance of test call but doesn't start request processing
+     * Creates an instance of a test call but doesn't start request processing.
      */
     fun createCall(
         readResponse: Boolean = false,
@@ -247,7 +248,7 @@ class TestApplicationEngine(
 }
 
 /**
- * Keep cookies between requests inside the [callback].
+ * Keeps cookies between requests inside the [callback].
  *
  * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
  */
