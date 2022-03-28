@@ -217,8 +217,17 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  * 2. Use the [HttpClient] instance inside a test application to make a request to your server,
  * receive a response, and make assertions.
  *
- * The code below demonstrates how to test the most simple Ktor application that
- * accepts GET requests made to the `/` path and responds with a plain text response:
+ * Suppose, you have the following route that accepts GET requests made to the `/` path
+ * and responds with a plain text response:
+ * ```kotlin
+ * routing {
+ *     get("/") {
+ *         call.respondText("Hello, world!")
+ *     }
+ * }
+ * ```
+ *
+ * A test for this route will look as follows:
  * ```kotlin
  * @Test
  * fun testRoot() = testApplication {
@@ -227,6 +236,9 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  *     assertEquals("Hello, world!", response.bodyAsText())
  * }
  * ```
+ *
+ * _Note: If you have the `application.conf` file in the `resources` folder,
+ * [testApplication] loads all modules and properties specified in the configuration file automatically._
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  */
