@@ -19,7 +19,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Represents test call response received from server
+ * A test call response received from a server.
  * @property readResponse if response channel need to be consumed into byteContent
  */
 public class TestApplicationResponse(
@@ -28,7 +28,7 @@ public class TestApplicationResponse(
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
     /**
-     * Response body text content. Could be blocking. Remains `null` until response appears.
+     * Gets a response body text content. Could be blocking. Remains `null` until response appears.
      */
     val content: String?
         get() {
@@ -109,7 +109,7 @@ public class TestApplicationResponse(
     }
 
     /**
-     * Response body content channel
+     * Gets a response body content channel.
      */
     public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
@@ -132,7 +132,7 @@ public class TestApplicationResponse(
     }
 
     /**
-     * Wait for websocket session completion
+     * Waits for a websocket session completion.
      */
     public fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
         withTimeout(durationMillis) {
@@ -145,7 +145,7 @@ public class TestApplicationResponse(
     }
 
     /**
-     * Websocket session's channel
+     * A websocket session's channel.
      */
     public fun websocketChannel(): ByteReadChannel? = responseChannel
 }

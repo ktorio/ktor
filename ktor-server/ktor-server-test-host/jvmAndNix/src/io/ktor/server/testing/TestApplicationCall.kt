@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Represents a test application call that is used in [withTestApplication] and [handleRequest]
+ * A test application call that is used in [withTestApplication] and [handleRequest].
  */
 class TestApplicationCall(
     application: Application,
@@ -20,7 +20,7 @@ class TestApplicationCall(
 ) : BaseApplicationCall(application), CoroutineScope {
 
     /**
-     * Set to `true` when the request has been handled and a response has been produced
+     * Set to `true` when the request has been handled and a response has been produced.
      */
     @Suppress("DeprecatedCallableAddReplaceWith", "unused")
     @Deprecated(

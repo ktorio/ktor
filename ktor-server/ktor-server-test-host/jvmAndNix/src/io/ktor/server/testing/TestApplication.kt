@@ -18,17 +18,29 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
 /**
- * Provides a client attached to [TestApplication].
+ * A client attached to [TestApplication].
  */
 @KtorDsl
 public interface ClientProvider {
     /**
-     * Returns a client with default config
+     * Returns a client with the default configuration.
+     * @see [testApplication]
      */
     public val client: HttpClient
 
     /**
-     * Creates a client with custom config
+     * Creates a client with a custom configuration.
+     * For example, to send JSON data in a test POST/PUT request, you can install the `ContentNegotiation` plugin:
+     * ```kotlin
+     * fun testPostCustomer() = testApplication {
+     *     val client = createClient {
+     *         install(ContentNegotiation) {
+     *             json()
+     *         }
+     *     }
+     * }
+     * ```
+     * @see [testApplication]
      */
     @KtorDsl
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
@@ -36,6 +48,7 @@ public interface ClientProvider {
 
 /**
  * A configured instance of a test application running locally.
+ * @see [testApplication]
  */
 public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
@@ -53,6 +66,7 @@ public class TestApplication internal constructor(
 /**
  * Creates an instance of [TestApplication] configured with the builder [block].
  * Make sure to call [TestApplication.stop] after your tests.
+ * @see [testApplication]
  */
 @KtorDsl
 public fun TestApplication(
@@ -72,7 +86,8 @@ public class ExternalServicesBuilder {
     internal val externalApplications = mutableMapOf<String, TestApplication>()
 
     /**
-     * Registers a mock for external service specified by [hosts] and configured with [block].
+     * Registers a mock for an external service specified by [hosts] and configured with [block].
+     * @see [testApplication]
      */
     @KtorDsl
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
@@ -87,7 +102,7 @@ public class ExternalServicesBuilder {
 }
 
 /**
- * A builder for [TestApplication]
+ * A builder for [TestApplication].
  */
 @KtorDsl
 public open class TestApplicationBuilder {
@@ -115,7 +130,8 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Builds mocks for external services using [ExternalServicesBuilder]
+     * Builds mocks for external services using [ExternalServicesBuilder].
+     * @see [testApplication]
      */
     @KtorDsl
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
@@ -124,7 +140,8 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Builds an environment using [block]
+     * Builds an environment using [block].
+     * @see [testApplication]
      */
     @KtorDsl
     public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
@@ -133,7 +150,8 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Adds a module to [TestApplication]
+     * Adds a module to [TestApplication].
+     * @see [testApplication]
      */
     @KtorDsl
     public fun application(block: Application.() -> Unit) {
@@ -172,7 +190,7 @@ public open class TestApplicationBuilder {
 }
 
 /**
- * A builder for the test that uses [TestApplication]
+ * A builder for a test that uses [TestApplication].
  */
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
@@ -193,7 +211,36 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 }
 
 /**
- * Creates a test using [TestApplication]
+ * Creates a test using [TestApplication].
+ * To test a server Ktor application, do the following:
+ * 1. Use [testApplication] function to set up a configured instance of a test application running locally.
+ * 2. Use the [HttpClient] instance inside a test application to make a request to your server,
+ * receive a response, and make assertions.
+ *
+ * Suppose, you have the following route that accepts GET requests made to the `/` path
+ * and responds with a plain text response:
+ * ```kotlin
+ * routing {
+ *     get("/") {
+ *         call.respondText("Hello, world!")
+ *     }
+ * }
+ * ```
+ *
+ * A test for this route will look as follows:
+ * ```kotlin
+ * @Test
+ * fun testRoot() = testApplication {
+ *     val response = client.get("/")
+ *     assertEquals(HttpStatusCode.OK, response.status)
+ *     assertEquals("Hello, world!", response.bodyAsText())
+ * }
+ * ```
+ *
+ * _Note: If you have the `application.conf` file in the `resources` folder,
+ * [testApplication] loads all modules and properties specified in the configuration file automatically._
+ *
+ * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  */
 @KtorDsl
 public fun testApplication(
