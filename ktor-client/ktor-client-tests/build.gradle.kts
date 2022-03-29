@@ -171,25 +171,24 @@ rootProject.allprojects {
             if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) {
                 return@sourceSets
             }
-            if (name in listOf("macosX64Test", "linuxX64Test")) {
+            if (name in listOf("macosX64Test", "linuxX64Test", "mingwX64Test")) {
                 getByName(name) {
                     dependencies {
                         api(project(":ktor-client:ktor-client-curl"))
+                    }
+                }
+            }
+            if (name in listOf("macosX64Test", "linuxX64Test", "iosX64Test")) {
+                getByName(name) {
+                    dependencies {
                         api(project(":ktor-client:ktor-client-cio"))
                     }
                 }
             }
-            if (name == "iosX64Test") {
+            if (name in listOf("macosX64Test", "iosX64Test")) {
                 getByName(name) {
                     dependencies {
-                        api(project(":ktor-client:ktor-client-cio"))
-                    }
-                }
-            }
-            if (name == "mingwX64Test") {
-                getByName(name) {
-                    dependencies {
-                        api(project(":ktor-client:ktor-client-curl"))
+                        api(project(":ktor-client:ktor-client-darwin"))
                     }
                 }
             }
