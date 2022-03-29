@@ -30,7 +30,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     @Volatile
     private var closed = false
 
-    private val mb = LockFreeMPSCQueue<Selectable>()
+    private val selectionQueue = LockFreeMPSCQueue<Selectable>()
 
     override val coroutineContext: CoroutineContext = context + CoroutineName("selector")
 
@@ -38,26 +38,24 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         launch {
             val selector = provider.openSelector() ?: error("openSelector() = null")
             selectorRef = selector
-            try {
+            selector.use {
                 try {
-                    process(mb, selector)
-                } catch (t: Throwable) {
+                    process(selectionQueue, it)
+                } catch (cause: Throwable) {
                     closed = true
-                    mb.close()
-                    cancelAllSuspensions(selector, t)
+                    selectionQueue.close()
+                    cancelAllSuspensions(it, cause)
                 } finally {
                     closed = true
-                    mb.close()
+                    selectionQueue.close()
                     selectorRef = null
-                    cancelAllSuspensions(selector, null)
+                    cancelAllSuspensions(it, null)
                 }
 
                 while (true) {
-                    val m = mb.removeFirstOrNull() ?: break
+                    val m = selectionQueue.removeFirstOrNull() ?: break
                     cancelAllSuspensions(m, ClosedSendChannelException("Failed to apply interest: selector closed"))
                 }
-            } finally {
-                selector.close()
             }
         }
     }
@@ -71,20 +69,24 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
                     handleSelectedKeys(selector.selectedKeys(), selector.keys())
                 } else {
                     val received = mb.removeFirstOrNull()
-                    if (received != null) applyInterest(selector, received)
-                    else yield()
+                    if (received != null) applyInterest(selector, received) else yield()
                 }
-            } else if (cancelled > 0) {
+
+                continue
+            }
+
+            if (cancelled > 0) {
                 selector.selectNow()
                 if (pending > 0) {
                     handleSelectedKeys(selector.selectedKeys(), selector.keys())
                 } else {
                     cancelled = 0
                 }
-            } else {
-                val received = mb.receiveOrNull() ?: break
-                applyInterest(selector, received)
+                continue
             }
+
+            val received = mb.receiveOrNull() ?: break
+            applyInterest(selector, received)
         }
     }
 
@@ -121,11 +123,11 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         }
     }
 
-    override fun notifyClosed(s: Selectable) {
-        cancelAllSuspensions(s, ClosedChannelException())
+    override fun notifyClosed(selectable: Selectable) {
+        cancelAllSuspensions(selectable, ClosedChannelException())
         selectorRef?.let { selector ->
-            s.channel.keyFor(selector)?.let { k ->
-                k.cancel()
+            selectable.channel.keyFor(selector)?.let { key ->
+                key.cancel()
                 selectWakeup()
             }
         }
@@ -136,25 +138,23 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
      */
     override fun publishInterest(selectable: Selectable) {
         try {
-            if (mb.addLast(selectable)) {
-                if (!continuation.resume(Unit)) {
-                    selectWakeup()
-                }
+            if (selectionQueue.addLast(selectable)) {
+                continuation.resume(Unit)
+                selectWakeup()
             } else if (selectable.channel.isOpen) throw ClosedSelectorException()
             else throw ClosedChannelException()
-        } catch (t: Throwable) {
-            cancelAllSuspensions(selectable, t)
+        } catch (cause: Throwable) {
+            cancelAllSuspensions(selectable, cause)
         }
     }
 
-    private suspend fun LockFreeMPSCQueue<Selectable>.receiveOrNull(): Selectable? {
-        return removeFirstOrNull() ?: receiveOrNullSuspend()
-    }
+    private suspend fun LockFreeMPSCQueue<Selectable>.receiveOrNull(): Selectable? =
+        removeFirstOrNull() ?: receiveOrNullSuspend()
 
     private suspend fun LockFreeMPSCQueue<Selectable>.receiveOrNullSuspend(): Selectable? {
         while (true) {
-            val m = removeFirstOrNull()
-            if (m != null) return m
+            val selectable: Selectable? = removeFirstOrNull()
+            if (selectable != null) return selectable
 
             if (closed) return null
 
@@ -169,7 +169,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
      */
     override fun close() {
         closed = true
-        mb.close()
+        selectionQueue.close()
         if (!continuation.resume(Unit)) {
             selectWakeup()
         }
@@ -179,14 +179,9 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         private val ref = AtomicReference<C?>(null)
 
         fun resume(value: R): Boolean {
-            val continuation = ref.getAndSet(null)
-            if (continuation != null) {
-                continuation.resume(value)
-                /** we resume unintercepted, see [dispatchIfNeeded] */
-                return true
-            }
-
-            return false
+            val continuation = ref.getAndSet(null) ?: return false
+            continuation.resume(value)
+            return true
         }
 
         /**

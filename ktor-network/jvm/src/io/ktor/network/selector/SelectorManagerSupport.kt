@@ -16,12 +16,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     public final override val provider: SelectorProvider = SelectorProvider.provider()
 
     /**
-     * Number of pending selectables
+     * Number of pending selectable.
      */
     protected var pending: Int = 0
 
     /**
-     * Number of cancelled keys
+     * Number of cancelled keys.
      */
     protected var cancelled: Int = 0
 
@@ -43,13 +43,13 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
             throw IllegalArgumentException(message)
         }
 
-        suspendCancellableCoroutine<Unit> { c ->
-            c.invokeOnCancellation {
+        suspendCancellableCoroutine<Unit> { continuation ->
+            continuation.invokeOnCancellation {
                 // TODO: We've got a race here (and exception erasure)!
             }
-            selectable.suspensions.addSuspension(interest, c)
+            selectable.suspensions.addSuspension(interest, continuation)
 
-            if (!c.isCancelled) {
+            if (!continuation.isCancelled) {
                 publishInterest(selectable)
             }
         }

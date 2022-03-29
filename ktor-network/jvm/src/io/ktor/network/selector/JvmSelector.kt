@@ -21,10 +21,10 @@ public actual interface Selectable : Closeable, DisposableHandle {
      */
     public val interestedOps: Int
 
+    public val channel: SelectableChannel
+
     /**
      * Apply [state] flag of [interest] to [interestedOps]. Notice that is doesn't actually change selection key.
      */
     public fun interestOp(interest: SelectInterest, state: Boolean)
-
-    public val channel: SelectableChannel
 }
