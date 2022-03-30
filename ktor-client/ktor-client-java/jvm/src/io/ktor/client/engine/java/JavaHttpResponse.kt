@@ -20,6 +20,6 @@ internal suspend fun HttpClient.executeHttpRequest(
     } catch (cause: HttpConnectTimeoutException) {
         throw ConnectTimeoutException(requestData, cause)
     } catch (cause: HttpTimeoutException) {
-        throw SocketTimeoutException(requestData, cause)
+        throw HttpRequestTimeoutException(requestData)
     }
 }

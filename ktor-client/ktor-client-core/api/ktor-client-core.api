@@ -469,6 +469,8 @@ public final class io/ktor/client/plugins/HttpRequestRetryKt {
 
 public final class io/ktor/client/plugins/HttpRequestTimeoutException : java/io/IOException {
 	public fun <init> (Lio/ktor/client/request/HttpRequestBuilder;)V
+	public fun <init> (Lio/ktor/client/request/HttpRequestData;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Long;)V
 }
 
 public final class io/ktor/client/plugins/HttpSend {
