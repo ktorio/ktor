@@ -10,8 +10,8 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                implementation("org.fusesource.jansi:jansi:$jansi_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
+                implementation(libs.jansi)
+                implementation(libs.kotlinx.coroutines.slf4j)
             }
         }
 

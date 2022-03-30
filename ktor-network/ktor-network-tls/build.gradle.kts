@@ -10,7 +10,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-            api("io.netty:netty-handler:$netty_version")
+            api(libs.netty.handler)
         }
     }
 }

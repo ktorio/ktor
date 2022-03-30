@@ -3,7 +3,7 @@ kotlin.sourceSets {
     jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
-            api("com.squareup.okhttp3:okhttp:$okhttp_version")
+            api(libs.okhttp)
         }
     }
     jvmTest {

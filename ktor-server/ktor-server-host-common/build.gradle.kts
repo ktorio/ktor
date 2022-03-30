@@ -16,7 +16,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-test-host"))
             implementation(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
         }
     }
 }

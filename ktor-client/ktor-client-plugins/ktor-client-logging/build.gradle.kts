@@ -7,7 +7,7 @@ val slf4j_version: String by project.extra
 kotlin.sourceSets {
     jvmMain {
         dependencies {
-            compileOnly("org.slf4j:slf4j-simple:$slf4j_version")
+            compileOnly(libs.slf4j.simple)
         }
     }
     commonTest {

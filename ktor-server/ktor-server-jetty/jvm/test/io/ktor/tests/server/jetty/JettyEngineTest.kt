@@ -56,7 +56,7 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 
     private fun Server.addAttributesHandler() {
         addLifeCycleListener(
-            object : AbstractLifeCycle.AbstractLifeCycleListener() {
+            object : LifeCycle.Listener {
                 override fun lifeCycleStarting(event: LifeCycle?) {
                     super.lifeCycleStarting(event)
                     val delegate = handler

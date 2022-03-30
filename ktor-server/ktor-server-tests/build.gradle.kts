@@ -12,9 +12,9 @@ kotlin.sourceSets {
     }
     jvmTest {
         dependencies {
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
+            implementation(libs.jansi)
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
         }
     }
 }

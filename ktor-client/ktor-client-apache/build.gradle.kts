@@ -7,13 +7,7 @@ kotlin.sourceSets {
     jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
-            api("org.apache.httpcomponents:httpasyncclient:$apache_version")
-            implementation("org.apache.httpcomponents:httpcore-nio:$apache_core_version") {
-                because("https://github.com/ktorio/ktor/issues/1018")
-            }
-            implementation("org.apache.httpcomponents:httpcore:$apache_core_version") {
-                because("https://github.com/ktorio/ktor/issues/1018")
-            }
+            api(libs.apache.httpasyncclient)
         }
     }
     jvmTest {

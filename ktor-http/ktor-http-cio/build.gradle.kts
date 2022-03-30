@@ -17,7 +17,7 @@ kotlin.sourceSets {
 
     jvmTest {
         dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

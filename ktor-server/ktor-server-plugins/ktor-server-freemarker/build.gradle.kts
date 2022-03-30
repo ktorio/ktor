@@ -1,7 +1,7 @@
 kotlin.sourceSets {
     jvmMain {
         dependencies {
-            api("org.freemarker:freemarker:[2.3.20, 2.4)")
+            api(libs.freemarker)
         }
     }
     jvmTest {
