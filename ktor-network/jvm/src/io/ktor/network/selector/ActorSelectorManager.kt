@@ -38,23 +38,24 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         launch {
             val selector = provider.openSelector() ?: error("openSelector() = null")
             selectorRef = selector
-            selector.use {
+            selector.use { currentSelector ->
                 try {
-                    process(selectionQueue, it)
+                    process(selectionQueue, currentSelector)
                 } catch (cause: Throwable) {
                     closed = true
                     selectionQueue.close()
-                    cancelAllSuspensions(it, cause)
+                    cancelAllSuspensions(currentSelector, cause)
                 } finally {
                     closed = true
                     selectionQueue.close()
                     selectorRef = null
-                    cancelAllSuspensions(it, null)
+                    cancelAllSuspensions(currentSelector, null)
                 }
 
                 while (true) {
-                    val m = selectionQueue.removeFirstOrNull() ?: break
-                    cancelAllSuspensions(m, ClosedSendChannelException("Failed to apply interest: selector closed"))
+                    val selectable = selectionQueue.removeFirstOrNull() ?: break
+                    val cause = ClosedSendChannelException("Failed to apply interest: selector closed")
+                    cancelAllSuspensions(selectable, cause)
                 }
             }
         }
