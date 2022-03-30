@@ -121,7 +121,7 @@ class ConnectionTest {
                                 writer.writeStringUtf8("$line\r\n")
                                 writer.flush()
                             }
-                            delay(2000) //await reading from client socket
+                            delay(2000) // await reading from client socket
                         }
                 }
 

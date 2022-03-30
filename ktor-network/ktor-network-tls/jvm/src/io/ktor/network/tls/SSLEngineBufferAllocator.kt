@@ -59,5 +59,4 @@ internal class SSLEngineBufferAllocator(private val engine: SSLEngine) {
         new.put(buffer)
         return new
     }
-
 }
