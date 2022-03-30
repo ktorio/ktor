@@ -2,7 +2,7 @@
 kotlin.sourceSets {
     jvmMain {
         dependencies {
-            api("com.github.spullara.mustache.java:compiler:0.9.10")
+            api(libs.mustache)
         }
     }
     jvmTest {

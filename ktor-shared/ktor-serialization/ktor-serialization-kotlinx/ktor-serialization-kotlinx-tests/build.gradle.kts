@@ -16,9 +16,9 @@ kotlin.sourceSets {
     jvmMain {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")) // ktlint-disable max-line-length
 
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
         }
     }
 }

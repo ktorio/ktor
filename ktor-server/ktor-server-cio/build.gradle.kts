@@ -22,7 +22,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
         }
     }
 }

@@ -20,6 +20,6 @@ kotlin.sourceSets.jvmMain {
         api(project(":ktor-client:ktor-client-tests"))
         api(project(":ktor-server:ktor-server-test-host"))
         api("com.fasterxml.jackson.core:jackson-annotations:$jackson_version")
-        api("ch.qos.logback:logback-classic:$logback_version")
+        api(libs.logback.classic)
     }
 }

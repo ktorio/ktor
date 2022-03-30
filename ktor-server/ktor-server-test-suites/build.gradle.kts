@@ -23,14 +23,14 @@ kotlin.sourceSets {
 
             implementation(kotlin("test-junit"))
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 
     jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
         }
     }
 }

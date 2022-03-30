@@ -2,10 +2,6 @@ description = "Ktor http client"
 
 val coroutines_version: String by project
 
-val node_fetch_version: String by project
-val abort_controller_version: String by project
-val ws_version: String by project
-
 kotlin.sourceSets {
     commonMain {
         dependencies {
@@ -17,15 +13,15 @@ kotlin.sourceSets {
 
     jvmMain {
         dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.slf4j)
         }
     }
 
     jsMain {
         dependencies {
-            api(npm("node-fetch", node_fetch_version))
-            api(npm("abort-controller", abort_controller_version))
-            api(npm("ws", ws_version))
+            api(npm("node-fetch", libs.versions.node.fetch.version.get()))
+            api(npm("abort-controller", libs.versions.abort.controller.version.get()))
+            api(npm("ws", libs.versions.ws.version.get()))
         }
     }
 

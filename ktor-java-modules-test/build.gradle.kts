@@ -20,7 +20,6 @@ tasks.register("generateModuleInfo") {
                 modules.forEach { writer.write("\trequires $it;\n") }
                 writer.write("}")
             }
-
     }
 }
 

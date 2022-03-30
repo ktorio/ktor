@@ -18,28 +18,28 @@ kotlin.sourceSets {
             api(project(":ktor-shared:ktor-serialization"))
             api(project(":ktor-shared:ktor-events"))
 
-            api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+            api(libs.kotlin.reflect)
         }
     }
 
     jvmMain {
         dependencies {
-            api("com.typesafe:config:$typesafe_config_version")
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
+            api(libs.typesafe.config)
+            implementation(libs.jansi)
         }
     }
 
     val jvmAndNixTest by getting {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
-            api("ch.qos.logback:logback-classic:$logback_version")
+            api(libs.logback.classic)
             api(project(":ktor-network"))
         }
     }
 
     jvmTest {
         dependencies {
-            implementation("io.mockk:mockk:$mockk_version")
+            implementation(libs.mockk)
         }
     }
 }

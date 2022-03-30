@@ -10,12 +10,12 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api("org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serialization_version")
+            api(libs.kotlinx.serialization.cbor)
         }
     }
     commonTest {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
+            api(libs.kotlinx.serialization.json)
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
         }
     }

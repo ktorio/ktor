@@ -25,27 +25,15 @@ repositories {
     }
 }
 
-val props = Properties().apply {
-    file("../gradle.properties").inputStream().use { load(it) }
-}
-
-fun version(target: String): String {
-    // Intercept reading from properties file
-    if (target == "kotlin") {
-        val snapshotVersion = properties["kotlin_snapshot_version"]
-        if (snapshotVersion != null) return snapshotVersion.toString()
-    }
-    return properties["${target}_version"].safeAs<String>() ?: props.getProperty("${target}_version")
-}
-
 sourceSets.main {
 }
 
 dependencies {
-    println("Used kotlin version in buildSrc: " + version("kotlin"))
-    implementation(kotlin("gradle-plugin", version("kotlin")))
-    implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
-    implementation("org.jmailen.gradle:kotlinter-gradle:${version("ktlint")}")
+    implementation(kotlin("gradle-plugin", libs.versions.kotlin.version.get()))
+    implementation(kotlin("serialization", libs.versions.kotlin.version.get()))
+
+    val ktlint_version = libs.versions.ktlint.version.get()
+    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 }
 
 kotlin {

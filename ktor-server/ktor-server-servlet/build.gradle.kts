@@ -6,15 +6,15 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
 
-            compileOnly("javax.servlet:javax.servlet-api:4.0.1")
+            compileOnly(libs.javax.servlet)
         }
     }
 
     jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            implementation("io.mockk:mockk:$mockk_version")
-            implementation("javax.servlet:javax.servlet-api:4.0.1")
+            implementation(libs.mockk)
+            implementation(libs.javax.servlet)
         }
     }
 }

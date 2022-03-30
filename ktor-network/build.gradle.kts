@@ -26,7 +26,7 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation("io.mockk:mockk:$mockk_version")
+                implementation(libs.mockk)
             }
         }
     }

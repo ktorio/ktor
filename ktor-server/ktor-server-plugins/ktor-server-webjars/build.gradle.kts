@@ -4,13 +4,13 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                api("org.webjars:webjars-locator-core:0.48")
+                api(libs.webjars.locator)
             }
         }
         jvmTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-                api("org.webjars:jquery:3.3.1")
+                api(libs.webjars.jquery)
             }
         }
     }

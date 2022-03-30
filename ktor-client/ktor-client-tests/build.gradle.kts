@@ -72,7 +72,7 @@ kotlin.sourceSets {
     }
     jvmMain {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
+            api(libs.kotlinx.serialization.json)
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-cio"))
@@ -81,10 +81,10 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api("ch.qos.logback:logback-classic:$logback_version")
-            api("junit:junit:$junit_version")
-            api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+            api(libs.logback.classic)
+            api(libs.junit)
+            api(libs.kotlin.test.junit)
+            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 
@@ -98,7 +98,7 @@ kotlin.sourceSets {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
             implementation(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.slf4j)
         }
     }
 

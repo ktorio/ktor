@@ -155,35 +155,6 @@ class ServerGsonTest {
         }
     }
 
-    @Test
-    fun testReceiveExcludedClass(): Unit = withTestApplication {
-        data class Excluded(val x: Int)
-
-        application.install(ContentNegotiation) {
-            gson()
-            register(contentType = ContentType.Text.Any, converter = GsonConverter())
-        }
-
-        application.routing {
-            post("/") {
-                val result = try {
-                    call.receive<Excluded>().toString()
-                } catch (expected: ExcludedTypeGsonException) {
-                    "OK"
-                }
-                call.respondText(result)
-            }
-        }
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader(HttpHeaders.ContentType, "application/json")
-            setBody("{\"x\": 777}")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
-        }
-    }
-
     private class NullValues
 
     @Test

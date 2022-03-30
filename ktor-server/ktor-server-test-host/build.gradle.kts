@@ -29,16 +29,16 @@ kotlin.sourceSets {
             // so shouldn"t increase the size of the final artifact.
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
 
-            api("org.eclipse.jetty.http2:http2-client:$jetty_version")
-            api("org.eclipse.jetty:jetty-client:$jetty_version")
-            api("org.eclipse.jetty.http2:http2-http-client-transport:$jetty_version")
+            api(libs.jetty.http2.client)
+            api(libs.jetty.client)
+            api(libs.jetty.http2.client.transport)
 
             if (jetty_alpn_boot_version != null) {
-                api("org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
+                api(libs.jetty.alpn.boot)
             }
 
-            api("junit:junit:$junit_version")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+            api(libs.junit)
+            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 

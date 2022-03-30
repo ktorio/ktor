@@ -11,7 +11,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-utils"))
-            api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
+            api(libs.kotlinx.serialization.core)
         }
     }
 }

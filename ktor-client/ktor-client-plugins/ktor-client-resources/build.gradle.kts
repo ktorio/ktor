@@ -10,7 +10,7 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-shared:ktor-resources"))
-            api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version")
+            api(libs.kotlinx.serialization.core)
         }
     }
 }
