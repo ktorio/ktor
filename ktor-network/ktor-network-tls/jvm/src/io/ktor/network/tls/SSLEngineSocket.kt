@@ -39,19 +39,19 @@ internal class SSLEngineSocket(
                 var destination = bufferAllocator.allocateApplication(0)
                 loop@ while (true) {
                     destination.clear()
-                    //println("[$debugString] READING: readAndUnwrap.START")
-                    //println("[$debugString] READING_BEFORE_UNWRAP: $destination")
+                    // println("[$debugString] READING: readAndUnwrap.START")
+                    // println("[$debugString] READING_BEFORE_UNWRAP: $destination")
                     val result = unwrapper.readAndUnwrap(destination) { destination = it } ?: break@loop
-                    //println("[$debugString] READING_AFTER_UNWRAP: $destination")
-                    //println("[$debugString] READING: readAndUnwrap.STOP")
+                    // println("[$debugString] READING_AFTER_UNWRAP: $destination")
+                    // println("[$debugString] READING: readAndUnwrap.STOP")
 
                     destination.flip()
-                    //println("[$debugString] READING_WRITE_BEFORE: $destination")
+                    // println("[$debugString] READING_WRITE_BEFORE: $destination")
                     if (destination.remaining() > 0) {
                         this.channel.writeFully(destination)
                         this.channel.flush()
                     }
-                    //println("[$debugString] READING_WRITE_AFTER: $destination")
+                    // println("[$debugString] READING_WRITE_AFTER: $destination")
 
                     handleResult(result)
                     if (result.status == SSLEngineResult.Status.CLOSED) break@loop
@@ -60,7 +60,7 @@ internal class SSLEngineSocket(
                 error = cause
                 throw cause
             } finally {
-                //println(error)
+                // println(error)
                 unwrapper.cancel(error)
                 engine.closeOutbound()
                 doClose(error)
@@ -75,17 +75,17 @@ internal class SSLEngineSocket(
                 val source = bufferAllocator.allocateApplication(0)
                 loop@ while (true) {
                     source.clear()
-                    //println("[$debugString] WRITING_READ_BEFORE: $source")
+                    // println("[$debugString] WRITING_READ_BEFORE: $source")
                     if (this.channel.readAvailable(source) == -1) break@loop
-                    //println("[$debugString] WRITING_READ_AFTER: $source")
+                    // println("[$debugString] WRITING_READ_AFTER: $source")
                     source.flip()
-                    //println("[$debugString] WRITING_BEFORE_SOURCE: $source")
+                    // println("[$debugString] WRITING_BEFORE_SOURCE: $source")
                     while (source.remaining() > 0) {
-                        //println("[$debugString] WRITING: wrapAndWrite.START")
-                        //println("[$debugString] WRITING_BEFORE_WRAP: $source")
+                        // println("[$debugString] WRITING: wrapAndWrite.START")
+                        // println("[$debugString] WRITING_BEFORE_WRAP: $source")
                         val result = wrapper.wrapAndWrite(source)
-                        //println("[$debugString] WRITING_AFTER_WRAP: $source")
-                        //println("[$debugString] WRITING: wrapAndWrite.STOP")
+                        // println("[$debugString] WRITING_AFTER_WRAP: $source")
+                        // println("[$debugString] WRITING: wrapAndWrite.STOP")
 
                         handleResult(result)
                         if (result.status == SSLEngineResult.Status.CLOSED) break@loop
@@ -95,13 +95,13 @@ internal class SSLEngineSocket(
                 error = cause
                 throw cause
             } finally {
-                //println(error)
-                engine.closeInbound() //TODO: when this should be called???
+                // println(error)
+                engine.closeInbound() // TODO: when this should be called???
                 doClose(error)
             }
         }
 
-    //TODO proper close implementation?
+    // TODO proper close implementation?
     override fun close() {
         engine.closeOutbound()
         if (isActive) launch {
@@ -133,7 +133,7 @@ internal class SSLEngineSocket(
         var temp = bufferAllocator.allocateApplication(0)
         var status = initialStatus
         while (true) {
-            //println("[$debugString] HANDSHAKE: $status")
+            // println("[$debugString] HANDSHAKE: $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_TASK -> {
                     coroutineScope {
@@ -147,15 +147,15 @@ internal class SSLEngineSocket(
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     temp.clear()
                     temp.flip()
-                    //println("[$debugString] HANDSHAKE: wrapAndWrite.START")
+                    // println("[$debugString] HANDSHAKE: wrapAndWrite.START")
                     status = wrapper.wrapAndWrite(temp).handshakeStatus
-                    //println("[$debugString] HANDSHAKE: wrapAndWrite.STOP")
+                    // println("[$debugString] HANDSHAKE: wrapAndWrite.STOP")
                 }
                 SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
                     temp.clear()
-                    //println("[$debugString] HANDSHAKE: readAndUnwrap.START")
+                    // println("[$debugString] HANDSHAKE: readAndUnwrap.START")
                     status = unwrapper.readAndUnwrap(temp) { temp = it }?.handshakeStatus ?: break
-                    //println("[$debugString] HANDSHAKE: readAndUnwrap.STOP")
+                    // println("[$debugString] HANDSHAKE: readAndUnwrap.STOP")
                 }
                 else -> break
             }
@@ -164,5 +164,4 @@ internal class SSLEngineSocket(
 
     private val SSLEngineResult.HandshakeStatus.needHandshake: Boolean
         get() = this != SSLEngineResult.HandshakeStatus.FINISHED && this != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING
-
 }
