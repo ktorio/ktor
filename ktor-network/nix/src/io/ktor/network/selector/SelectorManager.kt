@@ -16,7 +16,7 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
      */
-    public actual fun notifyClosed(s: Selectable)
+    public actual fun notifyClosed(selectable: Selectable)
 
     /**
      * Suspends until [interest] is selected for [selectable]
