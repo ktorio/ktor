@@ -66,6 +66,21 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun testKeepsContentType(): Unit = testWithEngine(MockEngine) {
+        setupWithContentNegotiation {
+            register(ContentType("testing", "a"), TestContentConverter())
+        }
+
+        test { client ->
+            val response = client.get("https://test.com/") {
+                contentType(ContentType("testing", "b"))
+                setBody(ByteArray(100))
+            }
+            assertEquals(ContentType("testing", "b"), response.call.request.content.contentType)
+        }
+    }
+
+    @Test
     fun replaceContentTypeInRequestPipeline(): Unit = testWithEngine(MockEngine) {
         val bodyContentType = ContentType("testing", "a")
         val sentContentType = ContentType("testing", "b")

@@ -93,15 +93,16 @@ public class ContentNegotiation internal constructor(
                 registrations.forEach { context.accept(it.contentTypeToSend) }
 
                 val contentType = context.contentType() ?: return@intercept
-                context.headers.remove(HttpHeaders.ContentType)
 
                 if (payload is Unit || payload is EmptyContent) {
+                    context.headers.remove(HttpHeaders.ContentType)
                     proceedWith(EmptyContent)
                     return@intercept
                 }
 
                 val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
                     .takeIf { it.isNotEmpty() } ?: return@intercept
+                context.headers.remove(HttpHeaders.ContentType)
 
                 // Pick the first one that can convert the subject successfully
                 val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
