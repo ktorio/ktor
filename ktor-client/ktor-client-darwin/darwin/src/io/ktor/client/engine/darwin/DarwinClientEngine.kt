@@ -6,28 +6,25 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
+import kotlin.coroutines.*
 
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
 
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
 
     @OptIn(InternalAPI::class, UnsafeNumber::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val responseReader = DarwinResponseReader(callContext, data, config)
-
-        val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
-            setupProxy(config)
-            config.sessionConfig(this)
-        }
 
         val url = URLBuilder().takeFrom(data.url).buildString()
 
@@ -49,6 +46,52 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
             config.requestConfig(this)
         }
 
+        if (data.isUpgradeRequest()) {
+            return executeWebSocketRequest(nativeRequest, callContext)
+        }
+
+        return executeRequest(data, nativeRequest, callContext)
+    }
+
+    @OptIn(UnsafeNumber::class)
+    private suspend fun executeWebSocketRequest(
+        nativeRequest: NSMutableURLRequest,
+        callContext: CoroutineContext
+    ): HttpResponseData {
+        val websocketSession = DarwinWebsocketSession(GMTDate(), callContext)
+        val session = NSURLSession.sessionWithConfiguration(
+            NSURLSessionConfiguration.defaultSessionConfiguration(),
+            websocketSession.delegate,
+            NSOperationQueue.currentQueue()
+        )
+        val task = session.webSocketTaskWithRequest(nativeRequest)
+        websocketSession.task = task
+
+        launch(callContext) {
+            task.resume()
+        }
+
+        return try {
+            websocketSession.response.await()
+        } catch (cause: CancellationException) {
+            if (task.state == NSURLSessionTaskStateRunning) {
+                task.cancel()
+            }
+            throw cause
+        }
+    }
+
+    @OptIn(UnsafeNumber::class)
+    private suspend fun executeRequest(
+        data: HttpRequestData,
+        nativeRequest: NSMutableURLRequest,
+        callContext: CoroutineContext
+    ): HttpResponseData {
+        val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
+            setupProxy(config)
+            config.sessionConfig(this)
+        }
+        val responseReader = DarwinResponseReader(callContext, data, config)
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
             responseReader,
