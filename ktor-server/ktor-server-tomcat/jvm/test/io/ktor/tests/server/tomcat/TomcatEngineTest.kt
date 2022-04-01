@@ -11,7 +11,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
-import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
 import org.apache.catalina.core.*
@@ -33,8 +32,7 @@ class TomcatCompressionTest :
     }
 }
 
-class TomcatContentTest :
-    ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -50,13 +48,6 @@ class TomcatHttpServerCommonTest :
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
             Logger.getLogger(it).apply { level = Level.WARNING }
-        }
-    }
-
-    internal class AttributeFilter : Filter {
-        override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-            request.setAttribute("ktor.test.attribute", "135")
-            chain.doFilter(request, response)
         }
     }
 }

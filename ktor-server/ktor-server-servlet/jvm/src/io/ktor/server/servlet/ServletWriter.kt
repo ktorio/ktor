@@ -15,7 +15,7 @@ import javax.servlet.*
 
 internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
-    return reader(Dispatchers.Unconfined, writer.channel) {
+    return reader(Dispatchers.IO, writer.channel) {
         writer.run()
     }
 }
@@ -38,7 +38,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     private val events = Channel<Unit>(2)
 
-    public suspend fun run() {
+    suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             output.setWriteListener(this)

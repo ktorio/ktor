@@ -12,17 +12,19 @@ import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
 
-internal fun CoroutineScope.servletReader(input: ServletInputStream): WriterJob {
-    val reader = ServletReader(input)
+internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
+    val reader = ServletReader(input, contentLength)
 
-    return writer(Dispatchers.Unconfined, reader.channel) {
+    return writer(Dispatchers.IO, reader.channel) {
         reader.run()
     }
 }
 
-private class ServletReader(val input: ServletInputStream) : ReadListener {
+private class ServletReader(val input: ServletInputStream, contentLength: Int) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
+
+    private val contentLength: Int = if (contentLength < 0) Int.MAX_VALUE else contentLength
 
     suspend fun run() {
         val buffer = ArrayPool.borrow()
@@ -52,15 +54,32 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun loop(buffer: ByteArray) {
+        var bodySize = 0
         while (true) {
             if (input.isReady) {
-                val rc = input.read(buffer)
-                if (rc == -1) {
+                val readCount = input.read(buffer)
+                if (readCount == -1) {
                     events.close()
                     break
                 }
 
-                channel.writeFully(buffer, 0, rc)
+                bodySize += readCount
+
+                channel.writeFully(buffer, 0, readCount)
+
+                if (bodySize == contentLength) {
+                    channel.close()
+                    events.close()
+                    break
+                }
+                if (bodySize > contentLength) {
+                    val cause = IOException(
+                        "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
+                    )
+                    channel.close(cause)
+                    events.close()
+                    break
+                }
             } else {
                 channel.flush()
                 events.receiveCatching().getOrNull() ?: break

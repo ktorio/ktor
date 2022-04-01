@@ -13,7 +13,6 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
-import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -62,8 +61,12 @@ public class AsyncServletApplicationRequest(
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 
     private var upgraded = false
+
     private val inputStreamChannel by lazy {
-        if (!upgraded) servletReader(servletRequest.inputStream).channel else ByteReadChannel.Empty
+        if (!upgraded) {
+            val contentLength = servletRequest.contentLength
+            servletReader(servletRequest.inputStream, contentLength).channel
+        } else ByteReadChannel.Empty
     }
 
     override fun receiveChannel(): ByteReadChannel = inputStreamChannel
