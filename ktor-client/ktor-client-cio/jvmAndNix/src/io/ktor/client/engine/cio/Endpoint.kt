@@ -265,7 +265,7 @@ internal class Endpoint(
 private suspend fun <T> CoroutineScope.handleTimeout(
     timeout: Long,
     block: suspend CoroutineScope.() -> T
-): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS) {
+): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS || timeout == 0L) {
     block()
 } else {
     withTimeout(timeout, block)
