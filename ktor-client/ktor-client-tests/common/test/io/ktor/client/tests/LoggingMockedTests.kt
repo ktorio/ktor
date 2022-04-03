@@ -273,14 +273,6 @@ class LoggingMockedTests {
             "BODY Content-Type: null",
             "BODY START",
             "",
-            "BODY END",
-            "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
-            "FROM: http://somewhere/not_filtered_path",
-            "COMMON HEADERS",
-            "BODY Content-Type: null",
-            "BODY START",
-            "",
             "BODY END"
         )
 
