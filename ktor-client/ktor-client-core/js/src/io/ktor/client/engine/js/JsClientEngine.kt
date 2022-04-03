@@ -131,7 +131,9 @@ private fun Event.asString(): String = buildString {
 
 private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
-        append(key, value)
+        value.split(",").forEach { valueItem ->
+            append(key, valueItem.trim())
+        }
     }
 
     Unit

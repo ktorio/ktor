@@ -36,7 +36,11 @@ internal class DarwinResponseReader(
 
         val status = HttpStatusCode.fromValue(response.statusCode.toInt())
         val headers = buildHeaders {
-            headersDict.mapKeys { (key, value) -> append(key, value) }
+            headersDict.mapKeys { entry ->
+                entry.value.split(",").forEach{ valueItem ->
+                    append(entry.key, valueItem.trim())
+                }
+            }
         }
 
         val responseBody = GlobalScope.writer(callContext + Dispatchers.Unconfined, autoFlush = true) {
