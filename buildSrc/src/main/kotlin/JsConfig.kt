@@ -11,7 +11,6 @@ fun Project.configureJs() {
     configureJsTasks()
 
     kotlin {
-        val kotlin_version: String by extra
         sourceSets {
             val jsTest by getting {
                 dependencies {

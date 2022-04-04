@@ -1,8 +1,5 @@
 description = ""
 
-val jansi_version: String by project.extra
-val logback_version: String by project.extra
-
 kotlin.sourceSets {
     commonMain {
         dependencies {

@@ -1,9 +1,5 @@
 description = ""
 
-val gson_version: String by project.extra
-val kotlin_version: String by project.extra
-val logback_version: String by project.extra
-
 kotlin.sourceSets {
     jvmMain {
         dependencies {

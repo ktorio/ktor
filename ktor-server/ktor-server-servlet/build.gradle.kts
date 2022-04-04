@@ -1,5 +1,4 @@
 description = ""
-val mockk_version: String by extra
 
 kotlin.sourceSets {
     jvmMain {

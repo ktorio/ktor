@@ -4,12 +4,6 @@
 
 description = ""
 
-val typesafe_config_version: String by extra
-val kotlin_version: String by extra
-val mockk_version: String by extra
-val jansi_version: String by extra
-val logback_version: String by extra
-
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {

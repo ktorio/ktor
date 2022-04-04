@@ -1,7 +1,5 @@
 description = "Ktor http client"
 
-val coroutines_version: String by project
-
 kotlin.sourceSets {
     commonMain {
         dependencies {

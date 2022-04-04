@@ -4,12 +4,6 @@
 pluginManagement {
     val build_snapshot_train: String? by settings
     repositories {
-        val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_ENABLED")?.toBoolean() == true
-        if (cacheRedirectorEnabled) {
-            println("Redirecting repositories for buildSrc buildscript")
-            maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
-        }
-
         maven("https://plugins.gradle.org/m2")
         if (build_snapshot_train?.toBoolean() == true) {
             mavenLocal()
@@ -18,7 +12,6 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 }
-
 
 dependencyResolutionManagement {
     versionCatalogs {

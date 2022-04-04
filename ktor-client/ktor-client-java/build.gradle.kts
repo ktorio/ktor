@@ -1,5 +1,3 @@
-val coroutines_version: String by project.extra
-
 kotlin.sourceSets {
     jvmMain {
         dependencies {

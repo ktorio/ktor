@@ -2,8 +2,6 @@ plugins {
     id("kotlinx-serialization")
 }
 
-val logback_version: String by project.extra
-
 kotlin.sourceSets {
     commonMain {
         dependencies {

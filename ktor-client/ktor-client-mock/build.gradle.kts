@@ -1,6 +1,4 @@
 
-val serialization_version: String by project.extra
-
 plugins {
     id("kotlinx-serialization")
 }

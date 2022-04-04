@@ -1,11 +1,6 @@
 description = ""
 
 val jetty_alpn_boot_version: String? by extra
-val logback_version: String by extra
-val jetty_version: String by extra
-val coroutines_version: String by extra
-val junit_version: String by extra
-val kotlin_version: String by extra
 
 kotlin.sourceSets {
     jvmAndNixMain {

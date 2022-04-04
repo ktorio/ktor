@@ -1,8 +1,5 @@
 description = ""
 
-val tomcat_version: String by extra
-val logback_version: String by extra
-
 kotlin.sourceSets {
     jvmMain {
         dependencies {
