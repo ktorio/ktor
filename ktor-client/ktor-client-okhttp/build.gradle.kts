@@ -1,4 +1,3 @@
-val okhttp_version: String by project.extra
 kotlin.sourceSets {
     jvmMain {
         dependencies {

@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "1.6.20-RC2"
+kotlin-version = "1.6.20"
 kotlinx-html-version = "0.7.5"
 coroutines-version = "1.6.0"
 atomicfu-version = "0.17.1"
@@ -104,6 +104,7 @@ json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref =
 gson = { module = "com.google.code.gson:gson", version.ref = "gson-version" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-version" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-version" }
 
 jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi-version" }
 typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-version" }
@@ -139,4 +140,4 @@ thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf-versi
 
 javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet-version" }
 
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization" , version.ref = "xmlutil-version" }
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }

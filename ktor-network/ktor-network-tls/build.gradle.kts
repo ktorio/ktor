@@ -1,5 +1,3 @@
-val netty_version: String by project.extra
-
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {

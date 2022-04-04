@@ -1,5 +1,3 @@
-val kotlinx_html_version: String by extra
-
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {

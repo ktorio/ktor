@@ -1,10 +1,5 @@
 description = ""
 
-val kotlin_version: String by project.extra
-val jackson_version: String by project.extra
-val jackson_kotlin_version: String by project.extra
-val logback_version: String by project.extra
-
 kotlin {
     sourceSets {
         jvmMain {

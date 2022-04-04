@@ -1,10 +1,6 @@
 description = ""
 
-val netty_version: String by extra
 val jetty_alpn_api_version: String by extra
-val netty_tcnative_version: String by extra
-val mockk_version: String by extra
-val logback_version: String by extra
 
 val enableAlpnProp = project.hasProperty("enableAlpn")
 val osName = System.getProperty("os.name").toLowerCase()

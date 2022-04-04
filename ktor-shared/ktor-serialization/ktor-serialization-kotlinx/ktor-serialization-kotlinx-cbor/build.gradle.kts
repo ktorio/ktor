@@ -1,5 +1,3 @@
-val serialization_version: String by project.extra
-
 description = "Ktor CBOR Content Negotiation via kotlinx.serialization support"
 
 plugins {

@@ -4,8 +4,6 @@ plugins {
     id("kotlinx-serialization")
 }
 
-val serialization_version: String by project.extra
-
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {

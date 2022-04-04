@@ -1,7 +1,5 @@
 description = "Jetty based client engine"
 
-val jetty_version: String by project.extra
-
 kotlin.sourceSets {
     jvmMain {
         dependencies {

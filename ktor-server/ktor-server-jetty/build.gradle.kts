@@ -1,6 +1,4 @@
 description = ""
-val jetty_version: String by extra
-val logback_version: String by extra
 
 kotlin {
     sourceSets {

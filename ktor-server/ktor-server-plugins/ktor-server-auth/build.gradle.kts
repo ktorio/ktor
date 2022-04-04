@@ -4,8 +4,6 @@
 
 description = ""
 
-val logback_version: String by extra
-
 kotlin {
     sourceSets {
         commonMain {

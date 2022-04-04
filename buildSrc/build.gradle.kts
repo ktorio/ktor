@@ -9,14 +9,9 @@ plugins {
     `kotlin-dsl`
 }
 
-val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_ENABLED")?.toBoolean() == true
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
 repositories {
-    if (cacheRedirectorEnabled) {
-        maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
-    }
-
     maven("https://plugins.gradle.org/m2")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
 

@@ -1,8 +1,3 @@
-val json_simple_version: String by project.extra
-val java_jwt_version: String by project.extra
-val jwks_rsa_version: String by project.extra
-val mokito_kotlin_version: String by project.extra
-
 kotlin.sourceSets {
     jvmMain {
         dependencies {

@@ -3,8 +3,6 @@
  */
 
 description = ""
-val jansi_version: String by project.extra
-val coroutines_version: String by project
 
 kotlin {
     sourceSets {

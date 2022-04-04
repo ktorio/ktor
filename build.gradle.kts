@@ -16,6 +16,7 @@ buildscript {
      */
     extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"].let { it != null && it != "" }
     val build_snapshot_train: Boolean by extra
+
     if (build_snapshot_train) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
@@ -37,8 +38,7 @@ buildscript {
             }
         }
     }
-    // These three flags are enabled in train builds for JVM IR compiler testing
-    extra["jvm_ir_api_check_enabled"] = rootProject.properties["enable_jvm_ir_api_check"] != null
+
     // This flag is also used in settings.gradle to exclude native-only projects
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
@@ -49,19 +49,6 @@ buildscript {
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
-
-    val kotlin_version: String by extra
-    val atomicfu_version: String by extra
-    val validator_version: String by extra
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version")
-    }
-
-    CacheRedirector.configureBuildScript(rootProject, this)
 }
 
 val releaseVersion: String? by extra
@@ -103,6 +90,8 @@ apply(from = "gradle/compatibility.gradle")
 
 plugins {
     id("org.jetbrains.dokka") version "1.6.10"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
+    id("kotlinx-atomicfu") version "0.17.1" apply false
 }
 
 allprojects {
@@ -118,8 +107,6 @@ allprojects {
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
-
-    CacheRedirector.configure(this)
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects

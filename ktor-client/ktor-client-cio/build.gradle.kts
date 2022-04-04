@@ -1,7 +1,5 @@
 description = "CIO backend for ktor http client"
 
-val logback_version: String by project.extra
-
 kotlin {
     sourceSets {
         commonMain {

@@ -1,7 +1,5 @@
 description = ""
 
-val coroutines_version: String by extra
-
 kotlin.sourceSets {
     commonMain {
         dependencies {
