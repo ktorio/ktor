@@ -9,6 +9,7 @@ import org.gradle.api.publish.maven.tasks.*
 import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
+import java.util.concurrent.locks.ReentrantLock
 
 fun isAvailableForPublication(publication: Publication): Boolean {
     val name = publication.name
@@ -61,7 +62,15 @@ fun Project.configurePublication() {
 
     val publishingUser: String? = System.getenv("PUBLISHING_USER")
     val publishingPassword: String? = System.getenv("PUBLISHING_PASSWORD")
-    val publishingUrl: String? = System.getenv("PUBLISHING_URL")
+
+    val repositoryId: String? = System.getenv("REPOSITORY_ID")
+    val publishingUrl: String? = if (repositoryId?.isNotBlank() == true) {
+        println("Set publishing to repository $repositoryId")
+        "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
+    } else {
+        println("Publishing to default URL")
+        System.getenv("PUBLISHING_URL")
+    }
 
     val publishLocal: Boolean by rootProject.extra
     val globalM2: String by rootProject.extra
@@ -164,6 +173,18 @@ fun Project.configurePublication() {
             useGpgCmd()
 
             sign(the<PublishingExtension>().publications)
+        }
+
+        val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
+
+        tasks.withType<Sign> {
+            doFirst {
+                gpgAgentLock.lock()
+            }
+
+            doLast {
+                gpgAgentLock.unlock()
+            }
         }
     }
 }
