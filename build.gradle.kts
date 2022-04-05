@@ -89,7 +89,7 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.6.10"
+    id("org.jetbrains.dokka") version "1.6.10" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
     id("kotlinx-atomicfu") version "0.17.1" apply false
 }
@@ -176,19 +176,26 @@ subprojects {
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 
-subprojects {
+allprojects {
     plugins.apply("org.jetbrains.dokka")
+
+    val dokkaPlugin by configurations
+    dependencies {
+        dokkaPlugin("org.jetbrains.dokka:all-modules-page-plugin:1.6.10")
+        dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
+    }
 }
 
-val docs: String? by extra
-if (docs != null) {
-    tasks.withType<DokkaMultiModuleTask> {
-        val mapOf = mapOf(
-            "org.jetbrains.dokka.versioning.VersioningPlugin" to
-                """{ "version": "$configuredVersion", "olderVersionsDir":"$docs" }"""
-        )
-        pluginsMapConfiguration.set(mapOf)
-    }
+val dokkaOutputDir = "../versions"
+
+tasks.withType<DokkaMultiModuleTask> {
+    val mapOf = mapOf(
+        "org.jetbrains.dokka.versioning.VersioningPlugin" to
+            """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
+    )
+
+    outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
+    pluginsMapConfiguration.set(mapOf)
 }
 
 rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
