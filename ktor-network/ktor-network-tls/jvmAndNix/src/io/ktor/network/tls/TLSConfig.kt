@@ -4,4 +4,16 @@
 
 package io.ktor.network.tls
 
-public expect class TLSConfig
+//TODO: make it closeable
+public expect class TLSConfig {
+    public val isClient: Boolean
+    public val serverName: String?
+    public val authentication: TLSAuthenticationConfig?
+}
+
+public expect class TLSAuthenticationConfig
+
+public fun TLSConfig(
+    isClient: Boolean = true,
+    block: TLSConfigBuilder.() -> Unit
+): TLSConfig = TLSConfigBuilder(isClient).apply(block).build()

@@ -58,60 +58,20 @@ class ConnectionTest {
         assertTrue(socket.openReadChannel().readRemaining().isNotEmpty)
     }
 
-    @OptIn(InternalAPI::class)
-    @Test
-    fun tlsEngineWithoutCloseTest(): Unit = runBlocking {
-        val context = SSLContext.getInstance("TLS").apply {
-            val trustManager = object : X509TrustManager {
-                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-                }
-
-                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-                }
-
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            }
-            init(null, arrayOf(trustManager), null)
-        }
-        val engine = context.createSSLEngine().apply {
-            useClientMode = true
-        }
-        val selectorManager = ActorSelectorManager(Dispatchers.IO)
-        val socket = aSocket(selectorManager)
-            .tcp()
-            .connect("www.google.com", port = 443)
-            .tls(Dispatchers.Default, engine)
-
-        val channel = socket.openWriteChannel()
-        channel.apply {
-            writeStringUtf8("GET / HTTP/1.1\r\n")
-            writeStringUtf8("Host: www.google.com\r\n")
-            writeStringUtf8("Connection: close\r\n\r\n")
-            flush()
-        }
-        assertTrue(socket.openReadChannel().readRemaining().isNotEmpty)
-    }
-
-    @OptIn(InternalAPI::class)
     @Test
     fun testClientServer() = runBlocking {
-        val context = SSLContext.getInstance("TLS").apply {
-            val keyStore = generateCertificate()
-            val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
-                init(keyStore)
-            }
-            val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
-                init(keyStore, "changeit".toCharArray())
-            }
-            init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
-        }
+        val keyStore = generateCertificate()
         SelectorManager(Dispatchers.IO).use { selector ->
             val tcp = aSocket(selector).tcp()
 
             tcp.bind().use { serverSocket ->
                 val serverJob = GlobalScope.launch {
                     while (true) serverSocket.accept()
-                        .tls(Dispatchers.Default, context.createSSLEngine().apply { useClientMode = false })
+                        .tls(Dispatchers.Default, isClient = false) {
+                            authentication({ "changeit".toCharArray() }) {
+                                keyStore(keyStore)
+                            }
+                        }
                         .use { socket ->
                             val reader = socket.openReadChannel()
                             val writer = socket.openWriteChannel()
@@ -126,7 +86,12 @@ class ConnectionTest {
                 }
 
                 tcp.connect(serverSocket.localAddress)
-                    .tls(Dispatchers.Default, context.createSSLEngine().apply { useClientMode = true })
+                    .tls(Dispatchers.Default, isClient = true) {
+                        trustManager =
+                            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
+                                init(keyStore)
+                            }.trustManagers.first()
+                    }
                     .use { socket ->
                         socket.openWriteChannel().apply {
                             writeStringUtf8("GET / HTTP/1.1\r\n")

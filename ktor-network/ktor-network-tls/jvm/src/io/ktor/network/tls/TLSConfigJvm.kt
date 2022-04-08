@@ -21,7 +21,23 @@ public actual class TLSConfig(
     public val certificates: List<CertificateAndKey>,
     public val trustManager: X509TrustManager,
     public val cipherSuites: List<CipherSuite>,
-    public val serverName: String?
+    public actual val isClient: Boolean,
+    public actual val serverName: String?,
+    public actual val authentication: TLSAuthenticationConfig?
+) {
+    public val sslContext: SSLContext by lazy {
+        SSLContext.getInstance("TLS").apply {
+            init(
+                authentication?.keyManagerFactory?.keyManagers,
+                arrayOf(trustManager),
+                random
+            )
+        }
+    }
+}
+
+public actual class TLSAuthenticationConfig(
+    public val keyManagerFactory: KeyManagerFactory
 )
 
 /**

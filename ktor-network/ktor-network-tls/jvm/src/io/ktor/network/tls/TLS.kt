@@ -13,20 +13,31 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-public actual suspend fun Socket.tls(
+public actual suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
     config: TLSConfig
-): Socket {
-    val reader = openReadChannel()
-    val writer = openWriteChannel()
-
-    return try {
-        openTLSSession(this, reader, writer, config, coroutineContext)
+): Socket = when (config.isClient && config.authentication == null) {
+    true -> try {
+        openTLSSession(socket, input, output, config, coroutineContext)
     } catch (cause: Throwable) {
-        reader.cancel(cause)
-        writer.close(cause)
-        close()
+        input.cancel(cause)
+        output.close(cause)
+        socket.close()
         throw cause
+    }
+    false -> {
+        val engine = when (val address = socket.remoteAddress) {
+            is UnixSocketAddress -> config.sslContext.createSSLEngine()
+            is InetSocketAddress -> config.sslContext.createSSLEngine(
+                config.serverName ?: address.hostname,
+                address.port
+            )
+        }
+
+        //TODO: we can also set cipherSuites here
+        engine.useClientMode = config.isClient
+
+        SSLEngineSocket(coroutineContext, engine, this)
     }
 }
 
@@ -44,15 +55,4 @@ public suspend fun Socket.tls(
     this.random = SecureRandom.getInstance(randomAlgorithm)
     this.cipherSuites = cipherSuites
     this.serverName = serverName
-}
-
-/**
- * Make [Socket] connection secure with TLS configured with [block].
- */
-public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
-    tls(coroutineContext, TLSConfigBuilder().apply(block).build())
-
-@InternalAPI
-public fun Socket.tls(coroutineContext: CoroutineContext, engine: SSLEngine): Socket {
-    return SSLEngineSocket(coroutineContext, engine, connection())
 }

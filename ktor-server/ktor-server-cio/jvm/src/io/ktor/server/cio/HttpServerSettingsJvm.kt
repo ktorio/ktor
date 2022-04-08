@@ -7,37 +7,24 @@ package io.ktor.server.cio
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
 internal actual fun HttpServerSettings(
     connectionIdleTimeoutSeconds: Long,
     connectorConfig: EngineConnectorConfig
 ): HttpServerSettings {
-    val interceptor: (Socket, CoroutineContext) -> Socket = when (connectorConfig) {
+    val interceptor: suspend (Socket, CoroutineContext) -> Socket = when (connectorConfig) {
         is EngineSSLConnectorConfig -> {
-            val sslContext = SSLContext.getInstance("TLS").apply {
-                init(
-                    connectorConfig.keyManagerFactory().keyManagers,
-                    connectorConfig.trustManagerFactory()?.trustManagers,
-                    null
-                )
-            };
-
-            { socket, context ->
-                val engine = sslContext.createSSLEngine().apply {
-                    useClientMode = false
-                    if (connectorConfig.hasTrustStore()) {
-                        needClientAuth = true
-                    }
+            val config = TLSConfig(isClient = false) {
+                trustManager = connectorConfig.trustManagerFactory()?.trustManagers?.firstOrNull()
+                authentication(connectorConfig.privateKeyPassword) {
+                    keyStore(connectorConfig.resolveKeyStore())
                 }
-
-                socket.tls(context, engine)
-            }
+            };
+            { socket, context -> socket.tls(context, config) }
         }
         else -> { socket, _ -> socket }
     }
@@ -63,18 +50,12 @@ private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory?
     }
 }
 
-private fun EngineSSLConnectorConfig.keyManagerFactory(): KeyManagerFactory {
-    val keyStore = keyStorePath?.let { file ->
-        FileInputStream(file).use { fis ->
-            val password = keyStorePassword()
-            val instance = KeyStore.getInstance("JKS").also { it.load(fis, password) }
-            password.fill('\u0000')
-            instance
-        }
-    } ?: keyStore
-    val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-    val password = privateKeyPassword()
-    kmf.init(keyStore, password)
-    password.fill('\u0000')
-    return kmf
-}
+//TODO: make it public and move to core
+private fun EngineSSLConnectorConfig.resolveKeyStore(): KeyStore = keyStorePath?.let { file ->
+    FileInputStream(file).use { fis ->
+        val password = keyStorePassword()
+        val instance = KeyStore.getInstance("JKS").also { it.load(fis, password) }
+        password.fill('\u0000')
+        instance
+    }
+} ?: keyStore
