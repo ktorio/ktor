@@ -25,7 +25,7 @@ class TestConnectorInterfaceUsed {
 
             // this shouldn't happen
             try {
-                engine.stop(1000, 2000)
+                engine.stop(50, 2000)
             } catch (_: Throwable) {
             }
         }

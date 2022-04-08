@@ -20,7 +20,7 @@ public object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
-            engine.stop(3000, 5000)
+            engine.stop(50, 5000)
         }
         engine.start(true)
     }

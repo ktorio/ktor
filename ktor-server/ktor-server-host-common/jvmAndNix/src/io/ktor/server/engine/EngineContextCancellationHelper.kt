@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
-        stop(1000, 5000)
+        stop(50, 5000)
     } ?: Job()
 
 /**

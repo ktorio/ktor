@@ -64,7 +64,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
                 val port = server.resolvedConnectors().first().port
 
                 assertEquals("Hello World", client.get("https://0.0.0.0:$port").body())
-                server.stop(1000, 1000)
+                server.stop(50, 1000)
             }
         }
     }
