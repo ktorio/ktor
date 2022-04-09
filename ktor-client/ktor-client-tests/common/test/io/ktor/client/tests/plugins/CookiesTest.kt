@@ -192,7 +192,7 @@ class CookiesTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_HOST/encoded").execute { httpResponse ->
                 val response = httpResponse.bodyAsText()
-                val cookieStrings = response.split(";").filter { it.isNotBlank() }
+                val cookieStrings = response.split("; ").filter { it.isNotBlank() }
                 assertEquals(4, cookieStrings.size)
                 assertEquals("uri=first%2C+cookie", cookieStrings[0])
                 assertEquals("raw=first%2C+cookie", cookieStrings[1])
