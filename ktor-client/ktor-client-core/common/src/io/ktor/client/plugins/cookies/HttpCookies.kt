@@ -119,7 +119,7 @@ public class HttpCookies internal constructor(
 }
 
 private fun renderClientCookies(cookies: List<Cookie>): String =
-    cookies.joinToString(";", transform = ::renderCookieHeader)
+    cookies.joinToString("; ", transform = ::renderCookieHeader)
 
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].

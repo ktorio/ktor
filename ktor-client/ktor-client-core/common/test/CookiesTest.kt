@@ -43,9 +43,22 @@ class CookiesTest {
     }
 
     @Test
+    fun testCookiesAreRenderedWithSpaceInBetween() = testSuspend{
+        var storage = AcceptAllCookiesStorage()
+        storage.addCookie("http://localhost/", Cookie("name1", "value1"))
+        storage.addCookie("http://localhost/", Cookie("name2", "value2"))
+        val feature = HttpCookies(storage, emptyList())
+        var builder = HttpRequestBuilder()
+
+        feature.sendCookiesWith(builder)
+
+        assertContains(builder.headers[HttpHeaders.Cookie]!!, "; ")
+    }
+
+    @Test
     fun testRequestCookiesArePreservedWhenAddingCookiesFromStorage() = testSuspend {
         val storage = AcceptAllCookiesStorage()
-        storage.addCookie("http://localhost/", parseServerSetCookieHeader("SOMECOOKIE=somevalue;"))
+        storage.addCookie("http://localhost/", Cookie("SOMECOOKIE", "somevalue"))
         val feature = HttpCookies(storage, emptyList())
         val builder = HttpRequestBuilder()
 
@@ -53,7 +66,7 @@ class CookiesTest {
         feature.captureHeaderCookies(builder)
         feature.sendCookiesWith(builder)
 
-        val renderedCookies = builder.headers[HttpHeaders.Cookie]!!.split(";")
+        val renderedCookies = builder.headers[HttpHeaders.Cookie]!!.split("; ")
         assertContains(renderedCookies, "test=value")
         assertContains(renderedCookies, "SOMECOOKIE=somevalue")
     }
