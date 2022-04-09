@@ -6,6 +6,7 @@ package io.ktor.server.cio
 
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
+import io.ktor.network.tls.*
 import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -34,9 +35,12 @@ public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
     val connectionIdleTimeoutSeconds: Long = 45,
-    //TODO: pass TLSConfig here
-    val interceptor: suspend (socket: Socket, context: CoroutineContext) -> Socket = { socket, _ -> socket }
-)
+    val tlsConfig: TLSConfig? = null
+) {
+    init {
+        require(tlsConfig == null || !tlsConfig.isClient) { "TLSConfig should be configured for server" }
+    }
+}
 
 /**
  * Start an http server with [settings] invoking [handler] for every request

@@ -4,51 +4,33 @@
 
 package io.ktor.server.cio
 
-import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.server.engine.*
 import java.io.*
 import java.security.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
 
 internal actual fun HttpServerSettings(
     connectionIdleTimeoutSeconds: Long,
     connectorConfig: EngineConnectorConfig
-): HttpServerSettings {
-    val interceptor: suspend (Socket, CoroutineContext) -> Socket = when (connectorConfig) {
-        is EngineSSLConnectorConfig -> {
-            val config = TLSConfig(isClient = false) {
-                trustManager = connectorConfig.trustManagerFactory()?.trustManagers?.firstOrNull()
-                authentication(connectorConfig.privateKeyPassword) {
-                    keyStore(connectorConfig.resolveKeyStore())
+): HttpServerSettings = HttpServerSettings(
+    host = connectorConfig.host,
+    port = connectorConfig.port,
+    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds,
+    tlsConfig = when (connectorConfig) {
+        is EngineSSLConnectorConfig -> TLSConfig(isClient = false) {
+//            serverName = connectorConfig.host //TODO?
+            authentication(connectorConfig.privateKeyPassword) {
+                keyStore(connectorConfig.resolveKeyStore())
+            }
+            connectorConfig.resolveTrustStore()?.let {
+                verification {
+                    trustStore(it)
                 }
-            };
-            { socket, context -> socket.tls(context, config) }
+            }
         }
-        else -> { socket, _ -> socket }
+        else -> null
     }
-
-    return HttpServerSettings(
-        host = connectorConfig.host,
-        port = connectorConfig.port,
-        connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds,
-        interceptor = interceptor
-    )
-}
-
-private fun EngineSSLConnectorConfig.hasTrustStore() = trustStore != null || trustStorePath != null
-
-private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
-    val trustStore = trustStore ?: trustStorePath?.let { file ->
-        FileInputStream(file).use { fis ->
-            KeyStore.getInstance("JKS").also { it.load(fis, null) }
-        }
-    }
-    return trustStore?.let { store ->
-        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(store) }
-    }
-}
+)
 
 //TODO: make it public and move to core
 private fun EngineSSLConnectorConfig.resolveKeyStore(): KeyStore = keyStorePath?.let { file ->
@@ -59,3 +41,10 @@ private fun EngineSSLConnectorConfig.resolveKeyStore(): KeyStore = keyStorePath?
         instance
     }
 } ?: keyStore
+
+//TODO: make it public and move to core
+private fun EngineSSLConnectorConfig.resolveTrustStore(): KeyStore? = trustStore ?: trustStorePath?.let { file ->
+    FileInputStream(file).use { fis ->
+        KeyStore.getInstance("JKS").also { it.load(fis, null) }
+    }
+}
