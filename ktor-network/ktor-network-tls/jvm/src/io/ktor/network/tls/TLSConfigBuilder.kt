@@ -16,6 +16,7 @@ import javax.net.ssl.*
  */
 public actual class TLSConfigBuilder actual constructor(private val isClient: Boolean) {
     private var authenticationBuilder: TLSAuthenticationConfigBuilder? = null
+    private var verificationBuilder: TLSVerificationConfigBuilder? = null
 
     /**
      * List of client certificate chains with private keys.
@@ -61,6 +62,12 @@ public actual class TLSConfigBuilder actual constructor(private val isClient: Bo
         authenticationBuilder = TLSAuthenticationConfigBuilder(privateKeyPassword).apply(block)
     }
 
+    public actual fun verification(
+        block: TLSVerificationConfigBuilder.() -> Unit
+    ) {
+        verificationBuilder = TLSVerificationConfigBuilder().apply(block)
+    }
+
     /**
      * Append config from [other] builder.
      */
@@ -83,7 +90,8 @@ public actual class TLSConfigBuilder actual constructor(private val isClient: Bo
         cipherSuites = cipherSuites,
         isClient = isClient,
         serverName = serverName,
-        authentication = authenticationBuilder?.build()
+        authentication = authenticationBuilder?.build(),
+        verification = verificationBuilder?.build()
     )
 }
 
@@ -114,13 +122,63 @@ public actual class TLSAuthenticationConfigBuilder actual constructor(
         this.keyStore = keyStore
     }
 
-    public actual fun build(): TLSAuthenticationConfig = TLSAuthenticationConfig(
-        KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
-            val password = privateKeyPassword()
-            init(keyStore, password)
-            password.fill('\u0000')
+    public actual fun build(): TLSAuthenticationConfig {
+        //TODO: what is the best place to put this as SSLContext doesn't check it
+        keyStore?.apply {
+            aliases().toList().forEach {
+                (getCertificate(it) as? X509Certificate)?.checkValidity()
+            }
         }
-    )
+
+        return TLSAuthenticationConfig(
+            KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
+                val password = privateKeyPassword()
+                init(keyStore, password)
+                password.fill('\u0000')
+            }
+        )
+    }
+}
+
+public actual class TLSVerificationConfigBuilder {
+    private var keyStore: KeyStore? = null
+
+    public actual fun pkcs12Certificate(
+        certificatePath: String,
+        certificatePassword: (() -> CharArray)?
+    ) {
+        pkcs12Certificate(File(certificatePath), certificatePassword)
+    }
+
+    public fun pkcs12Certificate(
+        certificatePath: File,
+        certificatePassword: (() -> CharArray)? = null
+    ) {
+        keyStore = KeyStore.getInstance("PKCS12").apply {
+            val password = certificatePassword?.invoke()
+            load(certificatePath.inputStream(), password)
+            password?.fill('\u0000')
+        }
+    }
+
+    public fun trustStore(keyStore: KeyStore) {
+        this.keyStore = keyStore
+    }
+
+    public actual fun build(): TLSVerificationConfig {
+        //TODO: what is the best place to put this as SSLContext doesn't check it
+        keyStore?.apply {
+            aliases().toList().forEach {
+                (getCertificate(it) as? X509Certificate)?.checkValidity()
+            }
+        }
+
+        return TLSVerificationConfig(
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
+                init(keyStore)
+            }
+        )
+    }
 }
 
 /**

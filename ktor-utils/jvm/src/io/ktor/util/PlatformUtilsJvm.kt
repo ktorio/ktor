@@ -11,6 +11,8 @@ public actual object PlatformUtils {
     public actual val IS_NODE: Boolean = false
     public actual val IS_JVM: Boolean = true
     public actual val IS_NATIVE: Boolean = false
+    public actual val IS_NIX: Boolean = false
+    public actual val IS_DARWIN: Boolean = false
 
     public actual val IS_DEVELOPMENT_MODE: Boolean =
         System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() == true

@@ -9,6 +9,7 @@ package io.ktor.network.tls
  */
 public actual class TLSConfigBuilder actual constructor(private val isClient: Boolean) {
     private var authenticationBuilder: TLSAuthenticationConfigBuilder? = null
+    private var verificationBuilder: TLSVerificationConfigBuilder? = null
 
     /**
      * Custom server name for TLS server name extension.
@@ -23,6 +24,12 @@ public actual class TLSConfigBuilder actual constructor(private val isClient: Bo
         authenticationBuilder = TLSAuthenticationConfigBuilder(privateKeyPassword).apply(block)
     }
 
+    public actual fun verification(
+        block: TLSVerificationConfigBuilder.() -> Unit
+    ) {
+        verificationBuilder = TLSVerificationConfigBuilder().apply(block)
+    }
+
     public actual fun takeFrom(other: TLSConfigBuilder) {
         serverName = other.serverName
         authenticationBuilder = other.authenticationBuilder
@@ -31,7 +38,12 @@ public actual class TLSConfigBuilder actual constructor(private val isClient: Bo
     /**
      * Create [TLSConfig].
      */
-    public actual fun build(): TLSConfig = TLSConfig(isClient, serverName, authenticationBuilder?.build())
+    public actual fun build(): TLSConfig = TLSConfig(
+        isClient = isClient,
+        serverName = serverName,
+        authentication = authenticationBuilder?.build(),
+        verification = verificationBuilder?.build()
+    )
 }
 
 public actual class TLSAuthenticationConfigBuilder actual constructor(
@@ -46,5 +58,17 @@ public actual class TLSAuthenticationConfigBuilder actual constructor(
     public actual fun build(): TLSAuthenticationConfig = TLSAuthenticationConfig(
         certificate,
         privateKeyPassword
+    )
+}
+
+public actual class TLSVerificationConfigBuilder {
+    private var certificate: PKCS12Certificate? = null
+
+    public actual fun pkcs12Certificate(certificatePath: String, certificatePassword: (() -> CharArray)?) {
+        certificate = PKCS12Certificate(certificatePath, certificatePassword)
+    }
+
+    public actual fun build(): TLSVerificationConfig = TLSVerificationConfig(
+        certificate
     )
 }

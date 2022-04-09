@@ -16,29 +16,41 @@ import kotlin.coroutines.*
 public actual suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
     config: TLSConfig
-): Socket = when (config.isClient && config.authentication == null) {
-    true -> try {
-        openTLSSession(socket, input, output, config, coroutineContext)
-    } catch (cause: Throwable) {
-        input.cancel(cause)
-        output.close(cause)
-        socket.close()
-        throw cause
+): Socket {
+
+    //using old implementation for now if new configuration is not used
+    if (config.isClient && config.authentication == null && config.verification == null) {
+        return try {
+            openTLSSession(socket, input, output, config, coroutineContext)
+        } catch (cause: Throwable) {
+            input.cancel(cause)
+            output.close(cause)
+            socket.close()
+            throw cause
+        }
     }
-    false -> {
-        val engine = when (val address = socket.remoteAddress) {
-            is UnixSocketAddress -> config.sslContext.createSSLEngine()
-            is InetSocketAddress -> config.sslContext.createSSLEngine(
+
+    //TODO: servername is not validated
+    //TODO: client auth doesn't check if certificate is specific to server or client
+
+    val engine = when (val address = socket.remoteAddress) {
+        is UnixSocketAddress -> config.sslContext.createSSLEngine()
+        is InetSocketAddress -> {
+            config.sslContext.createSSLEngine(
                 config.serverName ?: address.hostname,
                 address.port
             )
         }
-
-        //TODO: we can also set cipherSuites here
-        engine.useClientMode = config.isClient
-
-        SSLEngineSocket(coroutineContext, engine, this)
     }
+
+    //TODO: we can also set cipherSuites here
+    engine.useClientMode = config.isClient
+
+    if (!config.isClient) {
+        engine.needClientAuth = config.verification != null
+    }
+
+    return SSLEngineSocket(coroutineContext, engine, this)
 }
 
 /**

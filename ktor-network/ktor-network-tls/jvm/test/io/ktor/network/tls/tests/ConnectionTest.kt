@@ -87,10 +87,9 @@ class ConnectionTest {
 
                 tcp.connect(serverSocket.localAddress)
                     .tls(Dispatchers.Default, isClient = true) {
-                        trustManager =
-                            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
-                                init(keyStore)
-                            }.trustManagers.first()
+                        verification {
+                            trustStore(keyStore)
+                        }
                     }
                     .use { socket ->
                         socket.openWriteChannel().apply {

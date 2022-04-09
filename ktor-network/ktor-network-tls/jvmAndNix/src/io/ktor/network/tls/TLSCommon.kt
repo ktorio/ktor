@@ -22,7 +22,7 @@ public suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
     isClient: Boolean = true,
     block: TLSConfigBuilder.() -> Unit = {}
-): Socket = tls(coroutineContext, TLSConfig(isClient, block))
+): Socket = tls(coroutineContext, createTLSConfig(isClient, block))
 
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
@@ -39,4 +39,15 @@ public suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
     isClient: Boolean = true,
     block: TLSConfigBuilder.() -> Unit
-): Socket = tls(coroutineContext, TLSConfig(isClient, block))
+): Socket = tls(coroutineContext, socket.createTLSConfig(isClient, block))
+
+private fun Socket.createTLSConfig(
+    isClient: Boolean = true,
+    block: TLSConfigBuilder.() -> Unit
+): TLSConfig {
+    val config = TLSConfig(isClient, block)
+    socketContext.invokeOnCompletion {
+        config.close()
+    }
+    return config
+}

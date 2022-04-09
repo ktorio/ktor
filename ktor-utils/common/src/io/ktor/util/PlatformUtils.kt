@@ -9,6 +9,8 @@ public expect object PlatformUtils {
     public val IS_NODE: Boolean
     public val IS_JVM: Boolean
     public val IS_NATIVE: Boolean
+    public val IS_NIX: Boolean
+    public val IS_DARWIN: Boolean
 
     public val IS_DEVELOPMENT_MODE: Boolean
 

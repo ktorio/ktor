@@ -6,6 +6,7 @@ package io.ktor.network.tls
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -17,6 +18,7 @@ class TlsClientSocketTest {
 
     @Test
     fun testGoogleWithoutClose(): Unit = runBlocking {
+        if (PlatformUtils.IS_DARWIN) return@runBlocking
         SelectorManager(Dispatchers.IOBridge).use { selector ->
             aSocket(selector)
                 .tcp()
