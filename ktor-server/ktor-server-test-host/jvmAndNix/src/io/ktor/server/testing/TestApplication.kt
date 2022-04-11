@@ -117,10 +117,13 @@ public open class TestApplicationBuilder {
     internal val environment by lazy {
         built = true
         createTestEnvironment {
-            config = DefaultTestConfig()
             modules.addAll(this@TestApplicationBuilder.applicationModules)
             developmentMode = true
+            val oldConfig = config
             this@TestApplicationBuilder.environmentBuilder(this)
+            if (config == oldConfig) { // config was not set by user. load the default one
+                config = DefaultTestConfig()
+            }
             parentCoroutineContext += this@TestApplicationBuilder.job
         }
     }
