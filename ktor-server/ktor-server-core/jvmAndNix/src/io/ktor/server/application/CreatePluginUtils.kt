@@ -52,7 +52,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  *
  * The example below create a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
+ * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
  *          println(call.request.uri)
  *      }
@@ -124,7 +124,7 @@ public fun createApplicationPlugin(
  *
  * The example below create a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
+ * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
  *          println(call.request.uri)
  *      }
