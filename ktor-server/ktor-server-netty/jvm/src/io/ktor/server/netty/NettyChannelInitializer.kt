@@ -5,7 +5,6 @@
 package io.ktor.server.netty
 
 import io.ktor.server.engine.*
-import io.ktor.server.netty.cio.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
 import io.netty.channel.*
@@ -40,7 +39,6 @@ public class NettyChannelInitializer(
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit
 ) : ChannelInitializer<SocketChannel>() {
-    private var sslContext: SslContext? = null
 
     internal constructor(
         enginePipeline: EnginePipeline,
@@ -69,48 +67,32 @@ public class NettyChannelInitializer(
         {}
     )
 
-    init {
-        if (connector is EngineSSLConnectorConfig) {
-
-            // It is better but netty-openssl doesn't support it
-//              val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-//              kmf.init(ktorConnector.keyStore, password)
-//              password.fill('\u0000')
-
-            @Suppress("UNCHECKED_CAST")
-            val chain1 = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
-            val certs = chain1.toList().toTypedArray()
-            val password = connector.privateKeyPassword()
-            val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
-            password.fill('\u0000')
-
-            sslContext = SslContextBuilder.forServer(pk, *certs).apply {
-                if (alpnProvider != null) {
-                    sslProvider(alpnProvider)
-                    ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                    applicationProtocolConfig(
-                        ApplicationProtocolConfig(
-                            ApplicationProtocolConfig.Protocol.ALPN,
-                            ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                            ApplicationProtocolNames.HTTP_2,
-                            ApplicationProtocolNames.HTTP_1_1
-                        )
+    private val sslContext: SslContext? = if (connector is EngineSSLConnectorConfig) {
+        connector.sslContextBuilder().apply {
+            if (alpnProvider != null) {
+                sslProvider(alpnProvider)
+                ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                applicationProtocolConfig(
+                    ApplicationProtocolConfig(
+                        ApplicationProtocolConfig.Protocol.ALPN,
+                        ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                        ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                        ApplicationProtocolNames.HTTP_2,
+                        ApplicationProtocolNames.HTTP_1_1
                     )
-                }
-                connector.trustManagerFactory()?.let { this.trustManager(it) }
+                )
             }
-                .build()
-        }
-    }
+            connector.trustManagerFactory()?.let { this.trustManager(it) }
+        }.build()
+    } else null
 
     @Suppress("KDocMissingDocumentation")
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
             if (connector is EngineSSLConnectorConfig) {
                 val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
+                    useClientMode = false
                     if (connector.hasTrustStore()) {
-                        useClientMode = false
                         needClientAuth = true
                     }
                 }
@@ -168,19 +150,6 @@ public class NettyChannelInitializer(
         }
     }
 
-    private fun EngineSSLConnectorConfig.hasTrustStore() = trustStore != null || trustStorePath != null
-
-    private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
-        val trustStore = trustStore ?: trustStorePath?.let { file ->
-            FileInputStream(file).use { fis ->
-                KeyStore.getInstance("JKS").also { it.load(fis, null) }
-            }
-        }
-        return trustStore?.let { store ->
-            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(store) }
-        }
-    }
-
     private inner class NegotiatedPipelineInitializer :
         ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
         override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) =
@@ -215,5 +184,52 @@ public class NettyChannelInitializer(
 
             return null
         }
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun EngineSSLConnectorConfig.sslContextBuilder(): SslContextBuilder {
+    authentication?.let { config ->
+        val keyStore = config.keyStoreProvider?.resolveKeyStore() ?: return@let
+        val chain1 = keyStore.getCertificateChain(config.keyAlias).toList() as List<X509Certificate>
+        val certs = chain1.toList().toTypedArray()
+        val password = config.privateKeyPassword()
+        val pk = keyStore.getKey(config.keyAlias, password) as PrivateKey
+        password.fill('\u0000')
+
+        return SslContextBuilder.forServer(pk, *certs)
+    }
+
+    // It is better but netty-openssl doesn't support it
+//              val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+//              kmf.init(ktorConnector.keyStore, password)
+//              password.fill('\u0000')
+
+    //old configuration
+    @Suppress("UNCHECKED_CAST")
+    val chain1 = keyStore.getCertificateChain(keyAlias).toList() as List<X509Certificate>
+    val certs = chain1.toList().toTypedArray()
+    val password = privateKeyPassword()
+    val pk = keyStore.getKey(keyAlias, password) as PrivateKey
+    password.fill('\u0000')
+
+    return SslContextBuilder.forServer(pk, *certs)
+}
+
+private fun EngineSSLConnectorConfig.hasTrustStore() =
+    trustStore != null || trustStorePath != null || verification?.trustStoreProvider != null
+
+private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
+    val trustStore =
+        verification?.trustStoreProvider?.resolveKeyStore()
+        //old configuration
+            ?: trustStore
+            ?: trustStorePath?.let { file ->
+                FileInputStream(file).use { fis ->
+                    KeyStore.getInstance("JKS").also { it.load(fis, null) }
+                }
+            }
+    return trustStore?.let { store ->
+        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(store) }
     }
 }

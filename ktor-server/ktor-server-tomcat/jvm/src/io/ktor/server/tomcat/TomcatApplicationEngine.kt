@@ -69,39 +69,18 @@ public class TomcatApplicationEngine(
                 removeConnector(existing)
             }
 
-            environment.connectors.forEach { ktorConnector ->
+            environment.connectors.forEach { connector ->
                 addConnector(
                     Connector().apply {
-                        port = ktorConnector.port
+                        port = connector.port
 
-                        if (ktorConnector is EngineSSLConnectorConfig) {
+                        if (connector is EngineSSLConnectorConfig) {
                             secure = true
                             scheme = "https"
 
-                            if (ktorConnector.keyStorePath == null) {
-                                throw IllegalArgumentException(
-                                    "Tomcat requires keyStorePath. Make sure you're setting " +
-                                        "the property in the EngineSSLConnectorConfig class."
-                                )
-                            }
+                            configureAuthentication(connector)
+                            configureVerification(connector)
 
-                            if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
-                                throw IllegalArgumentException(
-                                    "Tomcat requires trustStorePath for client certificate authentication." +
-                                        "Make sure you're setting the property in the EngineSSLConnectorConfig class."
-                                )
-                            }
-                            if (ktorConnector.trustStorePath != null) {
-                                setProperty("clientAuth", "true")
-                                setProperty("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
-                            } else {
-                                setProperty("clientAuth", "false")
-                            }
-
-                            setProperty("keyAlias", ktorConnector.keyAlias)
-                            setProperty("keystorePass", String(ktorConnector.keyStorePassword()))
-                            setProperty("keyPass", String(ktorConnector.privateKeyPassword()))
-                            setProperty("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
                             setProperty("sslProtocol", "TLS")
                             setProperty("SSLEnabled", "true")
 
@@ -164,6 +143,7 @@ public class TomcatApplicationEngine(
     }
 
     public companion object {
+        //TODO: is it correct?
         private val nativeNames = listOf(
 //            "netty-tcnative",
 //            "libnetty-tcnative",
@@ -197,4 +177,67 @@ public class TomcatApplicationEngine(
             false
         }
     }
+}
+
+private fun Connector.configureAuthentication(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.authentication?.let { config ->
+        config.keyStoreProvider?.let { ksp ->
+            check(ksp is KeyStoreProvider.File) { "Tomcat requires KeyStoreProvider.File for EngineSSLConnectorConfig" }
+            setProperty("keyAlias", config.keyAlias)
+            setProperty("keystoreFile", ksp.path.absolutePath)
+            setProperty("keystoreType", ksp.type)
+            ksp.passwordProvider?.let {
+                setProperty("keystorePass", String(it()))
+            }
+
+            setProperty("keyPass", String(config.privateKeyPassword()))
+            return
+        }
+    }
+
+    //old configuration
+
+    if (connectorConfig.keyStorePath == null) {
+        throw IllegalArgumentException(
+            "Tomcat requires keyStorePath. Make sure you're setting " +
+                "the property in the EngineSSLConnectorConfig class."
+        )
+    }
+
+    setProperty("keyAlias", connectorConfig.keyAlias)
+    setProperty("keystorePass", String(connectorConfig.keyStorePassword()))
+    setProperty("keyPass", String(connectorConfig.privateKeyPassword()))
+    setProperty("keystoreFile", connectorConfig.keyStorePath!!.absolutePath)
+
+}
+
+private fun Connector.configureVerification(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.verification?.let { config ->
+        config.trustStoreProvider?.let { ksp ->
+            check(ksp is KeyStoreProvider.File) { "Tomcat requires KeyStoreProvider.File for EngineSSLConnectorConfig" }
+            setProperty("clientAuth", "true")
+            setProperty("truststoreFile", ksp.path.absolutePath)
+            setProperty("truststoreType", ksp.type)
+            ksp.passwordProvider?.let {
+                setProperty("truststorePass", String(it()))
+            }
+            return
+        }
+    }
+
+    //old configuration
+
+    if (connectorConfig.trustStore != null && connectorConfig.trustStorePath == null) {
+        throw IllegalArgumentException(
+            "Tomcat requires trustStorePath for client certificate authentication." +
+                "Make sure you're setting the property in the EngineSSLConnectorConfig class."
+        )
+    }
+    if (connectorConfig.trustStorePath != null) {
+        setProperty("clientAuth", "true")
+        setProperty("truststoreFile", connectorConfig.trustStorePath!!.absolutePath)
+    } else {
+        setProperty("clientAuth", "false")
+    }
+
 }

@@ -4,13 +4,22 @@
 
 package io.ktor.server.cio
 
+import io.ktor.network.tls.*
 import io.ktor.server.engine.*
 
-internal actual fun HttpServerSettings(
-    connectionIdleTimeoutSeconds: Long,
-    connectorConfig: EngineConnectorConfig
-): HttpServerSettings = HttpServerSettings(
-    host = connectorConfig.host,
-    port = connectorConfig.port,
-    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds
-)
+internal actual fun TLSConfigBuilder.takeFromConnector(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.authentication?.let { config ->
+        config.pkcs12Certificate?.let { certificate ->
+            authentication(config.privateKeyPassword) {
+                pkcs12Certificate(certificate.path, certificate.passwordProvider)
+            }
+        }
+    }
+    connectorConfig.verification?.let { config ->
+        config.pkcs12Certificate?.let { certificate ->
+            verification {
+                pkcs12Certificate(certificate.path, certificate.passwordProvider)
+            }
+        }
+    }
+}

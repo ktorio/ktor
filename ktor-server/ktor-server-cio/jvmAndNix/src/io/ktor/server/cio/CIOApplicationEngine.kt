@@ -5,6 +5,7 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
+import io.ktor.network.tls.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
@@ -145,10 +146,10 @@ public class CIOApplicationEngine(
 
             try {
                 environment.connectors.forEach { connectorSpec ->
-                    if (connectorSpec.type == ConnectorType.HTTPS && !PlatformUtils.IS_JVM) {
+                    if (connectorSpec.type == ConnectorType.HTTPS && PlatformUtils.IS_DARWIN) {
                         throw UnsupportedOperationException(
-                            "CIO Engine does not currently support HTTPS. Please " +
-                                "consider using a different engine if you require HTTPS"
+                            "CIO Engine does not currently support HTTPS on darwin. " +
+                                "Please consider using a different engine if you require HTTPS"
                         )
                     }
                 }
@@ -186,7 +187,17 @@ public class CIOApplicationEngine(
     }
 }
 
-internal expect fun HttpServerSettings(
+internal fun HttpServerSettings(
     connectionIdleTimeoutSeconds: Long,
     connectorConfig: EngineConnectorConfig
-): HttpServerSettings
+): HttpServerSettings = HttpServerSettings(
+    host = connectorConfig.host,
+    port = connectorConfig.port,
+    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds,
+    tlsConfig = when (connectorConfig) {
+        is EngineSSLConnectorConfig -> TLSConfig(isClient = false) { takeFromConnector(connectorConfig) }
+        else -> null
+    }
+)
+
+internal expect fun TLSConfigBuilder.takeFromConnector(connectorConfig: EngineSSLConnectorConfig)

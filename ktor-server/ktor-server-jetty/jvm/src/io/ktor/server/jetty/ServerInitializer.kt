@@ -13,12 +13,12 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.ssl.*
 
 internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) {
-    environment.connectors.map { ktorConnector ->
+    environment.connectors.map { connector ->
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
             sendDateHeader = false
 
-            if (ktorConnector.type == ConnectorType.HTTPS) {
+            if (connector.type == ConnectorType.HTTPS) {
                 addCustomizer(SecureRequestCustomizer())
             }
         }
@@ -39,9 +39,8 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
             http2ConnectionFactory = null
         }
 
-        val connectionFactories = when (ktorConnector.type) {
-            ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig), HTTP2CServerConnectionFactory(httpConfig))
-            ConnectorType.HTTPS -> arrayOf(
+        val connectionFactories = when (connector) {
+            is EngineSSLConnectorConfig -> arrayOf(
                 SslConnectionFactory(
                     SslContextFactory.Server().apply {
                         if (alpnAvailable) {
@@ -49,21 +48,8 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                             isUseCipherSuitesOrder = true
                         }
 
-                        keyStore = (ktorConnector as EngineSSLConnectorConfig).keyStore
-                        setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
-                        setKeyStorePassword(String(ktorConnector.keyStorePassword()))
-
-                        needClientAuth = when {
-                            ktorConnector.trustStore != null -> {
-                                trustStore = ktorConnector.trustStore
-                                true
-                            }
-                            ktorConnector.trustStorePath != null -> {
-                                trustStorePath = ktorConnector.trustStorePath!!.absolutePath
-                                true
-                            }
-                            else -> false
-                        }
+                        configureAuthentication(connector)
+                        configureVerification(connector)
 
                         addExcludeCipherSuites(
                             "SSL_RSA_WITH_DES_CBC_SHA",
@@ -81,14 +67,50 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                 http2ConnectionFactory ?: HTTP2CServerConnectionFactory(httpConfig),
                 HttpConnectionFactory(httpConfig)
             ).filterNotNull().toTypedArray()
-            else -> throw IllegalArgumentException(
-                "Connector type ${ktorConnector.type} is not supported by Jetty engine implementation"
-            )
+            else -> arrayOf(HttpConnectionFactory(httpConfig), HTTP2CServerConnectionFactory(httpConfig))
         }
 
         ServerConnector(this, *connectionFactories).apply {
-            host = ktorConnector.host
-            port = ktorConnector.port
+            host = connector.host
+            port = connector.port
         }
     }.forEach { this.addConnector(it) }
+}
+
+private fun SslContextFactory.Server.configureAuthentication(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.authentication?.let { config ->
+        config.keyStoreProvider?.let {
+            keyStore = it.resolveKeyStore()
+            setKeyManagerPassword(String(config.privateKeyPassword()))
+            return
+        }
+    }
+
+    //old configuration
+    keyStore = connectorConfig.keyStore
+    setKeyStorePassword(String(connectorConfig.keyStorePassword()))
+    setKeyManagerPassword(String(connectorConfig.privateKeyPassword()))
+}
+
+private fun SslContextFactory.Server.configureVerification(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.verification?.let { config ->
+        config.trustStoreProvider?.let {
+            trustStore = it.resolveKeyStore()
+            needClientAuth = true
+            return
+        }
+    }
+
+    //old configuration
+    needClientAuth = when {
+        connectorConfig.trustStore != null -> {
+            trustStore = connectorConfig.trustStore
+            true
+        }
+        connectorConfig.trustStorePath != null -> {
+            trustStorePath = connectorConfig.trustStorePath?.absolutePath
+            true
+        }
+        else -> false
+    }
 }

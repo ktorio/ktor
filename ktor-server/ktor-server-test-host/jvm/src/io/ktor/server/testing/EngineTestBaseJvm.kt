@@ -130,14 +130,27 @@ actual abstract class EngineTestBase<
 
             connector { port = _port }
             if (enableSsl) {
-                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                    this.port = sslPort
-                    this.keyStorePath = keyStoreFile.absoluteFile
-                    if (enableCertVerify) {
-                        this.trustStore = keyStore
-                        this.trustStorePath = keyStoreFile.absoluteFile
+                sslConnector {
+                    port = sslPort
+                    authentication({ "changeit".toCharArray() }) {
+                        keyAlias = "mykey"
+                        keyStore(keyStoreFile) { "changeit".toCharArray() }
+//                        keyStore(keyStore)
+                    }
+                    if (enableCertVerify) verification {
+                        trustStore(keyStoreFile) { "changeit".toCharArray() }
                     }
                 }
+
+
+//                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+//                    this.port = sslPort
+//                    this.keyStorePath = keyStoreFile.absoluteFile
+//                    if (enableCertVerify) {
+//                        this.trustStore = keyStore
+//                        this.trustStorePath = keyStoreFile.absoluteFile
+//                    }
+//                }
             }
 
             module(module)

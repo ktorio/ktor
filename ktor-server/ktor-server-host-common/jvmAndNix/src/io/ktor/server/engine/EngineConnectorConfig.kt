@@ -67,6 +67,72 @@ public open class EngineConnectorBuilder(
 }
 
 /**
+ * Represents an SSL connector configuration.
+ */
+public expect interface EngineSSLConnectorConfig : EngineConnectorConfig {
+    public val authentication: AuthenticationConfig?
+    public val verification: VerificationConfig?
+
+    public interface AuthenticationConfig {
+
+        /**
+         * Private key password provider
+         */
+        public val privateKeyPassword: () -> CharArray
+    }
+
+    public interface VerificationConfig
+}
+
+/**
+ * Adds a secure connector to this engine environment
+ */
+public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
+    builder: EngineSSLConnectorBuilder.() -> Unit
+) {
+    connectors.add(EngineSSLConnectorBuilder().apply(builder))
+}
+
+/**
+ * Mutable implementation of EngineSSLConnectorConfig for building connectors programmatically
+ */
+public expect class EngineSSLConnectorBuilder() : EngineConnectorBuilder, EngineSSLConnectorConfig {
+    public override var authentication: AuthenticationConfigBuilder?
+    public override var verification: VerificationConfigBuilder?
+
+    public fun authentication(
+        privateKeyPassword: () -> CharArray,
+        block: AuthenticationConfigBuilder.() -> Unit
+    )
+
+    public fun verification(block: VerificationConfigBuilder.() -> Unit)
+
+    public class AuthenticationConfigBuilder(
+        privateKeyPassword: () -> CharArray
+    ) : EngineSSLConnectorConfig.AuthenticationConfig {
+
+        public fun pkcs12Certificate(
+            certificatePath: String,
+            certificatePasswordProvider: (() -> CharArray)?
+        )
+    }
+
+    public class VerificationConfigBuilder() : EngineSSLConnectorConfig.VerificationConfig {
+        public fun pkcs12Certificate(
+            certificatePath: String,
+            certificatePasswordProvider: (() -> CharArray)?
+        )
+    }
+}
+
+/**
  * Returns new instance of [EngineConnectorConfig] based on [this] with modified port
  */
-public expect fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnectorConfig
+public fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnectorConfig = when (this) {
+    is EngineSSLConnectorBuilder -> object : EngineSSLConnectorConfig by this {
+        override val port: Int = otherPort
+    }
+    else -> object : EngineConnectorConfig by this {
+        override val port: Int = otherPort
+    }
+}

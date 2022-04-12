@@ -9,28 +9,36 @@ import io.ktor.server.engine.*
 import java.io.*
 import java.security.*
 
-internal actual fun HttpServerSettings(
-    connectionIdleTimeoutSeconds: Long,
-    connectorConfig: EngineConnectorConfig
-): HttpServerSettings = HttpServerSettings(
-    host = connectorConfig.host,
-    port = connectorConfig.port,
-    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds,
-    tlsConfig = when (connectorConfig) {
-        is EngineSSLConnectorConfig -> TLSConfig(isClient = false) {
-//            serverName = connectorConfig.host //TODO?
-            authentication(connectorConfig.privateKeyPassword) {
-                keyStore(connectorConfig.resolveKeyStore())
+internal actual fun TLSConfigBuilder.takeFromConnector(connectorConfig: EngineSSLConnectorConfig) {
+    authentication(connectorConfig)
+    verification(connectorConfig)
+}
+
+private fun TLSConfigBuilder.authentication(connectorConfig: EngineSSLConnectorConfig) {
+    connectorConfig.authentication?.let { config ->
+        config.keyStoreProvider?.resolveKeyStore()?.let { keyStore ->
+            authentication(config.privateKeyPassword) {
+                keyStore(keyStore)
             }
-            connectorConfig.resolveTrustStore()?.let {
-                verification {
-                    trustStore(it)
-                }
-            }
+            return
         }
-        else -> null
     }
-)
+
+    //old configuration
+    authentication(connectorConfig.privateKeyPassword) {
+        keyStore(connectorConfig.resolveKeyStore())
+    }
+}
+
+private fun TLSConfigBuilder.verification(connectorConfig: EngineSSLConnectorConfig) {
+    val trustStore =
+        connectorConfig.verification?.trustStoreProvider?.resolveKeyStore()
+            ?: connectorConfig.resolveTrustStore() //old configuration
+            ?: return
+    verification {
+        trustStore(trustStore)
+    }
+}
 
 //TODO: make it public and move to core
 private fun EngineSSLConnectorConfig.resolveKeyStore(): KeyStore = keyStorePath?.let { file ->

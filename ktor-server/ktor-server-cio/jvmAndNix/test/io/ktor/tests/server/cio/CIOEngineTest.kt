@@ -20,7 +20,7 @@ import kotlin.test.*
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
-        enableSsl = PlatformUtils.IS_JVM
+        enableSsl = !PlatformUtils.IS_DARWIN
     }
 
     @Test
