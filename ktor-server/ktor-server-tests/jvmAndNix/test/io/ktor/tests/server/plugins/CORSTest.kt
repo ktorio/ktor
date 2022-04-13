@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -111,6 +112,55 @@ class CORSTest {
                 assertEquals(HttpStatusCode.Forbidden, call.response.status())
                 assertNull(call.response.content)
             }
+        }
+    }
+
+    @Test
+    fun testSimpleRequestSubrouteInstall() = testApplication {
+        routing {
+            route("/1") {
+                install(CORSRouteScoped) {
+                    allowHost("my-host")
+                }
+                get {
+                    call.respond("OK")
+                }
+            }
+            route("/2") {
+                get {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.get("/1") {
+            header(HttpHeaders.Origin, "http://my-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("http://my-host", response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
+        }
+
+        client.get("/1") {
+            header(HttpHeaders.Origin, "http://other-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+        }
+
+        client.get("/2") {
+            header(HttpHeaders.Origin, "http://my-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
+        }
+
+        client.get("/2") {
+            header(HttpHeaders.Origin, "http://other-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
         }
     }
 

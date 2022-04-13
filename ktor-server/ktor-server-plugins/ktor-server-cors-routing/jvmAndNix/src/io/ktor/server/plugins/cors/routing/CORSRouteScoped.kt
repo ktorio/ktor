@@ -2,7 +2,7 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.plugins.cors
+package io.ktor.server.plugins.cors.routing
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.common.*
@@ -21,5 +21,5 @@ import io.ktor.server.plugins.cors.common.*
  *
  * You can learn more from [CORS](https://ktor.io/docs/cors.html).
  */
-public val CORS: ApplicationPlugin<CORSConfig> =
-    createApplicationPlugin("CORS", ::CORSConfig, PluginBuilder<CORSConfig>::buildCORSPlugin)
+public val CORSRouteScoped: RouteScopedPlugin<CORSConfig> =
+    createRouteScopedPlugin("CORS", ::CORSConfig) { buildCORSPlugin() }
