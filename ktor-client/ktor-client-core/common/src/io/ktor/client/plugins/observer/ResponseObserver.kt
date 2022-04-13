@@ -62,7 +62,7 @@ public class ResponseObserver(
 
                 val (loggingContent, responseContent) = response.content.split(response)
 
-                val newResponse = response.wrapWithContent(responseContent)
+                val newResponse = response.call.wrapWithContent(responseContent).response
                 val sideResponse = response.call.wrapWithContent(loggingContent).response
 
                 scope.launch(getResponseObserverContext()) {
