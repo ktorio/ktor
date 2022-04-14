@@ -5,7 +5,7 @@
 package io.ktor.server.plugins.cors.routing
 
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.common.*
+import io.ktor.server.plugins.cors.*
 
 /**
  * A plugin that allows you to configure handling cross-origin requests.
@@ -21,5 +21,6 @@ import io.ktor.server.plugins.cors.common.*
  *
  * You can learn more from [CORS](https://ktor.io/docs/cors.html).
  */
-public val CORSRouteScoped: RouteScopedPlugin<CORSConfig> =
-    createRouteScopedPlugin("CORS", ::CORSConfig) { buildCORSPlugin() }
+public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
+    buildPlugin()
+}

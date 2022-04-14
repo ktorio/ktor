@@ -8,7 +8,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -119,7 +118,7 @@ class CORSTest {
     fun testSimpleRequestSubrouteInstall() = testApplication {
         routing {
             route("/1") {
-                install(CORSRouteScoped) {
+                install(CORS) {
                     allowHost("my-host")
                 }
                 get {
