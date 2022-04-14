@@ -43,7 +43,7 @@ public fun HttpClientConfig<*>.BrowserUserAgent() {
 }
 
 /**
- * Install [UserAgent] plugin with browser-like user agent.
+ * Install [UserAgent] plugin with curl user agent.
  */
 public fun HttpClientConfig<*>.CurlUserAgent() {
     install(UserAgent) {
