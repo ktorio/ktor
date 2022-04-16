@@ -291,6 +291,17 @@ class ContentTest : ClientLoader(5 * 60) {
         }
     }
 
+    @Test
+    fun testDuplicatedContentType() = clientTests(listOf("CIO", "Android", "Apache", "Curl", "Java", "Jetty", "Okhttp")) {
+        test { client ->
+            val response = client.get(
+                "$TEST_SERVER/content/duplicatedContentType"
+            ).body<String>()
+
+            assertEquals("test", response)
+        }
+    }
+
     private suspend inline fun <reified Response : Any> HttpClient.echo(
         body: Any
     ): Response = post("$TEST_SERVER/content/echo") {

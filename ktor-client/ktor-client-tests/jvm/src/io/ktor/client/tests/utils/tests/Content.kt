@@ -93,6 +93,12 @@ internal fun Application.contentTestServer() {
                     }
                 )
             }
+            get("/duplicatedContentType") {
+                // netty server can not append header with same key
+                // so i join duplicated value with comma to simulate this case[https://youtrack.jetbrains.com/issue/KTOR-4105] in browser and darwin engine
+                call.response.headers.append("Content-Type", "text/html; charset=UTF-8, text/html; charset=UTF-8", false)
+                call.respond("test".toByteArray())
+            }
         }
     }
 }
