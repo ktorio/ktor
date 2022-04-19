@@ -17,6 +17,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
 
             implementation(kotlin("test-junit"))
 
@@ -27,6 +28,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
             api(libs.logback.classic)
         }
     }

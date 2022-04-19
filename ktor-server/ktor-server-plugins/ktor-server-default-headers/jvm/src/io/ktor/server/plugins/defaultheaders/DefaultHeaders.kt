@@ -94,8 +94,13 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
 
     val serverHeader = "Ktor/$ktorPackageVersion"
     onCallRespond { call, _ ->
-        call.response.header(HttpHeaders.Date, calculateDateHeader())
         headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
-        call.response.headers.append(HttpHeaders.Server, serverHeader)
+
+        if (!call.response.headers.contains(HttpHeaders.Date)) {
+            call.response.header(HttpHeaders.Date, calculateDateHeader())
+        }
+        if (!call.response.headers.contains(HttpHeaders.Server)) {
+            call.response.headers.append(HttpHeaders.Server, serverHeader)
+        }
     }
 }

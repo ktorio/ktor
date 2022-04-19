@@ -9,6 +9,7 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -18,6 +19,7 @@ import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.net.*
 import java.nio.*
+import java.time.ZonedDateTime
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -424,6 +426,42 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
                 completed.await()
             }
+        }
+    }
+
+    @Test
+    fun testHeaderAppearsSingleTime() {
+        val lastModified = ZonedDateTime.now()
+
+        createAndStartServer {
+            install(DefaultHeaders) {
+                header(HttpHeaders.Server, "BRS")
+                header("X-Content-Type-Options", "nosniff")
+            }
+
+            get("/") {
+                call.response.lastModified(lastModified)
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+        }
+
+        val request = buildString {
+            append("GET / HTTP/1.1\r\n")
+            append("Host: localhost\r\n")
+            append("Connection: close\r\n")
+            append("\r\n")
+        }.toByteArray()
+
+        socket {
+            outputStream.apply {
+                write(request)
+                flush()
+            }
+
+            val response = inputStream.bufferedReader().readLines()
+
+            assertTrue { "Server: BRS" in response }
+            assertFalse { "Server: Ktor/debug" in response }
         }
     }
 
