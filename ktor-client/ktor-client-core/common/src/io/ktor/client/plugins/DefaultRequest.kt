@@ -69,9 +69,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                     plugin.block(this)
                 }
                 val defaultUrl = defaultRequest.url.build()
-                if (context.url.host.isEmpty()) {
-                    mergeUrls(defaultUrl, context.url)
-                }
+                mergeUrls(defaultUrl, context.url)
                 defaultRequest.attributes.allKeys.forEach {
                     if (!context.attributes.contains(it)) {
                         @Suppress("UNCHECKED_CAST")
@@ -83,25 +81,34 @@ public class DefaultRequest private constructor(private val block: DefaultReques
         }
 
         private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
-            val url = URLBuilder(baseUrl)
+            val resultUrl = URLBuilder(baseUrl)
             with(requestUrl) {
+                if (protocol != URLProtocol.HTTP) {
+                    resultUrl.protocol = protocol
+                }
+                if (host.isNotEmpty()) {
+                    resultUrl.host = host
+                }
+                if (port != DEFAULT_PORT) {
+                    resultUrl.port = port
+                }
                 if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
                     // path starts from "/"
-                    url.encodedPathSegments = encodedPathSegments
+                    resultUrl.encodedPathSegments = encodedPathSegments
                 } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
-                    url.encodedPathSegments = url.encodedPathSegments.dropLast(1) + encodedPathSegments
+                    resultUrl.encodedPathSegments = resultUrl.encodedPathSegments.dropLast(1) + encodedPathSegments
                 }
                 if (encodedFragment.isNotEmpty()) {
-                    url.encodedFragment = encodedFragment
+                    resultUrl.encodedFragment = encodedFragment
                 }
-                val defaultParameters = ParametersBuilder().apply { appendAll(url.encodedParameters) }
-                url.encodedParameters = encodedParameters
+                val defaultParameters = ParametersBuilder().apply { appendAll(resultUrl.encodedParameters) }
+                resultUrl.encodedParameters = encodedParameters
                 defaultParameters.entries().forEach { (key, values) ->
-                    if (!url.encodedParameters.contains(key)) {
-                        url.encodedParameters.appendAll(key, values)
+                    if (!resultUrl.encodedParameters.contains(key)) {
+                        resultUrl.encodedParameters.appendAll(key, values)
                     }
                 }
-                takeFrom(url)
+                takeFrom(resultUrl)
             }
         }
     }

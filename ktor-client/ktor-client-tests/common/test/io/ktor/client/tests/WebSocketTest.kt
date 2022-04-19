@@ -5,8 +5,10 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
@@ -71,6 +73,26 @@ class WebSocketTest : ClientLoader(100000) {
             val response = session.incoming.receive() as Frame.Text
             assertEquals("test", response.readText())
             session.close()
+        }
+    }
+
+    @Test
+    fun testWebsocketWithDefaultRequest() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+            defaultRequest {
+                val url = Url(TEST_WEBSOCKET_SERVER)
+                host = url.host
+                port = url.port
+            }
+        }
+
+        test { client ->
+            client.webSocket("/websockets/echo") {
+                send("test")
+                val response = incoming.receive() as Frame.Text
+                assertEquals("test", response.readText())
+            }
         }
     }
 

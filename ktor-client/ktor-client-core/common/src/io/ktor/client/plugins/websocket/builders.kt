@@ -136,9 +136,9 @@ public suspend fun HttpClient.webSocket(
 ) {
     webSocket(
         HttpMethod.Get,
-        "localhost",
-        DEFAULT_PORT,
-        "/",
+        null,
+        null,
+        null,
         {
             url.protocol = URLProtocol.WS
             url.port = port

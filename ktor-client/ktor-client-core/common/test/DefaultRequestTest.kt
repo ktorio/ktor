@@ -6,7 +6,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 import kotlin.test.*
 
 /*
@@ -73,7 +72,51 @@ class DefaultRequestTest {
         assertEquals("${URLBuilder.Companion.origin}/", client.get("/").bodyAsText())
         assertEquals("${URLBuilder.Companion.origin}/file", client.get("file").bodyAsText())
         assertEquals("${URLBuilder.Companion.origin}/other_path", client.get("/other_path").bodyAsText())
-        assertEquals("http://other.host/other_path", client.get("//other.host/other_path").bodyAsText())
+        assertEquals("http://other.host/other_path", client.get("//other.host:80/other_path").bodyAsText())
+    }
+
+    @Test
+    fun testDefaultHostAndPort() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.url.toString())
+                }
+            }
+
+            defaultRequest {
+                host = "default.host"
+                port = 1234
+            }
+        }
+
+        assertEquals("http://default.host:1234/", client.get {}.bodyAsText())
+        assertEquals("http://other.host:2345/", client.get("//other.host:2345/").bodyAsText())
+    }
+
+    @Test
+    fun testDefaultProtocol() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.url.toString())
+                }
+            }
+
+            defaultRequest {
+                url.protocol = URLProtocol.HTTPS
+            }
+        }
+
+        val defaultUrl = Url(URLBuilder.Companion.origin)
+        if (defaultUrl.port == defaultUrl.protocol.defaultPort) {
+            assertEquals("https://localhost/", client.get {}.bodyAsText())
+            assertEquals("ws://other.host:443/", client.get("ws://other.host/").bodyAsText())
+        } else {
+            assertEquals("https://${defaultUrl.hostWithPort}/", client.get {}.bodyAsText())
+            assertEquals("ws://other.host:${defaultUrl.port}/", client.get("ws://other.host/").bodyAsText())
+        }
+        assertEquals("ws://other.host:123/", client.get("ws://other.host:123").bodyAsText())
     }
 
     @Test
