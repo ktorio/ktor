@@ -100,7 +100,9 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 
             val responseHeaders = call.response.headers
             headers.forEach { name, values ->
-                values.forEach { responseHeaders.append(name, it) }
+                if (!responseHeaders.contains(name)) {
+                    values.forEach { responseHeaders.append(name, it) }
+                }
             }
         }
 
