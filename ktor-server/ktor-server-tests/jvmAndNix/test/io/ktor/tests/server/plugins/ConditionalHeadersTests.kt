@@ -53,6 +53,24 @@ class ETagsTest {
     }
 
     @Test
+    fun testNoDoubleHeader(): Unit = testApplication {
+        install(ConditionalHeaders) {
+            version { _, _ -> listOf(EntityTagVersion("tag1")) }
+        }
+        routing {
+            handle {
+                call.response.headers.append(HttpHeaders.ETag, "tag2")
+                call.respondText("response")
+            }
+        }
+
+        val result = client.get {}
+        assertEquals(HttpStatusCode.OK, result.status)
+        assertEquals("response", result.bodyAsText())
+        assertEquals(listOf("tag2"), result.headers.getAll(HttpHeaders.ETag))
+    }
+
+    @Test
     fun testIfMatchConditionFailed(): Unit = withConditionalApplication {
         val result = client.get {
             header(HttpHeaders.IfMatch, "tag2")
