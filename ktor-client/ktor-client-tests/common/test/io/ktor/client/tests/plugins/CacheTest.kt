@@ -5,6 +5,7 @@ package io.ktor.client.tests.plugins
 
 import io.ktor.client.call.*
 import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -427,6 +428,26 @@ class CacheTest : ClientLoader() {
             assertEquals(1, publicCache().size)
 
             assertSame(publicCacheEntry, publicCache().first())
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testWithLogging() = clientTests {
+        config {
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = Logger.EMPTY
+            }
+            install(HttpCache)
+        }
+        test { client ->
+            client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
+                val savedResponse = response.call.save().response
+                proceedWith(savedResponse)
+            }
+            val result = client.get("$TEST_SERVER/content/chunked-data?size=5000").bodyAsText()
+            assertEquals(5000, result.length)
         }
     }
 

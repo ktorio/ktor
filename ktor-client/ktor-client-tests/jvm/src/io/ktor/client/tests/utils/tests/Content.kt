@@ -22,6 +22,12 @@ internal fun Application.contentTestServer() {
             get("/empty") {
                 call.respond("")
             }
+            get("/chunked-data") {
+                call.respondTextWriter {
+                    val text = "x".repeat(call.parameters["size"]?.toInt() ?: 1000)
+                    text.chunked(255).forEach { write(it) }
+                }
+            }
             head("/emptyHead") {
                 call.respond(
                     object : OutgoingContent.NoContent() {
