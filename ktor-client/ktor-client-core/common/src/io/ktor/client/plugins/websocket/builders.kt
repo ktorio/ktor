@@ -92,7 +92,6 @@ public suspend fun HttpClient.webSocket(
     val session = prepareRequest {
         url {
             protocol = URLProtocol.WS
-            port = protocol.defaultPort
         }
         request()
     }
