@@ -5,10 +5,12 @@
 package io.ktor.server.plugins.statuspages
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import kotlin.jvm.*
 import kotlin.reflect.*
 
 /**
@@ -36,11 +38,11 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
     on(ResponseBodyReadyForSend) { call, content ->
         if (call.attributes.contains(statusPageMarker)) return@on
 
-        val status = content.status ?: return@on
+        val status = content.status ?: call.response.status() ?: return@on
         val handler = statuses[status] ?: return@on
         call.attributes.put(statusPageMarker, Unit)
         try {
-            handler(call, status)
+            handler(call, content, status)
         } catch (cause: Throwable) {
             call.attributes.remove(statusPageMarker)
             throw cause
@@ -75,7 +77,8 @@ public class StatusPagesConfig {
     /**
      * Provides access to status handlers based on a status code.
      */
-    public val statuses: MutableMap<HttpStatusCode, suspend (call: ApplicationCall, code: HttpStatusCode) -> Unit> =
+    public val statuses: MutableMap<HttpStatusCode,
+        suspend (call: ApplicationCall, content: OutgoingContent, code: HttpStatusCode) -> Unit> =
         mutableMapOf()
 
     /**
@@ -106,7 +109,28 @@ public class StatusPagesConfig {
         handler: suspend (ApplicationCall, HttpStatusCode) -> Unit
     ) {
         status.forEach {
-            statuses[it] = handler
+            statuses[it] = { call, _, code -> handler(call, code) }
         }
     }
+
+    /**
+     * Register a status [handler] for the [status] code.
+     */
+    @JvmName("statusWithContext")
+    public fun status(
+        vararg status: HttpStatusCode,
+        handler: suspend StatusContext.(HttpStatusCode) -> Unit
+    ) {
+        status.forEach {
+            statuses[it] = { call, content, code -> handler(StatusContext(call, content), code) }
+        }
+    }
+
+    /**
+     * A context for [status] config method.
+     */
+    public class StatusContext(
+        public val call: ApplicationCall,
+        public val content: OutgoingContent
+    )
 }
