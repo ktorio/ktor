@@ -4,6 +4,7 @@
 
 package io.ktor.tests.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.defaultheaders.*
@@ -12,38 +13,40 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class DefaultHeadersTest {
 
     @Test
-    fun addsServerHeaderWithFallbackPackageNameAndVersion() = withTestApplication {
-        application.install(DefaultHeaders)
-        application.routing {
+    fun addsServerHeaderWithFallbackPackageNameAndVersion() = testApplication {
+        install(DefaultHeaders)
+        routing {
             get { call.respond("OK") }
         }
-        handleRequest(HttpMethod.Get, "/").let { result ->
-            val actual = result.response.headers["Server"]
+
+        client.get("/").let { response ->
+            val actual = response.headers["Server"]
             assertNotNull(actual)
             assertTrue(actual.startsWith("Ktor/"))
         }
     }
 
     @Test
-    fun serverHeaderIsNotModifiedIfPresent() = withTestApplication {
-        application.install(DefaultHeaders) {
+    fun serverHeaderIsNotModifiedIfPresent() = testApplication {
+        install(DefaultHeaders) {
             header(HttpHeaders.Server, "xserver/1.0")
         }
-        application.routing {
+
+        routing {
             get { call.respond("OK") }
         }
-        handleRequest(HttpMethod.Get, "/").let { result ->
-            assertEquals("xserver/1.0", result.response.headers["Server"])
+
+        client.get("/").let { response ->
+            assertEquals("xserver/1.0", response.headers["Server"])
         }
     }
 
     @Test
-    fun testSubrouteInstall(): Unit = withTestApplication {
-        application.routing {
+    fun testSubrouteInstall(): Unit = testApplication {
+        routing {
             route("1") {
                 install(DefaultHeaders) {}
                 get { call.respond("response") }
@@ -51,13 +54,67 @@ class DefaultHeadersTest {
             get("2") { call.respond("response") }
         }
 
-        handleRequest(HttpMethod.Get, "/1").let { result ->
-            val actual = result.response.headers["Server"]
+        client.get("/1").let { response ->
+            val actual = response.headers["Server"]
             assertNotNull(actual)
             assertTrue(actual.startsWith("Ktor/"))
         }
-        handleRequest(HttpMethod.Get, "/2").let { result ->
-            assertNull(result.response.headers["Server"])
+
+        client.get("/2").let { response ->
+            assertNull(response.headers["Server"])
         }
+    }
+
+    @Test
+    fun testDate(): Unit = testApplication {
+        var now = 1569882841014
+        install(DefaultHeaders) {
+            clock = DefaultHeadersConfig.Clock { now }
+        }
+
+        application {
+            intercept(ApplicationCallPipeline.Call) {
+                call.respondText("OK")
+            }
+        }
+
+        assertEquals("Mon, 30 Sep 2019 22:34:01 GMT", client.get("/").headers[HttpHeaders.Date])
+
+        now += 999
+
+        assertEquals("Mon, 30 Sep 2019 22:34:01 GMT", client.get("/").headers[HttpHeaders.Date])
+
+        now++
+
+        assertEquals("Mon, 30 Sep 2019 22:34:02 GMT", client.get("/").headers[HttpHeaders.Date])
+    }
+
+    @Test
+    fun testCustomHeader(): Unit = testApplication {
+        install(DefaultHeaders) {
+            header("X-Test", "123")
+        }
+
+        assertEquals("123", client.get("/").headers["X-Test"])
+    }
+
+    @Test
+    fun testDefaultServerHeader(): Unit = testApplication {
+        install(DefaultHeaders)
+
+        client.get("/").let { response ->
+            val serverHeader = response.headers[HttpHeaders.Server]
+            assertNotNull(serverHeader)
+            assertTrue("Server header invalid: $serverHeader") { "Ktor" in serverHeader }
+        }
+    }
+
+    @Test
+    fun testCustomServerHeader(): Unit = testApplication {
+        install(DefaultHeaders) {
+            header(HttpHeaders.Server, "MyServer")
+        }
+
+        assertEquals("MyServer", client.get("/").headers[HttpHeaders.Server])
     }
 }

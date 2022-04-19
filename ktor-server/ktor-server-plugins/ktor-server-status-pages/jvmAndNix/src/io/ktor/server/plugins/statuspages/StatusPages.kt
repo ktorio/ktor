@@ -31,7 +31,14 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
     val statuses = HashMap(pluginConfig.statuses)
 
     fun findHandlerByValue(cause: Throwable): HandlerFunction? {
-        val key = exceptions.keys.find { cause.instanceOf(it) } ?: return null
+        val keys = exceptions.keys.filter { cause.instanceOf(it) }
+        if (keys.isEmpty()) return null
+
+        if (keys.size == 1) {
+            return exceptions[keys.single()]
+        }
+
+        val key = selectNearestParentClass(cause, keys)
         return exceptions[key]
     }
 
