@@ -4,12 +4,15 @@
 
 package io.ktor.server.plugins.statuspages
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -471,5 +474,37 @@ class StatusPagesTest {
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertTrue(routingHandled)
         assertTrue(exceptionHandled)
+    }
+
+    class CustomException : Exception()
+
+    @Test
+    fun testCallIdOnFailed() = testApplication {
+        val brokenPlugin = createRouteScopedPlugin("x") {
+            onCallReceive { _ ->
+                throw CustomException()
+            }
+        }
+
+        application {
+            install(brokenPlugin)
+            install(StatusPages) {
+                exception<CustomException> { call, _ ->
+                    call.respond(HttpStatusCode.InternalServerError, "Handled")
+                }
+            }
+
+            install(CallId)
+
+            routing {
+                get("/") {
+                    call.respondText(call.receive())
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertEquals("Handled", response.bodyAsText())
     }
 }

@@ -68,7 +68,6 @@ fun Project.configurePublication() {
         println("Set publishing to repository $repositoryId")
         "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
     } else {
-        println("Publishing to default URL")
         System.getenv("PUBLISHING_URL")
     }
 
