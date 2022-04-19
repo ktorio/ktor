@@ -60,6 +60,31 @@ class StatusPagesTest {
     }
 
     @Test
+    fun testStatusWithContent() = testApplication {
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { _ ->
+                    call.respondText(content::class.toString())
+                }
+            }
+
+            routing {
+                get("/notFound") {
+                    call.respond(HttpStatusCode.NotFound, "Not found")
+                }
+            }
+        }
+
+        client.get("/missing").let { response ->
+            assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response.bodyAsText())
+        }
+
+        client.get("/notFound").let { response ->
+            assertEquals("class io.ktor.http.content.TextContent", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testStatus404CustomObject() = testApplication {
         application {
             install(StatusPages) {
