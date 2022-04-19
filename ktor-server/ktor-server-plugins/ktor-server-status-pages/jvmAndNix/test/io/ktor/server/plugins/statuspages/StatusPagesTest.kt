@@ -476,6 +476,39 @@ class StatusPagesTest {
         assertTrue(exceptionHandled)
     }
 
+    open class MyException : IllegalStateException()
+    class SuperException : MyException()
+
+    @Test
+    fun testHandleMoreSpecificException() = testApplication {
+        application {
+            install(StatusPages) {
+                exception<IllegalStateException> { call, _ ->
+                    call.respondText("Illegal State")
+                }
+                exception<MyException> { call, _ ->
+                    call.respondText("MyException")
+                }
+            }
+
+            routing {
+                get("/my") {
+                    throw MyException()
+                }
+                get("/illegal-state") {
+                    throw IllegalStateException()
+                }
+                get("/super") {
+                    throw SuperException()
+                }
+            }
+        }
+
+        assertEquals("Illegal State", client.get("/illegal-state").bodyAsText())
+        assertEquals("MyException", client.get("/my").bodyAsText())
+        assertEquals("MyException", client.get("/super").bodyAsText())
+    }
+
     class CustomException : Exception()
 
     @Test
