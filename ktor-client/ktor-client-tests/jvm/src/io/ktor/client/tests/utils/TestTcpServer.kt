@@ -20,7 +20,13 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
 
         coroutineContext = GlobalScope.launch {
             while (isActive) {
-                val socket = server.accept()
+                val socket = try {
+                    server.accept()
+                } catch (cause: Throwable) {
+                    println("Test server is fail to accept: $cause")
+                    cause.printStackTrace()
+                    continue
+                }
 
                 try {
                     socket.use { handler(it) }

@@ -22,24 +22,29 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         Dispatchers.createFixedThreadDispatcher("curl-dispatcher", 1)
 
     private var curlApi: CurlMultiApiHandler? by atomic(null)
+    private val closed = atomic(false)
+
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
     private val requestQueue: Channel<RequestContainer> = Channel(Channel.UNLIMITED)
 
     init {
         val init = curlScope.launch {
             curlApi = CurlMultiApiHandler()
-            runEventLoop()
         }
 
         runBlocking {
             init.join()
+        }
+
+        curlScope.launch {
+            runEventLoop()
         }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
         val result = CompletableDeferred<CurlSuccess>()
         requestQueue.send(RequestContainer(request, result))
-        curlApi?.wakeup()
+        curlApi!!.wakeup()
         return result.await()
     }
 
@@ -77,9 +82,13 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun close() {
+        if (!closed.compareAndSet(false, true)) return
+
         requestQueue.close()
-        curlScope.coroutineContext[Job]!!.invokeOnCompletion {
+        GlobalScope.launch {
+            curlScope.coroutineContext[Job]!!.join()
             curlDispatcher.close()
             curlApi!!.close()
         }
@@ -87,7 +96,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         curlScope.launch {
-            curlApi?.cancelRequest(easyHandle, cause)
+            curlApi!!.cancelRequest(easyHandle, cause)
         }
     }
 }

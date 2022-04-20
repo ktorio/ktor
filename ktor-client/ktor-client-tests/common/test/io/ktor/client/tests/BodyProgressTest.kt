@@ -116,13 +116,15 @@ class BodyProgressTest : ClientLoader() {
 
     @Test
     fun testSendFailedChannel() = clientTests {
+        val content = ByteArray(8 * 1025) { 1 }
+
         test { client ->
             val listener: ProgressListener = { _, _ -> }
 
             val channel = ByteChannel()
             GlobalScope.launch {
-                channel.writeFully(ByteArray(8 * 1025) { 1 })
-                channel.writeFully(ByteArray(8 * 1025) { 1 })
+                channel.writeFully(content)
+                channel.writeFully(content)
                 channel.close(RuntimeException("Error"))
             }
 
