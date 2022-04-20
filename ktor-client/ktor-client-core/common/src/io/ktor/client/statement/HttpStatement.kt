@@ -69,7 +69,7 @@ public class HttpStatement(
      *
      * Note if T is a streaming type, you should manage how to close it manually.
      */
-    @OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
+    @OptIn(InternalAPI::class)
     public suspend inline fun <reified T> body(): T = unwrapRequestTimeoutException {
         val response = executeUnsafe()
         return try {
