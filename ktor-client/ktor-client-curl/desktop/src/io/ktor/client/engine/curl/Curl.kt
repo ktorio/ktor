@@ -19,7 +19,7 @@ import libcurl.*
 @EagerInitialization
 private val curlGlobalInitReturnCode = curlInitBridge()
 
-internal expect fun curlInitBridge(): Int
+internal fun curlInitBridge(): Int = curl_global_init(CURL_GLOBAL_ALL.convert()).convert()
 
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("unused", "DEPRECATION")
