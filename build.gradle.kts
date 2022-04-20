@@ -181,7 +181,6 @@ allprojects {
 
     val dokkaPlugin by configurations
     dependencies {
-        dokkaPlugin("org.jetbrains.dokka:all-modules-page-plugin:1.6.10")
         dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
     }
 }
