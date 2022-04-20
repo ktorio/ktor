@@ -587,4 +587,78 @@ class LocationsTest {
             urlShouldBeHandled("/no-location", "OK")
         }
     }
+
+    @Location("/trailing")
+    object notrailing
+
+    @Location("/trailing/")
+    object trailing
+
+    @Test
+    fun `location href with no trailing slash`() = withLocationsApplication {
+        val href = application.locations.href(notrailing)
+        assertEquals("/trailing", href)
+    }
+
+    @Test
+    fun `location href with trailing slash`() = withLocationsApplication {
+        val href = application.locations.href(trailing)
+        assertEquals("/trailing/", href)
+    }
+
+    @Location("/parent/")
+    class parent {
+        @Location("/trailing")
+        class notrailing
+
+        @Location("/trailing/")
+        class trailing
+    }
+
+    @Test
+    fun `nested location href with no trailing slash`() = withLocationsApplication {
+        val href = application.locations.href(parent.notrailing())
+        assertEquals("/parent/trailing", href)
+    }
+
+    @Test
+    fun `nested location href with trailing slash`() = withLocationsApplication {
+        val href = application.locations.href(parent.trailing())
+        assertEquals("/parent/trailing/", href)
+    }
+
+    @Location("/parent")
+    class notrailingparent {
+        @Location("/trailing/")
+        class trailing
+    }
+
+    @Test
+    fun `nested location href with parent with no trailing slash`() = withLocationsApplication {
+        val href = application.locations.href(notrailingparent.trailing())
+        assertEquals("/parent/trailing/", href)
+    }
+
+    @Test
+    fun `location routing with no trailing`() = withLocationsApplication {
+        application.routing {
+            get<notrailing> {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled("/trailing")
+        urlShouldBeUnhandled("/trailing/")
+    }
+
+    @Test
+    fun `location routing with trailing`() = withLocationsApplication {
+        application.routing {
+            get<trailing> {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled("/trailing/")
+        urlShouldBeUnhandled("/trailing")
+    }
+
 }

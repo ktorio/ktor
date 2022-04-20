@@ -112,7 +112,7 @@ internal class BackwardCompatibleImpl(
             conversionService.toValues(value).map { property.name to it }
         }
 
-        return parentInfo.combine(relativePath, queryValues)
+        return parentInfo.combine(relativePath, queryValues, info.path.endsWith('/'))
     }
 
     private fun LocationInfo.create(allParameters: Parameters): Any {
@@ -164,10 +164,14 @@ internal class BackwardCompatibleImpl(
 
     private fun ResolvedUriInfo.combine(
         relativePath: String,
-        queryValues: List<Pair<String, String>>
+        queryValues: List<Pair<String, String>>,
+        trailingSlash: Boolean,
     ): ResolvedUriInfo {
         val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
-        val combinedPath = pathElements.joinToString("/", "/")
+        val combinedPath = if (pathElements.isNotEmpty()){
+            pathElements.joinToString("/", "/", if (trailingSlash) "/" else "")
+        } else "/"
+
         return ResolvedUriInfo(combinedPath, query + queryValues)
     }
 
