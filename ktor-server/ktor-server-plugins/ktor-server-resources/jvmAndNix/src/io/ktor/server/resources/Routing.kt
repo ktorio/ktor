@@ -176,8 +176,13 @@ internal fun <T : Any> Route.resource(
     }.apply(body)
 }
 
-@PublishedApi
-internal fun <T : Any> Route.handle(
+/**
+ * Registers a handler [body] for a resource defined by the [T] class.
+ *
+ * @param serializer is used to decode the parameters of the request to an instance of the typed resource [T].
+ * @param body receives an instance of the typed resource [T] as the first parameter.
+ */
+public fun <T : Any> Route.handle(
     serializer: KSerializer<T>,
     body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
