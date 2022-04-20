@@ -4,6 +4,7 @@
 
 package io.ktor.server.testing
 
+import io.ktor.test.dispatcher.*
 import kotlinx.atomicfu.locks.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -27,8 +28,10 @@ actual abstract class BaseTest actual constructor() {
     fun _verifyErrors() {
         if (errors.isEmpty()) return
 
-        val error =
-            UnhandledErrorsException("There were ${errors.size} unhandled errors during running test (suppressed)")
+        val error = UnhandledErrorsException(
+            "There were ${errors.size} unhandled errors during running test (suppressed)"
+        )
+
         errors.forEach {
             error.addSuppressed(it)
         }
@@ -37,18 +40,7 @@ actual abstract class BaseTest actual constructor() {
     }
 
     actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
-        val testName = block::class.qualifiedName!!.substringAfter("$").substringBefore("$")
-        runBlocking(CoroutineName("test-$testName")) {
-            runCatching {
-                withTimeout(timeout) {
-                    runCatching { block() }
-                }
-            }.onFailure {
-                if (it is TimeoutCancellationException) {
-                    throw TestTimeoutException("Test '$testName' timed out after $timeout", it)
-                } else throw it
-            }.onSuccess { it.getOrThrow() }
-        }
+        testSuspend(timeoutMillis = timeout.inWholeMilliseconds, block = block)
     }
 }
 

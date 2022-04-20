@@ -3,16 +3,23 @@
  */
 package io.ktor.test.dispatcher
 
+import io.ktor.util.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 import kotlin.system.*
 import kotlin.time.Duration.Companion.milliseconds
 
-private var TEST_WORKER: Worker = createTestWorker()
+private var TEST_WORKER: Worker? = null
 private val SLEEP_TIME: UInt = 10.milliseconds.inWholeMicroseconds.toUInt()
 
+@OptIn(InternalAPI::class)
 internal fun executeInWorker(timeout: Long, block: () -> Unit) {
-    val result = TEST_WORKER.execute(TransferMode.UNSAFE, { block }) {
+    if (TEST_WORKER == null) {
+        createTestWorker()
+    }
+
+    val result = TEST_WORKER!!.execute(TransferMode.SAFE, { block }) {
         it()
     }
 
@@ -23,8 +30,8 @@ internal fun executeInWorker(timeout: Long, block: () -> Unit) {
 
     when (result.state) {
         FutureState.SCHEDULED -> {
-            TEST_WORKER.requestTermination(processScheduledJobs = false)
-            TEST_WORKER = createTestWorker()
+            ThreadInfo.printAllStackTraces()
+            restartTestWorker()
             error("Test is timed out")
         }
         else -> {
@@ -33,7 +40,22 @@ internal fun executeInWorker(timeout: Long, block: () -> Unit) {
     }
 }
 
-private fun createTestWorker(): Worker = Worker.start(
-    name = "Ktor Test Worker",
-    errorReporting = true
-)
+@OptIn(InternalAPI::class)
+private fun createTestWorker() {
+    val worker = Worker.start(
+        name = "Ktor Test Worker",
+        errorReporting = true
+    )
+
+    worker.execute(TransferMode.SAFE, { }) {
+        ThreadInfo.registerCurrentThread()
+    }.consume { }
+
+    TEST_WORKER = worker
+}
+
+@OptIn(InternalAPI::class)
+private fun restartTestWorker() {
+    ThreadInfo.stopAllWorkers()
+    createTestWorker()
+}
