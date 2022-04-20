@@ -6,8 +6,6 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.posix.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
-import kotlin.system.*
 
 /**
  * Amount of time any task is processed and can't be rescheduled.

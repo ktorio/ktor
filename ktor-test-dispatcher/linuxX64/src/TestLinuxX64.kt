@@ -1,6 +1,7 @@
 package io.ktor.test.dispatcher
 
 import kotlinx.coroutines.*
+import platform.posix.*
 import kotlin.coroutines.*
 
 /**
