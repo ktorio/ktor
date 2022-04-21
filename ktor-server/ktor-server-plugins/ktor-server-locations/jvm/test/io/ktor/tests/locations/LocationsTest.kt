@@ -660,5 +660,4 @@ class LocationsTest {
         urlShouldBeHandled("/trailing/")
         urlShouldBeUnhandled("/trailing")
     }
-
 }
