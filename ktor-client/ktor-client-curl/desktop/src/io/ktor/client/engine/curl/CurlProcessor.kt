@@ -6,60 +6,88 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
 
-/**
- * Only set in curl worker thread
- */
-private lateinit var curlApi: CurlMultiApiHandler
+internal class RequestContainer(
+    val requestData: CurlRequestData,
+    val completionHandler: CompletableDeferred<CurlSuccess>
+)
 
 internal class CurlProcessor(coroutineContext: CoroutineContext) {
     @OptIn(InternalAPI::class)
     private val curlDispatcher: CloseableCoroutineDispatcher =
         Dispatchers.createFixedThreadDispatcher("curl-dispatcher", 1)
 
+    private var curlApi: CurlMultiApiHandler? by atomic(null)
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
+    private val requestQueue: Channel<RequestContainer> = Channel(Channel.UNLIMITED)
 
     init {
-        curlScope.launch {
+        val init = curlScope.launch {
             curlApi = CurlMultiApiHandler()
+            runEventLoop()
+        }
+
+        runBlocking {
+            init.join()
         }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
-        val deferred = CompletableDeferred<CurlSuccess>()
+        val result = CompletableDeferred<CurlSuccess>()
+        requestQueue.send(RequestContainer(request, result))
+        curlApi?.wakeup()
+        return result.await()
+    }
 
-        val easyHandle = withContext(curlScope.coroutineContext) { curlApi.scheduleRequest(request, deferred) }
-
-        val requestCleaner = request.executionContext.invokeOnCompletion { cause ->
-            if (cause == null) return@invokeOnCompletion
-            cancelRequest(easyHandle, cause)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun runEventLoop() {
+        curlScope.launch {
+            val api = curlApi!!
+            while (!requestQueue.isClosedForReceive) {
+                drainRequestQueue(api)
+                api.perform()
+            }
         }
+    }
 
-        try {
-            curlPerform()
-            return deferred.await()
-        } finally {
-            requestCleaner.dispose()
+    private suspend fun drainRequestQueue(api: CurlMultiApiHandler) {
+        val api = curlApi!!
+
+        while (true) {
+            val container = if (api.hasHandlers()) {
+                requestQueue.tryReceive()
+            } else {
+                requestQueue.receiveCatching()
+            }.getOrNull() ?: break
+
+            val requestHandler = api.scheduleRequest(container.requestData, container.completionHandler)
+
+            val requestCleaner = container.requestData.executionContext.invokeOnCompletion { cause ->
+                if (cause == null) return@invokeOnCompletion
+                cancelRequest(requestHandler, cause)
+            }
+
+            container.completionHandler.invokeOnCompletion {
+                requestCleaner.dispose()
+            }
         }
     }
 
     fun close() {
-        runBlocking {
-            curlScope.launch { curlApi.close() }.join()
+        requestQueue.close()
+        curlScope.coroutineContext[Job]!!.invokeOnCompletion {
+            curlDispatcher.close()
+            curlApi!!.close()
         }
-        curlScope.cancel()
-        curlDispatcher.close()
     }
-
-    private fun curlPerform() = curlScope.launch { curlApi.perform(100) }
 
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         curlScope.launch {
-            curlApi.cancelRequest(easyHandle, cause)
+            curlApi?.cancelRequest(easyHandle, cause)
         }
     }
 }
