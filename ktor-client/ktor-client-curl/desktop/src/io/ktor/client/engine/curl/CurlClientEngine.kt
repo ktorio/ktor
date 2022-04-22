@@ -24,12 +24,6 @@ internal class CurlClientEngine(
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
-    init {
-        coroutineContext[Job]!!.invokeOnCompletion {
-            curlProcessor.close()
-        }
-    }
-
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -59,6 +53,11 @@ internal class CurlClientEngine(
                 callContext
             )
         }
+    }
+
+    override fun close() {
+        super.close()
+        curlProcessor.close()
     }
 }
 

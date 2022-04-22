@@ -45,7 +45,7 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    public fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
+    fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
@@ -121,7 +121,9 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_remove_handle(multiHandle, easyHandle).verify()
     }
 
-    public fun perform(millis: Int = 100) {
+    internal fun perform() {
+        if (activeHandles.isEmpty()) return
+
         memScoped {
             val transfersRunning = alloc<IntVar>()
             do {
@@ -133,13 +135,17 @@ internal class CurlMultiApiHandler : Closeable {
                     }
                 }
                 curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                curl_multi_poll(multiHandle, null, 0.toUInt(), millis, null).verify()
+                if (transfersRunning.value != 0) {
+                    curl_multi_poll(multiHandle, null, 0.toUInt(), 10000, null).verify()
+                }
                 if (transfersRunning.value < activeHandles.size) {
                     handleCompleted()
                 }
             } while (transfersRunning.value != 0)
         }
     }
+
+    internal fun hasHandlers(): Boolean = activeHandles.isNotEmpty()
 
     private fun setupMethod(
         easyHandle: EasyHandle,
@@ -330,5 +336,9 @@ internal class CurlMultiApiHandler : Closeable {
                 bodyChannel
             )
         }
+    }
+
+    fun wakeup() {
+        curl_multi_wakeup(multiHandle)
     }
 }
