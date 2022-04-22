@@ -12,6 +12,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
+import platform.posix.*
 
 @OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
@@ -34,8 +35,14 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
 
 @OptIn(UnsafeNumber::class)
 internal fun NSData.toByteArray(): ByteArray {
-    val data: CPointer<ByteVar> = bytes!!.reinterpret()
-    return ByteArray(length.toInt()) { index -> data[index] }
+    val result = ByteArray(length.toInt())
+    if (result.isEmpty()) return result
+
+    result.usePinned {
+        memcpy(it.addressOf(0), bytes, length)
+    }
+
+    return result
 }
 
 /**

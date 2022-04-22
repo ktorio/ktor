@@ -6,7 +6,7 @@ package io.ktor.util
 
 import kotlin.test.*
 
-class Base64 {
+class Base64Test {
 
     @Test
     fun encodeDecodeTextTest() {
