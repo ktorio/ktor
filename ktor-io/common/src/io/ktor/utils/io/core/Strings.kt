@@ -4,8 +4,11 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
 
 @Suppress("NOTHING_TO_INLINE")
-public inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray =
-    charset.newEncoder().encodeToByteArray(this, 0, length)
+public inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
+    if (charset == Charsets.UTF_8) return encodeToByteArray()
+
+    return charset.newEncoder().encodeToByteArray(this, 0, length)
+}
 
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
