@@ -156,8 +156,14 @@ public inline fun <reified T : Any> Route.handle(
 @PublishedApi
 internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInstance")
 
-@PublishedApi
-internal fun <T : Any> Route.resource(
+/**
+ * Registers a route [body] for a resource defined by the [T] class.
+ *
+ * @param serializer is used to decode the parameters of the request to an instance of the typed resource [T].
+ *
+ * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ */
+public fun <T : Any> Route.resource(
     serializer: KSerializer<T>,
     body: Route.() -> Unit
 ): Route {
