@@ -89,6 +89,22 @@ class TestApplicationTestJvm {
     }
 
     @Test
+    fun testCustomYamlConfig() = testApplication {
+        environment {
+            config = ApplicationConfig("application-custom.yaml")
+        }
+        routing {
+            val config = application.environment.config
+            get {
+                call.respond(config.property("ktor.test").getString())
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("another_test_value", response.bodyAsText())
+    }
+
+    @Test
     fun testConfigLoadsModules() = testApplication {
         environment {
             config = ApplicationConfig("application-with-modules.conf")

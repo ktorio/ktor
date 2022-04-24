@@ -1,0 +1,19 @@
+public final class io/ktor/server/config/yaml/YamlConfig : io/ktor/server/config/ApplicationConfig {
+	public fun <init> (Lnet/mamoe/yamlkt/YamlMap;)V
+	public final fun checkEnvironmentVariables ()V
+	public fun config (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+	public fun configList (Ljava/lang/String;)Ljava/util/List;
+	public fun keys ()Ljava/util/Set;
+	public fun property (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
+	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
+}
+
+public final class io/ktor/server/config/yaml/YamlConfigJvmKt {
+	public static final fun YamlConfig (Ljava/lang/String;)Lio/ktor/server/config/yaml/YamlConfig;
+}
+
+public final class io/ktor/server/config/yaml/YamlConfigLoader : io/ktor/server/config/ConfigLoader {
+	public fun <init> ()V
+	public fun load (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+}
+
