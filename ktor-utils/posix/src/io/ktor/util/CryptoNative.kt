@@ -23,4 +23,4 @@ public actual fun Digest(name: String): Digest = error("[Digest] is not supporte
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest()
+public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest(bytes)
