@@ -2249,10 +2249,16 @@ internal open class ByteBufferChannel(
             return true
         }
 
-        return suspendCoroutineUninterceptedOrReturn { ucont ->
-            val cache = readSuspendContinuationCache
-            suspensionForSize(size, cache)
-            cache.completeSuspendBlock(ucont.intercepted())
+        try {
+            return suspendCoroutineUninterceptedOrReturn { ucont ->
+                val cache = readSuspendContinuationCache
+                suspensionForSize(size, cache)
+                cache.completeSuspendBlock(ucont.intercepted())
+            }
+        } catch (cause: Throwable) {
+            readOp = null
+            // restore state
+            throw cause
         }
     }
 
