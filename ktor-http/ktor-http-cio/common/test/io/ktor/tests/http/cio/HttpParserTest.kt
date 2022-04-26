@@ -223,6 +223,21 @@ class HttpParserTest {
         }
     }
 
+    @Test
+    fun testColonAfterHost() = test {
+        val case = """
+        GET / HTTP/1.1
+        Host: www.example.com:
+
+
+        """.trimIndent()
+
+
+        assertFailsWith<ParserException> {
+            parseRequest(ByteReadChannel(case))
+        }
+    }
+
     @OptIn(InternalCoroutinesApi::class)
     private fun test(block: suspend () -> Unit) {
         var completed = false

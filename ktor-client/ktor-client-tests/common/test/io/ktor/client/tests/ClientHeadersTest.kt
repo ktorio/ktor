@@ -11,7 +11,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
-class HeadersTest : ClientLoader() {
+class ClientHeadersTest : ClientLoader() {
 
     @Test
     fun testHeadersReturnNullWhenMissing() = clientTests(listOf("Java", "Curl", "Js", "Darwin")) {
