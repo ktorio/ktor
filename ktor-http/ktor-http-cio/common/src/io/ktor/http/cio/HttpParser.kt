@@ -181,7 +181,7 @@ private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence 
         return exact
     }
 
-    return nextToken(text, range)
+    unsupportedHttpVersion(nextToken(text, range))
 }
 
 private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
@@ -288,4 +288,8 @@ private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
 
 private fun isDelimiter(ch: Char): Boolean {
     return ch <= ' ' || ch in "\"(),/:;<=>?@[\\]{}"
+}
+
+private fun unsupportedHttpVersion(result: CharSequence): Nothing {
+    throw ParserException("Unsupported HTTP version: $result")
 }
