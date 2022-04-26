@@ -187,6 +187,42 @@ class HttpParserTest {
         }
     }
 
+    @Test
+    fun testParseVersion() = test {
+        val cases = listOf(
+            """
+        GET / HTTP/1.6
+        Host: www.example.com
+
+
+        """.trimIndent(),
+            """
+        GET / HTPT/1.1
+        Host: www.example.com
+
+
+        """.trimIndent(),
+            """
+        GET / _
+        Host: www.example.com
+
+
+        """.trimIndent(),
+            """
+        GET / HTTP/1.01
+        Host: www.example.com
+
+
+        """.trimIndent()
+        )
+
+        for (case in cases) {
+            assertFailsWith<ParserException> {
+                parseRequest(ByteReadChannel(case))
+            }
+        }
+    }
+
     @OptIn(InternalCoroutinesApi::class)
     private fun test(block: suspend () -> Unit) {
         var completed = false
