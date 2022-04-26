@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
 /**
  * An HTTP parser exception
  */
-public class ParserException(message: String) : Exception(message)
+public class ParserException(message: String) : IllegalStateException(message)
 
 private const val HTTP_LINE_LIMIT = 8192
 private const val HTTP_STATUS_CODE_MIN_RANGE = 100
@@ -125,15 +125,26 @@ internal suspend fun parseHeaders(
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
 
+
         val host = headers[HttpHeaders.Host]
-        if (host != null && host.any { hostForbiddenSymbols.contains(it) }) {
-            error("Host cannot contain any of the following symbols: $hostForbiddenSymbols")
+        if (host != null) {
+            validateHostHeader(host)
         }
 
         return headers
     } catch (t: Throwable) {
         headers.release()
         throw t
+    }
+}
+
+private fun validateHostHeader(host: CharSequence) {
+    if (host.endsWith(":")) {
+        throw ParserException("Host header with ':' should contains port: $host")
+    }
+
+    if (host.any { hostForbiddenSymbols.contains(it) }) {
+        throw ParserException("Host cannot contain any of the following symbols: $hostForbiddenSymbols")
     }
 }
 
