@@ -6,8 +6,6 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.util.*
-import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
@@ -28,7 +26,6 @@ import kotlin.reflect.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
-@OptIn(InternalAPI::class)
 public class NettyApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit = {}
@@ -255,7 +252,7 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
     public companion object {
 
         public fun create(parallelism: Int): EventLoopGroupProxy {
-            val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java)
+            val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java, true)
 
             val factory = ThreadFactory { runnable ->
                 defaultFactory.newThread {
