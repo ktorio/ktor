@@ -45,7 +45,7 @@ internal class URLBuilderTest {
             protocol = URLProtocol("custom", 12345)
             port = 12345
         }.buildString().let {
-            assertEquals("custom://localhost/", it)
+            assertEquals("custom://localhost", it)
         }
     }
 
@@ -55,7 +55,7 @@ internal class URLBuilderTest {
             port = 8080
             protocol = URLProtocol.HTTPS
         }.buildString().let { url ->
-            assertEquals("https://localhost:8080/", url)
+            assertEquals("https://localhost:8080", url)
         }
     }
 
@@ -102,7 +102,7 @@ internal class URLBuilderTest {
         val url = URLBuilder("https://httpstat.us/301")
         url.takeFrom("https://httpstats.us")
 
-        assertEquals("/", url.encodedPath)
+        assertEquals("", url.encodedPath)
     }
 
     @Test
@@ -156,7 +156,7 @@ internal class URLBuilderTest {
     fun rewriteHost() {
         val url = URLBuilder("https://example.com/api/v1")
         url.takeFrom("//other.com")
-        assertEquals("https://other.com/", url.buildString())
+        assertEquals("https://other.com", url.buildString())
     }
 
     @Test
@@ -184,7 +184,7 @@ internal class URLBuilderTest {
     @Test
     fun testEmptyPath() {
         val url = URLBuilder("http://www.test.com")
-        assertEquals("/", url.encodedPath)
+        assertEquals("", url.encodedPath)
     }
 
     @Test
@@ -198,7 +198,7 @@ internal class URLBuilderTest {
         val url = URLBuilder().apply {
             appendPathSegments(listOf("path", "🐕"))
         }
-        assertEquals("/path/%F0%9F%90%95", url.encodedPath)
+        assertEquals("path/%F0%9F%90%95", url.encodedPath)
     }
 
     @Test
@@ -229,11 +229,11 @@ internal class URLBuilderTest {
 
         urlBuilder.pathSegments = listOf("as df")
         assertEquals(listOf("as%20df"), urlBuilder.encodedPathSegments)
-        assertEquals("/as%20df", urlBuilder.encodedPath)
+        assertEquals("as%20df", urlBuilder.encodedPath)
 
         urlBuilder.encodedPathSegments = listOf("as%25df")
         assertEquals(listOf("as%df"), urlBuilder.pathSegments)
-        assertEquals("/as%25df", urlBuilder.encodedPath)
+        assertEquals("as%25df", urlBuilder.encodedPath)
 
         urlBuilder.encodedPath = "as%3Ddf"
         assertEquals(listOf("as=df"), urlBuilder.pathSegments)
@@ -308,9 +308,74 @@ internal class URLBuilderTest {
     }
 
     @Test
-    fun fromStringWithTrailingSlashAppendsSinglePathSegment() {
+    fun testCreateFromStringWithTrailing() {
         val url = URLBuilder("https://example.com/").appendPathSegments("foo")
+        assertEquals(listOf("", "foo"), url.pathSegments)
         assertEquals("https://example.com/foo", url.buildString())
+    }
+
+    @Test
+    fun testTrailingSlash() {
+        val url1 = URLBuilder("http://www.test.com").buildString()
+        assertEquals("http://www.test.com", url1)
+        val url2 = URLBuilder("http://www.test.com/").buildString()
+        assertEquals("http://www.test.com/", url2)
+    }
+
+    @Test
+    fun testPathSegments() {
+        val cases = mapOf(
+            "" to listOf(),
+            "/" to listOf(""),
+            "a" to listOf("a"),
+            "a/" to listOf("a", ""),
+            "a/b/" to listOf("a", "b", ""),
+            "a/b/c/" to listOf("a", "b", "c", ""),
+
+            "/a/" to listOf("", "a", ""),
+            "/a/b/" to listOf("", "a", "b", ""),
+            "/a/b/c/" to listOf("", "a", "b", "c", ""),
+
+            "/a" to listOf("", "a"),
+            "/a/b" to listOf("", "a", "b"),
+            "/a/b/c" to listOf("", "a", "b", "c"),
+        )
+
+        cases.forEach { (path, segments) ->
+            val builder = URLBuilder(path)
+            val url = builder.build()
+
+            assertEquals(segments, builder.pathSegments)
+            assertEquals(path, builder.encodedPath)
+
+            assertEquals(segments, url.pathSegments)
+        }
+    }
+
+    @Test
+    fun testPathSegmentsForUrl() {
+        val cases = mapOf(
+            "https://example.com" to listOf(),
+            "https://example.com/" to listOf(""),
+
+            "https://example.com/a/" to listOf("", "a", ""),
+            "https://example.com/a/b/" to listOf("", "a", "b", ""),
+            "https://example.com/a/b/c/" to listOf("", "a", "b", "c", ""),
+
+            "https://example.com/a" to listOf("", "a"),
+            "https://example.com/a/b" to listOf("", "a", "b"),
+            "https://example.com/a/b/c" to listOf("", "a", "b", "c"),
+        )
+
+        cases.forEach { (urlString, segments) ->
+            val builder = URLBuilder(urlString)
+            val url = builder.build()
+
+            assertEquals(segments, builder.pathSegments)
+            assertEquals(urlString, builder.buildString())
+
+            assertEquals(segments, url.pathSegments)
+        }
     }
 
     /**

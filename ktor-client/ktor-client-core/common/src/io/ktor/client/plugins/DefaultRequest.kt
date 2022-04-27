@@ -86,22 +86,25 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 if (protocol != URLProtocol.HTTP) {
                     resultUrl.protocol = protocol
                 }
+
                 if (host.isNotEmpty()) {
                     resultUrl.host = host
                 }
+
                 if (port != DEFAULT_PORT) {
                     resultUrl.port = port
                 }
-                if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
-                    // path starts from "/"
-                    resultUrl.encodedPathSegments = encodedPathSegments
-                } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
-                    resultUrl.encodedPathSegments = resultUrl.encodedPathSegments.dropLast(1) + encodedPathSegments
-                }
+
+                resultUrl.encodedPathSegments = concatenatePath(resultUrl.encodedPathSegments, encodedPathSegments)
+
                 if (encodedFragment.isNotEmpty()) {
                     resultUrl.encodedFragment = encodedFragment
                 }
-                val defaultParameters = ParametersBuilder().apply { appendAll(resultUrl.encodedParameters) }
+
+                val defaultParameters = ParametersBuilder().apply {
+                    appendAll(resultUrl.encodedParameters)
+                }
+
                 resultUrl.encodedParameters = encodedParameters
                 defaultParameters.entries().forEach { (key, values) ->
                     if (!resultUrl.encodedParameters.contains(key)) {
@@ -109,6 +112,27 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                     }
                 }
                 takeFrom(resultUrl)
+            }
+        }
+
+        private fun concatenatePath(parent: List<String>, child: List<String>): List<String> {
+            if (child.isEmpty()) return parent
+            if (parent.isEmpty()) return child
+
+            // Path starts from "/"
+            if (child.first().isEmpty()) return child
+
+            return if (parent.last().isEmpty()) {
+                // Skip last trailing "/"
+                buildList(parent.size + child.size - 1) {
+                    for (index in 0 until parent.size - 1) {
+                        add(parent[index])
+                    }
+
+                    addAll(child)
+                }
+            } else {
+                parent + child
             }
         }
     }

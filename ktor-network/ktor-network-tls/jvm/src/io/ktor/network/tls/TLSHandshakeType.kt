@@ -65,7 +65,7 @@ internal class TLSServerHello(
     val sessionId: ByteArray,
     suite: Short,
     val compressionMethod: Short,
-    val extensions: List<TLSExtension> = listOf()
+    val extensions: List<TLSExtension> = emptyList()
 ) {
     val cipherSuite: CipherSuite = CIOCipherSuites.SupportedSuites.find { it.code == suite }
         ?: error("Server cipher suite is not supported: $suite")

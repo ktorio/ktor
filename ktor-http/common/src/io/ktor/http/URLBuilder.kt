@@ -28,7 +28,7 @@ public class URLBuilder(
     public var port: Int = DEFAULT_PORT,
     user: String? = null,
     password: String? = null,
-    pathSegments: List<String> = mutableListOf(""),
+    pathSegments: List<String> = emptyList(),
     parameters: Parameters = Parameters.Empty,
     fragment: String = "",
     public var trailingQuery: Boolean = false
@@ -56,9 +56,7 @@ public class URLBuilder(
         }
 
     public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPath() }
-        set(value) {
-            field = value.ifEmpty { listOf("") }
-        }
+
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
         set(value) {
@@ -87,10 +85,6 @@ public class URLBuilder(
      */
     public fun build(): Url {
         applyOrigin()
-        val pathSegments = when {
-            pathSegments.size > 1 && pathSegments.first().isEmpty() -> pathSegments.drop(1)
-            else -> pathSegments
-        }
         return Url(
             protocol = protocol,
             host = host,
@@ -126,6 +120,7 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             out.appendFile(host, encodedPath)
             return out
         }
+
         "mailto" -> {
             out.appendMailto(encodedUserAndPassword, host)
             return out
@@ -193,7 +188,8 @@ public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = app
  * Adds [components] to current [encodedPath]
  */
 public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder {
-    appendEncodedPathSegments(segments.map { it.encodeURLPath() })
+    val encodedSegments = segments.map { it.encodeURLPath() }
+    appendEncodedPathSegments(encodedSegments)
 
     return this
 }
@@ -212,25 +208,15 @@ public fun URLBuilder.path(vararg path: String) {
 /**
  * Adds [components] to current [encodedPath]
  */
-public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
-    val paths = segments
-        .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' } }
-        .filter { it.isNotEmpty() }
-
-    encodedPathSegments = if (encodedPathSegments.all { it.isEmpty() }) {
-        listOf("") + paths
-    } else {
-        encodedPathSegments + paths
-    }
-    return this
+public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder = apply {
+    encodedPathSegments = encodedPathSegments + segments
 }
 
 /**
  * Adds [components] to current [encodedPath]
  */
-public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder {
-    return appendEncodedPathSegments(components.toList())
-}
+public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder =
+    appendEncodedPathSegments(components.toList())
 
 /**
  * [URLBuilder] authority.
@@ -247,13 +233,24 @@ public val URLBuilder.authority: String
     }
 
 public var URLBuilder.encodedPath: String
-    get() {
-        val path = encodedPathSegments.joinToString("/")
-        return if (path.startsWith('/')) path else "/$path"
-    }
+    get() = encodedPathSegments.joinPath()
     set(value) {
-        encodedPathSegments = value.split('/').toMutableList()
+        encodedPathSegments = when {
+            value.isBlank() -> emptyList()
+            value == "/" -> ROOT_PATH
+            else -> value.split('/').toMutableList()
+        }
     }
+
+private fun List<String>.joinPath(): String {
+    if (isEmpty()) return ""
+    if (size == 1) {
+        if (first().isEmpty()) return "/"
+        return first()
+    }
+
+    return joinToString("/")
+}
 
 /**
  * Sets the url parts using the specified [scheme], [host], [port] and [path].
