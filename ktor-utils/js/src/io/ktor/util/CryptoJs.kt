@@ -67,4 +67,4 @@ private external class SubtleCrypto {
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-public actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-js")
+public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest(bytes)

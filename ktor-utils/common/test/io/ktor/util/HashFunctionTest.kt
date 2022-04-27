@@ -4,7 +4,6 @@
 
 package io.ktor.util
 
-import kotlin.random.*
 import kotlin.test.*
 
 class HashFunctionTest {
