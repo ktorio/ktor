@@ -6,11 +6,15 @@ package io.ktor.http
 
 import io.ktor.util.*
 
+internal val ROOT_PATH = listOf("")
+
 /**
  * Take url parts from [urlString]
  * throws [URLParserException]
  */
 public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+    if (urlString.isBlank()) return this
+
     return try {
         takeFromUnsafe(urlString)
     } catch (cause: Throwable) {
@@ -77,7 +81,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     // Path
     if (startIndex >= endIndex) {
-        encodedPathSegments = if (urlString[endIndex - 1] == '/') listOf("", "") else listOf("")
+        encodedPathSegments = if (urlString[endIndex - 1] == '/') ROOT_PATH else emptyList()
         return this
     }
 
@@ -96,10 +100,14 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
             encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
             else -> encodedPathSegments
         }
+
+        val rawChunks = if (rawPath == "/") ROOT_PATH else rawPath.split('/')
+
         val relativePath = when (slashCount) {
-            1 -> listOf("")
+            1 -> ROOT_PATH
             else -> emptyList()
-        } + rawPath.split('/')
+        } + rawChunks
+
         encodedPathSegments = basePath + relativePath
         startIndex = pathEnd
     }

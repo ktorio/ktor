@@ -35,13 +35,10 @@ internal suspend fun HttpRequestData.write(
     val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
 
     try {
-        val urlString = if (overProxy) {
-            url.toString()
-        } else {
-            url.fullPath
-        }
+        val urlString = if (overProxy) url.toString() else url.fullPath
+        val normalizedUrlString = if (url.pathSegments.isEmpty()) "$urlString/" else urlString
 
-        builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
+        builder.requestLine(method, normalizedUrlString, HttpProtocolVersion.HTTP_1_1.toString())
         // this will only add the port to the host header if the port is non-standard for the protocol
         if (!headers.contains(HttpHeaders.Host)) {
             val host = if (url.protocol.defaultPort == url.port) {

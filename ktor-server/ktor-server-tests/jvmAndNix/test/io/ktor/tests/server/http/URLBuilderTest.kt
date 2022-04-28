@@ -90,35 +90,35 @@ class URLBuilderTest {
 
     @Test
     fun testPathComponentsWithTrailingSlashes() {
-        assertEquals("http://localhost/asd", url { appendPathSegments("asd///") })
+        assertEquals("http://localhost/asd///", url { appendPathSegments("asd///") })
     }
 
     @Test
     fun testPathComponentsWithLeadingSlashes() {
-        assertEquals("http://localhost/asd", url { appendPathSegments("///asd") })
+        assertEquals("http://localhost///asd", url { appendPathSegments("///asd") })
     }
 
     @Test
     fun testPort() {
-        assertEquals("http://localhost/", url { port = 80 })
-        assertEquals("http://localhost:8080/", url { port = 8080 })
-        assertEquals("https://localhost:80/", url { protocol = URLProtocol.HTTPS; port = 80 })
-        assertEquals("https://localhost/", url { protocol = URLProtocol.HTTPS; port = 443 })
-        assertEquals("https://localhost/", url { protocol = URLProtocol.HTTPS })
+        assertEquals("http://localhost", url { port = 80 })
+        assertEquals("http://localhost:8080", url { port = 8080 })
+        assertEquals("https://localhost:80", url { protocol = URLProtocol.HTTPS; port = 80 })
+        assertEquals("https://localhost", url { protocol = URLProtocol.HTTPS; port = 443 })
+        assertEquals("https://localhost", url { protocol = URLProtocol.HTTPS })
     }
 
     @Test
     fun testUserCredentials() {
-        assertEquals("http://user:pass@localhost/", url { user = "user"; password = "pass" })
-        assertEquals("http://user%20name:pass%2B@localhost/", url { user = "user name"; password = "pass+" })
+        assertEquals("http://user:pass@localhost", url { user = "user"; password = "pass" })
+        assertEquals("http://user%20name:pass%2B@localhost", url { user = "user name"; password = "pass+" })
     }
 
     @Test
     fun testParameters() {
-        assertEquals("http://localhost/?p1=v1", url { parameters.append("p1", "v1") })
-        assertEquals("http://localhost/?p1=v1&p1=v2", url { parameters.appendAll("p1", listOf("v1", "v2")) })
+        assertEquals("http://localhost?p1=v1", url { parameters.append("p1", "v1") })
+        assertEquals("http://localhost?p1=v1&p1=v2", url { parameters.appendAll("p1", listOf("v1", "v2")) })
         assertEquals(
-            "http://localhost/?p1=v1&p2=v2",
+            "http://localhost?p1=v1&p2=v2",
             url {
                 parameters.append("p1", "v1")
                 parameters.append("p2", "v2")
@@ -128,47 +128,47 @@ class URLBuilderTest {
 
     @Test
     fun testParametersSpace() {
-        assertEquals("http://localhost/?p1=v1+space", url { parameters.append("p1", "v1 space") })
+        assertEquals("http://localhost?p1=v1+space", url { parameters.append("p1", "v1 space") })
     }
 
     @Test
     fun testParametersPlus() {
-        assertEquals("http://localhost/?p1=v1%2B.plus", url { parameters.append("p1", "v1+.plus") })
+        assertEquals("http://localhost?p1=v1%2B.plus", url { parameters.append("p1", "v1+.plus") })
     }
 
     @Test
     fun testParametersSpaceInParamName() {
-        assertEquals("http://localhost/?p1%20space=v1", url { parameters.append("p1 space", "v1") })
-        assertEquals("http://localhost/?p1%2Bspace=v1", url { parameters.append("p1+space", "v1") })
+        assertEquals("http://localhost?p1%20space=v1", url { parameters.append("p1 space", "v1") })
+        assertEquals("http://localhost?p1%2Bspace=v1", url { parameters.append("p1+space", "v1") })
     }
 
     @Test
     fun testParametersPlusInParamName() {
-        assertEquals("http://localhost/?p1%2B.plus=v1", url { parameters.append("p1+.plus", "v1") })
+        assertEquals("http://localhost?p1%2B.plus=v1", url { parameters.append("p1+.plus", "v1") })
     }
 
     @Test
     fun testParametersEqInParamName() {
-        assertEquals("http://localhost/?p1%3D.eq=v1", url { parameters.append("p1=.eq", "v1") })
+        assertEquals("http://localhost?p1%3D.eq=v1", url { parameters.append("p1=.eq", "v1") })
     }
 
     @Test
     fun testFragment() {
         assertEquals(
-            "http://localhost/?p=v#a",
+            "http://localhost?p=v#a",
             url {
                 parameters.append("p", "v")
                 fragment = "a"
             }
         )
         assertEquals(
-            "http://localhost/#a",
+            "http://localhost#a",
             url {
                 fragment = "a"
             }
         )
         assertEquals(
-            "http://localhost/#a%20+%20b",
+            "http://localhost#a%20+%20b",
             url {
                 fragment = "a + b"
             }
