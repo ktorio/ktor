@@ -113,7 +113,7 @@ class DefaultRequestTest {
             assertEquals("https://localhost", client.get {}.bodyAsText())
             assertEquals("ws://other.host:443/", client.get("ws://other.host/").bodyAsText())
         } else {
-            assertEquals("https://${defaultUrl.hostWithPort}/", client.get {}.bodyAsText())
+            assertEquals("https://${defaultUrl.hostWithPort}", client.get {}.bodyAsText())
             assertEquals("ws://other.host:${defaultUrl.port}/", client.get("ws://other.host/").bodyAsText())
         }
         assertEquals("ws://other.host:123", client.get("ws://other.host:123").bodyAsText())
