@@ -32,9 +32,7 @@ public fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE
  * Moves bytes from `this` buffer into newly created [ByteArray] and returns it
  */
 public fun ByteBuffer.moveToByteArray(): ByteArray {
-    val array = ByteArray(remaining())
-    get(array)
-    return array
+    return array()
 }
 
 /**
