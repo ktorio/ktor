@@ -32,11 +32,13 @@ public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Un
 public inline fun <reified T : Any> Route.get(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Get) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Get) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -49,11 +51,13 @@ public inline fun <reified T : Any> Route.get(
 public inline fun <reified T : Any> Route.options(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Options) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Options) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -66,11 +70,13 @@ public inline fun <reified T : Any> Route.options(
 public inline fun <reified T : Any> Route.head(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Head) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Head) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -83,11 +89,13 @@ public inline fun <reified T : Any> Route.head(
 public inline fun <reified T : Any> Route.post(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Post) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Post) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -100,11 +108,13 @@ public inline fun <reified T : Any> Route.post(
 public inline fun <reified T : Any> Route.put(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Put) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Put) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -117,11 +127,13 @@ public inline fun <reified T : Any> Route.put(
 public inline fun <reified T : Any> Route.delete(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Delete) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Delete) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**
@@ -134,11 +146,13 @@ public inline fun <reified T : Any> Route.delete(
 public inline fun <reified T : Any> Route.patch(
     noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ): Route {
-    return resource<T> {
-        method(HttpMethod.Patch) {
+    lateinit var builtRoute: Route
+    resource<T> {
+        builtRoute = method(HttpMethod.Patch) {
             handle(body)
         }
     }
+    return builtRoute
 }
 
 /**

@@ -4,7 +4,6 @@
 
 package io.ktor.tests.resources
 
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.resources.*
@@ -12,7 +11,11 @@ import io.ktor.resources.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
+import io.ktor.server.resources.patch
+import io.ktor.server.resources.post
+import io.ktor.server.resources.put
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
@@ -493,6 +496,23 @@ class ResourcesTest {
                 HttpStatusCode.BadRequest,
                 client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").status
             )
+        }
+    }
+
+    @Test
+    fun resourceShouldReturnHttpMethodRouteObject() = withResourcesApplication {
+        @Resource("/resource")
+        @Serializable
+        class someResource
+
+        routing {
+            get<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            options<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            head<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            post<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            put<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            delete<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            patch<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
         }
     }
 }
