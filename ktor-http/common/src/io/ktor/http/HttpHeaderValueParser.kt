@@ -35,7 +35,8 @@ public data class HeaderValue(val value: String, val params: List<HeaderValuePar
     val quality: Double = params.firstOrNull { it.name == "q" }
         ?.value
         ?.toDoubleOrNull()
-        ?.takeIf { it in 0.0..1.0 } ?: 1.0
+        ?.takeIf { it in 0.0..1.0 }
+        ?: 1.0
 }
 
 /**

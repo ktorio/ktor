@@ -51,7 +51,7 @@ class DefaultRequestTest {
 
         assertEquals("http://base.url/path/default_file", client.get {}.bodyAsText())
         assertEquals("http://base.url/", client.get("/").bodyAsText())
-        assertEquals("http://base.url/path/default_file/file", client.get("file").bodyAsText())
+        assertEquals("http://base.url/path/file", client.get("file").bodyAsText())
         assertEquals("http://base.url/other_path", client.get("/other_path").bodyAsText())
         assertEquals("http://other.host/other_path", client.get("//other.host/other_path").bodyAsText())
     }

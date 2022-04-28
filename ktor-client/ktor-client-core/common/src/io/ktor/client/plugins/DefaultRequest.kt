@@ -122,17 +122,12 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             // Path starts from "/"
             if (child.first().isEmpty()) return child
 
-            return if (parent.last().isEmpty()) {
-                // Skip last trailing "/"
-                buildList(parent.size + child.size - 1) {
-                    for (index in 0 until parent.size - 1) {
-                        add(parent[index])
-                    }
-
-                    addAll(child)
+            return buildList(parent.size + child.size - 1) {
+                for (index in 0 until parent.size - 1) {
+                    add(parent[index])
                 }
-            } else {
-                parent + child
+
+                addAll(child)
             }
         }
     }
