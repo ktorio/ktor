@@ -18,7 +18,7 @@ import io.ktor.util.*
  * The configuration below allows requests from the specified address and allows sending the `Content-Type` header:
  * ```kotlin
  * install(CORS) {
- *     host("0.0.0.0:5000")
+ *     host("0.0.0.0:8081")
  *     header(HttpHeaders.ContentType)
  * }
  * ```

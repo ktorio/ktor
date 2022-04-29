@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 
 /**
- * A configuration for the [CORS] plugin.
+ * A configuration for the [io.ktor.server.plugins.cors.routing.CORS] plugin.
  */
 @KtorDsl
 public class CORSConfig {
