@@ -12,7 +12,10 @@ import io.ktor.server.plugins.*
 import io.ktor.util.*
 
 /**
- * A plugin that automatically respond to HEAD requests.
+ * A plugin that provides the ability to automatically respond to a `HEAD` request for every route that has a `GET` defined.
+ * You can use `AutoHeadResponse` to avoid creating a separate `head` handler if you need to somehow process a response
+ * on the client before getting the actual content.
+ * You can learn more from [AutoHeadResponse](https://ktor.io/docs/autoheadresponse.html).
  */
 public val AutoHeadResponse: ApplicationPlugin<Unit> = createApplicationPlugin("AutoHeadResponse") {
     onCall { call ->
