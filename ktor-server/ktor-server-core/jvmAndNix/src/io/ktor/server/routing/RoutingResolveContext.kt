@@ -102,7 +102,9 @@ public class RoutingResolveContext(
                 segmentIndex,
                 RoutingResolveResult.Failure(entry, "Selector didn't match", evaluation.failureStatusCode)
             )
-            failedEvaluation = max(failedEvaluation, evaluation)
+            if (segmentIndex == segments.size) {
+                failedEvaluation = max(failedEvaluation, evaluation)
+            }
             return MIN_QUALITY
         }
 

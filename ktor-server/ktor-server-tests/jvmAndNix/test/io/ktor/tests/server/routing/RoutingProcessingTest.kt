@@ -863,6 +863,30 @@ class RoutingProcessingTest {
         }
     }
 
+    @Test
+    fun testRoutingSpecificErrorStatusCodeOnlyWhenPathMatched() = testApplication {
+        routing {
+            route("a") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            post {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.get("/notfound").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+        }
+    }
+
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {
