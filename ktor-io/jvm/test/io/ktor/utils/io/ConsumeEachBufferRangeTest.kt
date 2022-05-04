@@ -13,6 +13,7 @@ import java.nio.*
 import kotlin.test.*
 
 @Suppress("PublicApiImplicitType")
+@OptIn
 class ConsumeEachBufferRangeTest {
     private val content = ByteArray(16384) { it.toByte() }
     private val channel = ByteChannel(autoFlush = true)
