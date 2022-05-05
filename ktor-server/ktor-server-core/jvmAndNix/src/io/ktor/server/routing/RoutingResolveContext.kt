@@ -103,7 +103,7 @@ public class RoutingResolveContext(
                 RoutingResolveResult.Failure(entry, "Selector didn't match", evaluation.failureStatusCode)
             )
             if (segmentIndex == segments.size) {
-                failedEvaluation = max(failedEvaluation, evaluation)
+                failedEvaluation = bestFailedEvaluation(failedEvaluation, evaluation, entry)
             }
             return MIN_QUALITY
         }
@@ -225,12 +225,23 @@ public class RoutingResolveContext(
         return secondQuality > firstQuality
     }
 
-    private fun max(
-        first: RouteSelectorEvaluation.Failure?,
-        second: RouteSelectorEvaluation.Failure?
+    private fun bestFailedEvaluation(
+        current: RouteSelectorEvaluation.Failure?,
+        new: RouteSelectorEvaluation.Failure?,
+        newRoute: Route
     ): RouteSelectorEvaluation.Failure? = when {
-        first == null || second == null -> null
-        first.quality >= second.quality -> first
-        else -> second
+        current == null || new == null -> null
+        current.quality >= new.quality -> current
+        !newRoute.hasTailcardSelectorInPath() -> new
+        else -> current
     }
+}
+
+private fun Route.hasTailcardSelectorInPath(): Boolean {
+    var route: Route? = this
+    while (route != null) {
+        if (route.selector is PathSegmentTailcardRouteSelector) return true
+        route = route.parent
+    }
+    return false
 }
