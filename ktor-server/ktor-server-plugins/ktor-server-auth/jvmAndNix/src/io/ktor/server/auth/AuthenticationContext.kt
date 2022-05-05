@@ -12,7 +12,11 @@ import kotlin.properties.*
  * An authentication context for a call.
  * @param call instance of [ApplicationCall] this context is for.
  */
-public class AuthenticationContext(public val call: ApplicationCall) {
+public class AuthenticationContext(call: ApplicationCall) {
+
+    public var call: ApplicationCall = call
+        private set
+
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
 
     /**
@@ -84,7 +88,15 @@ public class AuthenticationContext(public val call: ApplicationCall) {
     public companion object {
         private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: ApplicationCall) =
-            call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext(call) }
+        internal fun from(call: ApplicationCall): AuthenticationContext {
+            val existingContext = call.attributes.getOrNull(AttributeKey)
+            if (existingContext != null) {
+                existingContext.call = call
+                return existingContext
+            }
+            val context = AuthenticationContext(call)
+            call.attributes.put(AttributeKey, context)
+            return context
+        }
     }
 }

@@ -4,6 +4,8 @@
 
 package io.ktor.tests.auth
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
@@ -436,6 +438,42 @@ class AuthBuildersTest {
             setBody("user=username&password=p")
         }.let { call ->
             assertEquals("baz", call.response.content)
+        }
+    }
+
+    @Test
+    fun testAuthInterceptorKeepCallParameters() = testApplication {
+        application {
+            intercept(ApplicationCallPipeline.Monitoring) {
+                call.authentication
+            }
+
+            install(Authentication) {
+                basic {
+                    validate {
+                        assertEquals("id1", parameters["id"])
+                        it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) }
+                    }
+                }
+            }
+
+            routing {
+                authenticate {
+                    get("/{id}") {
+                        call.respond("Id: ${call.parameters["id"]}")
+                    }
+                }
+            }
+        }
+
+        client.get("/id1") {
+            headers.append(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "aaa:bbb".encodeBase64()).render()
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("Id: id1", response.bodyAsText())
         }
     }
 
