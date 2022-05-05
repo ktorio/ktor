@@ -887,6 +887,39 @@ class RoutingProcessingTest {
         }
     }
 
+    @Test
+    fun testRoutingSpecificErrorStatusNotForTailcard() = testApplication {
+        routing {
+            route("a") {
+                post {
+                    call.respond("a")
+                }
+            }
+            route("{...}") {
+                get {
+                    call.respond("tailcard")
+                }
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("a", response.bodyAsText())
+        }
+        client.get("/a").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("tailcard", response.bodyAsText())
+        }
+        client.post("/b").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("", response.bodyAsText())
+        }
+        client.post("/").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("", response.bodyAsText())
+        }
+    }
+
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {
