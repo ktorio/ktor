@@ -81,16 +81,14 @@ public class DefaultRequest private constructor(private val block: DefaultReques
         }
 
         private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
+            if (requestUrl.protocol == URLProtocol.HTTP) {
+                requestUrl.protocol = baseUrl.protocol
+            }
+            if (requestUrl.host.isNotEmpty()) return
+
             val resultUrl = URLBuilder(baseUrl)
             with(requestUrl) {
-                if (protocol != URLProtocol.HTTP) {
-                    resultUrl.protocol = protocol
-                }
-
-                if (host.isNotEmpty()) {
-                    resultUrl.host = host
-                }
-
+                resultUrl.protocol = requestUrl.protocol
                 if (port != DEFAULT_PORT) {
                     resultUrl.port = port
                 }
