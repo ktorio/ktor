@@ -68,7 +68,7 @@ class DefaultRequestTest {
             defaultRequest {}
         }
 
-        assertEquals("${URLBuilder.Companion.origin}", client.get {}.bodyAsText())
+        assertEquals(URLBuilder.Companion.origin, client.get {}.bodyAsText())
         assertEquals("${URLBuilder.Companion.origin}/", client.get("/").bodyAsText())
         assertEquals("${URLBuilder.Companion.origin}/file", client.get("file").bodyAsText())
         assertEquals("${URLBuilder.Companion.origin}/other_path", client.get("/other_path").bodyAsText())
@@ -91,6 +91,7 @@ class DefaultRequestTest {
         }
 
         assertEquals("http://default.host:1234", client.get {}.bodyAsText())
+        assertEquals("http://default.host:2345", client.get { url(port = 2345) }.bodyAsText())
         assertEquals("http://other.host:2345/", client.get("//other.host:2345/").bodyAsText())
     }
 
@@ -111,12 +112,34 @@ class DefaultRequestTest {
         val defaultUrl = Url(URLBuilder.Companion.origin)
         if (defaultUrl.port == defaultUrl.protocol.defaultPort) {
             assertEquals("https://localhost", client.get {}.bodyAsText())
-            assertEquals("ws://other.host:443/", client.get("ws://other.host/").bodyAsText())
+            assertEquals("ws://localhost:443", client.get { url(scheme = "ws") }.bodyAsText())
         } else {
             assertEquals("https://${defaultUrl.hostWithPort}", client.get {}.bodyAsText())
-            assertEquals("ws://other.host:${defaultUrl.port}/", client.get("ws://other.host/").bodyAsText())
+            assertEquals("ws://${defaultUrl.hostWithPort}", client.get { url(scheme = "ws") }.bodyAsText())
         }
+        assertEquals("https://other.host/", client.get("//other.host/").bodyAsText())
+        assertEquals("ws://other.host/", client.get("ws://other.host/").bodyAsText())
         assertEquals("ws://other.host:123", client.get("ws://other.host:123").bodyAsText())
+    }
+
+    @Test
+    fun testDefaultNoPortKeepsRequestPort() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.url.toString())
+                }
+            }
+
+            defaultRequest {
+                headers {
+                    append("a", "b")
+                }
+            }
+        }
+
+        assertEquals("https://my-website.com/v2/api", client.get("https://my-website.com/v2/api").bodyAsText())
+        assertEquals("https://my-website.com:123/v2/api", client.get("https://my-website.com:123/v2/api").bodyAsText())
     }
 
     @Test
