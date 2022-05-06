@@ -18,8 +18,8 @@ import io.ktor.util.*
  * The configuration below allows requests from the specified address and allows sending the `Content-Type` header:
  * ```kotlin
  * install(CORS) {
- *     host("0.0.0.0:8081")
- *     header(HttpHeaders.ContentType)
+ *     allowHost("0.0.0.0:8081")
+ *     allowHeader(HttpHeaders.ContentType)
  * }
  * ```
  *
@@ -28,7 +28,7 @@ import io.ktor.util.*
 @Deprecated(
     message = "This plugin was moved to io.ktor.server.plugins.cors.routing",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("CORS", "io.ktor.server.plugins.cors.routing")
+    replaceWith = ReplaceWith("CORS", "io.ktor.server.plugins.cors.routing.CORS")
 )
 public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS", ::CORSConfig) {
     buildPlugin()
