@@ -5,6 +5,7 @@
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.serialization.gson.*
 import org.junit.*
 
@@ -13,6 +14,8 @@ class ClientGsonTest : AbstractClientContentNegotiationTest() {
 
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
+    override val webSocketsConverter: WebsocketContentConverter = GsonWebsocketContentConverter()
+
     override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)
     }
