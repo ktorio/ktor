@@ -34,7 +34,7 @@ public class JacksonWebsocketContentConverter(
         }
         try {
             return withContext(Dispatchers.IO) {
-                val data = charset.newDecoder().decode(buildPacket { content.readBytes() })
+                val data = charset.newDecoder().decode(buildPacket { writeFully(content.readBytes()) })
                 objectmapper.readValue(data, objectmapper.constructType(typeInfo.reifiedType))
             }
         } catch (deserializeFailure: Exception) {

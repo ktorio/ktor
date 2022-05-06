@@ -3,10 +3,11 @@
  */
 package io.ktor.serialization.kotlinx.test.cbor
 
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
+import io.ktor.serialization.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.cbor.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -19,6 +20,7 @@ import kotlinx.serialization.json.*
 class CborClientKotlinxSerializationTest : AbstractClientContentNegotiationTest() {
     override val defaultContentType: ContentType = ContentType.Application.Cbor
     override val customContentType: ContentType = ContentType.parse("application/x-cbor")
+    override val webSocketsConverter: WebsocketContentConverter = KotlinxWebsocketSerializationConverter(DefaultCbor)
 
     override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         cbor(contentType = contentType)

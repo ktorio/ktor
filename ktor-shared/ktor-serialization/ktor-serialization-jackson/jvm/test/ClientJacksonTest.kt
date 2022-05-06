@@ -11,6 +11,7 @@ import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -23,6 +24,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
 
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
+    override val webSocketsConverter: WebsocketContentConverter = JacksonWebsocketContentConverter()
 
     override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)

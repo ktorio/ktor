@@ -9,15 +9,20 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.server.websocket.WebSockets
+import io.ktor.websocket.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlin.test.*
@@ -32,6 +37,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     )
 
     override val server: ApplicationEngine = embeddedServer(io.ktor.server.cio.CIO, serverPort) {
+        install(WebSockets)
         routing {
             createRoutes(this)
         }
@@ -39,6 +45,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
 
     protected abstract val defaultContentType: ContentType
     protected abstract val customContentType: ContentType
+    protected abstract val webSocketsConverter: WebsocketContentConverter
 
     @OptIn(InternalSerializationApi::class)
     private suspend inline fun <reified T : Any> ApplicationCall.respond(
@@ -66,6 +73,9 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             install(ContentNegotiation) {
                 configureContentNegotiation(defaultContentType)
                 block()
+            }
+            install(io.ktor.client.plugins.websocket.WebSockets) {
+                contentConverter = webSocketsConverter
             }
         }
     }
@@ -97,6 +107,11 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             }
 
             call.respondWithRequestBody(defaultContentType)
+        }
+        webSocket("ws") {
+            for (frame in incoming) {
+                outgoing.send(frame)
+            }
         }
     }
 
@@ -274,6 +289,27 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             }.body<List<TestSealed>>()
 
             assertEquals(listOf(TestSealed.A("A"), TestSealed.B("B")), result)
+        }
+    }
+
+    @Test
+    fun testSerializeWebsocket() = testWithEngine(CIO) {
+        configureClient()
+
+        test { client ->
+            val session = client.webSocketSession { url(path = "/ws", port = serverPort) }
+            session.sendSerialized(User("user1", 23))
+            val user1 = session.receiveDeserialized<User>()
+
+            session.send(session.converter!!.serialize(User("user2", 32)))
+            val frame = session.incoming.receive()
+            val user2 = session.converter!!.deserialize<User>(frame)
+
+            session.close()
+            assertEquals("user1", user1.name)
+            assertEquals(23, user1.age)
+            assertEquals("user2", user2.name)
+            assertEquals(32, user2.age)
         }
     }
 
