@@ -13,14 +13,17 @@ import kotlinx.coroutines.*
 import kotlin.system.*
 
 /**
- * Shutdown URL plugin. It stops application when requested particular url
+ * A plugin that allows you to configure a URL used to shut down the server. There are two ways to enable this plugin:
+ * - In a HOCON configuration file.
+ * - By installing the plugin.
+ * You can learn more from [Shutdown URL](https://ktor.io/docs/shutdown-url.html).
  *
  * @property url to handle
- * @property exitCode is a function to compute process exit code
+ * @property exitCode is a function to compute a process exit code
  */
 public class ShutDownUrl(public val url: String, public val exitCode: ApplicationCall.() -> Int) {
     /**
-     * Does application shutdown using the specified [call]
+     * Shuts down an application using the specified [call].
      */
     public suspend fun doShutdown(call: ApplicationCall) {
         call.application.log.warn("Shutdown URL was called: server is going down")
@@ -50,7 +53,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     }
 
     /**
-     * A plugin to install into engine pipeline
+     * A plugin to install into an engine pipeline.
      */
     public object EnginePlugin : BaseApplicationPlugin<EnginePipeline, Config, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
@@ -71,17 +74,17 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     }
 
     /**
-     * Shutdown url configuration builder
+     * A configuration for the [ShutDownUrl] plugin.
      */
     @KtorDsl
     public class Config {
         /**
-         * URI to handle shutdown requests
+         * Specifies a URI used to handle a shutdown request.
          */
         public var shutDownUrl: String = "/ktor/application/shutdown"
 
         /**
-         * A function that provides process exit code by an application call
+         * A function that provides a process exit code by an application call.
          */
         public var exitCodeSupplier: ApplicationCall.() -> Int = { 0 }
     }
@@ -89,7 +92,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
     public companion object {
 
         /**
-         * A plugin to install into application call pipeline
+         * An installation object of the [ShutDownUrl] plugin.
          */
         public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
             createApplicationPlugin("shutdown.url", ::Config) {

@@ -21,14 +21,14 @@ import kotlin.properties.*
 import kotlin.random.*
 
 /**
- * A configuration for [PartialContent].
+ * A configuration for the [PartialContent] plugin.
  */
 @KtorDsl
 public class PartialContentConfig {
     /**
-     * Maximum number of ranges that will be accepted from HTTP request.
+     * Specifies a maximum number of ranges that might be accepted from an HTTP request.
      *
-     * If HTTP request specifies more ranges, they will all be merged into a single range.
+     * If an HTTP request specifies more ranges, they will all be merged into a single range.
      */
     public var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
         new > 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
@@ -57,9 +57,10 @@ private object BodyTransformed : Hook<suspend BodyTransformed.Context.(call: App
 }
 
 /**
- * Plugin to support requests to specific content ranges.
+ * A plugin that adds support for handling HTTP range requests used to send only a portion of an HTTP message back to a client.
+ * This plugin is useful for streaming content or resuming partial downloads.
  *
- * It is essential for streaming video and restarting downloads.
+ * To learn more, see [Partial content](https://ktor.io/docs/partial-content.html).
  */
 public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRouteScopedPlugin(
     "PartialContent",

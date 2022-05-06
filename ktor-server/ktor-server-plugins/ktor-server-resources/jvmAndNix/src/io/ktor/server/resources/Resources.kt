@@ -41,6 +41,10 @@ import io.ktor.resources.Resources as ResourcesCore
  * val addedUser = client.get(Users.ById(newUserId))
  * ```
  *
+ * Server: [Type-safe routing](https://ktor.io/docs/type-safe-routing.html)
+ *
+ * Client: [Type-safe requests](https://ktor.io/docs/type-safe-request.html)
+ *
  * @see Resource
  */
 public object Resources : BaseApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
