@@ -54,8 +54,7 @@ private fun createTestWorker() {
     TEST_WORKER = worker
 }
 
-@OptIn(InternalAPI::class)
 private fun restartTestWorker() {
-    ThreadInfo.stopAllWorkers()
+    TEST_WORKER!!.requestTermination(processScheduledJobs = false).consume {  }
     createTestWorker()
 }
