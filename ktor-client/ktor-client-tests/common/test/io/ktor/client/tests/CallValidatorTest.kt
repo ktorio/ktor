@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -411,6 +410,58 @@ class CallValidatorTest {
                 fail("Should fail")
             } catch (cause: IllegalStateException) {
                 assertEquals("My custom error", cause.message)
+            }
+        }
+    }
+
+    @Test
+    fun testThrowsOriginalExceptionWhenBodyIsNotSerialized(): Unit = testWithEngine(MockEngine) {
+        class TestException : RuntimeException()
+
+        config {
+            engine {
+                addHandler { respond("OK") }
+            }
+        }
+
+        test { client ->
+            client.requestPipeline.intercept(HttpRequestPipeline.Render) {
+                throw TestException()
+            }
+
+            assertFailsWith<TestException> {
+                client.get("/") {
+                    setBody(listOf("a", "b", "c"))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testCanNotAccessBodyAndCallWhenNotSerialized(): Unit = testWithEngine(MockEngine) {
+        class TestException : RuntimeException()
+
+        config {
+            engine {
+                addHandler { respond("OK") }
+            }
+            HttpResponseValidator {
+                handleResponseExceptionWithRequest { _, request ->
+                    assertFailsWith<IllegalStateException> { request.content }
+                    assertFailsWith<IllegalStateException> { request.call }
+                }
+            }
+        }
+
+        test { client ->
+            client.requestPipeline.intercept(HttpRequestPipeline.Render) {
+                throw TestException()
+            }
+
+            assertFailsWith<TestException> {
+                client.get("/") {
+                    setBody(listOf("a", "b", "c"))
+                }
             }
         }
     }
