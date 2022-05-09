@@ -888,6 +888,29 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testRoutingSpecificErrorStatusCodeOnlyForConstantQualityPath() = testApplication {
+        routing {
+            route("a") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            route("{param}") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.post("/b").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+        }
+    }
+
+    @Test
     fun testRoutingSpecificErrorStatusNotForTailcard() = testApplication {
         routing {
             route("a") {
