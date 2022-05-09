@@ -13,7 +13,6 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -45,23 +44,10 @@ internal class Endpoint(
 
                 delay(remaining)
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         } finally {
             deliveryPoint.close()
             onDone()
-        }
-    }
-
-    private suspend fun processTask(task: RequestTask) {
-        try {
-            if (!config.pipelining || task.request.requiresDedicatedConnection()) {
-                makeDedicatedRequest(task)
-            } else {
-                makePipelineRequest(task)
-            }
-        } catch (cause: Throwable) {
-            task.response.completeExceptionally(cause)
-            throw cause
         }
     }
 
@@ -70,10 +56,20 @@ internal class Endpoint(
         callContext: CoroutineContext
     ): HttpResponseData {
         lastActivity.value = GMTDate()
+
+        if (!config.pipelining || request.requiresDedicatedConnection()) {
+            return makeDedicatedRequest(request, callContext)
+        }
+
         val response = CompletableDeferred<HttpResponseData>()
         val task = RequestTask(request, response, callContext)
-        processTask(task)
-        return response.await()
+        try {
+            makePipelineRequest(task)
+            return response.await()
+        } catch (cause: Throwable) {
+            task.response.completeExceptionally(cause)
+            throw cause
+        }
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
@@ -93,10 +89,10 @@ internal class Endpoint(
     }
 
     @OptIn(InternalAPI::class)
-    private fun makeDedicatedRequest(
-        task: RequestTask
-    ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
-        val (request, response, callContext) = task
+    private suspend fun makeDedicatedRequest(
+        request: HttpRequestData,
+        callContext: CoroutineContext
+    ): HttpResponseData {
         try {
             val connection = connect(request)
             val input = this@Endpoint.mapEngineExceptions(connection.input, request)
@@ -119,37 +115,19 @@ internal class Endpoint(
             }
 
             val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout))
+            setupTimeout(callContext, request, timeout)
 
-            val responseData = handleTimeout(timeout) {
-                writeRequestAndReadResponse(request, output, callContext, input, originOutput)
-            }
-
-            response.complete(responseData)
+            val requestTime = GMTDate()
+            writeRequest(request, output, callContext, proxy != null)
+            return readResponse(requestTime, request, input, originOutput, callContext)
         } catch (cause: Throwable) {
-            response.completeExceptionally(cause.mapToKtor(request))
+            throw cause.mapToKtor(request)
         }
     }
 
-    private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
-        return if (configuration?.requestTimeoutMillis != null) {
-            Long.MAX_VALUE
-        } else {
-            config.requestTimeout
-        }
-    }
-
-    private suspend fun writeRequestAndReadResponse(
-        request: HttpRequestData,
-        output: ByteWriteChannel,
-        callContext: CoroutineContext,
-        input: ByteReadChannel,
-        originOutput: ByteWriteChannel
-    ): HttpResponseData {
-        val requestTime = GMTDate()
-        request.write(output, callContext, proxy != null)
-
-        return readResponse(requestTime, request, input, originOutput, callContext)
-    }
+    private fun getRequestTimeout(
+        configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?
+    ): Long = if (configuration?.requestTimeoutMillis != null) Long.MAX_VALUE else config.requestTimeout
 
     private suspend fun createPipeline(request: HttpRequestData) {
         val connection = connect(request)
@@ -196,9 +174,7 @@ internal class Endpoint(
                 }
 
                 val connection = socket.connection()
-                if (!secure) {
-                    return@connect connection
-                }
+                if (!secure) return@connect connection
 
                 try {
                     if (proxy?.type == ProxyType.HTTP) {
@@ -232,11 +208,14 @@ internal class Endpoint(
     /**
      * Defines exact type of exception based on [connectAttempts] and [timeoutFails].
      */
-    private fun getTimeoutException(connectAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
-        when (timeoutFails) {
-            connectAttempts -> ConnectTimeoutException(request)
-            else -> FailToConnectException()
-        }
+    private fun getTimeoutException(
+        connectAttempts: Int,
+        timeoutFails: Int,
+        request: HttpRequestData
+    ): Exception = when (timeoutFails) {
+        connectAttempts -> ConnectTimeoutException(request)
+        else -> FailToConnectException()
+    }
 
     /**
      * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
@@ -262,13 +241,18 @@ internal class Endpoint(
     }
 }
 
-private suspend fun <T> CoroutineScope.handleTimeout(
-    timeout: Long,
-    block: suspend CoroutineScope.() -> T
-): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS || timeout == 0L) {
-    block()
-} else {
-    withTimeout(timeout, block)
+@OptIn(DelicateCoroutinesApi::class)
+private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData, timeout: Long) {
+    if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS || timeout == 0L) return
+
+    val timeoutJob = GlobalScope.launch {
+        delay(timeout)
+        callContext.job.cancel("Request is timed out", HttpRequestTimeoutException(request))
+    }
+
+    callContext.job.invokeOnCompletion {
+        timeoutJob.cancel()
+    }
 }
 
 @Suppress("KDocMissingDocumentation")

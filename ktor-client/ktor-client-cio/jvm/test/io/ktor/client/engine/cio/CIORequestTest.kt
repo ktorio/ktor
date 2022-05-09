@@ -18,9 +18,9 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
-import org.junit.Ignore
 import java.nio.channels.*
 import kotlin.test.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class CIORequestTest : TestWithKtor() {
@@ -60,7 +60,7 @@ class CIORequestTest : TestWithKtor() {
             }
 
             test { client ->
-                assertFailsWith<TimeoutCancellationException> {
+                assertFailsWith<HttpRequestTimeoutException> {
                     client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
                 }
             }

@@ -52,7 +52,7 @@ internal actual class ConnectionPipeline actual constructor(
                     throw cause
                 }
 
-                task.request.write(networkOutput, task.context, overProxy, false)
+                writeRequest(task.request, networkOutput, task.context, overProxy, closeChannel = false)
                 networkOutput.flush()
             }
         } catch (_: ClosedChannelException) {
