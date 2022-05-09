@@ -3,7 +3,6 @@
 */
 package io.ktor.network.selector
 
-import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.*
@@ -20,8 +19,8 @@ internal class WorkerSelectorManager : SelectorManager {
         selector.start(this)
     }
 
-    override fun notifyClosed(s: Selectable) {
-        selector.notifyClosed(s.descriptor)
+    override fun notifyClosed(selectable: Selectable) {
+        selector.notifyClosed(selectable.descriptor)
     }
 
     override suspend fun select(
