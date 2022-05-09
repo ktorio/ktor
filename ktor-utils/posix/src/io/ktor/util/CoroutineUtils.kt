@@ -4,6 +4,7 @@
 
 package io.ktor.util
 
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
@@ -15,14 +16,19 @@ public fun Dispatchers.createFixedThreadDispatcher(name: String, threads: Int): 
 
 @OptIn(InternalAPI::class)
 private class MultiWorkerDispatcher(name: String, workersCount: Int) : CloseableCoroutineDispatcher() {
+    private val closed = atomic(false)
     private val tasksQueue = Channel<Runnable>(Channel.UNLIMITED)
     private val workers = Array(workersCount) { Worker.start(name = "$name-$it") }
+    private val futures = mutableListOf<Future<Unit>>()
 
     init {
-        workers.forEach { worker ->
-            worker.executeAfter(0L) {
+        for (worker in workers) {
+            worker.execute(TransferMode.SAFE, { }) {
                 ThreadInfo.registerCurrentThread()
-                workerRunLoop()
+            }.consume()
+
+            futures += worker.execute(TransferMode.SAFE, { this }) {
+                it.workerRunLoop()
             }
         }
     }
@@ -34,11 +40,37 @@ private class MultiWorkerDispatcher(name: String, workersCount: Int) : Closeable
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        tasksQueue.trySend(block)
+        if (closed.value) return
+
+        val result = tasksQueue.trySendBlocking(block)
+        if (result.isSuccess) return
+
+        throw IllegalStateException("Fail to dispatch task", result.exceptionOrNull())
     }
 
     override fun close() {
-        tasksQueue.close()
-        workers.forEach { it.requestTermination().result }
+        if (!closed.compareAndSet(false, true)) return
+
+        val closeWorker = Worker.start(errorReporting = true, name = "Close worker")
+        closeWorker.execute(TransferMode.SAFE, { this }) {
+            it.tasksQueue.close()
+
+            it.futures.forEach {
+                it.consume()
+            }
+
+            it.futures.clear()
+
+            it.workers.forEach { worker ->
+                ThreadInfo.dropWorker(worker)
+                kotlin.runCatching {
+                    worker.requestTermination().consume()
+                }
+            }
+        }
     }
+}
+
+private fun <T> Future<T>.consume() {
+    consume { }
 }
