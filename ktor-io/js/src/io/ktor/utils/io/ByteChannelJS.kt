@@ -90,13 +90,13 @@ internal class ByteChannelJS(initial: ChunkBuffer, autoFlush: Boolean) : ByteCha
         }
     }
 
-    override suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int {
-        return if (readable.isEmpty) {
-            readAvailableSuspend(dst, offset, length)
-        } else {
-            closedCause?.let { throw it }
-            readable.readAvailable(dst, offset, length)
-        }
+    override suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int = if (readable.isEmpty) {
+        readAvailableSuspend(dst, offset, length)
+    } else {
+        closedCause?.let { throw it }
+        val count = readable.readAvailable(dst, offset, length)
+        afterRead(count)
+        count
     }
 
     private suspend fun readAvailableSuspend(dst: ArrayBuffer, offset: Int, length: Int): Int {
@@ -108,6 +108,7 @@ internal class ByteChannelJS(initial: ChunkBuffer, autoFlush: Boolean) : ByteCha
         if (availableForRead >= length) {
             closedCause?.let { throw it }
             readable.readFully(dst, offset, length)
+            afterRead(length - offset)
             return
         }
 

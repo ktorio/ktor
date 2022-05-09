@@ -1,8 +1,8 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.ChunkBuffer
+import io.ktor.utils.io.core.internal.*
 
 /**
  * Await for [desiredSpace] will be available for write and invoke [block] function providing [Memory] instance and
@@ -91,8 +91,9 @@ private suspend fun writeBufferSuspend(session: WriterSuspendSession, desiredSpa
     return session.request(desiredSpace) ?: session.request(1)
 }
 
-private fun writeBufferFallback(): Buffer? {
-    return ChunkBuffer.Pool.borrow().also { it.resetForWrite(); it.reserveEndGap(Buffer.ReservedSize) }
+private fun writeBufferFallback(): Buffer = ChunkBuffer.Pool.borrow().also {
+    it.resetForWrite()
+    it.reserveEndGap(Buffer.ReservedSize)
 }
 
 @Suppress("DEPRECATION", "NOTHING_TO_INLINE")

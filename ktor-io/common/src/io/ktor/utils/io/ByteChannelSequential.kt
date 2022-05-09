@@ -24,8 +24,17 @@ public abstract class ByteChannelSequentialBase(
 
     private val _totalBytesRead = atomic(0L)
     private val _totalBytesWritten = atomic(0L)
+    private val _availableForRead = atomic(0)
+    private val channelSize = atomic(0)
 
-    protected var closed: Boolean by atomic(false)
+    private val _closed = atomic<CloseElement?>(null)
+    private val isCancelled: Boolean get() = _closed.value?.cause != null
+
+    protected var closed: Boolean
+        get() = _closed.value != null
+        set(_) {
+            error("Setting is not allowed for closed")
+        }
 
     protected val writable: BytePacketBuilder = BytePacketBuilder(pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
@@ -35,19 +44,13 @@ public abstract class ByteChannelSequentialBase(
 
     private val slot = AwaitingSlot()
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun totalPending(): Int = availableForRead + writable.size
-
-    private val flushSize: Int get() = flushBuffer.size
-
-    override val availableForRead: Int
-        get() = flushSize + readable.remaining.toInt()
+    override val availableForRead: Int get() = _availableForRead.value
 
     override val availableForWrite: Int
-        get() = maxOf(0, EXPECTED_CAPACITY.toInt() - totalPending())
+        get() = maxOf(0, EXPECTED_CAPACITY.toInt() - channelSize.value)
 
     override val isClosedForRead: Boolean
-        get() = closed && readable.isEmpty && flushSize == 0 && writable.isEmpty
+        get() = isCancelled || (closed && channelSize.value == 0)
 
     override val isClosedForWrite: Boolean
         get() = closed
@@ -56,10 +59,21 @@ public abstract class ByteChannelSequentialBase(
         get() = _totalBytesRead.value
 
     override val totalBytesWritten: Long get() = _totalBytesWritten.value
-    final override var closedCause: Throwable? by atomic(null)
+
+    final override var closedCause: Throwable?
+        get() = _closed.value?.cause
+        set(_) {
+            error("Closed cause shouldn't be changed directly")
+        }
 
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
+
+    init {
+        val count = initial.remainingAll().toInt()
+        afterWrite(count)
+        _availableForRead.addAndGet(count)
+    }
 
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
         while (availableForWrite < count && !closed) {
@@ -97,8 +111,10 @@ public abstract class ByteChannelSequentialBase(
      */
     private fun flushWrittenBytes() {
         synchronized(flushMutex) {
+            val size = writable.size
             val buffer = writable.stealAll()!!
             flushBuffer.writeChunkBuffer(buffer)
+            _availableForRead.addAndGet(size)
         }
     }
 
@@ -115,7 +131,7 @@ public abstract class ByteChannelSequentialBase(
 
     private fun ensureNotClosed() {
         if (closed) {
-            throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
+            throw closedCause ?: ClosedWriteChannelException("Channel $this is already closed")
         }
     }
 
@@ -308,7 +324,10 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private suspend fun readShortSlow(): Short {
-        readNSlow(2) { return readable.readShort().also { afterRead(2) } }
+        awaitSuspend(2)
+        val result = readable.readShort()
+        afterRead(2)
+        return result
     }
 
     protected fun afterRead(count: Int) {
@@ -325,9 +344,10 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private suspend fun readIntSlow(): Int {
-        readNSlow(4) {
-            return readable.readInt().also { afterRead(4) }
-        }
+        awaitSuspend(4)
+        val result = readable.readInt()
+        afterRead(4)
+        return result
     }
 
     override suspend fun readLong(): Long {
@@ -339,9 +359,10 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private suspend fun readLongSlow(): Long {
-        readNSlow(8) {
-            return readable.readLong().also { afterRead(8) }
-        }
+        awaitSuspend(8)
+        val result = readable.readLong()
+        afterRead(8)
+        return result
     }
 
     override suspend fun readFloat(): Float = if (readable.hasBytes(4)) {
@@ -351,9 +372,10 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private suspend fun readFloatSlow(): Float {
-        readNSlow(4) {
-            return readable.readFloat().also { afterRead(4) }
-        }
+        awaitSuspend(4)
+        val result = readable.readFloat()
+        afterRead(4)
+        return result
     }
 
     override suspend fun readDouble(): Double = if (readable.hasBytes(8)) {
@@ -363,9 +385,10 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private suspend fun readDoubleSlow(): Double {
-        readNSlow(8) {
-            return readable.readDouble().also { afterRead(8) }
-        }
+        awaitSuspend(8)
+        val result = readable.readDouble()
+        afterRead(8)
+        return result
     }
 
     override suspend fun readRemaining(limit: Long): ByteReadPacket {
@@ -375,10 +398,10 @@ public abstract class ByteChannelSequentialBase(
 
         val size = minOf(limit, readable.remaining)
         builder.writePacket(readable, size)
-        val remaining = limit - builder.size
+        afterRead(size.toInt())
 
-        return if (remaining == 0L || isClosedForRead) {
-            afterRead(remaining.toInt())
+        val newLimit = limit - builder.size
+        return if (newLimit == 0L || isClosedForRead) {
             ensureNotFailed(builder)
             builder.build()
         } else {
@@ -484,6 +507,7 @@ public abstract class ByteChannelSequentialBase(
             closed -> throw EOFException(
                 "Channel is closed and not enough bytes available: required $n but $availableForRead available"
             )
+
             else -> readFullySuspend(dst, n)
         }
     }
@@ -626,6 +650,7 @@ public abstract class ByteChannelSequentialBase(
 
     override suspend fun discard(max: Long): Long {
         val discarded = readable.discard(max)
+        afterRead(discarded.toInt())
 
         return if (discarded == max || isClosedForRead) {
             ensureNotFailed()
@@ -640,7 +665,9 @@ public abstract class ByteChannelSequentialBase(
 
         do {
             if (!await(1)) break
-            discarded += readable.discard(max - discarded)
+            val count = readable.discard(max - discarded)
+            afterRead(count.toInt())
+            discarded += count
         } while (discarded < max && !isClosedForRead)
 
         ensureNotFailed()
@@ -684,20 +711,19 @@ public abstract class ByteChannelSequentialBase(
             return false
         }
 
-        return decodeUTF8LineLoopSuspend(out, limit) { size ->
-            afterRead(size)
+        return decodeUTF8LineLoopSuspend(out, limit, { size ->
             if (await(size)) readable
             else null
-        }
+        }) { afterRead(it) }
     }
 
     override suspend fun readUTF8Line(limit: Int): String? {
-        val sb = StringBuilder()
-        if (!readUTF8LineTo(sb, limit)) {
+        val builder = StringBuilder()
+        if (!readUTF8LineTo(builder, limit)) {
             return null
         }
 
-        return sb.toString()
+        return builder.toString()
     }
 
     override fun cancel(cause: Throwable?): Boolean {
@@ -709,9 +735,9 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override fun close(cause: Throwable?): Boolean {
-        if (closed || closedCause != null) return false
-        closedCause = cause
-        closed = true
+        val closeElement = if (cause == null) CLOSED_SUCCESS else CloseElement(cause)
+        if (!_closed.compareAndSet(null, closeElement)) return false
+
         if (cause != null) {
             readable.release()
             writable.release()
@@ -734,15 +760,6 @@ public abstract class ByteChannelSequentialBase(
         } else {
             0
         }
-    }
-
-    private suspend inline fun readNSlow(n: Int, block: () -> Nothing): Nothing {
-        do {
-            awaitSuspend(n)
-
-            if (readable.hasBytes(n)) block()
-            checkClosed(n)
-        } while (true)
     }
 
     @Suppress("DEPRECATION")
@@ -807,10 +824,22 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private fun addBytesRead(count: Int) {
+        require(count >= 0) { "Can't read negative amount of bytes: $count" }
+
+        channelSize.minusAssign(count)
         _totalBytesRead.addAndGet(count.toLong())
+        _availableForRead.minusAssign(count)
+
+        check(channelSize.value >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
+        check(availableForRead >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
     }
 
     private fun addBytesWritten(count: Int) {
+        require(count >= 0) { "Can't write negative amount of bytes: $count" }
+
+        channelSize.plusAssign(count)
         _totalBytesWritten.addAndGet(count.toLong())
+
+        check(channelSize.value >= 0) { "Readable bytes count is negative: ${channelSize.value}, $count in $this" }
     }
 }

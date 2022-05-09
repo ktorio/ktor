@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
@@ -91,7 +90,7 @@ internal class ByteChannelNative(
      *
      * @return number of consumed bytes or -1 if the block wasn't executed.
      */
-    public override fun readAvailable(min: Int, block: (Buffer) -> Unit): Int {
+    override fun readAvailable(min: Int, block: (Buffer) -> Unit): Int {
         if (availableForRead < min) {
             return -1
         }
@@ -105,12 +104,12 @@ internal class ByteChannelNative(
             result = it.readPosition - position
         }
 
+        afterRead(result)
         return result
     }
 
-    override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
-        return readAvailable(dst, offset.toLong(), length.toLong())
-    }
+    override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int =
+        readAvailable(dst, offset.toLong(), length.toLong())
 
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int {
         require(offset >= 0L)
@@ -134,7 +133,7 @@ internal class ByteChannelNative(
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
-        return readFully(dst, offset.toLong(), length.toLong())
+        readFully(dst, offset.toLong(), length.toLong())
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
@@ -179,14 +178,13 @@ internal class ByteChannelNative(
     override suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
         if (availableForWrite > 0) {
             val size = tryWriteCPointer(src, offset, length).toLong()
+            afterWrite(size.toInt())
 
             if (length == size) {
-                afterWrite(size.toInt())
                 return
             }
 
             flush()
-
             return writeFullySuspend(src, offset + size, length - size)
         }
 
@@ -194,20 +192,20 @@ internal class ByteChannelNative(
     }
 
     private suspend fun writeFullySuspend(src: CPointer<ByteVar>, offset: Long, length: Long) {
-        var rem = length
+        var remaining = length
         var position = offset
 
-        while (rem > 0) {
+        while (remaining > 0) {
             awaitAtLeastNBytesAvailableForWrite(1)
-            val size = tryWriteCPointer(src, position, rem).toLong()
-            rem -= size
+            val size = tryWriteCPointer(src, position, remaining).toLong()
+            afterWrite(size.toInt())
+            remaining -= size
             position += size
-            if (rem > 0) flush()
-            else afterWrite(size.toInt())
+            if (remaining > 0) flush()
         }
     }
 
-    public override fun writeAvailable(min: Int, block: (Buffer) -> Unit): Int {
+    override fun writeAvailable(min: Int, block: (Buffer) -> Unit): Int {
         if (closed) {
             throw closedCause ?: ClosedSendChannelException("Channel closed for write")
         }
@@ -216,16 +214,18 @@ internal class ByteChannelNative(
             return -1
         }
 
-        return writable.write(min) {
+        val size =  writable.write(min) {
             val position = it.writePosition
             block(it)
             it.writePosition - position
         }
+
+        afterWrite(size)
+        return size
     }
 
-    override suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int {
-        return writeAvailable(src, offset.toLong(), length.toLong())
-    }
+    override suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int =
+        writeAvailable(src, offset.toLong(), length.toLong())
 
     override suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int {
         if (availableForWrite > 0) {
