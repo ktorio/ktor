@@ -103,14 +103,14 @@ kotlin.sourceSets {
     }
 
     if (rootProject.ext.get("native_targets_enabled") as Boolean) {
-        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
+        listOf("linuxX64Test", "mingwX64Test", "macosX64Test", "macosArm64Test").map { getByName(it) }.forEach {
             it.dependencies {
                 api(project(":ktor-client:ktor-client-curl"))
             }
         }
 
         if (!osName.startsWith("Windows")) {
-            listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
+            listOf("linuxX64Test", "macosX64Test", "iosX64Test", "macosArm64Test").map { getByName(it) }.forEach {
                 it.dependencies {
                     api(project(":ktor-client:ktor-client-cio"))
                 }
@@ -154,32 +154,29 @@ testTasks += listOf(
 )
 
 rootProject.allprojects {
-    if (!path.contains("ktor-client") || path.contains("ktor-shared")) {
-        return@allprojects
-    }
+    if (!path.contains("ktor-client") || path.contains("ktor-shared")) return@allprojects
+
     val tasks = tasks.matching { it.name in testTasks }
     configure(tasks) {
         dependsOn(startTestServer)
         kotlin.sourceSets {
+            if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) return@sourceSets
 
-            if (!(rootProject.ext.get("native_targets_enabled") as Boolean)) {
-                return@sourceSets
-            }
-            if (name in listOf("macosX64Test", "linuxX64Test", "mingwX64Test")) {
+            if (name in listOf("macosX64Test", "linuxX64Test", "mingwX64Test", "macosArm64Test")) {
                 getByName(name) {
                     dependencies {
                         api(project(":ktor-client:ktor-client-curl"))
                     }
                 }
             }
-            if (name in listOf("macosX64Test", "linuxX64Test", "iosX64Test")) {
+            if (name in listOf("macosX64Test", "linuxX64Test", "iosX64Test", "macosArm64Test")) {
                 getByName(name) {
                     dependencies {
                         api(project(":ktor-client:ktor-client-cio"))
                     }
                 }
             }
-            if (name in listOf("macosX64Test", "iosX64Test")) {
+            if (name in listOf("macosX64Test", "iosX64Test", "macosArm64Test")) {
                 getByName(name) {
                     dependencies {
                         api(project(":ktor-client:ktor-client-darwin"))

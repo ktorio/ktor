@@ -12,9 +12,12 @@ kotlin {
     targets.apply {
         val current = listOf(
             getByName("macosX64"),
-            getByName("macosArm64"),
             getByName("linuxX64"),
             getByName("mingwX64")
+        )
+
+        val currentArm64 = listOf(
+            getByName("macosArm64"),
         )
 
         val paths = if (HOST_NAME == "windows") {
@@ -40,6 +43,7 @@ kotlin {
                 "/usr/local/Cellar/curl/7.81.0/include/curl"
             )
         }
+
         current.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
             platform.compilations.getByName("main") {
                 cinterops.create("libcurl") {
@@ -52,6 +56,14 @@ kotlin {
                             winTests.environment("PATH", WIN_LIBRARY_PATH)
                         }
                     }
+                }
+            }
+        }
+
+        currentArm64.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
+            platform.compilations.getByName("main") {
+                cinterops.create("libcurl") {
+                    defFile = File(projectDir, "desktop/interop/libcurl_arm64.def")
                 }
             }
         }
@@ -72,9 +84,3 @@ kotlin {
         }
     }
 }
-
-val macosArm64Test: Task by tasks
-val linkDebugTestMacosArm64: Task by tasks
-
-macosArm64Test.onlyIf { false }
-linkDebugTestMacosArm64.onlyIf { false }
