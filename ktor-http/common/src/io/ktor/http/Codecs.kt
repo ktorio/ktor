@@ -3,9 +3,9 @@
 */
 package io.ktor.http
 
+import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }
 private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
@@ -55,15 +55,22 @@ public fun String.encodeURLQueryComponent(
 }
 
 /**
- * Encode URL path or component. It escapes all illegal or ambiguous characters
+ * Encodes URL path. It escapes all illegal or ambiguous characters keeping all "/" symbols.
  */
-public fun String.encodeURLPath(): String = buildString {
+public fun String.encodeURLPath(): String = encodeURLPath(encodeSlash = false)
+
+/**
+ * Encodes URL path segment. It escapes all illegal or ambiguous characters
+ */
+public fun String.encodeURLPathPart(): String = encodeURLPath(encodeSlash = true)
+
+internal fun String.encodeURLPath(encodeSlash: Boolean): String = buildString {
     val charset = Charsets.UTF_8
 
     var index = 0
     while (index < this@encodeURLPath.length) {
         val current = this@encodeURLPath[index]
-        if (current == '/' || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
+        if ((!encodeSlash && current == '/') || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
             append(current)
             index++
             continue
