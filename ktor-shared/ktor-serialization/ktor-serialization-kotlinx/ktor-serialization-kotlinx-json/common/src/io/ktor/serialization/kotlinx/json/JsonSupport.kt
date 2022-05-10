@@ -17,7 +17,7 @@ import kotlin.native.concurrent.*
  * - defaults are serialized
  * - mode is not strict so extra json fields are ignored
  * - pretty printing is disabled
- * - array polymorphism is enabled
+ * - array polymorphism is disabled
  * - keys and values are quoted, non-quoted are not allowed
  *
  * See [Json] for more details.
