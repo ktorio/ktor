@@ -34,8 +34,10 @@ private class MultiWorkerDispatcher(name: String, workersCount: Int) : Closeable
     }
 
     private fun workerRunLoop() = runBlocking {
-        for (task in tasksQueue) {
-            task.run()
+        kotlin.runCatching {
+            for (task in tasksQueue) {
+                task.run()
+            }
         }
     }
 
