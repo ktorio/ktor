@@ -15,11 +15,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * [HttpClient] plugin that handles sent `Cookie`, and received `Set-Cookie` headers,
- * using a specific [storage] for storing and retrieving cookies.
+ * A plugin that allows you to keep cookies between calls in an in-memory storage.
  *
- * You can configure the [Config.storage] and to provide [Config.default] blocks to set
- * cookies when installing.
+ * You can learn more from [Cookies](https://ktor.io/docs/http-cookies.html).
  */
 public class HttpCookies internal constructor(
     private val storage: CookiesStorage,
@@ -31,7 +29,7 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * Find all cookies by [requestUrl].
+     * Gets all the cookies associated with a specific [requestUrl].
      */
     public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
@@ -39,8 +37,8 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * Add cookies in request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
-     * so to manage their life cycle properly.
+     * Adds cookies in a request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
+     * so to manage their lifecycle properly.
      */
     internal suspend fun captureHeaderCookies(builder: HttpRequestBuilder) {
         with(builder) {
@@ -76,15 +74,15 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * [HttpCookies] configuration.
+     * A configuration for the [HttpCookies] plugin.
      */
     @KtorDsl
     public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
-         * [CookiesStorage] that will be used at this plugin.
-         * By default it just uses an initially empty in-memory [AcceptAllCookiesStorage].
+         * Specifies a storage used to keep cookies between calls.
+         * By default, it uses an initially empty in-memory [AcceptAllCookiesStorage].
          */
         public var storage: CookiesStorage = AcceptAllCookiesStorage()
 
@@ -134,6 +132,6 @@ public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
     pluginOrNull(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
- * Find the [Cookie] by [name]
+ * Gets the specified [Cookie] by its [name].
  */
 public operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }

@@ -12,7 +12,11 @@ import io.ktor.http.auth.*
 import io.ktor.util.*
 
 /**
- * A client's authentication plugin.
+ * A client's plugin that handles authentication and authorization.
+ * Typical usage scenarios include logging in users and gaining access to specific resources.
+ *
+ * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
+ *
  * [providers] - list of auth providers to use.
  */
 @KtorDsl
@@ -22,7 +26,7 @@ public class Auth private constructor(
 
     public companion object Plugin : HttpClientPlugin<Auth, Auth> {
         /**
-         * Shows that request should skip auth and refresh token procedure
+         * Shows that request should skip auth and refresh token procedure.
          */
         public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
 

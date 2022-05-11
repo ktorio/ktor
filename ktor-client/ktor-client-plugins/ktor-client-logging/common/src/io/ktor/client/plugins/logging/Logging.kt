@@ -22,7 +22,9 @@ private val HttpResponseLog = AttributeKey<StringBuilder>("HttpResponseLog")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
 
 /**
- * A client's logging plugin.
+ * A client's plugin that provides the capability to log HTTP calls.
+ *
+ * You can learn more from [Logging](https://ktor.io/docs/client-logging.html).
  */
 public class Logging private constructor(
     public val logger: Logger,
@@ -30,7 +32,7 @@ public class Logging private constructor(
     public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
 ) {
     /**
-     * [Logging] plugin configuration
+     * A configuration for the [Logging] plugin.
      */
     @KtorDsl
     public class Config {
@@ -40,17 +42,17 @@ public class Logging private constructor(
         internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
 
         /**
-         * [Logger] instance to use
+         * Specifies a [Logger] instance.
          */
         public var logger: Logger = Logger.DEFAULT
 
         /**
-         * log [LogLevel]
+         * Specifies the log the logging level.
          */
         public var level: LogLevel = LogLevel.HEADERS
 
         /**
-         * Log messages for calls matching a [predicate].
+         * Allows you to filter log messages for calls matching a [predicate].
          */
         public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
             filters.add(predicate)
@@ -242,7 +244,7 @@ public class Logging private constructor(
 }
 
 /**
- * Configure and install [Logging] in [HttpClient].
+ * Configures and installs [Logging] in [HttpClient].
  */
 public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)

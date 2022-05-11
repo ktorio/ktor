@@ -14,8 +14,12 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 
 /**
- * A client's HTTP timeout plugin. There are no default values, so default timeouts are taken from the
- * engine configuration or considered as infinite time if the engine doesn't provide them.
+ * A plugin that allows you to configure the following timeouts:
+ * - __request timeout__ — a time period required to process an HTTP call: from sending a request to receiving a response.
+ * - __connection timeout__ — a time period in which a client should establish a connection with a server.
+ * - __socket timeout__ — a maximum time of inactivity between two data packets when exchanging data with a server.
+ *
+ * You can learn more from [Timeout](https://ktor.io/docs/timeout.html).
  */
 public class HttpTimeout private constructor(
     private val requestTimeoutMillis: Long?,
@@ -23,7 +27,7 @@ public class HttpTimeout private constructor(
     private val socketTimeoutMillis: Long?
 ) {
     /**
-     * [HttpTimeout] extension configuration that is used during installation.
+     * An [HttpTimeout] extension configuration that is used during installation.
      */
     @KtorDsl
     public class HttpTimeoutCapabilityConfiguration {
@@ -45,7 +49,7 @@ public class HttpTimeout private constructor(
         }
 
         /**
-         * Request timeout in milliseconds.
+         * Specifies a request timeout in milliseconds.
          * The request timeout is the time period required to process an HTTP call: from sending a request to receiving a response.
          */
         public var requestTimeoutMillis: Long?
@@ -55,8 +59,8 @@ public class HttpTimeout private constructor(
             }
 
         /**
-         * Connect timeout in milliseconds.
-         * The connect timeout is the time period in which a client should establish a connection with a server.
+         * Specifies a connection timeout in milliseconds.
+         * The connection timeout is the time period in which a client should establish a connection with a server.
          */
         public var connectTimeoutMillis: Long?
             get() = _connectTimeoutMillis
@@ -65,7 +69,7 @@ public class HttpTimeout private constructor(
             }
 
         /**
-         * Socket timeout (read and write) in milliseconds.
+         * Specifies a socket timeout (read and write) in milliseconds.
          * The socket timeout is the maximum time of inactivity between two data packets when exchanging data with a server.
          */
         public var socketTimeoutMillis: Long?
@@ -109,13 +113,13 @@ public class HttpTimeout private constructor(
     }
 
     /**
-     * Utils method that return true if at least one timeout is configured (has not null value).
+     * Utils method that return `true` if at least one timeout is configured (has not null value).
      */
     private fun hasNotNullTimeouts() =
         requestTimeoutMillis != null || connectTimeoutMillis != null || socketTimeoutMillis != null
 
     /**
-     * Companion object for plugin installation.
+     * A companion object for a plugin installation.
      */
     public companion object Plugin :
         HttpClientPlugin<HttpTimeoutCapabilityConfiguration, HttpTimeout>,
@@ -124,7 +128,7 @@ public class HttpTimeout private constructor(
         override val key: AttributeKey<HttpTimeout> = AttributeKey("TimeoutPlugin")
 
         /**
-         * Infinite timeout in milliseconds.
+         * An infinite timeout in milliseconds.
          */
         public const val INFINITE_TIMEOUT_MS: Long = Long.MAX_VALUE
 
@@ -165,7 +169,7 @@ public class HttpTimeout private constructor(
 }
 
 /**
- * Adds timeout boundaries to the request. Requires [HttpTimeout] plugin to be installed.
+ * Adds timeout boundaries to the request. Requires the [HttpTimeout] plugin to be installed.
  */
 public fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityConfiguration.() -> Unit): Unit =
     setCapability(HttpTimeout, HttpTimeout.HttpTimeoutCapabilityConfiguration().apply(block))
@@ -191,7 +195,7 @@ public class HttpRequestTimeoutException(
 }
 
 /**
- * This exception is thrown in case the connect timeout is exceeded.
+ * This exception is thrown in case the connection timeout is exceeded.
  * It indicates the client took too long to establish a connection with a server.
  */
 public fun ConnectTimeoutException(
@@ -204,7 +208,7 @@ public fun ConnectTimeoutException(
 )
 
 /**
- * This exception is thrown in case the connect timeout is exceeded.
+ * This exception is thrown in case the connection timeout is exceeded.
  * It indicates the client took too long to establish a connection with a server.
  */
 public fun ConnectTimeoutException(
@@ -230,7 +234,7 @@ public fun SocketTimeoutException(
 )
 
 /**
- * Convert long timeout in milliseconds to int value. To do that we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
+ * Converts a long timeout in milliseconds to int value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
  * as zero and convert timeout value to [Int].
  */
 @InternalAPI
@@ -242,7 +246,7 @@ public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when 
 }
 
 /**
- * Convert long timeout in milliseconds to long value. To do that we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
+ * Converts long timeout in milliseconds to long value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
  * as zero and convert timeout value to [Int].
  */
 @InternalAPI

@@ -13,7 +13,7 @@ import io.ktor.http.auth.*
 import io.ktor.util.*
 
 /**
- * Adds [BearerAuthProvider] to the client's [Auth] providers.
+ * Installs the client's [BearerAuthProvider].
  */
 public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
@@ -27,7 +27,7 @@ public class BearerTokens(
 )
 
 /**
- * Parameters that will be passed to [BearerAuthConfig.refreshTokens] lambda
+ * Parameters to be passed to [BearerAuthConfig.refreshTokens] lambda.
  */
 public class RefreshTokensParams(
     public val client: HttpClient,
@@ -44,7 +44,7 @@ public class RefreshTokensParams(
 }
 
 /**
- * [BearerAuthProvider] configuration.
+ * A configuration for [BearerAuthProvider].
  */
 @KtorDsl
 public class BearerAuthConfig {
@@ -70,7 +70,7 @@ public class BearerAuthConfig {
     }
 
     /**
-     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
+     * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
      */
     public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
         _sendWithoutRequest = block
@@ -78,7 +78,12 @@ public class BearerAuthConfig {
 }
 
 /**
- * Client bearer [AuthProvider].
+ * An authentication provider for the Bearer HTTP authentication scheme.
+ * Bearer authentication involves security tokens called bearer tokens.
+ * As an example, these tokens can be used as a part of OAuth flow to authorize users of your application
+ * by using external providers, such as Google, Facebook, Twitter, and so on.
+ *
+ * You can learn more from [Bearer authentication](https://ktor.io/docs/bearer-client.html).
  */
 public class BearerAuthProvider(
     private val refreshTokens: suspend RefreshTokensParams.() -> BearerTokens?,
@@ -97,7 +102,7 @@ public class BearerAuthProvider(
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
     /**
-     * Check if current provider is applicable to the request.
+     * Checks if current provider is applicable to the request.
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Bearer) return false
@@ -108,7 +113,7 @@ public class BearerAuthProvider(
     }
 
     /**
-     * Add authentication method headers and creds.
+     * Adds an authentication method headers and credentials.
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val token = tokensHolder.loadToken() ?: return

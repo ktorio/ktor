@@ -10,9 +10,9 @@ import io.ktor.http.*
 import io.ktor.util.*
 
 /**
- * Default user-agent plugin for [HttpClient].
+ * A plugin that adds a `User-Agent` header to all requests.
  *
- * @property agent: value of the `User-Agent` header to set.
+ * @property agent a `User-Agent` header value.
  */
 public class UserAgent private constructor(public val agent: String) {
 
@@ -33,7 +33,7 @@ public class UserAgent private constructor(public val agent: String) {
 }
 
 /**
- * Install [UserAgent] plugin with browser-like user agent.
+ * Installs the [UserAgent] plugin with a browser-like user agent.
  */
 public fun HttpClientConfig<*>.BrowserUserAgent() {
     install(UserAgent) {
@@ -43,7 +43,7 @@ public fun HttpClientConfig<*>.BrowserUserAgent() {
 }
 
 /**
- * Install [UserAgent] plugin with curl user agent.
+ * Installs the [UserAgent] plugin with a CURL user agent.
  */
 public fun HttpClientConfig<*>.CurlUserAgent() {
     install(UserAgent) {
