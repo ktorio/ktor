@@ -7,7 +7,8 @@ package io.ktor.resources
 import kotlinx.serialization.*
 
 /**
- * An annotation for classes that act as typed routes. All annotated types should be [Serializable].
+ * An annotation for classes that act as [typed routes](https://ktor.io/docs/type-safe-routing.html).
+ * All annotated types should be [Serializable].
  *
  * Every property that has a corresponding placeholder inside [path] is used as a value for this placeholder.
  * Other properties are put into the URL query.

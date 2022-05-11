@@ -15,7 +15,7 @@ import kotlinx.serialization.*
 /**
  * Registers a route [body] for a resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  */
 public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Unit): Route {
     val serializer = serializer<T>()
@@ -25,7 +25,7 @@ public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Un
 /**
  * Registers a typed handler [body] for a `GET` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -44,7 +44,7 @@ public inline fun <reified T : Any> Route.get(
 /**
  * Registers a typed handler [body] for a `OPTIONS` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -63,7 +63,7 @@ public inline fun <reified T : Any> Route.options(
 /**
  * Registers a typed handler [body] for a `HEAD` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -82,7 +82,7 @@ public inline fun <reified T : Any> Route.head(
 /**
  * Registers a typed handler [body] for a `POST` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -101,7 +101,7 @@ public inline fun <reified T : Any> Route.post(
 /**
  * Registers a typed handler [body] for a `PUT` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -120,7 +120,7 @@ public inline fun <reified T : Any> Route.put(
 /**
  * Registers a typed handler [body] for a `DELETE` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -139,7 +139,7 @@ public inline fun <reified T : Any> Route.delete(
 /**
  * Registers a typed handler [body] for a `PATCH` resource defined by the [T] class.
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
  */
@@ -175,7 +175,7 @@ internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInst
  *
  * @param serializer is used to decode the parameters of the request to an instance of the typed resource [T].
  *
- * Class [T] **must** be annotated with [io.ktor.resources.Resource].
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  */
 public fun <T : Any> Route.resource(
     serializer: KSerializer<T>,

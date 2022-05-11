@@ -9,12 +9,12 @@ import io.ktor.util.date.*
 import org.webjars.*
 
 /**
- * Webjars plugin configuration.
+ * A configuration for the [Webjars] plugin.
  */
 @KtorDsl
 public class WebjarsConfig {
     /**
-     * Path prefix at which the installed plugin responds.
+     * Specifies a prefix for the path used to serve WebJars assets.
      */
     public var path: String = "/webjars/"
         set(value) {
@@ -31,8 +31,10 @@ public class WebjarsConfig {
 }
 
 /**
- * This plugin listens to requests starting with the specified path prefix and responding with static content
- * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
+ * A plugin that enables serving the client-side libraries provided by WebJars.
+ * It allows you to package your assets such as JavaScript and CSS libraries as part of your fat JAR.
+ *
+ * To learn more, see [Webjars](https://ktor.io/docs/webjars.html).
  */
 public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("Webjars", ::WebjarsConfig) {
     val webjarsPrefix = pluginConfig.path
