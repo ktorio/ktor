@@ -85,10 +85,11 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         if (!closed.compareAndSet(false, true)) return
 
         requestQueue.close()
-        GlobalScope.launch {
+        GlobalScope.launch(curlDispatcher) {
             curlScope.coroutineContext[Job]!!.join()
-            curlDispatcher.close()
             curlApi!!.close()
+        }.invokeOnCompletion {
+            curlDispatcher.close()
         }
     }
 
