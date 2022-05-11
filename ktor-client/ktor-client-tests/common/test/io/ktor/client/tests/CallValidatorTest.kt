@@ -415,7 +415,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testThrowsOriginalExceptionWhenBodyIsNotSerialized(): Unit = testWithEngine(MockEngine) {
+    fun testThrowsOriginalExceptionWhenBodyIsNotSerialized() = testWithEngine(MockEngine) {
         class TestException : RuntimeException()
 
         config {
@@ -438,7 +438,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testCanNotAccessBodyAndCallWhenNotSerialized(): Unit = testWithEngine(MockEngine) {
+    fun testCanNotAccessBodyAndCallWhenNotSerialized() = testWithEngine(MockEngine) {
         class TestException : RuntimeException()
 
         config {
