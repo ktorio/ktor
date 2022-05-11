@@ -564,7 +564,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUpload() {
+    open fun testMultipartFileUpload() {
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
@@ -629,7 +629,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUploadLarge() {
+    open fun testMultipartFileUploadLarge() {
         val numberOfLines = 10000
 
         createAndStartServer {

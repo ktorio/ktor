@@ -49,18 +49,18 @@ public class CIOMultipartDataBase(
         }
     }
 
-    private suspend fun eventToData(evt: MultipartEvent): PartData? {
+    private suspend fun eventToData(event: MultipartEvent): PartData? {
         return try {
-            when (evt) {
-                is MultipartEvent.MultipartPart -> partToData(evt)
+            when (event) {
+                is MultipartEvent.MultipartPart -> partToData(event)
                 else -> {
-                    evt.release()
+                    event.release()
                     null
                 }
             }
-        } catch (t: Throwable) {
-            evt.release()
-            throw t
+        } catch (cause: Throwable) {
+            event.release()
+            throw cause
         }
     }
 
