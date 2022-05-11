@@ -6,11 +6,12 @@ package io.ktor.client.plugins
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.HttpCallValidator.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
@@ -125,10 +126,7 @@ public class HttpCallValidator internal constructor(
                     proceedWith(it)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
-                    plugin.processException(
-                        unwrappedCause,
-                        DefaultHttpRequest(HttpClientCall(scope), context.build())
-                    )
+                    plugin.processException(unwrappedCause, HttpRequest(context))
                     throw unwrappedCause
                 }
             }
@@ -152,6 +150,17 @@ public class HttpCallValidator internal constructor(
             }
         }
     }
+}
+
+private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
+    override val call: HttpClientCall get() = error("Call is not initialized")
+    override val method: HttpMethod = builder.method
+    override val url: Url = builder.url.build()
+    override val attributes: Attributes = builder.attributes
+    override val headers: Headers = builder.headers.build()
+    override val content: OutgoingContent
+        get() = builder.body as? OutgoingContent
+            ?: error("Content was not transformed to OutgoingContent yet. Current body is ${builder.body}")
 }
 
 /**
