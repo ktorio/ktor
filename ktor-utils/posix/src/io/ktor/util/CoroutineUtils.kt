@@ -14,6 +14,8 @@ import kotlin.native.concurrent.*
 public fun Dispatchers.createFixedThreadDispatcher(name: String, threads: Int): CloseableCoroutineDispatcher =
     MultiWorkerDispatcher(name, threads)
 
+private val CLOSE_WORKER: Worker by lazy { Worker.start(name = "CLOSE_WORKER") }
+
 @OptIn(InternalAPI::class)
 private class MultiWorkerDispatcher(name: String, workersCount: Int) : CloseableCoroutineDispatcher() {
     private val closed = atomic(false)
@@ -27,9 +29,11 @@ private class MultiWorkerDispatcher(name: String, workersCount: Int) : Closeable
                 ThreadInfo.registerCurrentThread()
             }.consume()
 
-            futures += worker.execute(TransferMode.SAFE, { this }) {
+            val element: Future<Unit> = worker.execute(TransferMode.SAFE, { this }) {
                 it.workerRunLoop()
             }
+
+            futures.add(element)
         }
     }
 
@@ -53,8 +57,7 @@ private class MultiWorkerDispatcher(name: String, workersCount: Int) : Closeable
     override fun close() {
         if (!closed.compareAndSet(false, true)) return
 
-        val closeWorker = Worker.start(errorReporting = true, name = "Close worker")
-        closeWorker.execute(TransferMode.SAFE, { this }) {
+        CLOSE_WORKER.execute(TransferMode.SAFE, { this }) {
             it.tasksQueue.close()
 
             it.futures.forEach {
