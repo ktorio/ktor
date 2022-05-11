@@ -15,7 +15,8 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * A plugin that allows you to keep cookies between calls in an in-memory storage.
+ * A plugin that allows you to keep cookies between calls in a storage.
+ * By default, it uses an in-memory storage, but you can also implement a persistent storage using [CookiesStorage].
  *
  * You can learn more from [Cookies](https://ktor.io/docs/http-cookies.html).
  */
