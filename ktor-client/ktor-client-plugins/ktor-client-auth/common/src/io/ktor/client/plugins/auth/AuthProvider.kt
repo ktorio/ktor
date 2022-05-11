@@ -11,11 +11,11 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 
 /**
- * Authentication provider interface.
+ * `An authentication provider.
  */
 public interface AuthProvider {
     /**
-     * Wait for [HttpStatusCode.Unauthorized] to send credentials.
+     * Waits for [HttpStatusCode.Unauthorized] to send credentials.
      */
     @Deprecated("Please use sendWithoutRequest function instead")
     public val sendWithoutRequest: Boolean
@@ -24,19 +24,19 @@ public interface AuthProvider {
     public fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequest
 
     /**
-     * Checks if current provider is applicable to the request.
+     * Checks if the current provider is applicable to a request.
      */
     public fun isApplicable(auth: HttpAuthHeader): Boolean
 
     /**
-     * Adds authentication method headers and credentials.
+     * Adds an authentication method headers and credentials.
      * @param authHeader value of `WWW-Authenticate` header from failed response, if exists
      * @param request builder for an authenticated request
      */
     public suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader? = null)
 
     /**
-     * Refresh token if required.
+     * Refreshes a token if required.
      *
      * @param call - response triggered token refresh.
      * @return if the token was successfully refreshed.

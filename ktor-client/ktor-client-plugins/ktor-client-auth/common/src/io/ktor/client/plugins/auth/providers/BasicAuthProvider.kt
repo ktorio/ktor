@@ -14,7 +14,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
 /**
- * Add [BasicAuthProvider] to client [Auth] providers.
+ * Installs the client's [BasicAuthProvider].
  */
 @KtorDsl
 public fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
@@ -24,7 +24,7 @@ public fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
 }
 
 /**
- * [BasicAuthProvider] configuration.
+ * A configuration for [BasicAuthProvider].
  */
 @KtorDsl
 public class BasicAuthConfig {
@@ -47,7 +47,7 @@ public class BasicAuthConfig {
     public var sendWithoutRequest: Boolean = false
 
     /**
-     * Optional: current provider realm
+     * (Optional) Specifies the realm of the current provider.
      */
     public var realm: String? = null
 
@@ -60,14 +60,14 @@ public class BasicAuthConfig {
     }
 
     /**
-     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
+     * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
      */
     public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
         _sendWithoutRequest = block
     }
 
     /**
-     * Required: Credentials provider.
+     * Allows you to specify authentication credentials.
      */
     public fun credentials(block: suspend () -> BasicAuthCredentials?) {
         _credentials = block
@@ -75,7 +75,7 @@ public class BasicAuthConfig {
 }
 
 /**
- * Credentials for [BasicAuthProvider].
+ * Contains credentials for [BasicAuthProvider].
  */
 public class BasicAuthCredentials(
     public val username: String,
@@ -83,7 +83,10 @@ public class BasicAuthCredentials(
 )
 
 /**
- * Client basic authentication provider.
+ * An authentication provider for the Basic HTTP authentication scheme.
+ * The Basic authentication scheme can be used for logging in users.
+ *
+ * You can learn more from [Basic authentication](https://ktor.io/docs/basic-client.html).
  */
 public class BasicAuthProvider(
     private val credentials: suspend () -> BasicAuthCredentials?,

@@ -16,16 +16,19 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
 /**
- * [HttpClient] plugin that serializes/de-serializes custom objects
- * to request and from response bodies using a [ContentConverter]
- * to Content-Type and Accept headers.
+ * A plugin that serves two primary purposes:
+ * - Negotiating media types between the client and server. For this, it uses the `Accept` and `Content-Type` headers.
+ * - Serializing/deserializing the content in a specific format when sending requests and receiving responses.
+ *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization-client.html).
  */
 public class ContentNegotiation internal constructor(
     internal val registrations: List<Config.ConverterRegistration>
 ) {
 
     /**
-     * [ContentNegotiation] configuration that is used during installation
+     * A [ContentNegotiation] configuration that is used during installation.
      */
     public class Config : Configuration {
 
@@ -38,7 +41,7 @@ public class ContentNegotiation internal constructor(
         internal val registrations = mutableListOf<ConverterRegistration>()
 
         /**
-         * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
+         * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
          */
         public override fun <T : ContentConverter> register(
             contentType: ContentType,
@@ -54,7 +57,7 @@ public class ContentNegotiation internal constructor(
 
         /**
          * Registers a [contentTypeToSend] and [contentTypeMatcher] to a specified [converter] with
-         * an optional [configuration] script for converter
+         * an optional [configuration] script for a converter.
          */
         public fun <T : ContentConverter> register(
             contentTypeToSend: ContentType,
@@ -76,7 +79,7 @@ public class ContentNegotiation internal constructor(
     }
 
     /**
-     * Companion object for plugin installation
+     * A companion object used to install a plugin.
      */
     @KtorDsl
     public companion object Plugin : HttpClientPlugin<Config, ContentNegotiation> {

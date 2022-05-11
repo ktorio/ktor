@@ -24,32 +24,34 @@ internal object CacheControl {
 }
 
 /**
- * This plugin allows using HTTP cache.
+ * A plugin that allows you to save previously fetched resources in an in-memory cache.
+ * For example, if you make two consequent requests to a resource with the configured `Cache-Control` header,
+ * the client executes only the first request and skips the second one since data is already saved in a cache.
  *
- * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+ * You can learn more from [Caching](https://ktor.io/docs/client-caching.html).
  */
 public class HttpCache private constructor(
     public val publicStorage: HttpCacheStorage,
     public val privateStorage: HttpCacheStorage
 ) {
     /**
-     * [HttpCache] configuration.
+     * A configuration for the [HttpCache] plugin.
      */
     @KtorDsl
     public class Config {
         /**
-         * Storage for public cache entries.
+         * Specifies a storage for public cache entries.
          *
-         * Use [HttpCacheStorage.Unlimited] by default.
+         * [HttpCacheStorage.Unlimited] by default.
          */
         public var publicStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
 
         /**
-         * Storage for private cache entries.
+         * Specifies a storage for private cache entries.
          *
          * [HttpCacheStorage.Unlimited] by default.
          *
-         * Consider using [HttpCacheStorage.Disabled] if the client used as intermediate.
+         * Consider using [HttpCacheStorage.Disabled] if the client is used as intermediate.
          */
         public var privateStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
     }

@@ -15,7 +15,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 
 /**
- * Install client [DigestAuthProvider].
+ * Installs the client's [DigestAuthProvider].
  */
 public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
@@ -25,7 +25,7 @@ public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
 }
 
 /**
- * [DigestAuthProvider] configuration.
+ * A configuration for [DigestAuthProvider].
  */
 @Suppress("KDocMissingDocumentation")
 @KtorDsl
@@ -46,7 +46,7 @@ public class DigestAuthConfig {
     public var password: String = ""
 
     /**
-     * Optional: current provider realm
+     * (Optional) Specifies the realm of the current provider.
      */
     public var realm: String? = null
 
@@ -56,7 +56,7 @@ public class DigestAuthConfig {
     }
 
     /**
-     * Required: Credentials provider.
+     * Allows you to specify authentication credentials.
      */
     public fun credentials(block: suspend () -> DigestAuthCredentials?) {
         _credentials = block
@@ -64,7 +64,7 @@ public class DigestAuthConfig {
 }
 
 /**
- * Credentials for [DigestAuthProvider].
+ * Contains credentials for [DigestAuthProvider].
  */
 public class DigestAuthCredentials(
     public val username: String,
@@ -72,7 +72,9 @@ public class DigestAuthCredentials(
 )
 
 /**
- * Client digest [AuthProvider].
+ * An authentication provider for the Digest HTTP authentication scheme.
+ *
+ * You can learn more from [Digest authentication](https://ktor.io/docs/digest-client.html).
  */
 @Suppress("KDocMissingDocumentation")
 public class DigestAuthProvider(

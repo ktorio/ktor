@@ -14,9 +14,12 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * Content-Encoding header support.
+ * A plugin that allows you to enable specified compression algorithms (such as `gzip` and `deflate`) and configure their settings.
+ * This plugin serves two primary purposes:
+ * - Sets the `Accept-Encoding` header with the specified quality value.
+ * - Decodes content received from a server to obtain the original payload.
  *
- * See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+ * You can learn more from [Content encoding](https://ktor.io/docs/content-encoding.html).
  */
 public class ContentEncoding private constructor(
     private val encoders: Map<String, ContentEncoder>,
@@ -58,7 +61,7 @@ public class ContentEncoding private constructor(
     }
 
     /**
-     * [ContentEncoding] configuration.
+     * A configuration for the [ContentEncoding] plugin.
      */
     @KtorDsl
     public class Config {
@@ -67,36 +70,36 @@ public class ContentEncoding private constructor(
         internal val qualityValues: MutableMap<String, Float> = CaseInsensitiveMap()
 
         /**
-         * Install gzip encoder.
+         * Installs the `gzip` encoder.
          *
-         * @param quality: priority value to use in Accept-Encoding header.
+         * @param quality a priority value to use in the `Accept-Encoding` header.
          */
         public fun gzip(quality: Float? = null) {
             customEncoder(GZipEncoder, quality)
         }
 
         /**
-         * Install deflate encoder.
+         * Installs the `deflate` encoder.
          *
-         * @param quality: priority value to use in Accept-Encoding header.
+         * @param quality a priority value to use in the `Accept-Encoding` header.
          */
         public fun deflate(quality: Float? = null) {
             customEncoder(DeflateEncoder, quality)
         }
 
         /**
-         * Install identity encoder.
-         * @param quality: priority value to use in Accept-Encoding header.
+         * Installs the `identity` encoder.
+         * @param quality a priority value to use in the `Accept-Encoding` header.
          */
         public fun identity(quality: Float? = null) {
             customEncoder(IdentityEncoder, quality)
         }
 
         /**
-         * Install custom encoder.
+         * Installs a custom encoder.
          *
-         * @param encoder: custom encoder to use.
-         * @param quality: priority value to use in Accept-Encoding header.
+         * @param encoder a custom encoder to use.
+         * @param quality a priority value to use in the `Accept-Encoding` header.
          */
         public fun customEncoder(encoder: ContentEncoder, quality: Float? = null) {
             val name = encoder.name
@@ -145,9 +148,9 @@ public class ContentEncoding private constructor(
 }
 
 /**
- * Install or configure [ContentEncoding] plugin.
+ * Installs or configures the [ContentEncoding] plugin.
  *
- * @param block: [ContentEncoding] configuration.
+ * @param block: a [ContentEncoding] configuration.
  */
 public fun HttpClientConfig<*>.ContentEncoding(
     block: ContentEncoding.Config.() -> Unit = {
