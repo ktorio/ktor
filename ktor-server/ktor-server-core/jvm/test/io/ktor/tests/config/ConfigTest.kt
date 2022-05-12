@@ -45,6 +45,19 @@ class ConfigTest {
     }
 
     @Test
+    fun testMapApplicationConfigNestedPut() {
+        val mapConfig = MapApplicationConfig()
+        mapConfig.put("auth.salt", "ktor")
+
+        val nested = mapConfig.config("auth") as MapApplicationConfig
+        nested.put("value1", "data1")
+
+        assertEquals("ktor", mapConfig.property("auth.salt").getString())
+        assertEquals("data1", mapConfig.property("auth.value1").getString())
+        assertEquals("data1", nested.property("value1").getString())
+    }
+
+    @Test
     fun testKeysTopLevelMapConfig() {
         val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")
