@@ -23,6 +23,7 @@ public open class MapApplicationConfig : ApplicationConfig {
         this.path = path
     }
 
+    public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "")
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
     public constructor() : this(mutableMapOf<String, String>(), "")
 
@@ -30,7 +31,7 @@ public open class MapApplicationConfig : ApplicationConfig {
      * Set property value
      */
     public fun put(path: String, value: String) {
-        map[path] = value
+        map[combine(this.path, path)] = value
     }
 
     /**
