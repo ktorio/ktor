@@ -1,0 +1,8 @@
+ktor:
+    deployment:
+        port: 1234
+    auth:
+        users:
+            - a
+            - b
+            - c

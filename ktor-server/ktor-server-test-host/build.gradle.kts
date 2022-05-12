@@ -43,4 +43,10 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }
+
+    jvmAndNixTest {
+        dependencies {
+            api(project(":ktor-server:ktor-server-config-yaml"))
+        }
+    }
 }

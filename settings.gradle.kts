@@ -47,6 +47,7 @@ val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versio
 
 include(":ktor-server")
 include(":ktor-server:ktor-server-core")
+include(":ktor-server:ktor-server-config-yaml")
 include(":ktor-server:ktor-server-tests")
 include(":ktor-server:ktor-server-host-common")
 include(":ktor-server:ktor-server-test-host")
