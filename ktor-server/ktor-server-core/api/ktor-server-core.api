@@ -233,6 +233,15 @@ public abstract interface class io/ktor/server/config/ApplicationConfigValue {
 
 public final class io/ktor/server/config/ApplicationConfigurationException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public abstract interface class io/ktor/server/config/ConfigLoader {
+	public abstract fun load (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+}
+
+public final class io/ktor/server/config/ConfigLoadersJvmKt {
+	public static final fun getConfigLoaders ()Ljava/util/List;
 }
 
 public class io/ktor/server/config/HoconApplicationConfig : io/ktor/server/config/ApplicationConfig {
@@ -250,8 +259,14 @@ public final class io/ktor/server/config/HoconApplicationConfigKt {
 	public static final fun tryGetStringList (Lcom/typesafe/config/Config;Ljava/lang/String;)Ljava/util/List;
 }
 
+public final class io/ktor/server/config/HoconConfigLoader : io/ktor/server/config/ConfigLoader {
+	public fun <init> ()V
+	public fun load (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+}
+
 public class io/ktor/server/config/MapApplicationConfig : io/ktor/server/config/ApplicationConfig {
 	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
 	public fun <init> ([Lkotlin/Pair;)V
 	public fun config (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public fun configList (Ljava/lang/String;)Ljava/util/List;
@@ -270,6 +285,10 @@ protected final class io/ktor/server/config/MapApplicationConfig$MapApplicationC
 	public final fun getMap ()Ljava/util/Map;
 	public final fun getPath ()Ljava/lang/String;
 	public fun getString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/config/MergedApplicationConfigKt {
+	public static final fun merge (Ljava/util/List;)Lio/ktor/server/config/ApplicationConfig;
 }
 
 public final class io/ktor/server/http/HttpDateJvmKt {
