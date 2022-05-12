@@ -53,6 +53,7 @@ node-fetch-version = "2.6.7"
 abort-controller-version = "3.0.0"
 ws-version = "8.5.0"
 xmlutil-version = "0.84.0"
+yamlkt-version = "0.11.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
@@ -141,3 +142,4 @@ thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf-versi
 javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet-version" }
 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }
+yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt-version" }

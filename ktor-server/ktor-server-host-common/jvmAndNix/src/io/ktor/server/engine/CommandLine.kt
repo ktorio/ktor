@@ -88,7 +88,20 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
     return environment
 }
 
-internal expect fun buildApplicationConfig(args: Array<String>): ApplicationConfig
+internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
+    val argumentsPairs = args.mapNotNull { it.splitPair('=') }
+    val commandLineProperties = argumentsPairs
+        .filter { it.first.startsWith("-P:") }
+        .map { it.first.removePrefix("-P:") to it.second }
+
+    val configPath = argumentsPairs.firstOrNull { it.first == "-config" }?.second
+
+    val commandLineConfig = MapApplicationConfig(commandLineProperties)
+    val environmentConfig = getConfigFromEnvironment()
+    val fileConfig = configLoaders.firstNotNullOfOrNull { it.load(configPath) } ?: MapApplicationConfig()
+
+    return listOf(commandLineConfig, environmentConfig, fileConfig).merge()
+}
 
 internal expect fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     host: String,
@@ -100,6 +113,8 @@ internal expect fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
 )
 
 internal expect fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
+
+internal expect fun getConfigFromEnvironment(): ApplicationConfig
 
 /**
  * Load engine's configuration suitable for all engines from [deploymentConfig]
