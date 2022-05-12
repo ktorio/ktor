@@ -12,12 +12,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.serialization.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
 abstract class JsonContentNegotiationTest(private val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
 
+    @Serializable
     data class Wrapper(val value: String)
 
     fun startServer(testApplicationEngine: Application) {
@@ -78,6 +80,50 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             setBody(""" {"value" : "value", "val" : "bad_json" } """)
         }.let { call ->
             assertEquals(extraFieldResult, call.response.status())
+        }
+    }
+
+    @Test
+    open fun testJsonNullServer(): Unit = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, converter)
+        }
+        routing {
+            post("/") {
+                val request = call.receiveNullable<Wrapper?>()
+                assertEquals(null, request)
+                call.respondNullable(request)
+            }
+        }
+
+        client.post("/") {
+            contentType(ContentType.Application.Json)
+            setBody("null")
+        }.let { response ->
+            assertEquals("null", response.bodyAsText())
+        }
+    }
+
+    @Test
+    open fun testJsonNullClient(): Unit = testApplication {
+        routing {
+            post("/") {
+                val request = call.receive<String>()
+                assertEquals("null", request)
+                call.respond(TextContent("null", ContentType.Application.Json))
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.post("/") {
+            val data: Wrapper? = null
+            contentType(ContentType.Application.Json)
+            setBody(data)
+        }.let { response ->
+            assertEquals(null, response.body<Wrapper?>())
         }
     }
 }

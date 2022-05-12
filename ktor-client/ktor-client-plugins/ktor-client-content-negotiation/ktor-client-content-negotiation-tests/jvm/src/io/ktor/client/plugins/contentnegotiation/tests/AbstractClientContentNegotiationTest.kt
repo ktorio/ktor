@@ -108,6 +108,10 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
 
             call.respondWithRequestBody(defaultContentType)
         }
+        post("/null") {
+            assertEquals("null", call.receiveText())
+            call.respondText("null", defaultContentType)
+        }
         webSocket("ws") {
             for (frame in incoming) {
                 outgoing.send(frame)
@@ -153,6 +157,22 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             }.body<Widget>()
 
             assertEquals(widget, result)
+        }
+    }
+
+    @Test
+    open fun testSerializeNull(): Unit = testWithEngine(CIO) {
+        configureClient()
+
+        test { client ->
+            val data: Widget? = null
+            val result = client.post {
+                url(path = "/null", port = serverPort)
+                contentType(ContentType.Application.Json)
+                setBody(data)
+            }.body<Widget?>()
+
+            assertEquals(null, result)
         }
     }
 

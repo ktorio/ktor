@@ -6,11 +6,13 @@ package io.ktor.serialization
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.flow.*
 import kotlin.reflect.*
 
 /**
@@ -25,7 +27,7 @@ public interface ContentConverter {
      * Serializes a [value] to the specified [contentType] to a [OutgoingContent].
      * This function could ignore value if it is not suitable for conversion and return `null` so in this case
      * other registered converters could be tried or this function could be invoked with other content types
-     * it the converted has been registered multiple times with different content types
+     * it the converted has been registered multiple times with different content types.
      *
      * @param charset response charset
      * @param typeInfo response body typeInfo
@@ -38,7 +40,7 @@ public interface ContentConverter {
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): OutgoingContent?
 
     /**
@@ -76,4 +78,32 @@ public interface Configuration {
         converter: T,
         configuration: T.() -> Unit = {}
     )
+}
+
+@InternalAPI
+public suspend fun List<ContentConverter>.deserialize(
+    body: ByteReadChannel,
+    typeInfo: TypeInfo,
+    charset: Charset
+): Any {
+    // Pick the first one that can convert the subject successfully.
+    // The result can be null if
+    // 1. there is no suitable converter
+    // 2. result of deserialization is null
+    // We can differentiate these cases by checking if body was consumed or not
+    val result = this.asFlow()
+        .filter { !body.isClosedForRead }
+        .map { converter ->
+            converter.deserialize(
+                charset = charset,
+                typeInfo = typeInfo,
+                content = body
+            )
+        }
+        .firstOrNull { it != null }
+    return when {
+        !body.isClosedForRead -> body
+        result == null -> NullBody
+        else -> result
+    }
 }

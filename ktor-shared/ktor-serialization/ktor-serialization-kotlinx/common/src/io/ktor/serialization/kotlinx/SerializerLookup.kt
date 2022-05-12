@@ -20,12 +20,17 @@ internal fun serializerFromTypeInfo(
             // https://github.com/Kotlin/kotlinx.serialization/issues/1870
             else module.serializerOrNull(type)
         }
-        ?: module.getContextual(typeInfo.type)
-        ?: typeInfo.type.serializer()
+        ?: module.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
+        ?: typeInfo.type.serializer().maybeNullable(typeInfo)
+}
+
+private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSerializer<*> {
+    return if (typeInfo.kotlinType?.isMarkedNullable == true) this.nullable else this
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun guessSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
+internal fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<Any> = when (value) {
+    null -> String.serializer().nullable
     is List<*> -> ListSerializer(value.elementSerializer(module))
     is Array<*> -> value.firstOrNull()?.let { guessSerializer(it, module) } ?: ListSerializer(String.serializer())
     is Set<*> -> SetSerializer(value.elementSerializer(module))

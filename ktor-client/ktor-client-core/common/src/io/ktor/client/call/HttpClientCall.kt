@@ -7,6 +7,7 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -73,7 +74,7 @@ public open class HttpClientCall(
      * @throws DoubleReceiveException If already called [body].
      */
     @OptIn(InternalAPI::class)
-    public suspend fun body(info: TypeInfo): Any {
+    public suspend fun body(info: TypeInfo): Any? {
         try {
             if (response.instanceOf(info.type)) return response
             if (!allowDoubleReceive && !received.compareAndSet(false, true)) {
@@ -84,9 +85,9 @@ public open class HttpClientCall(
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
-            val result = client.responsePipeline.execute(this, subject).response
+            val result = client.responsePipeline.execute(this, subject).response.takeIf { it != NullBody }
 
-            if (!result.instanceOf(info.type)) {
+            if (result != null && !result.instanceOf(info.type)) {
                 val from = result::class
                 val to = info.type
                 throw NoTransformationFoundException(response, from, to)
