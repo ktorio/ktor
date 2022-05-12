@@ -1,0 +1,4 @@
+package=io.ktor.server.engine.interop
+---
+
+extern char **environ;

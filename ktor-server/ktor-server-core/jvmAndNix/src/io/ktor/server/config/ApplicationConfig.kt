@@ -60,7 +60,9 @@ public interface ApplicationConfigValue {
 /**
  * Thrown when an application is misconfigured
  */
-public class ApplicationConfigurationException(message: String) : Exception(message)
+public class ApplicationConfigurationException(message: String, cause: Throwable?) : Exception(message, cause) {
+    public constructor(message: String) : this(message, null)
+}
 
 public fun ApplicationConfig.tryGetString(key: String): String? =
     propertyOrNull(key)?.getString()

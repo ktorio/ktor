@@ -1,0 +1,3 @@
+ktor:
+    deployment:
+        port: $NOT_FOUND_VARIABLE
