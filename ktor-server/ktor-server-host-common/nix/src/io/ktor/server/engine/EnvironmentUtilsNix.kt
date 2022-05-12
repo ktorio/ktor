@@ -5,15 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.server.config.*
-
-internal actual fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
-    val argumentsPairs = args.mapNotNull { it.splitPair('=') }.toMap()
-    val commandLineProperties: Map<String, String> = argumentsPairs
-        .filterKeys { it.startsWith("-P:") }
-        .mapKeys { it.key.removePrefix("-P:") }
-
-    return MapApplicationConfig(*commandLineProperties.map { it.key to it.value }.toTypedArray())
-}
+import io.ktor.server.engine.interop.*
+import kotlinx.cinterop.*
 
 internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     host: String,
@@ -27,3 +20,18 @@ internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
 }
 
 internal actual fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {}
+
+internal actual fun getConfigFromEnvironment(): ApplicationConfig {
+    var index = 0
+    val config = MapApplicationConfig()
+    val environ = environ ?: return config
+    while (environ[index] != null) {
+        val env = environ[index]?.toKString() ?: continue
+        index++
+        if (env.startsWith("ktor.")) {
+            val (key, value) = env.splitPair('=') ?: continue
+            config.put(key, value)
+        }
+    }
+    return config
+}
