@@ -427,19 +427,6 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "Darwin", "CIO")) {
-        config {
-            install(HttpTimeout) { connectTimeoutMillis = 1000 }
-        }
-
-        test { client ->
-            assertFailsWith<ConnectTimeoutException> {
-                client.get("http://www.google.com:81").body<String>()
-            }
-        }
-    }
-
-    @Test
     fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
@@ -452,21 +439,6 @@ class HttpTimeoutTest : ClientLoader() {
                 } catch (_: ConnectTimeoutException) {
                     /* Ignore. */
                 }
-            }
-        }
-    }
-
-    @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "Darwin", "CIO")) {
-        config {
-            install(HttpTimeout)
-        }
-
-        test { client ->
-            assertFailsWith<ConnectTimeoutException> {
-                client.get("http://www.google.com:81") {
-                    timeout { connectTimeoutMillis = 1000 }
-                }.body<String>()
             }
         }
     }
@@ -567,17 +539,6 @@ class HttpTimeoutTest : ClientLoader() {
             HttpTimeout.HttpTimeoutCapabilityConfiguration(
                 connectTimeoutMillis = 0
             )
-        }
-    }
-
-    @Test
-    fun testNotInstalledPlugins() = clientTests {
-        test { client ->
-            assertFailsWith<IllegalArgumentException> {
-                client.get("https://www.google.com") {
-                    timeout { requestTimeoutMillis = 1000 }
-                }.body<String>()
-            }
         }
     }
 }
