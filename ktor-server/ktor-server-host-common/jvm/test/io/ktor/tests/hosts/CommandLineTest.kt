@@ -66,6 +66,28 @@ class CommandLineTest {
         assertEquals("8080", port)
     }
 
+    @Test
+    fun configYamlFile() {
+        val configPath = CommandLineTest::class.java.classLoader.getResource("application.yaml").toURI().path
+        val port = commandLineEnvironment(arrayOf("-config=$configPath"))
+            .config.property("ktor.deployment.port").getString()
+        assertEquals("8081", port)
+    }
+
+    @Test
+    fun hoconConfigResource() {
+        val port = commandLineEnvironment(arrayOf("-config=applicationWithEnv.conf"))
+            .config.property("ktor.deployment.port").getString()
+        assertEquals("8080", port)
+    }
+
+    @Test
+    fun yamlConfigResource() {
+        val port = commandLineEnvironment(arrayOf("-config=application.yaml"))
+            .config.property("ktor.deployment.port").getString()
+        assertEquals("8081", port)
+    }
+
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
             return Pair(File(uri.path.substringBefore("!")), null)
