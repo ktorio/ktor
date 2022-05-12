@@ -12,7 +12,7 @@ plugins {
     id("kotlinx-serialization")
 }
 
-open class KtorTestServer : DefaultTask() {
+open class KtorTestServer constructor() : DefaultTask() {
     @Internal
     var server: Closeable? = null
         private set
@@ -32,7 +32,11 @@ open class KtorTestServer : DefaultTask() {
 
             val mainClass = loader.loadClass(main)
             val main = mainClass.getMethod("startServer")
-            server = main.invoke(null) as Closeable
+            val server = main.invoke(null) as Closeable
+            this.server = server
+            Runtime.getRuntime().addShutdownHook(Thread {
+                server.close()
+            })
             println("[TestServer] started")
         } catch (cause: Throwable) {
             println("[TestServer] failed: ${cause.message}")
@@ -188,10 +192,3 @@ rootProject.allprojects {
 }
 
 useJdkVersionForJvmTests(11)
-
-gradle.buildFinished {
-    if (startTestServer.server != null) {
-        startTestServer.server?.close()
-        println("[TestServer] stop")
-    }
-}
