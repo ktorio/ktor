@@ -93,7 +93,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
 }
 
 private class StartupInfo {
-    var isFirstLoading = false
+    var isFirstLoading = true
     var initializedStartAt = currentTimeMillisBridge()
 }
 
