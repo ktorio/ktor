@@ -14,7 +14,9 @@ import kotlin.native.concurrent.*
 public fun Dispatchers.createFixedThreadDispatcher(name: String, threads: Int): CloseableCoroutineDispatcher =
     MultiWorkerDispatcher(name, threads)
 
-private val CLOSE_WORKER: Worker by lazy { Worker.start(name = "CLOSE_WORKER") }
+private val CLOSE_WORKER: Worker by lazy {
+    Worker.start(name = "CLOSE_WORKER")
+}
 
 @OptIn(InternalAPI::class)
 private class MultiWorkerDispatcher(name: String, workersCount: Int) : CloseableCoroutineDispatcher() {

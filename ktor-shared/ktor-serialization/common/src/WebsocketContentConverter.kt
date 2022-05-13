@@ -53,7 +53,6 @@ public interface WebsocketContentConverter {
     public fun isApplicable(frame: Frame): Boolean
 }
 
-
 /**
  * Serializes a [value] to a WebSocket [Frame].
  * This function could throw `WebsocketConverterNotFoundException` if the value is not suitable for conversion

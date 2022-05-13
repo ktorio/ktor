@@ -4,7 +4,6 @@
 package io.ktor.test.dispatcher
 
 import io.ktor.util.*
-import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 import kotlin.system.*
@@ -34,6 +33,7 @@ internal fun executeInWorker(timeout: Long, block: () -> Unit) {
             restartTestWorker()
             error("Test is timed out")
         }
+
         else -> {
             result.consume { }
         }
@@ -55,6 +55,6 @@ private fun createTestWorker() {
 }
 
 private fun restartTestWorker() {
-    TEST_WORKER!!.requestTermination(processScheduledJobs = false).consume {  }
+    TEST_WORKER!!.requestTermination(processScheduledJobs = false).consume { }
     createTestWorker()
 }

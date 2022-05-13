@@ -25,6 +25,11 @@ internal class HttpClientCallLogger(private val logger: Logger) {
         responseHeaderMonitor.complete()
     }
 
+    suspend fun logResponseException(message: String) {
+        requestLoggedMonitor.join()
+        logger.log(message.trim())
+    }
+
     suspend fun logResponseBody(message: String) {
         responseHeaderMonitor.join()
         responseLog.append(message)

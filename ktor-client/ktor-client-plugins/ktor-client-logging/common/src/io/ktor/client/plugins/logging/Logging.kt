@@ -78,7 +78,6 @@ public class Logging private constructor(
         }
     }
 
-
     private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
         val content = request.body as OutgoingContent
         val logger = HttpClientCallLogger(logger)
@@ -176,7 +175,7 @@ public class Logging private constructor(
                 val log = StringBuilder()
                 val logger = context.attributes[ClientCallLogger]
                 logResponseException(log, context.request, cause)
-                logger.logResponseHeader(log.toString())
+                logger.logResponseException(log.toString())
                 logger.closeResponseLog()
                 throw cause
             }
@@ -231,4 +230,3 @@ public class Logging private constructor(
 public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }
-

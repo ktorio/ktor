@@ -146,9 +146,11 @@ internal class ByteChannelNative(
                 val size = tryReadCPointer(dst, offset, length)
                 afterRead(size)
             }
+
             closed -> throw EOFException(
                 "Channel is closed and not enough bytes available: required $length but $availableForRead available"
             )
+
             else -> readFullySuspend(dst, offset, length)
         }
     }
@@ -214,7 +216,7 @@ internal class ByteChannelNative(
             return -1
         }
 
-        val size =  writable.write(min) {
+        val size = writable.write(min) {
             val position = it.writePosition
             block(it)
             it.writePosition - position
