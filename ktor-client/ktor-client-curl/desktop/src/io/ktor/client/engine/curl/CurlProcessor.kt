@@ -60,8 +60,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     private suspend fun drainRequestQueue(api: CurlMultiApiHandler) {
-        val api = curlApi!!
-
         while (true) {
             val container = if (api.hasHandlers()) {
                 requestQueue.tryReceive()
