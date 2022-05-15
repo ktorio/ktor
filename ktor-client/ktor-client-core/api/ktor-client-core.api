@@ -746,15 +746,13 @@ public final class io/ktor/client/plugins/websocket/BuildersKt {
 	public static synthetic fun wss$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/plugins/websocket/ClientSessionsKt {
-	public static final fun getConverter (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Lio/ktor/serialization/WebsocketContentConverter;
-}
-
-public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocketSession : io/ktor/websocket/WebSocketSession {
+public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocketSession : io/ktor/serialization/SerializableWebSocketSession {
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public abstract fun getConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 }
 
 public final class io/ktor/client/plugins/websocket/ClientWebSocketSession$DefaultImpls {
+	public static fun getConverter (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;)Lio/ktor/serialization/WebsocketContentConverter;
 	public static fun send (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -763,6 +761,7 @@ public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSessio
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
+	public fun getConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getExtensions ()Ljava/util/List;
 	public fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;

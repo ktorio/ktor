@@ -38,7 +38,6 @@ public class KotlinxSerializationConverter(
     ): OutgoingContent {
         return serializationBase.serialize(
             SerializationNegotiationParameters(
-                format,
                 value,
                 typeInfo,
                 charset,
@@ -49,6 +48,10 @@ public class KotlinxSerializationConverter(
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        return deserialize(charset, serializer, content)
+    }
+
+    internal suspend fun <T> deserialize(charset: Charset, serializer: KSerializer<T>, content: ByteReadChannel): Any? {
         val contentPacket = content.readRemaining()
 
         try {
@@ -75,7 +78,6 @@ public class KotlinxSerializationConverter(
             }
             return serializeContent(
                 parameters.serializer,
-                parameters.format,
                 parameters.value,
                 parameters.contentType,
                 parameters.charset
@@ -83,9 +85,8 @@ public class KotlinxSerializationConverter(
         }
     }
 
-    private fun serializeContent(
+    internal fun serializeContent(
         serializer: KSerializer<*>,
-        format: SerialFormat,
         value: Any?,
         contentType: ContentType,
         charset: Charset
@@ -96,10 +97,12 @@ public class KotlinxSerializationConverter(
                 val content = format.encodeToString(serializer as KSerializer<Any?>, value)
                 TextContent(content, contentType.withCharsetIfNeeded(charset))
             }
+
             is BinaryFormat -> {
                 val content = format.encodeToByteArray(serializer as KSerializer<Any?>, value)
                 ByteArrayContent(content, contentType)
             }
+
             else -> error("Unsupported format $format")
         }
     }

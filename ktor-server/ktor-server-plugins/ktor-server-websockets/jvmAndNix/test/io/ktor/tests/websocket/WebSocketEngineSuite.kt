@@ -34,7 +34,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     override val timeout = 30.seconds
 
     override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
-        application.install(WebSockets)
+        application.pluginOrNull(WebSockets) ?: application.install(WebSockets)
         super.plugins(application, routingConfigurer)
     }
 
@@ -578,7 +578,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    private suspend fun Connection.negotiateHttpWebSocket() {
+    internal suspend fun Connection.negotiateHttpWebSocket() {
         // send upgrade request
         output.apply {
             writeFully(
@@ -608,7 +608,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         assertEquals("websocket", headers[HttpHeaders.Upgrade])
     }
 
-    private suspend fun Connection.assertCloseFrame(
+    internal suspend fun Connection.assertCloseFrame(
         closeCode: Short = CloseReason.Codes.NORMAL.code,
         replyCloseFrame: Boolean = true
     ) {
@@ -665,7 +665,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    private suspend inline fun useSocket(block: Connection.() -> Unit) {
+    internal suspend inline fun useSocket(block: Connection.() -> Unit) {
         SelectorManager().use {
             aSocket(it).tcp().connect("localhost", port) {
                 noDelay = true

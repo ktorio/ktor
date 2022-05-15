@@ -1,5 +1,9 @@
 description = ""
 
+plugins {
+    kotlin("plugin.serialization")
+}
+
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {
@@ -11,6 +15,7 @@ kotlin.sourceSets {
     jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
             api(project(":ktor-server:ktor-server-cio"))
         }
     }

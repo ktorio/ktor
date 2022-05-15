@@ -14,11 +14,17 @@ import io.ktor.websocket.serialization.*
 /**
  * Represents a server-side web socket session
  */
-public interface WebSocketServerSession : WebSocketSession {
+public interface WebSocketServerSession : SerializableWebSocketSession {
     /**
      * Associated received [call] that originating this session
      */
     public val call: ApplicationCall
+
+    /**
+     * Converter for web socket session, if plugin [WebSockets] is installed
+     */
+    public override val converter: WebsocketContentConverter?
+        get() = application.plugin(WebSockets).contentConverter
 }
 
 /**
@@ -32,12 +38,6 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
  * An application that started this web socket session
  */
 public val WebSocketServerSession.application: Application get() = call.application
-
-/**
- * Converter for web socket session
- */
-public val WebSocketServerSession.converter: WebsocketContentConverter?
-    get() = application.plugin(WebSockets).contentConverter
 
 /**
  * Serializes [data] to a frame and enqueues this frame.
