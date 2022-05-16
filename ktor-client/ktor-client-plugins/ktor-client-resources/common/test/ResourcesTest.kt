@@ -125,4 +125,27 @@ class ResourcesTest {
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
+
+    @Serializable
+    @Resource("{path}")
+    class ParametersEncoded(val path: String, val query: String, val queryList: List<String>)
+
+    @Test
+    fun testEncodesParameters() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { request ->
+                    val uri = request.url.fullPath
+                    assertEquals("/p.:+!ath%2F?query=qu%3Fe%2Fry&queryList=it%3Dem1&queryList=it%26em2", uri)
+                    respondOk(uri)
+                }
+            }
+            install(Resources)
+        }
+
+        test { client ->
+            val response = client.get(ParametersEncoded("p.:+!ath/", "qu?e/ry", listOf("it=em1", "it&em2")))
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
 }
