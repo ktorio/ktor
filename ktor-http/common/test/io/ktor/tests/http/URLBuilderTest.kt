@@ -202,6 +202,68 @@ internal class URLBuilderTest {
     }
 
     @Test
+    fun testSlashInAppendPathSegmentEncodedIfEncodeSlashIsTrue() {
+        val url = URLBuilder().apply {
+            appendPathSegments("path/", "/abc", encodeSlash = true)
+        }
+        assertEquals("path%2F/%2Fabc", url.encodedPath)
+    }
+
+    @Test
+    fun testSlashInAppendPathSegmentSplitIfEncodeSlashByDefault() {
+        val url = URLBuilder().apply {
+            appendPathSegments(listOf("path/item", "abc"))
+        }
+        assertEquals("path/item/abc", url.encodedPath)
+        assertEquals(listOf("path", "item", "abc"), url.pathSegments)
+    }
+
+    @Test
+    fun testAppendPathRemovesDoubleSlash() {
+        URLBuilder().apply {
+            appendPathSegments("path/")
+            appendPathSegments("/abc")
+        }.let { url ->
+            assertEquals("path/abc", url.encodedPath)
+            assertEquals(listOf("path", "abc"), url.pathSegments)
+        }
+
+        URLBuilder().apply {
+            appendPathSegments("path/")
+            appendPathSegments("abc")
+        }.let { url ->
+            assertEquals("path/abc", url.encodedPath)
+            assertEquals(listOf("path", "abc"), url.pathSegments)
+        }
+
+        URLBuilder().apply {
+            appendPathSegments("path")
+            appendPathSegments("/abc")
+        }.let { url ->
+            assertEquals("path/abc", url.encodedPath)
+            assertEquals(listOf("path", "abc"), url.pathSegments)
+        }
+    }
+
+    @Test
+    fun testAppendPathKeepsDoubleSlashInTheMiddle() {
+        URLBuilder().apply {
+            appendPathSegments(listOf("path", "", "abc"))
+        }.let { url ->
+            assertEquals("path//abc", url.encodedPath)
+            assertEquals(listOf("path", "", "abc"), url.pathSegments)
+        }
+    }
+
+    @Test
+    fun testSlashInPathSegmentEncoded() {
+        val url = URLBuilder().apply {
+            pathSegments = listOf("path/", "/abc")
+        }
+        assertEquals("path%2F/%2Fabc", url.encodedPath)
+    }
+
+    @Test
     fun testPathEncoding() {
         val url = URLBuilder().apply {
             host = "ktor.io"

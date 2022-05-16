@@ -55,12 +55,12 @@ public class URLBuilder(
             encodedFragment = value.encodeURLQueryComponent()
         }
 
-    public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPath() }
+    public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPathPart() }
 
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
         set(value) {
-            encodedPathSegments = value.map { it.encodeURLPath() }
+            encodedPathSegments = value.map { it.encodeURLPathPart() }
         }
 
     public var encodedParameters: ParametersBuilder = encodeParameters(parameters)
@@ -173,23 +173,16 @@ internal val URLBuilder.encodedUserAndPassword: String
         appendUserAndPassword(encodedUser, encodedPassword)
     }
 
-@Deprecated(
-    message = "Please use appendPathSegments method",
-    replaceWith = ReplaceWith("this.appendPathSegments(components")
-)
-public fun URLBuilder.pathComponents(vararg components: String): URLBuilder = appendPathSegments(components.toList())
-
-@Deprecated(
-    message = "Please use appendPathSegments method",
-    replaceWith = ReplaceWith("this.appendPathSegments(components")
-)
-public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = appendPathSegments(components)
-
 /**
- * Adds [components] to current [encodedPath]
+ * Adds [segments] to current [encodedPath].
+ *
+ * @param segments path items to append
+ * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
+ * `false` to use '/' as a separator between path segments.
  */
-public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder {
-    val encodedSegments = segments.map { it.encodeURLPath() }
+public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Boolean = false): URLBuilder {
+    val pathSegments = if (!encodeSlash) segments.flatMap { it.split('/') } else segments
+    val encodedSegments = pathSegments.map { it.encodeURLPathPart() }
     appendEncodedPathSegments(encodedSegments)
 
     return this
@@ -197,9 +190,13 @@ public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder {
 
 /**
  * Adds [components] to current [encodedPath]
+ *
+ * @param components path items to append
+ * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
+ * `false` to use '/' as a separator between path segments.
  */
-public fun URLBuilder.appendPathSegments(vararg components: String): URLBuilder {
-    return appendPathSegments(components.toList())
+public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash: Boolean = false): URLBuilder {
+    return appendPathSegments(components.toList(), encodeSlash)
 }
 
 public fun URLBuilder.path(vararg path: String) {
@@ -207,10 +204,20 @@ public fun URLBuilder.path(vararg path: String) {
 }
 
 /**
- * Adds [components] to current [encodedPath]
+ * Adds [segments] to current [encodedPath]
  */
-public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder = apply {
-    encodedPathSegments = encodedPathSegments + segments
+public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
+    val endsWithSlash =
+        encodedPathSegments.size > 1 && encodedPathSegments.last().isEmpty() && segments.isNotEmpty()
+    val startWithSlash =
+        segments.size > 1 && segments.first().isEmpty() && encodedPathSegments.isNotEmpty()
+    encodedPathSegments = when {
+        endsWithSlash && startWithSlash -> encodedPathSegments.dropLast(1) + segments.drop(1)
+        endsWithSlash -> encodedPathSegments.dropLast(1) + segments
+        startWithSlash -> encodedPathSegments + segments.drop(1)
+        else -> encodedPathSegments + segments
+    }
+    return this
 }
 
 /**
@@ -270,3 +277,23 @@ public fun URLBuilder.set(
     if (path != null) encodedPath = path
     block(this)
 }
+
+@Deprecated(level = DeprecationLevel.HIDDEN, message = "Plesae use method with boolean parameter")
+public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder =
+    appendPathSegments(segments, false)
+
+@Deprecated(level = DeprecationLevel.HIDDEN, message = "Plesae use method with boolean parameter")
+public fun URLBuilder.appendPathSegments(vararg components: String): URLBuilder =
+    appendPathSegments(components.toList(), false)
+
+@Deprecated(
+    message = "Please use appendPathSegments method",
+    replaceWith = ReplaceWith("this.appendPathSegments(components")
+)
+public fun URLBuilder.pathComponents(vararg components: String): URLBuilder = appendPathSegments(components.toList())
+
+@Deprecated(
+    message = "Please use appendPathSegments method",
+    replaceWith = ReplaceWith("this.appendPathSegments(components")
+)
+public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = appendPathSegments(components)
