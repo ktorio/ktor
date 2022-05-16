@@ -53,6 +53,7 @@ public final class io/ktor/http/CodecsKt {
 	public static final fun encodeURLParameter (Ljava/lang/String;Z)Ljava/lang/String;
 	public static synthetic fun encodeURLParameter$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/lang/String;
 	public static final fun encodeURLPath (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun encodeURLPathPart (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLQueryComponent (Ljava/lang/String;ZZLjava/nio/charset/Charset;)Ljava/lang/String;
 	public static synthetic fun encodeURLQueryComponent$default (Ljava/lang/String;ZZLjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 }
@@ -905,8 +906,12 @@ public final class io/ktor/http/URLBuilderKt {
 	public static final field DEFAULT_PORT I
 	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
-	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
-	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final synthetic fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
+	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;Z)Lio/ktor/http/URLBuilder;
+	public static final synthetic fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;Z)Lio/ktor/http/URLBuilder;
+	public static synthetic fun appendPathSegments$default (Lio/ktor/http/URLBuilder;Ljava/util/List;ZILjava/lang/Object;)Lio/ktor/http/URLBuilder;
+	public static synthetic fun appendPathSegments$default (Lio/ktor/http/URLBuilder;[Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/URLBuilder;
 	public static final fun clone (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
 	public static final fun getAuthority (Lio/ktor/http/URLBuilder;)Ljava/lang/String;
 	public static final fun getEncodedPath (Lio/ktor/http/URLBuilder;)Ljava/lang/String;
