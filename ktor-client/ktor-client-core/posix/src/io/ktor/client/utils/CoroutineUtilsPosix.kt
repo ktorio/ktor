@@ -5,9 +5,7 @@
 package io.ktor.client.utils
 
 import io.ktor.util.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * Creates [CoroutineDispatcher] for client with fixed [threadCount] and specified [dispatcherName].
@@ -16,4 +14,4 @@ import kotlin.native.concurrent.*
 public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
-): CoroutineDispatcher = Unconfined
+): CoroutineDispatcher = Dispatchers.createFixedThreadDispatcher(dispatcherName, threadCount)

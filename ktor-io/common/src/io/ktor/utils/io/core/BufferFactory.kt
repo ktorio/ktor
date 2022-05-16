@@ -3,7 +3,6 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
-import kotlin.native.concurrent.*
 
 internal const val DEFAULT_BUFFER_SIZE: Int = 4096
 
@@ -67,6 +66,10 @@ public class DefaultBufferPool(
 
     override fun validateInstance(instance: ChunkBuffer) {
         super.validateInstance(instance)
+
+        check(instance.memory.size == bufferSize.toLong()) {
+            "Buffer size mismatch. Expected: $bufferSize, actual: ${instance.memory.size}"
+        }
 
         check(instance !== ChunkBuffer.Empty) { "ChunkBuffer.Empty couldn't be recycled" }
         check(instance !== Buffer.Empty) { "Empty instance couldn't be recycled" }

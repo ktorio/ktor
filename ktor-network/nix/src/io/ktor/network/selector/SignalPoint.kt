@@ -8,6 +8,7 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.atomicfu.*
+import kotlinx.atomicfu.locks.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -15,6 +16,8 @@ internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int
     private var remaining: Int by atomic(0)
+    private val lock = SynchronizedObject()
+    private var closed = false
 
     val selectionDescriptor: Int
         get() = readDescriptor
@@ -36,31 +39,43 @@ internal class SignalPoint : Closeable {
     }
 
     fun check() {
-        while (remaining > 0) {
-            remaining -= readFromPipe()
+        synchronized(lock) {
+            if (closed) return@synchronized
+            while (remaining > 0) {
+                remaining -= readFromPipe()
+            }
         }
     }
 
     @OptIn(UnsafeNumber::class)
     fun signal() {
-        if (remaining > 0) return
+        synchronized(lock) {
+            if (closed) return@synchronized
 
-        memScoped {
-            val array = allocArray<ByteVar>(1)
-            array[0] = 7
-            // note: here we ignore the result of write intentionally
-            // we simply don't care whether the buffer is full or the pipe is already closed
-            val result = write(writeDescriptor, array, 1.convert())
-            if (result < 0) return
+            if (remaining > 0) return
 
-            remaining += result.toInt()
+            memScoped {
+                val array = allocArray<ByteVar>(1)
+                array[0] = 7
+                // note: here we ignore the result of write intentionally
+                // we simply don't care whether the buffer is full or the pipe is already closed
+                val result = write(writeDescriptor, array, 1.convert())
+                if (result < 0) return
+
+                remaining += result.toInt()
+            }
         }
     }
 
     override fun close() {
-        close(writeDescriptor)
-        readFromPipe()
-        close(readDescriptor)
+        synchronized(lock) {
+            if (closed) return@synchronized
+            closed = true
+
+            close(writeDescriptor)
+            readFromPipe()
+            close(readDescriptor)
+        }
     }
 
     @OptIn(UnsafeNumber::class)

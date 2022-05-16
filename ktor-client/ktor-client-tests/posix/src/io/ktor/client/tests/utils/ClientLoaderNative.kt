@@ -27,6 +27,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     @OptIn(InternalAPI::class)
     actual fun clientTests(
         skipEngines: List<String>,
+        onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         if (skipEngines.any { it.startsWith("native") }) return
@@ -39,6 +40,8 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
 
         val failures = mutableListOf<TestFailure>()
         for (engine in filteredEngines) {
+            if (onlyWithEngine != null && onlyWithEngine != engine.toString()) continue
+
             val result = runCatching {
                 testWithEngine(engine, timeoutMillis = timeoutSeconds.toLong() * 1000L) {
                     block()

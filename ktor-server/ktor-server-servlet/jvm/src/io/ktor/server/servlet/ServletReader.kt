@@ -43,8 +43,8 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
 
             events.close()
             channel.close()
-        } catch (t: Throwable) {
-            onError(t)
+        } catch (cause: Throwable) {
+            onError(cause)
         } finally {
             @Suppress("BlockingMethodInNonBlockingContext")
             input.close() // ServletInputStream is in non-blocking mode
@@ -56,33 +56,35 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
     private suspend fun loop(buffer: ByteArray) {
         var bodySize = 0
         while (true) {
-            if (input.isReady) {
-                val readCount = input.read(buffer)
-                if (readCount == -1) {
-                    events.close()
-                    break
-                }
-
-                bodySize += readCount
-
-                channel.writeFully(buffer, 0, readCount)
-
-                if (bodySize == contentLength) {
-                    channel.close()
-                    events.close()
-                    break
-                }
-                if (bodySize > contentLength) {
-                    val cause = IOException(
-                        "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
-                    )
-                    channel.close(cause)
-                    events.close()
-                    break
-                }
-            } else {
+            if (!input.isReady) {
                 channel.flush()
                 events.receiveCatching().getOrNull() ?: break
+                continue
+            }
+
+            val readCount = input.read(buffer)
+            if (readCount == -1) {
+                events.close()
+                break
+            }
+
+            bodySize += readCount
+
+            channel.writeFully(buffer, 0, readCount)
+
+            if (bodySize == contentLength) {
+                channel.close()
+                events.close()
+                break
+            }
+
+            if (bodySize > contentLength) {
+                val cause = IOException(
+                    "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
+                )
+                channel.close(cause)
+                events.close()
+                break
             }
         }
     }
@@ -107,15 +109,15 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
         }
     }
 
-    private fun wrapException(t: Throwable): Throwable? {
-        return when (t) {
+    private fun wrapException(cause: Throwable): Throwable? {
+        return when (cause) {
             is EOFException -> null
             is TimeoutException,
             is IOException -> ChannelReadException(
                 "Cannot read from a servlet input stream",
-                exception = t as Exception
+                exception = cause as Exception
             )
-            else -> t
+            else -> cause
         }
     }
 }

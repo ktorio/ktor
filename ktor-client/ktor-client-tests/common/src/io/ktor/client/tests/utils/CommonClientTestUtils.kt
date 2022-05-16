@@ -86,7 +86,9 @@ fun <T : HttpClientEngineConfig> testWithEngine(
 
             try {
                 val job = client.coroutineContext[Job]!!
-                job.join()
+                while (job.isActive) {
+                    yield()
+                }
             } catch (cause: Throwable) {
                 client.cancel("Test failed", cause)
                 throw cause

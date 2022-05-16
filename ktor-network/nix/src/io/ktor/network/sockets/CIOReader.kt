@@ -19,17 +19,16 @@ internal fun CoroutineScope.attachForReadingImpl(
     selector: SelectorManager
 ): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
     while (!channel.isClosedForWrite) {
+        var close = false
         val count = channel.write { memory, startIndex, endIndex ->
             val bufferStart = memory.pointer + startIndex
             val size = endIndex - startIndex
             val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
             when (bytesRead) {
-                0 -> channel.close()
+                0 -> close = true
                 -1 -> {
-                    if (errno == EAGAIN) {
-                        return@write 0
-                    }
+                    if (errno == EAGAIN) return@write 0
                     throw PosixException.forErrno()
                 }
             }
@@ -37,15 +36,19 @@ internal fun CoroutineScope.attachForReadingImpl(
             bytesRead
         }
 
-        if (count == 0 && !channel.isClosedForWrite) {
+        channel.flush()
+        if (close) {
+            channel.close()
+            break
+        }
+
+        if (count == 0) {
             try {
                 selector.select(selectable, SelectInterest.READ)
             } catch (_: IOException) {
                 break
             }
         }
-
-        channel.flush()
     }
 
     channel.closedCause?.let { throw it }

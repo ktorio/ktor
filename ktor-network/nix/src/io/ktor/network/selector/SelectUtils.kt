@@ -81,15 +81,15 @@ internal class SelectorHelper {
 
         while (!interestQueue.isClosed) {
             watchSet.add(wakeupSignalEvent)
-            val maxDescriptor = fillHandlers(watchSet, readSet, writeSet, errorSet)
-            if (maxDescriptor == 0) {
-                continue
-            }
+            var maxDescriptor = fillHandlers(watchSet, readSet, writeSet, errorSet)
+            if (maxDescriptor == 0) continue
+
+            maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
 
             try {
                 pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr).check()
             } catch (_: PosixException.BadFileDescriptorException) {
-                // Ignore EBADF if the descriptor was closed.
+                // Thrown if the descriptor was closed.
             }
 
             processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)

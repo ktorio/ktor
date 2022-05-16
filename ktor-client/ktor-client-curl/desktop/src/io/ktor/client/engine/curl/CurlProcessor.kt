@@ -60,8 +60,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     private suspend fun drainRequestQueue(api: CurlMultiApiHandler) {
-        val api = curlApi!!
-
         while (true) {
             val container = if (api.hasHandlers()) {
                 requestQueue.tryReceive()
@@ -87,10 +85,11 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         if (!closed.compareAndSet(false, true)) return
 
         requestQueue.close()
-        GlobalScope.launch {
+        GlobalScope.launch(curlDispatcher) {
             curlScope.coroutineContext[Job]!!.join()
-            curlDispatcher.close()
             curlApi!!.close()
+        }.invokeOnCompletion {
+            curlDispatcher.close()
         }
     }
 

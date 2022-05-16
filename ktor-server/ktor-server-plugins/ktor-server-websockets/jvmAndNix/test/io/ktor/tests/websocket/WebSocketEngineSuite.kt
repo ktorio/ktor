@@ -413,7 +413,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 for (i in 1..count) {
                     send(Frame.Text(template.substring(0, i)))
                 }
-                println("FIN")
             }
         }
 

@@ -6,9 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.native.concurrent.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and

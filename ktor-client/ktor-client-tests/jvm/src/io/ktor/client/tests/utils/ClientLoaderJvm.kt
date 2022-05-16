@@ -6,7 +6,6 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
@@ -32,28 +31,34 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
      */
     actual fun clientTests(
         skipEngines: List<String>,
+        onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         val locale = Locale.getDefault()
+        val engineName = engine.toString().lowercase(locale)
         for (skipEngine in skipEngines) {
             val skipEngineArray = skipEngine.lowercase(locale).split(":")
 
-            val (platform, engine) = when (skipEngineArray.size) {
+            val (platform, skipEngineName) = when (skipEngineArray.size) {
                 2 -> skipEngineArray[0] to skipEngineArray[1]
                 1 -> "*" to skipEngineArray[0]
                 else -> throw IllegalStateException("Wrong skip engine format, expected 'engine' or 'platform:engine'")
             }
 
             val platformShouldBeSkipped = "*" == platform || OS_NAME == platform
-            val engineShouldBeSkipped = "*" == engine || this.engine.toString().lowercase(locale) == engine
+            val engineShouldBeSkipped = "*" == skipEngineName || engineName == skipEngineName
 
             if (platformShouldBeSkipped && engineShouldBeSkipped) {
+                return
+            }
+
+            if (onlyWithEngine != null && engineName != onlyWithEngine) {
                 return
             }
         }
 
         val enginesToSkip = skipEngines.map { it.lowercase(locale) }
-        if (engine.toString().lowercase(locale) in enginesToSkip) return
+        if (engineName in enginesToSkip) return
 
         testWithEngine(engine.factory, this, timeoutSeconds * 1000L, block)
     }

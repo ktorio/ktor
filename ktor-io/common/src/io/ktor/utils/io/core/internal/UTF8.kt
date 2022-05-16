@@ -24,7 +24,8 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
 internal suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
-    nextChunk: suspend (Int) -> Input?
+    nextChunk: suspend (Int) -> Input?,
+    afterRead: (Int) -> Unit
 ): Boolean {
     var decoded = 0
     var size = 1
@@ -33,6 +34,8 @@ internal suspend fun decodeUTF8LineLoopSuspend(
 
     while (!end && size != 0) {
         val chunk = nextChunk(size) ?: break
+        val totalBytes = chunk.remaining
+
         chunk.takeWhileSize { buffer ->
             var skip = 0
             size = buffer.decodeUTF8 { ch ->
@@ -74,6 +77,8 @@ internal suspend fun decodeUTF8LineLoopSuspend(
 
             size
         }
+
+        afterRead((totalBytes - chunk.remaining).toInt())
     }
 
     if (size > 1) prematureEndOfStreamUtf(size)
@@ -184,45 +189,6 @@ internal inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     }
 
     return 0
-}
-
-@Suppress("RedundantModalityModifier")
-internal class CharArraySequence(
-    private val array: CharArray,
-    private val offset: Int,
-    final override val length: Int
-) : CharSequence {
-    final override fun get(index: Int): Char {
-        if (index >= length) {
-            indexOutOfBounds(index)
-        }
-        return array[index + offset]
-    }
-
-    final override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
-        require(startIndex >= 0) { "startIndex shouldn't be negative: $startIndex" }
-        require(startIndex <= length) { "startIndex is too large: $startIndex > $length" }
-        require(startIndex + endIndex <= length) { "endIndex is too large: $endIndex > $length" }
-        require(endIndex >= startIndex) { "endIndex should be greater or equal to startIndex: $startIndex > $endIndex" }
-
-        return CharArraySequence(array, offset + startIndex, endIndex - startIndex)
-    }
-
-    private fun indexOutOfBounds(index: Int): Nothing {
-        throw IndexOutOfBoundsException("String index out of bounds: $index > $length")
-    }
-}
-
-@Suppress("NOTHING_TO_INLINE")
-@JvmInline
-internal value class EncodeResult(val value: Int) {
-    constructor(characters: UShort, bytes: UShort) : this(characters.toInt() shl 16 or bytes.toInt())
-
-    inline val characters: UShort get() = value.highShort.toUShort()
-    inline val bytes: UShort get() = value.lowShort.toUShort()
-
-    inline operator fun component1(): UShort = characters
-    inline operator fun component2(): UShort = bytes
 }
 
 internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset: Int, dstLimit: Int): EncodeResult {

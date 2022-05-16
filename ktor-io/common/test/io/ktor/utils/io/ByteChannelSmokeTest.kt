@@ -111,6 +111,14 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
+    fun testShortBX() {
+        runTest {
+            assertEquals(0, ch.availableForRead)
+            ch.writeShort(-1)
+        }
+    }
+
+    @Test
     fun testShortL() {
         runTest {
             assertEquals(0, ch.availableForRead)

@@ -7,12 +7,14 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.errors.EOFException
@@ -21,13 +23,19 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
-internal suspend fun HttpRequestData.write(
+internal suspend fun writeRequest(
+    request: HttpRequestData,
     output: ByteWriteChannel,
     callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
-) {
+) = withContext(callContext) {
     val builder = RequestResponseBuilder()
+
+    val method = request.method
+    val url = request.url
+    val headers = request.headers
+    val body = request.body
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
@@ -77,33 +85,35 @@ internal suspend fun HttpRequestData.write(
         builder.release()
     }
 
-    val content = body
-    if (content is OutgoingContent.NoContent) {
-        if (closeChannel) {
-            output.close()
-        }
-        return
+    if (body is OutgoingContent.NoContent) {
+        if (closeChannel) output.close()
+        return@withContext
     }
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
-    CoroutineScope(callContext).launch {
+
+    val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
+    scope.launch {
         try {
-            when (content) {
+            when (body) {
                 is OutgoingContent.NoContent -> return@launch
-                is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
-                is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
-                is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
-                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+                is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
+                is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
+                is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
+                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
             }
         } catch (cause: Throwable) {
             channel.close(cause)
+            throw cause
         } finally {
             channel.flush()
             chunkedJob?.channel?.close()
             chunkedJob?.join()
 
-            output.closedCause?.let { throw it }
+            output.closedCause?.unwrapCancellationException()?.takeIf { it !is CancellationException }?.let {
+                throw it
+            }
             if (closeChannel) {
                 output.close()
             }
@@ -111,14 +121,13 @@ internal suspend fun HttpRequestData.write(
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
     request: HttpRequestData,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     callContext: CoroutineContext
-): HttpResponseData {
+): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
@@ -134,7 +143,7 @@ internal suspend fun readResponse(
 
         if (status == HttpStatusCode.SwitchingProtocols) {
             val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
-            return HttpResponseData(status, requestTime, headers, version, session, callContext)
+            return@withContext HttpResponseData(status, requestTime, headers, version, session, callContext)
         }
 
         val body = when {
@@ -144,15 +153,15 @@ internal suspend fun readResponse(
                 ByteReadChannel.Empty
             }
             else -> {
-                val httpBodyParser = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
+                val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
+                val httpBodyParser = coroutineScope.writer(autoFlush = true) {
                     parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
                 }
-
                 httpBodyParser.channel
             }
         }
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return@withContext HttpResponseData(status, requestTime, headers, version, body, callContext)
     }
 }
 
