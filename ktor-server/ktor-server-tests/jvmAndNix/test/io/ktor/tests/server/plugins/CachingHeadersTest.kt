@@ -63,6 +63,36 @@ class CachingHeadersTest {
     )
 
     @Test
+    fun testSetInCall() = testApplication {
+        install(CachingHeaders)
+        routing {
+            get("/") {
+                call.caching = CachingOptions(CacheControl.NoCache(null))
+                call.respondText("test")
+            }
+        }
+        client.get("/").let { response ->
+            assertEquals("no-cache", response.headers[HttpHeaders.CacheControl])
+        }
+    }
+
+    @Test
+    fun testSetInCallAndContent() = testApplication {
+        install(CachingHeaders)
+        routing {
+            get("/") {
+                call.caching = CachingOptions(CacheControl.NoCache(null))
+                call.respondText("test") {
+                    caching = CachingOptions(CacheControl.MaxAge(15))
+                }
+            }
+        }
+        client.get("/").let { response ->
+            assertEquals("no-cache, max-age=15", response.headers[HttpHeaders.CacheControl])
+        }
+    }
+
+    @Test
     fun testSubrouteInstall() = testApplication {
         application {
             routing {
