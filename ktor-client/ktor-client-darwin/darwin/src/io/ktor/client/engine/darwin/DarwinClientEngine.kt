@@ -5,10 +5,10 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.cinterop.*
@@ -27,9 +27,9 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val url = URLBuilder().takeFrom(data.url).buildString()
+        val url = data.url.toNSUrl()
 
-        val nativeRequest = NSMutableURLRequest.requestWithURL(NSURL(string = url)).apply {
+        val nativeRequest = NSMutableURLRequest.requestWithURL(url).apply {
             setupSocketTimeout(data)
 
             val content = data.body
