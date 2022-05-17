@@ -44,6 +44,9 @@ internal fun Application.tests() {
     eventsTest()
 
     routing {
+        get("/") {
+            call.respondText("Hello, world!")
+        }
         post("/echo") {
             val response = call.receiveText()
             call.respond(response)
