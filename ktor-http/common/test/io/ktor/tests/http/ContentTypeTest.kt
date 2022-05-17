@@ -133,4 +133,11 @@ class ContentTypeTest {
             ContentType.parse("text/html;charset=utf-8").withoutParameters().toString()
         )
     }
+
+    @Test
+    fun testOnlyLastContentTypeIsProcessed() {
+        val contentType = "text/plain; charset=UTF-8, text/html; charset=UTF-8"
+        val content = ContentType.parse(contentType)
+        assertEquals("text/html; charset=UTF-8", content.toString())
+    }
 }
