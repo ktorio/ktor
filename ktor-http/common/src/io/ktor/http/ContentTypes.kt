@@ -72,6 +72,7 @@ public class ContentType private constructor(
                         else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
                     }
                 }
+
                 else -> {
                     val value = parameter(patternName)
                     when (patternValue) {
@@ -117,9 +118,7 @@ public class ContentType private constructor(
                 val slash = parts.indexOf('/')
 
                 if (slash == -1) {
-                    if (parts.trim() == "*") {
-                        return Any
-                    }
+                    if (parts.trim() == "*") return Any
 
                     throw BadContentTypeFormatException(value)
                 }

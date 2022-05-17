@@ -60,7 +60,7 @@ public abstract class HeaderValueWithParameters(
          * Parse header with parameter and pass it to [init] function to instantiate particular type
          */
         public inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
-            val headerValue = parseHeaderValue(value).single()
+            val headerValue = parseHeaderValue(value).last()
             return init(headerValue.value, headerValue.params)
         }
     }
