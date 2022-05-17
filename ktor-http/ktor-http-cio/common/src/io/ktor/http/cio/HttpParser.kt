@@ -125,7 +125,6 @@ internal suspend fun parseHeaders(
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
 
-
         val host = headers[HttpHeaders.Host]
         if (host != null) {
             validateHostHeader(host)
