@@ -18,6 +18,7 @@ public class CachingHeadersConfig {
     internal val optionsProviders = mutableListOf<(ApplicationCall, OutgoingContent) -> CachingOptions?>()
 
     init {
+        optionsProviders.add { call, _ -> call.caching }
         optionsProviders.add { _, content -> content.caching }
     }
 
@@ -79,3 +80,13 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
         }
     }
 }
+
+/**
+ * Gets or sets the [CacheControl] for this call.
+ */
+public var ApplicationCall.caching: CachingOptions?
+    get() = attributes.getOrNull(CachingProperty)
+    set(value) = when (value) {
+        null -> attributes.remove(CachingProperty)
+        else -> attributes.put(CachingProperty, value)
+    }
