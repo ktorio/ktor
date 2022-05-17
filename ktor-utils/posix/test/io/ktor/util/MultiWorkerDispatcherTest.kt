@@ -11,7 +11,8 @@ import kotlin.test.*
 class MultiWorkerDispatcherTest {
 
     private val dispatcher = Dispatchers.createFixedThreadDispatcher(
-        name = "CLIENT TEST DISPATCHER", threads = 4
+        name = "CLIENT TEST DISPATCHER",
+        threads = 4
     )
 
     @Test

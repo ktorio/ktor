@@ -57,7 +57,6 @@ class RequestParserTest {
 
         """.trimIndent()
 
-
         assertFailsWith<ParserException> {
             parseRequest(ByteReadChannel(case))
         }
