@@ -51,6 +51,10 @@ internal fun Application.tests() {
             val response = call.receiveText()
             call.respond(response)
         }
+        get("/echo_query") {
+            val parameters = call.request.queryParameters.entries().joinToString { "${it.key}=${it.value}" }
+            call.respondText(parameters)
+        }
         post("/echo-with-content-type") {
             val response = call.receiveText()
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
