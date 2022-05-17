@@ -16,13 +16,14 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class, UnsafeNumber::class)
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
+    private val requestQueue = NSOperationQueue()
 
     override val dispatcher = Dispatchers.Unconfined
 
     override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
 
-    @OptIn(InternalAPI::class, UnsafeNumber::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
@@ -53,7 +54,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         return executeRequest(data, nativeRequest, callContext)
     }
 
-    @OptIn(UnsafeNumber::class)
     private suspend fun executeWebSocketRequest(
         nativeRequest: NSMutableURLRequest,
         callContext: CoroutineContext
@@ -81,7 +81,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         }
     }
 
-    @OptIn(UnsafeNumber::class)
     private suspend fun executeRequest(
         data: HttpRequestData,
         nativeRequest: NSMutableURLRequest,
@@ -95,7 +94,7 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
             responseReader,
-            delegateQueue = NSOperationQueue.currentQueue()
+            delegateQueue = requestQueue
         )
 
         val task = session.dataTaskWithRequest(nativeRequest)
