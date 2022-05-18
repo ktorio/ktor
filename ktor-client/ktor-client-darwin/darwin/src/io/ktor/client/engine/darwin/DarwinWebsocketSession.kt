@@ -16,7 +16,7 @@ import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
-@OptIn(UnsafeNumber::class, DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class)
 internal class DarwinWebsocketSession(
     private val requestTime: GMTDate,
     callContext: CoroutineContext
@@ -75,8 +75,10 @@ internal class DarwinWebsocketSession(
             val frame = when (message.type) {
                 NSURLSessionWebSocketMessageTypeData ->
                     Frame.Binary(true, message.data()!!.toByteArray())
+
                 NSURLSessionWebSocketMessageTypeString ->
                     Frame.Text(true, message.string()!!.toByteArray())
+
                 else -> throw IllegalArgumentException("Unknown message $message")
             }
             _incoming.send(frame)
@@ -94,6 +96,7 @@ internal class DarwinWebsocketSession(
                         }
                     }
                 }
+
                 FrameType.BINARY -> {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         task.sendMessage(NSURLSessionWebSocketMessage(frame.data.toNSData())) { error ->
@@ -102,6 +105,7 @@ internal class DarwinWebsocketSession(
                         }
                     }
                 }
+
                 FrameType.CLOSE -> {
                     val data = buildPacket { writeFully(frame.data) }
                     val code = data.readShort().convert<NSInteger>()
@@ -109,6 +113,7 @@ internal class DarwinWebsocketSession(
                     task.cancelWithCloseCode(code, reason.toNSData())
                     return@sendMessages
                 }
+
                 FrameType.PING -> {
                     task.sendPingWithPongReceiveHandler { error ->
                         if (error != null) {
@@ -118,6 +123,7 @@ internal class DarwinWebsocketSession(
                         _incoming.trySend(Frame.Pong(ByteReadPacket.Empty))
                     }
                 }
+
                 else -> {
                     throw IllegalArgumentException("Unknown frame type: $frame")
                 }
@@ -166,7 +172,6 @@ internal class DarwinWebsocketSession(
             socketJob.completeExceptionally(exception)
         }
 
-        @OptIn(UnsafeNumber::class)
         override fun URLSession(
             session: NSURLSession,
             webSocketTask: NSURLSessionWebSocketTask,
@@ -183,18 +188,18 @@ internal class DarwinWebsocketSession(
     }
 }
 
-private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebSocketMessage =
-    suspendCancellableCoroutine {
-        receiveMessageWithCompletionHandler { message, error ->
-            if (error != null) {
-                it.resumeWithException(DarwinHttpRequestException(error))
-                return@receiveMessageWithCompletionHandler
-            }
-            if (message == null) {
-                it.resumeWithException(IllegalArgumentException("Received null message"))
-                return@receiveMessageWithCompletionHandler
-            }
-
-            it.resume(message)
+private suspend fun NSURLSessionWebSocketTask.receiveMessage(
+): NSURLSessionWebSocketMessage = suspendCancellableCoroutine {
+    receiveMessageWithCompletionHandler { message, error ->
+        if (error != null) {
+            it.resumeWithException(DarwinHttpRequestException(error))
+            return@receiveMessageWithCompletionHandler
         }
+        if (message == null) {
+            it.resumeWithException(IllegalArgumentException("Received null message"))
+            return@receiveMessageWithCompletionHandler
+        }
+
+        it.resume(message)
     }
+}
