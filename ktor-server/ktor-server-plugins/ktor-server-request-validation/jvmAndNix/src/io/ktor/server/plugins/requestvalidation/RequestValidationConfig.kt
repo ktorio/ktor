@@ -1,0 +1,77 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.server.plugins.requestvalidation
+
+import kotlin.reflect.*
+
+/**
+ * A config for [RequestValidation] plugin
+ */
+public class RequestValidationConfig {
+
+    internal val validators: MutableList<Validator> = mutableListOf()
+
+    /**
+     * Registers [validator]
+     */
+    public fun validate(validator: Validator) {
+        validators.add(validator)
+    }
+
+    /**
+     * Registers [Validator] that should check instances of a [kClass] using [block]
+     */
+    public fun <T : Any> validate(kClass: KClass<T>, block: suspend (T) -> ValidationResult) {
+        val validator = object : Validator {
+            @Suppress("UNCHECKED_CAST")
+            override suspend fun validate(value: Any): ValidationResult = block(value as T)
+            override fun filter(value: Any): Boolean = kClass.isInstance(value)
+        }
+        validate(validator)
+    }
+
+    /**
+     * Registers [Validator] that should check instances of a [T] using [block]
+     */
+    public inline fun <reified T : Any> validate(noinline block: suspend (T) -> ValidationResult) {
+        validate(T::class, block)
+    }
+
+    /**
+     * Registers [Validator] using DSL
+     * ```
+     * validate {
+     *    filter { it is Int }
+     *    validation { check(it is Int); ... }
+     * }
+     * ```
+     */
+    public fun validate(block: ValidatorBuilder.() -> Unit) {
+        val builder = ValidatorBuilder().apply(block)
+        validate(builder.build())
+    }
+
+    public class ValidatorBuilder {
+        private lateinit var validationBlock: suspend (Any) -> ValidationResult
+        private lateinit var filterBlock: (Any) -> Boolean
+
+        public fun filter(block: (Any) -> Boolean) {
+            filterBlock = block
+        }
+
+        public fun validation(block: suspend (Any) -> ValidationResult) {
+            validationBlock = block
+        }
+
+        internal fun build(): Validator {
+            check(::validationBlock.isInitialized) { "`validation { ... } block is not ser`" }
+            check(::filterBlock.isInitialized) { "`filter { ... } block is not set`" }
+            return object : Validator {
+                override suspend fun validate(value: Any) = validationBlock(value)
+                override fun filter(value: Any): Boolean = filterBlock(value)
+            }
+        }
+    }
+}
