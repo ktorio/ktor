@@ -206,7 +206,7 @@ internal class Endpoint(
     }
 
     /**
-     * Defines exact type of exception based on [connectAttempts] and [timeoutFails].
+     * Defines the exact type of exception based on [connectAttempts] and [timeoutFails].
      */
     private fun getTimeoutException(
         connectAttempts: Int,
@@ -218,8 +218,8 @@ internal class Endpoint(
     }
 
     /**
-     * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
-     * connect timeout and socket timeout to be applied.
+     * Takes timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
+     * connection timeout and socket timeout to be applied.
      */
     private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Long, Long> {
         val default = config.endpoint.connectTimeout to config.endpoint.socketTimeout

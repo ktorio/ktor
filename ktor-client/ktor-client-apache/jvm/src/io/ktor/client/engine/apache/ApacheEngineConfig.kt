@@ -10,47 +10,51 @@ import org.apache.http.impl.nio.client.*
 import javax.net.ssl.*
 
 /**
- * Configuration for [Apache] implementation of [HttpClientEngineFactory].
+ * A configuration for the [Apache] client engine.
  */
 public class ApacheEngineConfig : HttpClientEngineConfig() {
     /**
-     * Whether or not, it will follow `Location` headers. `false` by default.
-     * It uses the default number of redirects defined by Apache's HttpClient that is 50.
+     * Specifies whether to follow redirects automatically.
+     * Disabled by default.
+     *
+     * _Note: By default, the Apache client allows `50` redirects._
      */
     public var followRedirects: Boolean = false
 
     /**
-     * Max milliseconds between TCP packets - default 10 seconds.
-     * A value of 0 represents infinite, while -1 represents system's default value.
+     * Specifies a maximum time (in milliseconds) of inactivity between two data packets when exchanging data with a server.
+     *
+     * Set this value to `0` to use an infinite timeout.
      */
     public var socketTimeout: Int = 10_000
 
     /**
-     * Max milliseconds to establish an HTTP connection - default 10 seconds.
-     * A value of 0 represents infinite, while -1 represents system's default value.
+     * Specifies a time period (in milliseconds) in which a client should establish a connection with a server.
+     *
+     * A `0` value represents an infinite timeout, while `-1` represents a system's default value.
      */
     public var connectTimeout: Int = 10_000
 
     /**
-     * Max milliseconds for the connection manager to start a request - default 20 seconds.
-     * A value of 0 represents infinite, while -1 represents system's default value.
+     * Specifies a time period (in milliseconds) in which a client should start a request.
+     *
+     * A `0` value represents an infinite timeout, while `-1` represents a system's default value.
      */
     public var connectionRequestTimeout: Int = 20_000
 
     /**
-     * Optional Java's SSLContext allowing to set custom keys,
-     * trust manager or custom source for secure random data
+     * Allows you to configure [SSL](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public var sslContext: SSLContext? = null
 
     /**
-     * Custom processor for [RequestConfig.Builder].
+     * Specifies a custom processor for [RequestConfig.Builder].
      */
     public var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
         private set
 
     /**
-     * Custom processor for [HttpAsyncClientBuilder].
+     * Specifies a custom processor for [HttpAsyncClientBuilder].
      */
     public var customClient: (HttpAsyncClientBuilder.() -> HttpAsyncClientBuilder) = { this }
         private set

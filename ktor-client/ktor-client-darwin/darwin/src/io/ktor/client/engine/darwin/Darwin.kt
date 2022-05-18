@@ -14,8 +14,23 @@ import platform.Foundation.*
 private val initHook = Darwin
 
 /**
- * [HttpClientEngineFactory] using a [NSURLRequest] in implementation
- * with the associated requestConfig [HttpClientEngineConfig].
+ * A Kotlin/Native client engine that targets Darwin-based operating systems
+ * (such as macOS, iOS, tvOS, and so on) and uses `NSURLSession` internally.
+ *
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(Darwin)
+ * ```
+ * To configure the engine, pass settings exposed by [DarwinClientEngineConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(Darwin) {
+ *     engine {
+ *         // this: DarwinClientEngineConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 @OptIn(InternalAPI::class)
 public object Darwin : HttpClientEngineFactory<DarwinClientEngineConfig> {
