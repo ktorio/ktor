@@ -11,7 +11,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlin.test.*
 
-public fun Application.cookiesTest() {
+fun Application.cookiesTest() {
     routing {
         route("cookies") {
             get {
@@ -19,6 +19,10 @@ public fun Application.cookiesTest() {
                 context.response.cookies.append(cookie)
 
                 context.respond("Done")
+            }
+            get("dump") {
+                val text = call.request.cookies.rawCookies.entries.joinToString()
+                call.respondText("Cookies: $text")
             }
             get("/update-user-id") {
                 val id = context.request.cookies["id"]?.toInt() ?: let {
