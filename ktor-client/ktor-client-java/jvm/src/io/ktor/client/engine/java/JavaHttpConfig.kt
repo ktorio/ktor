@@ -8,7 +8,7 @@ import io.ktor.client.engine.*
 import java.net.http.*
 
 /**
- * Configuration for [Java] client engine.
+ * A configuration for the [Java] client engine.
  */
 public class JavaHttpConfig : HttpClientEngineConfig() {
 

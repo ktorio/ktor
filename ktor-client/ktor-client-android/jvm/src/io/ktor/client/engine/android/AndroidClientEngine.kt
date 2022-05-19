@@ -25,7 +25,7 @@ import kotlin.coroutines.*
 private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 
 /**
- * Android client engine
+ * An Android client engine.
  */
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
