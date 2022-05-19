@@ -12,12 +12,12 @@ import io.ktor.server.request.*
  */
 public sealed class ValidationResult {
     /**
-     * Represents successful result of validation
+     * A successful result of validation.
      */
     public object Valid : ValidationResult()
 
     /**
-     * Represents not successful result of validation
+     * An unsuccessful result of validation
      */
     public class Invalid(public val reasons: List<String>) : ValidationResult() {
         public constructor (reason: String) : this(listOf(reason))
@@ -29,18 +29,18 @@ public sealed class ValidationResult {
  */
 public interface Validator {
     /**
-     * Validates [value]
+     * Validates the [value].
      */
     public suspend fun validate(value: Any): ValidationResult
 
     /**
-     * Check if [value] should be checked by this validator
+     * Checks if the [value] should be checked by this validator.
      */
     public fun filter(value: Any): Boolean
 }
 
 /**
- * A plugin that checks request body using [Validator]
+ * A plugin that checks a request body using [Validator].
  * Example:
  * ```
  * install(RequestValidation) {
