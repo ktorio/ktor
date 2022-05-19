@@ -18,6 +18,8 @@ internal class DarwinSession(
 
     private val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
         setupProxy(config)
+        setHTTPCookieStorage(null)
+
         config.sessionConfig(this)
     }
 

@@ -3,8 +3,10 @@ import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import kotlin.test.*
 
 /*
@@ -19,7 +21,7 @@ class DarwinEngineTest {
 
         try {
             withTimeout(1000) {
-                val response = client.get("http://127.0.0.1:8080")
+                val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
         } finally {
@@ -28,16 +30,12 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testPathWithCyrillic() = runBlocking {
-    }
-
-    @Test
     fun testQueryWithCyrillic() = runBlocking {
         val client = HttpClient(Darwin)
 
         try {
             withTimeout(1000) {
-                val response = client.get("http://127.0.0.1:8080/echo_query?привет")
+                val response = client.get("$TEST_SERVER/echo_query?привет")
                 assertEquals("привет=[]", response.bodyAsText())
             }
         } finally {
@@ -56,6 +54,41 @@ class DarwinEngineTest {
             "http://%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82.%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/",
             stringToNSUrlString("http://привет.привет/")
         )
+    }
+
+    @Test
+    fun testCookieIsNotPersistedByDefault() = runBlocking {
+        val client = HttpClient(Darwin)
+        try {
+            client.get("$TEST_SERVER/cookies")
+            val result = client.get("$TEST_SERVER/cookies/dump")
+                .bodyAsText()
+
+            assertEquals("Cookies: ", result)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun testCookiePersistedWithSessionStore() = runBlocking {
+        val client = HttpClient(Darwin) {
+            engine {
+                configureSession {
+                    setHTTPCookieStorage(sharedHTTPCookieStorage)
+                }
+            }
+        }
+
+        try {
+            client.get("$TEST_SERVER/cookies")
+            val result = client.get("$TEST_SERVER/cookies/dump")
+                .bodyAsText()
+
+            assertEquals("Cookies: hello-cookie=my%2Dawesome%2Dvalue", result)
+        } finally {
+            client.close()
+        }
     }
 
     private fun stringToNSUrlString(value: String): String {
