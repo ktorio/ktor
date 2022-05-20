@@ -79,7 +79,10 @@ fun posixTargets(project: Project): Set<KotlinNativeTarget> = project.kotlin.pos
 val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
 
 val jdk11Modules = listOf(
-    "ktor-client-java"
+    "ktor-client-java",
+    "ktor-client-jetty11",
+    "ktor-server-jetty11",
+    "ktor-server-jetty11-test-http2"
 )
 
 fun Project.useJdkVersionForJvmTests(version: Int) {

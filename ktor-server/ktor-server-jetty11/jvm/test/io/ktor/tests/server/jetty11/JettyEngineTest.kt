@@ -6,10 +6,10 @@ package io.ktor.tests.server.jetty11
 
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty11.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.servlet.*
+import io.ktor.server.servlet5.*
 import io.ktor.server.testing.suites.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
@@ -55,7 +55,7 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
     }
 
     private fun Server.addAttributesHandler() {
-        addLifeCycleListener(
+        addEventListener(
             object : LifeCycle.Listener {
                 override fun lifeCycleStarting(event: LifeCycle?) {
                     super.lifeCycleStarting(event)

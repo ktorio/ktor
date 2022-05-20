@@ -6,9 +6,9 @@ package io.ktor.tests.server.jetty11.http2
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty11.*
 import io.ktor.server.response.*
-import io.ktor.server.servlet.*
+import io.ktor.server.servlet5.*
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
@@ -23,7 +23,7 @@ class MultipleDispatchOnTimeout {
     /**
      * We are testing that the servlet container does not trigger an extra error dispatch for calls that timeout from
      * the perspective of the servlet container. The fact that it does so is apparently specified here on this url:
-     * https://docs.oracle.com/javaee/6/api/jakarta/servlet/AsyncContext.html
+     * https://jakarta.ee/specifications/platform/9/apidocs/jakarta/servlet/asynccontext
      */
     @Test
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {

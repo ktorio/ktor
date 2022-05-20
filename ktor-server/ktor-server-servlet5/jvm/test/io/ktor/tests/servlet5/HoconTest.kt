@@ -6,13 +6,13 @@ package io.ktor.tests.servlet5
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.servlet.*
-import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEngineEnvironmentAttributeKey
-import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
+import io.ktor.server.servlet5.*
+import io.ktor.server.servlet5.ServletApplicationEngine.Companion.ApplicationEngineEnvironmentAttributeKey
+import io.ktor.server.servlet5.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
 import io.mockk.*
 import java.util.*
-import javax.servlet.*
-import javax.servlet.http.*
+import jakarta.servlet.*
+import jakarta.servlet.http.*
 import kotlin.test.*
 
 class HoconTest {

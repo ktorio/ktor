@@ -4,7 +4,7 @@
 
 package io.ktor.tests.server.jetty11.http2
 
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty11.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.*
 

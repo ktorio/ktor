@@ -2,19 +2,19 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-package io.ktor.tests.server.jetty11
+package io.ktor.tests.server.jetty11.http2
 
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty11.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
-class JettyBlockingServletContainerCompressionTest :
+class JettyHttp2BlockingServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
 
-class JettyBlockingServletContainerContentTest :
+class JettyHttp2BlockingServletContainerContentTest :
     ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
 
-class JettyBlockingServletContainerHttpServerCommonTest :
+class JettyHttp2BlockingServletContainerHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
     ) {
@@ -23,7 +23,7 @@ class JettyBlockingServletContainerHttpServerCommonTest :
     }
 }
 
-class JettyBlockingServletContainerHttpServerJvmTest :
+class JettyHttp2BlockingServletContainerHttpServerJvmTest :
     HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
     ) {
@@ -41,17 +41,7 @@ class JettyBlockingServletContainerHttpServerJvmTest :
     }
 }
 
-class JettyBlockingServletContainerSustainabilityTest :
+class JettyHttp2BlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
     )
-
-class JettyBlockingServletServerPluginTest :
-    ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
-        Servlet(async = false)
-    ) {
-    init {
-        enableHttp2 = false
-        enableSsl = false
-    }
-}

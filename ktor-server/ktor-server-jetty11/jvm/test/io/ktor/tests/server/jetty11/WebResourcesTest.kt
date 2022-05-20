@@ -9,7 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
-import io.ktor.server.servlet.*
+import io.ktor.server.servlet5.*
 import io.ktor.server.testing.*
 import org.eclipse.jetty.server.handler.*
 import org.junit.*

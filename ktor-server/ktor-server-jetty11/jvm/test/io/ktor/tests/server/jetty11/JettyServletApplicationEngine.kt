@@ -1,26 +1,25 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
 
-package io.ktor.tests.server.jetty11.http2
+package io.ktor.tests.server.jetty11
 
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
-import io.ktor.server.servlet.*
+import io.ktor.server.jetty11.*
+import io.ktor.server.servlet5.*
 import org.eclipse.jetty.servlet.*
 import jakarta.servlet.*
 
-// the factory and engine are only suitable for testing
-// you shouldn't use it for production code
-
-internal class Servlet(private val async: Boolean) :
-    ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+/**
+ * The factory and engine are only suitable for testing. You shouldn't use it for production code.
+ */
+internal class Servlet(
+    private val async: Boolean
+) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
     override fun create(
         environment: ApplicationEngineEnvironment,
         configure: JettyApplicationEngineBase.Configuration.() -> Unit
-    ): JettyServletApplicationEngine {
-        return JettyServletApplicationEngine(environment, configure, async)
-    }
+    ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, configure, async)
 }
 
 internal class JettyServletApplicationEngine(

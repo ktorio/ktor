@@ -4,7 +4,7 @@
 
 package io.ktor.tests.server.jetty11
 
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty11.*
 import io.ktor.server.testing.suites.*
 
 class JettyStressTest : EngineStressSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
