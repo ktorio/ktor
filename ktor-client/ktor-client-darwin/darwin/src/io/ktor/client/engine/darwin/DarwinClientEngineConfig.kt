@@ -55,6 +55,12 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
         private set
 
     /**
+     * Specifies a session to use for making HTTP requests.
+     */
+    public var preconfiguredSession: NSURLSession? = null
+        private set
+
+    /**
      * Appends a block with the [NSMutableURLRequest] configuration to [requestConfig].
      */
     public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
@@ -78,6 +84,14 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
             old()
             block()
         }
+    }
+
+    /**
+     * Set a [session] to be used to make HTTP requests, [null] to create default session.
+     * If the preconfigured session is set, [configureSession] block will be ignored.
+     */
+    public fun usePreconfiguredSession(session: NSURLSession?) {
+        preconfiguredSession = session
     }
 
     /**

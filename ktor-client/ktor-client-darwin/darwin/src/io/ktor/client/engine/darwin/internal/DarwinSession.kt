@@ -11,25 +11,13 @@ import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
 internal class DarwinSession(
-    config: DarwinClientEngineConfig,
-    requestQueue: NSOperationQueue
+    private val config: DarwinClientEngineConfig,
+    private val requestQueue: NSOperationQueue
 ) : Closeable {
     private val closed = atomic(false)
-
-    private val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
-        setupProxy(config)
-        setHTTPCookieStorage(null)
-
-        config.sessionConfig(this)
-    }
-
     private val responseReader = DarwinResponseReader(config)
 
-    private val session = NSURLSession.sessionWithConfiguration(
-        configuration,
-        responseReader,
-        delegateQueue = requestQueue
-    )
+    private val session: NSURLSession = config.preconfiguredSession ?: createSession()
 
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
@@ -49,5 +37,20 @@ internal class DarwinSession(
     override fun close() {
         if (!closed.compareAndSet(false, true)) return
         session.finishTasksAndInvalidate()
+    }
+
+    private fun createSession(): NSURLSession {
+        val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
+            setupProxy(config)
+            setHTTPCookieStorage(null)
+
+            config.sessionConfig(this)
+        }
+
+        return NSURLSession.sessionWithConfiguration(
+            configuration,
+            responseReader,
+            delegateQueue = requestQueue
+        )
     }
 }
