@@ -63,6 +63,7 @@ class ServerGsonTest {
         val uc = "\u0422"
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, GsonConverter())
+            ignoreType<String>()
         }
 
         application.routing {

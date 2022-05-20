@@ -5,15 +5,12 @@
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
-import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.client.utils.EmptyContent.headers
 import io.ktor.http.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*

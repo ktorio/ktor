@@ -130,7 +130,7 @@ public class HttpPlainText internal constructor(
                 proceedWith(plugin.wrapContent(content, contentCharset))
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
+            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (info.type != String::class || body !is ByteReadChannel) return@intercept
 
                 val bodyBytes = body.readRemaining()

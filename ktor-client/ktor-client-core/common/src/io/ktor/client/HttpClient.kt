@@ -147,7 +147,6 @@ public class HttpClient(
             config.install(BodyProgress)
 
             if (useDefaultTransformers) {
-                config.install(HttpPlainText)
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
@@ -159,6 +158,10 @@ public class HttpClient(
             }
 
             config += this
+
+            if (useDefaultTransformers) {
+                config.install(HttpPlainText)
+            }
 
             config.addDefaultResponseValidation()
 

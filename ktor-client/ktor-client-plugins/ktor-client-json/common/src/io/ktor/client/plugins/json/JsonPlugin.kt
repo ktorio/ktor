@@ -155,6 +155,7 @@ public class JsonPlugin internal constructor(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
+                if (info.type == ByteReadChannel::class) return@intercept
 
                 val contentType = context.response.contentType() ?: return@intercept
                 if (!plugin.canHandle(contentType)) return@intercept

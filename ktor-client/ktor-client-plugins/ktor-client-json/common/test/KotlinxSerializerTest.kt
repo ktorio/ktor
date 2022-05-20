@@ -23,7 +23,7 @@ internal data class User(val id: Long, val login: String)
 internal data class Photo(val id: Long, val path: String)
 
 @Suppress("DEPRECATION")
-class KotlinxSerializerTest : ClientLoader() {
+class KotlinxSerializerTest : ClientLoader(600000) {
     @Test
     fun testRegisterCustom() {
         val serializer = KotlinxSerializer()
@@ -93,7 +93,7 @@ class KotlinxSerializerTest : ClientLoader() {
             val response = client.post("$TEST_SERVER/echo-with-content-type") {
                 setBody("Hello")
             }.body<String>()
-            assertEquals("\"Hello\"", response)
+            assertEquals("Hello", response)
 
             val textResponse = client.post("$TEST_SERVER/echo") {
                 setBody("Hello")

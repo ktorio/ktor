@@ -69,6 +69,7 @@ class ContentNegotiationTest {
         }
 
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+            if (typeInfo.type == String::class) return null
             fail("This converter should be never started for receive")
         }
     }
@@ -382,6 +383,7 @@ class ContentNegotiationTest {
         application.install(ContentNegotiation) {
             // Order here matters. The first registered content type matching the Accept header will be chosen.
             register(ContentType.Any, alwaysFailingConverter)
+            ignoreType<String>()
         }
 
         application.routing {

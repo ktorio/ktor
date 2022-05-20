@@ -104,6 +104,7 @@ class ServerJacksonTest {
         val uc = "\u0422"
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, JacksonConverter())
+            ignoreType<String>()
         }
 
         application.routing {
