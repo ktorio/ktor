@@ -6,6 +6,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import kotlin.test.*
 
@@ -91,7 +92,34 @@ class DarwinEngineTest {
         }
     }
 
+    @Test
+    fun testOverrideDefaultSession(): Unit = runBlocking {
+        val client = HttpClient(Darwin) {
+            engine {
+                usePreconfiguredSession(MySession())
+            }
+        }
+
+        var failedCause: Throwable? = null
+
+        try {
+            client.get(TEST_SERVER)
+        } catch (cause: IllegalStateException) {
+            failedCause = cause
+        } finally {
+            client.close()
+        }
+
+        assertEquals("It works", failedCause?.message)
+    }
+
     private fun stringToNSUrlString(value: String): String {
         return Url(value).toNSUrl().absoluteString!!
+    }
+}
+
+class MySession : NSURLSession() {
+    override fun dataTaskWithRequest(request: NSURLRequest): NSURLSessionDataTask {
+        error("It works")
     }
 }
