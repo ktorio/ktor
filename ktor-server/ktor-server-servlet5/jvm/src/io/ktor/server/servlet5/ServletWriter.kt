@@ -7,11 +7,11 @@ package io.ktor.server.servlet5
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import jakarta.servlet.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.TimeoutException
-import jakarta.servlet.*
 
 internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)

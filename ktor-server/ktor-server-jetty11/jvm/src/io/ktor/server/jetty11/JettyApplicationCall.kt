@@ -9,8 +9,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty11.internal.*
 import io.ktor.server.servlet5.*
 import io.ktor.util.*
-import org.eclipse.jetty.server.*
 import jakarta.servlet.http.*
+import org.eclipse.jetty.server.*
 import kotlin.coroutines.*
 
 @InternalAPI

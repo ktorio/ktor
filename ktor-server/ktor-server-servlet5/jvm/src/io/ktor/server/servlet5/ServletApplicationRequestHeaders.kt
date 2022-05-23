@@ -6,8 +6,8 @@ package io.ktor.server.servlet5
 
 import io.ktor.http.*
 import io.ktor.server.engine.*
-import java.util.*
 import jakarta.servlet.http.*
+import java.util.*
 
 @Suppress("KDocMissingDocumentation")
 public class ServletApplicationRequestHeaders(

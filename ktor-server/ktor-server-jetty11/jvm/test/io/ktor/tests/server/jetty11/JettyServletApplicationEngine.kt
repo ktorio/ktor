@@ -7,8 +7,8 @@ package io.ktor.tests.server.jetty11
 import io.ktor.server.engine.*
 import io.ktor.server.jetty11.*
 import io.ktor.server.servlet5.*
-import org.eclipse.jetty.servlet.*
 import jakarta.servlet.*
+import org.eclipse.jetty.servlet.*
 
 /**
  * The factory and engine are only suitable for testing. You shouldn't use it for production code.

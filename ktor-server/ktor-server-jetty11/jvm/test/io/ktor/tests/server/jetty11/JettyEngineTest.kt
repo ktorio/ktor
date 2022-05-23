@@ -11,10 +11,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet5.*
 import io.ktor.server.testing.suites.*
+import jakarta.servlet.http.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.component.*
-import jakarta.servlet.http.*
 import kotlin.test.*
 
 class JettyCompressionTest :
