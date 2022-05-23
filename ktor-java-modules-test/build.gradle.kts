@@ -30,6 +30,11 @@ val compileJava = tasks.getByName<JavaCompile>("compileJava") {
         classpath = files()
     }
 }
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 
 dependencies {
     rootProject.subprojects

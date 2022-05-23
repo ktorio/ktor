@@ -13,7 +13,6 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
@@ -22,7 +21,7 @@ import kotlin.coroutines.*
 internal class DarwinResponseReader(
     private val config: DarwinClientEngineConfig
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
-    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>()
+    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(initialCapacity = 32)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
         val taskHandler = taskHandlers[dataTask] ?: return
