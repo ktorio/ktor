@@ -8,9 +8,11 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.*
 import kotlin.test.*
 
 class ContentNegotiationTests {
@@ -77,6 +79,26 @@ class ContentNegotiationTests {
                 setBody(ByteArray(100))
             }
             assertEquals(ContentType("testing", "b"), response.call.request.content.contentType)
+        }
+    }
+
+    @Test
+    fun testIgnoresByteReadChannel() {
+        val contentType = ContentType("testing", "a")
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(
+                    contentType,
+                    TestContentConverter(deserializeFn = { _, _, _ -> error("error") })
+                )
+            }
+
+            test { client ->
+                val response = client.get("https://test.com/") {
+                    header(XReturnAs, contentType)
+                }.bodyAsChannel()
+                response.discard()
+            }
         }
     }
 
