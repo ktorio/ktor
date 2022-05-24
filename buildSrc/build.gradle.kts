@@ -2,6 +2,9 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
+import org.jetbrains.kotlin.utils.addToStdlib.*
+import java.util.*
+
 plugins {
     `kotlin-dsl`
     kotlin("plugin.serialization") version "1.6.21"
@@ -41,6 +44,14 @@ dependencies {
     implementation(kotlin("serialization", "1.6.21"))
 
     val ktlint_version = libs.versions.ktlint.version.get()
+    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk7")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-common")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-script-runtime")
+    }
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
     implementation("io.ktor:ktor-server-default-headers:2.0.2")
