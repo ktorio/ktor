@@ -7,11 +7,11 @@ import org.jetbrains.kotlin.gradle.plugin.*
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
     kotlinOptions {
-//        if (platformType == KotlinPlatformType.jvm && !IDEA_ACTIVE) {
+        if (platformType == KotlinPlatformType.jvm && !IDEA_ACTIVE) {
 //            allWarningsAsErrors = true
-//        }
+        }
 
-        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn", "-version")
         freeCompilerArgs += "-Xexpect-actual-classes"
     }
 }

@@ -15,6 +15,11 @@ fun Project.configureJvm() {
         else -> 8
     }
 
+    val kotlinVersion = rootProject.versionCatalog.findVersion("kotlin-version").get().requiredVersion
+    val slf4jVersion = rootProject.versionCatalog.findVersion("slf4j-version").get().requiredVersion
+    val junitVersion = rootProject.versionCatalog.findVersion("junit-version").get().requiredVersion
+    val coroutinesVersion = rootProject.versionCatalog.findVersion("coroutines-version").get().requiredVersion
+
     val configuredVersion: String by rootProject.extra
 
     kotlin {
@@ -24,11 +29,11 @@ fun Project.configureJvm() {
             val jvmMain by getting {
                 dependencies {
                     if (jdk > 6) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}")
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
                     }
                     if (jdk > 7) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}")
-                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${Versions.coroutines}") {
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion") {
                             exclude(module = "kotlin-stdlib")
                             exclude(module = "kotlin-stdlib-jvm")
                             exclude(module = "kotlin-stdlib-jdk8")
@@ -36,15 +41,15 @@ fun Project.configureJvm() {
                         }
                     }
 
-                    api("org.slf4j:slf4j-api:${Versions.slf4j}")
+                    api("org.slf4j:slf4j-api:$slf4jVersion")
                 }
             }
 
             val jvmTest by getting {
                 dependencies {
                     implementation(kotlin("test-junit5"))
-                    implementation("org.junit.jupiter:junit-jupiter:${Versions.junit}")
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}")
+                    implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
                 }
             }
         }
@@ -69,6 +74,7 @@ fun Project.configureJvm() {
     val jvmTest: KotlinJvmTest = tasks.getByName<KotlinJvmTest>("jvmTest") {
         ignoreFailures = true
         maxHeapSize = "2g"
+        jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         exclude("**/*StressTest*")
         useJUnitPlatform()
         configureJavaLauncher(jdk)
@@ -80,7 +86,7 @@ fun Project.configureJvm() {
 
         ignoreFailures = true
         maxHeapSize = "2g"
-        jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
+        jvmArgs("""-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./oom_dump.hprof""")
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
