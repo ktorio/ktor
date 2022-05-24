@@ -2,9 +2,6 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-import org.jetbrains.kotlin.utils.addToStdlib.*
-import java.util.*
-
 plugins {
     `kotlin-dsl`
     kotlin("plugin.serialization") version "1.6.21"
