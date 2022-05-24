@@ -102,6 +102,8 @@ plugins {
     id("com.osacky.doctor") version "0.8.1"
 }
 
+val kotlinVersion = libs.versions.kotlin.version.get()
+
 allprojects {
     group = "io.ktor"
     version = configuredVersion
@@ -130,6 +132,16 @@ allprojects {
 
     configurations {
         maybeCreate("testOutput")
+    }
+
+    configurations.configureEach {
+        if (isCanBeResolved) {
+            resolutionStrategy.eachDependency {
+                if (requested.group == "org.jetbrains.kotlin") {
+                    useVersion(kotlinVersion)
+                }
+            }
+        }
     }
 
     kotlin {
