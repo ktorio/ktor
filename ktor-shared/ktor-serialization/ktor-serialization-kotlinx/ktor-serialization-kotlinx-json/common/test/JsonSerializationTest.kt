@@ -106,6 +106,19 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
             )
         )
     }
+
+    @Test
+    fun testExtraFields() = testSuspend {
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val dogExtraFieldJson = """{"age": 8,"name":"Auri","color":"Black"}"""
+        assertFailsWith<SerializationException> {
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<DogDTO>(),
+                ByteReadChannel(dogExtraFieldJson.toByteArray())
+            )
+        }
+    }
 }
 
 @Serializable
