@@ -96,10 +96,10 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.6.10" apply false
+    id("org.jetbrains.dokka") version "1.6.21" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.11.0"
-    id("kotlinx-atomicfu") version "0.17.3" apply false
     id("com.osacky.doctor") version "0.8.1"
+    id("kotlinx-atomicfu") version(libs.versions.atomicfu.version) apply false
 }
 
 allprojects {
@@ -134,11 +134,46 @@ allprojects {
     }
 
     kotlin {
-        if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
+        targets.all {
 
-        setCompilationOptions()
-        configureSourceSets()
-        setupJvmToolchain()
+            if (this is org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget) {
+                irTarget?.compilations?.all {
+                    configureCompilation()
+                }
+            }
+            compilations.all {
+                configureCompilation()
+            }
+        }
+
+        if (!disabledExplicitApiModeProjects.contains(project.name)) {
+            explicitApi()
+        }
+
+        sourceSets
+            .matching { it.name !in listOf("main", "test") }
+            .all {
+                val srcDir = if (name.endsWith("Main")) "src" else "test"
+                val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
+                val platform = name.dropLast(4)
+
+                kotlin.srcDir("$platform/$srcDir")
+                resources.srcDir("$platform/${resourcesPrefix}resources")
+
+                languageSettings.apply {
+                    progressiveMode = true
+                }
+            }
+
+        val jdk = when (name) {
+            in jdk11Modules -> 11
+            else -> 8
+        }
+
+        jvmToolchain {
+            check(this is JavaToolchainSpec)
+            languageVersion.set(JavaLanguageVersion.of(jdk))
+        }
     }
 
     val skipPublish: List<String> by rootProject.extra
@@ -154,25 +189,22 @@ subprojects {
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 
-fun configureDokka() {
-    if (COMMON_JVM_ONLY) return
+allprojects {
+    plugins.apply("org.jetbrains.dokka")
 
-    allprojects {
-        plugins.apply("org.jetbrains.dokka")
-
-        val dokkaPlugin by configurations
-        dependencies {
-            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
-        }
+    val dokkaPlugin by configurations
+    dependencies {
+        dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.21")
     }
+}
 
-    val dokkaOutputDir = "../versions"
+val dokkaOutputDir = "../versions"
 
-    tasks.withType<DokkaMultiModuleTask> {
-        val mapOf = mapOf(
-            "org.jetbrains.dokka.versioning.VersioningPlugin" to
-                """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
-        )
+tasks.withType<DokkaMultiModuleTask> {
+    val mapOf = mapOf(
+        "org.jetbrains.dokka.versioning.VersioningPlugin" to
+            """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
+    )
 
         outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
         pluginsMapConfiguration.set(mapOf)
