@@ -105,7 +105,7 @@ public data class HttpStatusCode(val value: Int, val description: String) {
         /**
          * All known status codes
          */
-        public val allStatusCodes: List<HttpStatusCode> get() = statusCodesMap.values.toList()
+        public val allStatusCodes: List<HttpStatusCode> = statusCodesMap.values.toList()
 
         /**
          * Creates an instance of [HttpStatusCode] with the given numeric value.
