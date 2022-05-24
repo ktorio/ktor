@@ -26,6 +26,7 @@ val Project.hasNative: Boolean get() =
     hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
+    val coroutinesVersion = rootProject.versionCatalog.findVersion("coroutines-version").get().requiredVersion
     configureCommon()
     if (hasJvm) configureJvm()
 
