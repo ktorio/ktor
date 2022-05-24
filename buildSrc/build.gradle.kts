@@ -29,6 +29,15 @@ sourceSets.main {
 
 val ktor_version = "2.3.0"
 
+configurations.configureEach {
+    if (isCanBeResolved) {
+        attributes {
+            @Suppress("UnstableApiUsage")
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+        }
+    }
+}
+
 dependencies {
     implementation(kotlin("gradle-plugin", "1.8.10"))
     implementation(kotlin("serialization", "1.8.10"))
