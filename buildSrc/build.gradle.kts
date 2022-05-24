@@ -10,6 +10,7 @@ plugins {
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
 repositories {
+    mavenCentral()
     maven("https://plugins.gradle.org/m2")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-atomicfu/maven").credentials {
@@ -55,4 +56,11 @@ kotlin {
         check(this is JavaToolchainSpec)
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += listOf(
+        "-Xsuppress-version-warnings",
+        "-Xskip-metadata-version-check",
+    )
 }
