@@ -27,6 +27,15 @@ repositories {
 sourceSets.main {
 }
 
+configurations.configureEach {
+    if (isCanBeResolved) {
+        attributes {
+            @Suppress("UnstableApiUsage")
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+        }
+    }
+}
+
 dependencies {
     implementation(kotlin("gradle-plugin", "1.6.21"))
     implementation(kotlin("serialization", "1.6.21"))
