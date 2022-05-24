@@ -101,11 +101,12 @@ public data class HttpStatusCode(val value: Int, val description: String) {
         public val VariantAlsoNegotiates: HttpStatusCode = HttpStatusCode(506, "Variant Also Negotiates")
         public val InsufficientStorage: HttpStatusCode = HttpStatusCode(507, "Insufficient Storage")
 
-        private val statusCodesMap: Map<Int, HttpStatusCode> = allStatusCodes().associateBy { it.value }
         /**
          * All known status codes
          */
-        public val allStatusCodes: List<HttpStatusCode> = statusCodesMap.values.toList()
+        public val allStatusCodes: List<HttpStatusCode> = allStatusCodes()
+
+        private val statusCodesMap: Map<Int, HttpStatusCode> = allStatusCodes.associateBy { it.value }
 
         /**
          * Creates an instance of [HttpStatusCode] with the given numeric value.
