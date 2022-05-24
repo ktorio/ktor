@@ -31,6 +31,8 @@ val Project.hasNative: Boolean
     get() = hasCommon || hasExplicitNative
 
 fun Project.configureTargets() {
+    configureCommon()
+    if (hasJvm) configureJvm()
     kotlin {
         configureCommon()
 
