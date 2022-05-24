@@ -43,6 +43,15 @@ configurations.configureEach {
     }
 }
 
+configurations.configureEach {
+    if (isCanBeResolved) {
+        attributes {
+            @Suppress("UnstableApiUsage")
+            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+        }
+    }
+}
+
 dependencies {
     val kotlinVersion = libs.versions.kotlin.version.get()
     implementation(kotlin("gradle-plugin", kotlinVersion))
