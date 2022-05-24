@@ -10,6 +10,36 @@ pluginManagement {
         google()
         gradlePluginPortal()
     }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "kotlinx-atomicfu") {
+                useModule("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${requested.version}")
+            }
+        }
+    }
+}
+
+plugins {
+    id("com.gradle.enterprise") version("3.10.1")
+}
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        val libs by creating {
+            if (extra.has("kotlin_version")) {
+                val kotlinVersion = extra["kotlin_version"].toString()
+                version("kotlin-version", kotlinVersion)
+            }
+        }
+    }
+}
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+        publishAlways()
+    }
 }
 
 plugins {
@@ -17,6 +47,23 @@ plugins {
 }
 
 rootProject.name = "ktor"
+
+val native_targets_enabled = !extra.has("disable_native_targets")
+val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
+
+if (CACHE_USER != null) {
+    val CACHE_PASSWORD = System.getenv("GRADLE_CACHE_PASSWORD")
+    buildCache {
+        remote(HttpBuildCache::class) {
+            isPush = true
+            setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
+            credentials {
+                username = CACHE_USER
+                password = CACHE_PASSWORD
+            }
+        }
+    }
+}
 
 val fullVersion = System.getProperty("java.version", "8.0.0")
 val versionComponents = fullVersion

@@ -11,21 +11,32 @@ plugins {
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
 
+extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+val kotlin_repo_url: String? by extra
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    maven("https://plugins.gradle.org/m2")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+    maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
+    mavenLocal()
     if (buildSnapshotTrain) {
         mavenLocal()
+    }
+    if (kotlin_repo_url != null) {
+        maven(kotlin_repo_url!!)
     }
 }
 
 val ktor_version = "3.0.0-rc-2-eap-1091"
 
 dependencies {
-    val kotlin_version = libs.versions.kotlin.get()
-    implementation(kotlin("gradle-plugin", kotlin_version))
-    implementation(kotlin("serialization", kotlin_version))
+    val kotlinVersion = libs.versions.kotlin.get()
+    implementation(kotlin("gradle-plugin", kotlinVersion))
+    implementation(kotlin("serialization", kotlinVersion))
 
     val ktlint_version = libs.versions.ktlint.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
@@ -53,4 +64,27 @@ dependencies {
 
 kotlin {
     jvmToolchain(8)
+}
+
+
+extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
+val kotlin_language_version: String? by extra
+
+extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
+val kotlin_api_version: String? by extra
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += listOf(
+        "-Xsuppress-version-warnings",
+        "-Xskip-metadata-version-check",
+        "-version"
+    )
+
+    if (kotlin_language_version != null) {
+        println("Using Kotlin Language Version $kotlin_language_version")
+        kotlinOptions.languageVersion = kotlin_language_version
+    }
+    if (kotlin_language_version != null) {
+        kotlinOptions.apiVersion = kotlin_api_version
+    }
 }
