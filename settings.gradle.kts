@@ -21,6 +21,17 @@ plugins {
     id("com.gradle.enterprise") version("3.10.1")
 }
 
+dependencyResolutionManagement {
+    versionCatalogs {
+        val libs by creating {
+            if (extra.has("kotlin_version")) {
+                val kotlinVersion = extra["kotlin_version"].toString()
+                version("kotlin-version", kotlinVersion)
+            }
+        }
+    }
+}
+
 gradleEnterprise {
     buildScan {
         termsOfServiceUrl = "https://gradle.com/terms-of-service"
