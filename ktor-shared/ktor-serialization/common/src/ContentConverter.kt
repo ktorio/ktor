@@ -102,8 +102,8 @@ public suspend fun List<ContentConverter>.deserialize(
         }
         .firstOrNull { it != null }
     return when {
+        result != null -> result
         !body.isClosedForRead -> body
-        result == null -> NullBody
-        else -> result
+        else -> NullBody
     }
 }

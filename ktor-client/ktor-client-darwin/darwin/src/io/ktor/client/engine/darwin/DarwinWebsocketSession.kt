@@ -188,18 +188,18 @@ internal class DarwinWebsocketSession(
     }
 }
 
-private suspend fun NSURLSessionWebSocketTask.receiveMessage(
-): NSURLSessionWebSocketMessage = suspendCancellableCoroutine {
-    receiveMessageWithCompletionHandler { message, error ->
-        if (error != null) {
-            it.resumeWithException(DarwinHttpRequestException(error))
-            return@receiveMessageWithCompletionHandler
-        }
-        if (message == null) {
-            it.resumeWithException(IllegalArgumentException("Received null message"))
-            return@receiveMessageWithCompletionHandler
-        }
+private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebSocketMessage =
+    suspendCancellableCoroutine {
+        receiveMessageWithCompletionHandler { message, error ->
+            if (error != null) {
+                it.resumeWithException(DarwinHttpRequestException(error))
+                return@receiveMessageWithCompletionHandler
+            }
+            if (message == null) {
+                it.resumeWithException(IllegalArgumentException("Received null message"))
+                return@receiveMessageWithCompletionHandler
+            }
 
-        it.resume(message)
+            it.resume(message)
+        }
     }
-}

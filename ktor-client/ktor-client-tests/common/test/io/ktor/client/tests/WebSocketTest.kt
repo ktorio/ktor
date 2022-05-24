@@ -25,7 +25,7 @@ class WebSocketTest : ClientLoader(100000) {
         override suspend fun serialize(
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): Frame {
             if (value !is Data) return Frame.Text("")
             return Frame.Text("[${value.stringValue}]")

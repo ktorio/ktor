@@ -4,7 +4,11 @@
 
 package io.ktor.client.plugins.contentnegotiation.tests
 
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*

@@ -30,7 +30,7 @@ public class KotlinxWebsocketSerializationConverter(
         }
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         return serializationBase.serialize(
             SerializationParameters(
                 format,
@@ -41,7 +41,7 @@ public class KotlinxWebsocketSerializationConverter(
         )
     }
 
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any? {
         if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
@@ -71,10 +71,7 @@ public class KotlinxWebsocketSerializationConverter(
             else -> {
                 error("Unsupported format $format")
             }
-        } ?: throw WebsocketDeserializeException(
-            "Unsupported format $format for ${content.frameType.name}",
-            frame = content
-        )
+        }
     }
 
     override fun isApplicable(frame: Frame): Boolean {
@@ -94,16 +91,16 @@ public class KotlinxWebsocketSerializationConverter(
     private fun serializeContent(
         serializer: KSerializer<*>,
         format: SerialFormat,
-        value: Any
+        value: Any?
     ): Frame {
         @Suppress("UNCHECKED_CAST")
         return when (format) {
             is StringFormat -> {
-                val content = format.encodeToString(serializer as KSerializer<Any>, value)
+                val content = format.encodeToString(serializer as KSerializer<Any?>, value)
                 Frame.Text(content)
             }
             is BinaryFormat -> {
-                val content = format.encodeToByteArray(serializer as KSerializer<Any>, value)
+                val content = format.encodeToByteArray(serializer as KSerializer<Any?>, value)
                 Frame.Binary(true, content)
             }
             else -> error("Unsupported format $format")

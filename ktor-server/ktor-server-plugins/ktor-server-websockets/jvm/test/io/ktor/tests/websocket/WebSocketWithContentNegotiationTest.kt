@@ -31,7 +31,7 @@ class WebSocketWithContentNegotiationTest {
                     contentType: ContentType,
                     charset: Charset,
                     typeInfo: TypeInfo,
-                    value: Any
+                    value: Any?
                 ): OutgoingContent = fail("convertForSend shouldn't be invoked")
 
                 override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
