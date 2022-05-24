@@ -3,6 +3,7 @@
  */
 
 import org.gradle.api.*
+import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.jvm.toolchain.*
 import org.gradle.kotlin.dsl.*
@@ -49,3 +50,6 @@ fun Project.useJdkVersionForJvmTests(version: Int) {
         )
     }
 }
+
+val Project.versionCatalog: VersionCatalog
+    get() = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
