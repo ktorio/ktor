@@ -1,4 +1,4 @@
-val logback_version: String by extra
+val logback = libs.logback.classic
 
 subprojects {
     kotlin {
@@ -18,7 +18,7 @@ subprojects {
                 dependencies {
                     api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
 
-                    api("ch.qos.logback:logback-classic:$logback_version")
+                    api(logback)
                 }
             }
         }

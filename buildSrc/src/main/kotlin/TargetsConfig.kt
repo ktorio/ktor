@@ -22,6 +22,7 @@ val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.
 val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
+    val coroutinesVersion = rootProject.versionCatalog.findVersion("coroutines-version").get().requiredVersion
     configureCommon()
     if (hasJvm) configureJvm()
 
@@ -40,6 +41,18 @@ fun Project.configureTargets() {
         if (hasPosix || hasDarwin || hasWindows) extra.set("hasNative", true)
 
         sourceSets {
+            val commonMain by getting {
+                dependencies {
+                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                }
+            }
+
+            val commonTest by getting {
+                dependencies {
+                    implementation(kotlin("test"))
+                }
+            }
+
             if (hasPosix) {
                 val posixMain by creating
                 val posixTest by creating
