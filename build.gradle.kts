@@ -100,6 +100,8 @@ doctor {
     enableTestCaching = false
 }
 
+val kotlinVersion = libs.versions.kotlin.version.get()
+
 allprojects {
     group = "io.ktor"
     version = configuredVersion
@@ -124,6 +126,16 @@ allprojects {
 
     configurations {
         maybeCreate("testOutput")
+    }
+
+    configurations.configureEach {
+        if (isCanBeResolved) {
+            resolutionStrategy.eachDependency {
+                if (requested.group == "org.jetbrains.kotlin") {
+                    useVersion(kotlinVersion)
+                }
+            }
+        }
     }
 
     kotlin {
