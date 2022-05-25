@@ -82,8 +82,15 @@ public fun TestApplication(
  * Registers mocks for external services.
  */
 @KtorDsl
-public class ExternalServicesBuilder {
-    internal val externalApplications = mutableMapOf<String, TestApplication>()
+public class ExternalServicesBuilder internal constructor(private val testApplicationBuilder: TestApplicationBuilder) {
+
+    @Deprecated(message = "This constructor will be removed from public API", level = DeprecationLevel.HIDDEN)
+    public constructor() : this(TestApplicationBuilder())
+
+    private val externalApplicationBuilders = mutableMapOf<String, () -> TestApplication>()
+    internal val externalApplications: Map<String, TestApplication> by lazy {
+        externalApplicationBuilders.mapValues { it.value.invoke() }
+    }
 
     /**
      * Registers a mock for an external service specified by [hosts] and configured with [block].
@@ -93,10 +100,14 @@ public class ExternalServicesBuilder {
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
-        val application = TestApplication { applicationModules.add(block) }
         hosts.forEach {
             val protocolWithAuthority = Url(it).protocolWithAuthority
-            externalApplications[protocolWithAuthority] = application
+            externalApplicationBuilders[protocolWithAuthority] = {
+                TestApplication {
+                    environment(this@ExternalServicesBuilder.testApplicationBuilder.environmentBuilder)
+                    applicationModules.add(block)
+                }
+            }
         }
     }
 }
@@ -109,7 +120,7 @@ public open class TestApplicationBuilder {
 
     private var built = false
 
-    internal val externalServices = ExternalServicesBuilder()
+    internal val externalServices = ExternalServicesBuilder(this)
     internal val applicationModules = mutableListOf<Application.() -> Unit>()
     internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
     internal val job = Job()

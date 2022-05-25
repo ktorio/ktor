@@ -98,6 +98,27 @@ class TestApplicationTestJvm {
         assertEquals("OK FROM MODULE", response.bodyAsText())
     }
 
+    @Test
+    fun testExternalServicesCustomConfig() = testApplication {
+       environment {
+           config = ApplicationConfig("application-custom.conf")
+       }
+        externalServices {
+            hosts("http://www.google.com") {
+                val config = environment.config
+                routing {
+                    get {
+                        val configValue = config.propertyOrNull("ktor.test")?.getString() ?: "no value"
+                        call.respond(configValue)
+                    }
+                }
+            }
+        }
+
+        val external = client.get("http://www.google.com")
+        assertEquals("another_test_value", external.bodyAsText())
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
