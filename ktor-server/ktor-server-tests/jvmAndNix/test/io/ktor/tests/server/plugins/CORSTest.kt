@@ -1186,4 +1186,79 @@ class CORSTest {
             assertEquals(expectedMessage, exception.message)
         }
     }
+
+    @Test
+    fun testOriginPredicatesSimpleRequest() {
+        withTestApplication {
+            application.install(CORS) {
+                allowOrigins { it == "https://allowed-host" }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://allowed-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("https://allowed-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://forbidden-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://allowed-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testOriginPredicatesRegex() {
+        withTestApplication {
+            application.install(CORS) {
+                allowOrigins { it.matches(Regex("^https?://host\\.(?:com|org)$")) }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://host.com")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("https://host.com", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://host.org")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://host.org", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://host.net")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+        }
+    }
 }

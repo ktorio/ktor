@@ -8,6 +8,7 @@ public final class io/ktor/server/plugins/cors/CORSConfig {
 	public final fun allowHost (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
 	public static synthetic fun allowHost$default (Lio/ktor/server/plugins/cors/CORSConfig;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)V
 	public final fun allowMethod (Lio/ktor/http/HttpMethod;)V
+	public final fun allowOrigins (Lkotlin/jvm/functions/Function1;)V
 	public final fun allowXHttpMethodOverride ()V
 	public final fun anyHost ()V
 	public final fun exposeHeader (Ljava/lang/String;)V
