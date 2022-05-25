@@ -44,6 +44,20 @@ class DarwinEngineTest {
     }
 
     @Test
+    fun testQueryWithMultipleParams() = runBlocking {
+        val client = HttpClient(Darwin)
+
+        try {
+            withTimeout(1000) {
+                val response = client.get("$TEST_SERVER/echo_query?asd=qwe&asd=123&qwe&zxc=vbn")
+                assertEquals("asd=[qwe, 123], qwe=[], zxc=[vbn]", response.bodyAsText())
+            }
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
     fun testNSUrlSanitize() {
         assertEquals(
             "http://127.0.0.1/echo_query?%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82",
