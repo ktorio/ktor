@@ -1,3 +1,42 @@
+# 2.0.2
+> Published 27 May 2022
+
+* [iOS] Prevent HttpClient from persisting cookies across requests ([KTOR-3748](https://youtrack.jetbrains.com/issue/KTOR-3748))
+* Web feedback from "Creating HTTP APIs", https://ktor.io/docs/creating-http-apis.html ([KTOR-4380](https://youtrack.jetbrains.com/issue/KTOR-4380))
+* When returning a String, content negotiation is ignored ([KTOR-662](https://youtrack.jetbrains.com/issue/KTOR-662))
+* HttpResponse.bodyAsChannel should not be converted by ContentNegotiation ([KTOR-4341](https://youtrack.jetbrains.com/issue/KTOR-4341))
+* Strings are not decoded when received as application/json ([KTOR-385](https://youtrack.jetbrains.com/issue/KTOR-385))
+* Document how to enable/disable HTTP/2 for different client engines ([KTOR-4340](https://youtrack.jetbrains.com/issue/KTOR-4340))
+* Revert Dokka to 1.6.10 due to Publication Freeze ([KTOR-4290](https://youtrack.jetbrains.com/issue/KTOR-4290))
+* Document a new memory model in KMM tutorial ([KTOR-4354](https://youtrack.jetbrains.com/issue/KTOR-4354))
+* Make client docs less JVM-centric ([KTOR-4351](https://youtrack.jetbrains.com/issue/KTOR-4351))
+* Darwin engine: Client connection is closed after each request ([KTOR-4145](https://youtrack.jetbrains.com/issue/KTOR-4145))
+* Ios: NullPointerException when query parameters contain cyrillic symbols in values ([KTOR-1858](https://youtrack.jetbrains.com/issue/KTOR-1858))
+* A native application with the Darwin engine doesn't make a request ([KTOR-3900](https://youtrack.jetbrains.com/issue/KTOR-3900))
+* Darwin and Kotlin/JS: "List has more than one element" error when header like Content-type is duplicated in a response ([KTOR-4105](https://youtrack.jetbrains.com/issue/KTOR-4105))
+* Invalid response without error ([KTOR-369](https://youtrack.jetbrains.com/issue/KTOR-369))
+* Invalid HTTP version should fail ([KTOR-380](https://youtrack.jetbrains.com/issue/KTOR-380))
+* The colon after the host parameter requires a port ([KTOR-382](https://youtrack.jetbrains.com/issue/KTOR-382))
+* Kotlin/Native: testApplication's client sometimes fails to receive ByteArray response from a route ([KTOR-4197](https://youtrack.jetbrains.com/issue/KTOR-4197))
+* "Application started" is never printed ([KTOR-4319](https://youtrack.jetbrains.com/issue/KTOR-4319))
+* Default request without explicit port sets port 80 for all requests ([KTOR-4281](https://youtrack.jetbrains.com/issue/KTOR-4281))
+* Documentation about how to configure libcurl on Windows ([KTOR-3988](https://youtrack.jetbrains.com/issue/KTOR-3988))
+* API Docs reference RFCs. Better to reference our own documentation ([KTOR-3764](https://youtrack.jetbrains.com/issue/KTOR-3764))
+* UninitializedPropertyAccessException in the handleResponseExceptionWithRequest when request or response are accessed through  ([KTOR-4230](https://youtrack.jetbrains.com/issue/KTOR-4230))HttpClientCall
+* The original exception is swallowed by "No request transformation found" exception when request body is serializable object ([KTOR-4160](https://youtrack.jetbrains.com/issue/KTOR-4160))
+* IncorrectDereferenceException when trying to create HttpClient from background thread on iOS ([KTOR-4263](https://youtrack.jetbrains.com/issue/KTOR-4263))
+* JacksonWebsocketContentConverter.deserialize just doesn't work ([KTOR-4248](https://youtrack.jetbrains.com/issue/KTOR-4248))
+* Documentation for migration of Authentication server plugin ([KTOR-4253](https://youtrack.jetbrains.com/issue/KTOR-4253))
+* Add sample for the AuthenticationChecked hook ([KTOR-4278](https://youtrack.jetbrains.com/issue/KTOR-4278))
+* Web feedback from "Docker", https://ktor.io/docs/docker.html ([KTOR-4282](https://youtrack.jetbrains.com/issue/KTOR-4282))
+* Route's path parameters are empty when ApplicationCall.authentication is first accessed in a different ApplicationCall context ([KTOR-4250](https://youtrack.jetbrains.com/issue/KTOR-4250))
+* Routes with tailcard should not count for specific http error codes ([KTOR-4280](https://youtrack.jetbrains.com/issue/KTOR-4280))
+* Documentation for appending query parameters for URL in the DefaultRequest ([KTOR-4252](https://youtrack.jetbrains.com/issue/KTOR-4252))
+* Routing returns 405 even for not completely matched paths ([KTOR-4267](https://youtrack.jetbrains.com/issue/KTOR-4267))
+* Resources: builder methods return routes with PathSegmentConstantRouteSelector instead of HttpMethodRouteSelector ([KTOR-4239](https://youtrack.jetbrains.com/issue/KTOR-4239))
+* Update Netty to 4.1.77.Final ([KTOR-4339](https://youtrack.jetbrains.com/issue/KTOR-4339))
+* External services should use config from environment ([KTOR-4373](https://youtrack.jetbrains.com/issue/KTOR-4373))
+
 # 2.0.1
 > Published 28 April 2022
 
