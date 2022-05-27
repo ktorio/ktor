@@ -36,6 +36,7 @@
 * Resources: builder methods return routes with PathSegmentConstantRouteSelector instead of HttpMethodRouteSelector ([KTOR-4239](https://youtrack.jetbrains.com/issue/KTOR-4239))
 * Update Netty to 4.1.77.Final ([KTOR-4339](https://youtrack.jetbrains.com/issue/KTOR-4339))
 * External services should use config from environment ([KTOR-4373](https://youtrack.jetbrains.com/issue/KTOR-4373))
+* Update Jackson to 2.13.3 ([KTOR-4394](https://youtrack.jetbrains.com/issue/KTOR-4394))
 
 # 2.0.1
 > Published 28 April 2022
