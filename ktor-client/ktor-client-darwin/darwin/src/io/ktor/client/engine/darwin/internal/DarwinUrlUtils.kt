@@ -37,7 +37,7 @@ internal fun Url.toNSUrl(): NSURL {
         else -> host.sanitize(NSCharacterSet.URLHostAllowedCharacterSet)
     }
     if (port != DEFAULT_PORT && port != protocol.defaultPort) {
-        components.port = NSNumber(port)
+        components.port = NSNumber(int = port)
     }
 
     components.percentEncodedPath = when {
