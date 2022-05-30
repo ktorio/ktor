@@ -105,6 +105,7 @@ public class ContentNegotiation internal constructor(
 
                 val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
                     .takeIf { it.isNotEmpty() } ?: return@intercept
+                if (context.bodyType == null) return@intercept
                 context.headers.remove(HttpHeaders.ContentType)
 
                 // Pick the first one that can convert the subject successfully

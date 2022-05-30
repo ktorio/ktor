@@ -4,12 +4,13 @@
 
 package io.ktor.server.plugins
 
+import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.doublereceive.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -87,5 +88,21 @@ class ContentNegotiationTest {
         }.let { call ->
             assertEquals("parts: [field1]", call.response.content)
         }
+    }
+
+    @Test
+    fun testRespondByteArray() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+                }
+                get("/") {
+                    call.respond("test".toByteArray())
+                }
+            }
+        }
+        val response = client.get("/").body<ByteArray>()
+        assertContentEquals("test".toByteArray(), response)
     }
 }
