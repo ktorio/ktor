@@ -1,0 +1,17 @@
+<svg width="400" height="254" viewBox="0 0 612 254" xmlns="http://www.w3.org/2000/svg">
+  <linearGradient id="gradient" x1="0" x2="0" y1="60.104" y2="299.106" gradientTransform="matrix(.707 -.707 .707 .707 0 0)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#00b0ff"/>
+    <stop offset=".165" stop-color="#00aeff"/>
+    <stop offset=".499" stop-color="#955ff9"/>
+    <stop offset=".762" stop-color="#e87353"/>
+    <stop offset="1" stop-color="#ff8900"/>
+  </linearGradient>
+  <path d="m0 85 85-85 169 169-85 85z" fill="url(#gradient)"/>
+  <path d="m84 85h86v84h-86z"/>
+  <g fill="#000">
+    <path d="m560 83v83h23v-30s-.938-30 27-30v-25.01s-19.93-.831-27 19.01v-17z"/>
+    <path d="m501 80.99c24.853 0 45 19.478 45 43.505s-20.147 43.505-45 43.505-45-19.478-45-43.505 20.147-43.505 45-43.505zm0 20.01c-12.15 0-22 10.521-22 23.5s9.85 23.5 22 23.5 22-10.521 22-23.5-9.85-23.5-22-23.5z"/>
+    <path d="m395 83v20h10v41s-.867 25.763 24 23c18-2 19-5 19-5v-19s-19 11-19-5c0-19 0-35 0-35h19v-20h-19v-21h-24v21z"/>
+    <path d="m298 57h23v48l44-48h29l-43 46 45 63h-28l-34-46-12 13v33h-24z"/>
+  </g>
+</svg>
