@@ -56,14 +56,14 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeInfo<T>())!!
+public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())!!
 
 /**
  * Receives content for this request.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = receive(typeInfo<T>())
+public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = receiveNullable(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -73,7 +73,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
-    return receive(TypeInfo(type, kotlinType.platformType, kotlinType))!!
+    return receiveNullable(TypeInfo(type, kotlinType.platformType, kotlinType))!!
 }
 
 /**
@@ -82,7 +82,7 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T? {
+public suspend fun <T> ApplicationCall.receiveNullable(typeInfo: TypeInfo): T? {
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
     if (token == null) {
         attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
@@ -103,12 +103,21 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T? {
 
 /**
  * Receives content for this request.
+ * @param typeInfo instance specifying type to be received.
+ * @return instance of [T] received from this call.
+ * @throws ContentTransformationException when content cannot be transformed to the requested type.
+ * @throws NullPointerException when content is `null`.
+ */
+public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
+
+/**
+ * Receives content for this request.
  * @param [typeInfo] type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
-        receive(typeInfo)
+        receiveNullable(typeInfo)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null

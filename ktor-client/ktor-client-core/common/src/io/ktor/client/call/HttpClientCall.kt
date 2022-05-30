@@ -74,7 +74,7 @@ public open class HttpClientCall(
      * @throws DoubleReceiveException If already called [body].
      */
     @OptIn(InternalAPI::class)
-    public suspend fun body(info: TypeInfo): Any? {
+    public suspend fun bodyNullable(info: TypeInfo): Any? {
         try {
             if (response.instanceOf(info.type)) return response
             if (!allowDoubleReceive && !received.compareAndSet(false, true)) {
@@ -101,6 +101,17 @@ public open class HttpClientCall(
             response.complete()
         }
     }
+
+    /**
+     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
+     * Returns [response] if [info] corresponds to [HttpResponse].
+     *
+     * @throws NoTransformationFoundException If no transformation is found for the type [info].
+     * @throws DoubleReceiveException If already called [body].
+     * @throws NullPointerException If content is `null`.
+     */
+    @OptIn(InternalAPI::class)
+    public suspend fun body(info: TypeInfo): Any = bodyNullable(info)!!
 
     override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
 
@@ -133,7 +144,7 @@ public open class HttpClientCall(
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpClientCall.body(): T = bodyNullable(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
@@ -141,7 +152,7 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpResponse.body(): T = call.bodyNullable(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
@@ -150,7 +161,7 @@ public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInf
  * @throws DoubleReceiveException If already called [body].
  */
 @Suppress("UNCHECKED_CAST")
-public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.body(typeInfo) as T
+public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.bodyNullable(typeInfo) as T
 
 /**
  * Exception representing that the response payload has already been received.
