@@ -43,6 +43,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
             if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
         }
+    val originPredicates: List<(String) -> Boolean> = pluginConfig.originPredicates
     val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
     val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
     val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
@@ -91,6 +92,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             allowsAnyHost,
             hostsNormalized,
             hostsWithWildcard,
+            originPredicates,
             numberRegex
         )
         when (checkOrigin) {
@@ -153,6 +155,7 @@ private fun checkOrigin(
     allowsAnyHost: Boolean,
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
+    originPredicates: List<(String) -> Boolean>,
     numberRegex: Regex
 ): OriginCheckResult =
     when {
@@ -163,6 +166,7 @@ private fun checkOrigin(
             allowsAnyHost,
             hostsNormalized,
             hostsWithWildcard,
+            originPredicates,
             numberRegex
         ) -> OriginCheckResult.Failed
         else -> OriginCheckResult.OK
@@ -251,12 +255,13 @@ private fun corsCheckOrigins(
     allowsAnyHost: Boolean,
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
+    originPredicates: List<(String) -> Boolean>,
     numberRegex: Regex
 ): Boolean {
     val normalizedOrigin = normalizeOrigin(origin, numberRegex)
     return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
         normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
-    }
+    } || originPredicates.any { it(origin) }
 }
 
 private fun corsCheckRequestHeaders(

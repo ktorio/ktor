@@ -97,6 +97,11 @@ public class CORSConfig {
     public var allowCredentials: Boolean = false
 
     /**
+     * If present allows any origin matching any of the predicates.
+     */
+    internal val originPredicates: MutableList<(String) -> Boolean> = mutableListOf()
+
+    /**
      * If present represents the prefix for headers which are permitted in CORS requests.
      */
     public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
@@ -191,6 +196,13 @@ public class CORSConfig {
     @Suppress("unused")
     public fun allowXHttpMethodOverride() {
         allowHeader(HttpHeaders.XHttpMethodOverride)
+    }
+
+    /**
+     * Allows using an origin matching [predicate] for the actual [CORS] request.
+     */
+    public fun allowOrigins(predicate: (String) -> Boolean) {
+        this.originPredicates.add(predicate)
     }
 
     /**
