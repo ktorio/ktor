@@ -46,6 +46,8 @@ fun Project.filterSnapshotTests() {
 }
 
 fun Project.setupTrainForSubproject() {
+    if (COMMON_JVM_ONLY) return
+
     val build_snapshot_train: Boolean? by extra
     if (build_snapshot_train != true) return
 

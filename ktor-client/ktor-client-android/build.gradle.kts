@@ -1,3 +1,5 @@
+apply<test.server.TestServerPlugin>()
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlin.test.*
 
 fun Application.cookiesTest() {
     routing {
@@ -40,11 +39,11 @@ fun Application.cookiesTest() {
             }
             get("/multiple") {
                 val cookies = context.request.cookies
-                val first = cookies["first"] ?: fail()
-                val second = cookies["second"] ?: fail()
+                val first = cookies["first"] ?: error("First cookie not found")
+                val second = cookies["second"] ?: error("Second cookie not found")
 
-                assertEquals("first-cookie", first)
-                assertEquals("second-cookie", second)
+                check("first-cookie" == first)
+                check("second-cookie" == second)
                 context.respond("Multiple done")
             }
             get("/withPath") {
@@ -82,11 +81,11 @@ fun Application.cookiesTest() {
             }
             get("/multiple-comma") {
                 val cookies = context.request.cookies
-                val first = cookies["fir,st"] ?: fail()
-                val second = cookies["sec,ond"] ?: fail()
+                val first = cookies["fir,st"] ?: error("First not found")
+                val second = cookies["sec,ond"] ?: error("Second not found")
 
-                assertEquals("first, cookie", first)
-                assertEquals("second, cookie", second)
+                check("first, cookie" == first)
+                check("second, cookie" == second)
 
                 with(context.response.cookies) {
                     append(Cookie("third", "third cookie", domain = "127.0.0.1", path = "/"))
@@ -95,14 +94,14 @@ fun Application.cookiesTest() {
                 context.respond("Multiple done")
             }
             get("/encoded") {
-                context.respond(context.request.header(HttpHeaders.Cookie) ?: fail())
+                context.respond(context.request.header(HttpHeaders.Cookie) ?: error("Cookie header not found"))
             }
             get("/respond-single-cookie") {
-                context.respond(context.request.cookies["single"] ?: fail())
+                context.respond(context.request.cookies["single"] ?: error("Cookie single not found"))
             }
             get("/respond-a-minus-b") {
-                val a = context.request.cookies["a"]?.toInt() ?: fail()
-                val b = context.request.cookies["b"]?.toInt() ?: fail()
+                val a = context.request.cookies["a"]?.toInt() ?: error("Cookie a not found")
+                val b = context.request.cookies["b"]?.toInt() ?: error("Cookie b not found")
 
                 context.respond((a - b).toString())
             }

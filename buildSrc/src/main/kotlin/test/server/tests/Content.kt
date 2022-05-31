@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlin.test.*
+import test.server.*
 
 internal fun Application.contentTestServer() {
     routing {
@@ -52,23 +52,23 @@ internal fun Application.contentTestServer() {
             get("/news") {
                 val form = call.request.queryParameters
 
-                assertEquals("myuser", form["user"]!!)
-                assertEquals("10", form["page"]!!)
+                check("myuser" == form["user"]!!)
+                check("10" == form["page"]!!)
 
                 call.respond("100")
             }
             post("/sign") {
                 val form = call.receiveParameters()
 
-                assertEquals("myuser", form["user"]!!)
-                assertEquals("abcdefg", form["token"]!!)
+                check("myuser" == form["user"]!!)
+                check("abcdefg" == form["token"]!!)
 
                 call.respond("success")
             }
             post("/upload") {
                 val parts = call.receiveMultipart().readAllParts()
                 parts.forEach { part ->
-                    assertEquals(part.contentDisposition?.disposition, "form-data")
+                    check(part.contentDisposition?.disposition == "form-data")
                 }
 
                 call.respondText(parts.makeString())

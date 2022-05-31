@@ -21,15 +21,12 @@ val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.
 val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop
 
 fun Project.configureTargets() {
-    val coroutines_version: String by extra
-    val kotlin_version: String by extra
+    configureCommon()
+    if (hasJvm) configureJvm()
+
+    if (COMMON_JVM_ONLY) return
 
     kotlin {
-        if (hasJvm) {
-            jvm()
-            configureJvm()
-        }
-
         if (hasJs) {
             js {
                 nodejs()
@@ -42,18 +39,6 @@ fun Project.configureTargets() {
         if (hasPosix || hasDarwin) extra.set("hasNative", true)
 
         sourceSets {
-            val commonMain by getting {
-                dependencies {
-                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-                }
-            }
-
-            val commonTest by getting {
-                dependencies {
-                    implementation(kotlin("test"))
-                }
-            }
-
             if (hasPosix) {
                 val posixMain by creating
                 val posixTest by creating
@@ -116,8 +101,8 @@ fun Project.configureTargets() {
                 }
 
                 posixTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(posixMain)
-                    getByName("${it.name}Test").dependsOn(posixTest)
+                    getByName("${it}Main").dependsOn(posixMain)
+                    getByName("${it}Test").dependsOn(posixTest)
                 }
             }
 
@@ -133,8 +118,8 @@ fun Project.configureTargets() {
                 }
 
                 nixTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(nixMain)
-                    getByName("${it.name}Test").dependsOn(nixTest)
+                    getByName("${it}Main").dependsOn(nixMain)
+                    getByName("${it}Test").dependsOn(nixTest)
                 }
             }
 
@@ -158,28 +143,28 @@ fun Project.configureTargets() {
                 watchosMain.dependsOn(darwinMain)
 
                 macosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(macosMain)
-                    getByName("${it.name}Test").dependsOn(macosTest)
+                    getByName("${it}Main").dependsOn(macosMain)
+                    getByName("${it}Test").dependsOn(macosTest)
                 }
 
                 iosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(iosMain)
-                    getByName("${it.name}Test").dependsOn(iosTest)
+                    getByName("${it}Main").dependsOn(iosMain)
+                    getByName("${it}Test").dependsOn(iosTest)
                 }
 
                 watchosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(watchosMain)
-                    getByName("${it.name}Test").dependsOn(watchosTest)
+                    getByName("${it}Main").dependsOn(watchosMain)
+                    getByName("${it}Test").dependsOn(watchosTest)
                 }
 
                 tvosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(tvosMain)
-                    getByName("${it.name}Test").dependsOn(tvosTest)
+                    getByName("${it}Main").dependsOn(tvosMain)
+                    getByName("${it}Test").dependsOn(tvosTest)
                 }
 
                 darwinTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(darwinMain)
-                    getByName("${it.name}Test").dependsOn(darwinTest)
+                    getByName("${it}Main").dependsOn(darwinMain)
+                    getByName("${it}Test").dependsOn(darwinTest)
                 }
             }
 
@@ -191,8 +176,8 @@ fun Project.configureTargets() {
                 val desktopTest by getting
 
                 desktopTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(desktopMain)
-                    getByName("${it.name}Test").dependsOn(desktopTest)
+                    getByName("${it}Main").dependsOn(desktopMain)
+                    getByName("${it}Test").dependsOn(desktopTest)
                 }
             }
 
