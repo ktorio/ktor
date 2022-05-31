@@ -7,6 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -31,6 +32,11 @@ class CIORequestTest : TestWithKtor() {
 
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
+            param("param") {
+                get {
+                    call.respond(call.parameters["param"]!!)
+                }
+            }
             get("/") {
                 val longHeader = call.request.headers["LongHeader"]!!
                 call.respond(
@@ -42,7 +48,6 @@ class CIORequestTest : TestWithKtor() {
             get("/echo") {
                 call.respond("OK")
             }
-
             get("/delay") {
                 delay(1000)
                 call.respond("OK")
@@ -115,6 +120,18 @@ class CIORequestTest : TestWithKtor() {
                 header("LongHeader", headerValue)
             }.execute { response ->
                 assertEquals(headerValue, response.headers["LongHeader"])
+            }
+        }
+    }
+
+    @Test
+    fun testParameterWithoutPath() = testWithEngine(CIO) {
+        test { client ->
+            client.prepareGet {
+                url(port = serverPort)
+                parameter("param", "value")
+            }.execute { response ->
+                assertEquals("value", response.bodyAsText())
             }
         }
     }
