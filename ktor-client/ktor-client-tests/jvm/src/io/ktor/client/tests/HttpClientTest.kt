@@ -27,7 +27,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-public abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
@@ -44,7 +44,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     }
 
     @Test
-    public fun testWithNoParentJob() {
+    fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.prepareGet("http://localhost:$serverPort/hello")
@@ -68,7 +68,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     }
 
     @Test
-    public fun configCopiesOldPluginsAndInterceptors() {
+    fun configCopiesOldPluginsAndInterceptors() {
         val customPluginKey = AttributeKey<Boolean>("customPlugin")
         val anotherCustomPluginKey = AttributeKey<Boolean>("anotherCustomPlugin")
 

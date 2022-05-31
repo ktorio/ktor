@@ -1,15 +1,19 @@
 
-kotlin.sourceSets {
-    darwinMain {
-        dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+kotlin {
+    fastTarget()
+
+    sourceSets {
+        darwinMain {
+            dependencies {
+                api(project(":ktor-client:ktor-client-core"))
+            }
         }
-    }
-    val darwinTest by getting {
-        dependencies {
-            api(project(":ktor-client:ktor-client-tests"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
+        darwinTest {
+            dependencies {
+                api(project(":ktor-client:ktor-client-tests"))
+                api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
+                api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
+            }
         }
     }
 }

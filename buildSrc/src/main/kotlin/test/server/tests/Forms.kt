@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlin.test.*
 
 internal fun Application.fullFormTest() {
     routing {
@@ -18,7 +17,8 @@ internal fun Application.fullFormTest() {
                 call.respondText("Hello, client")
             }
             post("/hello") {
-                assertEquals("Hello, server", call.receive())
+                val value = call.receive<String>()
+                check("Hello, server" == value) { "Received: $value" }
                 call.respondText("Hello, client")
             }
             get("/custom") {

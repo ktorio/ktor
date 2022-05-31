@@ -23,7 +23,7 @@ kotlin.sourceSets {
         }
     }
 
-    val jvmAndNixTest by getting {
+    jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(libs.logback.classic)

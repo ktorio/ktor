@@ -1,8 +1,8 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-package io.ktor.client.tests.utils
+package test.server
 
 import ch.qos.logback.classic.*
 import io.ktor.client.tests.utils.tests.*
@@ -14,14 +14,13 @@ import org.slf4j.*
 import java.io.*
 import java.util.concurrent.*
 
+val TEST_SERVER: String = "http://127.0.0.1:8080"
+
 private const val DEFAULT_PORT: Int = 8080
 private const val DEFAULT_TLS_PORT: Int = 8089
 private const val HTTP_PROXY_PORT: Int = 8082
 
 internal fun startServer(): Closeable {
-    val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-    logger.level = Level.ERROR
-
     val scope = CloseableGroup()
     try {
         val tcpServer = TestTcpServer(HTTP_PROXY_PORT, ::tcpServerHandler)
@@ -43,19 +42,6 @@ internal fun startServer(): Closeable {
     }
 
     return scope
-}
-
-/**
- * Start server for tests.
- */
-public fun main() {
-    val handler = startServer()
-    try {
-        while (!Thread.interrupted()) {
-        }
-    } finally {
-        handler.close()
-    }
 }
 
 private fun setupTLSServer(): ApplicationEngine {

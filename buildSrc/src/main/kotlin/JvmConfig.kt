@@ -23,6 +23,8 @@ fun Project.configureJvm() {
     val configuredVersion: String by rootProject.extra
 
     kotlin {
+        jvm()
+
         sourceSets.apply {
             val jvmMain by getting {
                 dependencies {

@@ -3,3 +3,5 @@
  */
 
 useJdkVersionForJvmTests(11)
+
+apply<test.server.TestServerPlugin>()

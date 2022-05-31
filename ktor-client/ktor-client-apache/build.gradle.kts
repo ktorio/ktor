@@ -1,5 +1,7 @@
 description = "Apache backend for ktor http client"
 
+apply<test.server.TestServerPlugin>()
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

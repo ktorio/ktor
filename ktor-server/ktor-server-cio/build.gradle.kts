@@ -9,7 +9,7 @@ kotlin.sourceSets {
             api(project(":ktor-network"))
         }
     }
-    val jvmAndNixTest by getting {
+    jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-cio"))

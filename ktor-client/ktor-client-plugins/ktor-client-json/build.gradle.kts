@@ -8,6 +8,8 @@ plugins {
     id("kotlinx-serialization")
 }
 
+apply<test.server.TestServerPlugin>()
+
 kotlin {
     sourceSets {
         // This is a workaround for https://youtrack.jetbrains.com/issue/KT-39037

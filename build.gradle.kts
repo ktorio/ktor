@@ -3,6 +3,8 @@
  */
 
 import org.jetbrains.dokka.gradle.*
+import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.targets.js.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -121,46 +123,11 @@ allprojects {
     }
 
     kotlin {
-        targets.all {
+        if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
 
-            if (this is org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget) {
-                irTarget?.compilations?.all {
-                    configureCompilation()
-                }
-            }
-            compilations.all {
-                configureCompilation()
-            }
-        }
-
-        if (!disabledExplicitApiModeProjects.contains(project.name)) {
-            explicitApi()
-        }
-
-        sourceSets
-            .matching { it.name !in listOf("main", "test") }
-            .all {
-                val srcDir = if (name.endsWith("Main")) "src" else "test"
-                val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
-                val platform = name.dropLast(4)
-
-                kotlin.srcDir("$platform/$srcDir")
-                resources.srcDir("$platform/${resourcesPrefix}resources")
-
-                languageSettings.apply {
-                    progressiveMode = true
-                }
-            }
-
-        val jdk = when (name) {
-            in jdk11Modules -> 11
-            else -> 8
-        }
-
-        jvmToolchain {
-            check(this is JavaToolchainSpec)
-            languageVersion.set(JavaLanguageVersion.of(jdk))
-        }
+        setCompilationOptions()
+        configureSourceSets()
+        setupJvmToolchain()
     }
 
     val skipPublish: List<String> by rootProject.extra
@@ -176,27 +143,84 @@ subprojects {
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 
-allprojects {
-    plugins.apply("org.jetbrains.dokka")
+fun configureDokka() {
+    if (COMMON_JVM_ONLY) return
 
-    val dokkaPlugin by configurations
-    dependencies {
-        dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
+    allprojects {
+        plugins.apply("org.jetbrains.dokka")
+
+        val dokkaPlugin by configurations
+        dependencies {
+            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.6.10")
+        }
+    }
+
+    val dokkaOutputDir = "../versions"
+
+    tasks.withType<DokkaMultiModuleTask> {
+        val mapOf = mapOf(
+            "org.jetbrains.dokka.versioning.VersioningPlugin" to
+                """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
+        )
+
+        outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
+        pluginsMapConfiguration.set(mapOf)
+    }
+
+    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
     }
 }
 
-val dokkaOutputDir = "../versions"
+configureDokka()
 
-tasks.withType<DokkaMultiModuleTask> {
-    val mapOf = mapOf(
-        "org.jetbrains.dokka.versioning.VersioningPlugin" to
-            """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
-    )
+fun Project.setupJvmToolchain() {
+    val jdk = when (project.name) {
+        in jdk11Modules -> 11
+        else -> 8
+    }
 
-    outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
-    pluginsMapConfiguration.set(mapOf)
+    kotlin {
+        jvmToolchain {
+            check(this is JavaToolchainSpec)
+            languageVersion.set(JavaLanguageVersion.of(jdk))
+        }
+    }
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
+fun KotlinMultiplatformExtension.setCompilationOptions() {
+    targets.all {
+        if (this is KotlinJsTarget) {
+            irTarget?.compilations?.all {
+                configureCompilation()
+            }
+        }
+        compilations.all {
+            configureCompilation()
+        }
+    }
+}
+
+fun KotlinMultiplatformExtension.configureSourceSets() {
+    sourceSets
+        .matching { it.name !in listOf("main", "test") }
+        .all {
+            val srcDir = if (name.endsWith("Main")) "src" else "test"
+            val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
+            val platform = name.dropLast(4)
+
+            kotlin.srcDir("$platform/$srcDir")
+            resources.srcDir("$platform/${resourcesPrefix}resources")
+
+            languageSettings.apply {
+                progressiveMode = true
+            }
+        }
+
+    if (!COMMON_JVM_ONLY) return
+
+    sourceSets {
+        findByName("jvmMain")?.kotlin?.srcDirs("jvmAndNix/src")
+        findByName("jvmTest")?.kotlin?.srcDirs("jvmAndNix/test")
+    }
 }
