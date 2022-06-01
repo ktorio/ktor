@@ -32,7 +32,7 @@ class ContentNegotiationTest {
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): OutgoingContent? {
             if (value !is Wrapper) return null
             return TextContent("[${value.value}]", contentType.withCharset(charset))
@@ -49,7 +49,7 @@ class ContentNegotiationTest {
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): OutgoingContent? {
             if (value !is Wrapper) return null
             return TextContent(value.value, contentType.withCharset(charset))
@@ -66,7 +66,7 @@ class ContentNegotiationTest {
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): OutgoingContent? {
             fail("This converter should be never started for send")
         }
