@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.resources.serialization
@@ -28,8 +28,10 @@ internal class ParametersDecoder(
         while (parameterNames.hasNext()) {
             currentName = parameterNames.next()
             val elementIndex = descriptor.getElementIndex(currentName)
-            val isPrimitive = descriptor.getElementDescriptor(elementIndex).kind is PrimitiveKind
-            if (!isPrimitive || parameters.contains(currentName)) {
+            val elementDescriptorKind = descriptor.getElementDescriptor(elementIndex).kind
+            val isPrimitive = elementDescriptorKind is PrimitiveKind
+            val isEnum = elementDescriptorKind is SerialKind.ENUM
+            if (!(isPrimitive || isEnum) || parameters.contains(currentName)) {
                 return elementIndex
             }
         }
