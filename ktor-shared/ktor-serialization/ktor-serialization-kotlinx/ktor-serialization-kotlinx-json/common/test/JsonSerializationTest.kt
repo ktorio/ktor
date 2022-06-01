@@ -4,6 +4,7 @@
 package io.ktor.serialization.kotlinx.test.json
 
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
@@ -110,7 +111,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     fun testExtraFields() = testSuspend {
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val dogExtraFieldJson = """{"age": 8,"name":"Auri","color":"Black"}"""
-        assertFailsWith<SerializationException> {
+        assertFailsWith<JsonConvertException> {
             testSerializer.deserialize(
                 Charsets.UTF_8,
                 typeInfo<DogDTO>(),
