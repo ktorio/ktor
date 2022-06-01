@@ -31,7 +31,7 @@ public interface WebsocketContentConverter {
     public suspend fun serialize(
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): Frame
 
     /**
@@ -40,7 +40,7 @@ public interface WebsocketContentConverter {
      * @return a converted value (deserialized) or throws `WebsocketConverterNotFoundException` if the context's
      * subject is not suitable for this converter
      */
-    public suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any
+    public suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any?
 
     /**
      * Checks if the content converter can deserialize a [frame]
@@ -65,7 +65,7 @@ public interface WebsocketContentConverter {
 public suspend inline fun <reified T> WebsocketContentConverter.serialize(
     value: T,
     charset: Charset = Charsets.UTF_8
-): Frame = serialize(charset, typeInfo<T>(), value as Any)
+): Frame = serialize(charset, typeInfo<T>(), value)
 
 /**
  * Deserializes [content] to the value of type [T]

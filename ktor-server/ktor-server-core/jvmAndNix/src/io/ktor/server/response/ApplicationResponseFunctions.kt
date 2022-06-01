@@ -30,6 +30,18 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
 }
 
 /**
+ * Sends a [message] as a response.
+ * @see [io.ktor.server.response.ApplicationResponse]
+ */
+@OptIn(InternalAPI::class)
+public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
+    if (message !is OutgoingContent && message !is ByteArray) {
+        response.responseType = typeInfo<T>()
+    }
+    response.pipeline.execute(this, message ?: NullBody)
+}
+
+/**
  * Sends a [message] as a response with the specified [status] code.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
@@ -37,6 +49,15 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
 public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
     response.status(status)
     respond(message)
+}
+
+/**
+ * Sends a [message] as a response with the specified [status] code.
+ * @see [io.ktor.server.response.ApplicationResponse]
+ */
+public suspend inline fun <reified T> ApplicationCall.respondNullable(status: HttpStatusCode, message: T) {
+    response.status(status)
+    respondNullable(message)
 }
 
 /**

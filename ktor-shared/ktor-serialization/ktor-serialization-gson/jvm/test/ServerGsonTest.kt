@@ -6,7 +6,6 @@ import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.ContentTransformationException
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -167,12 +166,8 @@ class ServerGsonTest {
 
         application.routing {
             post("/") {
-                val result = try {
-                    call.receive<NullValues>().toString()
-                } catch (expected: ContentTransformationException) {
-                    "OK"
-                }
-                call.respondText(result)
+                val result = call.receiveNullable<NullValues?>() ?: "OK"
+                call.respondText(result.toString())
             }
         }
 

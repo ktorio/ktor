@@ -20,7 +20,7 @@ import io.ktor.websocket.*
  * @param converter The WebSocket converter
  * @param charset Response charset
  */
-public suspend inline fun <reified T : Any> WebSocketSession.sendSerializedBase(
+public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
     data: T,
     converter: WebsocketContentConverter,
     charset: Charset
@@ -45,10 +45,10 @@ public suspend inline fun <reified T : Any> WebSocketSession.sendSerializedBase(
  * @returns A deserialized value or throws [WebsocketDeserializeException] if the [converter]
  * can't deserialize frame data to type [T]
  */
-public suspend inline fun <reified T : Any> WebSocketSession.receiveDeserializedBase(
+public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
     converter: WebsocketContentConverter,
     charset: Charset
-): T {
+): Any? {
     val frame = incoming.receive()
 
     if (!converter.isApplicable(frame)) {
@@ -58,13 +58,18 @@ public suspend inline fun <reified T : Any> WebSocketSession.receiveDeserialized
         )
     }
 
+    val typeInfo = typeInfo<T>()
     val result = converter.deserialize(
         charset = charset,
-        typeInfo = typeInfo<T>(),
+        typeInfo = typeInfo,
         content = frame
     )
 
     if (result is T) return result
+    if (result == null) {
+        if (typeInfo.kotlinType?.isMarkedNullable == true) return result
+        throw WebsocketDeserializeException("Frame has null content", frame = frame)
+    }
 
     throw WebsocketDeserializeException(
         "Can't deserialize value : expected value of type ${T::class.simpleName}," +

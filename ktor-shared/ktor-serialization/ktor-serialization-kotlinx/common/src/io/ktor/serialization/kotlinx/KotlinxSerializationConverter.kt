@@ -34,7 +34,7 @@ public class KotlinxSerializationConverter(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): OutgoingContent {
         return serializationBase.serialize(
             SerializationNegotiationParameters(
@@ -51,13 +51,17 @@ public class KotlinxSerializationConverter(
         val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
         val contentPacket = content.readRemaining()
 
-        return when (format) {
-            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
-            else -> {
-                contentPacket.discard()
-                error("Unsupported format $format")
+        try {
+            return when (format) {
+                is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+                is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
+                else -> {
+                    contentPacket.discard()
+                    error("Unsupported format $format")
+                }
             }
+        } catch (cause: Throwable) {
+            throw JsonConvertException("Illegal input", cause)
         }
     }
 
@@ -82,18 +86,18 @@ public class KotlinxSerializationConverter(
     private fun serializeContent(
         serializer: KSerializer<*>,
         format: SerialFormat,
-        value: Any,
+        value: Any?,
         contentType: ContentType,
         charset: Charset
     ): OutgoingContent.ByteArrayContent {
         @Suppress("UNCHECKED_CAST")
         return when (format) {
             is StringFormat -> {
-                val content = format.encodeToString(serializer as KSerializer<Any>, value)
+                val content = format.encodeToString(serializer as KSerializer<Any?>, value)
                 TextContent(content, contentType.withCharsetIfNeeded(charset))
             }
             is BinaryFormat -> {
-                val content = format.encodeToByteArray(serializer as KSerializer<Any>, value)
+                val content = format.encodeToByteArray(serializer as KSerializer<Any?>, value)
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")

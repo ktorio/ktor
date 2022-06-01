@@ -1196,6 +1196,10 @@ public final class io/ktor/http/content/MultipartKt {
 	public static final fun readAllParts (Lio/ktor/http/content/MultiPartData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/content/NullBody {
+	public static final field INSTANCE Lio/ktor/http/content/NullBody;
+}
+
 public abstract class io/ktor/http/content/OutgoingContent {
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
