@@ -51,7 +51,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
                 contentType = contentType ?: it.contentType,
                 charset = acceptCharset ?: Charsets.UTF_8,
                 typeInfo = call.response.responseType!!,
-                value = subject
+                value = subject.takeIf { it != NullBody }
             )
         }
 

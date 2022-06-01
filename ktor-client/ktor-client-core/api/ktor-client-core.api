@@ -66,6 +66,7 @@ public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineSc
 	public fun <init> (Lio/ktor/client/HttpClient;)V
 	public fun <init> (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/request/HttpResponseData;)V
 	public final fun body (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun bodyNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun getAllowDoubleReceive ()Z
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getClient ()Lio/ktor/client/HttpClient;

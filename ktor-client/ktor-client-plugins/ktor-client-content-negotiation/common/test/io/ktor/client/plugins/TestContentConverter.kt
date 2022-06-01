@@ -11,7 +11,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
-typealias ContentConverterSerialize = suspend (ContentType, Charset, TypeInfo, Any) -> OutgoingContent?
+typealias ContentConverterSerialize = suspend (ContentType, Charset, TypeInfo, Any?) -> OutgoingContent?
 typealias ContentConverterDeserialize = suspend (Charset, TypeInfo, ByteReadChannel) -> Any?
 
 class TestContentConverter(
@@ -23,7 +23,7 @@ class TestContentConverter(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): OutgoingContent? = serializeFn(contentType, charset, typeInfo, value)
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? =
