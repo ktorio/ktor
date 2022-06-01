@@ -48,7 +48,7 @@ public val WebSocketServerSession.converter: WebsocketContentConverter?
  *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
-public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialized(data: T) {
+public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data: T) {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
@@ -69,14 +69,14 @@ public suspend inline fun <reified T : Any> WebSocketServerSession.sendSerialize
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
-public suspend inline fun <reified T : Any> WebSocketServerSession.receiveDeserialized(): T {
+public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized(): T {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    return receiveDeserializedBase(
+    return receiveDeserializedBase<T>(
         converter,
         call.request.headers.suitableCharset()
-    )
+    ) as T
 }
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =

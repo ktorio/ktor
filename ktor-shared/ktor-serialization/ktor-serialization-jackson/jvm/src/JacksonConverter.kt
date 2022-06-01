@@ -24,7 +24,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): OutgoingContent {
         return OutputStreamContent(
             {
