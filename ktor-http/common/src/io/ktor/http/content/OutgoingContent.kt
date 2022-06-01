@@ -11,6 +11,11 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
+ * A subject of pipeline when body of HTTP message is `null`
+ */
+public object NullBody
+
+/**
  * Information about the content to be sent to the peer, recognized by a client or server engine
  */
 public sealed class OutgoingContent {

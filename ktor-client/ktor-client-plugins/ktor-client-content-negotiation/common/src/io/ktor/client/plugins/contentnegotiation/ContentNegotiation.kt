@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -113,7 +114,7 @@ public class ContentNegotiation internal constructor(
                         contentType,
                         contentType.charset() ?: Charsets.UTF_8,
                         context.bodyType!!,
-                        payload
+                        payload.takeIf { it != NullBody }
                     )
                 } ?: throw ContentConverterException(
                     "Can't convert $payload with contentType $contentType using converters " +
@@ -129,15 +130,13 @@ public class ContentNegotiation internal constructor(
 
                 val contentType = context.response.contentType() ?: return@intercept
                 val registrations = plugin.registrations
-                val matchingRegistrations = registrations
+                val suitableConverters = registrations
                     .filter { it.contentTypeMatcher.contains(contentType) }
+                    .map { it.converter }
                     .takeIf { it.isNotEmpty() } ?: return@intercept
 
-                // Pick the first one that can convert the subject successfully
-                val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter
-                        .deserialize(context.request.headers.suitableCharset(), info, body)
-                } ?: return@intercept
+                @OptIn(InternalAPI::class)
+                val parsedBody = suitableConverters.deserialize(body, info, context.request.headers.suitableCharset())
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }

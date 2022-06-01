@@ -28,7 +28,7 @@ class ContentNegotiationTest {
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): OutgoingContent? {
             fail("This converter should be never started for send")
         }

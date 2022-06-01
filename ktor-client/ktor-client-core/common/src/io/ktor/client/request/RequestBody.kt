@@ -4,7 +4,6 @@
 
 package io.ktor.client.request
 
-import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
@@ -15,8 +14,8 @@ internal val BodyTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("BodyTy
 public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     when (body) {
         null -> {
-            this.body = EmptyContent
-            bodyType = null
+            this.body = NullBody
+            bodyType = typeInfo<T>()
         }
         is OutgoingContent -> {
             this.body = body

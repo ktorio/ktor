@@ -34,4 +34,9 @@ class XmlClientKotlinxSerializationTest : AbstractClientContentNegotiationTest()
     @Ignore
     override fun testSerializeNested() {
     }
+
+    @Test
+    @Ignore
+    override fun testSerializeNull() {
+    }
 }

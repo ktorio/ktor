@@ -9,6 +9,7 @@ import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
@@ -30,25 +31,18 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
             }
             val suitableConverters = registrations
                 .filter { converter -> requestContentType.match(converter.contentType) }
+                .map { it.converter }
                 .takeIf { it.isNotEmpty() } ?: return@transformBody body
 
-            val converted = try {
-                // Pick the first one that can convert the subject successfully
-                suitableConverters.firstNotNullOfOrNull { registration ->
-                    registration.converter.deserialize(
-                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                        typeInfo = requestedType,
-                        content = body
-                    )
-                } ?: return@transformBody body
+            try {
+                @OptIn(InternalAPI::class)
+                suitableConverters.deserialize(body, requestedType, call.request.contentCharset() ?: Charsets.UTF_8)
             } catch (convertException: ContentConvertException) {
                 throw BadRequestException(
                     convertException.message ?: "Can't convert parameters",
                     convertException.cause
                 )
             }
-
-            return@transformBody converted
         }
     }
 }
