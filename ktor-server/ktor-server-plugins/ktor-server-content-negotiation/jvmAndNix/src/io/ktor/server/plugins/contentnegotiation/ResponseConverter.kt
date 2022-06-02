@@ -16,6 +16,7 @@ private val NOT_ACCEPTABLE = HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
 
 internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onCallRespond { call, subject ->
     if (subject is OutgoingContent || subject::class in pluginConfig.ignoredTypes) return@onCallRespond
+    if (call.response.responseType == null) return@onCallRespond
 
     val registrations = pluginConfig.registrations
     val checkAcceptHeader = pluginConfig.checkAcceptHeaderCompliance

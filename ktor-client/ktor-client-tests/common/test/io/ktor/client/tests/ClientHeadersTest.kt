@@ -98,8 +98,8 @@ class ClientHeadersTest : ClientLoader() {
                 message = cause.message ?: ""
             }
 
-            val expected =
-                "Header(s) ${HttpHeaders.UnsafeHeadersList} are controlled by the engine and cannot be set explicitly"
+            val expected = "Header(s) ${HttpHeaders.UnsafeHeadersList.filter { it != HttpHeaders.ContentType }} " +
+                "are controlled by the engine and cannot be set explicitly"
 
             assertEquals(expected, message)
         }

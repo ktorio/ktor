@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
@@ -309,6 +310,64 @@ class ContentNegotiationTests {
                 assertEquals(contentTypeToReceive, contentType())
                 assertEquals(receivedValue, body())
             }
+        }
+    }
+
+    @Test
+    fun testSendOutgoingContent() = testWithEngine(MockEngine) {
+        config {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, TestContentConverter()) {
+                    deserializeFn = { _, _, _ -> fail() }
+                    serializeFn = { _, _, _, _ -> fail() }
+                }
+            }
+            engine {
+                addHandler {
+                    respond(
+                        content = """{"x": 123}""",
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.post("/post") {
+                setBody(TextContent("""{"x": 123}""", ContentType.Application.Json))
+            }.bodyAsText()
+            assertEquals("""{"x": 123}""", response)
+        }
+    }
+
+    @Test
+    fun testSendOutgoingContentWithDefaultRequest() = testWithEngine(MockEngine) {
+        config {
+            defaultRequest {
+            }
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, TestContentConverter()) {
+                    deserializeFn = { _, _, _ -> fail() }
+                    serializeFn = { _, _, _, _ -> fail() }
+                }
+            }
+            engine {
+                addHandler {
+                    respond(
+                        content = """{"x": 123}""",
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.post("/post") {
+                headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+
+                setBody(TextContent("""{"x": 123}""", ContentType.Application.Json))
+            }.bodyAsText()
+            assertEquals("""{"x": 123}""", response)
         }
     }
 

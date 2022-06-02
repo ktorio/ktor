@@ -30,7 +30,6 @@ public fun HttpClient.defaultTransformers() {
         val contentType = context.headers[HttpHeaders.ContentType]?.let {
             ContentType.parse(it)
         }
-        val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
 
         val content = when (body) {
             is String -> {
@@ -42,10 +41,11 @@ public fun HttpClient.defaultTransformers() {
                 override fun bytes(): ByteArray = body
             }
             is ByteReadChannel -> object : OutgoingContent.ReadChannelContent() {
-                override val contentLength = contentLength
+                override val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override fun readFrom(): ByteReadChannel = body
             }
+            is OutgoingContent -> body
             else -> null
         }
 
