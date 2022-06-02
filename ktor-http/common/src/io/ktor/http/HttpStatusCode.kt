@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import kotlin.native.concurrent.*
-
 /**
  * Represents an HTTP status code and description.
  * @param value is a numeric code.
@@ -108,16 +106,13 @@ public data class HttpStatusCode(val value: Int, val description: String) {
          */
         public val allStatusCodes: List<HttpStatusCode> = allStatusCodes()
 
-        private val byValue: Array<HttpStatusCode?> = Array(1000) { idx ->
-            allStatusCodes.firstOrNull { it.value == idx }
-        }
+        private val statusCodesMap: Map<Int, HttpStatusCode> = allStatusCodes.associateBy { it.value }
 
         /**
          * Creates an instance of [HttpStatusCode] with the given numeric value.
          */
         public fun fromValue(value: Int): HttpStatusCode {
-            val knownStatus = if (value in 1 until 1000) byValue[value] else null
-            return knownStatus ?: HttpStatusCode(value, "Unknown Status Code")
+            return statusCodesMap[value] ?: HttpStatusCode(value, "Unknown Status Code")
         }
     }
 }

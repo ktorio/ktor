@@ -10,7 +10,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class HeadersTest {
+class HeadersJvmTest {
     private val ch = ByteChannel(true)
     private val builder = CharArrayBuilder()
 
@@ -115,7 +115,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyGet() = runBlocking {
-        ch.writeStringUtf8("GET / H\nConnection: close\n\n")
+        ch.writeStringUtf8("GET / HTTP/1.1\nConnection: close\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -127,7 +127,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyGetAndContentLength() = runBlocking {
-        ch.writeStringUtf8("GET / H\nContent-Length: 0\n\n")
+        ch.writeStringUtf8("GET / HTTP/1.1\nContent-Length: 0\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -139,7 +139,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyGetAndContentLengthNonZero() = runBlocking {
-        ch.writeStringUtf8("GET / H\nContent-Length: 10\n\n")
+        ch.writeStringUtf8("GET / HTTP/1.1\nContent-Length: 10\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -151,7 +151,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyPostContentLengthZero() = runBlocking {
-        ch.writeStringUtf8("POST / H\nContent-Length: 0\n\n")
+        ch.writeStringUtf8("POST / HTTP/1.1\nContent-Length: 0\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -163,7 +163,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyPostContentLengthNonZero() = runBlocking {
-        ch.writeStringUtf8("POST / H\nContent-Length: 10\n\n")
+        ch.writeStringUtf8("POST / HTTP/1.1\nContent-Length: 10\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -175,7 +175,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyPostContentChunked() = runBlocking {
-        ch.writeStringUtf8("POST / H\nTransfer-Encoding: chunked\n\n")
+        ch.writeStringUtf8("POST / HTTP/1.1\nTransfer-Encoding: chunked\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -187,7 +187,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyPostContentType() = runBlocking {
-        ch.writeStringUtf8("POST / H\nContent-Type: application/json\n\n")
+        ch.writeStringUtf8("POST / HTTP/1.1\nContent-Type: application/json\n\n")
         val request = parseRequest(ch)!!
 
         try {
@@ -199,7 +199,7 @@ class HeadersTest {
 
     @Test
     fun testExpectHttpBodyPostOnly() = runBlocking {
-        ch.writeStringUtf8("POST / H\nX: 0\n\n")
+        ch.writeStringUtf8("POST / HTTP/1.1\nX: 0\n\n")
         val request = parseRequest(ch)!!
 
         try {

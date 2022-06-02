@@ -12,7 +12,7 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-class HeadersTest {
+class HeadersServerTest {
 
     @Test
     fun headersReturnNullWhenEmpty(): Unit = withTestApplication {

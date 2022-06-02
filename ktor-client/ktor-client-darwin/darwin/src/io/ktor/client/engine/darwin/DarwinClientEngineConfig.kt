@@ -9,7 +9,7 @@ import kotlinx.cinterop.*
 import platform.Foundation.*
 
 /**
- * Challenge handler type for [NSURLSession].
+ * A challenge handler type for [NSURLSession].
  */
 @OptIn(UnsafeNumber::class)
 public typealias ChallengeHandler = (
@@ -20,11 +20,11 @@ public typealias ChallengeHandler = (
 ) -> Unit
 
 /**
- * Custom [DarwinClientEngine] config.
+ * A configuration for the [Darwin] client engine.
  */
 public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     /**
-     * Request configuration.
+     * A request configuration.
      */
     public var requestConfig: NSMutableURLRequest.() -> Unit = {}
         @Deprecated(
@@ -36,7 +36,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
         }
 
     /**
-     * Session configuration.
+     * A session configuration.
      */
     public var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
         @Deprecated(
@@ -55,7 +55,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
         private set
 
     /**
-     * Appends block with [NSMutableURLRequest] configuration to [requestConfig].
+     * Appends a block with the [NSMutableURLRequest] configuration to [requestConfig].
      */
     public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
         val old = requestConfig
@@ -68,7 +68,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Appends block with [NSURLSessionConfiguration] configuration to [sessionConfig].
+     * Appends a block with the [NSURLSessionConfiguration] configuration to [sessionConfig].
      */
     public fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
         val old = sessionConfig

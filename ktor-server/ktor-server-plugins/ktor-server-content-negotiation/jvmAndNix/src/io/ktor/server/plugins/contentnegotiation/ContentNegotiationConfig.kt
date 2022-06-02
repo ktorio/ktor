@@ -18,10 +18,7 @@ public class ContentNegotiationConfig : Configuration {
     internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
 
     @PublishedApi
-    internal val ignoredTypes: MutableSet<KClass<*>> = mutableSetOf(
-        HttpStatusCode::class,
-        String::class
-    )
+    internal val ignoredTypes: MutableSet<KClass<*>> = mutableSetOf(HttpStatusCode::class)
 
     /**
      * Checks that the `ContentType` header value of a response suits the `Accept` header value of a request.

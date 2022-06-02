@@ -17,8 +17,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
-
 /**
  * Default send transformation
  */
@@ -37,11 +35,8 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
         val channel = body as? ByteReadChannel ?: return@intercept
 
         val transformed: Any? = when (call.receiveType.type) {
-            ByteReadChannel::class -> channel
+            ByteReadChannel::class -> null
             ByteArray::class -> channel.toByteArray()
-            String::class -> channel.readText(
-                charset = withContentType(call) { call.request.contentCharset() } ?: Charsets.UTF_8
-            )
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
                 when {
@@ -70,6 +65,15 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
         if (transformed != null) {
             proceedWith(transformed)
         }
+    }
+    val afterTransform = PipelinePhase("AfterTransform")
+    insertPhaseAfter(ApplicationReceivePipeline.Transform, afterTransform)
+    intercept(afterTransform) { body ->
+        val channel = body as? ByteReadChannel ?: return@intercept
+        if (call.receiveType.type != String::class) return@intercept
+        val charset = withContentType(call) { call.request.contentCharset() } ?: Charsets.UTF_8
+        val text = channel.readText(charset)
+        proceedWith(text)
     }
 }
 

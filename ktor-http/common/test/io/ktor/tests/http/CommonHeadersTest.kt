@@ -7,7 +7,7 @@ package io.ktor.tests.http
 import io.ktor.http.*
 import kotlin.test.*
 
-class HeadersTest {
+class CommonHeadersTest {
     @Test
     fun parseSimpleAcceptHeader() {
         val items = parseAndSortContentTypeHeader("audio/basic")

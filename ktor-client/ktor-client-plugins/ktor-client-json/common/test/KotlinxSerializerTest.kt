@@ -93,7 +93,7 @@ class KotlinxSerializerTest : ClientLoader() {
             val response = client.post("$TEST_SERVER/echo-with-content-type") {
                 setBody("Hello")
             }.body<String>()
-            assertEquals("\"Hello\"", response)
+            assertEquals("Hello", response)
 
             val textResponse = client.post("$TEST_SERVER/echo") {
                 setBody("Hello")

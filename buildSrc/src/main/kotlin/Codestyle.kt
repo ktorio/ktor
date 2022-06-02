@@ -10,11 +10,10 @@ fun Project.configureCodestyle() {
     kotlinter.apply {
         ignoreFailures = true
         reporters = arrayOf("checkstyle", "plain")
-        experimentalRules = true
+        experimentalRules = false
         disabledRules = arrayOf(
             "no-wildcard-imports",
-            "experimental:spacing-between-declarations-with-annotations",
-            "experimental:enum-entry-name-case"
+            "indent"
         )
     }
 }

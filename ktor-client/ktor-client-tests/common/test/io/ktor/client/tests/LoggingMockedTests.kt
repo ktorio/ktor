@@ -94,7 +94,7 @@ class LoggingMockedTests {
                 }
             }
             install("BadInterceptor") {
-                responsePipeline.intercept(HttpResponsePipeline.Parse) {
+                responsePipeline.intercept(HttpResponsePipeline.Transform) {
                     throw CustomError("PARSE ERROR")
                 }
             }

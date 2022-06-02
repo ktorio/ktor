@@ -23,7 +23,7 @@ import kotlin.jvm.*
 @OptIn(InternalAPI::class)
 @JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
-    if (message !is OutgoingContent && message !is String && message !is ByteArray) {
+    if (message !is OutgoingContent && message !is ByteArray) {
         response.responseType = typeInfo<T>()
     }
     response.pipeline.execute(this, message as Any)

@@ -9,28 +9,30 @@ import java.net.*
 import javax.net.ssl.*
 
 /**
- * Configuration for [Android] client engine.
+ * A configuration for the [Android] client engine.
  */
 public class AndroidEngineConfig : HttpClientEngineConfig() {
     /**
-     * Max milliseconds to establish an HTTP connection - default 100 seconds.
-     * A value of 0 represents infinite.
+     * Specifies a time period (in milliseconds) in which a client should establish a connection with a server.
+     *
+     * Set this value to `0` to use an infinite timeout.
      */
     public var connectTimeout: Int = 100_000
 
     /**
-     * Max milliseconds between TCP packets - default 100 seconds.
-     * A value of 0 represents infinite.
+     * Specifies a maximum time (in milliseconds) of inactivity between two data packets when exchanging data with a server.
+     *
+     * Set this value to `0` to use an infinite timeout.
      */
     public var socketTimeout: Int = 100_000
 
     /**
-     * Https connection manipulator. inherited methods are not permitted.
+     * Allows you to configure [HTTPS](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public var sslManager: (HttpsURLConnection) -> Unit = {}
 
     /**
-     * Engine specific request configuration.
+     * Allows you to set engine-specific request configuration.
      */
     public var requestConfig: HttpURLConnection.() -> Unit = {}
 }

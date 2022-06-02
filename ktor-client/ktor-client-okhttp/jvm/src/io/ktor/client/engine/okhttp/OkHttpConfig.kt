@@ -8,7 +8,7 @@ import io.ktor.client.engine.*
 import okhttp3.*
 
 /**
- * Configuration for [OkHttp] client engine.
+ * A configuration for the [OkHttp] client engine.
  */
 public class OkHttpConfig : HttpClientEngineConfig() {
 
@@ -20,23 +20,24 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Preconfigured [OkHttpClient] instance instead of configuring one.
+     * Allows you to specify a preconfigured [OkHttpClient] instance.
      */
     public var preconfigured: OkHttpClient? = null
 
     /**
-     * Size of the cache that keeps least recently used [OkHttpClient] instances. Set "0" to avoid caching.
+     * Specifies the size of cache that keeps recently used [OkHttpClient] instances.
+     * Set this property to `0` to disable caching.
      */
     public var clientCacheSize: Int = 10
 
     /**
-     * If provided, this [WebSocket.Factory] will be used to create [WebSocket] instances.
+     * Specifies the [WebSocket.Factory] used to create a [WebSocket] instance.
      * Otherwise, [OkHttpClient] is used directly.
      */
     public var webSocketFactory: WebSocket.Factory? = null
 
     /**
-     * Configure [OkHttpClient] using [OkHttpClient.Builder].
+     * Configures [OkHttpClient] using [OkHttpClient.Builder].
      */
     public fun config(block: OkHttpClient.Builder.() -> Unit) {
         val oldConfig = config
@@ -47,7 +48,7 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Add [Interceptor] to [OkHttp] client.
+     * Adds an [Interceptor] to the [OkHttp] client.
      */
     public fun addInterceptor(interceptor: Interceptor) {
         config {
@@ -56,7 +57,7 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Add network [Interceptor] to [OkHttp] client.
+     * Adds a network [Interceptor] to the [OkHttp] client.
      */
     public fun addNetworkInterceptor(interceptor: Interceptor) {
         config {

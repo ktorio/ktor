@@ -33,8 +33,8 @@ public class URLBuilder(
     fragment: String = "",
     public var trailingQuery: Boolean = false
 ) {
-
     public var encodedUser: String? = user?.encodeURLParameter()
+
     public var user: String?
         get() = encodedUser?.decodeURLPart()
         set(value) {
@@ -68,6 +68,7 @@ public class URLBuilder(
             field = value
             parameters = UrlDecodedParametersBuilder(value)
         }
+
     public var parameters: ParametersBuilder = UrlDecodedParametersBuilder(encodedParameters)
         private set
 

@@ -44,9 +44,16 @@ internal fun Application.tests() {
     eventsTest()
 
     routing {
+        get("/") {
+            call.respondText("Hello, world!")
+        }
         post("/echo") {
             val response = call.receiveText()
             call.respond(response)
+        }
+        get("/echo_query") {
+            val parameters = call.request.queryParameters.entries().joinToString { "${it.key}=${it.value}" }
+            call.respondText(parameters)
         }
         post("/echo-with-content-type") {
             val response = call.receiveText()

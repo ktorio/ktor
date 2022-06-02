@@ -75,7 +75,7 @@ protected abstract interface annotation class io/ktor/server/testing/EngineTestB
 }
 
 public final class io/ktor/server/testing/ExternalServicesBuilder {
-	public fun <init> ()V
+	public synthetic fun <init> ()V
 	public final fun hosts ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 }
 

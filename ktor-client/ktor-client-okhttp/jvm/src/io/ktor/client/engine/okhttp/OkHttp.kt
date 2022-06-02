@@ -8,8 +8,23 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 
 /**
- * [HttpClientEngineFactory] using a [OkHttp] based backend implementation
- * with the associated configuration [OkHttpConfig].
+ * A JVM/Android client engine that uses the OkHttp HTTP client.
+ * This engine supports Android 5.0 and newer.
+ *
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(OkHttp)
+ * ```
+ * To configure the engine, pass settings exposed by [OkHttpConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(OkHttp) {
+ *     engine {
+ *         // this: OkHttpConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
     override fun create(block: OkHttpConfig.() -> Unit): HttpClientEngine =

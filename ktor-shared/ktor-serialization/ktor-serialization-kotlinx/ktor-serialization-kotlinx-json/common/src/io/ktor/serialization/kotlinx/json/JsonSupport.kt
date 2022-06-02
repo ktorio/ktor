@@ -15,7 +15,6 @@ import kotlin.native.concurrent.*
 /**
  * The default JSON configuration used in [KotlinxSerializationConverter]. The settings are:
  * - defaults are serialized
- * - mode is not strict so extra json fields are ignored
  * - pretty printing is disabled
  * - array polymorphism is disabled
  * - keys and values are quoted, non-quoted are not allowed

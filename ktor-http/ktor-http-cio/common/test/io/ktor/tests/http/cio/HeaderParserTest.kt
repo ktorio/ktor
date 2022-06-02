@@ -1,21 +1,17 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
-import kotlin.coroutines.*
 import kotlin.test.*
 
-internal const val HTAB: Char = '\u0009'
+private const val HTAB: Char = '\u0009'
 
-class HttpParserTest {
-    private var failure: Throwable? = null
+class HeaderParserTest {
 
     @Test
     fun parseHeadersSmokeTest(): Unit = test {
@@ -150,56 +146,5 @@ class HttpParserTest {
         assertFailsWith<ParserException> {
             parseHeaders(channel).release()
         }
-    }
-
-    @Test
-    fun parseStatusCodeShouldBeValid(): Unit = test {
-        listOf(
-            """
-            HTTP/1.1 100 OK
-            """.trimIndent(),
-            """
-            HTTP/1.1 999 OK
-            """.trimIndent()
-        ).forEach {
-            val response = parseResponse(ByteReadChannel(it))!!
-            assertEquals("OK", response.statusText.toString())
-        }
-    }
-
-    @Test
-    fun parseStatusCodeShouldFailWhenOutOfRange(): Unit = test {
-        assertFailsWith<ParserException> {
-            parseResponse(ByteReadChannel("HTTP/1.1 0 OK"))!!
-        }
-        assertFailsWith<ParserException> {
-            parseResponse(ByteReadChannel("HTTP/1.1 99 OK"))!!
-        }
-        assertFailsWith<ParserException> {
-            parseResponse(ByteReadChannel("HTTP/1.1 1000 OK"))!!
-        }
-    }
-
-    @Test
-    fun parseStatusCodeShouldFailWhenStatusCodeIsNegative(): Unit = test {
-        assertFailsWith<NumberFormatException> {
-            parseResponse(ByteReadChannel("HTTP/1.1 -100 OK"))!!
-        }
-    }
-
-    @OptIn(InternalCoroutinesApi::class)
-    private fun test(block: suspend () -> Unit) {
-        var completed = false
-        val cont = Continuation<Unit>(EmptyCoroutineContext) {
-            completed = true
-            failure = it.exceptionOrNull()
-        }
-
-        block.startCoroutineCancellable(cont)
-        if (!completed) {
-            fail("Suspended unexpectedly.")
-        }
-
-        failure?.let { throw it }
     }
 }
