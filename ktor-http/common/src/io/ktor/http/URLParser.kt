@@ -65,10 +65,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
                 // user and password check
                 val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
                 if (passwordIndex != -1) {
-                    user = urlString.substring(startIndex, passwordIndex).decodeURLPart()
-                    password = urlString.substring(passwordIndex + 1, delimiter).decodeURLPart()
+                    encodedUser = urlString.substring(startIndex, passwordIndex)
+                    encodedPassword = urlString.substring(passwordIndex + 1, delimiter)
                 } else {
-                    user = urlString.substring(startIndex, delimiter).decodeURLPart()
+                    encodedUser = urlString.substring(startIndex, delimiter)
                 }
                 startIndex = delimiter + 1
             } else {
@@ -170,7 +170,7 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
 
 private fun URLBuilder.parseFragment(urlString: String, startIndex: Int, endIndex: Int) {
     if (startIndex < endIndex && urlString[startIndex] == '#') {
-        fragment = urlString.substring(startIndex + 1, endIndex)
+        encodedFragment = urlString.substring(startIndex + 1, endIndex)
     }
 }
 

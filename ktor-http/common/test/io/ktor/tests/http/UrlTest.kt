@@ -267,15 +267,39 @@ class UrlTest {
     }
 
     @Test
-    fun testEncodedParts() {
-        val urlString = "https://user:password@ktor.io/quickstart/?query=string&param=value&param=value2#fragment"
+    fun testEncodedCredentials() {
+        val urlString = "https://use%25r:passwor%25d@ktor.io"
         val url = Url(urlString)
-        assertEquals("user", url.encodedUser)
-        assertEquals("password", url.encodedPassword)
-        assertEquals("/quickstart/", url.encodedPath)
-        assertEquals("query=string&param=value&param=value2", url.encodedQuery)
-        assertEquals("/quickstart/?query=string&param=value&param=value2", url.encodedPathAndQuery)
-        assertEquals("fragment", url.encodedFragment)
+        assertEquals("use%25r", url.encodedUser)
+        assertEquals("use%r", url.user)
+        assertEquals("passwor%25d", url.encodedPassword)
+        assertEquals("passwor%d", url.password)
+    }
+
+    @Test
+    fun testEncodedPathAndQuery() {
+        val urlString = "https://ktor.io/quickstar%25t?query=strin%25g"
+        val url = Url(urlString)
+        assertEquals("/quickstar%25t", url.encodedPath)
+        assertEquals("quickstar%t", url.pathSegments[1])
+        assertEquals("query=strin%25g", url.encodedQuery)
+        assertEquals("strin%g", url.parameters["query"])
+        assertEquals("/quickstar%25t?query=strin%25g", url.encodedPathAndQuery)
+    }
+
+    @Test
+    fun testEncodedFragment() {
+        val urlString = "https://ktor.io/#fragmen%25t"
+        val url = Url(urlString)
+        assertEquals("fragmen%25t", url.encodedFragment)
+        assertEquals("fragmen%t", url.fragment)
+    }
+
+    @Test
+    fun testUrlToStringKeepsEncoding() {
+        val urlString = "https://use%25r:passwor%25d@ktor.io/quickstar%25t/" +
+            "?query=strin%25g&param=value&param=value2#fragmen%25t"
+        val url = Url(urlString)
         assertEquals(urlString, "$url")
     }
 }
