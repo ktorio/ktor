@@ -5,6 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -50,3 +51,8 @@ public suspend fun Socket.tls(
  */
 public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())
+
+@InternalAPI
+public fun Socket.tls(coroutineContext: CoroutineContext, engine: SSLEngine): Socket {
+    return SSLEngineSocket(coroutineContext, engine, connection())
+}

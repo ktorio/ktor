@@ -9,6 +9,7 @@ import io.ktor.network.sockets.*
 import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * Represents a server instance
@@ -27,11 +28,13 @@ public class HttpServer(
  * @property host to listen to
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
+ * @property interceptor a server socket interceptor, f.e. for handling TLS
  */
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
-    val connectionIdleTimeoutSeconds: Long = 45
+    val connectionIdleTimeoutSeconds: Long = 45,
+    val interceptor: (socket: Socket, context: CoroutineContext) -> Socket = { socket, _ -> socket }
 )
 
 /**
