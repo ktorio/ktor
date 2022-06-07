@@ -37,12 +37,12 @@ public class HttpPlainText internal constructor(
 
         acceptCharsetHeader = buildString {
             withoutQuality.forEach {
-                if (length > 0) append(",")
+                if (isNotEmpty()) append(",")
                 append(it.name)
             }
 
             withQuality.forEach { (charset, quality) ->
-                if (length > 0) append(",")
+                if (isNotEmpty()) append(",")
 
                 check(quality in 0.0..1.0)
 
@@ -117,17 +117,14 @@ public class HttpPlainText internal constructor(
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->
                 plugin.addCharsetHeaders(context)
 
-                if (content !is String) {
-                    return@intercept
-                }
+                if (content !is String) return@intercept
 
                 val contentType = context.contentType()
                 if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) {
                     return@intercept
                 }
 
-                val contentCharset = contentType?.charset()
-                proceedWith(plugin.wrapContent(content, contentCharset))
+                proceedWith(plugin.wrapContent(content, contentType))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
@@ -140,9 +137,11 @@ public class HttpPlainText internal constructor(
         }
     }
 
-    private fun wrapContent(content: String, contentCharset: Charset?): Any {
-        val charset = contentCharset ?: requestCharset
-        return TextContent(content, ContentType.Text.Plain.withCharset(charset))
+    private fun wrapContent(content: String, requestContentType: ContentType?): Any {
+        val contentType: ContentType = requestContentType ?: ContentType.Text.Plain
+        val charset = requestContentType?.charset() ?: requestCharset
+
+        return TextContent(content, contentType.withCharset(charset))
     }
 
     internal fun read(call: HttpClientCall, body: Input): String {
