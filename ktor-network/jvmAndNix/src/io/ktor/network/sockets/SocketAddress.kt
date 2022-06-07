@@ -4,8 +4,31 @@
 
 package io.ktor.network.sockets
 
-public sealed class SocketAddress
+public expect sealed class SocketAddress
 
-public data class InetSocketAddress(public val hostname: String, public val port: Int) : SocketAddress()
+public expect class InetSocketAddress(
+    hostname: String,
+    port: Int
+) : SocketAddress {
+    public val hostname: String
+    public val port: Int
 
-public data class UnixSocketAddress(public val path: String) : SocketAddress()
+    public operator fun component1(): String
+    public operator fun component2(): Int
+    public fun copy(hostname: String = this.hostname, port: Int = this.port): InetSocketAddress
+    override fun equals(other: Any?): Boolean
+    override fun hashCode(): Int
+    override fun toString(): String
+}
+
+public expect class UnixSocketAddress(
+    path: String
+) : SocketAddress {
+    public val path: String
+
+    public operator fun component1(): String
+    public fun copy(path: String = this.path): UnixSocketAddress
+    override fun equals(other: Any?): Boolean
+    override fun hashCode(): Int
+    override fun toString(): String
+}
