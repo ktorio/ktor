@@ -131,7 +131,7 @@ public object HttpHeaders {
      */
     public fun isUnsafe(header: String): Boolean = UnsafeHeadersArray.any { it.equals(header, ignoreCase = true) }
 
-    private val UnsafeHeadersArray: Array<String> = arrayOf(ContentLength, ContentType, TransferEncoding, Upgrade)
+    private val UnsafeHeadersArray: Array<String> = arrayOf(TransferEncoding, Upgrade)
 
     @Deprecated("Use UnsafeHeadersList instead.", replaceWith = ReplaceWith("HttpHeaders.UnsafeHeadersList"))
     public val UnsafeHeaders: Array<String>

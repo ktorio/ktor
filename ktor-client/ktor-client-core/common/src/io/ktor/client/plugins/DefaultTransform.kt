@@ -32,9 +32,6 @@ public fun HttpClient.defaultTransformers() {
         }
 
         val content = when (body) {
-            is String -> {
-                TextContent(body, contentType ?: ContentType.Text.Plain)
-            }
             is ByteArray -> object : OutgoingContent.ByteArrayContent() {
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()
