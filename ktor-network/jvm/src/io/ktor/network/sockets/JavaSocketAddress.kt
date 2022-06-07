@@ -59,21 +59,21 @@ public actual class UnixSocketAddress internal constructor(
 ) : SocketAddress() {
 
     init {
-        checkSupportForUnixDomainSockets()
+        check(address.javaClass.name == UNIX_DOMAIN_SOCKET_ADDRESS_CLASS) {
+            "address should be java.net.UnixDomainSocketAddress"
+        }
     }
 
     public actual val path: String
         get() {
-            val getPath: Method = Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS).getMethod("getPath")
+            val getPath: Method = checkSupportForUnixDomainSockets().getMethod("getPath")
             return getPath.invoke(this).toString()
         }
 
     public actual constructor(path: String) : this(
-        checkSupportForUnixDomainSockets().let {
-            Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS)
-                .getMethod("of", String::class.java)
-                .invoke(null, path) as java.net.SocketAddress
-        }
+        checkSupportForUnixDomainSockets()
+            .getMethod("of", String::class.java)
+            .invoke(null, path) as java.net.SocketAddress
     )
 
     public actual operator fun component1(): String = path
@@ -102,12 +102,15 @@ public actual class UnixSocketAddress internal constructor(
     public actual override fun toString(): String = address.toString()
 
     private companion object {
-        private fun checkSupportForUnixDomainSockets() {
-            try {
-                Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS, false, Companion::class.java.classLoader)
-            } catch (e: ClassNotFoundException) {
-                error("Unix domain sockets are unsupported before Java 16.")
-            }
+        private val unixDomainSocketAddressClass = try {
+            Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS)
+        } catch (exception: ClassNotFoundException) {
+            null
+        }
+
+        private fun checkSupportForUnixDomainSockets(): Class<*> {
+            return unixDomainSocketAddressClass
+                ?: error("Unix domain sockets are unsupported before Java 16.")
         }
     }
 }
