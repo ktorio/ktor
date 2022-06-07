@@ -13,6 +13,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
@@ -123,10 +125,17 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? 
 /**
  * Receives incoming content for this call as [String].
  * @return text received from this call.
- * @throws ContentTransformationException when content cannot be transformed to the [String].
+ * @throws BadRequestException when Content-Type header is invalid.
  */
 @Suppress("NOTHING_TO_INLINE")
-public suspend inline fun ApplicationCall.receiveText(): String = receive()
+public suspend inline fun ApplicationCall.receiveText(): String {
+    val charset = try {
+        request.contentCharset() ?: Charsets.UTF_8
+    } catch (cause: BadContentTypeFormatException) {
+        throw BadRequestException("Illegal Content-Type format: ${request.headers[HttpHeaders.ContentType]}", cause)
+    }
+    return receiveChannel().readRemaining().readText(charset)
+}
 
 /**
  * Receives channel content for this call.

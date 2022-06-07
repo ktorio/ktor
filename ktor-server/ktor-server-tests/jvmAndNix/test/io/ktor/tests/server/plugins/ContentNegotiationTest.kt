@@ -4,6 +4,8 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
@@ -58,7 +60,7 @@ class ContentNegotiationTest {
         }
     }
 
-    private val alwaysFailingConverter = object : ContentConverter {
+    private fun alwaysFailingConverter(ignoreString: Boolean) = object : ContentConverter {
         override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
@@ -69,7 +71,7 @@ class ContentNegotiationTest {
         }
 
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-            if (typeInfo.type == String::class) return null
+            if (ignoreString && typeInfo.type == String::class) return null
             fail("This converter should be never started for receive")
         }
     }
@@ -382,7 +384,7 @@ class ContentNegotiationTest {
     fun testReceiveTransformedByDefault(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
             // Order here matters. The first registered content type matching the Accept header will be chosen.
-            register(ContentType.Any, alwaysFailingConverter)
+            register(ContentType.Any, alwaysFailingConverter(true))
             ignoreType<String>()
         }
 
@@ -425,6 +427,27 @@ class ContentNegotiationTest {
             )
         }.let { call ->
             assertEquals("Parameters [k=[v]]", call.response.content)
+        }
+    }
+
+    @Test
+    fun testReceiveTextIgnoresContentNegotiation(): Unit = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Any, alwaysFailingConverter(false))
+        }
+
+        routing {
+            post("/text") {
+                val text = call.receiveText()
+                call.respondText("text: $text")
+            }
+        }
+
+       client.post("/text") {
+            setBody("\"k=v\"")
+            contentType(ContentType.Application.Json)
+        }.let { response ->
+            assertEquals("text: \"k=v\"", response.bodyAsText())
         }
     }
 
