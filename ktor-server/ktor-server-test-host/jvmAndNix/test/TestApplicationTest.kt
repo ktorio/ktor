@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
@@ -159,5 +160,33 @@ class TestApplicationTest {
 
         assertEquals("http", client.get("/echo").bodyAsText())
         assertEquals("https", client.get("https://localhost/echo").bodyAsText())
+    }
+
+    @Test
+    fun testClientWithTimeout() = testApplication {
+        val client = createClient {
+            install(HttpTimeout)
+        }
+        externalServices {
+            hosts("http://fake.site.io") {
+                routing {
+                    get("/toto") {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+        routing {
+            get("/") {
+                val response = client.get("http://fake.site.io/toto") {
+                    timeout {
+                        requestTimeoutMillis = 100
+                    }
+                }.bodyAsText()
+                call.respondText(response)
+            }
+        }
+
+        assertEquals("OK", client.get("/").bodyAsText())
     }
 }
