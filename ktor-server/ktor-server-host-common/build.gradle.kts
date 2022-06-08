@@ -1,12 +1,8 @@
 description = ""
 
 kotlin {
-    nixTargets().forEach {
-        it.compilations.getByName("main").cinterops {
-            create("host_common") {
-                defFile = projectDir.resolve("nix/interop/host_common.def")
-            }
-        }
+    createCInterop("host_common", nixTargets()) {
+        defFile = projectDir.resolve("nix/interop/host_common.def")
     }
 
     sourceSets {
