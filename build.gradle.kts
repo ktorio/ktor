@@ -222,5 +222,7 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
     sourceSets {
         findByName("jvmMain")?.kotlin?.srcDirs("jvmAndNix/src")
         findByName("jvmTest")?.kotlin?.srcDirs("jvmAndNix/test")
+        findByName("jvmMain")?.resources?.srcDirs("jvmAndNix/resources")
+        findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
     }
 }
