@@ -22,12 +22,10 @@ public actual class InetSocketAddress internal constructor(
     public actual constructor(hostname: String, port: Int) :
         this(java.net.InetSocketAddress(hostname, port))
 
-    // May trigger a name service reverse lookup when called.
     public actual operator fun component1(): String = hostname
 
     public actual operator fun component2(): Int = port
 
-    // May trigger a name service reverse lookup when called.
     public actual fun copy(
         hostname: String,
         port: Int
