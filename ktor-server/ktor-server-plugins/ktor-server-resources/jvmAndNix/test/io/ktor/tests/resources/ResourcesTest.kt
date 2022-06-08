@@ -19,6 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlin.jvm.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -497,6 +498,25 @@ class ResourcesTest {
                 client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").status
             )
         }
+    }
+
+    @JvmInline
+    @Serializable
+    value class ValueClass(val value: String)
+
+    @Test
+    fun resourceWithUInt() = withResourcesApplication {
+        @Serializable
+        @Resource("/{id}/{valueParam}")
+        data class Request(val id: UInt, val query: ULong, val valueParam: ValueClass, val valueQuery: ValueClass)
+
+        routing {
+            get<Request> {
+                call.respond(application.href(it))
+            }
+        }
+
+        urlShouldBeHandled(Request(1U, 2U, ValueClass("123"), ValueClass("234")), "/1/123?query=2&valueQuery=234")
     }
 
     @Test
