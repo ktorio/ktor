@@ -27,11 +27,11 @@ public fun HttpClient.defaultTransformers() {
             context.headers.append(HttpHeaders.Accept, "*/*")
         }
 
-        val contentType = context.headers[HttpHeaders.ContentType]?.let {
-            ContentType.parse(it)
-        }
-
+        val contentType = context.contentType()
         val content = when (body) {
+            is String -> {
+                TextContent(body, contentType ?: ContentType.Text.Plain)
+            }
             is ByteArray -> object : OutgoingContent.ByteArrayContent() {
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()

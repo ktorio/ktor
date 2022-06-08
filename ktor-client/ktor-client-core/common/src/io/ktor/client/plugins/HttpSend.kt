@@ -7,6 +7,7 @@ package io.ktor.client.plugins
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
@@ -86,7 +87,9 @@ public class HttpSend private constructor(
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { content ->
                 check(content is OutgoingContent) {
                     """
-|Fail to serialize body. Content has type: ${content::class}, but OutgoingContent expected.
+|Fail to prepare request body for sending. 
+|The body type is: ${content::class}, with Content-Type: ${context.contentType()}.
+|
 |If you expect serialized body, please check that you have installed the corresponding plugin(like `ContentNegotiation`) and set `Content-Type` header."""
                         .trimMargin()
                 }
