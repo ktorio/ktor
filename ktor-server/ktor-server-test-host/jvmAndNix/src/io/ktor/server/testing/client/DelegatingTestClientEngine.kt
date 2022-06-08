@@ -5,6 +5,7 @@
 package io.ktor.server.testing.client
 
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -20,7 +21,7 @@ internal class DelegatingTestClientEngine(
 ) : HttpClientEngineBase("delegating-test-engine") {
 
     override val dispatcher = Dispatchers.IOBridge
-    override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability)
+    override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeout)
 
     private val appEngine by lazy(config.appEngineProvider)
     private val externalEngines by lazy {
