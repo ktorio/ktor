@@ -281,11 +281,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         createAndStartServer {
             webSocket("/") {
                 try {
-                    incoming.consumeEach { frame ->
-                        if (frame is Frame.Text) {
-                            collected.send(frame.readText())
-                        }
-                    }
+                    val frame = incoming.receive()
+                    assertIs<Frame.Text>(frame)
+                    collected.send(frame.readText())
                 } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
@@ -308,6 +306,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
             assertCloseFrame()
         }
+
         assertEquals("Hello", collected.receive())
     }
 
