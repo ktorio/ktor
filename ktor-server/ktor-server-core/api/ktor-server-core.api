@@ -219,6 +219,7 @@ public abstract interface class io/ktor/server/config/ApplicationConfig {
 	public abstract fun keys ()Ljava/util/Set;
 	public abstract fun property (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
 	public abstract fun propertyOrNull (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
+	public abstract fun toMap ()Ljava/util/Map;
 }
 
 public final class io/ktor/server/config/ApplicationConfigKt {
@@ -251,6 +252,7 @@ public class io/ktor/server/config/HoconApplicationConfig : io/ktor/server/confi
 	public fun keys ()Ljava/util/Set;
 	public fun property (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
 	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
+	public fun toMap ()Ljava/util/Map;
 }
 
 public final class io/ktor/server/config/HoconApplicationConfigKt {
@@ -277,6 +279,7 @@ public class io/ktor/server/config/MapApplicationConfig : io/ktor/server/config/
 	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
 	public final fun put (Ljava/lang/String;Ljava/lang/Iterable;)V
 	public final fun put (Ljava/lang/String;Ljava/lang/String;)V
+	public fun toMap ()Ljava/util/Map;
 }
 
 protected final class io/ktor/server/config/MapApplicationConfig$MapApplicationConfigValue : io/ktor/server/config/ApplicationConfigValue {

@@ -132,4 +132,38 @@ class YamlConfigTest {
             config.checkEnvironmentVariables()
         }
     }
+
+    @Test
+    fun testToMap() {
+        val content = """
+            hashAlgorithm: SHA-256
+            salt: ktor
+            users:
+                - name: test
+                  password: asd
+                - name: other
+                  password: qwe
+            values: 
+                - a
+                - b
+            listValues: ['a', 'b', 'c']
+            data:
+                value1: 1
+                value2: 2
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+
+        val map = config.toMap()
+        assertEquals(6, map.size)
+        assertEquals("SHA-256", map["hashAlgorithm"])
+        assertEquals("ktor", map["salt"])
+        assertEquals(
+            listOf(mapOf("name" to "test", "password" to "asd"), mapOf("name" to "other", "password" to "qwe")),
+            map["users"]
+        )
+        assertEquals(listOf("a", "b"), map["values"])
+        assertEquals(listOf("a", "b", "c"), map["listValues"])
+        assertEquals(mapOf("value1" to "1", "value2" to "2"), map["data"])
+    }
 }

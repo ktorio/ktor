@@ -1,14 +1,13 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.config
+package io.ktor.server.config
 
-import com.typesafe.config.*
-import io.ktor.server.config.*
 import kotlin.test.*
 
-class ConfigTest {
+class MapApplicationConfigTest {
+
     @Test
     fun testMapApplicationConfig() {
         val mapConfig = MapApplicationConfig()
@@ -97,7 +96,7 @@ class ConfigTest {
         mapConfig.put("auth.nested.list.size", "2")
         mapConfig.put("auth.nested.list.0", "a")
         mapConfig.put("auth.nested.list.1", "b")
-        mapConfig.put("auth.data1.value1", "1")
+        mapConfig.put("auth.data1.value1", "other value")
 
         val nestedConfig = mapConfig.config("auth.nested")
         val keys = nestedConfig.keys()
@@ -108,46 +107,31 @@ class ConfigTest {
     }
 
     @Test
-    fun testKeysTopLevelHoconConfig() {
-        val mapConfig = mutableMapOf<String, Any>()
-        mapConfig["auth.hashAlgorithm"] = "SHA-256"
-        mapConfig["auth.salt"] = "ktor"
-        mapConfig["auth.users"] = listOf(mapOf("name" to "test"))
+    fun testToMap() {
+        val config = MapApplicationConfig()
+        config.put("hashAlgorithm", "SHA-256")
+        config.put("salt", "ktor")
+        config.put("values", listOf("a", "b"))
+        config.put("listValues", listOf("a", "b", "c"))
+        config.put("data.value1", "1")
+        config.put("data.value2", "2")
+        config.put("users.size", "2")
+        config.put("users.0.name", "test")
+        config.put("users.0.password", "asd")
+        config.put("users.1.name", "other")
+        config.put("users.1.password", "qwe")
 
-        mapConfig["auth.values"] = listOf("a", "b")
-        mapConfig["auth.listValues"] = listOf("a", "b", "c")
+        val map = config.toMap()
 
-        mapConfig["auth.data"] = mapOf("value1" to "1", "value2" to "2")
-
-        val config = HoconApplicationConfig(ConfigFactory.parseMap(mapConfig))
-        val keys = config.keys()
+        assertEquals(6, map.size)
+        assertEquals("SHA-256", map["hashAlgorithm"])
+        assertEquals("ktor", map["salt"])
         assertEquals(
-            keys,
-            setOf(
-                "auth.hashAlgorithm",
-                "auth.salt",
-                "auth.users",
-                "auth.values",
-                "auth.listValues",
-                "auth.data.value1",
-                "auth.data.value2"
-            )
+            listOf(mapOf("name" to "test", "password" to "asd"), mapOf("name" to "other", "password" to "qwe")),
+            map["users"]
         )
-    }
-
-    @Test
-    fun testKeysNestedHoconConfig() {
-        val mapConfig = mutableMapOf<String, Any>()
-        mapConfig["auth.nested.data"] = mapOf("value1" to "1", "value2" to "2")
-        mapConfig["auth.nested.list"] = listOf("a", "b")
-        mapConfig["auth.data1.value1"] = "1"
-
-        val config = HoconApplicationConfig(ConfigFactory.parseMap(mapConfig))
-        val nestedConfig = config.config("auth.nested")
-        val keys = nestedConfig.keys()
-        assertEquals(keys, setOf("data.value1", "data.value2", "list"))
-        assertEquals("1", nestedConfig.property("data.value1").getString())
-        assertEquals("2", nestedConfig.property("data.value2").getString())
-        assertEquals(listOf("a", "b"), nestedConfig.property("list").getList())
+        assertEquals(listOf("a", "b"), map["values"])
+        assertEquals(listOf("a", "b", "c"), map["listValues"])
+        assertEquals(mapOf("value1" to "1", "value2" to "2"), map["data"])
     }
 }

@@ -41,4 +41,6 @@ internal class MergedApplicationConfig(
     }
 
     override fun keys(): Set<String> = firstKeys + second.keys()
+
+    override fun toMap(): Map<String, Any?> = second.toMap() + first.toMap()
 }
