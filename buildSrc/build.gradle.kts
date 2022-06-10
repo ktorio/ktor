@@ -22,8 +22,8 @@ sourceSets.main {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin", libs.versions.kotlin.version.get()))
-    implementation(kotlin("serialization", libs.versions.kotlin.version.get()))
+    implementation(kotlin("gradle-plugin", "1.6.21"))
+    implementation(kotlin("serialization", "1.6.21"))
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
