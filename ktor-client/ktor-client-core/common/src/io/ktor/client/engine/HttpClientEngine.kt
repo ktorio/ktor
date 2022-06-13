@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal val CALL_COROUTINE = CoroutineName("call-context")
+internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
 
 /**
  * Base interface use to define engines for [HttpClient].
@@ -59,7 +60,10 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
 
             client.monitor.raise(HttpRequestIsReadyForSending, builder)
 
-            val requestData = builder.build()
+            val requestData = builder.build().apply {
+                attributes.put(CLIENT_CONFIG, client.config)
+            }
+
             validateHeaders(requestData)
             checkExtensions(requestData)
 

@@ -18,7 +18,9 @@ import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
 
-internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngineBase("ktor-js") {
+internal class JsClientEngine(
+    override val config: HttpClientEngineConfig
+) : HttpClientEngineBase("ktor-js") {
 
     override val dispatcher = Dispatchers.Default
 
@@ -31,13 +33,14 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
+        val clientConfig = data.attributes[CLIENT_CONFIG]
 
         if (data.isUpgradeRequest()) {
             return executeWebSocketRequest(data, callContext)
         }
 
         val requestTime = GMTDate()
-        val rawRequest = data.toRaw(callContext)
+        val rawRequest = data.toRaw(clientConfig, callContext)
         val rawResponse = commonFetch(data.url.toString(), rawRequest)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
@@ -59,17 +62,19 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
     // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
     // so it can be accessed inside js("") function
     @Suppress("UNUSED_PARAMETER", "UnsafeCastFromDynamic", "UNUSED_VARIABLE", "LocalVariableName")
-    private fun createWebSocket(urlString_capturingHack: String, headers: Headers): WebSocket =
-        if (PlatformUtils.IS_NODE) {
-            val ws_capturingHack = js("eval('require')('ws')")
-            val headers_capturingHack: dynamic = object {}
-            headers.forEach { name, values ->
-                headers_capturingHack[name] = values.joinToString(",")
-            }
-            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
-        } else {
-            js("new WebSocket(urlString_capturingHack)")
+    private fun createWebSocket(
+        urlString_capturingHack: String,
+        headers: Headers
+    ): WebSocket = if (PlatformUtils.IS_NODE) {
+        val ws_capturingHack = js("eval('require')('ws')")
+        val headers_capturingHack: dynamic = object {}
+        headers.forEach { name, values ->
+            headers_capturingHack[name] = values.joinToString(",")
         }
+        js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
+    } else {
+        js("new WebSocket(urlString_capturingHack)")
+    }
 
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
@@ -129,7 +134,7 @@ private fun Event.asString(): String = buildString {
     append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
-private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
