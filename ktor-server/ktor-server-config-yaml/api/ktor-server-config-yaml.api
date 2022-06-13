@@ -6,6 +6,7 @@ public final class io/ktor/server/config/yaml/YamlConfig : io/ktor/server/config
 	public fun keys ()Ljava/util/Set;
 	public fun property (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
 	public fun propertyOrNull (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfigValue;
+	public fun toMap ()Ljava/util/Map;
 }
 
 public final class io/ktor/server/config/yaml/YamlConfigJvmKt {

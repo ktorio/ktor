@@ -74,6 +74,20 @@ public class YamlConfig(private val yaml: YamlMap) : ApplicationConfig {
         return keys(yaml)
     }
 
+    public override fun toMap(): Map<String, Any?> {
+        fun toPrimitive(yaml: YamlElement?): Any? = when (yaml) {
+            is YamlLiteral -> resolveValue(yaml.content)
+            is YamlMap -> yaml.keys.associate { it.content as String to toPrimitive(yaml[it]) }
+            is YamlList -> yaml.content.map { toPrimitive(it) }
+            YamlNull -> null
+            null -> null
+        }
+
+        val primitive = toPrimitive(yaml)
+        @Suppress("UNCHECKED_CAST")
+        return primitive as? Map<String, Any?> ?: throw IllegalStateException("Top level element is not a map")
+    }
+
     public fun checkEnvironmentVariables() {
         fun check(element: YamlElement?) {
             when (element) {
