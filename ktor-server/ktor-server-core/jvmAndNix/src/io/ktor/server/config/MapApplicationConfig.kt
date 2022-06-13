@@ -90,6 +90,23 @@ public open class MapApplicationConfig : ApplicationConfig {
         }.toSet()
     }
 
+    override fun toMap(): Map<String, Any?> {
+        val keys = map.keys.filter { it.startsWith(path) }
+            .map { it.drop(if (path.isEmpty()) 0 else path.length + 1).split('.').first() }
+            .distinct()
+        return keys.associate { key ->
+            val path = combine(path, key)
+            when {
+                map.containsKey(path) -> key to map[path]
+                map.containsKey(combine(path, "size")) -> when {
+                    map.containsKey(combine(path, "0")) -> key to property(path).getList()
+                    else -> key to configList(path).map { it.toMap() }
+                }
+                else -> key to config(path).toMap()
+            }
+        }
+    }
+
     /**
      * A config value implementation backed by this config's map
      * @property map is usually owner's backing map

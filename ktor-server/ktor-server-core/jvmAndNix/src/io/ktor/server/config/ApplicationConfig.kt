@@ -40,6 +40,12 @@ public interface ApplicationConfig {
      * config and creating an entry for each leaf value.
      */
     public fun keys(): Set<String>
+
+    /**
+     * Returns map representation of this config.
+     * Values can be `String`, `Map<String, Any>`, `List<String>` and `List<Map<String, Any>>`
+     */
+    public fun toMap(): Map<String, Any?>
 }
 
 /**
