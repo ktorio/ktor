@@ -35,23 +35,31 @@ internal class RequestBodyHandler(
                     ?: run { current?.flush(); queue.receiveCatching().getOrNull() }
                     ?: break
 
-                if (event is ByteBufHolder) {
-                    val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
-                    processContent(channel, event)
+                when (event) {
+                    is ByteBufHolder -> {
+                        val channel = current
+                            ?: throw IllegalStateException("No current channel but received a byte buf")
+                        processContent(channel, event)
 
-                    if (!upgraded && event is LastHttpContent) {
-                        current.close()
-                        current = null
+                        if (!upgraded && event is LastHttpContent) {
+                            current.close()
+                            current = null
+                        }
                     }
-                } else if (event is ByteBuf) {
-                    val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
-                    processContent(channel, event)
-                } else if (event is ByteWriteChannel) {
-                    current?.close()
-                    current = event
-                } else if (event is Upgrade) {
-                    upgraded = true
+                    is ByteBuf -> {
+                        val channel =
+                            current ?: throw IllegalStateException("No current channel but received a byte buf")
+                        processContent(channel, event)
+                    }
+                    is ByteWriteChannel -> {
+                        current?.close()
+                        current = event
+                    }
+                    is Upgrade -> {
+                        upgraded = true
+                    }
                 }
+                requestMoreEvents()
             }
         } catch (t: Throwable) {
             queue.close(t)
@@ -104,17 +112,16 @@ internal class RequestBodyHandler(
         queue.close()
     }
 
-    override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
+    override fun channelRead(context: ChannelHandlerContext, msg: Any?) {
         when (msg) {
             is ByteBufHolder -> handleBytesRead(msg)
             is ByteBuf -> handleBytesRead(msg)
-            else -> ctx.fireChannelRead(msg)
+            else -> context.fireChannelRead(msg)
         }
     }
 
     private suspend fun processContent(current: ByteWriteChannel, event: ByteBufHolder) {
         try {
-            requestMoreEvents()
             val buf = event.content()
             copy(buf, current)
         } finally {
@@ -124,7 +131,6 @@ internal class RequestBodyHandler(
 
     private suspend fun processContent(current: ByteWriteChannel, buf: ByteBuf) {
         try {
-            requestMoreEvents()
             copy(buf, current)
         } finally {
             buf.release()
