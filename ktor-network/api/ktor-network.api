@@ -196,6 +196,7 @@ public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/s
 	public final fun copy (Ljava/lang/String;I)Lio/ktor/network/sockets/InetSocketAddress;
 	public static synthetic fun copy$default (Lio/ktor/network/sockets/InetSocketAddress;Ljava/lang/String;IILjava/lang/Object;)Lio/ktor/network/sockets/InetSocketAddress;
 	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun getAddress$ktor_network ()Ljava/net/SocketAddress;
 	public final fun getHostname ()Ljava/lang/String;
 	public final fun getPort ()I
 	public fun hashCode ()I
