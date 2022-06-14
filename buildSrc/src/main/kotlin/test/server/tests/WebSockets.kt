@@ -1,4 +1,4 @@
-package io.ktor.client.tests.utils.tests
+package test.server.tests
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -23,14 +23,11 @@ internal fun Application.webSockets() {
                     }
                 }
             }
-
             webSocket("headers") {
                 val headers = call.request.headers.toMap()
-                @OptIn(ExperimentalSerializationApi::class)
                 val headersJson = Json.encodeToString(headers)
                 send(Frame.Text(headersJson))
             }
-
             webSocket("close") {
                 for (packet in incoming) {
                     val data = packet.data
@@ -38,6 +35,10 @@ internal fun Application.webSockets() {
                         close(CloseReason(1000, "End"))
                     }
                 }
+            }
+            webSocket("echo-query") {
+                val param = call.parameters["param"] ?: error("No param provided")
+                send(Frame.Text(param))
             }
         }
     }

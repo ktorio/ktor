@@ -9,7 +9,7 @@ import io.ktor.resources.serialization.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-class UrlBuilderTest {
+class ResourceUrlBuilderTest {
 
     private val resourcesFormat = ResourcesFormat()
 
