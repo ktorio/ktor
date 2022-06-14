@@ -59,6 +59,8 @@ internal class NettyHttp1Handler(
             coroutineContext
         )
 
+        context.channel().config().isAutoRead = false
+        context.channel().read()
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
             addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
@@ -71,19 +73,25 @@ internal class NettyHttp1Handler(
             isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
         }
 
-        if (message is HttpRequest) {
-            if (message !is LastHttpContent) {
-                isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
-            }
-            isChannelReadCompleted.compareAndSet(expect = true, update = false)
-            activeRequests.incrementAndGet()
+        when {
+            message is HttpRequest -> {
+                if (message !is LastHttpContent) {
+                    isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
+                }
+                isChannelReadCompleted.compareAndSet(expect = true, update = false)
+                activeRequests.incrementAndGet()
 
-            handleRequest(context, message)
-        } else if (message is LastHttpContent && !message.content().isReadable && skipEmpty) {
-            skipEmpty = false
-            message.release()
-        } else {
-            context.fireChannelRead(message)
+                handleRequest(context, message)
+                context.read()
+            }
+            message is LastHttpContent && !message.content().isReadable && skipEmpty -> {
+                skipEmpty = false
+                message.release()
+                context.read()
+            }
+            else -> {
+                context.fireChannelRead(message)
+            }
         }
     }
 

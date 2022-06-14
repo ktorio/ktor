@@ -98,7 +98,7 @@ actual abstract class EngineTestBase<
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            (server as? ApplicationEngine)?.stop(0, 200, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
