@@ -18,7 +18,7 @@ import kotlin.test.*
 
 private const val TEST_SIZE: Int = 100
 
-class WebSocketTest : ClientLoader(100000) {
+class WebSocketTest : ClientLoader() {
     data class Data(val stringValue: String)
 
     private val customContentConverter = object : WebsocketContentConverter {
@@ -160,6 +160,25 @@ class WebSocketTest : ClientLoader(100000) {
                 assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
                     receiveDeserialized<Data>()
                 }
+            }
+        }
+    }
+
+    @Test
+    fun testQueryParameters() = clientTests(listOf("Android", "Apache", "Curl")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.ws(
+                host = "127.0.0.1",
+                port = 8080,
+                path = "/websockets/echo-query?param=hello"
+            ) {
+                val response = incoming.receive() as Frame.Text
+                val query = response.readText()
+                assertEquals("hello", query)
             }
         }
     }

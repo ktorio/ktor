@@ -55,14 +55,12 @@ public class Url internal constructor(
     }
 
     public val encodedQuery: String by lazy {
-        if (parameters.isEmpty()) {
-            return@lazy ""
-        }
         val queryStart = urlString.indexOf('?') + 1
+        if (queryStart == 0) return@lazy ""
+
         val queryEnd = urlString.indexOf('#', queryStart)
-        if (queryEnd == -1) {
-            return@lazy urlString.substring(queryStart)
-        }
+        if (queryEnd == -1) return@lazy urlString.substring(queryStart)
+
         urlString.substring(queryStart, queryEnd)
     }
 
@@ -95,8 +93,9 @@ public class Url internal constructor(
     }
 
     public val encodedFragment: String by lazy {
-        if (fragment.isEmpty()) return@lazy ""
         val fragmentStart = urlString.indexOf('#') + 1
+        if (fragmentStart == 0) return@lazy ""
+
         urlString.substring(fragmentStart)
     }
 
