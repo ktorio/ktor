@@ -114,7 +114,7 @@ internal class Endpoint(
                 }
             }
 
-            val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout))
+            val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout), config)
             setupTimeout(callContext, request, timeout)
 
             val requestTime = GMTDate()
@@ -124,10 +124,6 @@ internal class Endpoint(
             throw cause.mapToKtor(request)
         }
     }
-
-    private fun getRequestTimeout(
-        configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?
-    ): Long = if (configuration?.requestTimeoutMillis != null) Long.MAX_VALUE else config.requestTimeout
 
     private suspend fun createPipeline(request: HttpRequestData) {
         val connection = connect(request)
@@ -259,3 +255,8 @@ private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData
 public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable
+
+internal fun getRequestTimeout(
+    requestConfig: HttpTimeout.HttpTimeoutCapabilityConfiguration?,
+    engineConfig: CIOEngineConfig
+): Long = requestConfig?.requestTimeoutMillis ?: engineConfig.requestTimeout
