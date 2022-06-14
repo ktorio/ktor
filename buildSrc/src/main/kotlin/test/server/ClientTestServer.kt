@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.websocket.*
+import test.server.tests.*
 
 internal fun Application.tests() {
     install(io.ktor.server.websocket.WebSockets) {

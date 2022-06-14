@@ -12,7 +12,7 @@ import io.ktor.server.util.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-class URLBuilderTest {
+class ServerURLBuilderTest {
 
     @Test
     fun testPathFirstSlash() {
