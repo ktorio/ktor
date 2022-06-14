@@ -378,6 +378,39 @@ internal class URLBuilderTest {
         }
     }
 
+    @Test
+    fun testUrlBuilderSetQueryInPath() {
+        val url = URLBuilder().apply {
+            set(
+                "ws",
+                "0.0.0.0",
+                8080,
+                "/ws/v1?action=get&id=1"
+            )
+        }.build()
+
+        assertEquals("/ws/v1", url.encodedPath)
+        assertEquals("action=get&id=1", url.encodedQuery)
+        assertEquals("/ws/v1?action=get&id=1", url.encodedPathAndQuery)
+    }
+
+    @Test
+    fun testUrlBuilderSetFragmentInPath() {
+        val url = URLBuilder().apply {
+            set(
+                "ws",
+                "0.0.0.0",
+                8080,
+                "/ws/v1?action=get&id=1#hello"
+            )
+        }.build()
+
+        assertEquals("/ws/v1", url.encodedPath)
+        assertEquals("action=get&id=1", url.encodedQuery)
+        assertEquals("hello", url.encodedFragment)
+        assertEquals("/ws/v1?action=get&id=1", url.encodedPathAndQuery)
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
