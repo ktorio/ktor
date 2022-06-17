@@ -24,8 +24,6 @@ sourceSets.main {
 dependencies {
     implementation(kotlin("gradle-plugin", libs.versions.kotlin.version.get()))
     implementation(kotlin("serialization", libs.versions.kotlin.version.get()))
-    testImplementation("io.ktor:ktor-server-tests-jvm:2.0.2")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.6.21")
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
