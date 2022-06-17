@@ -5,21 +5,23 @@
 package io.ktor.client.engine.js.browser
 
 import io.ktor.client.engine.js.*
-import io.ktor.client.engine.js.ReadableStream
 import io.ktor.client.fetch.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import org.khronos.webgl.Uint8Array
+import org.w3c.fetch.Response
+import kotlin.coroutines.*
 
 internal fun CoroutineScope.readBodyBrowser(response: Response): ByteReadChannel {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    val stream = response.body as? ReadableStream ?: error("Fail to obtain native stream: ${response.asDynamic()}")
+    val stream: ReadableStream<Uint8Array> = response.body ?: return ByteReadChannel.Empty
     return channelFromStream(stream)
 }
 
 internal fun CoroutineScope.channelFromStream(
-    stream: ReadableStream
+    stream: ReadableStream<Uint8Array>
 ): ByteReadChannel = writer {
-    val reader = stream.getReader()
+    val reader: ReadableStreamDefaultReader<Uint8Array> = stream.getReader()
     while (true) {
         try {
             val chunk = reader.readChunk() ?: break
@@ -30,3 +32,14 @@ internal fun CoroutineScope.channelFromStream(
         }
     }
 }.channel
+
+internal suspend fun ReadableStreamDefaultReader<Uint8Array>.readChunk(): Uint8Array? =
+    suspendCancellableCoroutine { continuation ->
+        read().then {
+            val chunk = it.value
+            val result = if (it.done || chunk == null) null else chunk
+            continuation.resumeWith(Result.success(result))
+        }.catch { cause ->
+            continuation.resumeWithException(cause)
+        }
+    }

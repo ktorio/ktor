@@ -15,7 +15,7 @@ import kotlin.js.Promise
 internal suspend fun commonFetch(
     input: String,
     init: RequestInit
-): Response = suspendCancellableCoroutine { continuation ->
+): org.w3c.fetch.Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal
 
@@ -23,7 +23,7 @@ internal suspend fun commonFetch(
         controller.abort()
     }
 
-    val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
+    val promise: Promise<org.w3c.fetch.Response> = if (PlatformUtils.IS_BROWSER) {
         fetch(input, init)
     } else {
         jsRequireNodeFetch()(input, init)
@@ -50,7 +50,7 @@ internal fun AbortController(): AbortController {
 }
 
 internal fun CoroutineScope.readBody(
-    response: Response
+    response: org.w3c.fetch.Response
 ): ByteReadChannel = if (PlatformUtils.IS_BROWSER) {
     readBodyBrowser(response)
 } else {

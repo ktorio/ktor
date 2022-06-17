@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.js
 
+import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
@@ -17,7 +18,10 @@ import org.w3c.fetch.*
 import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
-internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): RequestInit {
+internal suspend fun HttpRequestData.toRaw(
+    clientConfig: HttpClientConfig<*>,
+    callContext: CoroutineContext
+): RequestInit {
     val jsHeaders = js("({})")
     mergeHeaders(this@toRaw.headers, this@toRaw.body) { key, value ->
         jsHeaders[key] = value
@@ -37,7 +41,7 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
     return buildObject {
         method = this@toRaw.method.value
         headers = jsHeaders
-        redirect = RequestRedirect.FOLLOW
+        redirect = if (clientConfig.followRedirects) RequestRedirect.FOLLOW else RequestRedirect.MANUAL
 
         bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
     }

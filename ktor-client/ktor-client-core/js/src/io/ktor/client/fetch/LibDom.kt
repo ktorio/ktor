@@ -8,7 +8,7 @@ import kotlin.js.Promise
 
 // external fun fetch(input: Request, init: RequestInit? = definedExternally): Promise<Response>
 
-public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<Response>
+public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<org.w3c.fetch.Response>
 
 public external interface Request : Body {
     /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
