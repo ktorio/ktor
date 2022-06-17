@@ -50,11 +50,6 @@ buildscript {
         google()
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
-        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-atomicfu/maven").credentials {
-            username = "margarita.bobova"
-            password =
-                "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxcm1UZ20wbEFKaEoiLCJhdWQiOiJjaXJjbGV0LXdlYi11aSIsIm9yZ0RvbWFpbiI6InB1YmxpYyIsIm5hbWUiOiJtYXJnYXJpdGEuYm9ib3ZhIiwiaXNzIjoiaHR0cHM6XC9cL3B1YmxpYy5qZXRicmFpbnMuc3BhY2UiLCJwZXJtX3Rva2VuIjoiSVBwZlkwQ3M1cjUiLCJwcmluY2lwYWxfdHlwZSI6IlVTRVIiLCJpYXQiOjE2NDk5MjM2NDF9.olTvoKz6KSX1rMCkid3vCSvwy-95rQTYL9gVlj7ueudTEVGqXaq1tJc37FDnKL6i6oc26XLVDK0y4G_B7ZKJGoMh77nckx-XMmRxB4Q3LZY1cXo_Mt4zD9lPxfFAfHW9RboJFgNlLWzg3OVQvMwDgHetYhnuGmlTtzCKfCW3Ke4"
-        }
     }
 }
 
@@ -97,9 +92,8 @@ apply(from = "gradle/compatibility.gradle")
 
 plugins {
     id("org.jetbrains.dokka") version "1.6.21" apply false
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.11.0"
-    id("com.osacky.doctor") version "0.8.1"
-    id("kotlinx-atomicfu") version(libs.versions.atomicfu.version) apply false
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.10.0"
+    id("kotlinx-atomicfu") version "0.18.0" apply false
 }
 
 val kotlinVersion = libs.versions.kotlin.version.get()
@@ -217,14 +211,12 @@ tasks.withType<DokkaMultiModuleTask> {
             """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
     )
 
-        outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
-        pluginsMapConfiguration.set(mapOf)
-    }
-
-    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
-    }
+    outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
+    pluginsMapConfiguration.set(mapOf)
 }
+
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false }
 
 configureDokka()
 
