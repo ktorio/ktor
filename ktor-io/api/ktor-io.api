@@ -889,7 +889,6 @@ public final class io/ktor/utils/io/core/BytePacketBuilder : io/ktor/utils/io/co
 	public synthetic fun append (Ljava/lang/CharSequence;II)Ljava/lang/Appendable;
 	public final fun build ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public final fun getSize ()I
-	public final fun get_pool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
 	public fun toString ()Ljava/lang/String;
@@ -955,14 +954,8 @@ public abstract class io/ktor/utils/io/core/Input : java/io/Closeable {
 	protected fun fill ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected abstract fun fill-62zg_DM (Ljava/nio/ByteBuffer;II)I
 	public final fun getEndOfInput ()Z
-	public final fun getHead ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public final fun getHeadEndExclusive ()I
-	public final fun getHeadMemory-SK3TCg8 ()Ljava/nio/ByteBuffer;
-	public final fun getHeadPosition ()I
-	public final fun getHeadRemaining ()I
 	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun getRemaining ()J
-	public final fun getTailRemaining ()J
 	public final fun hasBytes (I)Z
 	protected final fun markNoMoreChunksAvailable ()V
 	public final fun peekTo (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
@@ -978,10 +971,6 @@ public abstract class io/ktor/utils/io/core/Input : java/io/Closeable {
 	public final fun readTextExact (I)Ljava/lang/String;
 	public final fun readTextExact (Ljava/lang/Appendable;I)V
 	public final fun release ()V
-	public final fun setHeadEndExclusive (I)V
-	public final fun setHeadMemory-3GNKZMM (Ljava/nio/ByteBuffer;)V
-	public final fun setHeadPosition (I)V
-	public final fun setTailRemaining (J)V
 	public final fun tryPeek ()I
 }
 
