@@ -14,11 +14,15 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import kotlin.test.*
+
+internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Curl")
 
 private const val TEST_SIZE: Int = 100
 
 class WebSocketTest : ClientLoader() {
+
     data class Data(val stringValue: String)
 
     private val customContentConverter = object : WebsocketContentConverter {
@@ -62,7 +66,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSession() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testWebsocketSession() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
         }
@@ -77,7 +81,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketWithDefaultRequest() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
             defaultRequest {
@@ -97,7 +101,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSessionWithError() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testWebsocketSessionWithError() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
         }
@@ -123,7 +127,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebSocketSerialization() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testWebSocketSerialization() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             WebSockets {
                 contentConverter = customContentConverter
@@ -143,7 +147,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testSerializationWithNoConverter() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testSerializationWithNoConverter() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             WebSockets {
             }
@@ -165,7 +169,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testQueryParameters() = clientTests(listOf("Android", "Apache", "Curl")) {
+    fun testQueryParameters() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
         }
@@ -179,6 +183,27 @@ class WebSocketTest : ClientLoader() {
                 val response = incoming.receive() as Frame.Text
                 val query = response.readText()
                 assertEquals("hello", query)
+            }
+        }
+    }
+
+    @Test
+    fun testRequestTimeoutIsNotApplied() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 10
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                delay(20)
+
+                send("test")
+                val result = incoming.receive() as Frame.Text
+                assertEquals("test", result.readText())
             }
         }
     }

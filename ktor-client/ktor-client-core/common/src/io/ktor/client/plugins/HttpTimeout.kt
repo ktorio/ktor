@@ -9,6 +9,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
@@ -135,8 +136,12 @@ public class HttpTimeout private constructor(
         override fun prepare(block: HttpTimeoutCapabilityConfiguration.() -> Unit): HttpTimeout =
             HttpTimeoutCapabilityConfiguration().apply(block).build()
 
+        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpTimeout, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
+                val isWebSocket = context.url.protocol.isWebsocket()
+                if (isWebSocket || context.body is ClientUpgradeContent) return@intercept
+
                 var configuration = context.getCapabilityOrNull(HttpTimeout)
                 if (configuration == null && plugin.hasNotNullTimeouts()) {
                     configuration = HttpTimeoutCapabilityConfiguration()
