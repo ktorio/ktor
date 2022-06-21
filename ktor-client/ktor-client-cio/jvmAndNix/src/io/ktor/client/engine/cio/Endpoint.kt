@@ -177,6 +177,7 @@ internal class Endpoint(
                     if (proxy?.type == ProxyType.HTTP) {
                         startTunnel(requestData, connection.output, connection.input)
                     }
+                    //TODO: cache TLS config to support session reuse, when using SSLEngine
                     val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)
                         serverName = serverName ?: address.hostname

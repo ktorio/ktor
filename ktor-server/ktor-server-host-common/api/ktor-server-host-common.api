@@ -246,12 +246,14 @@ public abstract interface class io/ktor/server/engine/EngineConnectorConfig {
 }
 
 public final class io/ktor/server/engine/EngineConnectorConfigJvmKt {
+	public static final fun resolveKeyStore (Lio/ktor/server/engine/KeyStoreProvider;)Ljava/security/KeyStore;
 	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
-	public static final fun withPort (Lio/ktor/server/engine/EngineConnectorConfig;I)Lio/ktor/server/engine/EngineConnectorConfig;
 }
 
 public final class io/ktor/server/engine/EngineConnectorConfigKt {
 	public static final fun connector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
+	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
+	public static final fun withPort (Lio/ktor/server/engine/EngineConnectorConfig;I)Lio/ktor/server/engine/EngineConnectorConfig;
 }
 
 public final class io/ktor/server/engine/EngineContextCancellationHelperKt {
@@ -275,7 +277,11 @@ public final class io/ktor/server/engine/EnginePipeline$Companion {
 }
 
 public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/server/engine/EngineConnectorBuilder, io/ktor/server/engine/EngineSSLConnectorConfig {
+	public fun <init> ()V
 	public fun <init> (Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public final fun authentication (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
+	public fun getAuthentication ()Lio/ktor/server/engine/EngineSSLConnectorBuilder$AuthenticationConfigBuilder;
+	public synthetic fun getAuthentication ()Lio/ktor/server/engine/EngineSSLConnectorConfig$AuthenticationConfig;
 	public fun getKeyAlias ()Ljava/lang/String;
 	public fun getKeyStore ()Ljava/security/KeyStore;
 	public fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
@@ -284,6 +290,9 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
 	public fun getTrustStore ()Ljava/security/KeyStore;
 	public fun getTrustStorePath ()Ljava/io/File;
+	public fun getVerification ()Lio/ktor/server/engine/EngineSSLConnectorBuilder$VerificationConfigBuilder;
+	public synthetic fun getVerification ()Lio/ktor/server/engine/EngineSSLConnectorConfig$VerificationConfig;
+	public fun setAuthentication (Lio/ktor/server/engine/EngineSSLConnectorBuilder$AuthenticationConfigBuilder;)V
 	public fun setKeyAlias (Ljava/lang/String;)V
 	public fun setKeyStore (Ljava/security/KeyStore;)V
 	public fun setKeyStorePassword (Lkotlin/jvm/functions/Function0;)V
@@ -292,9 +301,62 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 	public fun setPrivateKeyPassword (Lkotlin/jvm/functions/Function0;)V
 	public fun setTrustStore (Ljava/security/KeyStore;)V
 	public fun setTrustStorePath (Ljava/io/File;)V
+	public fun setVerification (Lio/ktor/server/engine/EngineSSLConnectorBuilder$VerificationConfigBuilder;)V
+	public final fun verification (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorBuilder$AuthenticationConfig : io/ktor/server/engine/EngineSSLConnectorConfig$AuthenticationConfig {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public fun getKeyAlias ()Ljava/lang/String;
+	public fun getKeyStore ()Ljava/security/KeyStore;
+	public fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
+	public fun getKeyStorePath ()Ljava/io/File;
+	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public fun setKeyAlias (Ljava/lang/String;)V
+	public fun setKeyStore (Ljava/security/KeyStore;)V
+	public fun setKeyStorePassword (Lkotlin/jvm/functions/Function0;)V
+	public fun setKeyStorePath (Ljava/io/File;)V
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorBuilder$AuthenticationConfigBuilder : io/ktor/server/engine/EngineSSLConnectorConfig$AuthenticationConfig {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public fun getKeyAlias ()Ljava/lang/String;
+	public fun getKeyStoreProvider ()Lio/ktor/server/engine/KeyStoreProvider;
+	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public final fun keyStore (Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun keyStore (Ljava/security/KeyStore;)V
+	public static synthetic fun keyStore$default (Lio/ktor/server/engine/EngineSSLConnectorBuilder$AuthenticationConfigBuilder;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public fun setKeyAlias (Ljava/lang/String;)V
+	public fun setKeyStoreProvider (Lio/ktor/server/engine/KeyStoreProvider;)V
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorBuilder$VerificationConfig : io/ktor/server/engine/EngineSSLConnectorConfig$VerificationConfig {
+	public fun <init> ()V
+	public fun getTrustStore ()Ljava/security/KeyStore;
+	public fun getTrustStorePath ()Ljava/io/File;
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public fun setTrustStore (Ljava/security/KeyStore;)V
+	public fun setTrustStorePath (Ljava/io/File;)V
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorBuilder$VerificationConfigBuilder : io/ktor/server/engine/EngineSSLConnectorConfig$VerificationConfig {
+	public fun <init> ()V
+	public fun getTrustStoreProvider ()Lio/ktor/server/engine/KeyStoreProvider;
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public fun setTrustStoreProvider (Lio/ktor/server/engine/KeyStoreProvider;)V
+	public final fun trustStore (Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun trustStore (Ljava/security/KeyStore;)V
+	public static synthetic fun trustStore$default (Lio/ktor/server/engine/EngineSSLConnectorBuilder$VerificationConfigBuilder;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
+	public abstract fun getAuthentication ()Lio/ktor/server/engine/EngineSSLConnectorConfig$AuthenticationConfig;
 	public abstract fun getKeyAlias ()Ljava/lang/String;
 	public abstract fun getKeyStore ()Ljava/security/KeyStore;
 	public abstract fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
@@ -302,6 +364,50 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 	public abstract fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
 	public abstract fun getTrustStore ()Ljava/security/KeyStore;
 	public abstract fun getTrustStorePath ()Ljava/io/File;
+	public abstract fun getVerification ()Lio/ktor/server/engine/EngineSSLConnectorConfig$VerificationConfig;
+}
+
+public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig$AuthenticationConfig {
+	public abstract fun getKeyAlias ()Ljava/lang/String;
+	public abstract fun getKeyStoreProvider ()Lio/ktor/server/engine/KeyStoreProvider;
+	public abstract fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+}
+
+public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig$VerificationConfig {
+	public abstract fun getTrustStoreProvider ()Lio/ktor/server/engine/KeyStoreProvider;
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorConfigKt {
+	public static final fun sslConnector (Lio/ktor/server/engine/ApplicationEngineEnvironmentBuilder;Lkotlin/jvm/functions/Function1;)V
+}
+
+public abstract interface class io/ktor/server/engine/KeyStoreProvider {
+}
+
+public final class io/ktor/server/engine/KeyStoreProvider$File : io/ktor/server/engine/KeyStoreProvider {
+	public fun <init> (Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun component1 ()Ljava/io/File;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lkotlin/jvm/functions/Function0;
+	public final fun copy (Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lio/ktor/server/engine/KeyStoreProvider$File;
+	public static synthetic fun copy$default (Lio/ktor/server/engine/KeyStoreProvider$File;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lio/ktor/server/engine/KeyStoreProvider$File;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPasswordProvider ()Lkotlin/jvm/functions/Function0;
+	public final fun getPath ()Ljava/io/File;
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/engine/KeyStoreProvider$Instance : io/ktor/server/engine/KeyStoreProvider {
+	public fun <init> (Ljava/security/KeyStore;)V
+	public final fun component1 ()Ljava/security/KeyStore;
+	public final fun copy (Ljava/security/KeyStore;)Lio/ktor/server/engine/KeyStoreProvider$Instance;
+	public static synthetic fun copy$default (Lio/ktor/server/engine/KeyStoreProvider$Instance;Ljava/security/KeyStore;ILjava/lang/Object;)Lio/ktor/server/engine/KeyStoreProvider$Instance;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKeyStore ()Ljava/security/KeyStore;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/engine/ShutDownUrl {

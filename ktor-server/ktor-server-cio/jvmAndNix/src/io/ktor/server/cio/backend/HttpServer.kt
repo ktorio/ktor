@@ -6,8 +6,9 @@ package io.ktor.server.cio.backend
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.network.tls.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.WeakTimeoutQueue
+import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
@@ -60,7 +61,13 @@ public fun CoroutineScope.httpServer(
 
             try {
                 while (true) {
-                    val client: Socket = server.accept()
+                    val client: Socket = server.accept().let { socket ->
+                        if (settings.tlsConfig != null) {
+                            socket.tls(connectionScope.coroutineContext, settings.tlsConfig)
+                        } else {
+                            socket
+                        }
+                    }
 
                     val connection = ServerIncomingConnection(
                         client.openReadChannel(),

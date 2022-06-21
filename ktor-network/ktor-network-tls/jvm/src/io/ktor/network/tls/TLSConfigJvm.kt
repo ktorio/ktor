@@ -4,6 +4,7 @@
 
 package io.ktor.network.tls
 
+import io.ktor.utils.io.core.*
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
@@ -21,7 +22,33 @@ public actual class TLSConfig(
     public val certificates: List<CertificateAndKey>,
     public val trustManager: X509TrustManager,
     public val cipherSuites: List<CipherSuite>,
-    public val serverName: String?
+    public actual val isClient: Boolean,
+    public actual val serverName: String?,
+    public actual val authentication: TLSAuthenticationConfig?,
+    public actual val verification: TLSVerificationConfig?,
+) : Closeable {
+    public val sslContext: SSLContext by lazy {
+        SSLContext.getInstance("TLS").apply {
+            init(
+                authentication?.keyManagerFactory?.keyManagers,
+                verification?.trustManagerFactory?.trustManagers ?: arrayOf(trustManager),
+                random
+            )
+        }
+    }
+
+    override fun close() {
+        //NOOP
+    }
+}
+
+//TODO: migrate to just trustManager and keyManager?
+public actual class TLSAuthenticationConfig(
+    public val keyManagerFactory: KeyManagerFactory
+)
+
+public actual class TLSVerificationConfig(
+    public val trustManagerFactory: TrustManagerFactory
 )
 
 /**

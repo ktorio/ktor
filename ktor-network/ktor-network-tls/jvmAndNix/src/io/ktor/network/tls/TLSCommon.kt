@@ -10,47 +10,44 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-public expect suspend fun Socket.tls(
+public suspend fun Socket.tls(
+    coroutineContext: CoroutineContext,
+    config: TLSConfig
+): Socket = connection().tls(coroutineContext, config)
+
+/**
+ * Make [Socket] connection secure with TLS configured with [block].
+ */
+public suspend fun Socket.tls(
+    coroutineContext: CoroutineContext,
+    isClient: Boolean = true,
+    block: TLSConfigBuilder.() -> Unit = {}
+): Socket = tls(coroutineContext, createTLSConfig(isClient, block))
+
+/**
+ * Make [Socket] connection secure with TLS using [TLSConfig].
+ */
+public expect suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
     config: TLSConfig
 ): Socket
 
 /**
- * Make [Socket] connection secure with TLS.
- *
- * TODO: report YT issue
- */
-public suspend fun Socket.tls(coroutineContext: CoroutineContext): Socket = tls(coroutineContext) {}
-
-/**
  * Make [Socket] connection secure with TLS configured with [block].
- */
-public expect suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket
-
-/**
- * Make [Socket] connection secure with TLS using [TLSConfig].
  */
 public suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
-    config: TLSConfig
-): Socket {
-    return try {
-        openTLSSession(socket, input, output, config, coroutineContext)
-    } catch (cause: Throwable) {
-        input.cancel(cause)
-        output.close(cause)
-        socket.close()
-        throw cause
+    isClient: Boolean = true,
+    block: TLSConfigBuilder.() -> Unit
+): Socket = tls(coroutineContext, socket.createTLSConfig(isClient, block))
+
+private fun Socket.createTLSConfig(
+    isClient: Boolean = true,
+    block: TLSConfigBuilder.() -> Unit
+): TLSConfig {
+    val config = TLSConfig(isClient, block)
+    socketContext.invokeOnCompletion {
+        config.close()
     }
+    return config
 }
-
-/**
- * Make [Socket] connection secure with TLS.
- */
-public suspend fun Connection.tls(coroutineContext: CoroutineContext): Socket = tls(coroutineContext) {}
-
-/**
-* Make [Socket] connection secure with TLS configured with [block].
-*/
-public suspend fun Connection.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
-    tls(coroutineContext, TLSConfigBuilder().apply(block).build())

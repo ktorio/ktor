@@ -5,10 +5,12 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
+import io.ktor.network.tls.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -95,11 +97,10 @@ public class CIOApplicationEngine(
         }
     }
 
-    private fun CoroutineScope.startConnector(host: String, port: Int): HttpServer {
+    private fun CoroutineScope.startConnector(connectorConfig: EngineConnectorConfig): HttpServer {
         val settings = HttpServerSettings(
-            host = host,
-            port = port,
-            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
+            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
+            connectorConfig = connectorConfig,
         )
 
         return httpServer(settings) { request ->
@@ -145,10 +146,10 @@ public class CIOApplicationEngine(
 
             try {
                 environment.connectors.forEach { connectorSpec ->
-                    if (connectorSpec.type == ConnectorType.HTTPS) {
+                    if (connectorSpec.type == ConnectorType.HTTPS && PlatformUtils.IS_DARWIN) {
                         throw UnsupportedOperationException(
-                            "CIO Engine does not currently support HTTPS. Please " +
-                                "consider using a different engine if you require HTTPS"
+                            "CIO Engine does not currently support HTTPS on darwin. " +
+                                "Please consider using a different engine if you require HTTPS"
                         )
                     }
                 }
@@ -158,7 +159,7 @@ public class CIOApplicationEngine(
                 }
 
                 val connectorsAndServers = environment.connectors.map { connectorSpec ->
-                    connectorSpec to startConnector(connectorSpec.host, connectorSpec.port)
+                    connectorSpec to startConnector(connectorSpec)
                 }
                 connectors.addAll(connectorsAndServers.map { it.second })
 
@@ -185,3 +186,18 @@ public class CIOApplicationEngine(
         }
     }
 }
+
+internal fun HttpServerSettings(
+    connectionIdleTimeoutSeconds: Long,
+    connectorConfig: EngineConnectorConfig
+): HttpServerSettings = HttpServerSettings(
+    host = connectorConfig.host,
+    port = connectorConfig.port,
+    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds,
+    tlsConfig = when (connectorConfig) {
+        is EngineSSLConnectorConfig -> TLSConfig(isClient = false) { takeFromConnector(connectorConfig) }
+        else -> null
+    }
+)
+
+internal expect fun TLSConfigBuilder.takeFromConnector(connectorConfig: EngineSSLConnectorConfig)

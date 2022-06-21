@@ -233,10 +233,12 @@ public final class io/ktor/util/PathKt {
 public final class io/ktor/util/PlatformUtils {
 	public static final field INSTANCE Lio/ktor/util/PlatformUtils;
 	public final fun getIS_BROWSER ()Z
+	public final fun getIS_DARWIN ()Z
 	public final fun getIS_DEVELOPMENT_MODE ()Z
 	public final fun getIS_JVM ()Z
 	public final fun getIS_NATIVE ()Z
 	public final fun getIS_NEW_MM_ENABLED ()Z
+	public final fun getIS_NIX ()Z
 	public final fun getIS_NODE ()Z
 }
 

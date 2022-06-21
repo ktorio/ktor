@@ -15,13 +15,12 @@ import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
-import io.ktor.util.collections.*
 import io.ktor.util.logging.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import platform.posix.*
 import kotlin.coroutines.*
-import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 private val TEST_SELECTOR_MANAGER = SelectorManager()
@@ -95,6 +94,30 @@ actual constructor(
             }
 
             connector { port = _port }
+            if (enableSsl) {
+
+                val root = memScoped {
+                    val result = allocArray<ByteVar>(512)
+                    getcwd(result, 512)
+                    result.toKString()
+                }
+
+                val testResourcesFolder: String = "$root/jvmAndNix/test-resources"
+
+                sslConnector {
+                    port = sslPort
+
+                    authentication(privateKeyPassword = { "changeit".toCharArray() }) {
+                        pkcs12Certificate("$testResourcesFolder/server.p12") { "changeit".toCharArray() }
+                    }
+
+                    if (enableCertVerify) {
+                        verification {
+                            pkcs12Certificate("$testResourcesFolder/client.p12") { "changeit".toCharArray() }
+                        }
+                    }
+                }
+            }
             module(module)
         }
 

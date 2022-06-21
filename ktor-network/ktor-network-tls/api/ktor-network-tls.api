@@ -180,24 +180,48 @@ public final class io/ktor/network/tls/TLSAlertType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSAlertType;
 }
 
-public final class io/ktor/network/tls/TLSCommonKt {
-	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public final class io/ktor/network/tls/TLSAuthenticationConfig {
+	public fun <init> (Ljavax/net/ssl/KeyManagerFactory;)V
+	public final fun getKeyManagerFactory ()Ljavax/net/ssl/KeyManagerFactory;
 }
 
-public final class io/ktor/network/tls/TLSConfig {
-	public fun <init> (Ljava/security/SecureRandom;Ljava/util/List;Ljavax/net/ssl/X509TrustManager;Ljava/util/List;Ljava/lang/String;)V
+public final class io/ktor/network/tls/TLSAuthenticationConfigBuilder {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public final fun build ()Lio/ktor/network/tls/TLSAuthenticationConfig;
+	public final fun keyStore (Ljava/security/KeyStore;)V
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun pkcs12Certificate$default (Lio/ktor/network/tls/TLSAuthenticationConfigBuilder;Ljava/io/File;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static synthetic fun pkcs12Certificate$default (Lio/ktor/network/tls/TLSAuthenticationConfigBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/network/tls/TLSCommonKt {
+	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tls$default (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun tls$default (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/network/tls/TLSConfig : java/io/Closeable {
+	public fun <init> (Ljava/security/SecureRandom;Ljava/util/List;Ljavax/net/ssl/X509TrustManager;Ljava/util/List;ZLjava/lang/String;Lio/ktor/network/tls/TLSAuthenticationConfig;Lio/ktor/network/tls/TLSVerificationConfig;)V
+	public fun close ()V
+	public final fun getAuthentication ()Lio/ktor/network/tls/TLSAuthenticationConfig;
 	public final fun getCertificates ()Ljava/util/List;
 	public final fun getCipherSuites ()Ljava/util/List;
 	public final fun getRandom ()Ljava/security/SecureRandom;
 	public final fun getServerName ()Ljava/lang/String;
+	public final fun getSslContext ()Ljavax/net/ssl/SSLContext;
 	public final fun getTrustManager ()Ljavax/net/ssl/X509TrustManager;
+	public final fun getVerification ()Lio/ktor/network/tls/TLSVerificationConfig;
+	public final fun isClient ()Z
 }
 
 public final class io/ktor/network/tls/TLSConfigBuilder {
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun authentication (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
 	public final fun build ()Lio/ktor/network/tls/TLSConfig;
 	public final fun getCertificates ()Ljava/util/List;
 	public final fun getCipherSuites ()Ljava/util/List;
@@ -208,13 +232,19 @@ public final class io/ktor/network/tls/TLSConfigBuilder {
 	public final fun setRandom (Ljava/security/SecureRandom;)V
 	public final fun setServerName (Ljava/lang/String;)V
 	public final fun setTrustManager (Ljavax/net/ssl/TrustManager;)V
+	public final fun takeFrom (Lio/ktor/network/tls/TLSConfigBuilder;)V
+	public final fun verification (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/network/tls/TLSConfigBuilderKt {
 	public static final fun addCertificateChain (Lio/ktor/network/tls/TLSConfigBuilder;[Ljava/security/cert/X509Certificate;Ljava/security/PrivateKey;)V
 	public static final fun addKeyStoreNullablePassword (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;)V
 	public static synthetic fun addKeyStoreNullablePassword$default (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;ILjava/lang/Object;)V
-	public static final fun takeFrom (Lio/ktor/network/tls/TLSConfigBuilder;Lio/ktor/network/tls/TLSConfigBuilder;)V
+}
+
+public final class io/ktor/network/tls/TLSConfigKt {
+	public static final fun TLSConfig (ZLkotlin/jvm/functions/Function1;)Lio/ktor/network/tls/TLSConfig;
+	public static synthetic fun TLSConfig$default (ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/tls/TLSConfig;
 }
 
 public final class io/ktor/network/tls/TLSHandshakeType : java/lang/Enum {
@@ -239,9 +269,8 @@ public final class io/ktor/network/tls/TLSHandshakeType$Companion {
 }
 
 public final class io/ktor/network/tls/TLSKt {
-	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun tls (Lio/ktor/network/sockets/Connection;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Ljavax/net/ssl/X509TrustManager;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tls$default (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Ljavax/net/ssl/X509TrustManager;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -258,6 +287,21 @@ public final class io/ktor/network/tls/TLSRecordType : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSRecordType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSRecordType;
+}
+
+public final class io/ktor/network/tls/TLSVerificationConfig {
+	public fun <init> (Ljavax/net/ssl/TrustManagerFactory;)V
+	public final fun getTrustManagerFactory ()Ljavax/net/ssl/TrustManagerFactory;
+}
+
+public final class io/ktor/network/tls/TLSVerificationConfigBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/network/tls/TLSVerificationConfig;
+	public final fun pkcs12Certificate (Ljava/io/File;Lkotlin/jvm/functions/Function0;)V
+	public final fun pkcs12Certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun pkcs12Certificate$default (Lio/ktor/network/tls/TLSVerificationConfigBuilder;Ljava/io/File;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static synthetic fun pkcs12Certificate$default (Lio/ktor/network/tls/TLSVerificationConfigBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun trustStore (Ljava/security/KeyStore;)V
 }
 
 public final class io/ktor/network/tls/TLSVersion : java/lang/Enum {

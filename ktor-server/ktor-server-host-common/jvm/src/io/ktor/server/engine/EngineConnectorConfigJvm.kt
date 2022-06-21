@@ -23,22 +23,132 @@ public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
 /**
  * Mutable implementation of EngineSSLConnectorConfig for building connectors programmatically
  */
-public class EngineSSLConnectorBuilder(
-    override var keyStore: KeyStore,
-    override var keyAlias: String,
-    override var keyStorePassword: () -> CharArray,
+public actual class EngineSSLConnectorBuilder actual constructor() :
+    EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
+    public constructor(
+        keyStore: KeyStore,
+        keyAlias: String,
+        keyStorePassword: () -> CharArray,
+        privateKeyPassword: () -> CharArray
+    ) : this() {
+        this.keyStore = keyStore
+        this.keyAlias = keyAlias
+        this.keyStorePassword = keyStorePassword
+        this.privateKeyPassword = privateKeyPassword
+    }
+
+    private var _keyStore: KeyStore? = null
+    private var _keyAlias: String? = null
+    private var _keyStorePassword: (() -> CharArray)? = null
+    private var _privateKeyPassword: (() -> CharArray)? = null
+
+    override var keyStore: KeyStore
+        get() = requireNotNull(_keyStore) { "keyStore is not set" }
+        set(value) {
+            _keyStore = value
+        }
+    override var keyAlias: String
+        get() = requireNotNull(_keyAlias) { "keyAlias is not set" }
+        set(value) {
+            _keyAlias = value
+        }
+    override var keyStorePassword: () -> CharArray
+        get() = requireNotNull(_keyStorePassword) { "keyStorePassword is not set" }
+        set(value) {
+            _keyStorePassword = value
+        }
     override var privateKeyPassword: () -> CharArray
-) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
+        get() = requireNotNull(_privateKeyPassword) { "privateKeyPassword is not set" }
+        set(value) {
+            _privateKeyPassword = value
+        }
     override var keyStorePath: File? = null
     override var trustStore: KeyStore? = null
     override var trustStorePath: File? = null
     override var port: Int = 443
+
+    actual override var authentication: AuthenticationConfigBuilder? = null
+    actual override var verification: VerificationConfigBuilder? = null
+
+    public actual fun authentication(
+        privateKeyPassword: () -> CharArray,
+        block: AuthenticationConfigBuilder.() -> Unit
+    ) {
+        this.authentication = AuthenticationConfigBuilder(privateKeyPassword).apply(block)
+    }
+
+    public actual fun verification(block: VerificationConfigBuilder.() -> Unit) {
+        this.verification = VerificationConfigBuilder().apply(block)
+    }
+
+    public actual class AuthenticationConfigBuilder actual constructor(
+        public override val privateKeyPassword: () -> CharArray,
+    ) : EngineSSLConnectorConfig.AuthenticationConfig {
+        override var keyStoreProvider: KeyStoreProvider? = null
+        override var keyAlias: String? = null
+
+        public fun keyStore(keyStore: KeyStore) {
+            keyStoreProvider = KeyStoreProvider.Instance(keyStore)
+        }
+
+        public fun keyStore(path: File, type: String = "JKS", passwordProvider: (() -> CharArray)? = null) {
+            keyStoreProvider = KeyStoreProvider.File(path, type, passwordProvider)
+        }
+
+        public actual fun pkcs12Certificate(
+            certificatePath: String,
+            certificatePasswordProvider: (() -> CharArray)?
+        ) {
+            pkcs12Certificate(File(certificatePath), certificatePasswordProvider)
+        }
+
+        public fun pkcs12Certificate(
+            certificatePath: File,
+            certificatePasswordProvider: (() -> CharArray)?
+        ) {
+            keyStoreProvider = KeyStoreProvider.File(
+                path = certificatePath,
+                type = "PKCS12",
+                passwordProvider = certificatePasswordProvider
+            )
+        }
+    }
+
+    public actual class VerificationConfigBuilder : EngineSSLConnectorConfig.VerificationConfig {
+        override var trustStoreProvider: KeyStoreProvider? = null
+
+        public fun trustStore(keyStore: KeyStore) {
+            trustStoreProvider = KeyStoreProvider.Instance(keyStore)
+        }
+
+        public fun trustStore(path: File, type: String = "JKS", passwordProvider: (() -> CharArray)? = null) {
+            trustStoreProvider = KeyStoreProvider.File(path, type, passwordProvider)
+        }
+
+        public actual fun pkcs12Certificate(
+            certificatePath: String,
+            certificatePasswordProvider: (() -> CharArray)?
+        ) {
+            pkcs12Certificate(File(certificatePath), certificatePasswordProvider)
+        }
+
+        public fun pkcs12Certificate(
+            certificatePath: File,
+            certificatePasswordProvider: (() -> CharArray)?
+        ) {
+            trustStoreProvider = KeyStoreProvider.File(
+                path = certificatePath,
+                type = "PKCS12",
+                passwordProvider = certificatePasswordProvider
+            )
+        }
+    }
 }
 
 /**
  * Represents an SSL connector configuration.
  */
-public interface EngineSSLConnectorConfig : EngineConnectorConfig {
+public actual interface EngineSSLConnectorConfig : EngineConnectorConfig {
     /**
      * KeyStore where a certificate is stored
      */
@@ -81,16 +191,49 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
      */
     public val trustStorePath: File?
+
+    public actual val authentication: AuthenticationConfig?
+    public actual val verification: VerificationConfig?
+
+    public actual interface AuthenticationConfig {
+        /**
+         * Private key password provider
+         */
+        public actual val privateKeyPassword: () -> CharArray
+
+        public val keyAlias: String?
+
+        public val keyStoreProvider: KeyStoreProvider?
+    }
+
+    public actual interface VerificationConfig {
+        public val trustStoreProvider: KeyStoreProvider?
+    }
+
 }
 
-/**
- * Returns new instance of [EngineConnectorConfig] based on [this] with modified port
- */
-public actual fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnectorConfig = when (this) {
-    is EngineSSLConnectorBuilder -> object : EngineSSLConnectorConfig by this {
-        override val port: Int = otherPort
+public sealed interface KeyStoreProvider {
+    public data class Instance(
+        public val keyStore: KeyStore,
+    ) : KeyStoreProvider
+
+    public data class File(
+        public val path: java.io.File,
+        public val type: String,
+        public val passwordProvider: (() -> CharArray)?,
+    ) : KeyStoreProvider
+}
+
+public fun KeyStoreProvider.resolveKeyStore(): KeyStore = when (this) {
+    is KeyStoreProvider.File -> {
+        KeyStore.getInstance(type).apply {
+            val password = passwordProvider?.invoke()
+            try {
+                load(path.inputStream(), password)
+            } finally {
+                password?.fill('\u0000')
+            }
+        }
     }
-    else -> object : EngineConnectorConfig by this {
-        override val port: Int = otherPort
-    }
+    is KeyStoreProvider.Instance -> keyStore
 }
