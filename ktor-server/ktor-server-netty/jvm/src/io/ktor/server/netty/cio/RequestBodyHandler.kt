@@ -45,11 +45,13 @@ internal class RequestBodyHandler(
                             current.close()
                             current = null
                         }
+                        requestMoreEvents()
                     }
                     is ByteBuf -> {
                         val channel =
                             current ?: throw IllegalStateException("No current channel but received a byte buf")
                         processContent(channel, event)
+                        requestMoreEvents()
                     }
                     is ByteWriteChannel -> {
                         current?.close()
@@ -59,7 +61,6 @@ internal class RequestBodyHandler(
                         upgraded = true
                     }
                 }
-                requestMoreEvents()
             }
         } catch (t: Throwable) {
             queue.close(t)

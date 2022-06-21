@@ -43,7 +43,7 @@ public class NettyApplicationEngine(
         /**
          * Number of concurrently running requests from the same http pipeline
          */
-        public var runningLimit: Int = 10
+        public var runningLimit: Int = 30
 
         /**
          * Do not create separate call event group and reuse worker group for processing calls

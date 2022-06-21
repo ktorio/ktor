@@ -24,17 +24,17 @@ internal class NettyHttp1Handler(
     private val environment: ApplicationEngineEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
-    private val userContext: CoroutineContext
+    private val userContext: CoroutineContext,
+    private val runningLimit: Int
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
 
     override val coroutineContext: CoroutineContext get() = handlerJob
 
     private var skipEmpty = false
+    private val skippedRead: AtomicBoolean = atomic(false)
 
     private lateinit var responseWriter: NettyHttpResponsePipeline
-
-    private var currentRequest: ByteReadChannel? = null
 
     /**
      *  Represents current number of processing requests
@@ -82,12 +82,12 @@ internal class NettyHttp1Handler(
                 activeRequests.incrementAndGet()
 
                 handleRequest(context, message)
-                context.read()
+                callReadIfNeeded(context)
             }
             message is LastHttpContent && !message.content().isReadable && skipEmpty -> {
                 skipEmpty = false
                 message.release()
-                context.read()
+                callReadIfNeeded(context)
             }
             else -> {
                 context.fireChannelRead(message)
@@ -140,8 +140,6 @@ internal class NettyHttp1Handler(
                 null
             }
             else -> prepareRequestContentChannel(context, message)
-        }?.also {
-            currentRequest = it
         }
 
         return NettyHttp1ApplicationCall(
@@ -164,6 +162,23 @@ internal class NettyHttp1Handler(
                 val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
                 bodyHandler.newChannel()
             }
+        }
+    }
+
+    private fun callReadIfNeeded(context: ChannelHandlerContext) {
+        if (activeRequests.value < runningLimit) {
+            context.read()
+            skippedRead.value = false
+        } else {
+            skippedRead.value = true
+        }
+    }
+
+    internal fun onLastResponseMessage(context: ChannelHandlerContext) {
+        activeRequests.decrementAndGet()
+
+        if (skippedRead.compareAndSet(expect = false, update = true) && activeRequests.value < runningLimit) {
+            context.read()
         }
     }
 }
