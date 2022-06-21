@@ -9,6 +9,7 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
@@ -114,7 +115,7 @@ internal class Endpoint(
                 }
             }
 
-            val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout), config)
+            val timeout = getRequestTimeout(request, config)
             setupTimeout(callContext, request, timeout)
 
             val requestTime = GMTDate()
@@ -256,7 +257,18 @@ public class FailToConnectException : Exception("Connect timed out or retry atte
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable
 
+@OptIn(InternalAPI::class)
 internal fun getRequestTimeout(
-    requestConfig: HttpTimeout.HttpTimeoutCapabilityConfiguration?,
+    request: HttpRequestData,
     engineConfig: CIOEngineConfig
-): Long = requestConfig?.requestTimeoutMillis ?: engineConfig.requestTimeout
+): Long {
+    /**
+     * The request timeout is handled by the plugin and disabled for the WebSockets.
+     */
+    val isWebSocket = request.url.protocol.isWebsocket()
+    if (request.getCapabilityOrNull(HttpTimeout) != null || isWebSocket || request.isUpgradeRequest()) {
+        return HttpTimeout.INFINITE_TIMEOUT_MS
+    }
+
+    return engineConfig.requestTimeout
+}
