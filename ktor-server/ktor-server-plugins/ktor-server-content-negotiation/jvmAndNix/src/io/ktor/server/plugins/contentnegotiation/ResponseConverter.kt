@@ -47,12 +47,17 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
             val contentType = acceptCharset?.let { charset ->
                 it.contentType.withCharset(charset)
             }
-            it.converter.serialize(
-                contentType = contentType ?: it.contentType,
-                charset = acceptCharset ?: Charsets.UTF_8,
-                typeInfo = call.response.responseType!!,
-                value = subject
-            )
+
+            try {
+                it.converter.serialize(
+                    contentType = contentType ?: it.contentType,
+                    charset = acceptCharset ?: Charsets.UTF_8,
+                    typeInfo = call.response.responseType!!,
+                    value = subject
+                )
+            } catch (_: Throwable) {
+                null
+            }
         }
 
         val rendered = converted?.let { transformDefaultContent(call, it) } ?: return@transformBody subject

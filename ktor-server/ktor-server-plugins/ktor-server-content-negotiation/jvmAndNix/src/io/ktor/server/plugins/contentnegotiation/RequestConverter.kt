@@ -35,11 +35,15 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
             val converted = try {
                 // Pick the first one that can convert the subject successfully
                 suitableConverters.firstNotNullOfOrNull { registration ->
-                    registration.converter.deserialize(
-                        charset = call.request.contentCharset() ?: Charsets.UTF_8,
-                        typeInfo = requestedType,
-                        content = body
-                    )
+                    try {
+                        registration.converter.deserialize(
+                            charset = call.request.contentCharset() ?: Charsets.UTF_8,
+                            typeInfo = requestedType,
+                            content = body
+                        )
+                    } catch (_: Throwable) {
+                        null
+                    }
                 } ?: return@transformBody body
             } catch (convertException: ContentConvertException) {
                 throw BadRequestException(
