@@ -106,20 +106,20 @@ public class ContentNegotiation internal constructor(
                 val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
                     .takeIf { it.isNotEmpty() } ?: return@intercept
                 if (context.bodyType == null) return@intercept
-                context.headers.remove(HttpHeaders.ContentType)
 
                 // Pick the first one that can convert the subject successfully
-                val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter.serialize(
-                        contentType,
-                        contentType.charset() ?: Charsets.UTF_8,
-                        context.bodyType!!,
-                        payload
-                    )
-                } ?: throw ContentConverterException(
-                    "Can't convert $payload with contentType $contentType using converters " +
-                        matchingRegistrations.joinToString { it.converter.toString() }
-                )
+                val serializedContent = try {
+                    matchingRegistrations.firstNotNullOfOrNull { registration ->
+                        registration.converter.serialize(
+                            contentType,
+                            contentType.charset() ?: Charsets.UTF_8,
+                            context.bodyType!!,
+                            payload
+                        )
+                    }
+                } catch (cause: Throwable) {
+                    null
+                } ?: return@intercept
 
                 proceedWith(serializedContent)
             }
@@ -136,8 +136,11 @@ public class ContentNegotiation internal constructor(
 
                 // Pick the first one that can convert the subject successfully
                 val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter
-                        .deserialize(context.request.headers.suitableCharset(), info, body)
+                    try {
+                        registration.converter.deserialize(context.request.headers.suitableCharset(), info, body)
+                    } catch (_: Throwable) {
+                        null
+                    }
                 } ?: return@intercept
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)

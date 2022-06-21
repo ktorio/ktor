@@ -10,6 +10,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -368,6 +369,69 @@ class ContentNegotiationTests {
                 setBody(TextContent("""{"x": 123}""", ContentType.Application.Json))
             }.bodyAsText()
             assertEquals("""{"x": 123}""", response)
+        }
+    }
+
+    object X
+
+    @Test
+    fun testRequestWithFailingConverter() = testWithEngine(MockEngine) {
+        config {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, TestContentConverter()) {
+                    deserializeFn = { _, _, _ -> error("Should be suppressed") }
+                    serializeFn = { _, _, _, _ -> error("Should be suppressed") }
+                }
+            }
+
+            install(ObjectToString)
+
+            engine {
+                addHandler {
+                    val body = it.body
+                    assertTrue(body is TextContent)
+                    respond(body.text)
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get {
+                contentType(ContentType.Application.Json)
+                setBody(X)
+            }
+
+            assertEquals("X", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testResponseWithFailingConverter() = testWithEngine(MockEngine) {
+        config {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, TestContentConverter()) {
+                    deserializeFn = { _, _, _ -> error("Should be suppressed") }
+                    serializeFn = { _, _, _, _ -> error("Should be suppressed") }
+                }
+            }
+
+            install(ObjectToString)
+
+            engine {
+                addHandler {
+                    respond(
+                        "X",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Application.Json)
+                        }
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            client.get("").body<X>()
         }
     }
 

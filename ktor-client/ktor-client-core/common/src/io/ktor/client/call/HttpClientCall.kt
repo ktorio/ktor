@@ -180,7 +180,7 @@ public class NoTransformationFoundException(
     from: KClass<*>,
     to: KClass<*>
 ) : UnsupportedOperationException() {
-    override val message: String? = """No transformation found: $from -> $to
+    override val message: String = """Can't transform response body from $from to $to
         |with response from ${response.request.url}:
         |status: ${response.status}
         |response headers: 
