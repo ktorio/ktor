@@ -767,6 +767,12 @@ public class io/ktor/util/internal/LockFreeLinkedListHead : io/ktor/util/interna
 }
 
 public final class io/ktor/util/internal/LockFreeLinkedListKt {
+	public static final field FAILURE I
+	public static final field SUCCESS I
+	public static final field UNDECIDED I
+	public static final fun getALREADY_REMOVED ()Ljava/lang/Object;
+	public static final fun getCONDITION_FALSE ()Ljava/lang/Object;
+	public static final fun getLIST_EMPTY ()Ljava/lang/Object;
 	public static final fun unwrap (Ljava/lang/Object;)Lio/ktor/util/internal/LockFreeLinkedListNode;
 }
 

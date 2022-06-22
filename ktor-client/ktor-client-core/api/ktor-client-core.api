@@ -1288,6 +1288,7 @@ public final class io/ktor/client/statement/HttpStatement {
 	public final fun execute (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun executeUnsafe (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun toString ()Ljava/lang/String;
 }
 
