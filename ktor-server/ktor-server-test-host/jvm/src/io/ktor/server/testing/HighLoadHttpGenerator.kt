@@ -209,13 +209,6 @@ public class HighLoadHttpGenerator(
             }
         }
 
-//        private fun findEol0(bb: ByteBuffer) {
-//            if (scan(bb) { it == N }) {
-//                parseState = ParseState.HTTP
-//                tokenSize = 0
-//            }
-//        }
-
         private fun findEol(bb: ByteBuffer) {
             val position = bb.position()
             val limit = bb.limit()

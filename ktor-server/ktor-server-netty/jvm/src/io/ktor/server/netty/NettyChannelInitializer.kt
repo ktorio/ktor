@@ -42,33 +42,6 @@ public class NettyChannelInitializer(
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
-    internal constructor(
-        enginePipeline: EnginePipeline,
-        environment: ApplicationEngineEnvironment,
-        callEventGroup: EventExecutorGroup,
-        engineContext: CoroutineContext,
-        userContext: CoroutineContext,
-        connector: EngineConnectorConfig,
-        requestQueueLimit: Int,
-        runningLimit: Int,
-        responseWriteTimeout: Int,
-        requestReadTimeout: Int,
-        httpServerCodec: () -> HttpServerCodec
-    ) : this(
-        enginePipeline,
-        environment,
-        callEventGroup,
-        engineContext,
-        userContext,
-        connector,
-        requestQueueLimit,
-        runningLimit,
-        responseWriteTimeout,
-        requestReadTimeout,
-        httpServerCodec,
-        {}
-    )
-
     init {
         if (connector is EngineSSLConnectorConfig) {
 
@@ -144,7 +117,8 @@ public class NettyChannelInitializer(
                     environment,
                     callEventGroup,
                     engineContext,
-                    userContext
+                    userContext,
+                    runningLimit
                 )
 
                 with(pipeline) {

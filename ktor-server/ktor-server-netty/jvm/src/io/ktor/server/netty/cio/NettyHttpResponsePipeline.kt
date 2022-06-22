@@ -145,7 +145,7 @@ internal class NettyHttpResponsePipeline constructor(
             null
         }
 
-        httpHandler.activeRequests.decrementAndGet()
+        httpHandler.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
         lastMessageFuture?.addListener {
