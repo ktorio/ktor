@@ -6,6 +6,7 @@ package io.ktor.server.plugins
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
@@ -104,5 +105,21 @@ class ContentNegotiationTest {
         }
         val response = client.get("/").body<ByteArray>()
         assertContentEquals("test".toByteArray(), response)
+    }
+
+    @Test
+    fun testRespondInputStream() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+                }
+                get("/") {
+                    call.respond(ByteArrayInputStream("""{"x": 123}""".toByteArray()))
+                }
+            }
+        }
+        val response = client.get("/").bodyAsText()
+        assertEquals("""{"x": 123}""", response)
     }
 }

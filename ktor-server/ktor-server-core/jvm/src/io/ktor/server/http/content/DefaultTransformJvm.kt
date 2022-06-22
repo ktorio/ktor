@@ -6,6 +6,8 @@ package io.ktor.server.http.content
 
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 
 /**
@@ -20,6 +22,9 @@ internal actual fun platformTransformDefaultContent(
             "file" -> LocalFileContent(File(value.uri))
             else -> null
         }
+    }
+    is InputStream -> object : OutgoingContent.ReadChannelContent() {
+        override fun readFrom(): ByteReadChannel = value.toByteReadChannel()
     }
     else -> null
 }

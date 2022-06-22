@@ -10,10 +10,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlin.reflect.*
+
+internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
  * A plugin that serves two primary purposes:
@@ -95,9 +99,12 @@ public class ContentNegotiation internal constructor(
                 val registrations = plugin.registrations
                 registrations.forEach { context.accept(it.contentTypeToSend) }
 
+                if (subject is OutgoingContent || DefaultIgnoredTypes.any { it.isInstance(payload) }) {
+                    return@intercept
+                }
                 val contentType = context.contentType() ?: return@intercept
 
-                if (payload is Unit || payload is EmptyContent) {
+                if (payload is Unit) {
                     context.headers.remove(HttpHeaders.ContentType)
                     proceedWith(EmptyContent)
                     return@intercept

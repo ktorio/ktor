@@ -9,6 +9,8 @@ import io.ktor.serialization.*
 import io.ktor.util.*
 import kotlin.reflect.*
 
+internal expect val DefaultIgnoredTypes: Set<KClass<*>>
+
 /**
  * A configuration for the [ContentNegotiation] plugin.
  */
@@ -18,7 +20,7 @@ public class ContentNegotiationConfig : Configuration {
     internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
 
     @PublishedApi
-    internal val ignoredTypes: MutableSet<KClass<*>> = mutableSetOf(HttpStatusCode::class)
+    internal val ignoredTypes: MutableSet<KClass<*>> = DefaultIgnoredTypes.toMutableSet()
 
     /**
      * Checks that the `ContentType` header value of a response suits the `Accept` header value of a request.
