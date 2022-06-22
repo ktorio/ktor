@@ -12,8 +12,11 @@ val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoole
 repositories {
     mavenCentral()
     maven("https://plugins.gradle.org/m2")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
-
+    maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
+    maven("https://plugins.gradle.org/m2")
+    mavenLocal()
     if (buildSnapshotTrain) {
         mavenLocal()
     }
@@ -26,7 +29,10 @@ configurations.configureEach {
     if (isCanBeResolved) {
         attributes {
             @Suppress("UnstableApiUsage")
-            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                project.objects.named(GradleVersion.current().version)
+            )
         }
     }
 }
