@@ -51,7 +51,6 @@ internal class NettyHttp1Handler(
      */
     internal val isChannelReadCompleted: AtomicBoolean = atomic(false)
 
-    @OptIn(InternalAPI::class)
     override fun channelActive(context: ChannelHandlerContext) {
         responseWriter = NettyHttpResponsePipeline(
             context,
@@ -152,17 +151,19 @@ internal class NettyHttp1Handler(
         )
     }
 
-    private fun prepareRequestContentChannel(context: ChannelHandlerContext, message: HttpRequest): ByteReadChannel {
-        return when (message) {
-            is HttpContent -> {
-                val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-                bodyHandler.newChannel().also { bodyHandler.channelRead(context, message) }
-            }
-            else -> {
-                val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-                bodyHandler.newChannel()
-            }
+    private fun prepareRequestContentChannel(
+        context: ChannelHandlerContext,
+        message: HttpRequest
+    ): ByteReadChannel {
+        val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
+        val length = message.headers()[io.ktor.http.HttpHeaders.ContentLength]?.toLongOrNull() ?: -1
+        val result = bodyHandler.newChannel(length)
+
+        if (message is HttpContent) {
+            bodyHandler.channelRead(context, message)
         }
+
+        return result
     }
 
     private fun callReadIfNeeded(context: ChannelHandlerContext) {
