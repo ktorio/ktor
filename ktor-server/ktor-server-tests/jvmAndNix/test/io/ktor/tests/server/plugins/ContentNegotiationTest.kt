@@ -20,6 +20,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -448,6 +449,24 @@ class ContentNegotiationTest {
             contentType(ContentType.Application.Json)
         }.let { response ->
             assertEquals("text: \"k=v\"", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testRespondByteReadChannelIgnoresContentNegotiation(): Unit = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Any, alwaysFailingConverter(false))
+        }
+
+        routing {
+            get("/text") {
+                call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                call.respond(ByteReadChannel("""{"x": 123}""".toByteArray()))
+            }
+        }
+
+        client.get("/text").let { response ->
+            assertEquals("""{"x": 123}""", response.bodyAsText())
         }
     }
 

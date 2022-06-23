@@ -12,7 +12,7 @@ class MDCProviderTest {
 
     @Test
     fun testLogErrorWithEmptyApplication() = testApplication {
-        val environment = createTestEnvironment {  }
+        val environment = createTestEnvironment { }
         val application = Application(environment)
         assertNotNull(application.mdcProvider)
     }

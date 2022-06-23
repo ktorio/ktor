@@ -43,9 +43,8 @@ public fun HttpClient.defaultTransformers() {
                 override fun readFrom(): ByteReadChannel = body
             }
             is OutgoingContent -> body
-            else -> null
+            else -> platformRequestDefaultTransform(contentType, context, body)
         }
-
         if (content != null) {
             context.headers.remove(HttpHeaders.ContentType)
             proceedWith(content)
@@ -111,7 +110,13 @@ public fun HttpClient.defaultTransformers() {
         }
     }
 
-    platformDefaultTransformers()
+    platformResponseDefaultTransformers()
 }
 
-internal expect fun HttpClient.platformDefaultTransformers()
+internal expect fun platformRequestDefaultTransform(
+    contentType: ContentType?,
+    context: HttpRequestBuilder,
+    body: Any
+): OutgoingContent?
+
+internal expect fun HttpClient.platformResponseDefaultTransformers()

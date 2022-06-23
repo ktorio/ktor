@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins
@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class ContentNegotiationTests {
@@ -84,7 +85,7 @@ class ContentNegotiationTests {
     }
 
     @Test
-    fun testIgnoresByteReadChannel() {
+    fun testReceiveByteReadChannel() {
         val contentType = ContentType("testing", "a")
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {
@@ -100,6 +101,33 @@ class ContentNegotiationTests {
                 }.bodyAsChannel()
                 response.discard()
             }
+        }
+    }
+
+    @Test
+    fun testSendByteReadChannel() = testWithEngine(MockEngine) {
+        config {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, TestContentConverter()) {
+                    deserializeFn = { _, _, _ -> fail() }
+                    serializeFn = { _, _, _, _ -> fail() }
+                }
+            }
+            engine {
+                addHandler {
+                    val text = (it.body as OutgoingContent.ReadChannelContent).readFrom().readRemaining().readText()
+                    respond(text)
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.post("/post") {
+                val channel = ByteReadChannel("""{"x": 123}""".toByteArray())
+                contentType(ContentType.Application.Json)
+                setBody(channel)
+            }.bodyAsText()
+            assertEquals("""{"x": 123}""", response)
         }
     }
 
