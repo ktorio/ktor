@@ -4,11 +4,13 @@
 
 package io.ktor.tests.server.http
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -39,5 +41,32 @@ class RespondFunctionsTest {
             assertEquals("1, 2", call.response.byteContent?.joinToString())
             assertEquals("2", call.response.headers[HttpHeaders.ContentLength])
         }
+    }
+
+    @Test
+    fun testRespondWithTypeInfo() = testApplication {
+        routing {
+            get("respond") {
+                call.respond("asd", typeInfo<String>())
+            }
+            get("respond-with-status") {
+                call.respond(HttpStatusCode.NotFound, "asd", typeInfo<String>())
+            }
+        }
+        application {
+            install(
+                createApplicationPlugin("checker") {
+                    onCallRespond { _ ->
+                        transformBody {
+                            assertEquals(typeInfo<String>().type, String::class)
+                            it
+                        }
+                    }
+                }
+            )
+        }
+
+        client.get("/respond")
+        client.get("/respond-with-status")
     }
 }

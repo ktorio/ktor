@@ -67,7 +67,7 @@ public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
 
     if (result is T) return result
     if (result == null) {
-        if (typeInfo.kotlinType?.isMarkedNullable == true) return result
+        if (typeInfo.kotlinType?.isMarkedNullable == true) return null
         throw WebsocketDeserializeException("Frame has null content", frame = frame)
     }
 
