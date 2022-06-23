@@ -4,6 +4,7 @@
 
 package io.ktor.client.request
 
+import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
@@ -26,4 +27,10 @@ public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
             bodyType = typeInfo<T>()
         }
     }
+}
+
+@OptIn(InternalAPI::class)
+public fun HttpRequestBuilder.setBody(body: Any?, bodyType: TypeInfo) {
+    this.body = body ?: NullBody
+    this.bodyType = bodyType
 }
