@@ -1095,6 +1095,10 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
 }
 
+public final class io/ktor/client/request/RequestBodyKt {
+	public static final fun setBody (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;)V
+}
+
 public final class io/ktor/client/request/UtilsKt {
 	public static final fun accept (Lio/ktor/http/HttpMessageBuilder;Lio/ktor/http/ContentType;)V
 	public static final fun basicAuth (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/String;)V
