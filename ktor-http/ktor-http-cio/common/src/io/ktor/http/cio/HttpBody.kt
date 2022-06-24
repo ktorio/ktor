@@ -7,8 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-import java.io.IOException
-
+import io.ktor.utils.io.errors.*
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
  * parsed [connectionOptions]

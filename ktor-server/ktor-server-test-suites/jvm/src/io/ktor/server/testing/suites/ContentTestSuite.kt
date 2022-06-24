@@ -569,21 +569,25 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             post("/") {
                 val response = StringBuilder()
 
-                call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
-                    when (part) {
-                        is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
-                        )
-                        is PartData.BinaryItem -> {
+                try {
+                    call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
+                        when (part) {
+                            is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+                            is PartData.FileItem -> response.append(
+                                "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
+                            )
+                            is PartData.BinaryItem -> {
+                            }
+                            is PartData.BinaryChannelItem -> {}
                         }
-                        is PartData.BinaryChannelItem -> {}
+
+                        part.dispose()
                     }
 
-                    part.dispose()
+                    call.respondText(response.toString())
+                } catch (cause: Throwable) {
+                    throw cause
                 }
-
-                call.respondText(response.toString())
             }
         }
 
@@ -639,10 +643,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName}," +
-                                "${part.streamProvider().bufferedReader().lineSequence().count()}\n"
-                        )
+                        is PartData.FileItem -> {
+                            val lineSequence = part.streamProvider().bufferedReader().lineSequence()
+                            response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
+                        }
                         is PartData.BinaryItem -> {
                         }
                         is PartData.BinaryChannelItem -> {}

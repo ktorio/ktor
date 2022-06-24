@@ -20,11 +20,9 @@ internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLeng
     }
 }
 
-private class ServletReader(val input: ServletInputStream, contentLength: Int) : ReadListener {
+private class ServletReader(val input: ServletInputStream, val contentLength: Int) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
-
-    private val contentLength: Int = if (contentLength < 0) Int.MAX_VALUE else contentLength
 
     suspend fun run() {
         val buffer = ArrayPool.borrow()
@@ -71,6 +69,8 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
             bodySize += readCount
 
             channel.writeFully(buffer, 0, readCount)
+
+            if (contentLength < 0) continue
 
             if (bodySize == contentLength) {
                 channel.close()
