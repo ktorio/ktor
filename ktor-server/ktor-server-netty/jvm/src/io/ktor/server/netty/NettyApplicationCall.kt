@@ -19,9 +19,7 @@ public abstract class NettyApplicationCall(
     private val requestMessage: Any,
 ) : BaseApplicationCall(application) {
 
-    @OptIn(InternalAPI::class)
     public abstract override val request: NettyApplicationRequest
-    @OptIn(InternalAPI::class)
     public abstract override val response: NettyApplicationResponse
 
     internal lateinit var previousCallFinished: ChannelPromise
@@ -65,7 +63,6 @@ public abstract class NettyApplicationCall(
 
     internal suspend fun finish() {
         try {
-            @OptIn(InternalAPI::class)
             response.ensureResponseSent()
         } catch (cause: Throwable) {
             finishedEvent.setFailure(cause)
@@ -89,14 +86,12 @@ public abstract class NettyApplicationCall(
         }
     }
 
-    @OptIn(InternalAPI::class)
     private fun finishComplete() {
         responseWriteJob.cancel()
         request.close()
         releaseRequestMessage()
     }
 
-    @OptIn(InternalAPI::class)
     internal fun dispose() {
         response.close()
         request.close()

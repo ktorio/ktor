@@ -846,6 +846,49 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             outputStream.close()
         }
     }
+
+    @Test
+    fun testBodySmallerThanContentLength() {
+        var failCause: Throwable? = null
+        val result = Job()
+
+        createAndStartServer {
+            post("/") {
+                try {
+                    println(call.receive<ByteArray>().size)
+                } catch (cause: Throwable) {
+                    failCause = cause
+                } finally {
+                    result.complete()
+                }
+
+                call.respond("OK")
+            }
+        }
+
+        socket {
+            val request = buildString {
+                append("POST / HTTP/1.1\r\n")
+                append("Content-Length: 4\r\n")
+                append("Content-Type: text/plain\r\n")
+                append("Connection: close\r\n")
+                append("Host: localhost\r\n")
+                append("\r\n")
+                append("ABC")
+            }
+
+            outputStream.writer().use {
+                it.write(request)
+            }
+        }
+
+        runBlocking {
+            result.join()
+        }
+
+        assertTrue(failCause != null)
+        assertTrue(failCause is IOException)
+    }
 }
 
 internal inline fun assertFails(block: () -> Unit) {

@@ -639,10 +639,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName}," +
-                                "${part.streamProvider().bufferedReader().lineSequence().count()}\n"
-                        )
+                        is PartData.FileItem -> {
+                            val lineSequence = part.streamProvider().bufferedReader().lineSequence()
+                            response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
+                        }
                         is PartData.BinaryItem -> {
                         }
                         is PartData.BinaryChannelItem -> {}

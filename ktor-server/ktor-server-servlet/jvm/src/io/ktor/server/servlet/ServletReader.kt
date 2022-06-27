@@ -20,11 +20,9 @@ internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLeng
     }
 }
 
-private class ServletReader(val input: ServletInputStream, contentLength: Int) : ReadListener {
+private class ServletReader(val input: ServletInputStream, val contentLength: Int) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
-
-    private val contentLength: Int = if (contentLength < 0) Int.MAX_VALUE else contentLength
 
     suspend fun run() {
         val buffer = ArrayPool.borrow()
@@ -72,20 +70,24 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
 
             channel.writeFully(buffer, 0, readCount)
 
+            if (contentLength < 0) continue
+
             if (bodySize == contentLength) {
                 channel.close()
                 events.close()
                 break
             }
 
-            if (bodySize > contentLength) {
-                val cause = IOException(
-                    "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
-                )
-                channel.close(cause)
-                events.close()
-                break
+            val message = if (bodySize > contentLength) {
+                "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
+            } else {
+                "Client provided less bytes than content length. Expected $contentLength but got $bodySize."
             }
+
+            val cause = IOException(message)
+            channel.close(cause)
+            events.close()
+            break
         }
     }
 
@@ -112,8 +114,7 @@ private class ServletReader(val input: ServletInputStream, contentLength: Int) :
     private fun wrapException(cause: Throwable): Throwable? {
         return when (cause) {
             is EOFException -> null
-            is TimeoutException,
-            is IOException -> ChannelReadException(
+            is TimeoutException -> ChannelReadException(
                 "Cannot read from a servlet input stream",
                 exception = cause as Exception
             )

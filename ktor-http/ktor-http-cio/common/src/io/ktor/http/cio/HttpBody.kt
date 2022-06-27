@@ -7,7 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-
+import io.ktor.utils.io.errors.*
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
  * parsed [connectionOptions]
@@ -84,7 +84,11 @@ public suspend fun parseHttpBody(
     }
 
     if (contentLength != -1L) {
-        input.copyTo(out, contentLength)
+        val size = input.copyTo(out, contentLength)
+
+        if (size != contentLength) {
+            throw IOException("Unexpected body length: expected $contentLength, actual $size")
+        }
         return
     }
 
