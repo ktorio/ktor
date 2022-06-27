@@ -569,25 +569,21 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             post("/") {
                 val response = StringBuilder()
 
-                try {
-                    call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
-                        when (part) {
-                            is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                            is PartData.FileItem -> response.append(
-                                "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
-                            )
-                            is PartData.BinaryItem -> {
-                            }
-                            is PartData.BinaryChannelItem -> {}
+                call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
+                    when (part) {
+                        is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+                        is PartData.FileItem -> response.append(
+                            "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
+                        )
+                        is PartData.BinaryItem -> {
                         }
-
-                        part.dispose()
+                        is PartData.BinaryChannelItem -> {}
                     }
 
-                    call.respondText(response.toString())
-                } catch (cause: Throwable) {
-                    throw cause
+                    part.dispose()
                 }
+
+                call.respondText(response.toString())
             }
         }
 

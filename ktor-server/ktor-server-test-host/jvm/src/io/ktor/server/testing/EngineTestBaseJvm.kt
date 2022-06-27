@@ -48,7 +48,7 @@ actual abstract class EngineTestBase<
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
             .any { "-agentlib:jdwp" in it }
 
-    protected actual var port: Int = 8081// findFreePort()
+    protected actual var port: Int = findFreePort()
     protected actual var sslPort: Int = findFreePort()
     protected actual var server: TEngine? = null
     protected var callGroupSize: Int = -1
