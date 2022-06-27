@@ -36,10 +36,15 @@ public class ApplicationEngineEnvironmentReloading(
     override val connectors: List<EngineConnectorConfig>,
     internal val modules: List<Application.() -> Unit>,
     internal val watchPaths: List<String> = emptyList(),
-    override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     override val rootPath: String = "",
     override val developmentMode: Boolean = true
 ) : ApplicationEngineEnvironment {
+
+    override val parentCoroutineContext: CoroutineContext = when {
+        developmentMode -> parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
+        else -> parentCoroutineContext
+    }
 
     public constructor(
         classLoader: ClassLoader,
@@ -364,4 +369,21 @@ public class ApplicationEngineEnvironmentReloading(
     }
 
     public companion object
+}
+
+private object ClassLoaderAwareContinuationInterceptor : ContinuationInterceptor {
+    override val key: CoroutineContext.Key<*> =
+        object : CoroutineContext.Key<ClassLoaderAwareContinuationInterceptor> {}
+
+    override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
+        val classLoader = Thread.currentThread().contextClassLoader
+        return object : Continuation<T> {
+            override val context: CoroutineContext = continuation.context
+
+            override fun resumeWith(result: Result<T>) {
+                Thread.currentThread().contextClassLoader = classLoader
+                continuation.resumeWith(result)
+            }
+        }
+    }
 }

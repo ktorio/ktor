@@ -14,6 +14,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
+import java.io.*
+import kotlin.coroutines.*
 import kotlin.test.*
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
@@ -100,9 +103,9 @@ class TestApplicationTestJvm {
 
     @Test
     fun testExternalServicesCustomConfig() = testApplication {
-       environment {
-           config = ApplicationConfig("application-custom.conf")
-       }
+        environment {
+            config = ApplicationConfig("application-custom.conf")
+        }
         externalServices {
             hosts("http://www.google.com") {
                 val config = environment.config
@@ -119,9 +122,60 @@ class TestApplicationTestJvm {
         assertEquals("another_test_value", external.bodyAsText())
     }
 
+    @Test
+    fun testModuleWithLaunch() = testApplication {
+        var error: Throwable? = null
+        val exceptionHandler: CoroutineContext = object : CoroutineExceptionHandler {
+            override val key: CoroutineContext.Key<*> = CoroutineExceptionHandler.Key
+            override fun handleException(context: CoroutineContext, exception: Throwable) {
+                error = exception
+            }
+        }
+        environment {
+            parentCoroutineContext = exceptionHandler
+        }
+        application {
+            launch {
+                val byteArrayInputStream = ByteArrayOutputStream()
+                val objectOutputStream = ObjectOutputStream(byteArrayInputStream)
+                objectOutputStream.writeObject(TestClass(123))
+                objectOutputStream.flush()
+                objectOutputStream.close()
+
+                val ois = TestObjectInputStream(ByteArrayInputStream(byteArrayInputStream.toByteArray()))
+                val test = ois.readObject()
+                test as TestClass
+            }
+        }
+        routing {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        client.get("/")
+        Thread.sleep(3000)
+        assertNull(error)
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
+        }
+    }
+}
+
+class TestClass(val value: Int) : Serializable
+
+class TestObjectInputStream(input: InputStream) : ObjectInputStream(input) {
+    override fun resolveClass(desc: ObjectStreamClass?): Class<*> {
+        val name = desc?.name
+        val loader = Thread.currentThread().contextClassLoader
+
+        return try {
+            Class.forName(name, false, loader)
+        } catch (e: ClassNotFoundException) {
+            super.resolveClass(desc)
         }
     }
 }
