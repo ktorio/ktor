@@ -2,6 +2,7 @@
 > Published 28 June 2022
 
 * Validate that the body of an incoming request is received completely ([KTOR-4379](https://youtrack.jetbrains.com/issue/KTOR-4379))
+* UrlBuilder escapes fragment parameters ([KTOR-4412](https://youtrack.jetbrains.com/issue/KTOR-4412))
 * CallLogging: JVM crashes when jansi checks whether a file descriptor refers to a terminal ([KTOR-3476](https://youtrack.jetbrains.com/issue/KTOR-3476))
 * WebSocket client closes connection due to an HTTP request timeout ([KTOR-4419](https://youtrack.jetbrains.com/issue/KTOR-4419))
 * [JS client] Cannot change redirect policy by followRedirects=false ([KTOR-326](https://youtrack.jetbrains.com/issue/KTOR-326))
@@ -21,7 +22,6 @@
 * call.receiveText() tries to parse body as JSON when the ContentNegotiation plugin is installed ([KTOR-4426](https://youtrack.jetbrains.com/issue/KTOR-4426))
 * Ignore ByteReadChannel as receive type in ContentNegotiation ([KTOR-4511](https://youtrack.jetbrains.com/issue/KTOR-4511))
 * Setting body to TextContent leads to NPE when the ContentNegotiation plugin is installed ([KTOR-4383](https://youtrack.jetbrains.com/issue/KTOR-4383))
-* UrlBuilder escapes fragment parameters ([KTOR-4412](https://youtrack.jetbrains.com/issue/KTOR-4412))
 * submitFormWithBinaryData call leads to NPE when the ContentNegotiation plugin is installed ([KTOR-4269](https://youtrack.jetbrains.com/issue/KTOR-4269))
 * ResponseConverter NPE when returning ByteArray with the ContentNegotiation plugin ([KTOR-4399](https://youtrack.jetbrains.com/issue/KTOR-4399))
 
