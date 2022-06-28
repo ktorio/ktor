@@ -4,8 +4,6 @@
 
 package io.ktor.util
 
-import io.ktor.util.collections.*
-
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
  */

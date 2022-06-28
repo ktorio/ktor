@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
+
 /**
  * Construct [Url] from [urlString].
  */
@@ -44,7 +46,7 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     encodedPathSegments = url.encodedPathSegments
     encodedUser = url.encodedUser
     encodedPassword = url.encodedPassword
-    encodedParameters = url.encodedParameters
+    encodedParameters = ParametersBuilder().apply { this.appendAll(url.encodedParameters) }
     encodedFragment = url.encodedFragment
     trailingQuery = url.trailingQuery
 

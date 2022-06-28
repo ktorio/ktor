@@ -411,6 +411,18 @@ internal class URLBuilderTest {
         assertEquals("/ws/v1?action=get&id=1", url.encodedPathAndQuery)
     }
 
+    @Test
+    fun testClone() {
+        val b1 = URLBuilder().apply {
+            parameters.append("param1", "value1")
+        }
+
+        val b2 = b1.clone()
+        b2.parameters.append("param2", "value2")
+
+        assertNull(b1.parameters["param2"])
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
