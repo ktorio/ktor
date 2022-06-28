@@ -160,6 +160,40 @@ class HSTSTest {
         }
     }
 
+    @Test
+    fun testHttpsHostOverride() = testApplication {
+        application {
+            testApp {
+                customDirectives.clear()
+                includeSubDomains = true
+
+                withHost("differing") {
+                    maxAgeInSeconds = 10
+                    preload = true
+                    includeSubDomains = false
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.XForwardedProto, "https")
+        }.let {
+            assertEquals(
+                "max-age=10; includeSubDomains; preload",
+                it.headers[HttpHeaders.StrictTransportSecurity]
+            )
+        }
+        client.get("/") {
+            header(HttpHeaders.XForwardedProto, "https")
+            header(HttpHeaders.XForwardedHost, "differing")
+        }.let {
+            assertEquals(
+                "max-age=10; preload",
+                it.headers[HttpHeaders.StrictTransportSecurity]
+            )
+        }
+    }
+
     private fun Application.testApp(block: HSTSConfig.() -> Unit = {}) {
         install(XForwardedHeaders)
         install(HSTS) {

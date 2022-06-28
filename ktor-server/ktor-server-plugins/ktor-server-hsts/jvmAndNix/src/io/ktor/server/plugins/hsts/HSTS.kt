@@ -7,14 +7,15 @@ package io.ktor.server.plugins.hsts
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
- *  A configuration for the [HSTS] plugin.
+ *  A configuration for the [HSTS] settings for a host.
  */
 @KtorDsl
-public class HSTSConfig {
+public open class HSTSHostConfig {
     /**
      * Specifies the `preload` HSTS directive, which allows you to include your domain name
      * in the HSTS preload list.
@@ -41,6 +42,24 @@ public class HSTSConfig {
     public val customDirectives: MutableMap<String, String?> = HashMap()
 }
 
+/**
+ *  A configuration for the [HSTS] plugin.
+ */
+@KtorDsl
+public class HSTSConfig : HSTSHostConfig() {
+    /**
+     * @see [withHost]
+     */
+    internal val hostSpecific: MutableMap<String, HSTSHostConfig> = HashMap()
+
+    /**
+     * Set specific configuration for a [host].
+     */
+    public fun withHost(host: String, configure: HSTSHostConfig.() -> Unit) {
+        this.hostSpecific[host] = HSTSHostConfig().apply(configure)
+    }
+}
+
 internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
 
 /**
@@ -56,22 +75,19 @@ internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
  * You can learn more from [HSTS](https://ktor.io/docs/hsts.html).
  */
 public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS", ::HSTSConfig) {
-    /**
-     * A constructed `Strict-Transport-Security` header value.
-     */
-    val headerValue: String = buildString {
+    fun constructHeaderValue(config: HSTSHostConfig) = buildString {
         append("max-age=")
-        append(pluginConfig.maxAgeInSeconds)
+        append(config.maxAgeInSeconds)
 
-        if (pluginConfig.includeSubDomains) {
+        if (config.includeSubDomains) {
             append("; includeSubDomains")
         }
-        if (pluginConfig.preload) {
+        if (config.preload) {
             append("; preload")
         }
 
-        if (pluginConfig.customDirectives.isNotEmpty()) {
-            pluginConfig.customDirectives.entries.joinTo(this, separator = "; ", prefix = "; ") {
+        if (config.customDirectives.isNotEmpty()) {
+            config.customDirectives.entries.joinTo(this, separator = "; ", prefix = "; ") {
                 if (it.value != null) {
                     "${it.key.escapeIfNeeded()}=${it.value?.escapeIfNeeded()}"
                 } else {
@@ -81,9 +97,19 @@ public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS",
         }
     }
 
+    /**
+     * A constructed default `Strict-Transport-Security` header value.
+     */
+    val headerValue: String = constructHeaderValue(pluginConfig)
+
+    val hostHeaderValues: Map<String, String> = pluginConfig.hostSpecific.mapValues { constructHeaderValue(it.value) }
+
     onCall { call ->
         if (call.request.origin.run { scheme == "https" && port == 443 }) {
-            call.response.header(HttpHeaders.StrictTransportSecurity, headerValue)
+            call.response.header(
+                HttpHeaders.StrictTransportSecurity,
+                hostHeaderValues[call.request.host()] ?: headerValue
+            )
         }
     }
 }
