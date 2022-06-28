@@ -14,7 +14,6 @@ import io.ktor.server.testing.client.*
 import io.ktor.server.testing.internal.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -28,9 +27,14 @@ class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
+
+    private enum class State {
+        Stopped, Starting, Started
+    }
+
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
-    private val isStarted = atomic(false)
+    private val state = atomic(State.Stopped)
 
     override val coroutineContext: CoroutineContext = testEngineJob
 
@@ -66,6 +70,8 @@ class TestApplicationEngine(
      * A client instance connected to this test server instance. Only works until engine stop invocation.
      */
     private val _client = atomic<HttpClient?>(null)
+
+    private val applicationStarting = Job(testEngineJob)
 
     val client: HttpClient
         get() = _client.value!!
@@ -118,18 +124,23 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (isStarted.getAndSet(true)) {
-            return this
+        if (state.compareAndSet(State.Stopped, State.Starting)) {
+            check(testEngineJob.isActive) { "Test engine is already completed" }
+            environment.start()
+            cancellationDeferred = stopServerOnCancellation()
+            applicationStarting.complete()
+            state.value = State.Started
         }
-        check(testEngineJob.isActive) { "Test engine is already completed" }
-        environment.start()
-        cancellationDeferred = stopServerOnCancellation()
+        if (state.value == State.Starting) {
+            runBlocking { applicationStarting.join() }
+        }
+
         return this
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
-            isStarted.value = false
+            state.value = State.Stopped
             cancellationDeferred?.complete()
             client.close()
             engine.close()
@@ -175,7 +186,20 @@ class TestApplicationEngine(
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
-        val job = Job()
+        val callJob = GlobalScope.async(coroutineContext) {
+            handleRequestNonBlocking(closeRequest, setup)
+        }
+
+        return runBlocking(coroutineContext) {
+            callJob.await()
+        }
+    }
+
+    internal suspend fun handleRequestNonBlocking(
+        closeRequest: Boolean = true,
+        setup: TestApplicationRequest.() -> Unit
+    ): TestApplicationCall {
+        val job = Job(testEngineJob)
         val call = createCall(
             readResponse = true,
             closeRequest = closeRequest,
@@ -183,16 +207,12 @@ class TestApplicationEngine(
             context = Dispatchers.IOBridge + job
         )
 
-        val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request") + job
-        val pipelineJob = GlobalScope.async(context) {
+        val context = configuration.dispatcher + SupervisorJob(job) + CoroutineName("request")
+        withContext(context) {
             pipeline.execute(call)
-        }
-
-        runBlocking(coroutineContext) {
-            pipelineJob.await()
             call.response.awaitForResponseCompletion()
-            context.cancel()
         }
+        context.cancel()
         processResponse(call)
 
         return call

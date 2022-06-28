@@ -8,14 +8,16 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -188,5 +190,62 @@ class TestApplicationTest {
         }
 
         assertEquals("OK", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testMultipleParallelRequests() = testApplication {
+        routing {
+            get("/") {
+                call.respondText("OK")
+            }
+        }
+
+        coroutineScope {
+            val jobs = (1..100).map {
+                async {
+                    client.get("/").apply {
+                        assertEquals("OK", bodyAsText())
+                    }
+                }
+            }
+            jobs.awaitAll()
+        }
+    }
+
+    @Test
+    fun testRequestRunningInParallel() = testApplication {
+        routing {
+            post("/") {
+                val text = call.receiveText()
+                call.respondText(text)
+            }
+        }
+
+        coroutineScope {
+            val secondRequestStarted = CompletableDeferred<Unit>()
+            val request1 = async {
+                client.post("/") {
+                    setBody(object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("OK")
+                            secondRequestStarted.await()
+                            channel.flush()
+                        }
+                    })
+                }.apply {
+                    assertEquals("OK", bodyAsText())
+                }
+            }
+            val request2 = async {
+                client.preparePost("/") {
+                    setBody("OK")
+                }.execute {
+                    secondRequestStarted.complete(Unit)
+                    assertEquals("OK", it.bodyAsText())
+                }
+            }
+            request1.await()
+            request2.await()
+        }
     }
 }

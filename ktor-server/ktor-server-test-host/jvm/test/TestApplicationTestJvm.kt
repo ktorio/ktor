@@ -174,6 +174,31 @@ class TestApplicationTestJvm {
         assertNull(error)
     }
 
+    @Test
+    fun testMultipleParallelWebSocketsRequests() = testApplication {
+        install(WebSockets)
+        routing {
+            webSocket("/") {
+                send(incoming.receive())
+            }
+        }
+
+        val client = createClient {
+            install(ClientWebSockets)
+        }
+        coroutineScope {
+            val jobs = (1..100).map {
+                async {
+                    client.ws("/") {
+                        send(Frame.Text("test"))
+                        assertEquals("test", (incoming.receive() as Frame.Text).readText())
+                    }
+                }
+            }
+            jobs.forEach { it.join() }
+        }
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
