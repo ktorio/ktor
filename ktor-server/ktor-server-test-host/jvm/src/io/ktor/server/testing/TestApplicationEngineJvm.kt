@@ -22,6 +22,18 @@ fun TestApplicationEngine.handleWebSocketConversation(
     awaitCallback: Boolean = true,
     callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
 ): TestApplicationCall {
+    return runBlocking {
+        handleWebSocketConversationNonBlocking(uri, setup, awaitCallback, callback)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal suspend fun TestApplicationEngine.handleWebSocketConversationNonBlocking(
+    uri: String,
+    setup: TestApplicationRequest.() -> Unit = {},
+    awaitCallback: Boolean = true,
+    callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+): TestApplicationCall {
     val websocketChannel = ByteChannel(true)
     val call = createWebSocketCall(uri) {
         setup()
@@ -38,7 +50,7 @@ fun TestApplicationEngine.handleWebSocketConversation(
         }
     }
 
-    launch(configuration.dispatcher) {
+    this.launch(configuration.dispatcher) {
         try {
             // execute server-side
             pipeline.execute(call)
@@ -53,7 +65,7 @@ fun TestApplicationEngine.handleWebSocketConversation(
     val job = Job()
     val webSocketContext = engineContext + job
 
-    runBlocking(configuration.dispatcher) {
+    withContext(configuration.dispatcher) {
         responseSent.join()
         processResponse(call)
 

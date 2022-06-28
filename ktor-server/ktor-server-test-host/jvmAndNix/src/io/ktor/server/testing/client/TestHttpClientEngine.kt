@@ -63,14 +63,16 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private fun runRequest(
+    private suspend fun runRequest(
         method: HttpMethod,
         url: String,
         headers: Headers,
         content: OutgoingContent,
         protocol: URLProtocol
     ): TestApplicationCall {
-        return app.handleRequest(method, url) {
+        return app.handleRequestNonBlocking {
+            this.uri = url
+            this.method = method
             appendRequestHeaders(headers, content)
             this.protocol = protocol.name
 

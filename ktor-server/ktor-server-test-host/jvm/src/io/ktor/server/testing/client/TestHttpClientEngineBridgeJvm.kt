@@ -31,7 +31,7 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         coroutineContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
         val sessionDeferred = CompletableDeferred<WebSocketSession>()
-        val call = app.handleWebSocketConversation(
+        val call = app.handleWebSocketConversationNonBlocking(
             url,
             { with(engine) { appendRequestHeaders(headers, content) } },
             awaitCallback = false,
