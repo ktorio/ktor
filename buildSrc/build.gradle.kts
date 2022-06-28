@@ -64,34 +64,6 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
-
-    components {
-        withModule("org.jetbrains.kotlin:atomicfu") {
-            withVariant("runtimeElements") {
-                val runtimeElementsVariant = this
-                this@withModule.addVariant("runtimeJsIrElements") {
-                    attributes.attribute(
-                        org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.attribute,
-                        org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js
-                    )
-                    attributes.attribute(
-                        org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.jsCompilerAttribute,
-                        org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.ir
-                    )
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                    runtimeElementsVariant.withFiles {
-                        val runtimeElementsFiles =
-                            this as org.gradle.api.internal.artifacts.repositories.resolver.DefaultMutableVariantFilesMetadata
-                        this@addVariant.withFiles {
-                            runtimeElementsFiles.files.forEach {
-                                addFile(it.name)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 kotlin {
