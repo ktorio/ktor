@@ -1,6 +1,7 @@
 # 2.0.3
 > Published 28 June 2022
 
+* Development mode class loader leads to ClassCastException within a CouroutineScope ([KTOR-4164](https://youtrack.jetbrains.com/issue/KTOR-4164))
 * Validate that the body of an incoming request is received completely ([KTOR-4379](https://youtrack.jetbrains.com/issue/KTOR-4379))
 * UrlBuilder escapes fragment parameters ([KTOR-4412](https://youtrack.jetbrains.com/issue/KTOR-4412))
 * CallLogging: JVM crashes when jansi checks whether a file descriptor refers to a terminal ([KTOR-3476](https://youtrack.jetbrains.com/issue/KTOR-3476))
