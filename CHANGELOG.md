@@ -1,3 +1,32 @@
+# 2.0.3
+> Published 28 June 2022
+
+* Development mode class loader leads to ClassCastException within a CouroutineScope ([KTOR-4164](https://youtrack.jetbrains.com/issue/KTOR-4164))
+* Validate that the body of an incoming request is received completely ([KTOR-4379](https://youtrack.jetbrains.com/issue/KTOR-4379))
+* UrlBuilder escapes fragment parameters ([KTOR-4412](https://youtrack.jetbrains.com/issue/KTOR-4412))
+* CallLogging: JVM crashes when jansi checks whether a file descriptor refers to a terminal ([KTOR-3476](https://youtrack.jetbrains.com/issue/KTOR-3476))
+* WebSocket client closes connection due to an HTTP request timeout ([KTOR-4419](https://youtrack.jetbrains.com/issue/KTOR-4419))
+* [JS client] Cannot change redirect policy by followRedirects=false ([KTOR-326](https://youtrack.jetbrains.com/issue/KTOR-326))
+* CIO engine doesn't apply a request timeout from the `HttpTimeout` plugin ([KTOR-4473](https://youtrack.jetbrains.com/issue/KTOR-4473))
+* CIO: Websockets request doesn't include query parameters ([KTOR-4390](https://youtrack.jetbrains.com/issue/KTOR-4390))
+* Ignore SIGPIPE for server sockets ([KTOR-4474](https://youtrack.jetbrains.com/issue/KTOR-4474))
+* Direct byte buffers are increased in size when server slowly processes request ([KTOR-4397](https://youtrack.jetbrains.com/issue/KTOR-4397))
+* UDP responses are received with a huge delay on JVM Windows (due to reverse DNS lookup internally) ([KTOR-4423](https://youtrack.jetbrains.com/issue/KTOR-4423))
+* "No instance for key AttributeKey: ApplicationPluginRegistry" when exception is thrown during the Call phase ([KTOR-4448](https://youtrack.jetbrains.com/issue/KTOR-4448))
+* Non-decipherable exception "No result transformation found" ([KTOR-4287](https://youtrack.jetbrains.com/issue/KTOR-4287))
+* Unable to set the Content-Type header in a request ([KTOR-620](https://youtrack.jetbrains.com/issue/KTOR-620))
+* Update kotlinx.coroutines to 1.6.2 ([KTOR-4451](https://youtrack.jetbrains.com/issue/KTOR-4451))
+* Support the HttpTimeout capability in the DelegatingTestClientEngine ([KTOR-4436](https://youtrack.jetbrains.com/issue/KTOR-4436))
+* Limit the number of parallel running requests in Netty ([KTOR-4575](https://youtrack.jetbrains.com/issue/KTOR-4575))
+* Resources plugin fails to process parameters of type UShort ([KTOR-4424](https://youtrack.jetbrains.com/issue/KTOR-4424))
+* Resources plugin doesn't respect default values for Enum ([KTOR-4411](https://youtrack.jetbrains.com/issue/KTOR-4411))
+* Invalid request line produced by CIO engine for URL with parameters and without path ([KTOR-4347](https://youtrack.jetbrains.com/issue/KTOR-4347))
+* call.receiveText() tries to parse body as JSON when the ContentNegotiation plugin is installed ([KTOR-4426](https://youtrack.jetbrains.com/issue/KTOR-4426))
+* Ignore ByteReadChannel as receive type in ContentNegotiation ([KTOR-4511](https://youtrack.jetbrains.com/issue/KTOR-4511))
+* Setting body to TextContent leads to NPE when the ContentNegotiation plugin is installed ([KTOR-4383](https://youtrack.jetbrains.com/issue/KTOR-4383))
+* submitFormWithBinaryData call leads to NPE when the ContentNegotiation plugin is installed ([KTOR-4269](https://youtrack.jetbrains.com/issue/KTOR-4269))
+* ResponseConverter NPE when returning ByteArray with the ContentNegotiation plugin ([KTOR-4399](https://youtrack.jetbrains.com/issue/KTOR-4399))
+
 # 2.0.2
 > Published 27 May 2022
 
