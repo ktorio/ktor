@@ -17,6 +17,7 @@
 * Unable to set the Content-Type header in a request ([KTOR-620](https://youtrack.jetbrains.com/issue/KTOR-620))
 * Update kotlinx.coroutines to 1.6.2 ([KTOR-4451](https://youtrack.jetbrains.com/issue/KTOR-4451))
 * Support the HttpTimeout capability in the DelegatingTestClientEngine ([KTOR-4436](https://youtrack.jetbrains.com/issue/KTOR-4436))
+* Limit the number of parallel running requests in Netty ([KTOR-4575](https://youtrack.jetbrains.com/issue/KTOR-4575))
 * Resources plugin fails to process parameters of type UShort ([KTOR-4424](https://youtrack.jetbrains.com/issue/KTOR-4424))
 * Resources plugin doesn't respect default values for Enum ([KTOR-4411](https://youtrack.jetbrains.com/issue/KTOR-4411))
 * Invalid request line produced by CIO engine for URL with parameters and without path ([KTOR-4347](https://youtrack.jetbrains.com/issue/KTOR-4347))
