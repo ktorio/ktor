@@ -229,7 +229,7 @@ class PebbleTest {
     private fun Application.setupPebble() {
         install(Pebble) {
             loader(StringLoader())
-            availableLanguages = arrayOf("en", "es")
+            availableLanguages = mutableListOf("en", "es")
         }
     }
 

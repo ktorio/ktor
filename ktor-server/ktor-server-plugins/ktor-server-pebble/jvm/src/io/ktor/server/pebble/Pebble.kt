@@ -13,9 +13,17 @@ import io.ktor.util.*
 import java.io.*
 import java.util.*
 
+/**
+ * Configuration for the [Pebble] plugin.
+ */
 @KtorDsl
 public class PebbleConfiguration : PebbleEngine.Builder() {
-    public var availableLanguages: Array<String>? = null
+
+    /**
+     * Allows you to define currently available language translations
+     * must follow IETF BCP 47 language tag string specification
+     */
+    public var availableLanguages: MutableList<String>? = null
 }
 
 /**
@@ -45,16 +53,15 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
 
     fun process(content: PebbleContent, call: ApplicationCall): OutgoingContent = with(content) {
         val writer = StringWriter()
+        val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
+        var locale = locale
 
-        if (pluginConfig.availableLanguages != null && content.locale == null) {
-            val locale = call.request.acceptLanguageItems().firstOrNull {
+        if (availableLanguages != null && locale == null) {
+            locale = call.request.acceptLanguageItems().firstOrNull {
                 pluginConfig.availableLanguages!!.contains(it.value)
             }?.value?.let { Locale.forLanguageTag(it) }
-
-            engine.getTemplate(content.template).evaluate(writer, model, locale)
-        } else {
-            engine.getTemplate(content.template).evaluate(writer, model, locale)
         }
+        engine.getTemplate(content.template).evaluate(writer, model, locale)
 
         val result = TextContent(text = writer.toString(), contentType)
         if (etag != null) {
