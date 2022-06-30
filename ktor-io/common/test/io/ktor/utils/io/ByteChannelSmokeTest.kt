@@ -642,29 +642,6 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
-    fun testReadSuspendSessionAwait() = runTest {
-        launch {
-            expect(2)
-            ch.writeInt(1)
-            ch.flush()
-            expect(3)
-            ch.close()
-        }
-
-        var result: Boolean? = null
-        ch.readSuspendableSession {
-            expect(1)
-            result = await(4000)
-        }
-
-        expect(4)
-        assertEquals(false, result)
-        assertEquals(4, ch.availableForRead)
-        ch.discard(4)
-        finish(5)
-    }
-
-    @Test
     fun testCompleteExceptionallyJob() = runTest {
         Job().also { ch.attachJob(it) }.completeExceptionally(IOException("Test exception"))
 
