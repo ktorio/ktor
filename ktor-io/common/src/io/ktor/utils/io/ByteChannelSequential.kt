@@ -84,8 +84,8 @@ public abstract class ByteChannelSequentialBase(
     }
 
     internal suspend fun awaitAtLeastNBytesAvailableForRead(count: Int) {
-        while (availableForRead < count && !closed) {
-            slot.sleep { availableForRead < count && !closed }
+        while (availableForRead < count && !isClosedForRead) {
+            slot.sleep { availableForRead < count && !isClosedForRead }
         }
     }
 
