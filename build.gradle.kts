@@ -147,8 +147,8 @@ allprojects {
                 requestedComponent.module == "atomicfu"
             ) {
                     useTarget(
-                        "${requestedComponent.group}:atomicfu-runtime:$kotlinVersion",
-                        "Using proper atomicfu-runtime instead of Gradle plugin"
+                        "${requestedComponent.group}:kotlinx-atomicfu-runtime:$kotlinVersion",
+                        "Using proper kotlinx-atomicfu-runtime instead of Gradle plugin"
                     )
             }
         }
