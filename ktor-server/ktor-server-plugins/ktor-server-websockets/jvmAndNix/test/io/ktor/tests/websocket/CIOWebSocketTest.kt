@@ -45,15 +45,18 @@ class CIOWebSocketTest : WebSocketEngineSuite<CIOApplicationEngine, CIOApplicati
             }
         }
 
-
-
         useSocket {
             negotiateHttpWebSocket()
+
             val data = Data(42)
             output.writeFrame(Frame.Text(Json.encodeToString(DataSerializer, data)), masking = false)
-            input.awaitContent()
-            val incomingData = Json.decodeFromString(DataSerializer, input.toByteArray().decodeToString())
+            output.flush()
+
+            val frame = input.readFrame(Long.MAX_VALUE, 0)
+            assertIs<Frame.Text>(frame)
+            val incomingData = Json.decodeFromString(DataSerializer, frame.readText())
             assertEquals(data, incomingData)
+
             output.writeFrame(Frame.Close(), false)
             output.flush()
             assertCloseFrame()
