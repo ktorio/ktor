@@ -47,7 +47,7 @@ internal class DelegatingClientWebSocketSession(
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Kept for binary compatibility", level = DeprecationLevel.HIDDEN)
 public val DefaultClientWebSocketSession.converter: WebsocketContentConverter?
-    get() = call.client.pluginOrNull(WebSockets)?.contentConverter
+    get() = converter
 
 /**
  * Serializes [data] to a frame and enqueues this frame.

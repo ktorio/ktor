@@ -45,7 +45,7 @@ public val WebSocketServerSession.application: Application get() = call.applicat
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Kept for binary compatibility", level = DeprecationLevel.HIDDEN)
 public val WebSocketServerSession.converter: WebsocketContentConverter?
-    get() = application.plugin(WebSockets).contentConverter
+    get() = converter
 
 
 /**
