@@ -17,7 +17,7 @@ public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationCo
 }
 
 public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationConverterKt {
-	public static final fun receiveDeserialized (Lio/ktor/serialization/SerializableWebSocketSession;Lkotlinx/serialization/DeserializationStrategy;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun sendSerialized (Lio/ktor/serialization/SerializableWebSocketSession;Ljava/lang/Object;Lkotlinx/serialization/SerializationStrategy;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun receiveDeserialized (Lio/ktor/serialization/WebSocketSessionWithContentConverter;Lkotlinx/serialization/DeserializationStrategy;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun sendSerialized (Lio/ktor/serialization/WebSocketSessionWithContentConverter;Ljava/lang/Object;Lkotlinx/serialization/SerializationStrategy;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

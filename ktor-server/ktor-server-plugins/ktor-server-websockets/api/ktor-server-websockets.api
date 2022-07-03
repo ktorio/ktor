@@ -43,7 +43,7 @@ public final class io/ktor/server/websocket/RoutingKt {
 	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 }
 
-public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/serialization/SerializableWebSocketSession {
+public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/serialization/WebSocketSessionWithContentConverter {
 	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public abstract fun getConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 }

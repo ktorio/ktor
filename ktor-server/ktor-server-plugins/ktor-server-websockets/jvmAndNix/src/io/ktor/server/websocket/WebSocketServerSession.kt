@@ -14,7 +14,7 @@ import io.ktor.websocket.serialization.*
 /**
  * Represents a server-side web socket session
  */
-public interface WebSocketServerSession : SerializableWebSocketSession {
+public interface WebSocketServerSession : WebSocketSessionWithContentConverter {
     /**
      * Associated received [call] that originating this session
      */

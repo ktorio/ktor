@@ -6,7 +6,7 @@ package io.ktor.serialization
 
 import io.ktor.websocket.*
 
-public interface SerializableWebSocketSession : WebSocketSession {
+public interface WebSocketSessionWithContentConverter : WebSocketSession {
     /**
      * Converter for web socket session, if plugin [WebSockets] is installed
      */

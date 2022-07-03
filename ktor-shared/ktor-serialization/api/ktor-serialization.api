@@ -37,6 +37,14 @@ public final class io/ktor/serialization/SerializableWebSocketSession$DefaultImp
 	public static fun send (Lio/ktor/serialization/SerializableWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class io/ktor/serialization/WebSocketSessionWithContentConverter : io/ktor/websocket/WebSocketSession {
+	public abstract fun getConverter ()Lio/ktor/serialization/WebsocketContentConverter;
+}
+
+public final class io/ktor/serialization/WebSocketSessionWithContentConverter$DefaultImpls {
+	public static fun send (Lio/ktor/serialization/WebSocketSessionWithContentConverter;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public class io/ktor/serialization/WebsocketContentConvertException : io/ktor/serialization/ContentConvertException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

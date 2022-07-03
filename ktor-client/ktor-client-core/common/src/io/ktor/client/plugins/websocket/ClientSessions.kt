@@ -15,7 +15,7 @@ import io.ktor.websocket.serialization.*
 /**
  * Client specific [WebSocketSession].
  */
-public interface ClientWebSocketSession : SerializableWebSocketSession {
+public interface ClientWebSocketSession : WebSocketSessionWithContentConverter {
     /**
      * [HttpClientCall] associated with session.
      */
