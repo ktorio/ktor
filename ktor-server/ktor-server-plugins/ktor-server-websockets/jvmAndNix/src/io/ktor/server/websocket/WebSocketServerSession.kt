@@ -40,6 +40,15 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
 public val WebSocketServerSession.application: Application get() = call.application
 
 /**
+ * Converter for web socket session
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Kept for binary compatibility", level = DeprecationLevel.HIDDEN)
+public val WebSocketServerSession.converter: WebsocketContentConverter?
+    get() = application.plugin(WebSockets).contentConverter
+
+
+/**
  * Serializes [data] to a frame and enqueues this frame.
  * May suspend if the outgoing queue is full.
  * If the outgoing channel is already closed, throws an exception, so it is impossible to transfer any message.
