@@ -6,6 +6,7 @@ package io.ktor.tests.utils
 
 import io.ktor.util.cio.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import org.junit.*
 import java.io.*
 import kotlin.test.*
@@ -66,5 +67,50 @@ class FileChannelTest {
         temp.writeBytes(byteArrayOf(7, 8, 9))
 
         assertEquals(byteArrayOf(7, 8, 9).toList(), temp.readChannel().toInputStream().use { it.readBytes().toList() })
+    }
+
+    @Test
+    fun `readChannel should not lock file pre read`() {
+        // Arrange
+        temp
+
+        // Act
+        @Suppress("UNUSED_VARIABLE")
+        val unused = temp.readChannel()
+
+        // Assert (we cannot delete if there is a file handle open on it)
+        assertTrue(temp.delete())
+    }
+
+    @Test
+    fun `readChannel is open during read`() {
+        // Arrange
+        val magicNumberBiggerThanSomeInternalBuffer = 10000
+        temp.writeBytes(ByteArray(magicNumberBiggerThanSomeInternalBuffer))
+        val readChannel = temp.readChannel()
+
+        runBlocking {
+            // Act - place us in the middle of reading a file
+            readChannel.readByte()
+
+            // Assert (we cannot delete if there is a file handle open on it)
+            assertFalse(temp.delete())
+
+            // And just making sure we can complete it normally.
+            readChannel.readRemaining()
+            assertTrue(temp.delete())
+        }
+    }
+
+    @Test
+    fun `readChannel should close file post read`() {
+        // Arrange
+        temp
+
+        // Act
+        temp.readChannel().toInputStream().readBytes()
+
+        // Assert (we cannot delete if there is a file handle open on it)
+        assertTrue(temp.delete())
     }
 }
