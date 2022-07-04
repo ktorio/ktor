@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.storage.*
@@ -14,12 +15,15 @@ import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")
     internal val NO_CACHE = HeaderValue("no-cache")
     internal val PRIVATE = HeaderValue("private")
+    internal val ONLY_IF_CACHED = HeaderValue("only-if-cached")
     internal val MUST_REVALIDATE = HeaderValue("must-revalidate")
 }
 
@@ -78,8 +82,8 @@ public class HttpCache private constructor(
                 if (content !is OutgoingContent.NoContent) return@intercept
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
 
-                val cache = plugin.findResponse(context, content) ?: return@intercept
-                if (!cache.shouldValidate()) {
+                val cache = plugin.findResponse(context, content)
+                if (cache != null && !cache.shouldValidate()) {
                     finish()
                     val call = cache.produceResponse().call
 
@@ -89,10 +93,28 @@ public class HttpCache private constructor(
                     return@intercept
                 }
 
+                val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
+                if (CacheControl.ONLY_IF_CACHED in header) {
+                    finish()
+                    val request = context.build()
+                    val response = HttpResponseData(
+                        statusCode = HttpStatusCode.GatewayTimeout,
+                        requestTime = GMTDate(),
+                        headers = Headers.Empty,
+                        version = HttpProtocolVersion.HTTP_1_1,
+                        body = ByteReadChannel(ByteArray(0)),
+                        callContext = request.executionContext
+                    )
+                    val call = HttpClientCall(scope, request, response)
+                    proceedWith(call)
+                    return@intercept
+                }
+
+                if (cache == null) return@intercept
+
                 cache.responseHeaders[HttpHeaders.ETag]?.let { etag ->
                     context.header(HttpHeaders.IfNoneMatch, etag)
                 }
-
                 cache.responseHeaders[HttpHeaders.LastModified]?.let {
                     context.header(HttpHeaders.IfModifiedSince, it)
                 }

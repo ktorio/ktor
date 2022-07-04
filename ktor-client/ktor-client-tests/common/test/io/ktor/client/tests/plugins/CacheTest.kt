@@ -320,6 +320,33 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun testOnlyIfCached() = clientTests {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/etag?max-age=10")
+
+            val responseNoCache = client.get(url) {
+                header(HttpHeaders.CacheControl, "only-if-cached")
+            }
+            assertEquals(HttpStatusCode.GatewayTimeout, responseNoCache.status)
+
+            val bodyOriginal = client.get(url).bodyAsText()
+
+            val responseCached = client.get(url) {
+                header(HttpHeaders.CacheControl, "only-if-cached")
+            }
+            val bodyCached = responseCached.bodyAsText()
+            assertEquals(HttpStatusCode.OK, responseCached.status)
+            assertEquals(bodyOriginal, bodyCached)
+        }
+    }
+
+    @Test
     fun testExpires() = clientTests {
         config {
             install(HttpCache) {
