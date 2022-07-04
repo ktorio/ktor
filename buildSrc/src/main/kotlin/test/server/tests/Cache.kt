@@ -48,11 +48,11 @@ internal fun Application.cacheTestServer() {
              * Return same etag for first 2 responses.
              */
             get("/etag") {
+                val maxAge = call.request.queryParameters["max-age"]?.toIntOrNull()
                 val current = counter.incrementAndGet()
-                @Suppress("DEPRECATION_ERROR")
-                call.withETag("0") {
-                    call.respondText(current.toString())
-                }
+                if (maxAge != null) call.response.cacheControl(CacheControl.MaxAge(maxAge))
+                call.response.etag("0")
+                call.respondText(current.toString())
             }
 
             get("/last-modified") {
