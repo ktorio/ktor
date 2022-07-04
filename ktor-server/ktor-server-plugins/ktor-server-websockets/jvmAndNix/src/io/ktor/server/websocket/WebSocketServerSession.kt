@@ -47,7 +47,6 @@ public val WebSocketServerSession.application: Application get() = call.applicat
 public val WebSocketServerSession.converter: WebsocketContentConverter?
     get() = converter
 
-
 /**
  * Serializes [data] to a frame and enqueues this frame.
  * May suspend if the outgoing queue is full.

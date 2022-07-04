@@ -110,7 +110,10 @@ public class KotlinxWebsocketSerializationConverter(
     }
 }
 
-public suspend fun <T> WebSocketSessionWithContentConverter.sendSerialized(data: T, serializer: SerializationStrategy<T>) {
+public suspend fun <T> WebSocketSessionWithContentConverter.sendSerialized(
+    data: T,
+    serializer: SerializationStrategy<T>
+) {
     val converter = converter as? KotlinxWebsocketSerializationConverter
         ?: throw WebsocketConverterNotFoundException(
             "No KotlinxWebsocketSerializationConverter was found for websocket"
@@ -119,7 +122,9 @@ public suspend fun <T> WebSocketSessionWithContentConverter.sendSerialized(data:
     send(frame)
 }
 
-public suspend fun <T> WebSocketSessionWithContentConverter.receiveDeserialized(deserializer: DeserializationStrategy<T>): T {
+public suspend fun <T> WebSocketSessionWithContentConverter.receiveDeserialized(
+    deserializer: DeserializationStrategy<T>
+): T {
     val converter = converter as? KotlinxWebsocketSerializationConverter
         ?: throw WebsocketConverterNotFoundException(
             "No KotlinxWebsocketSerializationConverter was found for websocket"
