@@ -5,9 +5,39 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.plugins.DefaultRequest.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+
+public class DefaultRequestPluginConfig {
+    internal var builder: DefaultRequestBuilder.() -> Unit = {}
+
+    public fun builder(block: DefaultRequestBuilder.() -> Unit) {
+        builder = block
+    }
+}
+
+public val DefaultRequestPlugin: ClientPlugin<DefaultRequestPluginConfig> = createClientPlugin(
+    "DefaultRequest",
+    ::DefaultRequestPluginConfig
+) {
+    val builder = pluginConfig.builder
+
+    on(SetupRequest) {
+        setupDefaultRequest(it, builder)
+    }
+}
+
+public object SetupRequest : ClientHook<(HttpRequestBuilder) -> Unit> {
+    override fun install(client: HttpClient, handler: (HttpRequestBuilder) -> Unit) {
+        client.requestPipeline.intercept(HttpRequestPipeline.Before) {
+            handler(context)
+        }
+    }
+}
 
 /**
  * Sets default request parameters. Used to add common headers and URL for a request.
@@ -64,68 +94,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
 
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val defaultRequest = DefaultRequestBuilder().apply {
-                    headers.appendAll(this@intercept.context.headers)
-                    plugin.block(this)
-                }
-                val defaultUrl = defaultRequest.url.build()
-                mergeUrls(defaultUrl, context.url)
-                defaultRequest.attributes.allKeys.forEach {
-                    if (!context.attributes.contains(it)) {
-                        @Suppress("UNCHECKED_CAST")
-                        context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
-                    }
-                }
-                context.headers.appendMissing(defaultRequest.headers.build())
-            }
-        }
-
-        private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
-            if (requestUrl.protocol == URLProtocol.HTTP) {
-                requestUrl.protocol = baseUrl.protocol
-            }
-            if (requestUrl.host.isNotEmpty()) return
-
-            val resultUrl = URLBuilder(baseUrl)
-            with(requestUrl) {
-                resultUrl.protocol = requestUrl.protocol
-                if (port != DEFAULT_PORT) {
-                    resultUrl.port = port
-                }
-
-                resultUrl.encodedPathSegments = concatenatePath(resultUrl.encodedPathSegments, encodedPathSegments)
-
-                if (encodedFragment.isNotEmpty()) {
-                    resultUrl.encodedFragment = encodedFragment
-                }
-
-                val defaultParameters = ParametersBuilder().apply {
-                    appendAll(resultUrl.encodedParameters)
-                }
-
-                resultUrl.encodedParameters = encodedParameters
-                defaultParameters.entries().forEach { (key, values) ->
-                    if (!resultUrl.encodedParameters.contains(key)) {
-                        resultUrl.encodedParameters.appendAll(key, values)
-                    }
-                }
-                takeFrom(resultUrl)
-            }
-        }
-
-        private fun concatenatePath(parent: List<String>, child: List<String>): List<String> {
-            if (child.isEmpty()) return parent
-            if (parent.isEmpty()) return child
-
-            // Path starts from "/"
-            if (child.first().isEmpty()) return child
-
-            return buildList(parent.size + child.size - 1) {
-                for (index in 0 until parent.size - 1) {
-                    add(parent[index])
-                }
-
-                addAll(child)
+                setupDefaultRequest(context, plugin.block)
             }
         }
     }
@@ -193,11 +162,79 @@ public class DefaultRequest private constructor(private val block: DefaultReques
     }
 }
 
+private fun setupDefaultRequest(
+    builder: HttpRequestBuilder,
+    block: DefaultRequestBuilder.() -> Unit
+) {
+    val defaultRequest = DefaultRequestBuilder().apply {
+        headers.appendAll(builder.headers)
+        block(this)
+    }
+    val defaultUrl = defaultRequest.url.build()
+    mergeUrls(defaultUrl, builder.url)
+    defaultRequest.attributes.allKeys.forEach {
+        if (!builder.attributes.contains(it)) {
+            @Suppress("UNCHECKED_CAST")
+            builder.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
+        }
+    }
+    builder.headers.appendMissing(defaultRequest.headers.build())
+}
+
+private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
+    if (requestUrl.protocol == URLProtocol.HTTP) {
+        requestUrl.protocol = baseUrl.protocol
+    }
+    if (requestUrl.host.isNotEmpty()) return
+
+    val resultUrl = URLBuilder(baseUrl)
+    with(requestUrl) {
+        resultUrl.protocol = requestUrl.protocol
+        if (port != DEFAULT_PORT) {
+            resultUrl.port = port
+        }
+
+        resultUrl.encodedPathSegments = concatenatePath(resultUrl.encodedPathSegments, encodedPathSegments)
+
+        if (encodedFragment.isNotEmpty()) {
+            resultUrl.encodedFragment = encodedFragment
+        }
+
+        val defaultParameters = ParametersBuilder().apply {
+            appendAll(resultUrl.encodedParameters)
+        }
+
+        resultUrl.encodedParameters = encodedParameters
+        defaultParameters.entries().forEach { (key, values) ->
+            if (!resultUrl.encodedParameters.contains(key)) {
+                resultUrl.encodedParameters.appendAll(key, values)
+            }
+        }
+        takeFrom(resultUrl)
+    }
+}
+
+private fun concatenatePath(parent: List<String>, child: List<String>): List<String> {
+    if (child.isEmpty()) return parent
+    if (parent.isEmpty()) return child
+
+    // Path starts from "/"
+    if (child.first().isEmpty()) return child
+
+    return buildList(parent.size + child.size - 1) {
+        for (index in 0 until parent.size - 1) {
+            add(parent[index])
+        }
+
+        addAll(child)
+    }
+}
+
 /**
  * Set default request parameters. See [DefaultRequest]
  */
-public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.DefaultRequestBuilder.() -> Unit) {
-    install(DefaultRequest) {
-        block()
+public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequestBuilder.() -> Unit) {
+    install(DefaultRequestPlugin) {
+        builder(block)
     }
 }
