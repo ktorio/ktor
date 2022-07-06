@@ -5,6 +5,8 @@
 package io.ktor.server.pebble
 
 import com.mitchellbosecke.pebble.loader.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
@@ -142,9 +144,92 @@ class PebbleTest {
         }
     }
 
+    @Test
+    fun `Render template in Spanish with es accept language`() {
+        testApplication {
+            application {
+                setupPebble()
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(PebbleContent(TemplateI18N, emptyMap()))
+                    }
+                }
+            }
+
+            client.get("/") {
+                headers.append(HttpHeaders.AcceptLanguage, "es")
+            }.apply {
+                assertContains(bodyAsText(), "<p>Hola, mundo!</p>")
+            }
+        }
+    }
+
+    @Test
+    fun `Render template in English with en accept language`() {
+        testApplication {
+            application {
+                setupPebble()
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(PebbleContent(TemplateI18N, emptyMap()))
+                    }
+                }
+            }
+
+            client.get("/") {
+                headers.append(HttpHeaders.AcceptLanguage, "en")
+            }.apply {
+                assertContains(bodyAsText(), "<p>Hello, world!</p>")
+            }
+        }
+    }
+
+    @Test
+    fun `Render template in default language with no valid accept language header set`() {
+        testApplication {
+            application {
+                setupPebble()
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(PebbleContent(TemplateI18N, emptyMap()))
+                    }
+                }
+            }
+
+            client.get("/") {
+                headers.append(HttpHeaders.AcceptLanguage, "jp")
+            }.apply {
+                assertContains(bodyAsText(), "<p>Hello, world!</p>")
+            }
+        }
+    }
+
+    @Test
+    fun `Render template in default language with no accept language header set`() {
+        testApplication {
+            application {
+                setupPebble()
+                install(ConditionalHeaders)
+                routing {
+                    get("/") {
+                        call.respond(PebbleContent(TemplateI18N, emptyMap()))
+                    }
+                }
+            }
+
+            client.get("/").apply {
+                assertContains(bodyAsText(), "<p>Hello, world!</p>")
+            }
+        }
+    }
+
     private fun Application.setupPebble() {
         install(Pebble) {
             loader(StringLoader())
+            availableLanguages = mutableListOf("en", "es")
         }
     }
 
@@ -160,6 +245,11 @@ class PebbleTest {
             get() = """
                 <p>Hello, Anonymous</p>
                 <h1>Hi!</h1>
+            """.trimIndent()
+
+        private val TemplateI18N: String
+            get() = """
+                <p>{{ i18n("i18n_test", "hello_world") }}</p>
             """.trimIndent()
     }
 }

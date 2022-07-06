@@ -5,16 +5,26 @@
 package io.ktor.server.pebble
 
 import com.mitchellbosecke.pebble.*
-import com.mitchellbosecke.pebble.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
+import io.ktor.server.request.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
-import io.ktor.utils.io.*
 import java.io.*
 import java.util.*
+
+/**
+ * Configuration for the [Pebble] plugin.
+ */
+@KtorDsl
+public class PebbleConfiguration : PebbleEngine.Builder() {
+
+    /**
+     * Allows you to define currently available language translations
+     * must follow IETF BCP 47 language tag string specification
+     */
+    public var availableLanguages: List<String>? = null
+}
 
 /**
  * A response content handled by the [Pebble] plugin.
@@ -38,14 +48,19 @@ public class PebbleContent(
  * Provides the ability to respond with [PebbleContent].
  * You can learn more from [Pebble](https://ktor.io/docs/pebble.html).
  */
-public val Pebble: ApplicationPlugin<PebbleEngine.Builder> = createApplicationPlugin(
-    "Pebble",
-    { PebbleEngine.Builder() }
-) {
+public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlugin("Pebble", ::PebbleConfiguration) {
     val engine = pluginConfig.build()
+    val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
-    fun process(content: PebbleContent): OutgoingContent = with(content) {
+    fun process(content: PebbleContent, call: ApplicationCall): OutgoingContent = with(content) {
         val writer = StringWriter()
+        var locale = locale
+
+        if (availableLanguages != null && locale == null) {
+            locale = call.request.acceptLanguageItems()
+                .firstOrNull { pluginConfig.availableLanguages!!.contains(it.value) }
+                ?.value?.let { Locale.forLanguageTag(it) }
+        }
         engine.getTemplate(content.template).evaluate(writer, model, locale)
 
         val result = TextContent(text = writer.toString(), contentType)
@@ -55,10 +70,10 @@ public val Pebble: ApplicationPlugin<PebbleEngine.Builder> = createApplicationPl
         return result
     }
 
-    onCallRespond { _, value ->
+    onCallRespond { call, value ->
         if (value is PebbleContent) {
             transformBody {
-                process(value)
+                process(value, call)
             }
         }
     }
