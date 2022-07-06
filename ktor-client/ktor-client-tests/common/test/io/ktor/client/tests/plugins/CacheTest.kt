@@ -312,7 +312,7 @@ class CacheTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(5000)
+            delay(2500)
 
             val third = client.get(url).body<String>()
             assertNotEquals(first, third)
@@ -347,6 +347,36 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun testMaxStale() = clientTests {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/max-age")
+
+            val first = client.get(url).body<String>()
+            val cache = storage!!.publicStorage.findByUrl(url)
+            assertEquals(1, cache.size)
+
+            delay(2500)
+
+            val second = client.get(url) {
+                header(HttpHeaders.CacheControl, "max-stale=4")
+            }
+            assertEquals("110", second.headers[HttpHeaders.Warning])
+            val secondBody = second.body<String>()
+            assertEquals(first, secondBody)
+
+            val third = client.get(url).body<String>()
+            assertNotEquals(first, third)
+            assertNotEquals(secondBody, third)
+        }
+    }
+
+    @Test
     fun testExpires() = clientTests {
         config {
             install(HttpCache) {
@@ -374,7 +404,7 @@ class CacheTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(5000)
+            delay(2500)
 
             // now it should be already expired
             val third = client.get(url).body<String>()

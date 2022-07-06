@@ -5,11 +5,11 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
 @OptIn(InternalAPI::class)
@@ -90,15 +90,23 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
     } ?: fallback()
 }
 
-internal fun HttpCacheEntry.shouldValidate(): Boolean {
-    val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
-    val isStale = GMTDate() > expires
-    // must-revalidate; re-validate once STALE, and MUST NOT return a cached response once stale.
-    //  This is how majority of clients implement the RFC
-    //  OkHttp Implements this the same: https://github.com/square/okhttp/issues/4043#issuecomment-403679369
-    // Disabled for now, as we don't currently return a cached object when there's a network failure; must-revalidate
-    // works the same as being stale on the request side. On response side, must-revalidate would not return a cached
-    // object if we are stale and couldn't refresh.
-    // isStale = isStale && CacheControl.MUST_REVALIDATE in cacheControl
-    return isStale || CacheControl.NO_CACHE in cacheControl
+internal fun HttpCacheEntry.shouldValidate(request: HttpRequestBuilder): ValidateStatus {
+    val cacheControl = parseHeaderValue(responseHeaders[HttpHeaders.CacheControl])
+    val validMillis = expires.timestamp - getTimeMillis()
+
+    if (CacheControl.NO_CACHE in cacheControl) return ValidateStatus.ShouldValidate
+    if (validMillis > 0) return ValidateStatus.ShouldNotValidate
+    if (CacheControl.MUST_REVALIDATE in cacheControl) return ValidateStatus.ShouldValidate
+
+    val requestCacheControl = parseHeaderValue(request.headers[HttpHeaders.CacheControl])
+    val maxStale = requestCacheControl.firstOrNull { it.value.startsWith("max-stale=") }
+        ?.value?.substring("max-stale=".length)
+        ?.toIntOrNull() ?: 0
+    val maxStaleMillis = maxStale * 1000
+    if (validMillis + maxStaleMillis > 0) return ValidateStatus.ShouldWarn
+    return ValidateStatus.ShouldValidate
+}
+
+internal enum class ValidateStatus {
+    ShouldValidate, ShouldNotValidate, ShouldWarn
 }

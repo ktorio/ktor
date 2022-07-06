@@ -83,34 +83,25 @@ public class HttpCache private constructor(
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
 
                 val cache = plugin.findResponse(context, content)
-                if (cache != null && !cache.shouldValidate()) {
-                    finish()
-                    val call = cache.produceResponse().call
+                if (cache == null) {
+                    val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
+                    if (CacheControl.ONLY_IF_CACHED in header) {
+                        proceedWithMissingCache(scope)
+                    }
+                    return@intercept
+                }
+                val cachedCall = cache.produceResponse().call
+                val validateStatus = cache.shouldValidate(context)
 
-                    scope.monitor.raise(HttpResponseFromCache, call.response)
-                    proceedWith(call)
-
+                if (validateStatus == ValidateStatus.ShouldNotValidate) {
+                    proceedWithCache(scope, cachedCall)
                     return@intercept
                 }
 
-                val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
-                if (CacheControl.ONLY_IF_CACHED in header) {
-                    finish()
-                    val request = context.build()
-                    val response = HttpResponseData(
-                        statusCode = HttpStatusCode.GatewayTimeout,
-                        requestTime = GMTDate(),
-                        headers = Headers.Empty,
-                        version = HttpProtocolVersion.HTTP_1_1,
-                        body = ByteReadChannel(ByteArray(0)),
-                        callContext = request.executionContext
-                    )
-                    val call = HttpClientCall(scope, request, response)
-                    proceedWith(call)
+                if (validateStatus == ValidateStatus.ShouldWarn) {
+                    proceedWithWarning(cachedCall, scope)
                     return@intercept
                 }
-
-                if (cache == null) return@intercept
 
                 cache.responseHeaders[HttpHeaders.ETag]?.let { etag ->
                     context.header(HttpHeaders.IfNoneMatch, etag)
@@ -138,6 +129,56 @@ public class HttpCache private constructor(
                     proceedWith(responseFromCache)
                 }
             }
+        }
+
+        private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithCache(
+            scope: HttpClient,
+            cachedCall: HttpClientCall
+        ) {
+            finish()
+            scope.monitor.raise(HttpResponseFromCache, cachedCall.response)
+            proceedWith(cachedCall)
+        }
+
+        @OptIn(InternalAPI::class)
+        private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
+            cachedCall: HttpClientCall,
+            scope: HttpClient
+        ) {
+            val request = context.build()
+            val response = HttpResponseData(
+                statusCode = cachedCall.response.status,
+                requestTime = cachedCall.response.requestTime,
+                headers = Headers.build {
+                    appendAll(cachedCall.response.headers);
+                    append(HttpHeaders.Warning, "110")
+                },
+                version = cachedCall.response.version,
+                body = cachedCall.response.content,
+                callContext = cachedCall.response.coroutineContext
+            )
+            val call = HttpClientCall(scope, request, response)
+            finish()
+            scope.monitor.raise(HttpResponseFromCache, call.response)
+            proceedWith(call)
+        }
+
+        @OptIn(InternalAPI::class)
+        private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithMissingCache(
+            scope: HttpClient
+        ) {
+            finish()
+            val request = context.build()
+            val response = HttpResponseData(
+                statusCode = HttpStatusCode.GatewayTimeout,
+                requestTime = GMTDate(),
+                headers = Headers.Empty,
+                version = HttpProtocolVersion.HTTP_1_1,
+                body = ByteReadChannel(ByteArray(0)),
+                callContext = request.executionContext
+            )
+            val call = HttpClientCall(scope, request, response)
+            proceedWith(call)
         }
     }
 
