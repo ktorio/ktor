@@ -23,7 +23,7 @@ public class PebbleConfiguration : PebbleEngine.Builder() {
      * Allows you to define currently available language translations
      * must follow IETF BCP 47 language tag string specification
      */
-    public var availableLanguages: MutableList<String>? = null
+    public var availableLanguages: List<String>? = null
 }
 
 /**
@@ -50,16 +50,16 @@ public class PebbleContent(
  */
 public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlugin("Pebble", ::PebbleConfiguration) {
     val engine = pluginConfig.build()
+    val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
     fun process(content: PebbleContent, call: ApplicationCall): OutgoingContent = with(content) {
         val writer = StringWriter()
-        val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
         var locale = locale
 
         if (availableLanguages != null && locale == null) {
-            locale = call.request.acceptLanguageItems().firstOrNull {
-                pluginConfig.availableLanguages!!.contains(it.value)
-            }?.value?.let { Locale.forLanguageTag(it) }
+            locale = call.request.acceptLanguageItems()
+                .firstOrNull { pluginConfig.availableLanguages!!.contains(it.value) }
+                ?.value?.let { Locale.forLanguageTag(it) }
         }
         engine.getTemplate(content.template).evaluate(writer, model, locale)
 
