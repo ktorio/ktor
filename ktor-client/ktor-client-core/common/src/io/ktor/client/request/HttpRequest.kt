@@ -158,7 +158,6 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Sets capability configuration.
      */
-    @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
         val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
         capabilities[key] = capability

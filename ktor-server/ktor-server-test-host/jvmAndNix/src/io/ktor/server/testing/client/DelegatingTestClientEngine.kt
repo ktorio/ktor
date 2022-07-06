@@ -19,7 +19,8 @@ internal class DelegatingTestClientEngine(
     override val config: DelegatingTestHttpClientConfig
 ) : HttpClientEngineBase("delegating-test-engine") {
 
-    override val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeout)
+    override val supportedCapabilities =
+        setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeoutCapability)
 
     private val appEngine by lazy(config.appEngineProvider)
     private val externalEngines by lazy {
@@ -50,9 +51,11 @@ internal class DelegatingTestClientEngine(
             externalEngines.containsKey(authority) -> {
                 externalEngines[authority]!!.execute(data)
             }
+
             hostWithPort in mainEngineHostWithPorts -> {
                 mainEngine.execute(data)
             }
+
             else -> {
                 throw InvalidTestRequestException(authority, externalEngines.keys, mainEngineHostWithPorts)
             }

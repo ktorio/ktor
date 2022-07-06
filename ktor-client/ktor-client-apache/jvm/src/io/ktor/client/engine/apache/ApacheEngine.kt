@@ -21,7 +21,7 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 @OptIn(InternalAPI::class)
 internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientEngineBase("ktor-apache") {
 
-    override val supportedCapabilities = setOf(HttpTimeout, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
 

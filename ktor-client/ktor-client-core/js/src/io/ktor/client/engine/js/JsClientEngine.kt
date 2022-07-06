@@ -25,7 +25,7 @@ internal class JsClientEngine(
     override val config: HttpClientEngineConfig
 ) : HttpClientEngineBase("ktor-js") {
 
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }

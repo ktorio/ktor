@@ -132,7 +132,7 @@ internal class JavaHttpWebSocket(
         val builder = httpClient.newWebSocketBuilder()
 
         with(builder) {
-            requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+            requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
                 timeoutAttributes.connectTimeoutMillis?.let {
                     connectTimeout(Duration.ofMillis(it))
                 }

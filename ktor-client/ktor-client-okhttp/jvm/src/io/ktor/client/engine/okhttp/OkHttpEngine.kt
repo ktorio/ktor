@@ -29,7 +29,7 @@ import kotlin.coroutines.*
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
-        setOf(HttpTimeout, WebSocketCapability, SSECapability)
+        setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     private val requestsJob: CoroutineContext
 
@@ -62,7 +62,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val callContext = callContext()
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
-        val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeout)]
+        val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeoutCapability)]
             ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
 
         return when {
@@ -149,7 +149,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         }
     }
 
-    private fun createOkHttpClient(timeoutExtension: HttpTimeout.HttpTimeoutCapabilityConfiguration?): OkHttpClient {
+    private fun createOkHttpClient(timeoutExtension: HttpTimeoutConfig?): OkHttpClient {
         val builder = (config.preconfigured ?: okHttpClientPrototype).newBuilder()
 
         builder.dispatcher(Dispatcher())
@@ -230,7 +230,7 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
  */
 @OptIn(InternalAPI::class)
 private fun OkHttpClient.Builder.setupTimeoutAttributes(
-    timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
+    timeoutAttributes: HttpTimeoutConfig
 ): OkHttpClient.Builder {
     timeoutAttributes.connectTimeoutMillis?.let {
         connectTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)

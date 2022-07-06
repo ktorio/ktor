@@ -25,7 +25,7 @@ internal class CIOEngine(
 ) : HttpClientEngineBase("ktor-cio") {
 
     override val supportedCapabilities =
-        setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
+        setOf(HttpTimeoutCapability, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 

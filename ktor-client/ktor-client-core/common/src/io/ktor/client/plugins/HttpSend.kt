@@ -31,7 +31,6 @@ public interface Sender {
 /**
  * This is an internal plugin that is always installed.
  */
-@Suppress("DEPRECATION")
 public class HttpSend private constructor(
     private val maxSendCount: Int = 20
 ) {
@@ -44,7 +43,6 @@ public class HttpSend private constructor(
         public var maxSendCount: Int = 20
     }
 
-    @OptIn(InternalAPI::class)
     private val interceptors: MutableList<HttpSendInterceptor> = mutableListOf()
 
     /**

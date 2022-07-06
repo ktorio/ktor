@@ -125,7 +125,7 @@ class JavaEngineTests {
 
     @Test
     fun isTimeoutInfiniteFunction() {
-        assertTrue(isTimeoutInfinite(HttpTimeout.INFINITE_TIMEOUT_MS))
+        assertTrue(isTimeoutInfinite(HttpTimeoutConfig.INFINITE_TIMEOUT_MS))
         assertTrue(isTimeoutInfinite(Long.MAX_VALUE, Instant.ofEpochMilli(1)))
 
         assertFalse(isTimeoutInfinite(1000, Instant.ofEpochMilli(0)))

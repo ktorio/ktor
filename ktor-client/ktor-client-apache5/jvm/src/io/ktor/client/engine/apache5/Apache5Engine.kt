@@ -29,7 +29,7 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 @OptIn(InternalAPI::class)
 internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpClientEngineBase("ktor-apache") {
 
-    override val supportedCapabilities = setOf(HttpTimeout, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
     @Volatile
     private var engine: CloseableHttpAsyncClient? = null
@@ -54,7 +54,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
     private fun engine(data: HttpRequestData): CloseableHttpAsyncClient {
         return engine ?: synchronized(this) {
             engine ?: HttpAsyncClients.custom().apply {
-                val timeout = data.getCapabilityOrNull(HttpTimeout)
+                val timeout = data.getCapabilityOrNull(HttpTimeoutCapability)
                 setThreadFactory {
                     Thread(it, "Ktor-client-apache").apply {
                         isDaemon = true
@@ -66,7 +66,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                 disableCookieManagement()
 
                 val socketTimeoutMillis: Long = timeout?.socketTimeoutMillis ?: config.socketTimeout.toLong()
-                val socketTimeout = if (socketTimeoutMillis == HttpTimeout.INFINITE_TIMEOUT_MS) {
+                val socketTimeout = if (socketTimeoutMillis == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
                     null
                 } else {
                     Timeout.of(
@@ -75,7 +75,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                     )
                 }
                 val connectTimeoutMillis: Long = timeout?.connectTimeoutMillis ?: config.connectTimeout
-                val connectTimeout = if (connectTimeoutMillis == HttpTimeout.INFINITE_TIMEOUT_MS) {
+                val connectTimeout = if (connectTimeoutMillis == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
                     0
                 } else {
                     connectTimeoutMillis

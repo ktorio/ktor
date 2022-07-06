@@ -102,7 +102,7 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_PRIVATE, responseDataRef)
             option(CURLOPT_ACCEPT_ENCODING, "")
             request.connectTimeout?.let {
-                if (it != HttpTimeout.INFINITE_TIMEOUT_MS) {
+                if (it != HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
                     option(CURLOPT_CONNECTTIMEOUT_MS, request.connectTimeout)
                 } else {
                     option(CURLOPT_CONNECTTIMEOUT_MS, Long.MAX_VALUE)

@@ -30,7 +30,7 @@ private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
-    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeout, SSECapability)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()

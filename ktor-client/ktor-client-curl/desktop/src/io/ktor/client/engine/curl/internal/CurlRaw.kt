@@ -26,7 +26,7 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     proxy = config.proxy,
     content = body.toByteChannel(),
     contentLength = body.contentLength ?: headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: -1L,
-    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
+    connectTimeout = getCapabilityOrNull(HttpTimeoutCapability)?.connectTimeoutMillis,
     executionContext = executionContext,
     forceProxyTunneling = config.forceProxyTunneling,
     sslVerify = config.sslVerify,

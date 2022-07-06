@@ -21,7 +21,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     private val protocolVersion = config.protocolVersion
 
     public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
-        setOf(HttpTimeout, WebSocketCapability, SSECapability)
+        setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     private var httpClient: HttpClient? = null
 
@@ -60,7 +60,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
                 setupProxy()
 
-                data.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttribute ->
+                data.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttribute ->
                     timeoutAttribute.connectTimeoutMillis?.let {
                         if (!isTimeoutInfinite(it)) connectTimeout(Duration.ofMillis(it))
                     }
@@ -93,7 +93,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 }
 
 internal fun isTimeoutInfinite(timeoutMs: Long, now: Instant = Instant.now()): Boolean {
-    if (timeoutMs == HttpTimeout.INFINITE_TIMEOUT_MS) return true
+    if (timeoutMs == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) return true
     return try {
         // Check that timeout end date as the number of milliseconds can fit Long type
         now.plus(timeoutMs, ChronoUnit.MILLIS).toEpochMilli()

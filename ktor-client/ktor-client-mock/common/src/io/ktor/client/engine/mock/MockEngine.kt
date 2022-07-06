@@ -16,15 +16,13 @@ import kotlinx.coroutines.*
 /**
  * [HttpClientEngine] for writing tests without network.
  */
-@Suppress("DEPRECATION")
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
-        HttpTimeout.Plugin,
+        HttpTimeoutCapability,
         WebSocketCapability,
         WebSocketExtensionsCapability
     )
 
-    @OptIn(InternalAPI::class)
     private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 

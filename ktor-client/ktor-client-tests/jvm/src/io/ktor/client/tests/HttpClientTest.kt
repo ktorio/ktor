@@ -74,9 +74,9 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     fun testClientSSE() = runBlocking {
         val client = HttpClient(factory) {
             install(HttpTimeout) {
-                requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
-                socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
-                connectTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+                requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                socketTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                connectTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
             }
         }
 

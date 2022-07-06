@@ -40,7 +40,7 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     val builder = HttpRequest.newBuilder(url.toURI())
 
     with(builder) {
-        getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+        getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
             timeoutAttributes.requestTimeoutMillis?.let {
                 if (!isTimeoutInfinite(it)) timeout(Duration.ofMillis(it))
             }
