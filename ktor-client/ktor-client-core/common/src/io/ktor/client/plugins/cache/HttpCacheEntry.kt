@@ -102,7 +102,7 @@ internal fun HttpCacheEntry.shouldValidate(request: HttpRequestBuilder): Validat
     val maxStale = requestCacheControl.firstOrNull { it.value.startsWith("max-stale=") }
         ?.value?.substring("max-stale=".length)
         ?.toIntOrNull() ?: 0
-    val maxStaleMillis = maxStale * 1000
+    val maxStaleMillis = maxStale * 1000L
     if (validMillis + maxStaleMillis > 0) return ValidateStatus.ShouldWarn
     return ValidateStatus.ShouldValidate
 }

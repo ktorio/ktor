@@ -357,22 +357,30 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/max-age")
 
-            val first = client.get(url).body<String>()
+            val original = client.get(url).body<String>()
             val cache = storage!!.publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
             delay(2500)
 
-            val second = client.get(url) {
+            val stale = client.get(url) {
                 header(HttpHeaders.CacheControl, "max-stale=4")
             }
-            assertEquals("110", second.headers[HttpHeaders.Warning])
-            val secondBody = second.body<String>()
-            assertEquals(first, secondBody)
+            assertEquals("110", stale.headers[HttpHeaders.Warning])
+            val staleBody = stale.body<String>()
+            assertEquals(original, staleBody)
 
-            val third = client.get(url).body<String>()
-            assertNotEquals(first, third)
-            assertNotEquals(secondBody, third)
+            val staleMaxInt = client.get(url) {
+                header(HttpHeaders.CacheControl, "max-stale=${Int.MAX_VALUE}")
+            }
+            assertEquals("110", stale.headers[HttpHeaders.Warning])
+            val staleMaxIntBody = staleMaxInt.body<String>()
+            assertEquals(original, staleMaxIntBody)
+
+            val notStale = client.get(url)
+            val notStaleBody = notStale.body<String>()
+            assertNull(notStale.headers[HttpHeaders.Warning])
+            assertNotEquals(original, notStaleBody)
         }
     }
 
