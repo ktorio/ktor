@@ -17,7 +17,7 @@ import kotlinx.atomicfu.*
 /**
  * Installs the client's [DigestAuthProvider].
  */
-public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
+public fun AuthConfig.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
         this@digest.providers += DigestAuthProvider(_credentials, realm, algorithmName)

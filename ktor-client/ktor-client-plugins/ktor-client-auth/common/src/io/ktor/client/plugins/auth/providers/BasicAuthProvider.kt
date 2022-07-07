@@ -17,7 +17,7 @@ import io.ktor.utils.io.core.*
  * Installs the client's [BasicAuthProvider].
  */
 @KtorDsl
-public fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
+public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
         this@basic.providers.add(BasicAuthProvider(_credentials, realm, _sendWithoutRequest))
     }
