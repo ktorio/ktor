@@ -15,7 +15,7 @@ import io.ktor.util.*
 /**
  * Installs the client's [BearerAuthProvider].
  */
-public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
+public fun AuthConfig.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
         this@bearer.providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
     }

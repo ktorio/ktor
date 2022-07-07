@@ -31,14 +31,6 @@ public val DefaultRequestPlugin: ClientPlugin<DefaultRequestPluginConfig> = crea
     }
 }
 
-public object SetupRequest : ClientHook<(HttpRequestBuilder) -> Unit> {
-    override fun install(client: HttpClient, handler: (HttpRequestBuilder) -> Unit) {
-        client.requestPipeline.intercept(HttpRequestPipeline.Before) {
-            handler(context)
-        }
-    }
-}
-
 /**
  * Sets default request parameters. Used to add common headers and URL for a request.
  * Note that trailing slash in base URL and leading slash in request URL are important.

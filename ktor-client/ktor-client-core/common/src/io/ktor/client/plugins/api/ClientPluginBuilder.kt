@@ -5,6 +5,8 @@
 package io.ktor.client.plugins.api
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.content.*
@@ -131,5 +133,19 @@ private object TransformResponseBodyHook :
             }
             proceedWith(HttpResponseContainer(typeInfo, newContent))
         }
+    }
+}
+
+public object SetupRequest : ClientHook<suspend (HttpRequestBuilder) -> Unit> {
+    override fun install(client: HttpClient, handler: suspend (HttpRequestBuilder) -> Unit) {
+        client.requestPipeline.intercept(HttpRequestPipeline.Before) {
+            handler(context)
+        }
+    }
+}
+
+public object Send : ClientHook<suspend Sender.(HttpRequestBuilder) -> HttpClientCall> {
+    override fun install(client: HttpClient, handler: suspend Sender.(HttpRequestBuilder) -> HttpClientCall) {
+        client.plugin(HttpSend).intercept(handler)
     }
 }
