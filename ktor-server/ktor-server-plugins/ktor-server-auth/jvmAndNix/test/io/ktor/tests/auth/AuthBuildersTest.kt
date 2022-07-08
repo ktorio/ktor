@@ -178,6 +178,66 @@ class AuthBuildersTest {
     }
 
     @Test
+    fun testMultipleConfigurationsInstallLevel() = testApplication {
+        install(Authentication) {
+            basic("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first") {
+                post("/first") {
+                    call.respondText("From: ${call.principal<UserIdPrincipal>()!!.name}")
+                }
+            }
+            route("/second") {
+                authenticate("second") {
+                    post {
+                        call.respondText("From: ${call.principal<UserIdPrincipal>()!!.name}")
+                    }
+                }
+            }
+        }
+
+        client.post("/first") {
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "first:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("From: first", it.bodyAsText())
+        }
+
+        client.post("/second") {
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("From: second", it.bodyAsText())
+        }
+
+        client.post("/first") {
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("second", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+        client.post("/second") {
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "first:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+    }
+
+    @Test
     fun testNoRouting() {
         withTestApplication {
             application.install(Authentication) {

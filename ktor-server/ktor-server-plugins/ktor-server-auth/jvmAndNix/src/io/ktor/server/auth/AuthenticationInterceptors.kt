@@ -156,8 +156,8 @@ public fun Route.authenticate(
     require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
     val configurationNames = configurations.distinct().toList()
     val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))
-    attributes.put(AuthenticateProviderNamesKey, configurationNames)
-    val allConfigurations = generateSequence(this) { it.parent }
+    authenticatedRoute.attributes.put(AuthenticateProviderNamesKey, configurationNames)
+    val allConfigurations = generateSequence(authenticatedRoute) { it.parent }
         .toList()
         .reversed()
         .flatMap { it.attributes.getOrNull(AuthenticateProviderNamesKey).orEmpty() }
