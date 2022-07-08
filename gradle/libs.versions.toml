@@ -34,7 +34,7 @@ micrometer-version = "1.7.5"
 jansi-version = "2.4.0"
 typesafe-version = "1.4.2"
 
-mockk-version = "1.12.0"
+mockk-version = "1.12.4"
 mokito-kotlin-version = "1.6.0"
 
 java-jwt-version = "3.19.2"
