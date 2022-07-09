@@ -74,14 +74,39 @@ public class NettyApplicationEngine(
         public var tcpKeepAlive: Boolean = false
 
         /**
+         * The url limit including query parameters
+         */
+        public var maxInitialLineLength: Int = HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH
+
+        /**
+         * The maximum length of all headers.
+         * If the sum of the length of each header exceeds this value, a TooLongFrameException will be raised.
+         */
+        public var maxHeaderSize: Int = HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE
+
+        /**
+         * The maximum length of the content or each chunk
+         */
+        public var maxChunkSize: Int = HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
-        public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
+        public var httpServerCodec: () -> HttpServerCodec = this::defaultHttpServerCodec
 
         /**
          * User-provided function to configure Netty's [ChannelPipeline]
          */
         public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
+
+        /**
+         * Default function to configure Netty's
+         */
+        private fun defaultHttpServerCodec() = HttpServerCodec(
+            maxInitialLineLength,
+            maxHeaderSize,
+            maxChunkSize
+        )
     }
 
     private val configuration = Configuration().apply(configure)
