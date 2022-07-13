@@ -7,6 +7,7 @@ package io.ktor.client.engine.java
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
@@ -90,6 +91,18 @@ class JavaEngineTests {
                     assertNotNull(response)
                 }
             }
+        }
+    }
+
+    @Test
+    fun testProtocolVersion() = runBlocking {
+        HttpClient(Java) {
+            engine {
+                protocolVersion = java.net.http.HttpClient.Version.HTTP_2
+            }
+        }.use { client ->
+            val response = client.get("https://httpbin.org/get")
+            assertEquals(HttpProtocolVersion.HTTP_2_0, response.version)
         }
     }
 }

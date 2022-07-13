@@ -6,6 +6,8 @@ public final class io/ktor/client/engine/java/Java : io/ktor/client/engine/HttpC
 public final class io/ktor/client/engine/java/JavaHttpConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun getProtocolVersion ()Ljava/net/http/HttpClient$Version;
+	public final fun setProtocolVersion (Ljava/net/http/HttpClient$Version;)V
 }
 
 public final class io/ktor/client/engine/java/JavaHttpEngine : io/ktor/client/engine/HttpClientEngineBase {
