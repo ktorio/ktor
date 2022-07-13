@@ -13,8 +13,10 @@ import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import java.time.*
@@ -29,28 +31,50 @@ class RequestTests : TestWithKtor() {
                 delay(delay)
                 call.respondText("OK")
             }
+            post("/echo") {
+                call.respondText(call.receiveText())
+            }
         }
     }
 
-    class LoggingInterceptor : Interceptor {
+    class LoggingInterceptor(private val oneShot: Boolean) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val request = chain.request()
-            val response = chain.proceed(request)
-            return response
+            assertEquals(oneShot, request.body!!.isOneShot())
+            return chain.proceed(request)
         }
     }
 
     @Test
-    fun testPlugins() = testWithEngine(OkHttp) {
+    fun testOneShotBodyStream() = testWithEngine(OkHttp) {
         config {
             engine {
-                addInterceptor(LoggingInterceptor())
-                addNetworkInterceptor(LoggingInterceptor())
+                addInterceptor(LoggingInterceptor(true))
             }
         }
 
         test { client ->
-            client.get("https://google.com").body<String>()
+            val response = client.post("$testUrl/echo") {
+                val channel = ByteReadChannel("test".toByteArray())
+                setBody(channel)
+            }.body<String>()
+            assertEquals("test", response)
+        }
+    }
+
+    @Test
+    fun testOneShotBodyArray() = testWithEngine(OkHttp) {
+        config {
+            engine {
+                addInterceptor(LoggingInterceptor(false))
+            }
+        }
+
+        test { client ->
+            val response = client.post("$testUrl/echo") {
+                setBody("test")
+            }.body<String>()
+            assertEquals("test", response)
         }
     }
 
