@@ -16,7 +16,7 @@ import java.nio.channels.*
 import kotlin.coroutines.*
 
 /**
- * Open a read channel for file and launch a coroutine to fill it.
+ * Launch a coroutine to open a read channel for a file and fill it.
  * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
@@ -28,15 +28,14 @@ public fun File.readChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteReadChannel {
     val fileLength = length()
-    val file = RandomAccessFile(this@readChannel, "r")
     return CoroutineScope(coroutineContext).writer(CoroutineName("file-reader") + coroutineContext, autoFlush = false) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
         require(endInclusive <= fileLength - 1) {
-            "endInclusive points to the position out of the file: " +
-                "file size = ${file.length()}, endInclusive = $endInclusive"
+            "endInclusive points to the position out of the file: file size = $fileLength, endInclusive = $endInclusive"
         }
 
-        file.use {
+        @Suppress("BlockingMethodInNonBlockingContext")
+        RandomAccessFile(this@readChannel, "r").use { file ->
             val fileChannel: FileChannel = file.channel
             if (start > 0) {
                 fileChannel.position(start)
