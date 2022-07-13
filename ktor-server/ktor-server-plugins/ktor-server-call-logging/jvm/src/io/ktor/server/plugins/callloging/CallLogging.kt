@@ -17,7 +17,7 @@ internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
 /**
  * Returns time in millis from the moment the call was received until now
  */
-public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
+public fun BaseCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
     val startTime = attributes[CALL_START_TIME]
     return clock() - startTime
 }

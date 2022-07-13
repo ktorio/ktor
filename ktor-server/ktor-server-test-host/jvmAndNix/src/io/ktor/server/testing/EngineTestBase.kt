@@ -36,10 +36,10 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     protected fun createAndStartServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
-        routingConfigurer: Routing.() -> Unit
+        routingConfigurer: RoutingBuilder.() -> Unit
     ): TEngine
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit)
+    protected open fun plugins(application: Application, routingConfigurer: RoutingBuilder.() -> Unit)
 
     protected fun withUrl(
         path: String,

@@ -114,7 +114,7 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
     @Test
     fun testRawWebSocketFreeze() {
         createAndStartServer {
-            application.install(WebSockets)
+            (this as Route).application.install(WebSockets)
             webSocket("/ws") {
                 repeat(10) {
                     send(Frame.Text("hi"))

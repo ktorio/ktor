@@ -17,7 +17,7 @@ import kotlin.reflect.*
  * By default, it fallbacks to [ApplicationRequest.local]
  */
 @Suppress("DEPRECATION")
-public val ApplicationRequest.origin: RequestConnectionPoint
+public val BaseRequest.origin: RequestConnectionPoint
     get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
 /**
@@ -75,7 +75,7 @@ internal class OriginConnectionPoint(
     private val local: RequestConnectionPoint,
     private val hostHeaderValue: String?
 ) : RequestConnectionPoint {
-    constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
+    constructor(call: BaseCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
 
     override val scheme: String
         get() = local.scheme
@@ -125,7 +125,7 @@ internal class OriginConnectionPoint(
  * Returns [MutableOriginConnectionPoint] associated with this call
  */
 @Suppress("DEPRECATION")
-public val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
+public val BaseCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(OriginConnectionPoint(this))
     }

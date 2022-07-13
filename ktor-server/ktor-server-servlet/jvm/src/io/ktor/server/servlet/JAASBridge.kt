@@ -11,7 +11,7 @@ import java.security.*
 /**
  * Returns Java's JAAS Principal
  */
-public val ApplicationRequest.javaSecurityPrincipal: Principal?
+public val BaseRequest.javaSecurityPrincipal: Principal?
     get() = when (this) {
         is ServletApplicationRequest -> servletRequest.userPrincipal
         is RoutingApplicationRequest -> engineRequest.javaSecurityPrincipal

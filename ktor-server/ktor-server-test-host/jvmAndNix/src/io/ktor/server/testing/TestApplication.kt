@@ -204,7 +204,7 @@ public open class TestApplicationBuilder {
      * Installs routing into [TestApplication]
      */
     @KtorDsl
-    public fun routing(configuration: Routing.() -> Unit) {
+    public fun routing(configuration: RoutingBuilder.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
     }

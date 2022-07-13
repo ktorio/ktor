@@ -26,7 +26,7 @@ import kotlinx.coroutines.*
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
  */
-public fun Route.webSocketRaw(
+public fun RoutingBuilder.webSocketRaw(
     path: String,
     protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
@@ -48,13 +48,13 @@ public fun Route.webSocketRaw(
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun Route.webSocketRaw(
+public fun RoutingBuilder.webSocketRaw(
     path: String,
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
 ) {
-    application.plugin(WebSockets) // early require
+   plugin(WebSockets) // early require
 
     route(path, HttpMethod.Get) {
         webSocketRaw(protocol, negotiateExtensions, handler)
@@ -73,7 +73,7 @@ public fun Route.webSocketRaw(
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  */
-public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
+public fun RoutingBuilder.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol, negotiateExtensions = false, handler)
 }
 
@@ -91,12 +91,12 @@ public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSock
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun Route.webSocketRaw(
+public fun RoutingBuilder.webSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
 ) {
-    application.plugin(WebSockets) // early require
+    plugin(WebSockets) // early require
 
     header(HttpHeaders.Connection, "Upgrade") {
         header(HttpHeaders.Upgrade, "websocket") {
@@ -129,7 +129,7 @@ public fun Route.webSocketRaw(
     DeprecationLevel.ERROR
 )
 @Suppress("UNUSED_PARAMETER")
-public fun Route.webSocketRaw(
+public fun RoutingBuilder.webSocketRaw(
     webSocketProtocol: String,
     webSocketHandler: suspend WebSocketServerSession.() -> Unit,
     nothing: Nothing? = null
@@ -149,7 +149,10 @@ public fun Route.webSocketRaw(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
+public fun RoutingBuilder.webSocket(
+    protocol: String? = null,
+    handler: suspend DefaultWebSocketServerSession.() -> Unit
+) {
     webSocketRaw(protocol, negotiateExtensions = true) {
         proceedWebSocket(handler)
     }
@@ -172,7 +175,7 @@ public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWeb
     ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)"),
     DeprecationLevel.ERROR
 )
-public fun Route.webSocket(
+public fun RoutingBuilder.webSocket(
     webSocketProtocol: String,
     webSocketHandler: suspend DefaultWebSocketServerSession.() -> Unit,
     @Suppress("UNUSED_PARAMETER")
@@ -193,7 +196,7 @@ public fun Route.webSocket(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun Route.webSocket(
+public fun RoutingBuilder.webSocket(
     path: String,
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
@@ -206,7 +209,7 @@ public fun Route.webSocket(
 // these two functions could be potentially useful for users however it is not clear how to provide them better
 // so for now they are still private
 
-private suspend fun ApplicationCall.respondWebSocketRaw(
+private suspend fun BaseCall.respondWebSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketSession.() -> Unit
@@ -214,7 +217,7 @@ private suspend fun ApplicationCall.respondWebSocketRaw(
     respond(WebSocketUpgrade(this, protocol, negotiateExtensions, handler))
 }
 
-private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) {
+private fun RoutingBuilder.webSocketProtocol(protocol: String?, block: RoutingBuilder.() -> Unit) {
     if (protocol == null) {
         block()
     } else {
@@ -244,7 +247,7 @@ private suspend fun CoroutineScope.joinSession() {
 }
 
 private suspend fun DefaultWebSocketSession.handleServerSession(
-    call: ApplicationCall,
+    call: BaseCall,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
     try {

@@ -17,7 +17,7 @@ import io.ktor.util.*
  */
 @KtorDsl
 public class ConditionalHeadersConfig {
-    internal val versionProviders = mutableListOf<suspend (ApplicationCall, OutgoingContent) -> List<Version>>()
+    internal val versionProviders = mutableListOf<suspend (BaseCall, OutgoingContent) -> List<Version>>()
 
     init {
         versionProviders.add { _, content -> content.versions }
@@ -28,22 +28,22 @@ public class ConditionalHeadersConfig {
     }
 
     /**
-     * Registers a function that can fetch a version list for a given [ApplicationCall] and [OutgoingContent].
+     * Registers a function that can fetch a version list for a given [BaseCall] and [OutgoingContent].
      *
      * @see [ConditionalHeaders]
      */
-    public fun version(provider: suspend (ApplicationCall, OutgoingContent) -> List<Version>) {
+    public fun version(provider: suspend (BaseCall, OutgoingContent) -> List<Version>) {
         versionProviders.add(provider)
     }
 }
 
-internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, OutgoingContent) -> List<Version>>> =
+internal val VersionProvidersKey: AttributeKey<List<suspend (BaseCall, OutgoingContent) -> List<Version>>> =
     AttributeKey("ConditionalHeadersKey")
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
  */
-public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
+public suspend fun BaseCall.versionsFor(content: OutgoingContent): List<Version> {
     val versionProviders = application.attributes.getOrNull(VersionProvidersKey)
     return versionProviders?.flatMap { it(this, content) } ?: emptyList()
 }

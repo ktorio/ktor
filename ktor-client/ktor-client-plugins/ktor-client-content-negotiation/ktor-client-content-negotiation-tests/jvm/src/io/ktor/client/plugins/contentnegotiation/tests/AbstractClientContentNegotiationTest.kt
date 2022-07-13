@@ -48,12 +48,12 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     protected abstract val webSocketsConverter: WebsocketContentConverter
 
     @OptIn(InternalSerializationApi::class)
-    private suspend inline fun <reified T : Any> ApplicationCall.respond(
+    private suspend inline fun <reified T : Any> BaseCall.respond(
         responseJson: String,
         contentType: ContentType
     ): Unit = respond(responseJson, contentType, T::class.serializer())
 
-    protected open suspend fun <T : Any> ApplicationCall.respond(
+    protected open suspend fun <T : Any> BaseCall.respond(
         responseJson: String,
         contentType: ContentType,
         serializer: KSerializer<T>,
@@ -61,7 +61,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         respondText(responseJson, contentType)
     }
 
-    protected open suspend fun ApplicationCall.respondWithRequestBody(contentType: ContentType) {
+    protected open suspend fun BaseCall.respondWithRequestBody(contentType: ContentType) {
         respondText(receiveText(), contentType)
     }
 
@@ -80,7 +80,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
-    protected open fun createRoutes(routing: Routing): Unit = with(routing) {
+    protected open fun createRoutes(routing: RoutingBuilder): Unit = with(routing) {
         post("/echo") {
             call.respondWithRequestBody(call.request.contentType())
         }

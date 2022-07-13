@@ -6,7 +6,6 @@ package io.ktor.server.response
 
 import io.ktor.util.*
 import io.ktor.util.reflect.*
-import kotlin.native.concurrent.*
 
 private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("ResponseTypeAttributeKey")
 
@@ -14,7 +13,7 @@ private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("Res
  * A type of response object that is passed in the [respond] function.
  * Can be useful for custom serializations.
  */
-public var ApplicationResponse.responseType: TypeInfo?
+public var BaseResponse.responseType: TypeInfo?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
 
     @InternalAPI set(value) {

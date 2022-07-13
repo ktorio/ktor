@@ -6,28 +6,18 @@ package io.ktor.server.response
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 
-/**
- * A server's response.
- * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
- * @see [ApplicationCall.response]
- * @see [io.ktor.server.request.ApplicationRequest]
- */
-public interface ApplicationResponse {
-    /**
-     * An [ApplicationCall] instance this [ApplicationResponse] is attached to.
-     */
-    public val call: ApplicationCall
-
-    /**
-     * A pipeline for sending content.
-     */
-    public val pipeline: ApplicationSendPipeline
-
+public interface BaseResponse {
     /**
      * Provides access to headers for the current response.
      */
     public val headers: ResponseHeaders
+
+    /**
+     * An [BaseCall] instance this [BaseResponse] is attached to.
+     */
+    public val call: BaseCall
 
     /**
      * Indicates that this response is already committed and no further changes are allowed.
@@ -60,4 +50,22 @@ public interface ApplicationResponse {
      */
     @UseHttp2Push
     public fun push(builder: ResponsePushBuilder)
+}
+
+/**
+ * A server's response.
+ * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
+ * @see [ApplicationCall.response]
+ * @see [io.ktor.server.request.ApplicationRequest]
+ */
+public interface ApplicationResponse : BaseResponse {
+    /**
+     * An [ApplicationCall] instance this [ApplicationResponse] is attached to.
+     */
+    public override val call: ApplicationCall
+
+    /**
+     * A pipeline for sending content.
+     */
+    public val pipeline: ApplicationSendPipeline
 }

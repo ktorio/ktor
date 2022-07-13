@@ -126,9 +126,9 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
     transformBodyTo(PartialOutgoingContent.Multiple(coroutineContext, call.isGet(), content, ranges, length, boundary))
 }
 
-internal fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
+internal fun BaseCall.isGet() = request.local.method == HttpMethod.Get
 
-internal fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
+internal fun BaseCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
 
 internal fun List<LongRange>.isAscending(): Boolean =
     fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first

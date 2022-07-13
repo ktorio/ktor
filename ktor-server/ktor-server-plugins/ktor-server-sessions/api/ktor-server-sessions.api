@@ -88,7 +88,7 @@ public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 public final class io/ktor/server/sessions/SessionDataKt {
 	public static final fun clear (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)V
 	public static final fun get (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
+	public static final fun getSessions (Lio/ktor/server/application/BaseCall;)Lio/ktor/server/sessions/CurrentSession;
 	public static final fun set (Lio/ktor/server/sessions/CurrentSession;Ljava/lang/Object;Lkotlin/reflect/KClass;)V
 }
 
@@ -160,8 +160,8 @@ public final class io/ktor/server/sessions/SessionTrackerById : io/ktor/server/s
 }
 
 public final class io/ktor/server/sessions/SessionTrackerByIdKt {
-	public static final fun getSessionId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
-	public static final fun sessionId (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getSessionId (Lio/ktor/server/application/BaseCall;)Ljava/lang/String;
+	public static final fun sessionId (Lio/ktor/server/application/BaseCall;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun sessionId (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/String;
 }
 

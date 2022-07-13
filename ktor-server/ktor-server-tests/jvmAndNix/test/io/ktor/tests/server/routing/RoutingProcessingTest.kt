@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
 import kotlin.test.*
 
 private enum class SelectedRoute { Get, Param, Header, None }
@@ -248,6 +249,20 @@ class RoutingProcessingTest {
         }
     }
 
+    private class PluginsWithProceedHook(val phase: PipelinePhase) : Hook<suspend PluginsWithProceedHook.Context.() -> Unit> {
+        class Context(private val pipelineContext: PipelineContext<*, *>) {
+            suspend fun proceed() {
+                pipelineContext.proceed()
+            }
+        }
+
+        override fun install(pipeline: ApplicationCallPipeline, handler: suspend Context.() -> Unit) {
+            pipeline.intercept(phase) {
+                Context(this).handler()
+            }
+        }
+    }
+
     @Test
     fun testRoutingOnGETUserUsernameWithInterceptors() = withTestApplication {
         var userIntercepted = false
@@ -257,12 +272,16 @@ class RoutingProcessingTest {
 
         application.routing {
             route("user") {
-                intercept(ApplicationCallPipeline.Call) {
-                    userIntercepted = true
-                    wrappedWithInterceptor = true
-                    proceed()
-                    wrappedWithInterceptor = false
-                }
+                install(
+                    createRouteScopedPlugin("test") {
+                        on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                            userIntercepted = true
+                            wrappedWithInterceptor = true
+                            proceed()
+                            wrappedWithInterceptor = false
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
@@ -315,18 +334,26 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Call) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Call)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCall {
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                 }
@@ -346,45 +373,6 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfPhase() = withTestApplication {
-        var userIntercepted = false
-        var wrappedWithInterceptor = false
-        var rootIntercepted = false
-        var userName = ""
-        var routingInterceptorWrapped = false
-
-        application.routing {
-            intercept(ApplicationCallPipeline.Plugins) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
-
-            route("user") {
-                intercept(ApplicationCallPipeline.Call) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
-                get("{username}") {
-                    userName = call.parameters["username"] ?: ""
-                }
-            }
-        }
-
-        on("handling GET /user/john") {
-            handleRequest {
-                uri = "/user/john"
-                method = HttpMethod.Get
-            }
-            assertTrue(userIntercepted, "should have processed interceptor on /user node")
-            assertTrue(routingInterceptorWrapped, "should have processed nested routing interceptor in an after phase")
-            assertTrue(rootIntercepted, "should have processed root interceptor")
-            assertEquals(userName, "john", "should have processed get handler on /user/username node")
-        }
-    }
-
-    @Test
     fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfOrder() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -393,18 +381,26 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Plugins) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCall {
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                 }
@@ -432,19 +428,27 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                    proceedWith(Foo())
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCallReceive { _ ->
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                            transformBody { Foo() }
+                        }
+                    }
+                )
                 get("{username}") {
                     instance = call.receive()
                 }
@@ -1021,7 +1025,7 @@ class RoutingProcessingTest {
         }
     }
 
-    private fun Route.transparent(build: Route.() -> Unit): Route {
+    private fun RoutingBuilder.transparent(build: RoutingBuilder.() -> Unit): RoutingBuilder {
         val route = createChild(
             object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {

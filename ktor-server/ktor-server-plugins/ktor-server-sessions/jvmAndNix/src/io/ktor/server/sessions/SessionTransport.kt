@@ -21,7 +21,7 @@ public interface SessionTransport {
     public fun send(call: ApplicationCall, value: String)
 
     /**
-     * Clears a session information from a specific [call].
+     * Clears session information from a specific [call].
      */
     public fun clear(call: ApplicationCall)
 }

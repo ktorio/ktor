@@ -9,7 +9,7 @@ import io.ktor.util.*
 
 private val IgnoreTrailingSlashAttributeKey: AttributeKey<Unit> = AttributeKey("IgnoreTrailingSlashAttributeKey")
 
-internal var ApplicationCall.ignoreTrailingSlash: Boolean
+internal var BaseCall.ignoreTrailingSlash: Boolean
     get() = attributes.contains(IgnoreTrailingSlashAttributeKey)
     private set(value) = if (value) {
         attributes.put(IgnoreTrailingSlashAttributeKey, Unit)

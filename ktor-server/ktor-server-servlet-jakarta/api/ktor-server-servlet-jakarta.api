@@ -4,9 +4,11 @@ public class io/ktor/server/servlet/jakarta/AsyncServletApplicationCall : io/kto
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/BaseRequest;
 	public fun getRequest ()Lio/ktor/server/servlet/jakarta/AsyncServletApplicationRequest;
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/BaseResponse;
 	public fun getResponse ()Lio/ktor/server/servlet/jakarta/ServletApplicationResponse;
 }
 
@@ -30,8 +32,8 @@ public final class io/ktor/server/servlet/jakarta/AsyncServletApplicationRespons
 }
 
 public final class io/ktor/server/servlet/jakarta/AttributesKt {
-	public static final fun getServletRequestAttributes (Lio/ktor/server/request/ApplicationRequest;)Ljava/util/Map;
-	public static final fun putServletAttributes (Lio/ktor/server/application/ApplicationCall;Ljakarta/servlet/ServletRequest;)V
+	public static final fun getServletRequestAttributes (Lio/ktor/server/request/BaseRequest;)Ljava/util/Map;
+	public static final fun putServletAttributes (Lio/ktor/server/application/BaseCall;Ljakarta/servlet/ServletRequest;)V
 }
 
 public final class io/ktor/server/servlet/jakarta/DefaultServletUpgrade : io/ktor/server/servlet/jakarta/ServletUpgrade {
@@ -152,8 +154,8 @@ public final class io/ktor/server/servlet/jakarta/WebResourcesConfig {
 }
 
 public final class io/ktor/server/servlet/jakarta/WebResourcesKt {
-	public static final fun webResources (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun webResources$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun webResources (Lio/ktor/server/routing/RoutingBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun webResources$default (Lio/ktor/server/routing/RoutingBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/servlet/jakarta/v4/PushKt {
