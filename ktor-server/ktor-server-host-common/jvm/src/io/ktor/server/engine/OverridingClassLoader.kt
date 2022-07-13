@@ -4,8 +4,9 @@
 
 package io.ktor.server.engine
 
-import io.ktor.utils.io.core.*
+import java.io.*
 import java.net.*
+import java.util.*
 
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
@@ -49,5 +50,20 @@ internal class OverridingClassLoader(
                 return realParent.loadClass(name)
             }
         }
+
+        // Always delegate to realParent.
+        // There is no point in loading resources through this classloader as it will always be a subset of the
+        // classpath for the parent. Also they do not need to be reloaded as they are not cached by the classloader
+        // unlike classes.
+        // TODO: "parent-last classloader" would obviously also be so for resources
+        override fun getResources(name: String?): Enumeration<URL> = realParent.getResources(name)
+        override fun getResource(name: String?): URL? = realParent.getResource(name)
+        override fun getResourceAsStream(name: String?): InputStream? = realParent.getResourceAsStream(name)
+
+        // We cannot delegate these to realParent as it has "protected" visibility.
+        // However, as they are protected they should in practice not be called unless this classloader is cast to
+        // URLClassLoader. In that event we revert to the default impl as defined in ClassLoader. Seems safe enough.
+        override fun findResource(name: String?): URL? = null
+        override fun findResources(name: String?): Enumeration<URL> = Collections.emptyEnumeration()
     }
 }
