@@ -99,7 +99,6 @@ internal suspend fun oauth2RequestAccessToken(
     settings: OAuthServerSettings.OAuth2ServerSettings,
     usedRedirectUrl: String,
     callbackResponse: OAuthCallback.TokenSingle,
-    extraParameters: Map<String, String> = emptyMap(),
     configure: (HttpRequestBuilder.() -> Unit)? = null
 ): OAuthAccessTokenResponse.OAuth2 {
     val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
@@ -119,7 +118,7 @@ internal suspend fun oauth2RequestAccessToken(
         settings.clientSecret,
         callbackResponse.state,
         callbackResponse.token,
-        extraParameters,
+        settings.extraTokenParameters,
         interceptor,
         settings.accessTokenRequiresBasicAuth,
         settings.nonceManager,
@@ -132,9 +131,9 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     callbackRedirectUrl: String,
     clientId: String,
     state: String,
-    scopes: List<String> = emptyList(),
-    parameters: List<Pair<String, String>> = emptyList(),
-    interceptor: URLBuilder.() -> Unit = {}
+    scopes: List<String>,
+    parameters: List<Pair<String, String>>,
+    interceptor: URLBuilder.() -> Unit
 ) {
     val url = URLBuilder()
     url.takeFrom(URI(authenticateUrl))
@@ -146,9 +145,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
         }
         append(OAuth2RequestParameters.State, state)
         append(OAuth2RequestParameters.ResponseType, "code")
-        parameters.forEach { (k, v) ->
-            append(k, v)
-        }
+        parameters.forEach { (k, v) -> append(k, v) }
     }
     interceptor(url)
 
@@ -164,7 +161,7 @@ private suspend fun oauth2RequestAccessToken(
     clientSecret: String,
     state: String?,
     code: String?,
-    extraParameters: Map<String, String> = emptyMap(),
+    extraParameters: List<Pair<String, String>> = emptyList(),
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
     nonceManager: NonceManager,
@@ -191,9 +188,7 @@ private suspend fun oauth2RequestAccessToken(
         if (usedRedirectUrl != null) {
             append(OAuth2RequestParameters.RedirectUri, usedRedirectUrl)
         }
-        extraParameters.forEach { (k, v) ->
-            append(k, v)
-        }
+        extraParameters.forEach { (k, v) -> append(k, v) }
     }.build()
 
     when (method) {
@@ -319,7 +314,7 @@ public suspend fun verifyWithOAuth2(
         code = null,
         state = null,
         configure = settings.accessTokenInterceptor,
-        extraParameters = mapOf(
+        extraParameters = listOf(
             OAuth2RequestParameters.UserName to credential.name,
             OAuth2RequestParameters.Password to credential.password
         ),

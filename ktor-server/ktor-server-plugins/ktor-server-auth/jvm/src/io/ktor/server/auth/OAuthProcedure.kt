@@ -90,6 +90,7 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(context: AuthenticationC
             callbackRedirectUrl,
             state = provider.nonceManager.newNonce(),
             scopes = provider.defaultScopes,
+            extraParameters = provider.extraAuthParameters,
             interceptor = provider.authorizeUrlInterceptor
         )
         challenge.complete()
