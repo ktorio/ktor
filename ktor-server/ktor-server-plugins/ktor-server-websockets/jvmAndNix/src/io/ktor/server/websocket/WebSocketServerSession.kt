@@ -6,6 +6,7 @@ package io.ktor.server.websocket
 
 import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
@@ -18,7 +19,7 @@ public interface WebSocketServerSession : WebSocketSession {
     /**
      * Associated received [call] that originating this session
      */
-    public val call: ApplicationCall
+    public val call: BaseCall
 }
 
 /**
@@ -79,18 +80,18 @@ public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized
     ) as T
 }
 
-internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =
+internal fun WebSocketSession.toServerSession(call: BaseCall): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)
 
-internal fun DefaultWebSocketSession.toServerSession(call: ApplicationCall): DefaultWebSocketServerSession =
+internal fun DefaultWebSocketSession.toServerSession(call: BaseCall): DefaultWebSocketServerSession =
     DelegatedDefaultWebSocketServerSession(call, this)
 
 private class DelegatedWebSocketServerSession(
-    override val call: ApplicationCall,
+    override val call: BaseCall,
     val delegate: WebSocketSession
 ) : WebSocketServerSession, WebSocketSession by delegate
 
 private class DelegatedDefaultWebSocketServerSession(
-    override val call: ApplicationCall,
+    override val call: BaseCall,
     val delegate: DefaultWebSocketSession
 ) : DefaultWebSocketServerSession, DefaultWebSocketSession by delegate

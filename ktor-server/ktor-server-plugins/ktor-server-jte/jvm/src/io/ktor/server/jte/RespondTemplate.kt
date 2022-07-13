@@ -13,7 +13,7 @@ import io.ktor.server.response.*
  *
  * @see JteContent
  */
-public suspend fun ApplicationCall.respondTemplate(
+public suspend fun BaseCall.respondTemplate(
     template: String,
     params: Map<String, Any?> = emptyMap(),
     etag: String? = null,
@@ -25,7 +25,7 @@ public suspend fun ApplicationCall.respondTemplate(
  *
  * @see JteContent
  */
-public suspend fun ApplicationCall.respondTemplate(
+public suspend fun BaseCall.respondTemplate(
     template: String,
     vararg params: Pair<String, Any?>,
     etag: String? = null,

@@ -12,7 +12,7 @@ import io.ktor.server.request.*
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].
  */
-public fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
+public fun BaseRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
     try {
         parseAuthorizationHeader(it)
     } catch (cause: ParseException) {

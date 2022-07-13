@@ -43,7 +43,7 @@ public open class Locations constructor(
      * Resolves parameters in a [call] to an instance of specified [locationClass].
      */
     @Suppress("UNCHECKED_CAST")
-    public fun <T : Any> resolve(locationClass: KClass<*>, call: ApplicationCall): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, call: BaseCall): T {
         return resolve(locationClass, call.parameters)
     }
 
@@ -68,7 +68,7 @@ public open class Locations constructor(
      * Resolves parameters in a [call] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    public inline fun <reified T : Any> resolve(call: ApplicationCall): T {
+    public inline fun <reified T : Any> resolve(call: BaseCall): T {
         return resolve(T::class, call)
     }
 
@@ -84,7 +84,7 @@ public open class Locations constructor(
     }
 
     @OptIn(KtorExperimentalLocationsAPI::class)
-    private fun createEntry(parent: Route, info: LocationInfo): Route {
+    private fun createEntry(parent: RoutingBuilder, info: LocationInfo): RoutingBuilder {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         return hierarchyEntry.createRouteFromPath(info.path)
     }
@@ -92,7 +92,7 @@ public open class Locations constructor(
     /**
      * Creates all necessary routing entries to match specified [locationClass].
      */
-    public fun createEntry(parent: Route, locationClass: KClass<*>): Route {
+    public fun createEntry(parent: RoutingBuilder, locationClass: KClass<*>): RoutingBuilder {
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 

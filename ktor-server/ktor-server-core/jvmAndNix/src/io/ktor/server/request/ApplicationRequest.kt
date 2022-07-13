@@ -8,22 +8,26 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.utils.io.*
 
-/**
- * A client's request.
- * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [ApplicationCall.request]
- * @see [io.ktor.server.response.ApplicationResponse]
- */
-public interface ApplicationRequest {
+public interface BaseRequest {
+
+    /**
+     * Provides access to headers for the current request.
+     * You can also get access to specific headers using dedicated extension functions,
+     * such as [acceptEncoding], [contentType], [cacheControl], and so on.
+     */
+    public val headers: Headers
+
     /**
      * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
-    public val call: ApplicationCall
+    public val call: BaseCall
 
     /**
-     * A pipeline for receiving content.
+     * Provides access to connection details such as a host name, port, scheme, and so on.
+     * To get information about a request passed through an HTTP proxy or a load balancer,
+     * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
      */
-    public val pipeline: ApplicationReceivePipeline
+    public val local: RequestConnectionPoint
 
     /**
      * Provides access to decoded parameters of a URL query string.
@@ -36,23 +40,27 @@ public interface ApplicationRequest {
     public val rawQueryParameters: Parameters
 
     /**
-     * Provides access to headers for the current request.
-     * You can also get access to specific headers using dedicated extension functions,
-     * such as [acceptEncoding], [contentType], [cacheControl], and so on.
-     */
-    public val headers: Headers
-
-    /**
-     * Provides access to connection details such as a host name, port, scheme, and so on.
-     * To get information about a request passed through an HTTP proxy or a load balancer,
-     * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
-     */
-    public val local: RequestConnectionPoint
-
-    /**
      * Provides access to cookies for this request.
      */
     public val cookies: RequestCookies
+}
+
+/**
+ * A client's request.
+ * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
+ * @see [ApplicationCall.request]
+ * @see [io.ktor.server.response.ApplicationResponse]
+ */
+public interface ApplicationRequest : BaseRequest {
+    /**
+     * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
+     */
+    public override val call: ApplicationCall
+
+    /**
+     * A pipeline for receiving content.
+     */
+    public val pipeline: ApplicationReceivePipeline
 
     /**
      * Receives a raw body payload as a channel.
@@ -63,7 +71,7 @@ public interface ApplicationRequest {
 /**
  * Internal helper function to encode raw parameters. Should not be used directly.
  */
-public fun ApplicationRequest.encodeParameters(parameters: Parameters): Parameters {
+public fun BaseRequest.encodeParameters(parameters: Parameters): Parameters {
     return ParametersBuilder().apply {
         rawQueryParameters.names().forEach { key ->
             val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()

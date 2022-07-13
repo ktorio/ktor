@@ -83,7 +83,7 @@ public class CallLoggingConfig {
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 
-    internal fun ApplicationRequest.toLogStringWithColors(): String =
+    internal fun BaseRequest.toLogStringWithColors(): String =
         "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()}"
 
     private fun colored(status: HttpStatusCode): String {

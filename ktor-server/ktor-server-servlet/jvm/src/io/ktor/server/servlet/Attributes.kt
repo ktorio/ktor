@@ -14,7 +14,7 @@ import javax.servlet.*
  * Provides javax.servlet request attributes or fail it the underlying engine is not
  * servlet-backed.
  */
-public val ApplicationRequest.servletRequestAttributes: Map<String, Any>
+public val BaseRequest.servletRequestAttributes: Map<String, Any>
     get() = call.attributes[servletRequestAttributesKey]
 
 /**

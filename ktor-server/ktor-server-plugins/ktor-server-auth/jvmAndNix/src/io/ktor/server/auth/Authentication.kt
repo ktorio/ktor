@@ -104,7 +104,7 @@ public class Authentication(internal var config: AuthenticationConfig) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call.
  */
-public val ApplicationCall.authentication: AuthenticationContext
+public val BaseCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**

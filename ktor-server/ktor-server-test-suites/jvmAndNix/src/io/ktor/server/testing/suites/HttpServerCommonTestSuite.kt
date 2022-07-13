@@ -551,7 +551,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 post {
                     val byteStream = ByteChannel(autoFlush = true)
                     launch(Dispatchers.Unconfined) {
-                        byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                        byteStream.writePacket(call.receiveChannel().readRemaining())
                         byteStream.close(null)
                     }
                     call.respond(object : OutgoingContent.ReadChannelContent() {

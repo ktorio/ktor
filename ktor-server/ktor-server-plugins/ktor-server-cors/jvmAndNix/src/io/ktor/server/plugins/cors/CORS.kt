@@ -172,7 +172,7 @@ private fun checkOrigin(
         else -> OriginCheckResult.OK
     }
 
-private suspend fun ApplicationCall.respondPreflight(
+private suspend fun BaseCall.respondPreflight(
     origin: String,
     methodsListHeaderValue: String,
     headersList: List<String>,
@@ -212,7 +212,7 @@ private suspend fun ApplicationCall.respondPreflight(
     respond(HttpStatusCode.OK)
 }
 
-private fun ApplicationCall.accessControlAllowOrigin(
+private fun BaseCall.accessControlAllowOrigin(
     origin: String,
     allowsAnyHost: Boolean,
     allowCredentials: Boolean
@@ -224,7 +224,7 @@ private fun ApplicationCall.accessControlAllowOrigin(
     }
 }
 
-private fun ApplicationCall.corsVary() {
+private fun BaseCall.corsVary() {
     val vary = response.headers[HttpHeaders.Vary]
     if (vary == null) {
         response.header(HttpHeaders.Vary, HttpHeaders.Origin)
@@ -233,13 +233,13 @@ private fun ApplicationCall.corsVary() {
     }
 }
 
-private fun ApplicationCall.accessControlAllowCredentials(allowCredentials: Boolean) {
+private fun BaseCall.accessControlAllowCredentials(allowCredentials: Boolean) {
     if (allowCredentials) {
         response.header(HttpHeaders.AccessControlAllowCredentials, "true")
     }
 }
 
-private fun ApplicationCall.accessControlMaxAge(maxAgeHeaderValue: String?) {
+private fun BaseCall.accessControlMaxAge(maxAgeHeaderValue: String?) {
     if (maxAgeHeaderValue != null) {
         response.header(HttpHeaders.AccessControlMaxAge, maxAgeHeaderValue)
     }
@@ -278,16 +278,16 @@ private fun headerMatchesAPredicate(header: String, headerPredicates: List<(Stri
     return headerPredicates.any { it(header) }
 }
 
-private fun ApplicationCall.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean {
+private fun BaseCall.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean {
     return request.httpMethod in methods
 }
 
-private fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
+private fun BaseCall.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
     val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
     return requestMethod != null && requestMethod in methods
 }
 
-private suspend fun ApplicationCall.respondCorsFailed() {
+private suspend fun BaseCall.respondCorsFailed() {
     respond(HttpStatusCode.Forbidden)
 }
 

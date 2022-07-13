@@ -61,7 +61,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
     }
 }
 
-internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
+internal suspend fun BaseCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
     val params = when (request.contentType()) {
         ContentType.Application.FormUrlEncoded -> receiveParameters()
         else -> parameters
@@ -75,7 +75,7 @@ internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.Token
     }
 }
 
-internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+internal suspend fun BaseCall.redirectAuthenticateOAuth2(
     settings: OAuthServerSettings.OAuth2ServerSettings,
     callbackRedirectUrl: String,
     state: String,
@@ -126,7 +126,7 @@ internal suspend fun oauth2RequestAccessToken(
     )
 }
 
-private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+private suspend fun BaseCall.redirectAuthenticateOAuth2(
     authenticateUrl: String,
     callbackRedirectUrl: String,
     clientId: String,

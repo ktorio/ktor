@@ -4,9 +4,11 @@ public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/BaseRequest;
 	public fun getRequest ()Lio/ktor/server/servlet/AsyncServletApplicationRequest;
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/BaseResponse;
 	public fun getResponse ()Lio/ktor/server/servlet/ServletApplicationResponse;
 }
 
@@ -31,7 +33,7 @@ public final class io/ktor/server/servlet/AsyncServletApplicationResponse$Compan
 }
 
 public final class io/ktor/server/servlet/AttributesKt {
-	public static final fun getServletRequestAttributes (Lio/ktor/server/request/ApplicationRequest;)Ljava/util/Map;
+	public static final fun getServletRequestAttributes (Lio/ktor/server/request/BaseRequest;)Ljava/util/Map;
 	public static final fun putServletAttributes (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/ServletRequest;)V
 }
 
@@ -41,7 +43,7 @@ public final class io/ktor/server/servlet/DefaultServletUpgrade : io/ktor/server
 }
 
 public final class io/ktor/server/servlet/JAASBridgeKt {
-	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/ApplicationRequest;)Ljava/security/Principal;
+	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/BaseRequest;)Ljava/security/Principal;
 }
 
 public abstract class io/ktor/server/servlet/KtorServlet : javax/servlet/http/HttpServlet, kotlinx/coroutines/CoroutineScope {

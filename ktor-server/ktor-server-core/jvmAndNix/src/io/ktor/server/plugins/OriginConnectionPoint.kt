@@ -17,14 +17,13 @@ import kotlin.reflect.*
  * By default it fallbacks to [ApplicationRequest.local]
  */
 @Suppress("DEPRECATION")
-public val ApplicationRequest.origin: RequestConnectionPoint
+public val BaseRequest.origin: RequestConnectionPoint
     get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
 /**
  * A key to install a mutable [RequestConnectionPoint]
  */
 @Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
-
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 

@@ -42,7 +42,7 @@ public interface RequestConnectionPoint {
 
     /**
      * Client address or host name (generally not resolved to name for performance reasons).
-     * For [io.ktor.application.ApplicationRequest.local] instance could point to
+     * For [io.ktor.server.request.BaseRequest.local] instance could point to
      * a proxy our application running behind.
      * NEVER use it for user authentication as it can be easily falsified (user can simply set some HTTP headers
      * such as X-Forwarded-Host so you should NEVER rely on it in any security checks.

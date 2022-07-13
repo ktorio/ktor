@@ -157,7 +157,7 @@ public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createA
         )
     }
 
-    fun ApplicationRequest.forwardedHeaders() =
+    fun BaseRequest.forwardedHeaders() =
         headers.getAll(HttpHeaders.Forwarded)
             ?.flatMap { it.split(',') }
             ?.flatMap { parseHeaderValue(";$it") }?.map {

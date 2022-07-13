@@ -14,19 +14,17 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlin.jvm.*
 
 /**
  * Sends a [message] as a response.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 @OptIn(InternalAPI::class)
-@JvmName("respondWithType")
-public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
+public suspend inline fun <reified T : Any> BaseCall.respond(message: T) {
     if (message !is OutgoingContent && message !is ByteArray) {
         response.responseType = typeInfo<T>()
     }
-    response.pipeline.execute(this, message as Any)
+    respondBase(message)
 }
 
 /**
@@ -34,9 +32,9 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 @OptIn(InternalAPI::class)
-public suspend fun ApplicationCall.respond(message: Any?, messageType: TypeInfo) {
+public suspend fun BaseCall.respond(message: Any?, messageType: TypeInfo) {
     response.responseType = messageType
-    response.pipeline.execute(this, message ?: NullBody)
+    respondBase(message ?: NullBody)
 }
 
 /**
@@ -44,11 +42,11 @@ public suspend fun ApplicationCall.respond(message: Any?, messageType: TypeInfo)
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 @OptIn(InternalAPI::class)
-public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
+public suspend inline fun <reified T> BaseCall.respondNullable(message: T) {
     if (message !is OutgoingContent && message !is ByteArray) {
         response.responseType = typeInfo<T>()
     }
-    response.pipeline.execute(this, message ?: NullBody)
+    respond(message ?: NullBody)
 }
 
 /**
@@ -56,7 +54,7 @@ public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 @JvmName("respondWithType")
-public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T : Any> BaseCall.respond(status: HttpStatusCode, message: T) {
     response.status(status)
     respond(message)
 }
@@ -65,7 +63,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(status: Http
  * Sends a [message] of type [messageType] as a response with the specified [status] code.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public suspend fun ApplicationCall.respond(
+public suspend fun BaseCall.respond(
     status: HttpStatusCode,
     message: Any?,
     messageType: TypeInfo
@@ -78,7 +76,7 @@ public suspend fun ApplicationCall.respond(
  * Sends a [message] as a response with the specified [status] code.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public suspend inline fun <reified T> ApplicationCall.respondNullable(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T> BaseCall.respondNullable(status: HttpStatusCode, message: T) {
     response.status(status)
     respondNullable(message)
 }
@@ -87,7 +85,7 @@ public suspend inline fun <reified T> ApplicationCall.respondNullable(status: Ht
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
+public suspend fun BaseCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
@@ -97,7 +95,7 @@ public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boole
  * Unlike the other [respondRedirect], it provides a way to build a URL based on current call using the [block] function.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
+public suspend inline fun BaseCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
     respondRedirect(url(block), permanent)
 }
 
@@ -107,7 +105,7 @@ public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = f
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondText(
+public suspend fun BaseCall.respondText(
     text: String,
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
@@ -123,7 +121,7 @@ public suspend fun ApplicationCall.respondText(
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondText(
+public suspend fun BaseCall.respondText(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     provider: suspend () -> String
@@ -138,7 +136,7 @@ public suspend fun ApplicationCall.respondText(
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondBytes(
+public suspend fun BaseCall.respondBytes(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     provider: suspend () -> ByteArray
@@ -152,7 +150,7 @@ public suspend fun ApplicationCall.respondBytes(
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondBytes(
+public suspend fun BaseCall.respondBytes(
     bytes: ByteArray,
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
@@ -167,7 +165,7 @@ public suspend fun ApplicationCall.respondBytes(
  * The [producer] parameter will be called later when an engine is ready to produce content. You don't need to close it.
  * The provided [ByteWriteChannel] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondBytesWriter(
+public suspend fun BaseCall.respondBytesWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     contentLength: Long? = null,
@@ -184,7 +182,7 @@ public suspend fun ApplicationCall.respondBytesWriter(
  *
  * Additionally, if a charset is not set for a content type, it appends `; charset=UTF-8` to the content type.
  */
-public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
+public fun BaseCall.defaultTextContentType(contentType: ContentType?): ContentType {
     val result = when (contentType) {
         null -> {
             val headersContentType = response.headers[HttpHeaders.ContentType]

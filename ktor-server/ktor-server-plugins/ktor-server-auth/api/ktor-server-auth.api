@@ -102,8 +102,8 @@ public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/ser
 public final class io/ktor/server/auth/BasicAuthKt {
 	public static final fun basic (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun basic$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun basicAuthenticationCredentials (Lio/ktor/server/request/ApplicationRequest;Ljava/nio/charset/Charset;)Lio/ktor/server/auth/UserPasswordCredential;
-	public static synthetic fun basicAuthenticationCredentials$default (Lio/ktor/server/request/ApplicationRequest;Ljava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/server/auth/UserPasswordCredential;
+	public static final fun basicAuthenticationCredentials (Lio/ktor/server/request/BaseRequest;Ljava/nio/charset/Charset;)Lio/ktor/server/auth/UserPasswordCredential;
+	public static synthetic fun basicAuthenticationCredentials$default (Lio/ktor/server/request/BaseRequest;Ljava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/server/auth/UserPasswordCredential;
 }
 
 public final class io/ktor/server/auth/BasicAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
@@ -212,7 +212,7 @@ public final class io/ktor/server/auth/FormAuthenticationProvider$Config : io/kt
 }
 
 public final class io/ktor/server/auth/HeadersKt {
-	public static final fun parseAuthorizationHeader (Lio/ktor/server/request/ApplicationRequest;)Lio/ktor/http/auth/HttpAuthHeader;
+	public static final fun parseAuthorizationHeader (Lio/ktor/server/request/BaseRequest;)Lio/ktor/http/auth/HttpAuthHeader;
 }
 
 public abstract class io/ktor/server/auth/OAuth1aException : java/lang/Exception {

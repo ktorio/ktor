@@ -96,6 +96,8 @@ public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server
 	public abstract fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	protected final fun putResponseAttribute (Lio/ktor/server/engine/BaseApplicationResponse;)V
 	public static synthetic fun putResponseAttribute$default (Lio/ktor/server/engine/BaseApplicationCall;Lio/ktor/server/engine/BaseApplicationResponse;ILjava/lang/Object;)V
+	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun respondBase (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/server/engine/ApplicationEngine {
@@ -115,6 +117,7 @@ public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor
 public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/server/request/ApplicationRequest {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
 	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public synthetic fun getCall ()Lio/ktor/server/application/BaseCall;
 	public fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 }
 
@@ -123,6 +126,7 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/se
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
 	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public synthetic fun getCall ()Lio/ktor/server/application/BaseCall;
 	public fun getCookies ()Lio/ktor/server/response/ResponseCookies;
 	public final fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 	public fun isCommitted ()Z

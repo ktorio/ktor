@@ -10,9 +10,9 @@ import io.ktor.server.response.*
 /**
  * Append `Link` header to HTTP response
  */
-public fun ApplicationResponse.link(header: LinkHeader): Unit = headers.append(HttpHeaders.Link, header.toString())
+public fun BaseResponse.link(header: LinkHeader): Unit = headers.append(HttpHeaders.Link, header.toString())
 
 /**
  * Append `Link` header to HTTP response with specified [uri] and [rel]
  */
-public fun ApplicationResponse.link(uri: String, vararg rel: String): Unit = link(LinkHeader(uri, *rel))
+public fun BaseResponse.link(uri: String, vararg rel: String): Unit = link(LinkHeader(uri, *rel))

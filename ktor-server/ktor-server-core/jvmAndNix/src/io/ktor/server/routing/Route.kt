@@ -4,11 +4,14 @@
 
 package io.ktor.server.routing
 
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.collections.*
-import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * Describes a node in a routing tree.
@@ -21,11 +24,11 @@ import io.ktor.utils.io.concurrent.*
 @Suppress("DEPRECATION")
 @KtorDsl
 public open class Route(
-    public val parent: Route?,
+    public override val parent: Route?,
     public val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment? = null
-) : ApplicationCallPipeline(developmentMode, environment) {
+) : ApplicationCallPipeline(developmentMode, environment), RoutingBuilder {
 
     /**
      * Describes a node in a routing tree.
@@ -51,12 +54,12 @@ public open class Route(
     private var cachedPipeline: ApplicationCallPipeline? = null
 
     @OptIn(InternalAPI::class)
-    internal val handlers = mutableListOf<PipelineInterceptor<Unit, ApplicationCall>>()
+    internal val handlers = mutableListOf<RoutingHandler>()
 
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      */
-    public fun createChild(selector: RouteSelector): Route {
+    public override fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = Route(this, selector, developmentMode, environment)
@@ -74,12 +77,19 @@ public open class Route(
     /**
      * Installs a handler into this route which is called when the route is selected for a call.
      */
-    public fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
-        handlers.add(handler)
+    public override fun handle(body: RoutingHandler) {
+        handlers.add(body)
 
         // Adding a handler invalidates only pipeline for this entry
         cachedPipeline = null
     }
+
+    override fun <F : Any> plugin(plugin: Plugin<*, *, F>): F = (this as ApplicationCallPipeline).plugin(plugin)
+
+    override fun <B : Any, F : Any> install(
+        plugin: Plugin<ApplicationCallPipeline, B, F>,
+        configure: B.() -> Unit
+    ): F = (this as ApplicationCallPipeline).install(plugin, configure)
 
     override fun afterIntercepted() {
         // Adding an interceptor invalidates pipelines for all children
@@ -112,8 +122,11 @@ public open class Route(
         val handlers = handlers
         for (index in 0..handlers.lastIndex) {
             pipeline.intercept(Call) {
+                val call = call as RoutingApplicationCall
+                val routingCall = call.routingCall()
+                val routingContext = RoutingContext(routingCall)
                 if (call.isHandled) return@intercept
-                handlers[index].invoke(this, Unit)
+                handlers[index].invoke(routingContext)
             }
         }
         cachedPipeline = pipeline
@@ -132,4 +145,108 @@ public open class Route(
             }
         }
     }
+}
+
+public class RoutingRequest internal constructor(
+    public val pathVariables: Parameters,
+    internal val request: ApplicationRequest,
+    public override val call: RoutingCall
+) : BaseRequest {
+
+    public override val queryParameters: Parameters = request.queryParameters
+    public override val rawQueryParameters: Parameters = request.rawQueryParameters
+    public override val headers: Headers = request.headers
+    public override val local: RequestConnectionPoint = request.local
+    public override val cookies: RequestCookies = request.cookies
+}
+
+public class RoutingResponse internal constructor(
+    public override val call: RoutingCall,
+    internal val applicationResponse: ApplicationResponse
+) : BaseResponse {
+
+    override val isCommitted: Boolean
+        get() = applicationResponse.isCommitted
+
+    public override val headers: ResponseHeaders = applicationResponse.headers
+
+    public override val cookies: ResponseCookies = applicationResponse.cookies
+
+    override fun status(): HttpStatusCode? = applicationResponse.status()
+
+    override fun status(value: HttpStatusCode) {
+        applicationResponse.status(value)
+    }
+
+    @UseHttp2Push
+    override fun push(builder: ResponsePushBuilder): Unit = applicationResponse.push(builder)
+}
+
+public class RoutingCall internal constructor(
+    internal val applicationCall: RoutingApplicationCall
+) : BaseCall {
+
+    public override lateinit var request: RoutingRequest
+        internal set
+    public override lateinit var response: RoutingResponse
+        internal set
+
+    public override val attributes: Attributes = applicationCall.attributes
+    public override val application: Application = applicationCall.application
+    public override val parameters: Parameters = applicationCall.parameters
+
+    override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = applicationCall.receiveNullable(typeInfo)
+
+    @InternalAPI
+    override suspend fun respondBase(message: Any) {
+        applicationCall.respondBase(message)
+    }
+}
+
+public class RoutingContext(
+    public val call: RoutingCall
+): CoroutineScope {
+    override val coroutineContext: CoroutineContext = call.applicationCall.coroutineContext
+}
+
+public typealias RoutingHandler = suspend RoutingContext.() -> Unit
+
+public interface RoutingBuilder {
+    public val attributes: Attributes
+    public val parent: Route?
+    public fun handle(body: RoutingHandler)
+    public fun createChild(selector: RouteSelector): RoutingBuilder
+
+    /**
+     * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
+     * if the plugin is not installed.
+     * @throws MissingApplicationPluginException
+     * @param plugin [Plugin] to lookup
+     * @return an instance of a plugin
+     */
+    public fun <F : Any> plugin(plugin: Plugin<*, *, F>): F
+
+    /**
+     * Installs a [plugin] into this route, if it is not yet installed.
+     */
+    public fun <B : Any, F : Any> install(
+        plugin: Plugin<ApplicationCallPipeline, B, F>,
+        configure: B.() -> Unit = {}
+    ): F
+}
+
+private fun RoutingApplicationCall.routingCall(): RoutingCall {
+    val call = RoutingCall(
+        applicationCall = this
+    )
+    call.request = RoutingRequest(
+        pathVariables = pathParameters,
+        request = request,
+        call = call
+    )
+    call.response = RoutingResponse(
+        applicationResponse = response,
+        call = call
+    )
+    return call
 }

@@ -46,9 +46,9 @@ public enum class CompressedFileType(public val extension: String, public val en
  *
  * * This can't be disabled in a child route if it was enabled in the root route
  */
-public fun Route.preCompressed(
+public fun RoutingBuilder.preCompressed(
     vararg types: CompressedFileType = CompressedFileType.values(),
-    configure: Route.() -> Unit
+    configure: RoutingBuilder.() -> Unit
 ) {
     val existing = staticContentEncodedTypes ?: emptyList()
     val mixedTypes = (existing + types.asList()).distinct()
@@ -57,13 +57,13 @@ public fun Route.preCompressed(
     attributes.remove(compressedKey)
 }
 
-private val Route.staticContentEncodedTypes: List<CompressedFileType>?
+private val RoutingBuilder.staticContentEncodedTypes: List<CompressedFileType>?
     get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
 
 /**
  * Base folder for relative files calculations for static content
  */
-public var Route.staticRootFolder: File?
+public var RoutingBuilder.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
         if (value != null) {
@@ -81,22 +81,23 @@ private fun File?.combine(file: File) = when {
 /**
  * Create a block for static content
  */
-public fun Route.static(configure: Route.() -> Unit): Route = apply(configure)
+public fun RoutingBuilder.static(configure: RoutingBuilder.() -> Unit): RoutingBuilder = apply(configure)
 
 /**
  * Create a block for static content at specified [remotePath]
  */
-public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route = route(remotePath, configure)
+public fun RoutingBuilder.static(remotePath: String, configure: RoutingBuilder.() -> Unit): RoutingBuilder =
+    route(remotePath, configure)
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
-public fun Route.default(localPath: String): Unit = default(File(localPath))
+public fun RoutingBuilder.default(localPath: String): Unit = default(File(localPath))
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
-public fun Route.default(localPath: File) {
+public fun RoutingBuilder.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
     get {
@@ -107,12 +108,13 @@ public fun Route.default(localPath: File) {
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
-public fun Route.file(remotePath: String, localPath: String = remotePath): Unit = file(remotePath, File(localPath))
+public fun RoutingBuilder.file(remotePath: String, localPath: String = remotePath): Unit =
+    file(remotePath, File(localPath))
 
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
-public fun Route.file(remotePath: String, localPath: File) {
+public fun RoutingBuilder.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
     get(remotePath) {
@@ -123,24 +125,23 @@ public fun Route.file(remotePath: String, localPath: File) {
 /**
  * Sets up routing to serve all files from [folder]
  */
-public fun Route.files(folder: String): Unit = files(File(folder))
+public fun RoutingBuilder.files(folder: String): Unit = files(File(folder))
 
 /**
  * Sets up routing to serve all files from [folder].
  * Serves [defaultFile] if a missing file is requested.
  * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
-internal fun Route.filesWithDefault(
+internal fun RoutingBuilder.filesWithDefault(
     folder: String,
     defaultFile: String,
     shouldFileBeIgnored: (String) -> Boolean
-): Unit =
-    filesWithDefaultFile(File(folder), File(defaultFile), shouldFileBeIgnored)
+): Unit = filesWithDefaultFile(File(folder), File(defaultFile), shouldFileBeIgnored)
 
 /**
  * Sets up routing to serve all files from [folder]
  */
-public fun Route.files(folder: File) {
+public fun RoutingBuilder.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes
     get("{$pathParameterName...}") {
@@ -155,7 +156,7 @@ public fun Route.files(folder: File) {
  * Serves [defaultFile] if a missing file is requested.
  * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
-internal fun Route.filesWithDefaultFile(
+internal fun RoutingBuilder.filesWithDefaultFile(
     folder: File,
     defaultFile: File,
     shouldFileBeIgnored: (String) -> Boolean
@@ -179,7 +180,7 @@ internal fun Route.filesWithDefaultFile(
     }
 }
 
-private suspend inline fun ApplicationCall.respondStaticFile(
+private suspend inline fun RoutingCall.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?
 ) {
@@ -232,7 +233,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 /**
  * Base package for relative resources calculations for static content
  */
-public var Route.staticBasePackage: String?
+public var RoutingBuilder.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
         if (value != null) {
@@ -251,7 +252,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 /**
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
  */
-public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
+public fun RoutingBuilder.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get(remotePath) {
         val content = call.resolveResource(resource, packageName)
@@ -266,7 +267,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  * Serves [defaultFile] if a missing file is requested.
  * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
-internal fun Route.resourceWithDefault(
+internal fun RoutingBuilder.resourceWithDefault(
     resourcePackage: String? = null,
     defaultResource: String,
     shouldFileBeIgnored: (String) -> Boolean
@@ -295,7 +296,7 @@ internal fun Route.resourceWithDefault(
 /**
  * Sets up routing to serve all resources in [resourcePackage]
  */
-public fun Route.resources(resourcePackage: String? = null) {
+public fun RoutingBuilder.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
@@ -309,7 +310,7 @@ public fun Route.resources(resourcePackage: String? = null) {
 /**
  * Specifies [resource] as a default resources to serve when folder is requested
  */
-public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
+public fun RoutingBuilder.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get {
         val content = call.resolveResource(resource, packageName)

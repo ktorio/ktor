@@ -32,13 +32,13 @@ public final class io/ktor/server/locations/LocationInfo {
 
 public final class io/ktor/server/locations/LocationKt {
 	public static final fun getLocations (Lio/ktor/server/application/Application;)Lio/ktor/server/locations/Locations;
-	public static final fun getLocations (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/locations/Locations;
-	public static final fun getLocations (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/server/locations/Locations;
-	public static final fun handle (Lio/ktor/server/routing/Route;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
-	public static final fun href (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Ljava/lang/String;
-	public static final fun location (Lio/ktor/server/routing/Route;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
-	public static final fun locationOrNull (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public static final fun locationOrThrow (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
+	public static final fun getLocations (Lio/ktor/server/application/BaseCall;)Lio/ktor/server/locations/Locations;
+	public static final fun getLocations (Lio/ktor/server/routing/RoutingContext;)Lio/ktor/server/locations/Locations;
+	public static final fun handle (Lio/ktor/server/routing/RoutingBuilder;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
+	public static final fun href (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)Ljava/lang/String;
+	public static final fun location (Lio/ktor/server/routing/RoutingBuilder;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/RoutingBuilder;
+	public static final fun locationOrNull (Lio/ktor/server/application/BaseCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
+	public static final fun locationOrThrow (Lio/ktor/server/application/BaseCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/server/locations/LocationPropertyInfo {
@@ -61,7 +61,7 @@ public class io/ktor/server/locations/Locations {
 	public static final field Plugin Lio/ktor/server/locations/Locations$Plugin;
 	public fun <init> (Lio/ktor/server/application/Application;)V
 	public fun <init> (Lio/ktor/server/application/Application;Lio/ktor/server/locations/LocationRouteService;)V
-	public final fun createEntry (Lio/ktor/server/routing/Route;Lkotlin/reflect/KClass;)Lio/ktor/server/routing/Route;
+	public final fun createEntry (Lio/ktor/server/routing/RoutingBuilder;Lkotlin/reflect/KClass;)Lio/ktor/server/routing/RoutingBuilder;
 	public final fun getRegisteredLocations ()Ljava/util/List;
 	public final fun href (Ljava/lang/Object;)Ljava/lang/String;
 	public final fun resolve (Lkotlin/reflect/KClass;Lio/ktor/http/Parameters;)Ljava/lang/Object;

@@ -137,10 +137,12 @@ public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/e
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/BaseRequest;
 	public fun getRequest ()Lio/ktor/server/testing/TestApplicationRequest;
 	public final fun getRequestHandled ()Z
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/BaseResponse;
 	public fun getResponse ()Lio/ktor/server/testing/TestApplicationResponse;
 	public fun toString ()Ljava/lang/String;
 }

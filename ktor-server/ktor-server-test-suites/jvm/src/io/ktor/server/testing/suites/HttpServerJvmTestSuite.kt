@@ -10,6 +10,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -84,7 +85,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                     if (id < 16 && processedRequests.incrementAndGet() == 15L) {
                         lastHandler.complete(Unit)
                     }
-                    byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                    byteStream.writePacket(call.receiveChannel().readRemaining())
                     byteStream.writeStringUtf8("\n")
                     byteStream.close(null)
                 }
