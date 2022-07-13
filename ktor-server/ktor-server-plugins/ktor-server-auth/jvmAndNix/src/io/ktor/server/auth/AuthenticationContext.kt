@@ -13,9 +13,9 @@ import kotlin.reflect.*
  * An authentication context for a call.
  * @param call instance of [ApplicationCall] this context is for.
  */
-public class AuthenticationContext(call: ApplicationCall) {
+public class AuthenticationContext(call: BaseCall) {
 
-    public var call: ApplicationCall = call
+    public var call: BaseCall = call
         private set
 
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
@@ -108,7 +108,7 @@ public class AuthenticationContext(call: ApplicationCall) {
     public companion object {
         private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: ApplicationCall): AuthenticationContext {
+        internal fun from(call: BaseCall): AuthenticationContext {
             val existingContext = call.attributes.getOrNull(AttributeKey)
             if (existingContext != null) {
                 existingContext.call = call

@@ -16,7 +16,7 @@ import java.io.*
  * The [writer] parameter will be called later when engine is ready to produce content.
  * Provided [Writer] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondTextWriter(
+public suspend fun BaseCall.respondTextWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     writer: suspend Writer.() -> Unit
@@ -31,7 +31,7 @@ public suspend fun ApplicationCall.respondTextWriter(
  * The [producer] parameter will be called later when engine is ready to produce content. You don't need to close it.
  * Provided [OutputStream] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondOutputStream(
+public suspend fun BaseCall.respondOutputStream(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     producer: suspend OutputStream.() -> Unit
@@ -43,7 +43,7 @@ public suspend fun ApplicationCall.respondOutputStream(
 /**
  * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
  */
-public suspend fun ApplicationCall.respondFile(
+public suspend fun BaseCall.respondFile(
     baseDir: File,
     fileName: String,
     configure: OutgoingContent.() -> Unit = {}
@@ -55,7 +55,7 @@ public suspend fun ApplicationCall.respondFile(
 /**
  * Responds to a client with a contents of a [file]
  */
-public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingContent.() -> Unit = {}) {
+public suspend fun BaseCall.respondFile(file: File, configure: OutgoingContent.() -> Unit = {}) {
     val message = LocalFileContent(file).apply(configure)
     respond(message)
 }
@@ -66,7 +66,7 @@ public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingCo
  * The [writer] parameter will be called later when engine is ready to produce content.
  * Provided [Writer] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondTextWriter(
+public suspend fun BaseCall.respondTextWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     contentLength: Long? = null,
@@ -82,7 +82,7 @@ public suspend fun ApplicationCall.respondTextWriter(
  * The [producer] parameter will be called later when engine is ready to produce content. You don't need to close it.
  * Provided [OutputStream] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondOutputStream(
+public suspend fun BaseCall.respondOutputStream(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     contentLength: Long? = null,

@@ -14,7 +14,7 @@ import io.ktor.util.pipeline.*
 @Suppress("PublicApiImplicitType")
 public open class ApplicationCallPipeline public constructor(
     final override val developmentMode: Boolean = false,
-    public open val environment: ApplicationEnvironment? = null
+    public val environment: ApplicationEnvironment
 ) : Pipeline<Unit, ApplicationCall>(
     Setup,
     Monitoring,

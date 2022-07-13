@@ -14,7 +14,7 @@ import io.ktor.util.*
 import kotlin.test.*
 
 fun routing(rootPath: String = ""): Route =
-    Route(parent = null, selector = RootRouteSelector(rootPath))
+    Route(parent = null, selector = RootRouteSelector(rootPath), environment = createTestEnvironment())
 
 @Suppress("DEPRECATION")
 fun resolve(

@@ -72,7 +72,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
     val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
 
-    override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    override fun plugins(application: Application, routingConfigurer: RoutingBuilder.() -> Unit) {
         super.plugins(application, routingConfigurer)
 
         application.install(plugin)

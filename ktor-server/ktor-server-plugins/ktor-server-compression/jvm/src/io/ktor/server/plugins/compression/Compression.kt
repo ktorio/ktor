@@ -207,4 +207,4 @@ private class CompressedWriteResponse(
     }
 }
 
-private fun ApplicationCall.isCompressionSuppressed() = SuppressionAttribute in attributes
+private fun BaseCall.isCompressionSuppressed() = SuppressionAttribute in attributes

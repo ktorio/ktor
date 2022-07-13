@@ -85,7 +85,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
     }
 }
 
-private val ApplicationCall.receiveCache: ReceiveCache
+private val BaseCall.receiveCache: ReceiveCache
     get() = attributes.computeIfAbsent(ReceiveCacheKey) { mutableMapOf() }
 
 private val ReceiveCacheKey = AttributeKey<ReceiveCache>("ReceiveCache")

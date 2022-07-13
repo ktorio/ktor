@@ -66,7 +66,7 @@ class TestApplicationTestJvm {
             rootPath = "root/path"
         }
         routing {
-            val config = application.environment.config
+            val config = environment.config
             get("a") {
                 call.respond(config.property("ktor.test").getString())
             }
@@ -82,7 +82,7 @@ class TestApplicationTestJvm {
             config = ApplicationConfig("application-custom.conf")
         }
         routing {
-            val config = application.environment.config
+            val config = environment.config
             get {
                 call.respond(config.property("ktor.test").getString())
             }
@@ -98,7 +98,7 @@ class TestApplicationTestJvm {
             config = ApplicationConfig("application-custom.yaml")
         }
         routing {
-            val config = application.environment.config
+            val config = environment.config
             get {
                 call.respond(config.property("ktor.test").getString())
             }

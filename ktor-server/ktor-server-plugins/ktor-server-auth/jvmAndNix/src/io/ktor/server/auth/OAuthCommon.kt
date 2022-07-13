@@ -4,16 +4,10 @@
 
 package io.ktor.server.auth
 
-import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.logging.*
-import io.ktor.util.pipeline.*
-import io.ktor.utils.io.errors.*
-import kotlinx.coroutines.*
 
 /**
  * OAuth versions used in configuration.
@@ -229,58 +223,3 @@ public object OAuthGrantTypes {
     public const val AuthorizationCode: String = "authorization_code"
     public const val Password: String = "password"
 }
-
-/**
- * Installs both OAuth1a and OAuth2 authentication helpers that redirects to an OAuth server authorization page
- * and handles corresponding callbacks.
- */
-@Suppress("unused")
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
-)
-
-/**
- * Responds with OAuth redirect.
- */
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String
-)
-
-/**
- * Handles an OAuth callback. Usually it leads to requesting an access token.
- */
-@Deprecated("Install and configure OAuth instead.", level = DeprecationLevel.ERROR)
-public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String,
-    loginPageUrl: String,
-    block: suspend (OAuthAccessTokenResponse) -> Unit
-)
-
-/**
- * Handles an OAuth callback.
- */
-@Deprecated(
-    "Specifying an extra configuration function will be deprecated. " +
-        "Please provide it via OAuthServerSettings.",
-    level = DeprecationLevel.ERROR
-)
-public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    provider: OAuthServerSettings,
-    callbackUrl: String,
-    loginPageUrl: String,
-    configure: HttpRequestBuilder.() -> Unit = {},
-    block: suspend (OAuthAccessTokenResponse) -> Unit
-)

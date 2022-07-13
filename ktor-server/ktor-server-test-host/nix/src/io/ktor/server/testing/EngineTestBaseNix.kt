@@ -55,7 +55,7 @@ actual constructor(
     protected actual fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
-        routingConfigurer: Routing.() -> Unit
+        routingConfigurer: RoutingBuilder.() -> Unit
     ): TEngine {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
@@ -124,7 +124,7 @@ actual constructor(
         }
     }
 
-    protected actual open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfigurer: RoutingBuilder.() -> Unit) {
         application.install(Routing, routingConfigurer)
     }
 

@@ -90,7 +90,7 @@ class OAuth1aFlowTest {
         testClient = createOAuthServer(
             object : TestingOAuthServer {
                 override fun requestToken(
-                    ctx: ApplicationCall,
+                    ctx: BaseCall,
                     callback: String?,
                     consumerKey: String,
                     nonce: String,
@@ -116,7 +116,7 @@ class OAuth1aFlowTest {
                     )
                 }
 
-                override suspend fun authorize(call: ApplicationCall, oauthToken: String) {
+                override suspend fun authorize(call: BaseCall, oauthToken: String) {
                     if (oauthToken != "token1") {
                         call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
                     }
@@ -127,7 +127,7 @@ class OAuth1aFlowTest {
                 }
 
                 override fun accessToken(
-                    ctx: ApplicationCall,
+                    ctx: BaseCall,
                     consumerKey: String,
                     nonce: String,
                     signature: String,
@@ -286,87 +286,6 @@ class OAuth1aFlowTest {
         }
     }
 
-    @Test
-    fun testRequestTokenLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthRespondRedirect(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true")
-                }
-            }
-
-            val result = handleRequest(HttpMethod.Get, "/login")
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-            assertEquals(
-                "https://login-server-com/oauth/authorize?oauth_token=token1",
-                result.response.headers[HttpHeaders.Location],
-                "Redirect target location is not valid"
-            )
-        }
-    }
-
-    @Test
-    fun testAccessTokenLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient!!,
-                        dispatcher,
-                        settings,
-                        "http://localhost/login?redirected=true",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1"
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertFalse { result.response.content!!.contains("null") }
-        }
-    }
-
-    @Test
-    fun testAccessTokenLowLevelErrorRedirect() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient!!,
-                        dispatcher,
-                        settings,
-                        "http://localhost/login?redirected=true",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&error_description=failed"
-            )
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
     private fun Application.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
@@ -403,7 +322,7 @@ class OAuth1aFlowTest {
 
 private interface TestingOAuthServer {
     fun requestToken(
-        ctx: ApplicationCall,
+        ctx: BaseCall,
         callback: String?,
         consumerKey: String,
         nonce: String,
@@ -412,10 +331,10 @@ private interface TestingOAuthServer {
         timestamp: Long
     ): TestOAuthTokenResponse
 
-    suspend fun authorize(call: ApplicationCall, oauthToken: String)
+    suspend fun authorize(call: BaseCall, oauthToken: String)
 
     fun accessToken(
-        ctx: ApplicationCall,
+        ctx: BaseCall,
         consumerKey: String,
         nonce: String,
         signature: String,
@@ -549,7 +468,7 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     }
 }
 
-private suspend fun ApplicationCall.fail(text: String?) {
+private suspend fun BaseCall.fail(text: String?) {
     val message = text ?: "Auth failed"
     response.status(HttpStatusCode.InternalServerError)
     respondText(message)

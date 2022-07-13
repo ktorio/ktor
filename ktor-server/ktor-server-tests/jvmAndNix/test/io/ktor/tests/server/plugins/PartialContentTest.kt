@@ -70,7 +70,7 @@ class PartialContentTest {
         application.install(AutoHeadResponse)
         application.routing {
             application.routing {
-                suspend fun respond(applicationCall: ApplicationCall) {
+                suspend fun respond(applicationCall: BaseCall) {
                     applicationCall.respond(
                         object : OutgoingContent.ReadChannelContent() {
                             override val contentType: ContentType = ContentType.Application.OctetStream

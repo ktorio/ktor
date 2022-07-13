@@ -19,7 +19,7 @@ public final class io/ktor/server/pebble/PebbleKt {
 }
 
 public final class io/ktor/server/pebble/RespondTemplateKt {
-	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/server/application/BaseCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/BaseCall;Ljava/lang/String;Ljava/util/Map;Ljava/util/Locale;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

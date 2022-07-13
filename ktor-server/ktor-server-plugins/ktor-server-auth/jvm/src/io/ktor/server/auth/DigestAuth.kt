@@ -183,7 +183,7 @@ public data class DigestCredential(
 /**
  * Retrieves [DigestCredential] for this call.
  */
-public fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? {
+public fun BaseCall.digestAuthenticationCredentials(): DigestCredential? {
     return request.parseAuthorizationHeader()?.let { authHeader ->
         if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
             return authHeader.toDigestCredential()

@@ -29,7 +29,7 @@ public enum class CompressedFileType(public val extension: String, public val en
 
 internal val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
 
-internal val Route.staticContentEncodedTypes: List<CompressedFileType>?
+internal val RoutingBuilder.staticContentEncodedTypes: List<CompressedFileType>?
     get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
 
 internal class PreCompressedResponse(
@@ -74,7 +74,7 @@ internal class CompressedResource(
 )
 
 internal fun bestCompressionFit(
-    call: ApplicationCall,
+    call: BaseCall,
     resource: String,
     packageName: String?,
     acceptEncoding: List<HeaderValue>,
@@ -100,12 +100,12 @@ internal fun bestCompressionFit(
         ?.firstOrNull()
 }
 
-internal suspend fun ApplicationCall.respondStaticFile(
+internal suspend fun BaseCall.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
-    modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (File, BaseCall) -> Unit = { _, _ -> }
 ) {
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
     val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
@@ -128,13 +128,13 @@ internal suspend fun ApplicationCall.respondStaticFile(
     }
 }
 
-internal suspend fun ApplicationCall.respondStaticResource(
+internal suspend fun BaseCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
-    modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
+    modifier: suspend (URL, BaseCall) -> Unit = { _, _ -> },
     exclude: (URL) -> Boolean = { false }
 ) {
     val bestCompressionFit = bestCompressionFit(

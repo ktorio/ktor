@@ -18,12 +18,12 @@ import kotlin.coroutines.*
  * @property route is the selected route
  */
 public class RoutingApplicationCall(
-    public val engineCall: ApplicationCall,
+    internal val engineCall: ApplicationCall,
     public val route: Route,
     override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
-    parameters: Parameters
+    internal val pathParameters: Parameters
 ) : ApplicationCall, CoroutineScope {
 
     override val application: Application get() = engineCall.application
@@ -38,7 +38,7 @@ public class RoutingApplicationCall(
     override val parameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
         Parameters.build {
             appendAll(engineCall.parameters)
-            appendMissing(parameters)
+            appendMissing(pathParameters)
         }
     }
 

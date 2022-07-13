@@ -25,8 +25,8 @@ public val OAuthKey: Any = "OAuth"
 public class OAuthAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
     internal val client: HttpClient = config.client
-    internal val providerLookup: ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
-    internal val urlProvider: ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
+    internal val providerLookup: BaseCall.() -> OAuthServerSettings? = config.providerLookup
+    internal val urlProvider: BaseCall.(OAuthServerSettings) -> String = config.urlProvider
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         if (PlatformUtils.IS_JVM) oauth1a(name, context)
@@ -45,12 +45,12 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
         /**
          * A lookup function to find OAuth server settings for the particular call.
          */
-        public lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+        public lateinit var providerLookup: BaseCall.() -> OAuthServerSettings?
 
         /**
          * Specifies a redirect route that is opened when authorization is completed.
          */
-        public lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+        public lateinit var urlProvider: BaseCall.(OAuthServerSettings) -> String
 
         internal fun build() = OAuthAuthenticationProvider(this)
     }

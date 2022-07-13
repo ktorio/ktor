@@ -50,7 +50,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testRedirectFromInterceptor() {
         createAndStartServer {
-            application.intercept(ApplicationCallPipeline.Plugins) {
+            (this as Route).application.intercept(ApplicationCallPipeline.Plugins) {
                 call.respondRedirect("/2", true)
             }
         }
@@ -82,7 +82,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     open fun testHeadRequest() {
         createAndStartServer {
-            application.install(AutoHeadResponse)
+            (this as Route).application.install(AutoHeadResponse)
             handle {
                 call.respondText("Hello")
             }
@@ -224,7 +224,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testStatusPages404() {
         createAndStartServer {
-            application.install(StatusPages) {
+            (this as Route).application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, _ ->
                     call.respondText(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
                         "Error string"
@@ -313,7 +313,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            application.install(XForwardedHeaders)
+            (this as Route).application.install(XForwardedHeaders)
             get("/") {
                 call.respond(call.url { })
             }
@@ -554,7 +554,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 post {
                     val byteStream = ByteChannel(autoFlush = true)
                     launch(Dispatchers.Unconfined) {
-                        byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                        byteStream.writePacket(call.receiveChannel().readRemaining())
                         byteStream.close(null)
                     }
                     call.respond(object : OutgoingContent.ReadChannelContent() {
@@ -604,6 +604,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     call.respondText { "From plugin" }
                 }
             }
+            check(this is Route)
             application.install(plugin)
             application.install(HSTS)
 

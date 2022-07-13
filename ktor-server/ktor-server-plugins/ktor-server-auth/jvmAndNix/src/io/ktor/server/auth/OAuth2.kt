@@ -25,45 +25,7 @@ import kotlinx.serialization.json.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
-internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
-) {
-    val provider = call.providerLookup()
-    if (provider is OAuthServerSettings.OAuth2ServerSettings) {
-        val token = call.oauth2HandleCallback()
-        val callbackRedirectUrl = call.urlProvider(provider)
-        if (token == null) {
-            call.redirectAuthenticateOAuth2(
-                provider,
-                callbackRedirectUrl,
-                state = provider.nonceManager.newNonce(),
-                scopes = provider.defaultScopes,
-                interceptor = provider.authorizeUrlInterceptor
-            )
-        } else {
-            withContext(dispatcher) {
-                try {
-                    val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
-                    call.authentication.principal(accessToken)
-                } catch (cause: OAuth2Exception.InvalidGrant) {
-                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause)
-                    call.redirectAuthenticateOAuth2(
-                        provider,
-                        callbackRedirectUrl,
-                        state = provider.nonceManager.newNonce(),
-                        scopes = provider.defaultScopes,
-                        interceptor = provider.authorizeUrlInterceptor
-                    )
-                }
-            }
-        }
-    }
-}
-
-internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
+internal suspend fun BaseCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
     val params = when (request.contentType()) {
         ContentType.Application.FormUrlEncoded -> receiveParameters()
         else -> parameters
@@ -77,7 +39,7 @@ internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.Token
     }
 }
 
-internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+internal suspend fun BaseCall.redirectAuthenticateOAuth2(
     settings: OAuthServerSettings.OAuth2ServerSettings,
     callbackRedirectUrl: String,
     state: String,
@@ -128,7 +90,7 @@ internal suspend fun oauth2RequestAccessToken(
     )
 }
 
-private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+private suspend fun BaseCall.redirectAuthenticateOAuth2(
     authenticateUrl: String,
     callbackRedirectUrl: String,
     clientId: String,

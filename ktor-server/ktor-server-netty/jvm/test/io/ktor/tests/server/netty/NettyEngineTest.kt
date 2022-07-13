@@ -9,6 +9,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -80,7 +81,7 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
     @Test
     fun testRawWebSocketFreeze() {
         createAndStartServer {
-            application.install(WebSockets)
+            (this as Route).application.install(WebSockets)
             webSocket("/ws") {
                 repeat(10) {
                     send(Frame.Text("hi"))

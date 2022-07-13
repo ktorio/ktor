@@ -483,7 +483,6 @@ class AuthTest : ClientLoader() {
         }
     }
 
-
     @Suppress("JoinDeclarationAndAssignment")
     @Test
     fun testRefreshWithSameClient() = clientTests {

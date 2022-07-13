@@ -62,7 +62,7 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
  *    }
  *    ```
  *
- * 2. Protect a desired resource using the [io.ktor.server.routing.Route.authenticate] function
+ * 2. Protect a desired resource using the [io.ktor.server.routing.RoutingBuilder.authenticate] function
  *    that accepts a name of the authentication provider:
  *    ```kotlin
  *    routing {
@@ -104,18 +104,18 @@ public class Authentication(internal var config: AuthenticationConfig) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call.
  */
-public val ApplicationCall.authentication: AuthenticationContext
+public val BaseCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call.
  */
-public inline fun <reified P : Principal> ApplicationCall.principal(): P? = principal(null)
+public inline fun <reified P : Principal> BaseCall.principal(): P? = principal(null)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call from provider with name [provider]
  */
-public inline fun <reified P : Principal> ApplicationCall.principal(provider: String?): P? =
+public inline fun <reified P : Principal> BaseCall.principal(provider: String?): P? =
     authentication.principal(provider)
 
 /**

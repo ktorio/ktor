@@ -218,7 +218,7 @@ class CallLoggingTest {
         }
         routing {
             get("/*") {
-                application.log.info("test message")
+                environment.log.info("test message")
                 call.respond("OK")
             }
         }
@@ -500,7 +500,8 @@ class CallLoggingTest {
             assertEquals(HttpStatusCode.BadRequest, status)
             assertContains(
                 messages,
-                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception"
+                "DEBUG: Unhandled: GET - /. " +
+                    "Exception class io.ktor.server.plugins.BadRequestException: Message of exception"
             )
         }
     }
