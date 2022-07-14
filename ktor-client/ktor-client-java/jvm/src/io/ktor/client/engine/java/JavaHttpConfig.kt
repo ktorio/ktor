@@ -12,6 +12,11 @@ import java.net.http.*
  */
 public class JavaHttpConfig : HttpClientEngineConfig() {
 
+    /**
+     * An HTTP version to use.
+     */
+    public var protocolVersion: HttpClient.Version = HttpClient.Version.HTTP_1_1
+
     internal var config: HttpClient.Builder.() -> Unit = {
         followRedirects(HttpClient.Redirect.NEVER)
     }

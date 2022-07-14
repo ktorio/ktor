@@ -20,6 +20,8 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
     private val executorThreadCounter = atomic(0L)
 
+    private val protocolVersion = config.protocolVersion
+
     /**
      * Exposed for tests only.
      */
@@ -68,7 +70,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     private fun getJavaHttpClient(data: HttpRequestData): HttpClient {
         return httpClient ?: synchronized(this) {
             httpClient ?: HttpClient.newBuilder().apply {
-                version(HttpClient.Version.HTTP_1_1)
+                version(protocolVersion)
                 executor(executor)
 
                 apply(config.config)
