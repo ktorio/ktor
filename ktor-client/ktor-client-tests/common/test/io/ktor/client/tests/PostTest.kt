@@ -24,7 +24,7 @@ class PostTest : ClientLoader() {
     }
 
     @Test
-    fun testHugePost() = clientTests(listOf("Js", "Darwin", "CIO", "Curl")) {
+    fun testHugePost() = clientTests(listOf("Js", "Darwin", "CIO", "Curl", "WinHttp")) {
         test { client ->
             client.postHelper(makeString(32 * 1024 * 1024))
         }

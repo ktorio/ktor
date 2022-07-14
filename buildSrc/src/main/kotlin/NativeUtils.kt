@@ -11,7 +11,9 @@ fun Project.fastOr(block: () -> List<String>): List<String> {
     return block()
 }
 
-fun Project.posixTargets(): List<String> = fastOr { nixTargets() + kotlin.mingwX64().name }
+fun Project.posixTargets(): List<String> = fastOr {
+    nixTargets() + windowsTargets()
+}
 
 fun Project.nixTargets(): List<String> = fastOr {
     darwinTargets() + kotlin.linuxX64().name
@@ -69,6 +71,14 @@ fun Project.desktopTargets(): List<String> = fastOr {
             macosX64(),
             macosArm64(),
             linuxX64(),
+            mingwX64()
+        ).map { it.name }
+    }
+}
+
+fun Project.windowsTargets(): List<String> = fastOr {
+    with(kotlin) {
+        listOf(
             mingwX64()
         ).map { it.name }
     }
