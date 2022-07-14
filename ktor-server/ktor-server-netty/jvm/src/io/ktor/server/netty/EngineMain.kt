@@ -26,7 +26,7 @@ public object EngineMain {
         engine.start(true)
     }
 
-    private fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+    internal fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
         deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
@@ -46,6 +46,15 @@ public object EngineMain {
         }
         deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
             tcpKeepAlive = it
+        }
+        deploymentConfig.propertyOrNull("maxInitialLineLength")?.getString()?.toInt()?.let {
+            maxInitialLineLength = it
+        }
+        deploymentConfig.propertyOrNull("maxHeaderSize")?.getString()?.toInt()?.let {
+            maxHeaderSize = it
+        }
+        deploymentConfig.propertyOrNull("maxChunkSize")?.getString()?.toInt()?.let {
+            maxChunkSize = it
         }
     }
 }
