@@ -16,9 +16,10 @@ val Project.hasPosix: Boolean get() = hasCommon || files.any { it.name == "posix
 val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
 val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
 val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
+val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" }
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
-val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop
+val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
     configureCommon()
@@ -36,7 +37,7 @@ fun Project.configureTargets() {
             configureJs()
         }
 
-        if (hasPosix || hasDarwin) extra.set("hasNative", true)
+        if (hasPosix || hasDarwin || hasWindows) extra.set("hasNative", true)
 
         sourceSets {
             if (hasPosix) {
@@ -69,6 +70,11 @@ fun Project.configureTargets() {
             if (hasDesktop) {
                 val desktopMain by creating
                 val desktopTest by creating
+            }
+
+            if (hasWindows) {
+                val windowsMain by creating
+                val windowsTest by creating
             }
 
             if (hasJvmAndNix) {
@@ -178,6 +184,19 @@ fun Project.configureTargets() {
                 desktopTargets().forEach {
                     getByName("${it}Main").dependsOn(desktopMain)
                     getByName("${it}Test").dependsOn(desktopTest)
+                }
+            }
+
+            if (hasWindows) {
+                val windowsMain by getting {
+                    findByName("posixMain")?.let { dependsOn(it) }
+                }
+
+                val windowsTest by getting
+
+                windowsTargets().forEach {
+                    getByName("${it}Main").dependsOn(windowsMain)
+                    getByName("${it}Test").dependsOn(windowsTest)
                 }
             }
 

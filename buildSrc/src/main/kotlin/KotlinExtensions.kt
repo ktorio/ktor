@@ -72,3 +72,13 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.desktopTest(block: KotlinSourceS
     block(sourceSet)
 }
 
+fun NamedDomainObjectContainer<KotlinSourceSet>.windowsMain(block: KotlinSourceSet.() -> Unit) {
+    val sourceSet = findByName("windowsMain") ?: return
+    block(sourceSet)
+}
+
+fun NamedDomainObjectContainer<KotlinSourceSet>.windowsTest(block: KotlinSourceSet.() -> Unit) {
+    val sourceSet = findByName("windowsTest") ?: return
+    block(sourceSet)
+}
+

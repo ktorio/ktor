@@ -69,6 +69,7 @@ if (native_targets_enabled) {
     include(":ktor-client:ktor-client-ios")
     include(":ktor-client:ktor-client-darwin")
     include(":ktor-client:ktor-client-darwin-legacy")
+    include(":ktor-client:ktor-client-winhttp")
 }
 if (currentJdk >= 11) {
     include(":ktor-client:ktor-client-java")

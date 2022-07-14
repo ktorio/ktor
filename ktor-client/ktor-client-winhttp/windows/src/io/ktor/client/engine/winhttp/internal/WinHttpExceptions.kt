@@ -1,0 +1,127 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.client.engine.winhttp.internal
+
+import io.ktor.client.engine.winhttp.*
+import io.ktor.client.network.sockets.*
+import kotlinx.cinterop.*
+import platform.windows.*
+
+private val winHttpModuleHandle by lazy {
+    GetModuleHandleW("winhttp.dll")
+}
+private val languageId = MakeLanguageId(LANG_NEUTRAL, SUBLANG_DEFAULT)
+
+private val ERROR_INSUFFICIENT_BUFFER: UInt = platform.windows.ERROR_INSUFFICIENT_BUFFER.convert()
+private val ERROR_WINHTTP_TIMEOUT: UInt = platform.windows.ERROR_WINHTTP_TIMEOUT.convert()
+
+/**
+ * Creates an exception from last WinAPI error.
+ */
+internal fun getWinHttpException(message: String): Exception {
+    val errorCode = GetLastError()
+    return getWinHttpException(message, errorCode)
+}
+
+/**
+ * Creates an exception from WinAPI error code.
+ */
+internal fun getWinHttpException(message: String, errorCode: UInt): Exception {
+    val hResult = GetHResultFromError(errorCode)
+    val errorMessage = getErrorMessage(errorCode).trimEnd('.')
+    val cause = "$message: $errorMessage. Error $errorCode (0x${hResult.toString(16)})"
+
+    return if (errorCode == ERROR_WINHTTP_TIMEOUT) {
+        ConnectTimeoutException(cause)
+    } else {
+        WinHttpIllegalStateException(cause)
+    }
+}
+
+/**
+ * Creates an error message from WinAPI error code.
+ */
+internal fun getErrorMessage(errorCode: UInt): String {
+    return formatMessage(errorCode, winHttpModuleHandle)
+        ?: formatMessage(errorCode)
+        ?: "Unknown error"
+}
+
+/**
+ * Formats error code into human readable error message.
+ *
+ * @param errorCode is error code.
+ * @param moduleHandle is DLL handle to look for message.
+ */
+private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): String? = memScoped {
+    val formatSourceFlag = if (moduleHandle != null) {
+        FORMAT_MESSAGE_FROM_HMODULE
+    } else {
+        FORMAT_MESSAGE_FROM_SYSTEM
+    }
+
+    // Try reading error message into allocated buffer
+    var formatFlags = FORMAT_MESSAGE_IGNORE_INSERTS or FORMAT_MESSAGE_ARGUMENT_ARRAY or formatSourceFlag
+    val bufferSize = 256
+    val buffer = allocArray<UShortVar>(bufferSize)
+
+    var readChars = FormatMessageW(
+        formatFlags.convert(),  // format flags
+        moduleHandle,           // DLL handle from which will be received message
+        errorCode,              // error code
+        languageId,             // required language
+        buffer.reinterpret(),   // buffer pointer
+        bufferSize.convert(),   // buffer size
+        null
+    )
+
+    // Read message from buffer
+    if (readChars > 0u) {
+        return@memScoped buffer.toKStringFromUtf16(readChars.convert())
+    }
+
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+        return@memScoped null
+    }
+
+    // If allocated buffer is too small, try to request buffer allocation
+    formatFlags = formatFlags or FORMAT_MESSAGE_ALLOCATE_BUFFER
+
+    val bufferPtr = alloc<CPointerVar<UShortVar>>()
+    readChars = FormatMessageW(
+        formatFlags.convert(),
+        moduleHandle,
+        errorCode,
+        languageId,
+        bufferPtr.reinterpret(),
+        0,
+        null
+    )
+
+    return try {
+        if (readChars > 0u) {
+            bufferPtr.value?.toKStringFromUtf16(readChars.convert())
+        } else null
+    } finally {
+        LocalFree(bufferPtr.reinterpret())
+    }
+}
+
+private fun CPointer<UShortVar>.toKStringFromUtf16(size: Int): String {
+    val nativeBytes = this
+
+    var length: Int = size
+    while (length > 0 && nativeBytes[length - 1] <= 0x20u) {
+        length--
+    }
+
+    val chars = CharArray(length) { index ->
+        val nativeByte = nativeBytes[index].toInt()
+        val char = nativeByte.toChar()
+        char
+    }
+
+    return chars.concatToString()
+}
