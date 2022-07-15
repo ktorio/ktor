@@ -86,6 +86,9 @@ public class NettyChannelInitializer(
                         useClientMode = false
                         needClientAuth = true
                     }
+                    connector.enabledProtocols?.let {
+                        enabledProtocols = it.toTypedArray()
+                    }
                 }
                 addLast("ssl", SslHandler(sslEngine))
 
