@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.logging.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import kotlin.jvm.*
@@ -63,7 +64,9 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
         handler ?: throw cause
 
         call.attributes.put(statusPageMarker, Unit)
-        handler(call, cause)
+        call.application.mdcProvider.withMDCBlock(call) {
+            handler(call, cause)
+        }
 
         if (!call.isHandled) {
             throw cause

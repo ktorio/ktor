@@ -10,6 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callid.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -297,6 +298,34 @@ class CallLoggingTest {
                 "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
         }
         dispatcher.close()
+    }
+
+    @Test
+    fun `will setup mdc provider and use in status pages plugin`() = testApplication {
+        environment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-uri") { it.request.uri }
+                }
+                install(StatusPages) {
+                    exception<Throwable> { call, _ ->
+                        call.application.log.info("test message")
+                        call.respond("OK")
+                    }
+                }
+            }
+            log = logger
+        }
+        application {
+            routing {
+                get("/*") {
+                    throw Exception()
+                }
+            }
+        }
+
+        client.get("/uri1")
+        assertTrue { "INFO: test message [mdc-uri=/uri1]" in messages }
     }
 
     @Test
