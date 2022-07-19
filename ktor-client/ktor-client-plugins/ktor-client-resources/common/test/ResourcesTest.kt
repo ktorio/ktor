@@ -45,7 +45,8 @@ class ResourcesTest {
             val response4 = client.delete(Path.Child(Path(123, "DELETE"), "value", listOf(1, 2, 3, 4))).bodyAsText()
             val response5 = client.options(Path.Child(Path(123, "OPTIONS"), "value", listOf(1, 2, 3, 4))).bodyAsText()
             val response6 = client.head(Path.Child(Path(123, "HEAD"), "value", listOf(1, 2, 3, 4))).bodyAsText()
-            val response7 = client.request(Path.Child(Path(123, "METHOD"), "value", listOf(1, 2, 3, 4))) {
+            val response7 = client.patch(Path.Child(Path(123, "PATCH"), "value", listOf(1, 2, 3, 4))).bodyAsText()
+            val response8 = client.request(Path.Child(Path(123, "METHOD"), "value", listOf(1, 2, 3, 4))) {
                 method = HttpMethod("METHOD")
             }.bodyAsText()
             assertEquals("/path/123/GET/child/value?query=1&query=2&query=3&query=4", response1)
@@ -54,7 +55,8 @@ class ResourcesTest {
             assertEquals("/path/123/DELETE/child/value?query=1&query=2&query=3&query=4", response4)
             assertEquals("/path/123/OPTIONS/child/value?query=1&query=2&query=3&query=4", response5)
             assertEquals("/path/123/HEAD/child/value?query=1&query=2&query=3&query=4", response6)
-            assertEquals("/path/123/METHOD/child/value?query=1&query=2&query=3&query=4", response7)
+            assertEquals("/path/123/PATCH/child/value?query=1&query=2&query=3&query=4", response7)
+            assertEquals("/path/123/METHOD/child/value?query=1&query=2&query=3&query=4", response8)
 
             client.prepareGet(Path.Child(Path(123, "GET"), "value", listOf(1, 2, 3, 4))).body { body: String ->
                 assertEquals("/path/123/GET/child/value?query=1&query=2&query=3&query=4", body)
@@ -73,6 +75,9 @@ class ResourcesTest {
             }
             client.prepareHead(Path.Child(Path(123, "HEAD"), "value", listOf(1, 2, 3, 4))).body { body: String ->
                 assertEquals("/path/123/HEAD/child/value?query=1&query=2&query=3&query=4", body)
+            }
+            client.preparePatch(Path.Child(Path(123, "PATCH"), "value", listOf(1, 2, 3, 4))).body { body: String ->
+                assertEquals("/path/123/PATCH/child/value?query=1&query=2&query=3&query=4", body)
             }
             client.prepareRequest(Path.Child(Path(123, "METHOD"), "value", listOf(1, 2, 3, 4))) {
                 method = HttpMethod("METHOD")
