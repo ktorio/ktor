@@ -18,6 +18,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-request-validation"))
 
             implementation(kotlin("test-junit"))
 

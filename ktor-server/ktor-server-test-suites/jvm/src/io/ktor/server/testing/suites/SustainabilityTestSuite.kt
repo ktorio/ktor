@@ -16,6 +16,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -853,9 +854,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val result = Job()
 
         createAndStartServer {
+            install(RequestValidation) {
+                validateContentLength()
+            }
+
             post("/") {
                 try {
-                    println(call.receive<ByteArray>().size)
+                    call.receive<ByteArray>().size
                 } catch (cause: Throwable) {
                     failCause = cause
                 } finally {

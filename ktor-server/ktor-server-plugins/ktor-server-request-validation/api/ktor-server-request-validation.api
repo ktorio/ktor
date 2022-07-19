@@ -3,6 +3,7 @@ public final class io/ktor/server/plugins/requestvalidation/RequestValidationCon
 	public final fun validate (Lio/ktor/server/plugins/requestvalidation/Validator;)V
 	public final fun validate (Lkotlin/jvm/functions/Function1;)V
 	public final fun validate (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;)V
+	public final fun validateContentLength ()V
 }
 
 public final class io/ktor/server/plugins/requestvalidation/RequestValidationConfig$ValidatorBuilder {
