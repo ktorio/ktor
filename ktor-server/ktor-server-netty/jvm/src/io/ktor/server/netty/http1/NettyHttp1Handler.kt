@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
@@ -156,8 +155,7 @@ internal class NettyHttp1Handler(
         message: HttpRequest
     ): ByteReadChannel {
         val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-        val length = message.headers()[io.ktor.http.HttpHeaders.ContentLength]?.toLongOrNull() ?: -1
-        val result = bodyHandler.newChannel(length)
+        val result = bodyHandler.newChannel()
 
         if (message is HttpContent) {
             bodyHandler.channelRead(context, message)
