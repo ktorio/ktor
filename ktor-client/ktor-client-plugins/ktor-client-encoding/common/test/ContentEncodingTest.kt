@@ -76,4 +76,20 @@ class ContentEncodingTest : ClientLoader() {
             assertEquals("", response.body<String>())
         }
     }
+
+    @Test
+    fun testGzipByteArray() = clientTests {
+        config {
+            ContentEncoding {
+                gzip()
+            }
+        }
+
+        test { client ->
+            val response = client.get("$TEST_URL/gzip-large")
+            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+            val body = response.body<ByteArray>()
+            assertContentEquals(ByteArray(500) { it.toByte() }, body)
+        }
+    }
 }
