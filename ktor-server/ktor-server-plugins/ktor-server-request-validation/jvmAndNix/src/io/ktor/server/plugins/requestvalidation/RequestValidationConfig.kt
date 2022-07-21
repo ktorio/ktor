@@ -16,8 +16,8 @@ public class RequestValidationConfig {
     internal var validateContentLength: Boolean = false
 
     /**
-     * Check if the request body length match [Content-Length] header. Otherwise, the body channel will be cancelled
-     * with [IOException].
+     * Enables validation of the request body length matches the [Content-Length] header.
+     * If the length doesn't match, body channel will be cancelled with [IOException].
      */
     public fun validateContentLength() {
         validateContentLength = true

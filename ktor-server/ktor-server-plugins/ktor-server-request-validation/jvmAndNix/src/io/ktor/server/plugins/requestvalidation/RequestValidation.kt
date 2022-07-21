@@ -9,7 +9,6 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
-import kotlinx.coroutines.*
 
 /**
  * A result of validation.
@@ -96,10 +95,10 @@ public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = creat
  * @property value - invalid request body
  * @property reasons - combined reasons of all validation failures for this request
  */
-public class RequestValidationException(public val value: Any, public val reasons: List<String>) :
-    IllegalArgumentException(
-        "Validation failed for $value. Reasons: ${reasons.joinToString(".")}"
-    )
+public class RequestValidationException(
+    public val value: Any,
+    public val reasons: List<String>
+) : IllegalArgumentException("Validation failed for $value. Reasons: ${reasons.joinToString(".")}")
 
 private object RequestBodyTransformed : Hook<suspend (content: Any) -> Unit> {
     override fun install(

@@ -38,6 +38,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.test.*
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -892,7 +893,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         assertTrue(failCause != null)
-        assertTrue(failCause is IOException)
+        assertIs<RequestValidationException>(failCause)
     }
 }
 
