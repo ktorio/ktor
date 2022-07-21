@@ -54,7 +54,6 @@ public fun HttpClient.defaultTransformers() {
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
         if (body !is ByteReadChannel) return@intercept
         val response = context.response
-        val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong() ?: Long.MAX_VALUE
 
         when (info.type) {
             Unit::class -> {
@@ -69,14 +68,8 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
             ByteArray::class -> {
-                val readRemaining = body.readRemaining(contentLength)
-                if (contentLength < Long.MAX_VALUE) {
-                    check(readRemaining.remaining == contentLength) {
-                        "Expected $contentLength, actual ${readRemaining.remaining}"
-                    }
-                }
-
-                proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+                val bytes = body.toByteArray()
+                proceedWith(HttpResponseContainer(info, bytes))
             }
             ByteReadChannel::class -> {
                 // the response job could be already completed so the job holder

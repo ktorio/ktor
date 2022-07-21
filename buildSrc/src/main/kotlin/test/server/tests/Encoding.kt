@@ -27,6 +27,14 @@ internal fun Application.encodingTestServer() {
                 }
                 setCompressionEndpoints()
             }
+            route("/gzip-large") {
+                install(Compression) {
+                    gzip()
+                }
+                get {
+                    call.respond(ByteArray(500) { it.toByte() })
+                }
+            }
             route("/gzip-empty") {
                 get {
                     call.response.headers.append(HttpHeaders.ContentEncoding, "gzip")
