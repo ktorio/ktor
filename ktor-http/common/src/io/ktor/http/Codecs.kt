@@ -3,18 +3,17 @@
 */
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }
-private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
-private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
+private val URL_ALPHABET = ((('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }).toSet()
+private val URL_ALPHABET_CHARS = ((('a'..'z') + ('A'..'Z') + ('0'..'9'))).toSet()
+private val HEX_ALPHABET = (('a'..'f') + ('A'..'F') + ('0'..'9')).toSet()
 
 /**
  * https://tools.ietf.org/html/rfc3986#section-2
  */
-private val URL_PROTOCOL_PART = listOf(
+private val URL_PROTOCOL_PART = setOf(
     ':', '/', '?', '#', '[', ']', '@', // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // sub-components
     '-', '.', '_', '~', '+' // unreserved
@@ -23,11 +22,20 @@ private val URL_PROTOCOL_PART = listOf(
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
-private val VALID_PATH_PART = listOf(
+private val VALID_PATH_PART = setOf(
     ':', '@',
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
     '-', '.', '_', '~'
 )
+
+/**
+ * Characters allowed in attributes according: https://datatracker.ietf.org/doc/html/rfc5987
+ * attr-char     = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+ */
+internal val ATTRIBUTE_CHARACTERS: Set<Char> = (URL_ALPHABET_CHARS + listOf(
+    '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'
+)).toSet()
+
 
 /**
  * Oauth specific percent encoding
@@ -118,6 +126,27 @@ public fun String.encodeURLParameter(
             else -> append(it.percentEncode())
         }
     }
+}
+
+internal fun String.percentEncode(allowedSet: Set<Char>): String {
+    val encodedCount = count { it !in allowedSet }
+    val resultSize = length + encodedCount * 2
+    val result = CharArray(resultSize)
+
+    var writeIndex = 0
+    for (index in 0 until length) {
+        val current = this[index]
+        if (current in allowedSet) {
+            result[writeIndex++] = current
+        } else {
+            val code = current.code
+            result[writeIndex++] = '%'
+            result[writeIndex++] = hexDigitToChar(code shr 4)
+            result[writeIndex++] = hexDigitToChar(code and 0xf)
+        }
+    }
+
+    return String(result)
 }
 
 /**
@@ -229,11 +258,13 @@ private fun CharSequence.decodeImpl(
  */
 public class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String = buildString(3) {
+private fun Byte.percentEncode(): String {
     val code = toInt() and 0xff
-    append('%')
-    append(hexDigitToChar(code shr 4))
-    append(hexDigitToChar(code and 0x0f))
+    val array = CharArray(3)
+    array[0] = '%'
+    array[1] = hexDigitToChar(code shr 4)
+    array[2] = hexDigitToChar(code and 0xf)
+    return String(array)
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {

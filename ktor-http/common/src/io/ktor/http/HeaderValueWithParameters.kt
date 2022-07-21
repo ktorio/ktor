@@ -77,19 +77,19 @@ public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParame
  * Escape using double quotes if needed or keep as is if no dangerous strings found
  */
 public fun String.escapeIfNeeded(): String = when {
-    checkNeedEscape() -> quote()
+    needQuotes() -> quote()
     else -> this
 }
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.escapeIfNeededTo(out: StringBuilder) {
     when {
-        checkNeedEscape() -> out.append(quote())
+        needQuotes() -> out.append(quote())
         else -> out.append(this)
     }
 }
 
-private fun String.checkNeedEscape(): Boolean {
+private fun String.needQuotes(): Boolean {
     if (isEmpty()) return true
     if (isQuoted()) return false
 

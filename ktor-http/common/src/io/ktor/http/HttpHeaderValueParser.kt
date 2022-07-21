@@ -8,15 +8,19 @@ package io.ktor.http
  * Represents a single value parameter
  * @property name of parameter
  * @property value of parameter
+ * @property escapeValue specifies if the value should be escaped
  */
-public data class HeaderValueParam(val name: String, val value: String) {
+public data class HeaderValueParam(val name: String, val value: String, val escapeValue: Boolean) {
+
+    public constructor(name: String, value: String) : this(name, value, false)
+
     override fun equals(other: Any?): Boolean {
         return other is HeaderValueParam &&
             other.name.equals(name, ignoreCase = true) &&
             other.value.equals(value, ignoreCase = true)
     }
-
     override fun hashCode(): Int {
+
         var result = name.lowercase().hashCode()
         result += 31 * result + value.lowercase().hashCode()
         return result
