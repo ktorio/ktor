@@ -13,11 +13,13 @@ import io.ktor.client.request.delete as deleteBuilder
 import io.ktor.client.request.get as getBuilder
 import io.ktor.client.request.head as headBuilder
 import io.ktor.client.request.options as optionsBuilder
+import io.ktor.client.request.patch as patchBuilder
 import io.ktor.client.request.post as postBuilder
 import io.ktor.client.request.prepareDelete as prepareDeleteBuilder
 import io.ktor.client.request.prepareGet as prepareGetBuilder
 import io.ktor.client.request.prepareHead as prepareHeadBuilder
 import io.ktor.client.request.prepareOptions as prepareOptionsBuilder
+import io.ktor.client.request.preparePatch as preparePatchBuilder
 import io.ktor.client.request.preparePost as preparePostBuilder
 import io.ktor.client.request.preparePut as preparePutBuilder
 import io.ktor.client.request.prepareRequest as prepareRequestBuilder
@@ -75,6 +77,20 @@ public suspend inline fun <reified T : Any> HttpClient.delete(
 ): HttpResponse {
     val resources = resources()
     return deleteBuilder {
+        href(resources.resourcesFormat, resource, url)
+        builder()
+    }
+}
+
+/**
+ * Executes a [HttpClient] PATCH request, with a URL built from [resource] and the information from the [builder]
+ */
+public suspend inline fun <reified T : Any> HttpClient.patch(
+    resource: T,
+    builder: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse {
+    val resources = resources()
+    return patchBuilder {
         href(resources.resourcesFormat, resource, url)
         builder()
     }
@@ -173,6 +189,20 @@ public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
 ): HttpStatement {
     val resources = resources()
     return prepareDeleteBuilder {
+        href(resources.resourcesFormat, resource, url)
+        builder()
+    }
+}
+
+/**
+ * Prepares a [HttpClient] PATCH request, with a URL built from [resource] and the information from the [builder]
+ */
+public suspend inline fun <reified T : Any> HttpClient.preparePatch(
+    resource: T,
+    builder: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement {
+    val resources = resources()
+    return preparePatchBuilder {
         href(resources.resourcesFormat, resource, url)
         builder()
     }

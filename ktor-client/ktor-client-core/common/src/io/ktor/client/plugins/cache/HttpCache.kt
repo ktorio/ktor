@@ -150,7 +150,7 @@ public class HttpCache private constructor(
                 statusCode = cachedCall.response.status,
                 requestTime = cachedCall.response.requestTime,
                 headers = Headers.build {
-                    appendAll(cachedCall.response.headers);
+                    appendAll(cachedCall.response.headers)
                     append(HttpHeaders.Warning, "110")
                 },
                 version = cachedCall.response.version,
