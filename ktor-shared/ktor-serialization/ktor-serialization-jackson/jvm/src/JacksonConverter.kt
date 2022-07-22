@@ -20,7 +20,7 @@ import kotlin.text.Charsets
 
 public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
 
-    override suspend fun serialize(
+    override suspend fun serializeNullable(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
