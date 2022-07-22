@@ -26,7 +26,7 @@ import kotlin.test.*
 class ContentNegotiationTest {
 
     private val alwaysFailingConverter = object : ContentConverter {
-        override suspend fun serialize(
+        override suspend fun serializeNullable(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,

@@ -49,7 +49,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
             val contentType = acceptCharset?.let { charset ->
                 it.contentType.withCharset(charset)
             }
-            it.converter.serialize(
+            it.converter.serializeNullable(
                 contentType = contentType ?: it.contentType,
                 charset = acceptCharset ?: Charsets.UTF_8,
                 typeInfo = call.response.responseType!!,

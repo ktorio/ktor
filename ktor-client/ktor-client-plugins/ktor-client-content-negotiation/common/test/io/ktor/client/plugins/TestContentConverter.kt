@@ -19,7 +19,7 @@ class TestContentConverter(
     var deserializeFn: ContentConverterDeserialize = { _, _, _ -> null },
 ) : ContentConverter {
 
-    override suspend fun serialize(
+    override suspend fun serializeNullable(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,

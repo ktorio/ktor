@@ -30,7 +30,7 @@ public class KotlinxWebsocketSerializationConverter(
         }
     }
 
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
+    override suspend fun serializeNullable(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         return serializationBase.serialize(
             SerializationParameters(
                 format,

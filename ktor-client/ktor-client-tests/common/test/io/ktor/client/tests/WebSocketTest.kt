@@ -26,7 +26,7 @@ class WebSocketTest : ClientLoader() {
     data class Data(val stringValue: String)
 
     private val customContentConverter = object : WebsocketContentConverter {
-        override suspend fun serialize(
+        override suspend fun serializeNullable(
             charset: Charset,
             typeInfo: TypeInfo,
             value: Any?

@@ -28,7 +28,7 @@ class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
-        override suspend fun serialize(
+        override suspend fun serializeNullable(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
@@ -45,7 +45,7 @@ class ContentNegotiationTest {
     }
 
     private val textContentConverter = object : ContentConverter {
-        override suspend fun serialize(
+        override suspend fun serializeNullable(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
@@ -62,7 +62,7 @@ class ContentNegotiationTest {
     }
 
     private fun alwaysFailingConverter(ignoreString: Boolean) = object : ContentConverter {
-        override suspend fun serialize(
+        override suspend fun serializeNullable(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,

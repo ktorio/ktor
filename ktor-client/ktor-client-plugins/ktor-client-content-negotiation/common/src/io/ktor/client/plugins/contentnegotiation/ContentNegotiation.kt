@@ -117,7 +117,7 @@ public class ContentNegotiation internal constructor(
 
                 // Pick the first one that can convert the subject successfully
                 val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter.serialize(
+                    registration.converter.serializeNullable(
                         contentType,
                         contentType.charset() ?: Charsets.UTF_8,
                         context.bodyType!!,

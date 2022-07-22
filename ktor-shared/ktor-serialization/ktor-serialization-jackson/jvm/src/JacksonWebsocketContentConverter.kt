@@ -21,9 +21,8 @@ import java.io.*
  */
 public class JacksonWebsocketContentConverter(
     private val objectmapper: ObjectMapper = jacksonObjectMapper()
-) :
-    WebsocketContentConverter {
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
+) : WebsocketContentConverter {
+    override suspend fun serializeNullable(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         val convertedValue = objectmapper.writeValueAsString(value).toByteArray(charset = charset)
         return Frame.Text(true, convertedValue)
     }
