@@ -64,7 +64,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      * @property extraAuthParameters extra parameters to send during authentication
-     * @property extraAuthParameters extra parameters to send with getting access token call
+     * @property extraTokenParameters extra parameters to send with getting access token call
      * @property accessTokenInterceptor an interceptor function to customize access token request
      */
     public class OAuth2ServerSettings(
