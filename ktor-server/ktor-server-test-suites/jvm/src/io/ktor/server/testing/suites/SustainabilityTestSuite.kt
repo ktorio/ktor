@@ -892,7 +892,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         assertTrue(failCause != null)
-        assertIs<RequestValidationException>(failCause)
+        assertIs<IOException>(failCause)
     }
 }
 
