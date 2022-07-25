@@ -66,7 +66,8 @@ public final class io/ktor/http/ContentDisposition : io/ktor/http/HeaderValueWit
 	public final fun getDisposition ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public fun hashCode ()I
-	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/ContentDisposition;
+	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;Z)Lio/ktor/http/ContentDisposition;
+	public static synthetic fun withParameter$default (Lio/ktor/http/ContentDisposition;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/ContentDisposition;
 	public final fun withParameters (Ljava/util/List;)Lio/ktor/http/ContentDisposition;
 }
 
@@ -349,11 +350,14 @@ public final class io/ktor/http/HeaderValue {
 
 public final class io/ktor/http/HeaderValueParam {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/HeaderValueParam;
-	public static synthetic fun copy$default (Lio/ktor/http/HeaderValueParam;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/HeaderValueParam;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Z)Lio/ktor/http/HeaderValueParam;
+	public static synthetic fun copy$default (Lio/ktor/http/HeaderValueParam;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/HeaderValueParam;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEscapeValue ()Z
 	public final fun getName ()Ljava/lang/String;
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I

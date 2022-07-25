@@ -32,10 +32,9 @@ private val VALID_PATH_PART = setOf(
  * Characters allowed in attributes according: https://datatracker.ietf.org/doc/html/rfc5987
  * attr-char     = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
  */
-internal val ATTRIBUTE_CHARACTERS: Set<Char> = (URL_ALPHABET_CHARS + setOf(
+internal val ATTRIBUTE_CHARACTERS: Set<Char> = URL_ALPHABET_CHARS + setOf(
     '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'
-)).toSet()
-
+)
 
 /**
  * Oauth specific percent encoding
@@ -148,7 +147,7 @@ internal fun String.percentEncode(allowedSet: Set<Char>): String {
         }
     }
 
-    return String(result)
+    return result.concatToString()
 }
 
 /**
@@ -266,7 +265,7 @@ private fun Byte.percentEncode(): String {
     array[0] = '%'
     array[1] = hexDigitToChar(code shr 4)
     array[2] = hexDigitToChar(code and 0xf)
-    return String(array)
+    return array.concatToString()
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {
