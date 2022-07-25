@@ -20,9 +20,14 @@ public sealed class ValidationResult {
     public object Valid : ValidationResult()
 
     /**
-     * An unsuccessful result of validation
+     * An unsuccessful result of validation. All errors are stored in the [reasons] list.
      */
-    public class Invalid(public val reasons: List<String>) : ValidationResult() {
+    public class Invalid(
+        /**
+         * List of errors.
+         */
+        public val reasons: List<String>
+    ) : ValidationResult() {
         public constructor (reason: String) : this(listOf(reason))
     }
 }
