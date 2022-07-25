@@ -78,14 +78,7 @@ private class ServletReader(val input: ServletInputStream, val contentLength: In
                 break
             }
 
-            val message = if (bodySize > contentLength) {
-                "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
-            } else {
-                "Client provided less bytes than content length. Expected $contentLength but got $bodySize."
-            }
-
-            val cause = IOException(message)
-            channel.close(cause)
+            channel.close()
             events.close()
             break
         }

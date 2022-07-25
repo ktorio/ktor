@@ -7,9 +7,11 @@ package io.ktor.server.application.hooks
 import io.ktor.events.EventDefinition
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
@@ -106,6 +108,22 @@ public object ResponseSent : Hook<(ApplicationCall) -> Unit> {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.Engine) {
             proceed()
             handler(call)
+        }
+    }
+}
+
+/**
+ * A hook that is invoked when a request is about to be received. It gives control over the raw request body.
+ */
+public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadChannel) -> ByteReadChannel> {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: (call: ApplicationCall, body: ByteReadChannel) -> ByteReadChannel
+    ) {
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { body ->
+            if (body !is ByteReadChannel) return@intercept
+            val convertedBody = handler(call, body)
+            proceedWith(convertedBody)
         }
     }
 }

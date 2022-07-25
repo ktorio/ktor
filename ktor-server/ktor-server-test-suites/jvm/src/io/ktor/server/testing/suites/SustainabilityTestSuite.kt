@@ -8,14 +8,13 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -27,8 +26,9 @@ import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
-import org.junit.*
 import org.junit.Assert.*
+import org.junit.Ignore
+import org.junit.Test
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -37,6 +37,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.test.*
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -67,7 +68,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/") {
-            assertEquals(InternalServerError.value, status.value)
+            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
 
             while (true) {
                 val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
@@ -134,7 +135,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                                 val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
                                 channel.discardExact(contentLength)
                                 response.release()
-                            } ?: fail("No response found for request #$requestNumber")
+                            } ?: kotlin.test.fail("No response found for request #$requestNumber")
                         }
                     }
                 }
@@ -286,7 +287,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             // ensure that the server is not running anymore
             withUrl("/") {
                 call.body<String>()
-                fail("Shouldn't happen")
+                kotlin.test.fail("Shouldn't happen")
             }
         }
     }
@@ -354,7 +355,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                         content.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                fail("Premature end of response stream at iteration $i")
+                                kotlin.test.fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
                                 Thread.sleep(random.nextInt(1000).toLong())
@@ -535,7 +536,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             "3\r\n",
             "a=1\r\n",
             "0\r\n",
-            "\r\n",
+            "\r\n"
         )
 
         socket {
@@ -562,7 +563,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
             post("/") {
                 call.receiveParameters()
-                fail("We should NOT receive any content")
+                kotlin.test.fail("We should NOT receive any content")
             }
         }
 
@@ -669,7 +670,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/") {
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
+                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
@@ -708,7 +709,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     "/",
                     { method = HttpMethod.Post; setBody("body") }
                 ) {
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
+                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
                     assertEquals(exceptions[0].message, "Failed in phase $phase")
                     exceptions.clear()
@@ -750,7 +751,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl("/", { intercepted = false }) {
                     body<String>()
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
+                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
                     assertEquals("Failed in phase $phase", exceptions.size, 1)
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
@@ -784,7 +785,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         startServer(server)
 
         withUrl("/req") {
-            assertEquals("Failed in engine pipeline", InternalServerError, status)
+            assertEquals("Failed in engine pipeline", HttpStatusCode.InternalServerError, status)
             assertEquals("Failed in phase $phase", exceptions.size, 1)
             assertEquals(exceptions[0].message, "Failed in engine pipeline")
             exceptions.clear()
@@ -853,9 +854,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val result = Job()
 
         createAndStartServer {
+            install(RequestValidation) {
+                validateContentLength()
+            }
+
             post("/") {
                 try {
-                    println(call.receive<ByteArray>().size)
+                    call.receive<ByteArray>().size
                 } catch (cause: Throwable) {
                     failCause = cause
                 } finally {
@@ -887,7 +892,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         assertTrue(failCause != null)
-        assertTrue(failCause is IOException)
+        assertIs<IOException>(failCause)
     }
 }
 

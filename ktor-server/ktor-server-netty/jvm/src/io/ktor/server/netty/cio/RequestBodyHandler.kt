@@ -5,7 +5,6 @@
 package io.ktor.server.netty.cio
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -14,8 +13,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.lang.Integer.*
 import kotlin.coroutines.*
-
-private class ChannelEvent(val channel: ByteWriteChannel, val expectedLength: Long)
 
 internal class RequestBodyHandler(
     val context: ChannelHandlerContext
@@ -30,19 +27,7 @@ internal class RequestBodyHandler(
 
     private val job = launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
-        var expectedLength = -1L
-        var written = 0L
         var upgraded = false
-
-        fun checkCurrentLengthAndClose() {
-            if (expectedLength == -1L || written == expectedLength) {
-                current?.close()
-                return
-            }
-
-            val message = "Unexpected length of the request body. Expected $expectedLength but was $written"
-            current?.close(IOException(message))
-        }
 
         try {
             while (true) {
@@ -53,25 +38,22 @@ internal class RequestBodyHandler(
                 when (event) {
                     is ByteBufHolder -> {
                         val channel = current ?: error("No current channel but received a byte buf")
-                        written += processContent(channel, event)
+                        processContent(channel, event)
 
                         if (!upgraded && event is LastHttpContent) {
-                            checkCurrentLengthAndClose()
+                            current.close()
                             current = null
                         }
                         requestMoreEvents()
                     }
                     is ByteBuf -> {
                         val channel = current ?: error("No current channel but received a byte buf")
-                        written += processContent(channel, event)
+                        processContent(channel, event)
                         requestMoreEvents()
                     }
-                    is ChannelEvent -> {
-                        checkCurrentLengthAndClose()
-
-                        current = event.channel
-                        expectedLength = event.expectedLength
-                        written = 0L
+                    is ByteWriteChannel -> {
+                        current?.close()
+                        current = event
                     }
                     is Upgrade -> {
                         upgraded = true
@@ -82,7 +64,7 @@ internal class RequestBodyHandler(
             queue.close(t)
             current?.close(t)
         } finally {
-            checkCurrentLengthAndClose()
+            current?.close()
             queue.close()
             consumeAndReleaseQueue()
         }
@@ -91,7 +73,7 @@ internal class RequestBodyHandler(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun upgrade(): ByteReadChannel {
         val result = queue.trySend(Upgrade)
-        if (result.isSuccess) return newChannel(-1L)
+        if (result.isSuccess) return newChannel()
 
         if (queue.isClosedForSend) {
             throw CancellationException("HTTP pipeline has been terminated.", result.exceptionOrNull())
@@ -103,9 +85,9 @@ internal class RequestBodyHandler(
         )
     }
 
-    fun newChannel(contentLength: Long): ByteReadChannel {
+    fun newChannel(): ByteReadChannel {
         val result = ByteChannel()
-        tryOfferChannelOrToken(ChannelEvent(result, contentLength))
+        tryOfferChannelOrToken(result)
         return result
     }
 

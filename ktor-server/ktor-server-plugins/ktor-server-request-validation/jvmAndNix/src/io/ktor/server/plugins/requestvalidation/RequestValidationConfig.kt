@@ -13,6 +13,16 @@ public class RequestValidationConfig {
 
     internal val validators: MutableList<Validator> = mutableListOf()
 
+    internal var validateContentLength: Boolean = false
+
+    /**
+     * Enables validation of the request body length matches the [Content-Length] header.
+     * If the length doesn't match, body channel will be cancelled with [IOException].
+     */
+    public fun validateContentLength() {
+        validateContentLength = true
+    }
+
     /**
      * Registers [validator]
      */

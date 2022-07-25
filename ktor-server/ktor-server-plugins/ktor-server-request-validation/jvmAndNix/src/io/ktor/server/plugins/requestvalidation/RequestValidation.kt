@@ -5,7 +5,10 @@
 package io.ktor.server.plugins.requestvalidation
 
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 
 /**
  * A result of validation.
@@ -17,9 +20,14 @@ public sealed class ValidationResult {
     public object Valid : ValidationResult()
 
     /**
-     * An unsuccessful result of validation
+     * An unsuccessful result of validation. All errors are stored in the [reasons] list.
      */
-    public class Invalid(public val reasons: List<String>) : ValidationResult() {
+    public class Invalid(
+        /**
+         * List of errors.
+         */
+        public val reasons: List<String>
+    ) : ValidationResult() {
         public constructor (reason: String) : this(listOf(reason))
     }
 }
@@ -72,6 +80,19 @@ public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = creat
             throw RequestValidationException(content, failures.flatMap { it.reasons })
         }
     }
+
+    if (!pluginConfig.validateContentLength) return@createRouteScopedPlugin
+
+    on(ReceiveRequestBytes) { call, body ->
+        val contentLength = call.request.contentLength() ?: return@on body
+
+        return@on application.writer {
+            val count = body.copyTo(channel)
+            if (count != contentLength) {
+                throw IOException("Content length mismatch. Actual $count, expected $contentLength.")
+            }
+        }.channel
+    }
 }
 
 /**
@@ -79,10 +100,10 @@ public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = creat
  * @property value - invalid request body
  * @property reasons - combined reasons of all validation failures for this request
  */
-public class RequestValidationException(public val value: Any, public val reasons: List<String>) :
-    IllegalArgumentException(
-        "Validation failed for $value. Reasons: ${reasons.joinToString(".")}"
-    )
+public class RequestValidationException(
+    public val value: Any,
+    public val reasons: List<String>
+) : IllegalArgumentException("Validation failed for $value. Reasons: ${reasons.joinToString(".")}")
 
 private object RequestBodyTransformed : Hook<suspend (content: Any) -> Unit> {
     override fun install(

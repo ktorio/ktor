@@ -196,6 +196,12 @@ public final class io/ktor/server/application/hooks/MonitoringEvent : io/ktor/se
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/server/application/hooks/ReceiveRequestBytes : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/ReceiveRequestBytes;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
+}
+
 public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseBodyReadyForSend;
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V

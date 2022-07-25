@@ -84,11 +84,7 @@ public suspend fun parseHttpBody(
     }
 
     if (contentLength != -1L) {
-        val size = input.copyTo(out, contentLength)
-
-        if (size != contentLength) {
-            throw IOException("Unexpected body length: expected $contentLength, actual $size")
-        }
+        input.copyTo(out, contentLength)
         return
     }
 
