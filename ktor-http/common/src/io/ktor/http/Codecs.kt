@@ -32,7 +32,7 @@ private val VALID_PATH_PART = setOf(
  * Characters allowed in attributes according: https://datatracker.ietf.org/doc/html/rfc5987
  * attr-char     = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
  */
-internal val ATTRIBUTE_CHARACTERS: Set<Char> = (URL_ALPHABET_CHARS + listOf(
+internal val ATTRIBUTE_CHARACTERS: Set<Char> = (URL_ALPHABET_CHARS + setOf(
     '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'
 )).toSet()
 
@@ -130,6 +130,8 @@ public fun String.encodeURLParameter(
 
 internal fun String.percentEncode(allowedSet: Set<Char>): String {
     val encodedCount = count { it !in allowedSet }
+    if (encodedCount == 0) return this
+
     val resultSize = length + encodedCount * 2
     val result = CharArray(resultSize)
 
