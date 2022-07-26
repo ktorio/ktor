@@ -7,7 +7,6 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 /**
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.

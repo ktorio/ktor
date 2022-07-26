@@ -7,8 +7,10 @@ package io.ktor.http
 /**
  * Represents `Content-Disposition` header value
  */
-public class ContentDisposition(disposition: String, parameters: List<HeaderValueParam> = emptyList()) :
-    HeaderValueWithParameters(disposition, parameters) {
+public class ContentDisposition(
+    disposition: String,
+    parameters: List<HeaderValueParam> = emptyList()
+) : HeaderValueWithParameters(disposition, parameters) {
     /**
      * Content disposition value without parameters
      */
@@ -21,10 +23,15 @@ public class ContentDisposition(disposition: String, parameters: List<HeaderValu
         get() = parameter(Parameters.Name)
 
     /**
-     * Creates new with parameter appended
+     * Creates new with parameter appended.
      */
-    public fun withParameter(key: String, value: String): ContentDisposition =
-        ContentDisposition(disposition, parameters + HeaderValueParam(key, value))
+    public fun withParameter(key: String, value: String, encodeValue: Boolean = true): ContentDisposition {
+        val encodedValue = if (encodeValue) {
+            encodeContentDispositionAttribute(key, value)
+        } else value
+
+        return ContentDisposition(disposition, parameters + HeaderValueParam(key, encodedValue))
+    }
 
     /**
      * Creates new with parameters appended
@@ -81,4 +88,12 @@ public class ContentDisposition(disposition: String, parameters: List<HeaderValu
         public const val Size: String = "size"
         public const val Handling: String = "handling"
     }
+}
+
+private fun encodeContentDispositionAttribute(key: String, value: String): String {
+    if (key != ContentDisposition.Parameters.FileNameAsterisk) return value
+    if (value.all { it in ATTRIBUTE_CHARACTERS }) return value
+
+    val encodedValue = value.percentEncode(ATTRIBUTE_CHARACTERS)
+    return "utf-8''$encodedValue"
 }

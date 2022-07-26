@@ -6,7 +6,6 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
-import kotlin.native.concurrent.*
 
 /**
  * Default [ContentType] for [extension]
