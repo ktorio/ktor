@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.utils.io.*
 import java.io.*
 import kotlin.test.*
 
@@ -19,7 +18,7 @@ import kotlin.test.*
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-class DefaultTransformTest {
+class DefaultTransformJvmTest {
 
     @Test
     fun testSendInputStream() = testWithEngine(MockEngine) {

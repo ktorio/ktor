@@ -32,16 +32,19 @@ public fun HttpClient.defaultTransformers() {
             is String -> {
                 TextContent(body, contentType ?: ContentType.Text.Plain)
             }
+
             is ByteArray -> object : OutgoingContent.ByteArrayContent() {
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
             }
+
             is ByteReadChannel -> object : OutgoingContent.ReadChannelContent() {
                 override val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override fun readFrom(): ByteReadChannel = body
             }
+
             is OutgoingContent -> body
             else -> platformRequestDefaultTransform(contentType, context, body)
         }
@@ -60,17 +63,26 @@ public fun HttpClient.defaultTransformers() {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
+
             Int::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
             }
+
             ByteReadPacket::class,
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
+
             ByteArray::class -> {
                 val bytes = body.toByteArray()
+
+                val contentLength = response.contentLength()
+                if (contentLength != null && contentLength > 0) {
+                    check(bytes.size == contentLength.toInt()) { "Expected $contentLength, actual ${bytes.size}" }
+                }
                 proceedWith(HttpResponseContainer(info, bytes))
             }
+
             ByteReadChannel::class -> {
                 // the response job could be already completed so the job holder
                 // could be cancelled immediately, but it doesn't matter
@@ -96,6 +108,7 @@ public fun HttpClient.defaultTransformers() {
 
                 proceedWith(HttpResponseContainer(info, channel))
             }
+
             HttpStatusCode::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, response.status))
