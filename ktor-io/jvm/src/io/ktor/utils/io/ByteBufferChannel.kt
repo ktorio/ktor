@@ -2413,5 +2413,11 @@ internal open class ByteBufferChannel(
 }
 
 private fun rethrowClosed(cause: Throwable): Nothing {
-    throw tryCopyException(cause, cause) ?: cause
+    val clone = try {
+        tryCopyException(cause, cause)
+    } catch (_: Throwable) {
+        null
+    }
+
+    throw clone ?: cause
 }
