@@ -400,7 +400,7 @@ internal class URLBuilderTest {
 
             "/a" to listOf("", "a"),
             "/a/b" to listOf("", "a", "b"),
-            "/a/b/c" to listOf("", "a", "b", "c"),
+            "/a/b/c" to listOf("", "a", "b", "c")
         )
 
         cases.forEach { (path, segments) ->
@@ -426,7 +426,7 @@ internal class URLBuilderTest {
 
             "https://example.com/a" to listOf("", "a"),
             "https://example.com/a/b" to listOf("", "a", "b"),
-            "https://example.com/a/b/c" to listOf("", "a", "b", "c"),
+            "https://example.com/a/b/c" to listOf("", "a", "b", "c")
         )
 
         cases.forEach { (urlString, segments) ->
@@ -483,6 +483,15 @@ internal class URLBuilderTest {
         b2.parameters.append("param2", "value2")
 
         assertNull(b1.parameters["param2"])
+    }
+
+    @Test
+    fun testPathNotEncodeSlash() {
+        val urlBuilder = URLBuilder().apply {
+            path("hello/world")
+        }
+
+        assertEquals("hello/world", urlBuilder.encodedPath)
     }
 
     /**
