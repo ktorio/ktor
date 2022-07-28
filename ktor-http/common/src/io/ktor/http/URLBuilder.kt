@@ -199,8 +199,12 @@ public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash:
     return appendPathSegments(components.toList(), encodeSlash)
 }
 
+/**
+ * Replace [components] in the current [encodedPath]. The [path] components will be escaped, except `/` character.
+ * @param path path items to set
+ */
 public fun URLBuilder.path(vararg path: String) {
-    pathSegments = path.toList()
+    encodedPathSegments = path.map { it.encodeURLPath() }
 }
 
 /**
