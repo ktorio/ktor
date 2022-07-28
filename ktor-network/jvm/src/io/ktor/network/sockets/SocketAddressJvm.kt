@@ -65,7 +65,7 @@ public actual class UnixSocketAddress internal constructor(
     public actual val path: String
         get() {
             val getPath: Method = checkSupportForUnixDomainSockets().getMethod("getPath")
-            return getPath.invoke(this).toString()
+            return getPath.invoke(address).toString()
         }
 
     public actual constructor(path: String) : this(
