@@ -92,6 +92,7 @@ public class ContentDisposition(
 
 private fun encodeContentDispositionAttribute(key: String, value: String): String {
     if (key != ContentDisposition.Parameters.FileNameAsterisk) return value
+    if (value.startsWith("utf-8''", ignoreCase = true)) return value
     if (value.all { it in ATTRIBUTE_CHARACTERS }) return value
 
     val encodedValue = value.percentEncode(ATTRIBUTE_CHARACTERS)

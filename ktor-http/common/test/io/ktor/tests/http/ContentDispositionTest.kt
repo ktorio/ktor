@@ -17,4 +17,15 @@ class ContentDispositionTest {
 
         assertEquals("attachment; filename*=utf-8''%27%27malicious.sh%2500%27normal.txt", attachment)
     }
+
+    @Test
+    fun testNoEncodeTwice() {
+        val value = "UTF-8''%27%27malicious.sh%2500%27normal.txt"
+        val attachment = ContentDisposition.Attachment.withParameter(
+            ContentDisposition.Parameters.FileNameAsterisk,
+            value
+        ).toString()
+
+        assertEquals("attachment; filename*=UTF-8''%27%27malicious.sh%2500%27normal.txt", attachment)
+    }
 }
