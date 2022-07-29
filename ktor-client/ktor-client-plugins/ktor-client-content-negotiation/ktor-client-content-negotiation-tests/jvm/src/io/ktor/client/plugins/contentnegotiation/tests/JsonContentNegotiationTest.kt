@@ -95,6 +95,7 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             }
         }
         install(ContentNegotiation) {
+            clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
         }
 
@@ -106,6 +107,7 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
     @Test
     open fun testReceiveJsonStringServer(): Unit = testApplication {
         install(ContentNegotiation) {
+            clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
         }
         routing {
@@ -133,6 +135,7 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
 
         createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                clearIgnoredTypes()
                 register(ContentType.Application.Json, converter)
             }
         }.get("/").let { response ->
@@ -152,6 +155,7 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
 
         createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                clearIgnoredTypes()
                 register(ContentType.Application.Json, converter)
             }
         }.post("/") {

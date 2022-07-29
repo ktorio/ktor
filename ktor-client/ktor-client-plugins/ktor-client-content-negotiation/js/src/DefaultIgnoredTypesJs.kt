@@ -9,4 +9,4 @@ import io.ktor.utils.io.*
 import kotlin.reflect.*
 
 internal actual val DefaultIgnoredTypes: Set<KClass<*>> =
-    mutableSetOf(OutgoingContent::class, ByteReadChannel::class, ByteArray::class)
+    mutableSetOf()

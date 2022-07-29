@@ -24,7 +24,7 @@ class ContentTypeTest {
                     val body = request.body
                     assertEquals(
                         contentType.withCharset(Charsets.UTF_8),
-                        body.contentType,
+                        body.contentType
                     )
 
                     assertTrue(body is TextContent)
