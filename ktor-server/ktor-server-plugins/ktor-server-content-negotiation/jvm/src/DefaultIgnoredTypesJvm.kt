@@ -4,10 +4,8 @@
 
 package io.ktor.server.plugins.contentnegotiation
 
-import io.ktor.http.*
-import io.ktor.utils.io.*
 import java.io.*
 import kotlin.reflect.*
 
 internal actual val DefaultIgnoredTypes: Set<KClass<*>> =
-    mutableSetOf(HttpStatusCode::class, ByteReadChannel::class, InputStream::class)
+    mutableSetOf(InputStream::class)

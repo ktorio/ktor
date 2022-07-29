@@ -12,8 +12,11 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
@@ -47,7 +50,7 @@ class ContentNegotiationTests {
         val registeredTypesToSend = listOf(
             ContentType("testing", "a"),
             ContentType("testing", "b"),
-            ContentType("testing", "c"),
+            ContentType("testing", "c")
         )
 
         setupWithContentNegotiation {
@@ -161,7 +164,7 @@ class ContentNegotiationTests {
     fun selectMatchingConverterInRequestPipeline(): Unit = testWithEngine(MockEngine) {
         val types = listOf(
             ContentType("testing", "a"),
-            ContentType("testing", "b"),
+            ContentType("testing", "b")
         )
 
         val outgoingContentPerType = types.map { contentType ->
@@ -226,7 +229,7 @@ class ContentNegotiationTests {
         val contentTypeToSend = ContentType("testing", "client-to-send")
         val outgoingContents = listOf(
             TextContent("FIRST CONVERTER", contentTypeToSend),
-            TextContent("SECOND CONVERTER", contentTypeToSend),
+            TextContent("SECOND CONVERTER", contentTypeToSend)
         )
 
         assertTrue(outgoingContents.size > 1, "Must have more than 1 content converter registered for this test")
@@ -257,7 +260,7 @@ class ContentNegotiationTests {
         val contentTypeToReceive = ContentType("testing", "client-to-receive")
         val deserializedValues = listOf(
             StringWrapper("FIRST CONVERTER"),
-            StringWrapper("SECOND CONVERTER"),
+            StringWrapper("SECOND CONVERTER")
         )
 
         assertTrue(deserializedValues.size > 1, "Must have more than 1 converter registered for this test")
@@ -398,6 +401,8 @@ class ContentNegotiationTests {
             assertEquals("""{"x": 123}""", response)
         }
     }
+
+
 
     object Thing
 
