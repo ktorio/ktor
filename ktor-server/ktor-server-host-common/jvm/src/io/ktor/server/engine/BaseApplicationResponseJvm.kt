@@ -30,7 +30,7 @@ public actual abstract class BaseApplicationResponse actual constructor(
         get() = responded
 
     actual override val cookies: ResponseCookies by lazy {
-        ResponseCookies(this, call.request.origin.scheme == "https")
+        ResponseCookies(this, call.request.origin.scheme == "https" || call.request.origin.scheme == "wss")
     }
 
     actual override fun status(): HttpStatusCode? = _status
