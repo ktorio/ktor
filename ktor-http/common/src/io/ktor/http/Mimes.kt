@@ -1067,6 +1067,7 @@ N/A,application/andrew-inset
 .weba,audio/webm
 .web,application/vnd.xara
 .webm,video/webm
+.webmanifest,application/manifest+json
 .webp,image/webp
 .wg,application/vnd.pmi.widget
 .wgt,application/widget
