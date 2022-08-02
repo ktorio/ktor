@@ -175,14 +175,15 @@ public class NettyChannelInitializer(
 
         private fun findAlpnProvider(): SslProvider? {
             try {
-                Class.forName("sun.security.ssl.ALPNExtension", true, null)
-                return SslProvider.JDK
+                if (SslProvider.isAlpnSupported(SslProvider.OPENSSL)) {
+                    return SslProvider.OPENSSL
+                }
             } catch (ignore: Throwable) {
             }
 
             try {
-                if (SslProvider.isAlpnSupported(SslProvider.OPENSSL)) {
-                    return SslProvider.OPENSSL
+                if (SslProvider.isAlpnSupported(SslProvider.JDK)) {
+                    return SslProvider.JDK
                 }
             } catch (ignore: Throwable) {
             }
