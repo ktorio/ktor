@@ -25,10 +25,10 @@ public class LocalFileContent(
     override val contentLength: Long get() = file.length()
 
     init {
-        val lastModifiedVersion = file.lastModified()
-        if (lastModifiedVersion == 0L) {
+        if (!file.exists()) {
             throw IOException("No such file ${file.absolutePath}")
         } else {
+            val lastModifiedVersion = file.lastModified()
             versions += LastModifiedVersion(lastModifiedVersion)
         }
     }
