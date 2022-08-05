@@ -52,6 +52,11 @@ internal fun Application.headersTestServer() {
 
                 call.respond(HttpStatusCode.OK)
             }
+
+            get("/echo") {
+                val headerName = call.request.queryParameters["headerName"] ?: ""
+                call.respondText(call.request.headers[headerName] ?: "no header")
+            }
         }
 
         route("/headers-merge") {

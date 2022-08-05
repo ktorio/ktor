@@ -21,6 +21,7 @@ internal class DarwinSession(
 
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
+            .apply(config.requestConfig)
         val task = session.dataTaskWithRequest(nativeRequest)
 
         val result: CompletableDeferred<HttpResponseData> = responseReader.read(request, callContext, task)
