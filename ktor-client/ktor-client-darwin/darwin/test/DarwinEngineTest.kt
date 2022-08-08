@@ -127,6 +127,21 @@ class DarwinEngineTest {
         assertEquals("It works", failedCause?.message)
     }
 
+    @Test
+    fun testConfigureRequest(): Unit = runBlocking {
+        val client = HttpClient(Darwin) {
+            engine {
+                configureRequest {
+                    setValue("my header value", forHTTPHeaderField = "XCustomHeader")
+                }
+            }
+        }
+
+        val response = client.get("$TEST_SERVER/headers/echo?headerName=XCustomHeader")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("my header value", response.bodyAsText())
+    }
+
     private fun stringToNSUrlString(value: String): String {
         return Url(value).toNSUrl().absoluteString!!
     }

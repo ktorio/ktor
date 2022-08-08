@@ -1,3 +1,4 @@
+apply<test.server.TestServerPlugin>()
 
 kotlin {
     fastTarget()
