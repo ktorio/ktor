@@ -73,7 +73,7 @@ class ContentEncodingTest : ClientLoader() {
         test { client ->
             val response = client.get("$TEST_URL/gzip-empty")
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
-            assertEquals("", response.body<String>())
+            assertEquals("", response.body())
         }
     }
 
@@ -86,8 +86,8 @@ class ContentEncodingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/gzip-large")
-            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+            val response = client.get("$TEST_URL/gzip-precompressed")
+            assertEquals(HttpStatusCode.OK, response.status)
             val body = response.body<ByteArray>()
             assertContentEquals(ByteArray(500) { it.toByte() }, body)
         }

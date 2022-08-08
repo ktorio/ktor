@@ -5,10 +5,12 @@
 package test.server.tests
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 
 internal fun Application.encodingTestServer() {
     routing {
@@ -33,6 +35,18 @@ internal fun Application.encodingTestServer() {
                 }
                 get {
                     call.respond(ByteArray(500) { it.toByte() })
+                }
+            }
+            route("/gzip-precompressed") {
+                get {
+                    val channel = ByteReadChannel(ByteArray(500) { it.toByte() })
+                    call.response.headers.append(HttpHeaders.ContentEncoding, "gzip")
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override fun readFrom(): ByteReadChannel = GzipEncoder.compress(channel)
+                            override val contentLength: Long = 294
+                        }
+                    )
                 }
             }
             route("/gzip-empty") {
