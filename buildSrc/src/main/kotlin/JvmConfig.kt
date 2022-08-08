@@ -49,6 +49,7 @@ fun Project.configureJvm() {
                 dependencies {
                     implementation("junit:junit:$junit_version")
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
+                    implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
                 }
             }
         }
