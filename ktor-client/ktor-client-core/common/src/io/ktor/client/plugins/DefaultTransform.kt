@@ -77,7 +77,8 @@ public fun HttpClient.defaultTransformers() {
                 val bytes = body.toByteArray()
 
                 val contentLength = response.contentLength()
-                if (contentLength != null && contentLength > 0) {
+                val contentEncoding = response.headers[HttpHeaders.ContentEncoding]
+                if (contentEncoding == null && contentLength != null && contentLength > 0) {
                     check(bytes.size == contentLength.toInt()) { "Expected $contentLength, actual ${bytes.size}" }
                 }
                 proceedWith(HttpResponseContainer(info, bytes))
