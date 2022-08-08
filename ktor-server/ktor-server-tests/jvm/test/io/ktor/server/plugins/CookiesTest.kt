@@ -4,9 +4,18 @@
 
 package io.ktor.server.plugins
 
+import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
+import io.ktor.server.websocket.*
+import io.ktor.server.websocket.WebSockets
 import java.text.*
 import java.time.*
 import java.time.format.*
@@ -62,4 +71,48 @@ class CookiesTest {
     }
 
     private fun String.cutSetCookieHeader() = substringBeforeLast("\$x-enc").trimEnd().removeSuffix(";")
+}
+
+class SecureCookiesTest {
+    @Test
+    fun `consider wss and https to be secure contexts`(): Unit = testApplication {
+        data class User(val id: String)
+
+        install(WebSockets)
+        install(Sessions) {
+            cookie<User>("c") {
+                cookie.secure = true
+            }
+        }
+        install(XForwardedHeaders)
+
+        routing {
+            get("/") {
+                call.sessions.set("c", User("123"))
+            }
+            webSocket("wss") {
+            }
+        }
+
+        val client = createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }
+
+        val r = client.get("/") {
+            header(HttpHeaders.XForwardedProto, "https")
+        }
+        val setCookieHeader = r.headers[HttpHeaders.SetCookie]
+        assertNotNull(setCookieHeader)
+        val c = parseServerSetCookieHeader(setCookieHeader)
+
+        client.webSocket("/wss", request = {
+            cookie(c.name, c.value, path = c.path)
+            header(HttpHeaders.XForwardedProto, "https")
+        }) {}
+
+        client.webSocket("/wss", request = {
+            cookie(c.name, c.value, path = c.path)
+            header(HttpHeaders.XForwardedProto, "wss")
+        }) {}
+    }
 }
