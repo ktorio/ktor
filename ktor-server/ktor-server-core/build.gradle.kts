@@ -34,6 +34,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             implementation(libs.mockk)
+            implementation(project(":ktor-server:ktor-server-config-yaml"))
         }
     }
 }

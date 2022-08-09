@@ -8,7 +8,15 @@ import net.mamoe.yamlkt.*
 
 internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
+/**
+ * Loads [ApplicationConfig] from a YAML file.
+ */
 public class YamlConfigLoader : ConfigLoader {
+    /**
+     * Tries loading an application configuration from the specified [path].
+     *
+     * @return configuration or null if the path is not found or configuration format is not supported.
+     */
     override fun load(path: String?): ApplicationConfig? {
         return YamlConfig(path)?.apply { checkEnvironmentVariables() }
     }

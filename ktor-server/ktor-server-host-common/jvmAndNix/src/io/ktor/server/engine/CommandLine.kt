@@ -5,6 +5,7 @@
 package io.ktor.server.engine
 
 import io.ktor.server.config.*
+import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.util.*
 import io.ktor.util.logging.*
 
@@ -98,7 +99,7 @@ internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
 
     val commandLineConfig = MapApplicationConfig(commandLineProperties)
     val environmentConfig = getConfigFromEnvironment()
-    val fileConfig = configLoaders.firstNotNullOfOrNull { it.load(configPath) } ?: MapApplicationConfig()
+    val fileConfig = ConfigLoader.load(configPath)
 
     return listOf(commandLineConfig, environmentConfig, fileConfig).merge()
 }
