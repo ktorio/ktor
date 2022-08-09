@@ -244,7 +244,13 @@ public final class io/ktor/server/config/ApplicationConfigurationException : jav
 }
 
 public abstract interface class io/ktor/server/config/ConfigLoader {
+	public static final field Companion Lio/ktor/server/config/ConfigLoader$Companion;
 	public abstract fun load (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+}
+
+public final class io/ktor/server/config/ConfigLoader$Companion {
+	public final fun load (Lio/ktor/server/config/ConfigLoader$Companion;Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
+	public static synthetic fun load$default (Lio/ktor/server/config/ConfigLoader$Companion;Lio/ktor/server/config/ConfigLoader$Companion;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/config/ApplicationConfig;
 }
 
 public final class io/ktor/server/config/ConfigLoadersJvmKt {

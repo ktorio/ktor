@@ -5,7 +5,18 @@
 package io.ktor.server.config
 
 import io.ktor.util.*
+import kotlinx.cinterop.*
+import platform.posix.*
 
+internal actual val CONFIG_PATH: List<String> get() = buildList {
+    fromEnv("CONFIG_FILE")?.let { add(it) }
+}
+
+private fun fromEnv(name: String): String? = getenv(name)?.toKString()
+
+/**
+ * List of all registered [ConfigLoader] implementations.
+ */
 public actual val configLoaders: List<ConfigLoader>
     get() = _configLoaders
 

@@ -5,22 +5,36 @@
 package io.ktor.server.config
 
 import com.typesafe.config.*
+import io.ktor.server.config.ConfigLoader.Companion.load
 import java.io.*
 
+/**
+ * Loads a [Config] from a hocon file.
+ */
 public class HoconConfigLoader : ConfigLoader {
+
+    /**
+     * Tries loading an application configuration from the specified [path].
+     *
+     * @return configuration or null if the path is not found or configuration format is not supported.
+     */
     override fun load(path: String?): ApplicationConfig? {
         val resolvedPath = when {
             path == null -> "application.conf"
             path.endsWith(".conf") || path.endsWith(".json") || path.endsWith(".properties") -> path
             else -> return null
         }
+
         val resource = Thread.currentThread().contextClassLoader.getResource(resolvedPath)
-        if (resource != null) return HoconApplicationConfig(ConfigFactory.load(resolvedPath).resolve())
-        val file = File(resolvedPath)
-        if (file.exists()) {
-            return HoconApplicationConfig(ConfigFactory.parseFile(file).resolve())
-        }
-        return null
+        val config = when {
+            resource != null -> ConfigFactory.load(resolvedPath)
+            else -> {
+                val file = File(resolvedPath)
+                if (file.exists()) ConfigFactory.parseFile(file) else null
+            }
+        }?.resolve() ?: return null
+
+        return HoconApplicationConfig(config)
     }
 }
 
@@ -77,4 +91,4 @@ public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(pa
  * or a default resource if [configPath] is `null`
  */
 public fun ApplicationConfig(configPath: String?): ApplicationConfig =
-    configLoaders.firstNotNullOfOrNull { it.load(configPath) } ?: MapApplicationConfig()
+    ConfigLoader.load(configPath)
