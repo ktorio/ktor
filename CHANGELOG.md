@@ -6,6 +6,7 @@
 * CORS: Pattern matching for origin ([KTOR-316](https://youtrack.jetbrains.com/issue/KTOR-316))
 * Darwin: Allow setting custom NSURLSession ([KTOR-583](https://youtrack.jetbrains.com/issue/KTOR-583))
 * Support setting caching options on call ([KTOR-457](https://youtrack.jetbrains.com/issue/KTOR-457))
+* Revert default behavior of string encoding for ContentNegotiation and JsonPlugin ([KTOR-4739](https://youtrack.jetbrains.com/issue/KTOR-4739))
 * Make Content-Length header validation optional ([KTOR-4655](https://youtrack.jetbrains.com/issue/KTOR-4655))
 * Client resources plugin miss builders for PATCH method ([KTOR-4658](https://youtrack.jetbrains.com/issue/KTOR-4658))
 * The awaitSuspend method wakes up early in closed ByteChannelSequential ([KTOR-4597](https://youtrack.jetbrains.com/issue/KTOR-4597))
