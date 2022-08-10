@@ -3,8 +3,9 @@ public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiationC
 	public final fun accept (Lkotlin/jvm/functions/Function2;)V
 	public final fun clearIgnoredTypes ()V
 	public final fun getCheckAcceptHeaderCompliance ()Z
-	public final fun getIgnoredTypes ()Ljava/util/Set;
+	public final fun ignoreType (Lkotlin/reflect/KClass;)V
 	public fun register (Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
+	public final fun removeIgnoredType (Lkotlin/reflect/KClass;)V
 	public final fun setCheckAcceptHeaderCompliance (Z)V
 }
 

@@ -13,10 +13,11 @@ public final class io/ktor/client/plugins/json/JsonPlugin$Config {
 	public final fun accept ([Lio/ktor/http/ContentType;)V
 	public final fun clearIgnoredTypes ()V
 	public final fun getAcceptContentTypes ()Ljava/util/List;
-	public final fun getIgnoredTypes ()Ljava/util/Set;
 	public final fun getReceiveContentTypeMatchers ()Ljava/util/List;
 	public final fun getSerializer ()Lio/ktor/client/plugins/json/JsonSerializer;
+	public final fun ignoreType (Lkotlin/reflect/KClass;)V
 	public final fun receive (Lio/ktor/http/ContentTypeMatcher;)V
+	public final fun removeIgnoredType (Lkotlin/reflect/KClass;)V
 	public final fun setAcceptContentTypes (Ljava/util/List;)V
 	public final fun setReceiveContentTypeMatchers (Ljava/util/List;)V
 	public final fun setSerializer (Lio/ktor/client/plugins/json/JsonSerializer;)V
