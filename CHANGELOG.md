@@ -24,7 +24,7 @@
 * Allow Pebble to use Accepted Language header for built-in i18n support ([KTOR-4593](https://youtrack.jetbrains.com/issue/KTOR-4593))
 * Test engine can't handle concurrent requests ([KTOR-4572](https://youtrack.jetbrains.com/issue/KTOR-4572))
 * Parameters of cloned UrlBuilder affect parameters of an original builder ([KTOR-4573](https://youtrack.jetbrains.com/issue/KTOR-4573))
-* Reified type causes ApplicationCall.receive([KTOR-3715](https://youtrack.jetbrains.com/issue/KTOR-3715))
+* Reified type causes ApplicationCall.receive() throw UnsupportedOperationException ([KTOR-3715](https://youtrack.jetbrains.com/issue/KTOR-3715))
 * ApplicationConfig lacks the ability to export a part of the config to a third-party library ([KTOR-4416](https://youtrack.jetbrains.com/issue/KTOR-4416))
 * Path parameter doesn't get encoded in type safe requests ([KTOR-3953](https://youtrack.jetbrains.com/issue/KTOR-3953))
 * Update Kotlin to 1.7.0 ([KTOR-4450](https://youtrack.jetbrains.com/issue/KTOR-4450))
