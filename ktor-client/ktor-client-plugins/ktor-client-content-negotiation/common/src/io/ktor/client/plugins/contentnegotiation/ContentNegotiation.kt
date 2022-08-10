@@ -53,7 +53,6 @@ public class ContentNegotiation internal constructor(
             val contentTypeMatcher: ContentTypeMatcher
         )
 
-        @PublishedApi
         internal val ignoredTypes: MutableSet<KClass<*>> =
             (DefaultIgnoredTypes + DefaultCommonIgnoredTypes).toMutableSet()
 
@@ -98,14 +97,30 @@ public class ContentNegotiation internal constructor(
          * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
          */
         public inline fun <reified T> ignoreType() {
-            ignoredTypes.add(T::class)
+            ignoreType(T::class)
         }
 
         /**
          * Remove [T] from the list of types that should be ignored by [ContentNegotiation].
          */
         public inline fun <reified T> removeIgnoredType() {
-            ignoredTypes.remove(T::class)
+            removeIgnoredType(T::class)
+        }
+
+        /**
+         * Remove [type] from the list of types that should be ignored by [ContentNegotiation].
+         */
+        public fun removeIgnoredType(type: KClass<*>) {
+            ignoredTypes.remove(type)
+        }
+
+        /**
+         * Adds a [type] to the list of types that should be ignored by [ContentNegotiation].
+         *
+         * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+         */
+        public fun ignoreType(type: KClass<*>) {
+            ignoredTypes.add(type)
         }
 
         /**
