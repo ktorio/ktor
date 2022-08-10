@@ -15,7 +15,7 @@
 * Jetty: Content Length exception when body size is greater than 4096 bytes ([KTOR-4622](https://youtrack.jetbrains.com/issue/KTOR-4622))
 * Darwin: configureRequest doesn't actually configure a NSMutableURLRequest when HTTP request is made ([KTOR-4719](https://youtrack.jetbrains.com/issue/KTOR-4719))
 * OAuth2: Allow sending extra parameters for authorization and access token requests ([KTOR-2128](https://youtrack.jetbrains.com/issue/KTOR-2128))
-* Use HTTP 2.0 in Java HTTP Client by default ([KTOR-4609](https://youtrack.jetbrains.com/issue/KTOR-4609))
+* Java engine: Allow configuring HTTP version ([KTOR-4609](https://youtrack.jetbrains.com/issue/KTOR-4609))
 * ContentEncoding: body&lt;ByteArray&gt;() receives truncated array ([KTOR-4653](https://youtrack.jetbrains.com/issue/KTOR-4653))
 * Support configuring Netty codec limits via application config ([KTOR-4636](https://youtrack.jetbrains.com/issue/KTOR-4636))
 * [OkHttp] StreamRequestBody should override isOneShot or allow multiple reads of request body ([KTOR-4637](https://youtrack.jetbrains.com/issue/KTOR-4637))
