@@ -12,8 +12,20 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.reflect.*
+
+internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
+    ByteArray::class,
+    String::class,
+    HttpStatusCode::class,
+    ByteReadChannel::class,
+    OutgoingContent::class
+)
+
+internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
  * Platform default serializer.
@@ -44,6 +56,7 @@ public class JsonPlugin internal constructor(
     public val serializer: JsonSerializer,
     public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
     private val receiveContentTypeMatchers: List<ContentTypeMatcher> = listOf(JsonContentTypeMatcher()),
+    private val ignoredTypes: Set<KClass<*>> = DefaultCommonIgnoredTypes + DefaultIgnoredTypes
 ) {
     internal constructor(config: Config) : this(
         config.serializer ?: defaultSerializer(),
@@ -56,6 +69,11 @@ public class JsonPlugin internal constructor(
      */
     @KtorDsl
     public class Config {
+
+        @PublishedApi
+        internal val ignoredTypes: MutableSet<KClass<*>> =
+            (DefaultIgnoredTypes + DefaultCommonIgnoredTypes).toMutableSet()
+
         /**
          * Serializer that will be used for serializing requests and deserializing response bodies.
          *
@@ -111,6 +129,29 @@ public class JsonPlugin internal constructor(
         public fun receive(matcher: ContentTypeMatcher) {
             _receiveContentTypeMatchers += matcher
         }
+
+        /**
+         * Adds a type to the list of types that should be ignored by [ContentNegotiation].
+         *
+         * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+         */
+        public inline fun <reified T> ignoreType() {
+            ignoredTypes.add(T::class)
+        }
+
+        /**
+         * Remove [T] from the list of types that should be ignored by [ContentNegotiation].
+         */
+        public inline fun <reified T> removeIgnoredType() {
+            ignoredTypes.remove(T::class)
+        }
+
+        /**
+         * Clear all configured ignored types including defaults.
+         */
+        public fun clearIgnoredTypes() {
+            ignoredTypes.clear()
+        }
     }
 
     internal fun canHandle(contentType: ContentType): Boolean {
@@ -131,14 +172,16 @@ public class JsonPlugin internal constructor(
             val serializer = config.serializer ?: defaultSerializer()
             val allowedContentTypes = config.acceptContentTypes.toList()
             val receiveContentTypeMatchers = config.receiveContentTypeMatchers
+            val ignoredTypes = config.ignoredTypes
 
-            return JsonPlugin(serializer, allowedContentTypes, receiveContentTypeMatchers)
+            return JsonPlugin(serializer, allowedContentTypes, receiveContentTypeMatchers, ignoredTypes)
         }
 
         override fun install(plugin: JsonPlugin, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
                 plugin.acceptContentTypes.forEach { context.accept(it) }
 
+                if (payload::class in plugin.ignoredTypes) return@intercept
                 val contentType = context.contentType() ?: return@intercept
                 if (!plugin.canHandle(contentType)) return@intercept
 
@@ -155,7 +198,7 @@ public class JsonPlugin internal constructor(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
-                if (info.type == ByteReadChannel::class) return@intercept
+                if (info.type in plugin.ignoredTypes) return@intercept
 
                 val contentType = context.response.contentType() ?: return@intercept
                 if (!plugin.canHandle(contentType)) return@intercept
