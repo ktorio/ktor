@@ -81,7 +81,9 @@ class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testStringWithJsonPlugin() = clientTests {
         config {
-            install(JsonPlugin)
+            install(JsonPlugin) {
+                removeIgnoredType<String>()
+            }
             defaultRequest {
                 val contentType = ContentType.parse("application/vnd.string+json")
                 accept(contentType)
