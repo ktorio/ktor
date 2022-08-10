@@ -1,3 +1,36 @@
+# 2.1.0
+> Published 11 August 2022
+
+* Add YAML Configuration Format Support ([KTOR-3572](https://youtrack.jetbrains.com/issue/KTOR-3572))
+* Allow overriding HSTS settings per host ([KTOR-4578](https://youtrack.jetbrains.com/issue/KTOR-4578))
+* CORS: Pattern matching for origin ([KTOR-316](https://youtrack.jetbrains.com/issue/KTOR-316))
+* Darwin: Allow setting custom NSURLSession ([KTOR-583](https://youtrack.jetbrains.com/issue/KTOR-583))
+* Support setting caching options on call ([KTOR-457](https://youtrack.jetbrains.com/issue/KTOR-457))
+* Revert default behavior of string encoding for ContentNegotiation and JsonPlugin ([KTOR-4739](https://youtrack.jetbrains.com/issue/KTOR-4739))
+* Make Content-Length header validation optional ([KTOR-4655](https://youtrack.jetbrains.com/issue/KTOR-4655))
+* Client resources plugin miss builders for PATCH method ([KTOR-4658](https://youtrack.jetbrains.com/issue/KTOR-4658))
+* The awaitSuspend method wakes up early in closed ByteChannelSequential ([KTOR-4597](https://youtrack.jetbrains.com/issue/KTOR-4597))
+* HttpCache plugin does not support max-stale directive ([KTOR-4610](https://youtrack.jetbrains.com/issue/KTOR-4610))
+* Incoming request body validation ([KTOR-503](https://youtrack.jetbrains.com/issue/KTOR-503))
+* Client does not support sending or receiving json null value ([KTOR-745](https://youtrack.jetbrains.com/issue/KTOR-745))
+* Jetty: Content Length exception when body size is greater than 4096 bytes ([KTOR-4622](https://youtrack.jetbrains.com/issue/KTOR-4622))
+* Darwin: configureRequest doesn't actually configure a NSMutableURLRequest when HTTP request is made ([KTOR-4719](https://youtrack.jetbrains.com/issue/KTOR-4719))
+* OAuth2: Allow sending extra parameters for authorization and access token requests ([KTOR-2128](https://youtrack.jetbrains.com/issue/KTOR-2128))
+* Java engine: Allow configuring HTTP version ([KTOR-4609](https://youtrack.jetbrains.com/issue/KTOR-4609))
+* ContentEncoding: body&lt;ByteArray&gt;() receives truncated array ([KTOR-4653](https://youtrack.jetbrains.com/issue/KTOR-4653))
+* Support configuring Netty codec limits via application config ([KTOR-4636](https://youtrack.jetbrains.com/issue/KTOR-4636))
+* [OkHttp] StreamRequestBody should override isOneShot or allow multiple reads of request body ([KTOR-4637](https://youtrack.jetbrains.com/issue/KTOR-4637))
+* OverridingClassLoader fails to delegate to parent for resources ([KTOR-4004](https://youtrack.jetbrains.com/issue/KTOR-4004))
+* OkHttp and iOS: request with only-if-cache directive in Cache-Control header fails with 504 when match is stale ([KTOR-4127](https://youtrack.jetbrains.com/issue/KTOR-4127))
+* Allow Pebble to use Accepted Language header for built-in i18n support ([KTOR-4593](https://youtrack.jetbrains.com/issue/KTOR-4593))
+* Test engine can't handle concurrent requests ([KTOR-4572](https://youtrack.jetbrains.com/issue/KTOR-4572))
+* Parameters of cloned UrlBuilder affect parameters of an original builder ([KTOR-4573](https://youtrack.jetbrains.com/issue/KTOR-4573))
+* Reified type causes ApplicationCall.receive() throw UnsupportedOperationException ([KTOR-3715](https://youtrack.jetbrains.com/issue/KTOR-3715))
+* ApplicationConfig lacks the ability to export a part of the config to a third-party library ([KTOR-4416](https://youtrack.jetbrains.com/issue/KTOR-4416))
+* Path parameter doesn't get encoded in type safe requests ([KTOR-3953](https://youtrack.jetbrains.com/issue/KTOR-3953))
+* Update Kotlin to 1.7.0 ([KTOR-4450](https://youtrack.jetbrains.com/issue/KTOR-4450))
+* Bump jteVersion from 2.0.3 to 2.1.2 ([KTOR-4648](https://youtrack.jetbrains.com/issue/KTOR-4648))
+
 # 2.0.3
 > Published 28 June 2022
 
