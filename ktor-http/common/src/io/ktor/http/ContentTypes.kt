@@ -218,6 +218,20 @@ public class ContentType private constructor(
     }
 
     /**
+     * Provides a list of standard subtypes of a `Font` content type.
+     */
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Font {
+        public val Any: ContentType = ContentType("font", "*")
+        public val Collection: ContentType = ContentType("font", "collection")
+        public val Otf: ContentType = ContentType("font", "otf")
+        public val Sfnt: ContentType = ContentType("font", "sfnt")
+        public val Ttf: ContentType = ContentType("font", "ttf")
+        public val Woff: ContentType = ContentType("font", "woff")
+        public val Woff2: ContentType = ContentType("font", "woff2")
+    }
+
+    /**
      * Provides a list of standard subtypes of a `message` content type.
      */
     @Suppress("KDocMissingDocumentation", "unused")

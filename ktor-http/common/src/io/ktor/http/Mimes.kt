@@ -651,7 +651,7 @@ N/A,application/andrew-inset
 .osf,application/vnd.yamaha.openscoreformat
 .osfpvg,application/vnd.yamaha.openscoreformat.osfpvg+xml
 .otc,application/vnd.oasis.opendocument.chart-template
-.otf,application/x-font-otf
+.otf,font/otf
 .otg,application/vnd.oasis.opendocument.graphics-template
 .oth,application/vnd.oasis.opendocument.text-web
 .oti,application/vnd.oasis.opendocument.image-template
@@ -986,7 +986,7 @@ N/A,application/andrew-inset
 .tsp,audio/tsplayer
 .tsv,text/tab-separated-values
 .t,text/troff
-.ttf,application/x-font-ttf
+.ttf,font/ttf
 .ttl,text/turtle
 .turbot,image/florian
 .twd,application/vnd.simtech-mindmapper
@@ -1084,7 +1084,8 @@ N/A,application/andrew-inset
 .wmv,video/x-ms-wmv
 .wmx,video/x-ms-wmx
 .wmz,application/x-ms-wmz
-.woff,application/x-font-woff
+.woff,font/woff
+.woff2,font/woff2
 .word,application/msword
 .wp5,application/wordperfect
 .wp5,application/wordperfect6.0
