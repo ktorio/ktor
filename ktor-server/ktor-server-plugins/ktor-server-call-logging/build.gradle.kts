@@ -16,6 +16,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
             }
         }
     }

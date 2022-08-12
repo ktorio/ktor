@@ -34,5 +34,5 @@ private object EmptyMDCProvider : MDCProvider {
 public val Application.mdcProvider: MDCProvider
     @Suppress("UNCHECKED_CAST")
     get() = pluginRegistry.allKeys
-        .firstNotNullOfOrNull { attributes.getOrNull(it as AttributeKey<Any>) as? MDCProvider }
+        .firstNotNullOfOrNull { pluginRegistry.getOrNull(it as AttributeKey<Any>) as? MDCProvider }
         ?: EmptyMDCProvider
