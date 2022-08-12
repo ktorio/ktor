@@ -43,7 +43,7 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             val exceptionResponse = exceptionCall.response
             val exceptionResponseText = try {
                 exceptionResponse.bodyAsText()
-            } catch (reason: MalformedInputException) {
+            } catch (_: MalformedInputException) {
                 BODY_FAILED_DECODING
             }
             when (statusCode) {
@@ -56,9 +56,9 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     }
 }
 
-internal const val NO_RESPONSE_TEXT: String = "<no response text provided>"
-internal const val BODY_FAILED_DECODING: String = "<body failed decoding>"
-internal const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
+private const val NO_RESPONSE_TEXT: String = "<no response text provided>"
+private const val BODY_FAILED_DECODING: String = "<body failed decoding>"
+private const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
 
 /**
  * Base for default response exceptions.
