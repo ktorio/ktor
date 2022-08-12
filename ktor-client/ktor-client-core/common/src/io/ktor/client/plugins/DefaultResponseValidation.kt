@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
@@ -40,7 +41,11 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             }
 
             val exceptionResponse = exceptionCall.response
-            val exceptionResponseText = exceptionResponse.bodyAsText()
+            val exceptionResponseText = try {
+                exceptionResponse.bodyAsText()
+            } catch (_: MalformedInputException) {
+                BODY_FAILED_DECODING
+            }
             when (statusCode) {
                 in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
                 in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
@@ -51,8 +56,9 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     }
 }
 
-internal const val NO_RESPONSE_TEXT: String = "<no response text provided>"
-internal const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
+private const val NO_RESPONSE_TEXT: String = "<no response text provided>"
+private const val BODY_FAILED_DECODING: String = "<body failed decoding>"
+private const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
 
 /**
  * Base for default response exceptions.
