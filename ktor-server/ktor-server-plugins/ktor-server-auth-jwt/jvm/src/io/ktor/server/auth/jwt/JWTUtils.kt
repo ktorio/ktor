@@ -53,11 +53,11 @@ internal fun getVerifier(
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
             jwkProvider.get(JWT.decode(blob).keyId)
-        } catch (ex: JwkException) {
-            JWTLogger.trace("Failed to get JWK: {}", ex.message)
+        } catch (cause: JwkException) {
+            JWTLogger.trace("Failed to get JWK", cause)
             null
-        } catch (ex: JWTDecodeException) {
-            JWTLogger.trace("Illegal JWT: {}", ex.message)
+        } catch (cause: JWTDecodeException) {
+            JWTLogger.trace("Illegal JWT", cause)
             null
         }
     } ?: return null
@@ -93,8 +93,8 @@ internal suspend fun verifyAndValidate(
 ): Principal? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
-    } catch (ex: JWTVerificationException) {
-        JWTLogger.trace("Token verification failed: {}", ex.message)
+    } catch (cause: JWTVerificationException) {
+        JWTLogger.trace("Token verification failed", cause)
         null
     } ?: return null
 
@@ -110,8 +110,8 @@ internal fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
 
 internal fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
     parseAuthorizationHeader()
-} catch (ex: IllegalArgumentException) {
-    JWTLogger.trace("Illegal HTTP auth header", ex)
+} catch (cause: IllegalArgumentException) {
+    JWTLogger.trace("Illegal HTTP auth header", cause)
     null
 }
 
