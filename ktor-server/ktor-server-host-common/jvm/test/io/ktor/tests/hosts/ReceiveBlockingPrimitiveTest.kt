@@ -8,8 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import io.ktor.server.testing.*
-import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -68,6 +66,7 @@ class ReceiveBlockingPrimitiveTest {
         init {
             application.receivePipeline.installDefaultTransformations()
         }
+
         override val request: BaseApplicationRequest = object : BaseApplicationRequest(this) {
             override val queryParameters: Parameters
                 get() = TODO("Not yet implemented")

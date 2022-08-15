@@ -24,6 +24,12 @@ public actual val NetworkAddress.hostname: String
     get() = hostname
 
 /**
+ * Network address hostname.
+ */
+public actual val NetworkAddress.address: String
+    get() = hostname
+
+/**
  * Network address port.
  */
 public actual val NetworkAddress.port: Int

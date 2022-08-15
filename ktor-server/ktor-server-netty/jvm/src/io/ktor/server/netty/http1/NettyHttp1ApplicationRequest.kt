@@ -7,7 +7,6 @@ package io.ktor.server.netty.http1
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -29,6 +28,7 @@ internal class NettyHttp1ApplicationRequest(
     HttpUtil.isKeepAlive(httpRequest)
 ) {
     override val local = NettyConnectionPoint(httpRequest, context)
+
     override val headers: Headers = NettyApplicationRequestHeaders(httpRequest)
     override fun newDecoder(): HttpPostMultipartRequestDecoder {
         return HttpPostMultipartRequestDecoder(httpRequest)

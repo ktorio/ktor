@@ -478,17 +478,31 @@ public final class io/ktor/server/plugins/MissingRequestParameterException : io/
 
 public final class io/ktor/server/plugins/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
 	public fun getHost ()Ljava/lang/String;
+	public fun getLocalAddress ()Ljava/lang/String;
+	public fun getLocalHost ()Ljava/lang/String;
+	public fun getLocalPort ()I
 	public fun getMethod ()Lio/ktor/http/HttpMethod;
 	public fun getPort ()I
+	public fun getRemoteAddress ()Ljava/lang/String;
 	public fun getRemoteHost ()Ljava/lang/String;
+	public fun getRemotePort ()I
 	public fun getScheme ()Ljava/lang/String;
+	public fun getServerHost ()Ljava/lang/String;
+	public fun getServerPort ()I
 	public fun getUri ()Ljava/lang/String;
 	public fun getVersion ()Ljava/lang/String;
 	public fun setHost (Ljava/lang/String;)V
+	public fun setLocalAddress (Ljava/lang/String;)V
+	public fun setLocalHost (Ljava/lang/String;)V
+	public fun setLocalPort (I)V
 	public fun setMethod (Lio/ktor/http/HttpMethod;)V
 	public fun setPort (I)V
+	public fun setRemoteAddress (Ljava/lang/String;)V
 	public fun setRemoteHost (Ljava/lang/String;)V
+	public fun setRemotePort (I)V
 	public fun setScheme (Ljava/lang/String;)V
+	public fun setServerHost (Ljava/lang/String;)V
+	public fun setServerPort (I)V
 	public fun setUri (Ljava/lang/String;)V
 	public fun setVersion (Ljava/lang/String;)V
 }

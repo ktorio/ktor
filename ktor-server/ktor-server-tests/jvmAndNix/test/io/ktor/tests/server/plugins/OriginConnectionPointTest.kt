@@ -23,7 +23,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.local) {
                         assertEquals("localhost", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("localhost", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -31,7 +35,11 @@ class OriginConnectionPointTest {
 
                     with(call.request.origin) {
                         assertEquals("localhost", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("localhost", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -53,7 +61,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("localhost", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("localhost", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -77,7 +89,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("host", serverHost)
+                        assertEquals("localhost", localHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -101,7 +117,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(90, port)
+                        assertEquals(80, localPort)
+                        assertEquals(90, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -125,7 +145,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("localhost", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("localhost", serverHost)
                         assertEquals(443, port)
+                        assertEquals(80, localPort)
+                        assertEquals(443, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -149,7 +173,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(90, port)
+                        assertEquals(80, localPort)
+                        assertEquals(90, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -174,7 +202,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(443, port)
+                        assertEquals(80, localPort)
+                        assertEquals(443, serverPort)
                         assertEquals("localhost", remoteHost)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -199,6 +231,8 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                     }
 
                     call.respond("OK")
@@ -219,6 +253,8 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                     }
 
                     call.respond("OK")
@@ -240,6 +276,8 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(443, port)
+                        assertEquals(80, localPort)
+                        assertEquals(443, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                     }
@@ -262,10 +300,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("client", remoteHost)
                         assertEquals("host1", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host1", serverHost)
                     }
 
                     call.respond("OK")
@@ -292,10 +334,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("client", remoteHost)
                         assertEquals("host1", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host1", serverHost)
                     }
 
                     call.respond("OK")
@@ -322,10 +368,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("client", remoteHost)
                         assertEquals("host1", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host1", serverHost)
                     }
 
                     call.respond("OK")
@@ -352,10 +402,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(93, port)
+                        assertEquals(80, localPort)
+                        assertEquals(93, serverPort)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("proxy2", remoteHost)
                         assertEquals("host3", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host3", serverHost)
                     }
 
                     call.respond("OK")
@@ -382,10 +436,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("client", remoteHost)
                         assertEquals("host1", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host1", serverHost)
                     }
 
                     call.respond("OK")
@@ -412,10 +470,14 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
                         assertEquals("client", remoteHost)
                         assertEquals("host1", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host1", serverHost)
                     }
 
                     call.respond("OK")
@@ -440,7 +502,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -464,7 +530,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(90, port)
+                        assertEquals(80, localPort)
+                        assertEquals(90, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -488,7 +558,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(443, port)
+                        assertEquals(80, localPort)
+                        assertEquals(443, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("https", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -512,7 +586,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("localhost", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("localhost", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -536,7 +614,11 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals("host", host)
+                        assertEquals("localhost", localHost)
+                        assertEquals("host", serverHost)
                         assertEquals(80, port)
+                        assertEquals(80, localPort)
+                        assertEquals(80, serverPort)
                         assertEquals("client", remoteHost)
                         assertEquals("http", scheme)
                         assertEquals("HTTP/1.1", version)
@@ -723,7 +805,11 @@ class OriginConnectionPointTest {
             get("/") {
                 with(call.request.origin) {
                     assertEquals("host", host)
+                    assertEquals("localhost", localHost)
+                    assertEquals("host", serverHost)
                     assertEquals(80, port)
+                    assertEquals(80, localPort)
+                    assertEquals(80, serverPort)
                 }
 
                 call.respond("OK")
@@ -731,7 +817,11 @@ class OriginConnectionPointTest {
             get("/90") {
                 with(call.request.origin) {
                     assertEquals("host", host)
+                    assertEquals("localhost", localHost)
+                    assertEquals("host", serverHost)
                     assertEquals(90, port)
+                    assertEquals(80, localPort)
+                    assertEquals(90, serverPort)
                 }
 
                 call.respond("OK")
@@ -739,7 +829,11 @@ class OriginConnectionPointTest {
             get("/no-header") {
                 with(call.request.origin) {
                     assertEquals("localhost", host)
+                    assertEquals("localhost", localHost)
+                    assertEquals("localhost", serverHost)
                     assertEquals(80, port)
+                    assertEquals(80, localPort)
+                    assertEquals(80, serverPort)
                 }
 
                 call.respond("OK")
@@ -770,6 +864,8 @@ class OriginConnectionPointTest {
                 get("/") {
                     with(call.request.origin) {
                         assertEquals(91, port)
+                        assertEquals(80, localPort)
+                        assertEquals(91, serverPort)
                     }
 
                     call.respond("OK")
