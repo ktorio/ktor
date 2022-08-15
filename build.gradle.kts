@@ -93,7 +93,7 @@ apply(from = "gradle/compatibility.gradle")
 plugins {
     id("org.jetbrains.dokka") version "1.6.21" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.10.0"
-    id("kotlinx-atomicfu") version "0.18.2" apply false
+    id("kotlinx-atomicfu") version "0.18.3" apply false
 }
 
 val kotlinVersion = libs.versions.kotlin.version.get()
@@ -233,7 +233,6 @@ tasks.withType<DokkaMultiModuleTask> {
 rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
     rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false }
 
-configureDokka()
 
 fun Project.setupJvmToolchain() {
     val jdk = when (project.name) {
