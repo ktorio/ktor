@@ -12,14 +12,22 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
+@OptIn(DelicateCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
     is OutgoingContent.WriteChannelContent -> {
-        ByteChannel().also { writeTo(it) }.toByteArray()
+        val channel = ByteChannel()
+        GlobalScope.launch(Dispatchers.Unconfined) {
+            writeTo(channel)
+            channel.close()
+        }
+        channel.toByteArray()
     }
+
     else -> ByteArray(0)
 }
 
@@ -28,8 +36,14 @@ public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (th
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
     is OutgoingContent.WriteChannelContent -> {
-        ByteChannel().also { writeTo(it) }.readRemaining()
+        val channel = ByteChannel()
+        GlobalScope.launch(Dispatchers.Unconfined) {
+            writeTo(channel)
+            channel.close()
+        }
+        channel.readRemaining()
     }
+
     else -> ByteReadPacket.Empty
 }
 

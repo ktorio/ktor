@@ -1,17 +1,22 @@
-
 plugins {
     id("kotlinx-serialization")
 }
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-client:ktor-client-core"))
         }
     }
 
-   jvmTest {
+    commonTest {
+        dependencies {
+            api(project(":ktor-test-dispatcher"))
+        }
+    }
+
+    jvmTest {
         dependencies {
             api(libs.kotlinx.serialization.core)
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
