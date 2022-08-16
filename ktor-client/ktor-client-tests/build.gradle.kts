@@ -87,6 +87,7 @@ kotlin.sourceSets {
     darwinTest {
         dependencies {
             api(project(":ktor-client:ktor-client-darwin"))
+            api(project(":ktor-client:ktor-client-darwin-legacy"))
         }
     }
 }
