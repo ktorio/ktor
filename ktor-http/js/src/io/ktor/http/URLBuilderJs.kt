@@ -16,7 +16,7 @@ import org.w3c.workers.*
  */
 public actual val URLBuilder.Companion.origin: String
     get() = when {
-        PlatformUtils.IS_BROWSER -> if (window !== undefined) {
+        PlatformUtils.IS_BROWSER -> if (js("typeof window !== 'undefined'") as Boolean) {
             window.location.origin
         } else {
             js("self.location.origin") as String
