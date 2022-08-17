@@ -86,6 +86,13 @@ public class ResponseCookies(
     /**
      * Appends an already expired cookie. Useful to remove client cookies.
      */
+    @Deprecated(
+        "This method doesn't bypass all flags and extensions so it will be removed in future " +
+            "major release. Please consider using append with expires parameter instead.",
+        replaceWith = ReplaceWith(
+            "append(name, \"\", CookieEncoding.URI_ENCODING, 0, GMTDate(), domain, path, secure, httpOnly, extensions)"
+        )
+    )
     public fun appendExpired(name: String, domain: String? = null, path: String? = null) {
         append(name, "", domain = domain, path = path, expires = GMTDate.START)
     }

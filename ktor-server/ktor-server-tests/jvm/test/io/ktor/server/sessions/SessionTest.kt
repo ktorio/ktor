@@ -565,7 +565,8 @@ class SessionTest {
                     call.respondText("ok")
                 }
                 get("/2") {
-                    call.respondText(call.sessions.get<TestUserSession>()?.userId ?: "none")
+                    val session = call.sessions.get<TestUserSession>()
+                    call.respondText(session?.userId ?: "none")
                 }
             }
 
