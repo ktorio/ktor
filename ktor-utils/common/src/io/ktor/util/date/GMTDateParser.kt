@@ -4,8 +4,6 @@
 
 package io.ktor.util.date
 
-import io.ktor.util.*
-
 /**
  * Build [GMTDate] parser using [pattern] string.
  *
@@ -116,7 +114,7 @@ internal class GMTDateBuilder {
     lateinit var month: Month
     var year: Int? = null
 
-    public fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month, year!!)
+    fun build(): GMTDate = GMTDate(seconds!!, minutes!!, hours!!, dayOfMonth!!, month, year!!)
 }
 
 /**

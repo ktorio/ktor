@@ -93,27 +93,14 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         callContext()
     )
 
+    @OptIn(InternalAPI::class)
     internal fun TestApplicationRequest.appendRequestHeaders(
         headers: Headers,
         content: OutgoingContent
     ) {
-        headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
-            if (HttpHeaders.ContentType == name) return@flattenForEach // set later
+        mergeHeaders(headers, content) { name, value ->
             addHeader(name, value)
         }
-
-        content.headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
-            if (HttpHeaders.ContentType == name) return@flattenForEach
-            addHeader(name, value)
-        }
-
-        val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
-        val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
-
-        contentLength?.let { addHeader(HttpHeaders.ContentLength, it) }
-        contentType?.let { addHeader(HttpHeaders.ContentType, it) }
     }
 
     override fun close() {
