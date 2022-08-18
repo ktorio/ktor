@@ -173,7 +173,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
             )
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
-            JWTLogger.trace("JWT verification failed: {}", message)
+            JWTLogger.trace("JWT verification failed", cause)
             context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
         }
     }
