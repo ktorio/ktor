@@ -60,7 +60,7 @@ internal class NettyHttp2ApplicationRequest(
     override val local = Http2LocalConnectionPoint(
         nettyHeaders,
         context.channel().localAddress() as? InetSocketAddress,
-        context.channel().remoteAddress() as? InetSocketAddress
+        context.channel().remoteAddress() as? InetSocketAddress,
     )
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)

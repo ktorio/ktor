@@ -14,7 +14,7 @@ import kotlin.reflect.*
 
 /**
  * Represents request and connection parameters possibly overridden via https headers.
- * By default it fallbacks to [ApplicationRequest.local]
+ * By default, it fallbacks to [ApplicationRequest.local]
  */
 @Suppress("DEPRECATION")
 public val ApplicationRequest.origin: RequestConnectionPoint
@@ -30,8 +30,8 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
 
 /**
  * Represents a [RequestConnectionPoint]. Its every component is mutable so application plugins could modify them.
- * By default all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.host]
- * and [RequestConnectionPoint.port] overridden by [HttpHeaders.Host] header value.
+ * By default, all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.serverHost]
+ * and [RequestConnectionPoint.serverPort] overridden by [HttpHeaders.Host] header value.
  * Users can assign new values parsed from [HttpHeaders.Forwarded], [HttpHeaders.XForwardedHost], etc.
  * See [XForwardedHeaders] and [ForwardedHeaders].
  */
@@ -43,9 +43,22 @@ public class MutableOriginConnectionPoint internal constructor(
     override var uri: String by AssignableWithDelegate { delegate.uri }
     override var method: HttpMethod by AssignableWithDelegate { delegate.method }
     override var scheme: String by AssignableWithDelegate { delegate.scheme }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use localHost or serverHost instead")
     override var host: String by AssignableWithDelegate { delegate.host }
+    override var localHost: String by AssignableWithDelegate { delegate.localHost }
+    override var serverHost: String by AssignableWithDelegate { delegate.serverHost }
+    override var localAddress: String by AssignableWithDelegate { delegate.localAddress }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use localPort or serverPort instead")
     override var port: Int by AssignableWithDelegate { delegate.port }
+    override var localPort: Int by AssignableWithDelegate { delegate.localPort }
+    override var serverPort: Int by AssignableWithDelegate { delegate.serverPort }
     override var remoteHost: String by AssignableWithDelegate { delegate.remoteHost }
+    override var remotePort: Int by AssignableWithDelegate { delegate.remotePort }
+    override var remoteAddress: String by AssignableWithDelegate { delegate.remoteAddress }
 }
 
 private class AssignableWithDelegate<T : Any>(val property: () -> T) {
@@ -71,14 +84,29 @@ internal class OriginConnectionPoint(
     override val version: String
         get() = local.version
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Use localHost or serverHost instead")
     override val port: Int
         get() = hostHeaderValue?.substringAfter(":", "80")
             ?.toIntOrNull()
             ?: local.port
 
+    override val localPort: Int
+        get() = local.localPort
+    override val serverPort: Int
+        get() = local.serverPort
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use localHost or serverHost instead")
     override val host: String
         get() = hostHeaderValue?.substringBefore(":")
             ?: local.host
+    override val localHost: String
+        get() = local.localHost
+    override val serverHost: String
+        get() = local.serverHost
+    override val localAddress: String
+        get() = local.localAddress
 
     override val uri: String
         get() = local.uri
@@ -88,6 +116,10 @@ internal class OriginConnectionPoint(
 
     override val remoteHost: String
         get() = local.remoteHost
+    override val remotePort: Int
+        get() = local.remotePort
+    override val remoteAddress: String
+        get() = local.remoteAddress
 }
 
 /**
@@ -96,7 +128,5 @@ internal class OriginConnectionPoint(
 @Suppress("DEPRECATION")
 public val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
-        MutableOriginConnectionPoint(
-            OriginConnectionPoint(this)
-        )
+        MutableOriginConnectionPoint(OriginConnectionPoint(this))
     }
