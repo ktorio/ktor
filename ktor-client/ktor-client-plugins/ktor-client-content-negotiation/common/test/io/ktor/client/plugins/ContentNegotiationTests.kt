@@ -402,8 +402,6 @@ class ContentNegotiationTests {
         }
     }
 
-
-
     object Thing
 
     data class StringWrapper(val value: String)

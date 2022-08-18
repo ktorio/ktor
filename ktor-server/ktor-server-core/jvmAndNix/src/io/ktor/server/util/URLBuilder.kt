@@ -17,8 +17,8 @@ public fun URLBuilder.Companion.createFromCall(call: ApplicationCall): URLBuilde
 
     val builder = URLBuilder()
     builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
-    builder.host = origin.host.substringBefore(":")
-    builder.port = origin.port
+    builder.host = origin.serverHost
+    builder.port = origin.serverPort
     builder.encodedPath = call.request.path()
     builder.parameters.appendAll(call.request.queryParameters)
 
