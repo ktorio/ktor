@@ -126,13 +126,13 @@ public fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.Cache
  * Gets a request's host value without a port.
  * @see [port]
  */
-public fun ApplicationRequest.host(): String = origin.host
+public fun ApplicationRequest.host(): String = origin.serverHost
 
 /**
  * Gets a request's port extracted from the `Host` header value.
  * @see [host]
  */
-public fun ApplicationRequest.port(): Int = origin.port
+public fun ApplicationRequest.port(): Int = origin.serverPort
 
 /**
  * Gets ranges parsed from a request's `Range` header value.
