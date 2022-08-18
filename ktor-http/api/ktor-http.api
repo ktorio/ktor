@@ -854,10 +854,17 @@ public final class io/ktor/http/RangesSpecifier {
 
 public abstract interface class io/ktor/http/RequestConnectionPoint {
 	public abstract fun getHost ()Ljava/lang/String;
+	public abstract fun getLocalAddress ()Ljava/lang/String;
+	public abstract fun getLocalHost ()Ljava/lang/String;
+	public abstract fun getLocalPort ()I
 	public abstract fun getMethod ()Lio/ktor/http/HttpMethod;
 	public abstract fun getPort ()I
+	public abstract fun getRemoteAddress ()Ljava/lang/String;
 	public abstract fun getRemoteHost ()Ljava/lang/String;
+	public abstract fun getRemotePort ()I
 	public abstract fun getScheme ()Ljava/lang/String;
+	public abstract fun getServerHost ()Ljava/lang/String;
+	public abstract fun getServerPort ()I
 	public abstract fun getUri ()Ljava/lang/String;
 	public abstract fun getVersion ()Ljava/lang/String;
 }
