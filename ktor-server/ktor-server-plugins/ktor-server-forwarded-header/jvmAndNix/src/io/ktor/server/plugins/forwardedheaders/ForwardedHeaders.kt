@@ -2,6 +2,8 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.server.plugins.forwardedheaders
 
 import io.ktor.http.*
@@ -97,6 +99,7 @@ public class ForwardedHeadersConfig {
             connectionPoint.scheme = proto
             URLProtocol.byName[proto]?.let { p ->
                 connectionPoint.port = p.defaultPort
+                connectionPoint.serverPort = p.defaultPort
             }
         }
 
@@ -112,8 +115,14 @@ public class ForwardedHeadersConfig {
             val port = forward.host.substringAfter(':', "")
 
             connectionPoint.host = host
-            port.toIntOrNull()?.let { connectionPoint.port = it }
-                ?: URLProtocol.byName[connectionPoint.scheme]?.let { connectionPoint.port = it.defaultPort }
+            connectionPoint.serverHost = host
+            port.toIntOrNull()?.let {
+                connectionPoint.port = it
+                connectionPoint.serverPort = it
+            } ?: URLProtocol.byName[connectionPoint.scheme]?.let {
+                connectionPoint.port = it.defaultPort
+                connectionPoint.serverPort = it.defaultPort
+            }
         }
     }
 }

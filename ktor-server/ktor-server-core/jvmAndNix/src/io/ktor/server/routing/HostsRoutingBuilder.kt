@@ -107,8 +107,8 @@ public data class HostRouteSelector(
     }
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val requestHost = context.call.request.origin.host
-        val requestPort = context.call.request.origin.port
+        val requestHost = context.call.request.origin.serverHost
+        val requestPort = context.call.request.origin.serverPort
 
         if (hostList.isNotEmpty() || hostPatterns.isNotEmpty()) {
             val matches1 = requestHost in hostList

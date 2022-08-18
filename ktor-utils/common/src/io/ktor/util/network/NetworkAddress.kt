@@ -23,10 +23,16 @@ public expect abstract class NetworkAddress
 public expect fun NetworkAddress(hostname: String, port: Int): NetworkAddress
 
 /**
- * Network address hostname.
+ * Network address hostname. This may trigger a reverse lookup.
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val NetworkAddress.hostname: String
+
+/**
+ * Network address. Usually, it's an IP address in string form. This will not trigger a reverse lookup.
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+public expect val NetworkAddress.address: String
 
 /**
  * Network address port.
