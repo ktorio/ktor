@@ -2,6 +2,8 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.server.plugins.forwardedheaders
 
 import io.ktor.http.*
@@ -125,7 +127,10 @@ public class XForwardedHeadersConfig {
         protoValues?.let { values ->
             val scheme = extractValue(values) ?: return@let
             connectionPoint.scheme = scheme
-            URLProtocol.byName[scheme]?.let { connectionPoint.port = it.defaultPort }
+            URLProtocol.byName[scheme]?.let {
+                connectionPoint.port = it.defaultPort
+                connectionPoint.serverPort = it.defaultPort
+            }
         }
 
         httpsFlagValues?.let { values ->
@@ -135,6 +140,7 @@ public class XForwardedHeadersConfig {
             connectionPoint.let { route ->
                 route.scheme = "https"
                 route.port = URLProtocol.HTTPS.defaultPort
+                route.serverPort = URLProtocol.HTTPS.defaultPort
             }
         }
 
@@ -144,16 +150,20 @@ public class XForwardedHeadersConfig {
             val port = hostAndPort.substringAfter(':', "")
 
             connectionPoint.host = host
+            connectionPoint.serverHost = host
             port.toIntOrNull()?.let {
                 connectionPoint.port = it
+                connectionPoint.serverPort = it
             } ?: URLProtocol.byName[connectionPoint.scheme]?.let {
                 connectionPoint.port = it.defaultPort
+                connectionPoint.serverPort = it.defaultPort
             }
         }
 
         portValues?.let { values ->
             val port = extractValue(values) ?: return@let
             connectionPoint.port = port.toInt()
+            connectionPoint.serverPort = port.toInt()
         }
 
         forValues?.let { values ->

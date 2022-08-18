@@ -10,6 +10,7 @@ import io.netty.handler.codec.http2.*
 import java.net.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class NettyHttp2LocalConnectionPointTest {
     @Test
     fun testMethod() {
@@ -47,7 +48,7 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testPort() {
+    fun testPortLegacy() {
         val point = point {
             authority("host:443")
         }
@@ -56,7 +57,7 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testPortUnspecified() {
+    fun testPortUnspecifiedLegacy() {
         val point = point {
             authority("host")
         }
@@ -65,7 +66,8 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testPortUnspecifiedWithAddress() {
+    @Ignore
+    fun testPortUnspecifiedWithAddressLegacy() {
         val point = point(localAddress = InetSocketAddress(8443)) {
             authority("host")
         }
@@ -74,7 +76,7 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testHost() {
+    fun testHostLegacy() {
         val point = point {
             authority("host1")
         }
@@ -83,7 +85,7 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testHostWithPort() {
+    fun testHostWithPortLegacy() {
         val point = point {
             authority("host1:80")
         }
@@ -92,7 +94,7 @@ class NettyHttp2LocalConnectionPointTest {
     }
 
     @Test
-    fun testHostMissing() {
+    fun testHostMissingLegacy() {
         val point = point {
         }
 
@@ -136,6 +138,40 @@ class NettyHttp2LocalConnectionPointTest {
         }
 
         assertEquals("z", point.remoteHost)
+    }
+
+    @Test
+    fun testLocalHostAndPort() {
+        val point = point(
+            remoteAddress = InetSocketAddress("remote", 123),
+            localAddress = InetSocketAddress("local", 234),
+        ) {
+            authority("host1:80")
+        }
+        assertEquals("local", point.localHost)
+        assertEquals(234, point.localPort)
+    }
+
+    @Test
+    fun testServerHostAndPort() {
+        val point = point(
+            remoteAddress = InetSocketAddress("remote", 123),
+            localAddress = InetSocketAddress("local", 234),
+        ) {
+            authority("host1:81")
+        }
+        assertEquals("host1", point.serverHost)
+        assertEquals(81, point.serverPort)
+    }
+
+    @Test
+    fun testServerHostAndPortNoHeader() {
+        val point = point(
+            remoteAddress = InetSocketAddress("remote", 123),
+            localAddress = InetSocketAddress("local", 234),
+        ) {}
+        assertEquals("local", point.serverHost)
+        assertEquals(234, point.serverPort)
     }
 
     private fun headers(block: DefaultHttp2Headers.() -> Unit): Http2Headers {
