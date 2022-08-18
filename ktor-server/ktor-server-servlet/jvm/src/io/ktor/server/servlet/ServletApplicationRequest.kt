@@ -14,6 +14,7 @@ public abstract class ServletApplicationRequest(
     call: ApplicationCall,
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
+
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
