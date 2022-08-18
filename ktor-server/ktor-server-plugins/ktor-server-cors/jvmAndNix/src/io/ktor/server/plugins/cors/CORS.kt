@@ -246,7 +246,7 @@ private fun ApplicationCall.accessControlMaxAge(maxAgeHeaderValue: String?) {
 }
 
 private fun isSameOrigin(origin: String, point: RequestConnectionPoint, numberRegex: Regex): Boolean {
-    val requestOrigin = "${point.scheme}://${point.host}:${point.port}"
+    val requestOrigin = "${point.scheme}://${point.serverHost}:${point.serverPort}"
     return normalizeOrigin(requestOrigin, numberRegex) == normalizeOrigin(origin, numberRegex)
 }
 
