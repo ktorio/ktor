@@ -43,7 +43,7 @@ public interface ApplicationRequest {
     public val headers: Headers
 
     /**
-     * Provides access to connection details such as a host name, port, scheme, and so on.
+     * Provides access to connection details such as a host name, port, scheme, etc.
      * To get information about a request passed through an HTTP proxy or a load balancer,
      * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
      */
