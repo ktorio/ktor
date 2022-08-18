@@ -18,6 +18,9 @@ public actual typealias NetworkAddress = SocketAddress
 public actual val NetworkAddress.hostname: String
     get() = (this as? InetSocketAddress)?.hostName ?: (this as? InetSocketAddress)?.address?.hostName ?: ""
 
+public actual val NetworkAddress.address: String
+    get() = (this as? InetSocketAddress)?.hostString ?: ""
+
 public actual val NetworkAddress.port: Int
     get() = (this as? InetSocketAddress)?.port ?: 0
 
