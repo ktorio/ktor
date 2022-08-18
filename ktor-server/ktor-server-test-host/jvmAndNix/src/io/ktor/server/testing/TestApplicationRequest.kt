@@ -9,10 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.testing.internal.*
-import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -50,15 +48,33 @@ public class TestApplicationRequest constructor(
         override val scheme: String
             get() = protocol
 
+        @Deprecated("Use localPort or serverPort instead")
         override val port: Int
             get() = this@TestApplicationRequest.port
                 ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt()
                 ?: 80
 
+        @Deprecated("Use localHost or serverHost instead")
         override val host: String
             get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"
 
+        override val localPort: Int
+            get() = this@TestApplicationRequest.port ?: 80
+        override val serverPort: Int
+            get() = header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: localPort
+
+        override val localHost: String
+            get() = "localhost"
+        override val serverHost: String
+            get() = header(HttpHeaders.Host)?.substringBefore(":") ?: localHost
+        override val localAddress: String
+            get() = "localhost"
+
         override val remoteHost: String
+            get() = "localhost"
+        override val remotePort: Int
+            get() = 0
+        override val remoteAddress: String
             get() = "localhost"
 
         override val version: String
