@@ -121,7 +121,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
                 ?: if (pluginConfig.distinctNotRegisteredRoutes) call.request.path() else "n/a"
             tags(
                 listOf(
-                    of("address", call.request.local.let { "${it.host}:${it.port}" }),
+                    of("address", call.request.local.let { "${it.localHost}:${it.localPort}" }),
                     of("method", call.request.httpMethod.value),
                     of("route", route),
                     of("status", call.response.status()?.value?.toString() ?: "n/a"),
