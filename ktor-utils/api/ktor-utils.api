@@ -866,6 +866,7 @@ public final class io/ktor/util/logging/LoggerKt {
 
 public final class io/ktor/util/network/NetworkAddressJvmKt {
 	public static final fun NetworkAddress (Ljava/lang/String;I)Ljava/net/SocketAddress;
+	public static final fun getAddress (Ljava/net/SocketAddress;)Ljava/lang/String;
 	public static final fun getHostname (Ljava/net/SocketAddress;)Ljava/lang/String;
 	public static final fun getPort (Ljava/net/SocketAddress;)I
 }

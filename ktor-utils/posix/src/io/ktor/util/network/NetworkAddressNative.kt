@@ -42,6 +42,10 @@ public actual val NetworkAddress.hostname: String
     get() = hostname
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+public actual val NetworkAddress.address: String
+    get() = hostname
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual val NetworkAddress.port: Int
     get() = port
 
