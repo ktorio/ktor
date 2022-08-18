@@ -48,7 +48,7 @@ public fun HttpClient.defaultTransformers() {
             is OutgoingContent -> body
             else -> platformRequestDefaultTransform(contentType, context, body)
         }
-        if (content != null) {
+        if (content?.contentType != null) {
             context.headers.remove(HttpHeaders.ContentType)
             proceedWith(content)
         }
