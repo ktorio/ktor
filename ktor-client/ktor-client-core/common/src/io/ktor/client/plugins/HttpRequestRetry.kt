@@ -6,6 +6,7 @@ package io.ktor.client.plugins
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.events.*
@@ -13,8 +14,101 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.math.*
-import kotlin.native.concurrent.*
 import kotlin.random.*
+
+@Suppress("NAME_SHADOWING")
+internal val HttpRequestRetryPlugin = createClientPlugin("RetryFeature", HttpRequestRetry::Configuration) {
+
+    val shouldRetry: HttpRequestRetry.ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean =
+        pluginConfig.shouldRetry
+    val shouldRetryOnException: HttpRequestRetry.ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean =
+        pluginConfig.shouldRetryOnException
+    val delayMillis: HttpRequestRetry.DelayContext.(Int) -> Long = pluginConfig.delayMillis
+    val delay: suspend (Long) -> Unit = pluginConfig.delay
+    val maxRetries: Int = pluginConfig.maxRetries
+    val modifyRequest: HttpRequestRetry.ModifyRequestContext.(HttpRequestBuilder) -> Unit = pluginConfig.modifyRequest
+
+    fun shouldRetry(
+        retryCount: Int,
+        maxRetries: Int,
+        shouldRetry: HttpRequestRetry.ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean,
+        call: HttpClientCall
+    ) = retryCount < maxRetries && shouldRetry(
+        HttpRequestRetry.ShouldRetryContext(retryCount + 1),
+        call.request,
+        call.response
+    )
+
+    fun shouldRetryOnException(
+        retryCount: Int,
+        maxRetries: Int,
+        shouldRetry: HttpRequestRetry.ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean,
+        subRequest: HttpRequestBuilder,
+        cause: Throwable
+    ) = retryCount < maxRetries && shouldRetry(HttpRequestRetry.ShouldRetryContext(retryCount + 1), subRequest, cause)
+
+    fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
+        val subRequest = HttpRequestBuilder().takeFrom(request)
+        val subRequestJob = Job()
+        subRequest.executionContext = subRequestJob
+        CoroutineScope(request.executionContext).launch {
+            subRequestJob.join()
+        }
+        request.executionContext.invokeOnCompletion {
+            when (it) {
+                null -> subRequestJob.complete()
+                else -> subRequestJob.completeExceptionally(it)
+            }
+        }
+        return subRequest
+    }
+
+    on(Send) { request ->
+        var retryCount = 0
+        val shouldRetry = request.attributes.getOrNull(ShouldRetryPerRequestAttributeKey) ?: shouldRetry
+        val shouldRetryOnException =
+            request.attributes.getOrNull(ShouldRetryOnExceptionPerRequestAttributeKey) ?: shouldRetryOnException
+        val maxRetries = request.attributes.getOrNull(MaxRetriesPerRequestAttributeKey) ?: maxRetries
+        val delayMillis = request.attributes.getOrNull(RetryDelayPerRequestAttributeKey) ?: delayMillis
+        val modifyRequest = request.attributes.getOrNull(ModifyRequestPerRequestAttributeKey) ?: modifyRequest
+
+        var call: HttpClientCall
+        var lastRetryData: HttpRequestRetry.RetryEventData? = null
+        while (true) {
+            val subRequest = prepareRequest(request)
+
+            val retryData = try {
+                if (lastRetryData != null) {
+                    val modifyRequestContext = HttpRequestRetry.ModifyRequestContext(
+                        request,
+                        lastRetryData.response,
+                        lastRetryData.cause,
+                        lastRetryData.retryCount
+                    )
+                    modifyRequest(modifyRequestContext, subRequest)
+                }
+                call = execute(subRequest)
+                if (!shouldRetry(retryCount, maxRetries, shouldRetry, call)) {
+                    break
+                }
+                HttpRequestRetry.RetryEventData(subRequest, ++retryCount, call.response, null)
+            } catch (cause: Throwable) {
+                if (!shouldRetryOnException(retryCount, maxRetries, shouldRetryOnException, subRequest, cause)) {
+                    throw cause
+                }
+                HttpRequestRetry.RetryEventData(subRequest, ++retryCount, null, cause)
+            }
+
+            lastRetryData = retryData
+            client.monitor.raise(HttpRequestRetry.HttpRequestRetryEvent, lastRetryData)
+
+            val delayContext =
+                HttpRequestRetry.DelayContext(lastRetryData.request, lastRetryData.response, lastRetryData.cause)
+            delay(delayMillis(delayContext, retryCount))
+        }
+        call
+    }
+}
 
 /**
  * A plugin that enables the client to retry failed requests.
@@ -37,7 +131,7 @@ import kotlin.random.*
  * }
  * ```
  */
-public class HttpRequestRetry internal constructor(configuration: Configuration) {
+public class HttpRequestRetry internal constructor() {
 
     /**
      * A context for [HttpRequestRetry.Configuration.shouldRetry]
@@ -86,14 +180,6 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         public val response: HttpResponse?,
         public val cause: Throwable?
     )
-
-    private val shouldRetry: ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean = configuration.shouldRetry
-    private val shouldRetryOnException: ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean =
-        configuration.shouldRetryOnException
-    private val delayMillis: DelayContext.(Int) -> Long = configuration.delayMillis
-    private val delay: suspend (Long) -> Unit = configuration.delay
-    private val maxRetries: Int = configuration.maxRetries
-    private val modifyRequest: ModifyRequestContext.(HttpRequestBuilder) -> Unit = configuration.modifyRequest
 
     /**
      * Contains [HttpRequestRetry] configurations settings.
@@ -247,99 +333,21 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
             if (randomizationMs == 0L) 0L else Random.nextLong(randomizationMs)
     }
 
-    internal fun intercept(client: HttpClient) {
-        client.plugin(HttpSend).intercept { request ->
-            var retryCount = 0
-            val shouldRetry = request.attributes.getOrNull(ShouldRetryPerRequestAttributeKey) ?: shouldRetry
-            val shouldRetryOnException =
-                request.attributes.getOrNull(ShouldRetryOnExceptionPerRequestAttributeKey) ?: shouldRetryOnException
-            val maxRetries = request.attributes.getOrNull(MaxRetriesPerRequestAttributeKey) ?: maxRetries
-            val delayMillis = request.attributes.getOrNull(RetryDelayPerRequestAttributeKey) ?: delayMillis
-            val modifyRequest = request.attributes.getOrNull(ModifyRequestPerRequestAttributeKey) ?: modifyRequest
-
-            var call: HttpClientCall
-            var lastRetryData: RetryEventData? = null
-            while (true) {
-                val subRequest = prepareRequest(request)
-
-                val retryData = try {
-                    if (lastRetryData != null) {
-                        val modifyRequestContext = ModifyRequestContext(
-                            request,
-                            lastRetryData.response,
-                            lastRetryData.cause,
-                            lastRetryData.retryCount
-                        )
-                        modifyRequest(modifyRequestContext, subRequest)
-                    }
-                    call = execute(subRequest)
-                    if (!shouldRetry(retryCount, maxRetries, shouldRetry, call)) {
-                        break
-                    }
-                    RetryEventData(subRequest, ++retryCount, call.response, null)
-                } catch (cause: Throwable) {
-                    if (!shouldRetryOnException(retryCount, maxRetries, shouldRetryOnException, subRequest, cause)) {
-                        throw cause
-                    }
-                    RetryEventData(subRequest, ++retryCount, null, cause)
-                }
-
-                lastRetryData = retryData
-                client.monitor.raise(HttpRequestRetryEvent, lastRetryData)
-
-                val delayContext = DelayContext(lastRetryData.request, lastRetryData.response, lastRetryData.cause)
-                delay(delayMillis(delayContext, retryCount))
-            }
-            call
-        }
-    }
-
-    private fun shouldRetry(
-        retryCount: Int,
-        maxRetries: Int,
-        shouldRetry: ShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean,
-        call: HttpClientCall
-    ) = retryCount < maxRetries && shouldRetry(ShouldRetryContext(retryCount + 1), call.request, call.response)
-
-    private fun shouldRetryOnException(
-        retryCount: Int,
-        maxRetries: Int,
-        shouldRetry: ShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean,
-        subRequest: HttpRequestBuilder,
-        cause: Throwable
-    ) = retryCount < maxRetries && shouldRetry(ShouldRetryContext(retryCount + 1), subRequest, cause)
-
-    private fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
-        val subRequest = HttpRequestBuilder().takeFrom(request)
-        val subRequestJob = Job()
-        subRequest.executionContext = subRequestJob
-        CoroutineScope(request.executionContext).launch {
-            subRequestJob.join()
-        }
-        request.executionContext.invokeOnCompletion {
-            when (it) {
-                null -> subRequestJob.complete()
-                else -> subRequestJob.completeExceptionally(it)
-            }
-        }
-        return subRequest
-    }
-
-    public companion object Plugin : HttpClientPlugin<Configuration, HttpRequestRetry> {
-        override val key: AttributeKey<HttpRequestRetry> = AttributeKey("RetryFeature")
+    public companion object Plugin : HttpClientPlugin<Configuration, ClientPluginInstance<Configuration>> {
+        override val key: AttributeKey<ClientPluginInstance<Configuration>> = AttributeKey("RetryFeature")
 
         /**
          * Occurs on request retry.
          */
         public val HttpRequestRetryEvent: EventDefinition<RetryEventData> = EventDefinition()
 
-        override fun prepare(block: Configuration.() -> Unit): HttpRequestRetry {
-            val configuration = Configuration().apply(block)
-            return HttpRequestRetry(configuration)
+        override fun prepare(block: Configuration.() -> Unit): ClientPluginInstance<Configuration> {
+            return HttpRequestRetryPlugin.prepare(block)
         }
 
-        override fun install(plugin: HttpRequestRetry, scope: HttpClient) {
-            plugin.intercept(scope)
+        @OptIn(InternalAPI::class)
+        override fun install(plugin: ClientPluginInstance<Configuration>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
 }

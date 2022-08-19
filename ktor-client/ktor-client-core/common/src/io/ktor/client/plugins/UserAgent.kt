@@ -5,29 +5,42 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+
+internal val UserAgentPlugin = createClientPlugin("UserAgent", UserAgent::Config) {
+
+    val agent = pluginConfig.agent
+
+    onRequest { request, _ ->
+        request.header(HttpHeaders.UserAgent, agent)
+    }
+}
 
 /**
  * A plugin that adds a `User-Agent` header to all requests.
  *
  * @property agent a `User-Agent` header value.
  */
-public class UserAgent private constructor(public val agent: String) {
+public class UserAgent private constructor(
+    @get:Deprecated("This will be removed in future versions") public val agent: String
+) {
 
     @KtorDsl
     public class Config(public var agent: String = "Ktor http-client")
 
-    public companion object Plugin : HttpClientPlugin<Config, UserAgent> {
-        override val key: AttributeKey<UserAgent> = AttributeKey("UserAgent")
+    public companion object Plugin : HttpClientPlugin<Config, ClientPluginInstance<Config>> {
+        override val key: AttributeKey<ClientPluginInstance<Config>> = AttributeKey("UserAgent")
 
-        override fun prepare(block: Config.() -> Unit): UserAgent = UserAgent(Config().apply(block).agent)
+        override fun prepare(block: Config.() -> Unit): ClientPluginInstance<Config> {
+            return UserAgentPlugin.prepare(block)
+        }
 
-        override fun install(plugin: UserAgent, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                context.header(HttpHeaders.UserAgent, plugin.agent)
-            }
+        @OptIn(InternalAPI::class)
+        override fun install(plugin: ClientPluginInstance<Config>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
 }

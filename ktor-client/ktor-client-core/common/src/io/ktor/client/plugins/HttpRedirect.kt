@@ -6,22 +6,76 @@ package io.ktor.client.plugins
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
+
+@OptIn(InternalAPI::class)
+internal val HttpRedirectPlugin = createClientPlugin("HttpRedirect", HttpRedirect::Config) {
+
+    val checkHttpMethod: Boolean = pluginConfig.checkHttpMethod
+    val allowHttpsDowngrade: Boolean = pluginConfig.allowHttpsDowngrade
+
+    suspend fun Sender.handleCall(
+        context: HttpRequestBuilder,
+        origin: HttpClientCall,
+        allowHttpsDowngrade: Boolean,
+        client: HttpClient
+    ): HttpClientCall {
+        if (!origin.response.status.isRedirect()) return origin
+
+        var call = origin
+        var requestBuilder = context
+        val originProtocol = origin.request.url.protocol
+        val originAuthority = origin.request.url.authority
+
+        while (true) {
+            client.monitor.raise(HttpRedirect.HttpResponseRedirect, call.response)
+
+            val location = call.response.headers[HttpHeaders.Location]
+
+            requestBuilder = HttpRequestBuilder().apply {
+                takeFromWithExecutionContext(requestBuilder)
+                url.parameters.clear()
+
+                location?.let { url.takeFrom(it) }
+
+                /**
+                 * Disallow redirect with a security downgrade.
+                 */
+                if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
+                    return call
+                }
+
+                if (originAuthority != url.authority) {
+                    headers.remove(HttpHeaders.Authorization)
+                }
+            }
+
+            call = execute(requestBuilder)
+            if (!call.response.status.isRedirect()) return call
+        }
+    }
+
+    on(Send) { request ->
+        val origin = execute(request)
+        if (checkHttpMethod && origin.request.method !in ALLOWED_FOR_REDIRECT) {
+            return@on origin
+        }
+
+        handleCall(request, origin, allowHttpsDowngrade, client)
+    }
+}
 
 /**
  * An [HttpClient] plugin that handles HTTP redirects
  */
-public class HttpRedirect private constructor(
-    private val checkHttpMethod: Boolean,
-    private val allowHttpsDowngrade: Boolean
-) {
+public class HttpRedirect private constructor() {
 
     @KtorDsl
     public class Config {
@@ -40,73 +94,21 @@ public class HttpRedirect private constructor(
         public var allowHttpsDowngrade: Boolean = false
     }
 
-    public companion object Plugin : HttpClientPlugin<Config, HttpRedirect> {
-        override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
+    public companion object Plugin : HttpClientPlugin<Config, ClientPluginInstance<Config>> {
+        override val key: AttributeKey<ClientPluginInstance<Config>> = AttributeKey("HttpRedirect")
 
         /**
          * Occurs when receiving a response with a redirect message.
          */
         public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
 
-        override fun prepare(block: Config.() -> Unit): HttpRedirect {
-            val config = Config().apply(block)
-            return HttpRedirect(
-                checkHttpMethod = config.checkHttpMethod,
-                allowHttpsDowngrade = config.allowHttpsDowngrade
-            )
-        }
-
-        override fun install(plugin: HttpRedirect, scope: HttpClient) {
-            scope.plugin(HttpSend).intercept { context ->
-                val origin = execute(context)
-                if (plugin.checkHttpMethod && origin.request.method !in ALLOWED_FOR_REDIRECT) {
-                    return@intercept origin
-                }
-
-                handleCall(context, origin, plugin.allowHttpsDowngrade, scope)
-            }
+        override fun prepare(block: Config.() -> Unit): ClientPluginInstance<Config> {
+            return HttpRedirectPlugin.prepare(block)
         }
 
         @OptIn(InternalAPI::class)
-        private suspend fun Sender.handleCall(
-            context: HttpRequestBuilder,
-            origin: HttpClientCall,
-            allowHttpsDowngrade: Boolean,
-            client: HttpClient
-        ): HttpClientCall {
-            if (!origin.response.status.isRedirect()) return origin
-
-            var call = origin
-            var requestBuilder = context
-            val originProtocol = origin.request.url.protocol
-            val originAuthority = origin.request.url.authority
-
-            while (true) {
-                client.monitor.raise(HttpResponseRedirect, call.response)
-
-                val location = call.response.headers[HttpHeaders.Location]
-
-                requestBuilder = HttpRequestBuilder().apply {
-                    takeFromWithExecutionContext(requestBuilder)
-                    url.parameters.clear()
-
-                    location?.let { url.takeFrom(it) }
-
-                    /**
-                     * Disallow redirect with a security downgrade.
-                     */
-                    if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
-                        return call
-                    }
-
-                    if (originAuthority != url.authority) {
-                        headers.remove(HttpHeaders.Authorization)
-                    }
-                }
-
-                call = execute(requestBuilder)
-                if (!call.response.status.isRedirect()) return call
-            }
+        override fun install(plugin: ClientPluginInstance<Config>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
 }

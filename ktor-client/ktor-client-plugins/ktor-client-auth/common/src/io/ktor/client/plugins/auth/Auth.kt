@@ -20,12 +20,45 @@ public class AuthConfig {
 public val AuthPlugin: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
 
+    client.attributes.put(AuthProvidersKey, providers)
+
     onRequest { request, _ ->
-        addDefaultHeaders(providers, request)
+        providers.filter { it.sendWithoutRequest(request) }.forEach {
+            it.addRequestHeaders(request)
+        }
     }
 
-    on(Send) { request ->
-        sendRequest(providers, request)
+    @OptIn(InternalAPI::class)
+    on(Send) { originalRequest ->
+        val origin = execute(originalRequest)
+        if (origin.response.status != HttpStatusCode.Unauthorized) return@on origin
+        if (origin.request.attributes.contains(Auth.AuthCircuitBreaker)) return@on origin
+
+        var call = origin
+
+        val candidateProviders = HashSet(providers)
+
+        while (call.response.status == HttpStatusCode.Unauthorized) {
+            val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
+
+            val authHeader = headerValue?.let { parseAuthorizationHeader(headerValue) }
+            val provider = when {
+                authHeader == null && candidateProviders.size == 1 -> candidateProviders.first()
+                authHeader == null -> return@on call
+                else -> candidateProviders.find { it.isApplicable(authHeader) } ?: return@on call
+            }
+            if (!provider.refreshToken(call.response)) return@on call
+
+            candidateProviders.remove(provider)
+
+            val request = HttpRequestBuilder()
+            request.takeFromWithExecutionContext(originalRequest)
+            provider.addRequestHeaders(request, authHeader)
+            request.attributes.put(Auth.AuthCircuitBreaker, Unit)
+
+            call = execute(request)
+        }
+        return@on call
     }
 }
 
@@ -38,74 +71,25 @@ public val AuthPlugin: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::A
  * [providers] - list of auth providers to use.
  */
 @KtorDsl
-public class Auth private constructor(
-    public val providers: List<AuthProvider>
-) {
+public class Auth private constructor() {
 
-    public companion object Plugin : HttpClientPlugin<AuthConfig, Auth> {
+    public companion object Plugin : HttpClientPlugin<AuthConfig, ClientPluginInstance<AuthConfig>> {
         /**
          * Shows that request should skip auth and refresh token procedure.
          */
         public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
 
-        override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
+        override val key: AttributeKey<ClientPluginInstance<AuthConfig>> = AttributeKey("DigestAuth")
 
-        override fun prepare(block: AuthConfig.() -> Unit): Auth {
-            return Auth(AuthConfig().apply(block).providers.toList())
+        override fun prepare(block: AuthConfig.() -> Unit): ClientPluginInstance<AuthConfig> {
+            return AuthPlugin.prepare(block)
         }
 
-        override fun install(plugin: Auth, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                addDefaultHeaders(plugin.providers, context)
-            }
-
-            scope.plugin(HttpSend).intercept { context ->
-                return@intercept sendRequest(plugin.providers, context)
-            }
+        @OptIn(InternalAPI::class)
+        override fun install(plugin: ClientPluginInstance<AuthConfig>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
-}
-
-private suspend fun addDefaultHeaders(providers: List<AuthProvider>, request: HttpRequestBuilder) {
-    providers.filter { it.sendWithoutRequest(request) }.forEach {
-        it.addRequestHeaders(request)
-    }
-}
-
-@OptIn(InternalAPI::class)
-private suspend fun Sender.sendRequest(
-    providers: List<AuthProvider>,
-    originalRequest: HttpRequestBuilder
-): HttpClientCall {
-    val origin = execute(originalRequest)
-    if (origin.response.status != HttpStatusCode.Unauthorized) return origin
-    if (origin.request.attributes.contains(Auth.AuthCircuitBreaker)) return origin
-
-    var call = origin
-
-    val candidateProviders = HashSet(providers)
-
-    while (call.response.status == HttpStatusCode.Unauthorized) {
-        val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
-
-        val authHeader = headerValue?.let { parseAuthorizationHeader(headerValue) }
-        val provider = when {
-            authHeader == null && candidateProviders.size == 1 -> candidateProviders.first()
-            authHeader == null -> return call
-            else -> candidateProviders.find { it.isApplicable(authHeader) } ?: return call
-        }
-        if (!provider.refreshToken(call.response)) return call
-
-        candidateProviders.remove(provider)
-
-        val request = HttpRequestBuilder()
-        request.takeFromWithExecutionContext(originalRequest)
-        provider.addRequestHeaders(request, authHeader)
-        request.attributes.put(Auth.AuthCircuitBreaker, Unit)
-
-        call = execute(request)
-    }
-    return call
 }
 
 /**
@@ -114,3 +98,8 @@ private suspend fun Sender.sendRequest(
 public fun HttpClientConfig<*>.Auth(block: AuthConfig.() -> Unit) {
     install(Auth, block)
 }
+
+private val AuthProvidersKey: AttributeKey<List<AuthProvider>> = AttributeKey("AuthProviders")
+
+public val HttpClient.AuthProviders: List<AuthProvider>
+    get() = attributes.getOrNull(AuthProvidersKey) ?: emptyList()

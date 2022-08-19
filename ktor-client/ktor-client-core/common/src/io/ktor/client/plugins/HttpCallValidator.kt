@@ -7,6 +7,7 @@ package io.ktor.client.plugins
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.HttpCallValidator.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -32,22 +33,19 @@ public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
  */
 public typealias CallRequestExceptionHandler = suspend (cause: Throwable, request: HttpRequest) -> Unit
 
-/**
- * Response validator plugin is used for validate response and handle response exceptions.
- *
- * See also [Config] for additional details.
- */
-public class HttpCallValidator internal constructor(
-    private val responseValidators: List<ResponseValidator>,
-    private val callExceptionHandlers: List<HandlerWrapper>,
-    private val expectSuccess: Boolean
-) {
+internal val HttpCallValidatorPlugin = createClientPlugin("HttpResponseValidator", HttpCallValidator::Config) {
 
-    private suspend fun validateResponse(response: HttpResponse) {
+    val responseValidators: List<ResponseValidator> = pluginConfig.responseValidators.reversed()
+    val callExceptionHandlers: List<HandlerWrapper> = pluginConfig.responseExceptionHandlers.reversed()
+
+    @Suppress("DEPRECATION")
+    val expectSuccess: Boolean = pluginConfig.expectSuccess
+
+    suspend fun validateResponse(response: HttpResponse) {
         responseValidators.forEach { it(response) }
     }
 
-    private suspend fun processException(cause: Throwable, request: HttpRequest) {
+    suspend fun processException(cause: Throwable, request: HttpRequest) {
         callExceptionHandlers.forEach {
             when (it) {
                 is ExceptionHandlerWrapper -> it.handler(cause)
@@ -55,6 +53,64 @@ public class HttpCallValidator internal constructor(
             }
         }
     }
+
+    on(SetupRequest) { request ->
+        request.attributes.computeIfAbsent(ExpectSuccessAttributeKey) { expectSuccess }
+    }
+
+    on(Send) { request ->
+        val call = execute(request)
+        validateResponse(call.response)
+        call
+    }
+
+    on(RequestError) { request, cause ->
+        val unwrappedCause = cause.unwrapCancellationException()
+        processException(unwrappedCause, request)
+        unwrappedCause
+    }
+
+    on(ReceiveError) { request, cause ->
+        val unwrappedCause = cause.unwrapCancellationException()
+        processException(unwrappedCause, request)
+        unwrappedCause
+    }
+}
+
+internal object RequestError : ClientHook<suspend (HttpRequest, Throwable) -> Throwable?> {
+    override fun install(client: HttpClient, handler: suspend (HttpRequest, Throwable) -> Throwable?) {
+        client.requestPipeline.intercept(HttpRequestPipeline.Before) {
+            try {
+                proceed()
+            } catch (cause: Throwable) {
+                val error = handler(HttpRequest(context), cause)
+                if (error != null) throw error
+            }
+        }
+    }
+}
+
+internal object ReceiveError : ClientHook<suspend (HttpRequest, Throwable) -> Throwable?> {
+    override fun install(client: HttpClient, handler: suspend (HttpRequest, Throwable) -> Throwable?) {
+        val BeforeReceive = PipelinePhase("BeforeReceive")
+        client.responsePipeline.insertPhaseBefore(HttpResponsePipeline.Receive, BeforeReceive)
+        client.responsePipeline.intercept(BeforeReceive) {
+            try {
+                proceed()
+            } catch (cause: Throwable) {
+                val error = handler(context.request, cause)
+                if (error != null) throw error
+            }
+        }
+    }
+}
+
+/**
+ * Response validator plugin is used for validate response and handle response exceptions.
+ *
+ * See also [Config] for additional details.
+ */
+public class HttpCallValidator internal constructor() {
 
     /**
      * [HttpCallValidator] configuration.
@@ -104,50 +160,16 @@ public class HttpCallValidator internal constructor(
         }
     }
 
-    public companion object : HttpClientPlugin<Config, HttpCallValidator> {
-        override val key: AttributeKey<HttpCallValidator> = AttributeKey("HttpResponseValidator")
+    public companion object : HttpClientPlugin<Config, ClientPluginInstance<Config>> {
+        override val key: AttributeKey<ClientPluginInstance<Config>> = AttributeKey("HttpResponseValidator")
 
-        override fun prepare(block: Config.() -> Unit): HttpCallValidator {
-            val config = Config().apply(block)
-
-            @Suppress("DEPRECATION")
-            return HttpCallValidator(
-                config.responseValidators.reversed(),
-                config.responseExceptionHandlers.reversed(),
-                config.expectSuccess
-            )
+        override fun prepare(block: Config.() -> Unit): ClientPluginInstance<Config> {
+            return HttpCallValidatorPlugin.prepare(block)
         }
 
         @OptIn(InternalAPI::class)
-        override fun install(plugin: HttpCallValidator, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                try {
-                    context.attributes.computeIfAbsent(ExpectSuccessAttributeKey) { plugin.expectSuccess }
-                    proceedWith(it)
-                } catch (cause: Throwable) {
-                    val unwrappedCause = cause.unwrapCancellationException()
-                    plugin.processException(unwrappedCause, HttpRequest(context))
-                    throw unwrappedCause
-                }
-            }
-
-            val BeforeReceive = PipelinePhase("BeforeReceive")
-            scope.responsePipeline.insertPhaseBefore(HttpResponsePipeline.Receive, BeforeReceive)
-            scope.responsePipeline.intercept(BeforeReceive) { container ->
-                try {
-                    proceedWith(container)
-                } catch (cause: Throwable) {
-                    val unwrappedCause = cause.unwrapCancellationException()
-                    plugin.processException(unwrappedCause, context.request)
-                    throw unwrappedCause
-                }
-            }
-
-            scope.plugin(HttpSend).intercept { request ->
-                val call = execute(request)
-                plugin.validateResponse(call.response)
-                call
-            }
+        override fun install(plugin: ClientPluginInstance<Config>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
 }

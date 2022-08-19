@@ -245,9 +245,9 @@ public final class io/ktor/client/plugins/BodyProgress {
 
 public final class io/ktor/client/plugins/BodyProgress$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/BodyProgress;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/BodyProgress;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -273,7 +273,6 @@ public final class io/ktor/client/plugins/DataConversion : io/ktor/client/plugin
 
 public final class io/ktor/client/plugins/DefaultRequest {
 	public static final field Plugin Lio/ktor/client/plugins/DefaultRequest$Plugin;
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder : io/ktor/http/HttpMessageBuilder {
@@ -293,14 +292,20 @@ public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder :
 
 public final class io/ktor/client/plugins/DefaultRequest$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/DefaultRequest;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/DefaultRequest;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/DefaultRequestKt {
 	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+	public static final fun getDefaultRequestPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class io/ktor/client/plugins/DefaultRequestPluginConfig {
+	public fun <init> ()V
+	public final fun builder (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/client/plugins/DefaultResponseValidationKt {
@@ -317,9 +322,9 @@ public final class io/ktor/client/plugins/HttpCallValidator {
 
 public final class io/ktor/client/plugins/HttpCallValidator$Companion : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/HttpCallValidator;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/HttpCallValidator;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -369,9 +374,9 @@ public final class io/ktor/client/plugins/HttpPlainText$Config {
 
 public final class io/ktor/client/plugins/HttpPlainText$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/HttpPlainText;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/HttpPlainText;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -381,7 +386,6 @@ public final class io/ktor/client/plugins/HttpPlainTextKt {
 
 public final class io/ktor/client/plugins/HttpRedirect {
 	public static final field Plugin Lio/ktor/client/plugins/HttpRedirect$Plugin;
-	public synthetic fun <init> (ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/HttpRedirect$Config {
@@ -395,9 +399,9 @@ public final class io/ktor/client/plugins/HttpRedirect$Config {
 public final class io/ktor/client/plugins/HttpRedirect$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public final fun getHttpResponseRedirect ()Lio/ktor/events/EventDefinition;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/HttpRedirect;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/HttpRedirect;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -446,9 +450,9 @@ public final class io/ktor/client/plugins/HttpRequestRetry$ModifyRequestContext 
 public final class io/ktor/client/plugins/HttpRequestRetry$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public final fun getHttpRequestRetryEvent ()Lio/ktor/events/EventDefinition;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/HttpRequestRetry;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/HttpRequestRetry;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -566,9 +570,14 @@ public final class io/ktor/client/plugins/ServerResponseException : io/ktor/clie
 	public fun getMessage ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/plugins/SetupRequestContext : io/ktor/client/plugins/api/ClientHook {
+	public static final field INSTANCE Lio/ktor/client/plugins/SetupRequestContext;
+	public synthetic fun install (Lio/ktor/client/HttpClient;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function3;)V
+}
+
 public final class io/ktor/client/plugins/UserAgent {
 	public static final field Plugin Lio/ktor/client/plugins/UserAgent$Plugin;
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAgent ()Ljava/lang/String;
 }
 
@@ -582,15 +591,71 @@ public final class io/ktor/client/plugins/UserAgent$Config {
 
 public final class io/ktor/client/plugins/UserAgent$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/UserAgent;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/UserAgent;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/UserAgentKt {
 	public static final fun BrowserUserAgent (Lio/ktor/client/HttpClientConfig;)V
 	public static final fun CurlUserAgent (Lio/ktor/client/HttpClientConfig;)V
+}
+
+public abstract interface class io/ktor/client/plugins/api/ClientHook {
+	public abstract fun install (Lio/ktor/client/HttpClient;Ljava/lang/Object;)V
+}
+
+public abstract interface class io/ktor/client/plugins/api/ClientPlugin : io/ktor/client/plugins/HttpClientPlugin {
+}
+
+public final class io/ktor/client/plugins/api/ClientPluginBuilder {
+	public final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getPluginConfig ()Ljava/lang/Object;
+	public final fun on (Lio/ktor/client/plugins/api/ClientHook;Ljava/lang/Object;)V
+	public final fun onClose (Lkotlin/jvm/functions/Function0;)V
+	public final fun onRequest (Lkotlin/jvm/functions/Function4;)V
+	public final fun onResponse (Lkotlin/jvm/functions/Function3;)V
+	public final fun onSendRequest (Lkotlin/jvm/functions/Function4;)V
+	public final fun transformRequestBody (Lkotlin/jvm/functions/Function5;)V
+	public final fun transformResponseBody (Lkotlin/jvm/functions/Function5;)V
+}
+
+public final class io/ktor/client/plugins/api/ClientPluginInstance : java/io/Closeable {
+	public fun close ()V
+	public final fun install (Lio/ktor/client/HttpClient;)V
+}
+
+public final class io/ktor/client/plugins/api/CreatePluginUtilsKt {
+	public static final fun createClientPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPlugin;
+	public static final fun createClientPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class io/ktor/client/plugins/api/OnRequestContext {
+}
+
+public final class io/ktor/client/plugins/api/OnResponseContext {
+}
+
+public final class io/ktor/client/plugins/api/OnSendRequestContext {
+}
+
+public final class io/ktor/client/plugins/api/Send : io/ktor/client/plugins/api/ClientHook {
+	public static final field INSTANCE Lio/ktor/client/plugins/api/Send;
+	public synthetic fun install (Lio/ktor/client/HttpClient;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/client/plugins/api/SetupRequest : io/ktor/client/plugins/api/ClientHook {
+	public static final field INSTANCE Lio/ktor/client/plugins/api/SetupRequest;
+	public synthetic fun install (Lio/ktor/client/HttpClient;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/client/plugins/api/TransformRequestBodyContext {
+}
+
+public final class io/ktor/client/plugins/api/TransformResponseBodyContext {
 }
 
 public final class io/ktor/client/plugins/cache/HttpCache {

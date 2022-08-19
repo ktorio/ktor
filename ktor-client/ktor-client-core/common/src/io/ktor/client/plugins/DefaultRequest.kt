@@ -5,7 +5,6 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
-import io.ktor.client.engine.*
 import io.ktor.client.plugins.DefaultRequest.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
@@ -78,16 +77,21 @@ public val DefaultRequestPlugin: ClientPlugin<DefaultRequestPluginConfig> = crea
  */
 public class DefaultRequest private constructor(private val block: DefaultRequestBuilder.() -> Unit) {
 
-    public companion object Plugin : HttpClientPlugin<DefaultRequestBuilder, DefaultRequest> {
-        override val key: AttributeKey<DefaultRequest> = AttributeKey("DefaultRequest")
+    public companion object Plugin :
+        HttpClientPlugin<DefaultRequestBuilder, ClientPluginInstance<DefaultRequestPluginConfig>> {
 
-        override fun prepare(block: DefaultRequestBuilder.() -> Unit): DefaultRequest =
-            DefaultRequest(block)
+        override val key: AttributeKey<ClientPluginInstance<DefaultRequestPluginConfig>> =
+            AttributeKey("DefaultRequest")
 
-        override fun install(plugin: DefaultRequest, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                setupDefaultRequest(context, plugin.block)
-            }
+        override fun prepare(
+            block: DefaultRequestBuilder.() -> Unit
+        ): ClientPluginInstance<DefaultRequestPluginConfig> {
+            return DefaultRequestPlugin.prepare { builder = block }
+        }
+
+        @OptIn(InternalAPI::class)
+        override fun install(plugin: ClientPluginInstance<DefaultRequestPluginConfig>, scope: HttpClient) {
+            plugin.install(scope)
         }
     }
 
@@ -166,8 +170,7 @@ private fun setupDefaultRequest(
     mergeUrls(defaultUrl, builder.url)
     defaultRequest.attributes.allKeys.forEach {
         if (!builder.attributes.contains(it)) {
-            @Suppress("UNCHECKED_CAST")
-            builder.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
+            @Suppress("UNCHECKED_CAST") builder.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
         }
     }
     builder.headers.appendMissing(defaultRequest.headers.build())

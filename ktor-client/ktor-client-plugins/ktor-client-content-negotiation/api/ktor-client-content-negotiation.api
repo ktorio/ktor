@@ -17,9 +17,9 @@ public final class io/ktor/client/plugins/contentnegotiation/ContentNegotiation$
 
 public final class io/ktor/client/plugins/contentnegotiation/ContentNegotiation$Plugin : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/contentnegotiation/ContentNegotiation;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/contentnegotiation/ContentNegotiation;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

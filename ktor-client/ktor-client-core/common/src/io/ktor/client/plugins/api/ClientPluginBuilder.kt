@@ -16,18 +16,17 @@ import io.ktor.utils.io.*
 
 @KtorDsl
 @Suppress("UNUSED_PARAMETER", "DEPRECATION")
-public abstract class ClientPluginBuilder<PluginConfig : Any> internal constructor(
-    internal val key: AttributeKey<ClientPluginInstance<PluginConfig>>
+public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
+    internal val key: AttributeKey<ClientPluginInstance<PluginConfig>>,
+    public val client: HttpClient,
+    public val pluginConfig: PluginConfig
 ) {
 
-    public abstract val client: HttpClient
-
-    public abstract val pluginConfig: PluginConfig
-
     internal val hooks: MutableList<HookHandler<*>> = mutableListOf()
+    internal var onClose: () -> Unit = {}
 
     public fun onRequest(
-        block: suspend OnRequestContext. (request: HttpRequestBuilder, content: Any) -> Unit
+        block: suspend OnRequestContext.(request: HttpRequestBuilder, content: Any) -> Unit
     ) {
         on(RequestHook, block)
     }
@@ -45,15 +44,27 @@ public abstract class ClientPluginBuilder<PluginConfig : Any> internal construct
     }
 
     public fun transformRequestBody(
-        block: suspend TransformRequestBodyContext.(request: HttpRequestBuilder, content: Any, bodyType: TypeInfo?) -> OutgoingContent
+        block: suspend TransformRequestBodyContext.(
+            request: HttpRequestBuilder,
+            content: Any,
+            bodyType: TypeInfo?
+        ) -> OutgoingContent?
     ) {
         on(TransformRequestBodyHook, block)
     }
 
     public fun transformResponseBody(
-        block: suspend TransformResponseBodyContext.(response: HttpResponse, content: ByteReadChannel, requestedType: TypeInfo) -> Any
+        block: suspend TransformResponseBodyContext.(
+            response: HttpResponse,
+            content: ByteReadChannel,
+            requestedType: TypeInfo
+        ) -> Any?
     ) {
         on(TransformResponseBodyHook, block)
+    }
+
+    public fun onClose(block: () -> Unit) {
+        onClose = block
     }
 
     public fun <HookHandler> on(
@@ -65,7 +76,7 @@ public abstract class ClientPluginBuilder<PluginConfig : Any> internal construct
 }
 
 private object RequestHook :
-    ClientHook<suspend OnRequestContext. (request: HttpRequestBuilder, content: Any) -> Unit> {
+    ClientHook<suspend OnRequestContext.(request: HttpRequestBuilder, content: Any) -> Unit> {
 
     override fun install(
         client: HttpClient,
@@ -104,32 +115,51 @@ private object SendRequestHook :
 }
 
 private object TransformRequestBodyHook :
-    ClientHook<suspend TransformRequestBodyContext.(request: HttpRequestBuilder, content: Any, bodyType: TypeInfo?) -> OutgoingContent> {
+    ClientHook<suspend TransformRequestBodyContext.(
+        request: HttpRequestBuilder,
+        content: Any,
+        bodyType: TypeInfo?
+    ) -> OutgoingContent?> {
 
     override fun install(
         client: HttpClient,
-        handler: suspend TransformRequestBodyContext.(request: HttpRequestBuilder, content: Any, bodyType: TypeInfo?) -> OutgoingContent
+        handler: suspend TransformRequestBodyContext.(
+            request: HttpRequestBuilder,
+            content: Any,
+            bodyType: TypeInfo?
+        ) -> OutgoingContent?
     ) {
         client.requestPipeline.intercept(HttpRequestPipeline.Transform) {
             val newContent = handler(TransformRequestBodyContext(), context, subject, context.bodyType)
-            proceedWith(newContent)
+            if (newContent != null) proceedWith(newContent)
         }
     }
 }
 
 private object TransformResponseBodyHook :
-    ClientHook<suspend TransformResponseBodyContext.(response: HttpResponse, content: ByteReadChannel, requestedType: TypeInfo) -> Any> {
+    ClientHook<suspend TransformResponseBodyContext.(
+        response: HttpResponse,
+        content: ByteReadChannel,
+        requestedType: TypeInfo
+    ) -> Any?> {
 
     override fun install(
         client: HttpClient,
-        handler: suspend TransformResponseBodyContext.(response: HttpResponse, content: ByteReadChannel, requestedType: TypeInfo) -> Any
+        handler: suspend TransformResponseBodyContext.(
+            response: HttpResponse,
+            content: ByteReadChannel,
+            requestedType: TypeInfo
+        ) -> Any?
     ) {
         client.responsePipeline.intercept(HttpResponsePipeline.Transform) {
             val (typeInfo, content) = subject
             if (content !is ByteReadChannel) return@intercept
             val newContent = handler(TransformResponseBodyContext(), context.response, content, typeInfo)
-            if (!typeInfo.type.isInstance(newContent)) {
-                throw IllegalStateException("transformResponseBody returned $newContent but expected value of type $typeInfo")
+                ?: return@intercept
+            if (newContent !is NullBody && !typeInfo.type.isInstance(newContent)) {
+                throw IllegalStateException(
+                    "transformResponseBody returned $newContent but expected value of type $typeInfo"
+                )
             }
             proceedWith(HttpResponseContainer(typeInfo, newContent))
         }

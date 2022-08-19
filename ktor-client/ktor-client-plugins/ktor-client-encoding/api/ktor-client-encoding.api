@@ -4,14 +4,13 @@ public abstract interface class io/ktor/client/plugins/compression/ContentEncode
 
 public final class io/ktor/client/plugins/compression/ContentEncoding {
 	public static final field Companion Lio/ktor/client/plugins/compression/ContentEncoding$Companion;
-	public synthetic fun <init> (Ljava/util/Map;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/compression/ContentEncoding$Companion : io/ktor/client/plugins/HttpClientPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/compression/ContentEncoding;Lio/ktor/client/HttpClient;)V
+	public fun install (Lio/ktor/client/plugins/api/ClientPluginInstance;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/compression/ContentEncoding;
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/api/ClientPluginInstance;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

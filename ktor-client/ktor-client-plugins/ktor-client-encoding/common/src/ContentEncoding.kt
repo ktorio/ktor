@@ -5,27 +5,21 @@
 package io.ktor.client.plugins.compression
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.*
-import io.ktor.client.request.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.collections.set
 
-/**
- * A plugin that allows you to enable specified compression algorithms (such as `gzip` and `deflate`) and configure their settings.
- * This plugin serves two primary purposes:
- * - Sets the `Accept-Encoding` header with the specified quality value.
- * - Decodes content received from a server to obtain the original payload.
- *
- * You can learn more from [Content encoding](https://ktor.io/docs/content-encoding.html).
- */
-public class ContentEncoding private constructor(
-    private val encoders: Map<String, ContentEncoder>,
-    private val qualityValues: Map<String, Float>
-) {
-    private val requestHeader = buildString {
+internal val ContentEncodingPlugin = createClientPlugin("HttpEncoding", ContentEncoding::Config) {
+    val encoders: Map<String, ContentEncoder> = pluginConfig.encoders
+    val qualityValues: Map<String, Float> = pluginConfig.qualityValues
+
+    val requestHeader = buildString {
         for (encoder in encoders.values) {
             if (length > 0) append(',')
 
@@ -39,12 +33,7 @@ public class ContentEncoding private constructor(
         }
     }
 
-    private fun setRequestHeaders(headers: HeadersBuilder) {
-        if (headers.contains(HttpHeaders.AcceptEncoding)) return
-        headers[HttpHeaders.AcceptEncoding] = requestHeader
-    }
-
-    private fun CoroutineScope.decode(headers: Headers, content: ByteReadChannel): ByteReadChannel {
+    fun CoroutineScope.decode(headers: Headers, content: ByteReadChannel): ByteReadChannel {
         val encodings = headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
             ?: return content
 
@@ -59,6 +48,33 @@ public class ContentEncoding private constructor(
 
         return current
     }
+
+    onRequest { request, _ ->
+        if (request.headers.contains(HttpHeaders.AcceptEncoding)) return@onRequest
+        request.headers[HttpHeaders.AcceptEncoding] = requestHeader
+    }
+
+    on(BeforeReceiveHook) { call, (_, content) ->
+        val method = call.request.method
+        val contentLength = call.response.contentLength()
+
+        if (contentLength == 0L) return@on null
+        if (contentLength == null && method == HttpMethod.Head) return@on null
+        if (content !is ByteReadChannel) return@on null
+
+        return@on call.decode(call.response.headers, content)
+    }
+}
+
+/**
+ * A plugin that allows you to enable specified compression algorithms (such as `gzip` and `deflate`) and configure their settings.
+ * This plugin serves two primary purposes:
+ * - Sets the `Accept-Encoding` header with the specified quality value.
+ * - Decodes content received from a server to obtain the original payload.
+ *
+ * You can learn more from [Content encoding](https://ktor.io/docs/content-encoding.html).
+ */
+public class ContentEncoding private constructor() {
 
     /**
      * A configuration for the [ContentEncoding] plugin.
@@ -113,36 +129,30 @@ public class ContentEncoding private constructor(
         }
     }
 
-    public companion object : HttpClientPlugin<Config, ContentEncoding> {
-        override val key: AttributeKey<ContentEncoding> = AttributeKey("HttpEncoding")
+    public companion object : HttpClientPlugin<Config, ClientPluginInstance<Config>> {
+        override val key: AttributeKey<ClientPluginInstance<Config>> = AttributeKey("HttpEncoding")
 
-        override fun prepare(block: Config.() -> Unit): ContentEncoding {
-            val config = Config().apply(block)
-
-            return with(config) {
-                ContentEncoding(encoders, qualityValues)
-            }
+        override fun prepare(block: Config.() -> Unit): ClientPluginInstance<Config> {
+            return ContentEncodingPlugin.prepare(block)
         }
 
-        override fun install(plugin: ContentEncoding, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                plugin.setRequestHeaders(context.headers)
-            }
+        @OptIn(InternalAPI::class)
+        override fun install(plugin: ClientPluginInstance<Config>, scope: HttpClient) {
+            plugin.install(scope)
+        }
+    }
+}
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) { (type, content) ->
-                val method = context.request.method
-                val contentLength = context.response.contentLength()
+internal object BeforeReceiveHook :
+    ClientHook<suspend (HttpClientCall, HttpResponseContainer) -> ByteReadChannel?> {
 
-                if (contentLength == 0L) return@intercept
-                if (contentLength == null && method == HttpMethod.Head) return@intercept
-                if (content !is ByteReadChannel) return@intercept
-
-                val response = with(plugin) {
-                    HttpResponseContainer(type, context.decode(context.response.headers, content))
-                }
-
-                proceedWith(response)
-            }
+    override fun install(
+        client: HttpClient,
+        handler: suspend (HttpClientCall, HttpResponseContainer) -> ByteReadChannel?
+    ) {
+        client.responsePipeline.intercept(HttpResponsePipeline.Receive) {
+            val result = handler(context, it)
+            if (result != null) proceedWith(HttpResponseContainer(it.expectedType, result))
         }
     }
 }

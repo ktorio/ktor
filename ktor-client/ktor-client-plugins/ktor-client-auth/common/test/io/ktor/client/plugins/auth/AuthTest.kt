@@ -528,7 +528,7 @@ class AuthTest : ClientLoader() {
             loadCount = 0
             client.get("$TEST_SERVER/auth/bearer/test-refresh")
                 .bodyAsText()
-            client.plugin(Auth).providers.filterIsInstance<BearerAuthProvider>().first().clearToken()
+            client.AuthProviders.filterIsInstance<BearerAuthProvider>().first().clearToken()
             client.get("$TEST_SERVER/auth/bearer/test-refresh")
                 .bodyAsText()
 
