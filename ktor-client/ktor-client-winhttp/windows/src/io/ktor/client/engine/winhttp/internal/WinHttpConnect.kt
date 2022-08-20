@@ -47,13 +47,13 @@ internal class WinHttpConnect(private val hConnect: COpaquePointer) : Closeable 
         }
 
         return WinHttpOpenRequest(
-            hConnect,                     // connection handle
-            method.value,                 // HTTP request method
-            url.fullPath,                 // request path
-            httpVersion,                  // HTTP protocol
-            WINHTTP_NO_REFERER,           // no referring document is specified
-            WINHTTP_DEFAULT_ACCEPT_TYPES, // no types are accepted by the client
-            openFlags.convert()           // request flags
+            hConnect,
+            method.value,
+            url.fullPath,
+            httpVersion,
+            WINHTTP_NO_REFERER,
+            WINHTTP_DEFAULT_ACCEPT_TYPES,
+            openFlags.convert()
         )
     }
 

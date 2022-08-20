@@ -73,7 +73,6 @@ internal class WinHttpRequest(
         configureStatusCallback(enable = true)
     }
 
-
     fun upgradeToWebSocket() {
         if (WinHttpSetOption(hRequest, WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET, null, 0) == 0) {
             throw getWinHttpException("Unable to request WebSocket upgrade")
@@ -99,13 +98,13 @@ internal class WinHttpRequest(
             // Send request
             val statePtr = connectReference.asCPointer().rawValue.toLong()
             if (WinHttpSendRequest(
-                    hRequest,                       // request handle
-                    headersString,                  // request headers as a string
-                    headersString.length.convert(), // size of request headers string
-                    WINHTTP_NO_REQUEST_DATA,        // optional request body data
-                    0,                         // size of optional request body
-                    0,                         // size of request body, i.e. Content-Length
-                    statePtr.convert()              // pointer to context
+                    hRequest,
+                    headersString,
+                    headersString.length.convert(),
+                    WINHTTP_NO_REQUEST_DATA,
+                    0,
+                    WINHTTP_IGNORE_REQUEST_TOTAL_LENGTH,
+                    statePtr.convert()
                 ) == 0
             ) {
                 throw getWinHttpException(ERROR_FAILED_TO_SEND_REQUEST)
@@ -285,10 +284,12 @@ internal class WinHttpRequest(
      */
     private fun disableTlsVerification() = memScoped {
         val flags = alloc<UIntVar> {
-            value = (SECURITY_FLAG_IGNORE_UNKNOWN_CA or
-                SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE or
-                SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
-                SECURITY_FLAG_IGNORE_CERT_DATE_INVALID).convert()
+            value = (
+                SECURITY_FLAG_IGNORE_UNKNOWN_CA or
+                    SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE or
+                    SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
+                    SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
+                ).convert()
         }
         if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, flags.ptr, UINT_SIZE) == 0) {
             throw getWinHttpException("Unable to disable TLS verification")
@@ -310,7 +311,6 @@ internal class WinHttpRequest(
             else -> WinHttpChunkedMode.Enabled
         }
     }
-
 
     /**
      * Gets a string length in bytes.

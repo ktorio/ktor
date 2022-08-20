@@ -68,12 +68,12 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
     val buffer = allocArray<UShortVar>(bufferSize)
 
     var readChars = FormatMessageW(
-        formatFlags.convert(),  // format flags
-        moduleHandle,           // DLL handle from which will be received message
-        errorCode,              // error code
-        languageId,             // required language
-        buffer.reinterpret(),   // buffer pointer
-        bufferSize.convert(),   // buffer size
+        formatFlags.convert(),
+        moduleHandle,
+        errorCode,
+        languageId,
+        buffer.reinterpret(),
+        bufferSize.convert(),
         null
     )
 
