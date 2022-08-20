@@ -1,27 +1,12 @@
-package = platform.windows
-headers = minwindef.h minwinbase.h winhttp.h
-headerFilter = *
+package = ktor.cinterop.winhttp
+headers = wtypes.h winhttp.h
+headerFilter = winhttp.h
 
 compilerOpts = -DUNICODE
 linkerOpts = -lwinhttp
-
 ---
-static unsigned int GetHResultFromError(unsigned int errorCode) {
-    int result;
-    if (errorCode < 0) {
-        result = errorCode;
-    }
-    else {
-        result = (int)(((unsigned int)errorCode & 0x0000FFFF) | (7 << 16) | 0x80000000);
-    }
-
-    return result;
-}
-
-static unsigned int MakeLanguageId(unsigned int primaryLanguageId, unsigned int subLanguageId) {
-    return (((subLanguageId) << 10) | (primaryLanguageId));
-}
-
+// These WebSocket declarations are not present in our sysroots,
+// so we add them here.
 #define WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET            114
 
 typedef enum _WINHTTP_WEB_SOCKET_OPERATION
