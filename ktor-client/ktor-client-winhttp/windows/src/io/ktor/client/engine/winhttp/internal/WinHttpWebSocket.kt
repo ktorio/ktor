@@ -12,6 +12,7 @@ import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import ktor.cinterop.winhttp.*
 import platform.windows.*
 import kotlin.coroutines.*
 

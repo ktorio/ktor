@@ -12,10 +12,10 @@ import platform.windows.*
 private val winHttpModuleHandle by lazy {
     GetModuleHandleW("winhttp.dll")
 }
-private val languageId = MakeLanguageId(LANG_NEUTRAL, SUBLANG_DEFAULT)
+private val languageId = makeLanguageId(LANG_NEUTRAL.convert(), SUBLANG_DEFAULT.convert())
 
 private val ERROR_INSUFFICIENT_BUFFER: UInt = platform.windows.ERROR_INSUFFICIENT_BUFFER.convert()
-private val ERROR_WINHTTP_TIMEOUT: UInt = platform.windows.ERROR_WINHTTP_TIMEOUT.convert()
+private val ERROR_WINHTTP_TIMEOUT: UInt = ktor.cinterop.winhttp.ERROR_WINHTTP_TIMEOUT.convert()
 
 /**
  * Creates an exception from last WinAPI error.
@@ -29,7 +29,7 @@ internal fun getWinHttpException(message: String): Exception {
  * Creates an exception from WinAPI error code.
  */
 internal fun getWinHttpException(message: String, errorCode: UInt): Exception {
-    val hResult = GetHResultFromError(errorCode)
+    val hResult = getHResultFromWin32Error(errorCode)
     val errorMessage = getErrorMessage(errorCode).trimEnd('.')
     val cause = "$message: $errorMessage. Error $errorCode (0x${hResult.toString(16)})"
 
@@ -124,4 +124,22 @@ private fun CPointer<UShortVar>.toKStringFromUtf16(size: Int): String {
     }
 
     return chars.concatToString()
+}
+
+/**
+ * Implements HRESULT_FROM_WIN32 macro.
+ */
+private fun getHResultFromWin32Error(errorCode: UInt): UInt {
+    return if ((errorCode and 0x80000000u) == 0x80000000u) {
+        errorCode
+    } else {
+        (errorCode and 0x0000FFFFu) or 0x80070000u
+    }
+}
+
+/**
+ * Implements MAKELANGID macro.
+ */
+private fun makeLanguageId(primaryLanguageId: UInt, subLanguageId: UInt): UInt {
+    return ((subLanguageId) shl 10) or primaryLanguageId
 }

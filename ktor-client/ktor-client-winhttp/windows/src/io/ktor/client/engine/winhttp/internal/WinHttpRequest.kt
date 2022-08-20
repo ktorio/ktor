@@ -10,6 +10,10 @@ import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
+import ktor.cinterop.winhttp.*
+import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_CN_INVALID
+import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
+import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_UNKNOWN_CA
 import platform.windows.*
 import kotlin.coroutines.*
 
