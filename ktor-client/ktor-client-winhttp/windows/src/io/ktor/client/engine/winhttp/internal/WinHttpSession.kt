@@ -21,11 +21,11 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
 
     init {
         hSession = WinHttpOpen(
-            null,                         // User agent will be set in request headers
-            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, // Use default WinHTTP proxy settings
-            WINHTTP_NO_PROXY_NAME,             // Specifies proxy name
-            WINHTTP_NO_PROXY_BYPASS,           // A semicolon delimited list of hosts to exclude
-            WINHTTP_FLAG_ASYNC.convert()       // Use asynchronous working mode
+            WINHTTP_NO_USER_AGENT,
+            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+            WINHTTP_NO_PROXY_NAME,
+            WINHTTP_NO_PROXY_BYPASS,
+            WINHTTP_FLAG_ASYNC.convert()
         ) ?: throw getWinHttpException("Unable to create session")
 
         setSecurityProtocols(config.securityProtocols)
@@ -44,10 +44,10 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
     private fun configureTimeouts(data: HttpRequestData) {
         if (!timeoutConfigured.compareAndSet(expect = false, update = true)) return
 
-        val resolveTimeout = 10_000 // Domain name resolution timeout
-        var connectTimeout = 60_000 // Server connection request timeout
-        var sendTimeout = 30_000    // Sending request timeout
-        var receiveTimeout = 30_000 // Receive response timeout
+        val resolveTimeout = 10_000
+        var connectTimeout = 60_000
+        var sendTimeout = 30_000
+        var receiveTimeout = 30_000
 
         data.getCapabilityOrNull(HttpTimeout)?.let { timeoutExtension ->
             timeoutExtension.connectTimeoutMillis?.let { value ->
@@ -94,6 +94,7 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
                     throw getWinHttpException("Unable to set proxy")
                 }
             }
+
             else -> throw IllegalStateException("Proxy of type $type is unsupported by WinHTTP engine.")
         }
     }
@@ -107,5 +108,6 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
     companion object {
         private val WINHTTP_NO_PROXY_NAME = null
         private val WINHTTP_NO_PROXY_BYPASS = null
+        private val WINHTTP_NO_USER_AGENT = null
     }
 }
