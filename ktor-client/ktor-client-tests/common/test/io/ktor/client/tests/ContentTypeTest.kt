@@ -4,11 +4,13 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
@@ -50,7 +52,7 @@ class ContentTypeTest {
                     val body = request.body
                     assertEquals(
                         ContentType.Text.Plain.withCharset(Charsets.UTF_8),
-                        body.contentType,
+                        body.contentType
                     )
 
                     assertTrue(body is TextContent)
@@ -84,6 +86,22 @@ class ContentTypeTest {
                     header(HttpHeaders.ContentType, ContentType.Application.OctetStream)
                 }
             }
+        }
+    }
+
+    @Test
+    fun testEmptyBodyWithContentType() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { request ->
+                    assertEquals("application/protobuf", request.headers[HttpHeaders.ContentType])
+                    respond("OK")
+                }
+            }
+        }
+
+        client.post("/") {
+            header(HttpHeaders.ContentType, ContentType.Application.ProtoBuf)
         }
     }
 }

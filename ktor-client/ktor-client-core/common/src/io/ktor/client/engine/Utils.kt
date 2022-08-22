@@ -10,7 +10,6 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * Default user agent to use in ktor client.
@@ -43,8 +42,13 @@ public fun mergeHeaders(
         block(HttpHeaders.UserAgent, KTOR_DEFAULT_USER_AGENT)
     }
 
-    val type = content.contentType?.toString() ?: content.headers[HttpHeaders.ContentType]
-    val length = content.contentLength?.toString() ?: content.headers[HttpHeaders.ContentLength]
+    val type = content.contentType?.toString()
+        ?: content.headers[HttpHeaders.ContentType]
+        ?: requestHeaders[HttpHeaders.ContentType]
+
+    val length = content.contentLength?.toString()
+        ?: content.headers[HttpHeaders.ContentLength]
+        ?: requestHeaders[HttpHeaders.ContentLength]
 
     type?.let { block(HttpHeaders.ContentType, it) }
     length?.let { block(HttpHeaders.ContentLength, it) }
