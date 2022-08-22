@@ -17,6 +17,14 @@ import kotlin.coroutines.*
 @InternalAPI
 public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
 
+private val DATE_HEADERS = setOf(
+    HttpHeaders.Date,
+    HttpHeaders.Expires,
+    HttpHeaders.LastModified,
+    HttpHeaders.IfModifiedSince,
+    HttpHeaders.IfUnmodifiedSince
+)
+
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
  */
@@ -34,7 +42,13 @@ public fun mergeHeaders(
         if (HttpHeaders.ContentType == key) return@forEach // set later
 
         // https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-        block(key, values.joinToString(","))
+        if (DATE_HEADERS.contains(key)) {
+            values.forEach { value ->
+                block(key, value)
+            }
+        } else {
+            block(key, values.joinToString(","))
+        }
     }
 
     val missingAgent = requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null
