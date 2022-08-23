@@ -14,14 +14,13 @@ import io.ktor.utils.io.CancellationException
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import platform.CoreAudioTypes.*
 import platform.Foundation.*
 import kotlin.coroutines.*
 
 @OptIn(DelicateCoroutinesApi::class)
-internal class DarwinTaskHandler(
+internal class DarwinLegacyTaskHandler(
     private val requestData: HttpRequestData,
-    private val callContext: CoroutineContext,
+    private val callContext: CoroutineContext
 ) {
     val response: CompletableDeferred<HttpResponseData> = CompletableDeferred()
 

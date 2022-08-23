@@ -68,7 +68,7 @@ class FullFormTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testCustomUrls() = clientTests(listOf("Darwin", "native:CIO")) {
+    fun testCustomUrls() = clientTests(listOf("Darwin", "native:CIO", "DarwinLegacy")) {
         val urls = listOf(
             "https://google.com",
             "https://kotlinlang.org/"

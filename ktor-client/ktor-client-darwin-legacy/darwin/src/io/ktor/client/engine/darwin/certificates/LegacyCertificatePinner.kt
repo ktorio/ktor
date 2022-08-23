@@ -107,8 +107,8 @@ import platform.Security.*
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
 @OptIn(UnsafeNumber::class)
-public data class CertificatePinner internal constructor(
-    private val pinnedCertificates: Set<PinnedCertificate>,
+public data class LegacyCertificatePinner internal constructor(
+    private val pinnedCertificates: Set<LegacyPinnedCertificate>,
     private val validateTrust: Boolean
 ) : ChallengeHandler {
 
@@ -190,14 +190,14 @@ public data class CertificatePinner internal constructor(
 
         pinnedCertificates.any { pin ->
             when (pin.hashAlgorithm) {
-                CertificatesInfo.HASH_ALGORITHM_SHA_256 -> {
+                LegacyCertificatesInfo.HASH_ALGORITHM_SHA_256 -> {
                     if (sha256 == null) {
                         sha256 = publicKey.toSha256String()
                     }
 
                     pin.hash == sha256
                 }
-                CertificatesInfo.HASH_ALGORITHM_SHA_1 -> {
+                LegacyCertificatesInfo.HASH_ALGORITHM_SHA_1 -> {
                     if (sha1 == null) {
                         sha1 = publicKey.toSha1String()
                     }
@@ -224,7 +224,7 @@ public data class CertificatePinner internal constructor(
         for (certificate in certificates) {
             append("\n    ")
             val publicKeyStr = certificate.getPublicKeyBytes()?.toSha256String()
-            append("${CertificatesInfo.HASH_ALGORITHM_SHA_256}$publicKeyStr")
+            append("${LegacyCertificatesInfo.HASH_ALGORITHM_SHA_256}$publicKeyStr")
             append(": ")
             val summaryRef = SecCertificateCopySubjectSummary(certificate)
             val summary = CFBridgingRelease(summaryRef) as NSString
@@ -243,12 +243,12 @@ public data class CertificatePinner internal constructor(
      * Returns list of matching certificates' pins for the hostname. Returns an empty list if the
      * hostname does not have pinned certificates.
      */
-    internal fun findMatchingPins(hostname: String): List<PinnedCertificate> {
-        var result: List<PinnedCertificate> = emptyList()
+    internal fun findMatchingPins(hostname: String): List<LegacyPinnedCertificate> {
+        var result: List<LegacyPinnedCertificate> = emptyList()
         for (pin in pinnedCertificates) {
             if (pin.matches(hostname)) {
                 if (result.isEmpty()) result = mutableListOf()
-                (result as MutableList<PinnedCertificate>).add(pin)
+                (result as MutableList<LegacyPinnedCertificate>).add(pin)
             }
         }
         return result
@@ -326,8 +326,8 @@ public data class CertificatePinner internal constructor(
 
         val size: Int = publicKeySize.intValue.toInt()
         val keys = when (publicKeyType) {
-            keyTypeRSA -> CertificatesInfo.rsa
-            keyTypeECSECPrimeRandom -> CertificatesInfo.ecdsa
+            keyTypeRSA -> LegacyCertificatesInfo.rsa
+            keyTypeECSECPrimeRandom -> LegacyCertificatesInfo.ecdsa
             else -> return false
         }
 
@@ -344,8 +344,8 @@ public data class CertificatePinner internal constructor(
 
         val size: Int = publicKeySize.intValue.toInt()
         val keys = when (publicKeyType) {
-            keyTypeRSA -> CertificatesInfo.rsa
-            keyTypeECSECPrimeRandom -> CertificatesInfo.ecdsa
+            keyTypeRSA -> LegacyCertificatesInfo.rsa
+            keyTypeECSECPrimeRandom -> LegacyCertificatesInfo.ecdsa
             else -> return intArrayOf()
         }
 
@@ -384,10 +384,10 @@ public data class CertificatePinner internal constructor(
     }
 
     /**
-     * Builds a configured [CertificatePinner].
+     * Builds a configured [LegacyCertificatePinner].
      */
     public data class Builder(
-        private val pinnedCertificates: MutableList<PinnedCertificate> = mutableListOf(),
+        private val pinnedCertificates: MutableList<LegacyPinnedCertificate> = mutableListOf(),
         private var validateTrust: Boolean = true
     ) {
         /**
@@ -401,7 +401,7 @@ public data class CertificatePinner internal constructor(
         public fun add(pattern: String, vararg pins: String): Builder = apply {
             pins.forEach { pin ->
                 this.pinnedCertificates.add(
-                    PinnedCertificate.new(
+                    LegacyPinnedCertificate.new(
                         pattern,
                         pin
                     )
@@ -420,10 +420,10 @@ public data class CertificatePinner internal constructor(
         }
 
         /**
-         * Build into a [CertificatePinner]
-         * @return [CertificatePinner]
+         * Build into a [LegacyCertificatePinner]
+         * @return [LegacyCertificatePinner]
          */
-        public fun build(): CertificatePinner = CertificatePinner(
+        public fun build(): LegacyCertificatePinner = LegacyCertificatePinner(
             pinnedCertificates.toSet(),
             validateTrust
         )

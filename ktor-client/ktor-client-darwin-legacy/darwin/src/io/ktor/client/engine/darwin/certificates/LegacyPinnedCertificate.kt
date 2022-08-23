@@ -4,15 +4,15 @@
 
 package io.ktor.client.engine.darwin.certificates
 
-import io.ktor.client.engine.darwin.certificates.CertificatePinner.*
-import io.ktor.client.engine.darwin.certificates.CertificatesInfo.HASH_ALGORITHM_SHA_1
-import io.ktor.client.engine.darwin.certificates.CertificatesInfo.HASH_ALGORITHM_SHA_256
+import io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.*
+import io.ktor.client.engine.darwin.certificates.LegacyCertificatesInfo.HASH_ALGORITHM_SHA_1
+import io.ktor.client.engine.darwin.certificates.LegacyCertificatesInfo.HASH_ALGORITHM_SHA_256
 
 /**
  * Represents a pinned certificate. Recommended using [Builder.add] to construct
- * [CertificatePinner]
+ * [LegacyCertificatePinner]
  */
-public data class PinnedCertificate(
+public data class LegacyPinnedCertificate(
     /**
      * A hostname like `example.com` or a pattern like `*.example.com` (canonical form).
      */
@@ -27,7 +27,7 @@ public data class PinnedCertificate(
     val hash: String
 ) {
     /**
-     * Checks whether the given [hostname] matches the [pattern] of this [PinnedCertificate]
+     * Checks whether the given [hostname] matches the [pattern] of this [LegacyPinnedCertificate]
      * @param hostname The hostname to check
      * @return Boolean TRUE if it matches
      */
@@ -64,9 +64,9 @@ public data class PinnedCertificate(
          * Create a new Pin
          * @param pattern The hostname pattern
          * @param pin The hash to pin
-         * @return [PinnedCertificate] The new pin
+         * @return [LegacyPinnedCertificate] The new pin
          */
-        public fun new(pattern: String, pin: String): PinnedCertificate {
+        public fun new(pattern: String, pin: String): LegacyPinnedCertificate {
             require(
                 pattern.startsWith("*.") && pattern.indexOf("*", 1) == -1 ||
                     pattern.startsWith("**.") && pattern.indexOf("*", 2) == -1 ||
@@ -78,7 +78,7 @@ public data class PinnedCertificate(
             return when {
                 pin.startsWith(HASH_ALGORITHM_SHA_1) -> {
                     val hash = pin.substring(HASH_ALGORITHM_SHA_1.length)
-                    PinnedCertificate(
+                    LegacyPinnedCertificate(
                         pattern = canonicalPattern,
                         hashAlgorithm = HASH_ALGORITHM_SHA_1,
                         hash = hash
@@ -86,7 +86,7 @@ public data class PinnedCertificate(
                 }
                 pin.startsWith(HASH_ALGORITHM_SHA_256) -> {
                     val hash = pin.substring(HASH_ALGORITHM_SHA_256.length)
-                    PinnedCertificate(
+                    LegacyPinnedCertificate(
                         pattern = canonicalPattern,
                         hashAlgorithm = HASH_ALGORITHM_SHA_256,
                         hash = hash

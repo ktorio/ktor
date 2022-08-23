@@ -10,12 +10,12 @@ import platform.Foundation.*
 import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
-internal class DarwinSession(
+internal class DarwinLegacySession(
     private val config: DarwinLegacyClientEngineConfig,
     private val requestQueue: NSOperationQueue
 ) : Closeable {
     private val closed = atomic(false)
-    private val responseReader = DarwinResponseReader(config)
+    private val responseReader = DarwinLegacyResponseReader(config)
 
     private val session: NSURLSession = config.preconfiguredSession ?: createSession()
 

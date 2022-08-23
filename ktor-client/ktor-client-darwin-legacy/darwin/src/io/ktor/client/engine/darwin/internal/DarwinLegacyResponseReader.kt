@@ -14,10 +14,10 @@ import platform.darwin.*
 import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
-internal class DarwinResponseReader(
+internal class DarwinLegacyResponseReader(
     private val config: DarwinLegacyClientEngineConfig
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
-    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(initialCapacity = 32)
+    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinLegacyTaskHandler>(initialCapacity = 32)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
         val taskHandler = taskHandlers[dataTask] ?: return
@@ -35,7 +35,7 @@ internal class DarwinResponseReader(
         callContext: CoroutineContext,
         task: NSURLSessionTask
     ): CompletableDeferred<HttpResponseData> {
-        val taskHandler = DarwinTaskHandler(request, callContext)
+        val taskHandler = DarwinLegacyTaskHandler(request, callContext)
         taskHandlers.put(task, taskHandler)
         return taskHandler.response
     }

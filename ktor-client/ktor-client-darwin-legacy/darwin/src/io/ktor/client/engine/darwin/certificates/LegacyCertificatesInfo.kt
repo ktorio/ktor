@@ -42,7 +42,7 @@ private val ecdsaSecp384r1Asn1Header: IntArray = intArrayOf(
  * https://github.com/datatheorem/TrustKit/blob/master/TrustKit/Pinning/TSKSPKIHashCache.m
  * https://github.com/IBM-Swift/BlueRSA/blob/master/Sources/CryptorRSA/CryptorRSAUtilities.swift
  */
-internal object CertificatesInfo {
+internal object LegacyCertificatesInfo {
     val rsa = mapOf(
         1024 to rsa1024Asn1Header,
         2048 to rsa2048Asn1Header,

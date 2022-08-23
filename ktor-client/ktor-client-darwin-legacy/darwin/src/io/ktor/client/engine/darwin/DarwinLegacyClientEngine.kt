@@ -22,7 +22,7 @@ internal class DarwinLegacyClientEngine(
 
     override val supportedCapabilities = setOf(HttpTimeout)
 
-    private val session = DarwinSession(config, requestQueue)
+    private val session = DarwinLegacySession(config, requestQueue)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
