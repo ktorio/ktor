@@ -26,7 +26,7 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
-        val postParameters = call.receiveOrNull<Parameters>()
+        val postParameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)
 
