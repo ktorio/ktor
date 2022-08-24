@@ -299,6 +299,7 @@ public inline fun <S : Any> SessionsConfig.header(
  * - sign and encrypt session data.
  */
 public class CookieIdSessionBuilder<S : Any>
+
 @PublishedApi
 internal constructor(
     type: KClass<S>,

@@ -5,6 +5,7 @@ package io.ktor.server.sessions
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.util.date.*
 
 public const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days
@@ -53,8 +54,21 @@ public class SessionTransportCookie(
     }
 
     override fun clear(call: ApplicationCall) {
-        call.response.cookies.appendExpired(name, configuration.domain, configuration.path)
+        call.response.cookies.append(clearCookie())
     }
+
+    internal fun clearCookie(): Cookie = Cookie(
+        name,
+        "",
+        configuration.encoding,
+        maxAge = 0,
+        domain = configuration.domain,
+        path = configuration.path,
+        secure = configuration.secure,
+        httpOnly = configuration.httpOnly,
+        extensions = configuration.extensions,
+        expires = GMTDate.START
+    )
 
     override fun toString(): String {
         return "SessionTransportCookie: $name"
