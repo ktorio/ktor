@@ -49,14 +49,5 @@ internal actual fun ByteReadPacket.readTextWithCustomCharset(charset: Charset): 
     inputStream().reader(charset).readText()
 
 private fun receiveGuardedInputStream(channel: ByteReadChannel): InputStream {
-    checkSafeParking()
     return channel.toInputStream()
-}
-
-private fun checkSafeParking() {
-    check(safeToRunInPlace()) {
-        "Acquiring blocking primitives on this dispatcher is not allowed. " +
-            "Consider using async channel or " +
-            "doing withContext(Dispatchers.IO) { call.receive<InputStream>().use { ... } } instead."
-    }
 }

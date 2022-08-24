@@ -26,15 +26,11 @@ class ReceiveBlockingPrimitiveTest {
     }
 
     @Test
-    fun testBlockingPrimitiveProhibitedOnRestrictedThread() {
-        assertFailsWith<IllegalStateException> {
-            testOnThread { call ->
-                markParkingProhibited()
+    fun testBlockingPrimitiveWorksOnRestrictedThread() {
+        testOnThread { call ->
+            markParkingProhibited()
 
-                call.receive<InputStream>().close()
-            }
-        }.let { cause ->
-            assertTrue(cause.message!!.startsWith("Acquiring blocking primitives "))
+            call.receive<InputStream>().close()
         }
     }
 
@@ -68,6 +64,7 @@ class ReceiveBlockingPrimitiveTest {
         init {
             application.receivePipeline.installDefaultTransformations()
         }
+
         override val request: BaseApplicationRequest = object : BaseApplicationRequest(this) {
             override val queryParameters: Parameters
                 get() = TODO("Not yet implemented")
