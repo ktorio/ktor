@@ -33,7 +33,11 @@ internal class CIOEngine(
 
     private val selectorManager: SelectorManager by lazy { SelectorManager(dispatcher) }
 
-    private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
+    private val connectionFactory = ConnectionFactory(
+        selectorManager,
+        config.maxConnectionsCount,
+        config.endpoint.maxConnectionsPerRoute
+    )
 
     private val requestsJob: CoroutineContext
 
@@ -42,6 +46,7 @@ internal class CIOEngine(
     private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
         ProxyType.SOCKS,
         null -> null
+
         ProxyType.HTTP -> config.proxy
         else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
