@@ -4,7 +4,6 @@
 
 package io.ktor.server.servlet
 
-import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import javax.servlet.http.*
 
