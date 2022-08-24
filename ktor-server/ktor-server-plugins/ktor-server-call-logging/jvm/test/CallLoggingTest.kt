@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.callloging
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -369,6 +370,32 @@ class CallLoggingTest {
         createClient { expectSuccess = false }.get("/")
 
         assertTrue("INFO: 404 Not Found: GET - /" in messages)
+    }
+
+    @Test
+    fun `mdc exception does not crash request`() = testApplication {
+        var failed = 0
+        install(CallLogging) {
+            mdc("bar") {
+                failed++
+                throw Exception()
+            }
+            mdc("foo") { "Hello" }
+        }
+
+        routing {
+            get {
+                call.respond("OK")
+            }
+        }
+
+        assertEquals(0, failed)
+
+        assertEquals("OK", client.get("/").bodyAsText())
+        assertEquals(3, failed)
+
+        assertEquals("OK", client.get("/").bodyAsText())
+        assertEquals(6, failed)
     }
 
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)
