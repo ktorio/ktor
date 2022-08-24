@@ -14,10 +14,11 @@ import kotlin.coroutines.*
 
 /**
  * An application call handled by [Routing].
+ * @property call original call from [ApplicationEngine]
  * @property route is the selected route
  */
 public class RoutingApplicationCall(
-    private val call: ApplicationCall,
+    public val engineCall: ApplicationCall,
     public val route: Route,
     override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
@@ -25,17 +26,18 @@ public class RoutingApplicationCall(
     parameters: Parameters
 ) : ApplicationCall, CoroutineScope {
 
-    override val application: Application get() = call.application
-    override val attributes: Attributes get() = call.attributes
+    override val application: Application get() = engineCall.application
+    override val attributes: Attributes get() = engineCall.attributes
 
-    override val request: RoutingApplicationRequest = RoutingApplicationRequest(this, receivePipeline, call.request)
+    override val request: RoutingApplicationRequest =
+        RoutingApplicationRequest(this, receivePipeline, engineCall.request)
 
     override val response: RoutingApplicationResponse =
-        RoutingApplicationResponse(this, responsePipeline, call.response)
+        RoutingApplicationResponse(this, responsePipeline, engineCall.response)
 
     override val parameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
         Parameters.build {
-            appendAll(call.parameters)
+            appendAll(engineCall.parameters)
             appendMissing(parameters)
         }
     }
@@ -49,8 +51,8 @@ public class RoutingApplicationCall(
 public class RoutingApplicationRequest(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationReceivePipeline,
-    request: ApplicationRequest
-) : ApplicationRequest by request
+    public val engineRequest: ApplicationRequest
+) : ApplicationRequest by engineRequest
 
 /**
  * An application response handled by [Routing].
@@ -58,5 +60,5 @@ public class RoutingApplicationRequest(
 public class RoutingApplicationResponse(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationSendPipeline,
-    response: ApplicationResponse
-) : ApplicationResponse by response
+    public val engineResponse: ApplicationResponse
+) : ApplicationResponse by engineResponse
