@@ -494,6 +494,20 @@ internal class URLBuilderTest {
         assertEquals("hello/world", urlBuilder.encodedPath)
     }
 
+    @Test
+    fun testIsAbsolute() {
+        assertTrue(URLBuilder("https://ktor.io/").isAbsolute)
+        assertTrue(URLBuilder("/").isAbsolute)
+        assertTrue(URLBuilder("/hello").isAbsolute)
+    }
+
+    @Test
+    fun testIsRelative() {
+        assertTrue(URLBuilder("hello").isRelative)
+        assertTrue(URLBuilder("").isRelative)
+        assertTrue(URLBuilder("hello/world").isRelative)
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
