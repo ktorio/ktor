@@ -58,7 +58,8 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())!!
+public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())
+    ?: throw CannotTransformContentToTypeException(typeInfo<T>().kotlinType!!)
 
 /**
  * Receives content for this request.
