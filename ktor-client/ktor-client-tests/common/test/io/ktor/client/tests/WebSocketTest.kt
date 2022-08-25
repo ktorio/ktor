@@ -17,7 +17,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Curl")
+internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Curl", "DarwinLegacy")
 
 private const val TEST_SIZE: Int = 100
 
@@ -112,7 +112,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionWss() = clientTests(listOf("Android", "Apache", "Curl", "JS")) {
+    fun testExceptionWss() = clientTests(listOf("Android", "Apache", "Curl", "JS", "DarwinLegacy")) {
         config {
             install(WebSockets)
         }

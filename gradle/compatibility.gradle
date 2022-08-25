@@ -18,6 +18,7 @@ apiValidation {
             'ktor-client-curl',
             'ktor-client-ios',
             'ktor-client-darwin',
+            'ktor-client-darwin-legacy',
         ]
     }
 

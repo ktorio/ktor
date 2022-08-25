@@ -96,7 +96,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "Darwin", "CIO")) {
+    fun testString() = clientTests(listOf("Js", "Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val requestWithBody = client.echo<String>(content)
@@ -126,7 +126,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "Darwin", "CIO")) {
+    fun testTextContent() = clientTests(listOf("Js", "Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))

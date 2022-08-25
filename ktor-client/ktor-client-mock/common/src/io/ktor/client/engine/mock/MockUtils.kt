@@ -31,6 +31,7 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     else -> ByteArray(0)
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
 public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
