@@ -129,6 +129,26 @@ public fun Appendable.appendUrlFullPath(
         }
 }
 
+/**
+ * Checks if [Url] has absolute path.
+ */
+public val Url.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
+
+/**
+ * Checks if [Url] has absolute path.
+ */
+public val Url.isRelativePath: Boolean get() = !isAbsolutePath
+
+/**
+ * Checks if [Url] has absolute path.
+ */
+public val URLBuilder.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
+
+/**
+ * Checks if [Url] has absolute path.
+ */
+public val URLBuilder.isRelativePath: Boolean get() = !isAbsolutePath
+
 internal fun StringBuilder.appendUserAndPassword(encodedUser: String?, encodedPassword: String?) {
     if (encodedUser == null) {
         return
