@@ -36,9 +36,9 @@ public class WebSocketExtensionHeader(public val name: String, public val parame
  * Parse `Sec-WebSocket-Accept` header.
  */
 public fun parseWebSocketExtensions(value: String): List<WebSocketExtensionHeader> = value
-    .split(";")
+    .split(",")
     .map { it ->
-        val extension = it.split(",")
+        val extension = it.split(";")
         val name = extension.first().trim()
         val parameters = extension.drop(1).map { it.trim() }
         WebSocketExtensionHeader(name, parameters)
