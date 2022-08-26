@@ -5,7 +5,6 @@
 package io.ktor.tests.http.cio.websocket
 
 import io.ktor.websocket.*
-import org.junit.Test
 import kotlin.test.*
 
 class WebSocketExtensionHeaderTest {
