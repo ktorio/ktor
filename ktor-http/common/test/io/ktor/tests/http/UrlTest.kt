@@ -305,15 +305,15 @@ class UrlTest {
 
     @Test
     fun testIsAbsolute() {
-        assertTrue(Url("https://ktor.io/").isAbsolute)
-        assertTrue(Url("/").isAbsolute)
-        assertTrue(Url("/hello").isAbsolute)
+        assertTrue(Url("https://ktor.io/").isAbsolutePath)
+        assertTrue(Url("/").isAbsolutePath)
+        assertTrue(Url("/hello").isAbsolutePath)
     }
 
     @Test
     fun testIsRelative() {
-        assertTrue(Url("hello").isRelative)
-        assertTrue(Url("").isRelative)
-        assertTrue(Url("hello/world").isRelative)
+        assertTrue(Url("hello").isRelativePath)
+        assertTrue(Url("").isRelativePath)
+        assertTrue(Url("hello/world").isRelativePath)
     }
 }

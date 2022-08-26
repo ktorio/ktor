@@ -496,16 +496,16 @@ internal class URLBuilderTest {
 
     @Test
     fun testIsAbsolute() {
-        assertTrue(URLBuilder("https://ktor.io/").isAbsolute)
-        assertTrue(URLBuilder("/").isAbsolute)
-        assertTrue(URLBuilder("/hello").isAbsolute)
+        assertTrue(URLBuilder("https://ktor.io/").isAbsolutePath)
+        assertTrue(URLBuilder("/").isAbsolutePath)
+        assertTrue(URLBuilder("/hello").isAbsolutePath)
     }
 
     @Test
     fun testIsRelative() {
-        assertTrue(URLBuilder("hello").isRelative)
-        assertTrue(URLBuilder("").isRelative)
-        assertTrue(URLBuilder("hello/world").isRelative)
+        assertTrue(URLBuilder("hello").isRelativePath)
+        assertTrue(URLBuilder("").isRelativePath)
+        assertTrue(URLBuilder("hello/world").isRelativePath)
     }
 
     /**
