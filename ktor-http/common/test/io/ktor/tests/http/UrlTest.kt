@@ -302,4 +302,18 @@ class UrlTest {
         val url = Url(urlString)
         assertEquals(urlString, "$url")
     }
+
+    @Test
+    fun testIsAbsolute() {
+        assertTrue(Url("https://ktor.io/").isAbsolutePath)
+        assertTrue(Url("/").isAbsolutePath)
+        assertTrue(Url("/hello").isAbsolutePath)
+    }
+
+    @Test
+    fun testIsRelative() {
+        assertTrue(Url("hello").isRelativePath)
+        assertTrue(Url("").isRelativePath)
+        assertTrue(Url("hello/world").isRelativePath)
+    }
 }
