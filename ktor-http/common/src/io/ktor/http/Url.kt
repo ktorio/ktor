@@ -116,7 +116,11 @@ public class Url internal constructor(
         return urlString.hashCode()
     }
 
-    public companion object
+    public companion object {
+        public fun parse(urlString: String) : Url? {
+            return Url(urlString)
+        }
+    }
 }
 
 @Suppress("UNUSED_PARAMETER")
