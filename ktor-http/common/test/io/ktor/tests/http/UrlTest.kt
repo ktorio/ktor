@@ -303,11 +303,13 @@ class UrlTest {
         assertEquals(urlString, "$url")
     }
 
+
     @Test
     fun testUrlWithGivenString() {
         val validUrl = "https://localhost:8080/validUrl"
         assertNotNull(Url.parse(validUrl), "Invalid Url")
     }
+
 
     @Test
     fun testInvalidUrlReturnsNull() {
