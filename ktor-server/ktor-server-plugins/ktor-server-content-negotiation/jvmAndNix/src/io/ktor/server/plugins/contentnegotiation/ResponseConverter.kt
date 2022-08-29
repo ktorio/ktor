@@ -18,8 +18,8 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
     if (subject is OutgoingContent || pluginConfig.ignoredTypes.any { it.isInstance(subject) }) {
         return@onCallRespond
     }
-    if (call.response.responseType == null) return@onCallRespond
 
+    val responseType = call.response.responseType ?: return@onCallRespond
     val registrations = pluginConfig.registrations
     val checkAcceptHeader = pluginConfig.checkAcceptHeaderCompliance
 
@@ -52,7 +52,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
             it.converter.serializeNullable(
                 contentType = contentType ?: it.contentType,
                 charset = acceptCharset ?: Charsets.UTF_8,
-                typeInfo = call.response.responseType!!,
+                typeInfo = responseType,
                 value = subject.takeIf { it != NullBody }
             )
         }

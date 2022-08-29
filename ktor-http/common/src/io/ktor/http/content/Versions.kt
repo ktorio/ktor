@@ -7,7 +7,6 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlin.native.concurrent.*
 
 /**
  * Specifies a key for the VersionList extension property for [OutgoingContent].
@@ -77,16 +76,14 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
      *  [VersionCheckResult.PRECONDITION_FAILED] for `If-Unmodified-Since`
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()?.let { dates ->
-            if (!ifModifiedSince(dates)) {
-                return VersionCheckResult.NOT_MODIFIED
-            }
+        val modifiedSince = requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()
+        if (modifiedSince != null && !ifModifiedSince(modifiedSince)) {
+            return VersionCheckResult.NOT_MODIFIED
         }
 
-        requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()?.let { dates ->
-            if (!ifUnmodifiedSince(dates)) {
-                return VersionCheckResult.PRECONDITION_FAILED
-            }
+        val unmodifiedSince = requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()
+        if (unmodifiedSince != null && !ifUnmodifiedSince(unmodifiedSince)) {
+            return VersionCheckResult.PRECONDITION_FAILED
         }
 
         return VersionCheckResult.OK

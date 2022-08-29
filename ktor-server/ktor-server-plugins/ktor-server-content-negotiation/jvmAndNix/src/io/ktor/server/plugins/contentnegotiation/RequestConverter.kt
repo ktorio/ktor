@@ -18,7 +18,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
         val registrations = pluginConfig.registrations
         val requestedType = call.receiveType
 
-        if (requestedType.type == ByteReadChannel::class) return@onCallReceive
+        if (requestedType.type in pluginConfig.ignoredTypes) return@onCallReceive
 
         transformBody { body: ByteReadChannel ->
             val requestContentType = try {

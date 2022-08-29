@@ -119,19 +119,18 @@ public suspend fun List<ContentConverter>.deserialize(
     // 1. there is no suitable converter
     // 2. result of deserialization is null
     // We can differentiate these cases by checking if body was consumed or not
-    val result = this.asFlow()
-        .filter { !body.isClosedForRead }
-        .map { converter ->
-            converter.deserialize(
-                charset = charset,
-                typeInfo = typeInfo,
-                content = body
-            )
-        }
-        .firstOrNull { it != null }
+    val result = asFlow().map { converter ->
+        converter.deserialize(
+            charset = charset,
+            typeInfo = typeInfo,
+            content = body
+        )
+    }.firstOrNull { it != null || body.isClosedForRead }
+
     return when {
         result != null -> result
         !body.isClosedForRead -> body
-        else -> NullBody
+        typeInfo.kotlinType?.isMarkedNullable == true -> NullBody
+        else -> throw ContentConvertException("No suitable converter found for $typeInfo")
     }
 }
