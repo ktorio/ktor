@@ -13,7 +13,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
@@ -57,6 +56,17 @@ public class TestApplication internal constructor(
 
     internal val engine by lazy { builder.engine }
 
+    /**
+     * Starts this [TestApplication] instance.
+     */
+    public fun start() {
+        builder.engine.start()
+        builder.externalServices.externalApplications.values.forEach { it.start() }
+    }
+
+    /**
+     * Stops this [TestApplication] instance.
+     */
     public fun stop() {
         builder.engine.stop(0, 0)
         builder.externalServices.externalApplications.values.forEach { it.stop() }
@@ -212,6 +222,18 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client by lazy { createClient { } }
 
+    /**
+     * Starts instance of [TestApplication].
+     * Usually, users do not need to call this method because application will start on the first client call.
+     * But it's still useful when you need to test your application lifecycle events.
+     *
+     * After calling this method, no modification of the application is allowed.
+     */
+    public fun startApplication() {
+        val testApplication = TestApplication(this)
+        testApplication.start()
+    }
+
     @KtorDsl
     override fun createClient(
         block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
@@ -265,6 +287,6 @@ public fun testApplication(
         .apply { runBlocking { block() } }
 
     val testApplication = TestApplication(builder)
-    testApplication.engine.start()
+    testApplication.start()
     testApplication.stop()
 }
