@@ -72,8 +72,62 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
-        return ApplicationEngineEnvironmentReloading(
-            classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, rootPath, developmentMode
+        if (developmentMode) {
+            val result = ApplicationEngineEnvironmentReloading(
+                classLoader,
+                log,
+                config,
+                connectors,
+                modules,
+                watchPaths,
+                parentCoroutineContext,
+                rootPath,
+                developmentMode
+            )
+
+            if (result != null) return result
+            val message = """"
+                Failed to initialize reloading environment. 
+                Please make sure `io.ktor:ktor-server-autoreload` dependency installed. Autoreload is disabled.
+                """
+
+            log.warn(message)
+        }
+        return StaticApplicationEngineEnvironment(
+            classLoader,
+            parentCoroutineContext,
+            log,
+            config,
+            rootPath,
+            developmentMode,
+            connectors,
+            modules
         )
     }
+}
+
+private fun ApplicationEngineEnvironmentReloading(
+    classLoader: ClassLoader,
+    log: Logger,
+    config: ApplicationConfig,
+    connectors: MutableList<EngineConnectorConfig>,
+    modules: MutableList<Application.() -> Unit>,
+    watchPaths: List<String>,
+    parentCoroutineContext: CoroutineContext,
+    rootPath: String,
+    developmentMode: Boolean
+): ApplicationEngineEnvironment? {
+    val environment = Class.forName("io.ktor.server.engine.ApplicationEngineEnvironmentReloading", true, classLoader)
+    val constructor = environment.declaredConstructors.get(0)
+    return constructor.newInstance(
+        classLoader,
+        log,
+        config,
+        connectors,
+        modules,
+        watchPaths,
+        parentCoroutineContext,
+        rootPath,
+        developmentMode
+    ) as ApplicationEngineEnvironment?
 }
