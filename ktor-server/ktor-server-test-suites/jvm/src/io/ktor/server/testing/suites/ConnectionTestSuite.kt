@@ -34,6 +34,6 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
         assertEquals(2, addresses.size)
         assertFalse(addresses.any { it.port == 0 })
-        server.stop(1000, 1000)
+        server.stop(50, 1000)
     }
 }

@@ -5,10 +5,11 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.server.engine.*
-import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Assert.*
 import java.util.concurrent.*
+import kotlin.system.*
 
 var count = 0
 
@@ -45,5 +46,17 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
         assertEquals(1, counter)
         server.stop(1, 1, TimeUnit.SECONDS)
+    }
+
+    @Test
+    fun testFastStop() = runBlocking {
+        val server = embeddedServer(engine) {
+        }
+
+        val time = measureTimeMillis {
+            server.stop(0, 100, TimeUnit.SECONDS)
+        }
+
+        assertTrue("Stop time is $time", time < 100)
     }
 }

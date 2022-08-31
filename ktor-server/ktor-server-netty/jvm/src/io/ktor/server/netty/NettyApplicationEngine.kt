@@ -272,8 +272,10 @@ public class NettyApplicationEngine(
  * Transparently allows for the creation of [EventLoopGroup]'s utilising the optimal implementation for
  * a given operating system, subject to availability, or falling back to [NioEventLoopGroup] if none is available.
  */
-public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChannel>, group: EventLoopGroup) :
-    EventLoopGroup by group {
+public class EventLoopGroupProxy(
+    public val channel: KClass<out ServerSocketChannel>,
+    group: EventLoopGroup
+) : EventLoopGroup by group {
 
     public companion object {
 
