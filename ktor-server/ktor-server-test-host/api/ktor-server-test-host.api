@@ -2,6 +2,7 @@ public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/serve
 	public fun <init> ()V
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun startApplication ()V
 }
 
 public abstract class io/ktor/server/testing/BaseTest {
@@ -118,6 +119,7 @@ public final class io/ktor/server/testing/StressSuiteRunner : org/junit/runner/R
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun start ()V
 	public final fun stop ()V
 }
 
