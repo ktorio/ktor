@@ -29,7 +29,8 @@ internal fun List<MDCEntry>.setup(call: ApplicationCall): Map<String, String> {
     val result = HashMap<String, String>()
 
     forEach { entry ->
-        entry.provider(call)?.let { mdcValue ->
+        val provider = runCatching { entry.provider(call) }.getOrNull()
+        provider?.let { mdcValue ->
             result[entry.name] = mdcValue
         }
     }
