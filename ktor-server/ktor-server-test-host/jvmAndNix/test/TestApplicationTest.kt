@@ -165,6 +165,59 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testManualStart() = testApplication {
+        var externalServicesRoutingCalled = false
+        var routingCalled = false
+        var applicationCalled = false
+        var applicationStarted = false
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    externalServicesRoutingCalled = true
+                }
+            }
+        }
+        routing {
+            routingCalled = true
+        }
+        application {
+            applicationCalled = true
+            environment.monitor.subscribe(ApplicationStarted) {
+                applicationStarted = true
+            }
+        }
+
+        startApplication()
+
+        assertEquals(true, routingCalled)
+        assertEquals(true, applicationCalled)
+        assertEquals(true, applicationStarted)
+        assertEquals(true, externalServicesRoutingCalled)
+    }
+
+    @Test
+    fun testManualStartAndClientCallAfter() = testApplication {
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    get {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+        routing {
+            get {
+                call.respond(this@testApplication.client.get("https://test.com").bodyAsText())
+            }
+        }
+
+        startApplication()
+
+        assertEquals("OK", client.get("/").bodyAsText())
+    }
+
+    @Test
     fun testClientWithTimeout() = testApplication {
         val client = createClient {
             install(HttpTimeout)
