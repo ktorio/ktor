@@ -253,7 +253,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                val parameters = call.receiveOrNull<Parameters>()
+                val parameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
                 if (parameters != null) {
                     call.respond(parameters.formUrlEncode())
                 } else {

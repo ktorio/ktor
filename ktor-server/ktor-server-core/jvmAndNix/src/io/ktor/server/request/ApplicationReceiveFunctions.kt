@@ -51,6 +51,13 @@ public open class ApplicationReceivePipeline(
  * Receives content for this request.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
+@Deprecated(
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
+        "Please consider replacing it with runCatching with receive or receiveNullable",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+)
+@Suppress("DEPRECATION")
 public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
@@ -118,6 +125,12 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveN
  * @param [typeInfo] type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
+@Deprecated(
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
+        "Please consider replacing it with runCatching with receive or receiveNullable",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+)
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
         receiveNullable(typeInfo)
@@ -132,6 +145,12 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
+@Deprecated(
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
+        "Please consider replacing it with runCatching with receive or receiveNullable",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+)
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? = try {
     receive(type)
 } catch (cause: ContentTransformationException) {
@@ -144,7 +163,6 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? 
  * @return text received from this call.
  * @throws BadRequestException when Content-Type header is invalid.
  */
-@Suppress("NOTHING_TO_INLINE")
 public suspend inline fun ApplicationCall.receiveText(): String {
     val charset = try {
         request.contentCharset() ?: Charsets.UTF_8
@@ -159,7 +177,6 @@ public suspend inline fun ApplicationCall.receiveText(): String {
  * @return instance of [ByteReadChannel] to read incoming bytes for this call.
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
  */
-@Suppress("NOTHING_TO_INLINE")
 public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
 /**
@@ -167,7 +184,6 @@ public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = re
  * @return instance of [MultiPartData].
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
-@Suppress("NOTHING_TO_INLINE")
 public suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
 
 /**
@@ -175,7 +191,6 @@ public suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = re
  * @return instance of [Parameters].
  * @throws ContentTransformationException when content cannot be transformed to the [Parameters].
  */
-@Suppress("NOTHING_TO_INLINE")
 public suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
 
 /**

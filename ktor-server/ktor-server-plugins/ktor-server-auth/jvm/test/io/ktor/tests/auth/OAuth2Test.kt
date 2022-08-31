@@ -661,7 +661,7 @@ class OAuth2Test {
                             clientId = "clientId1",
                             clientSecret = "clientSecret1",
                             requestMethod = HttpMethod.Post,
-                            extraTokenParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1"),
+                            extraTokenParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1")
                         )
                     }
                 }
@@ -849,7 +849,10 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
             routing {
                 route("/oauth/access_token") {
                     handle {
-                        val formData = call.receiveOrNull() ?: Parameters.Empty
+                        val formData = runCatching {
+                            call.receiveNullable<Parameters>()
+                        }.getOrNull() ?: Parameters.Empty
+
                         val values = call.parameters + formData
 
                         val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
