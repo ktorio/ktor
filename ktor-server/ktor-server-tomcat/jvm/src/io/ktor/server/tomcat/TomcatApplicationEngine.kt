@@ -105,6 +105,10 @@ public class TomcatApplicationEngine(
                             setProperty("sslProtocol", "TLS")
                             setProperty("SSLEnabled", "true")
 
+                            ktorConnector.enabledProtocols?.let {
+                                setProperty("sslEnabledProtocols", it.joinToString())
+                            }
+
                             val sslImpl = chooseSSLImplementation()
 
                             setProperty("sslImplementationName", sslImpl.name)
