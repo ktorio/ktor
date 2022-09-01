@@ -276,6 +276,7 @@ public final class io/ktor/server/engine/EnginePipeline$Companion {
 
 public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/server/engine/EngineConnectorBuilder, io/ktor/server/engine/EngineSSLConnectorConfig {
 	public fun <init> (Ljava/security/KeyStore;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public fun getEnabledProtocols ()Ljava/util/List;
 	public fun getKeyAlias ()Ljava/lang/String;
 	public fun getKeyStore ()Ljava/security/KeyStore;
 	public fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
@@ -284,6 +285,7 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
 	public fun getTrustStore ()Ljava/security/KeyStore;
 	public fun getTrustStorePath ()Ljava/io/File;
+	public fun setEnabledProtocols (Ljava/util/List;)V
 	public fun setKeyAlias (Ljava/lang/String;)V
 	public fun setKeyStore (Ljava/security/KeyStore;)V
 	public fun setKeyStorePassword (Lkotlin/jvm/functions/Function0;)V
@@ -295,6 +297,7 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 }
 
 public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
+	public abstract fun getEnabledProtocols ()Ljava/util/List;
 	public abstract fun getKeyAlias ()Ljava/lang/String;
 	public abstract fun getKeyStore ()Ljava/security/KeyStore;
 	public abstract fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;

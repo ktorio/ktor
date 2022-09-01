@@ -33,6 +33,7 @@ public class EngineSSLConnectorBuilder(
     override var trustStore: KeyStore? = null
     override var trustStorePath: File? = null
     override var port: Int = 443
+    override var enabledProtocols: List<String>? = null
 }
 
 /**
@@ -81,6 +82,11 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
      */
     public val trustStorePath: File?
+
+    /**
+     *  Enabled protocol versions
+     */
+    public val enabledProtocols: List<String>?
 }
 
 /**
