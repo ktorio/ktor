@@ -26,11 +26,11 @@ import io.ktor.util.pipeline.*
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
  * @param name A name of a plugin that is used to get its instance.
+ * @param configurationPath is path in configuration file to configuration of this plugin.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
  * Note that it may be modified later when a user of your plugin calls [Application.install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- *
  **/
 public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
@@ -44,7 +44,11 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
         pipeline: Application,
         configure: PluginConfigT.() -> Unit
     ): PluginInstance {
-        val config = pipeline.environment.config.config(configurationPath)
+        val config = try {
+            pipeline.environment.config.config(configurationPath)
+        } catch (_: Throwable) {
+            MapApplicationConfig()
+        }
         return createPluginInstance(pipeline, pipeline, body, { createConfiguration(config) }, configure)
     }
 }
@@ -154,6 +158,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  *
  * @param name A name of a plugin that is used to get its instance
  * when it is installed to [io.ktor.server.routing.Routing].
+ * @param configurationPath is path in configuration file to configuration of this plugin.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
  * note that it may be modified later when a user of your plugin calls [install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
@@ -174,7 +179,13 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
     ): PluginInstance {
         val environment = pipeline.environment
             ?: error("Can't install plugin with config: environment is not initialized.")
-        val config = environment.config.config(configurationPath)
+
+        val config = try {
+            environment.config.config(configurationPath)
+        } catch (_: Throwable) {
+            MapApplicationConfig()
+        }
+
         val application = when (pipeline) {
             is Route -> pipeline.application
             is Application -> pipeline
