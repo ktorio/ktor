@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 public fun SocketAddress.toJavaAddress(): java.net.SocketAddress {
+    // Do not read the hostname here because that may trigger a name service reverse lookup.
     return address
 }
 
