@@ -22,12 +22,14 @@ internal class ConnectionFactory(
         configuration: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket {
         limit.acquire()
-        addressLimit.computeIfAbsent(address) { Semaphore(addressConnectionsLimit) }.acquire()
+        val addressSemaphore = addressLimit.computeIfAbsent(address) { Semaphore(addressConnectionsLimit) }
+        addressSemaphore.acquire()
 
         return try {
             aSocket(selector).tcpNoDelay().tcp().connect(address, configuration)
         } catch (cause: Throwable) {
             // a failure or cancellation
+            addressSemaphore.release()
             limit.release()
             throw cause
         }
