@@ -70,8 +70,18 @@ public class ApplicationConfigurationException(message: String, cause: Throwable
     public constructor(message: String) : this(message, null)
 }
 
+/**
+ * Try read String value from [ApplicationConfig].
+ *
+ * @return null if key is missing
+ */
 public fun ApplicationConfig.tryGetString(key: String): String? =
     propertyOrNull(key)?.getString()
 
+/**
+ * Try read String value from [ApplicationConfig].
+ *
+ * @return null if key is missing
+ */
 public fun ApplicationConfig.tryGetStringList(key: String): List<String>? =
     propertyOrNull(key)?.getList()

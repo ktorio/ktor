@@ -90,8 +90,10 @@ public class io/ktor/server/application/CallContext {
 }
 
 public final class io/ktor/server/application/CreatePluginUtilsKt {
+	public static final fun createApplicationPlugin (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
 	public static final fun createApplicationPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationPlugin;
+	public static final fun createRouteScopedPlugin (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 }
