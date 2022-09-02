@@ -31,29 +31,15 @@ internal class NettyHttp1Handler(
     override val coroutineContext: CoroutineContext get() = handlerJob
 
     private var skipEmpty = false
-    private val skippedRead: AtomicBoolean = atomic(false)
 
     private lateinit var responseWriter: NettyHttpResponsePipeline
 
-    /**
-     *  Represents current number of processing requests
-     */
-    internal val activeRequests: AtomicLong = atomic(0L)
-
-    /**
-     * True if current request's last http content is read, false otherwise.
-     */
-    internal val isCurrentRequestFullyRead: AtomicBoolean = atomic(false)
-
-    /**
-     * True if [channelReadComplete] was invoked for the current request, false otherwise
-     */
-    internal val isChannelReadCompleted: AtomicBoolean = atomic(false)
+    private val state = NettyHttpHandlerState(runningLimit)
 
     override fun channelActive(context: ChannelHandlerContext) {
         responseWriter = NettyHttpResponsePipeline(
             context,
-            this,
+            state,
             coroutineContext
         )
 
@@ -68,16 +54,16 @@ internal class NettyHttp1Handler(
 
     override fun channelRead(context: ChannelHandlerContext, message: Any) {
         if (message is LastHttpContent) {
-            isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+            state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
         }
 
         when {
             message is HttpRequest -> {
                 if (message !is LastHttpContent) {
-                    isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
+                    state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
                 }
-                isChannelReadCompleted.compareAndSet(expect = true, update = false)
-                activeRequests.incrementAndGet()
+                state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
+                state.activeRequests.incrementAndGet()
 
                 handleRequest(context, message)
                 callReadIfNeeded(context)
@@ -110,7 +96,7 @@ internal class NettyHttp1Handler(
     }
 
     override fun channelReadComplete(context: ChannelHandlerContext?) {
-        isChannelReadCompleted.compareAndSet(expect = false, update = true)
+        state.isChannelReadCompleted.compareAndSet(expect = false, update = true)
         responseWriter.flushIfNeeded()
         super.channelReadComplete(context)
     }
@@ -165,19 +151,11 @@ internal class NettyHttp1Handler(
     }
 
     private fun callReadIfNeeded(context: ChannelHandlerContext) {
-        if (activeRequests.value < runningLimit) {
+        if (state.activeRequests.value < runningLimit) {
             context.read()
-            skippedRead.value = false
+            state.skippedRead.value = false
         } else {
-            skippedRead.value = true
-        }
-    }
-
-    internal fun onLastResponseMessage(context: ChannelHandlerContext) {
-        activeRequests.decrementAndGet()
-
-        if (skippedRead.compareAndSet(expect = false, update = true) && activeRequests.value < runningLimit) {
-            context.read()
+            state.skippedRead.value = true
         }
     }
 }
