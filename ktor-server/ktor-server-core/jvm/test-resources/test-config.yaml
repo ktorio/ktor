@@ -1,0 +1,7 @@
+
+myplugin:
+    property: 42
+
+db:
+    myplugin:
+        property: 43
