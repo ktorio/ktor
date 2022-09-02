@@ -188,7 +188,7 @@ internal class Endpoint(
                     } catch (_: Throwable) {
                     }
 
-                    connectionFactory.release()
+                    connectionFactory.release(address)
                     throw cause
                 }
             }
@@ -229,7 +229,8 @@ internal class Endpoint(
     }
 
     private fun releaseConnection() {
-        connectionFactory.release()
+        val address = InetSocketAddress(host, port)
+        connectionFactory.release(address)
         connections.decrementAndGet()
     }
 

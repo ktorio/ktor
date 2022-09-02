@@ -6,29 +6,37 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.util.collections.*
 import kotlinx.coroutines.sync.*
 
 internal class ConnectionFactory(
     private val selector: SelectorManager,
-    maxConnectionsCount: Int
+    connectionsLimit: Int,
+    private val addressConnectionsLimit: Int
 ) {
-    private val semaphore = Semaphore(maxConnectionsCount)
+    private val limit = Semaphore(connectionsLimit)
+    private val addressLimit = ConcurrentMap<InetSocketAddress, Semaphore>()
 
     suspend fun connect(
         address: InetSocketAddress,
         configuration: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket {
-        semaphore.acquire()
+        limit.acquire()
+        val addressSemaphore = addressLimit.computeIfAbsent(address) { Semaphore(addressConnectionsLimit) }
+        addressSemaphore.acquire()
+
         return try {
             aSocket(selector).tcpNoDelay().tcp().connect(address, configuration)
         } catch (cause: Throwable) {
             // a failure or cancellation
-            semaphore.release()
+            addressSemaphore.release()
+            limit.release()
             throw cause
         }
     }
 
-    fun release() {
-        semaphore.release()
+    fun release(address: InetSocketAddress) {
+        addressLimit[address]!!.release()
+        limit.release()
     }
 }

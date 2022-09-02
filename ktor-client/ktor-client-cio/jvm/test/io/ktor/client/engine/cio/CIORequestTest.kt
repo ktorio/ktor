@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -147,12 +148,18 @@ class CIORequestTest : TestWithKtor() {
         }
 
         test { client ->
+            var fail: Throwable? = null
             for (i in 0..1000) {
                 try {
                     client.get("http://something.wrong").body<String>()
-                } catch (cause: UnresolvedAddressException) {
-                    // ignore
+                } catch (cause: Throwable) {
+                    fail = cause
                 }
+            }
+
+            assertNotNull(fail)
+            if (fail !is ConnectTimeoutException && fail !is UnresolvedAddressException) {
+                fail("Expected ConnectTimeoutException or UnresolvedAddressException, got $fail", fail)
             }
         }
     }
