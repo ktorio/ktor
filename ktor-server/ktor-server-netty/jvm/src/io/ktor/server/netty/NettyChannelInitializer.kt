@@ -5,9 +5,9 @@
 package io.ktor.server.netty
 
 import io.ktor.server.engine.*
-import io.ktor.server.netty.cio.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
+import io.ktor.util.logging.*
 import io.netty.channel.*
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.*
@@ -103,7 +103,13 @@ public class NettyChannelInitializer(
     private fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
-                val handler = NettyHttp2Handler(enginePipeline, environment.application, callEventGroup, userContext)
+                val handler = NettyHttp2Handler(
+                    enginePipeline,
+                    environment.application,
+                    callEventGroup,
+                    userContext,
+                    runningLimit
+                )
                 @Suppress("DEPRECATION")
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
                 pipeline.channel().closeFuture().addListener {

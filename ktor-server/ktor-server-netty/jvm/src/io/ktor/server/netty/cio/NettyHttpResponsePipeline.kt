@@ -22,16 +22,10 @@ private const val UNFLUSHED_LIMIT = 65536
 
 /**
  * Contains methods for handling http request with Netty
- * @param context
- * @param coroutineContext
- * @param activeRequests
- * @param isCurrentRequestFullyRead
- * @param isChannelReadCompleted
  */
-@OptIn(InternalAPI::class)
 internal class NettyHttpResponsePipeline constructor(
     private val context: ChannelHandlerContext,
-    private val httpHandler: NettyHttp1Handler,
+    private val httpHandlerState: NettyHttpHandlerState,
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     /**
@@ -56,8 +50,8 @@ internal class NettyHttpResponsePipeline constructor(
     internal fun flushIfNeeded() {
         if (
             isDataNotFlushed.value &&
-            httpHandler.isChannelReadCompleted.value &&
-            httpHandler.activeRequests.value == 0L
+            httpHandlerState.isChannelReadCompleted.value &&
+            httpHandlerState.activeRequests.value == 0L
         ) {
             context.flush()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
@@ -145,7 +139,7 @@ internal class NettyHttpResponsePipeline constructor(
             null
         }
 
-        httpHandler.onLastResponseMessage(context)
+        httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
         lastMessageFuture?.addListener {
@@ -232,9 +226,9 @@ internal class NettyHttpResponsePipeline constructor(
      * True if client is waiting for response header, false otherwise
      */
     private fun isHeaderFlushNeeded(): Boolean {
-        val activeRequestsValue = httpHandler.activeRequests.value
-        return httpHandler.isChannelReadCompleted.value &&
-            !httpHandler.isCurrentRequestFullyRead.value &&
+        val activeRequestsValue = httpHandlerState.activeRequests.value
+        return httpHandlerState.isChannelReadCompleted.value &&
+            !httpHandlerState.isCurrentRequestFullyRead.value &&
             activeRequestsValue == 1L
     }
 
@@ -365,7 +359,6 @@ internal class NettyHttpResponsePipeline constructor(
     }
 }
 
-@OptIn(InternalAPI::class)
 private fun NettyApplicationResponse.isUpgradeResponse() =
     status()?.value == HttpStatusCode.SwitchingProtocols.value
 

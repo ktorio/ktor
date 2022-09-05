@@ -43,3 +43,8 @@ kotlin.sourceSets {
         }
     }
 }
+
+val jvmTest: org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest by tasks
+jvmTest.apply {
+    systemProperty("enable.http2", "true")
+}
