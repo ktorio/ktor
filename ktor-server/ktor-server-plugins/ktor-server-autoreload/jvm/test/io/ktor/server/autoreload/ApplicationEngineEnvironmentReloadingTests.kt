@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused", "UNUSED_PARAMETER")
 
-package io.ktor.tests.hosts
+package io.ktor.server.autoreload
 
 import com.typesafe.config.*
 import io.ktor.http.*

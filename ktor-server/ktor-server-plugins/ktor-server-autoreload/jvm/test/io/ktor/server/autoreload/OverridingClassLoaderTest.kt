@@ -2,8 +2,9 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.engine
+package io.ktor.server.autoreload
 
+import io.ktor.server.autoreload.internal.*
 import java.io.*
 import java.net.*
 import kotlin.reflect.full.*
@@ -41,8 +42,9 @@ class OverridingClassLoaderTest {
         }
 
         val text = OverridingClassLoader(listOf(testClassesUrl), thisClassLoader).use {
-            val childLoadedClassClazz = it.loadClass("io.ktor.server.engine.ChildLoadedClass")
-            val expectedClassloaderPrefix = "io.ktor.server.engine.OverridingClassLoader\$ChildURLClassLoader"
+            val childLoadedClassClazz = it.loadClass("io.ktor.server.autoreload.ChildLoadedClass")
+            val expectedClassloaderPrefix =
+                "io.ktor.server.autoreload.internal.OverridingClassLoader\$ChildURLClassLoader"
             // Check it was loaded by the child class loader
             val actualClassLoaderName = childLoadedClassClazz.classLoader.toString()
             check(actualClassLoaderName.startsWith(expectedClassloaderPrefix)) {
@@ -71,7 +73,7 @@ class OverridingClassLoaderTest {
  */
 @Suppress("UNUSED")
 class ChildLoadedClass(
-    private val resourceName: String,
+    private val resourceName: String
 ) : () -> InputStream? {
 
     override fun invoke(): InputStream? {

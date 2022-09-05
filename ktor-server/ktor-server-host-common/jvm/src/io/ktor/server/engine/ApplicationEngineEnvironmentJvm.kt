@@ -117,7 +117,11 @@ private fun ApplicationEngineEnvironmentReloading(
     rootPath: String,
     developmentMode: Boolean
 ): ApplicationEngineEnvironment? {
-    val environment = Class.forName("io.ktor.server.engine.ApplicationEngineEnvironmentReloading", true, classLoader)
+    val environment = Class.forName(
+        "io.ktor.server.autoreload.ApplicationEngineEnvironmentReloading",
+        true,
+        classLoader
+    )
     val constructor = environment.declaredConstructors.get(0)
     return constructor.newInstance(
         classLoader,
