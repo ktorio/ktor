@@ -13,7 +13,4 @@ internal val SocketAddress.port: Int
         return inetAddress.port
     }
 
-internal fun SocketAddress.toNetworkAddress(): NetworkAddress {
-    val inetAddress = this as? InetSocketAddress ?: error("Expected inet socket address")
-    return NetworkAddress(inetAddress.hostname, inetAddress.port)
-}
+internal expect fun SocketAddress.toNetworkAddress(): NetworkAddress
