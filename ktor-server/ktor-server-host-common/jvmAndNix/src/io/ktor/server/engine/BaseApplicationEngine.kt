@@ -72,8 +72,9 @@ public abstract class BaseApplicationEngine(
         val log = environment.log
         CoroutineScope(environment.application.coroutineContext).launch {
             connectors.await().forEach {
+                val host = escapeHostname(it.host)
                 log.info(
-                    "Responding at ${it.type.name.lowercase()}://${it.host}:${it.port}"
+                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
                 )
             }
         }
