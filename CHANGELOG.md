@@ -1,3 +1,33 @@
+# 2.1.1
+> Published 6 September 2022
+
+* CIO: responses are received with a huge delay on JVM Windows (due to reverse DNS lookup internally) ([KTOR-4827](https://youtrack.jetbrains.com/issue/KTOR-4827))
+* Netty HTTP/2 not working ([KTOR-578](https://youtrack.jetbrains.com/issue/KTOR-578))
+* HTTP/2 push fails with Netty engine ([KTOR-800](https://youtrack.jetbrains.com/issue/KTOR-800))
+* HttpCookies: no space between cookie pairs ([KTOR-3854](https://youtrack.jetbrains.com/issue/KTOR-3854))
+* Netty ALPN provider detection not working ([KTOR-4712](https://youtrack.jetbrains.com/issue/KTOR-4712))
+* CIO: Connection reset by peer on MacOS ([KTOR-2036](https://youtrack.jetbrains.com/issue/KTOR-2036))
+* CallLogging MDC with sessions: Application feature Sessions is not installed ([KTOR-550](https://youtrack.jetbrains.com/issue/KTOR-550))
+* Deprecate Public API with Atomicfu Declarations ([KTOR-4774](https://youtrack.jetbrains.com/issue/KTOR-4774))
+* Deprecate receiveOrNull because it's confusing ([KTOR-4772](https://youtrack.jetbrains.com/issue/KTOR-4772))
+* Server ContentNegotiation Plugin doesn't check ignoredTypes for Request Body ([KTOR-4770](https://youtrack.jetbrains.com/issue/KTOR-4770))
+* IllegalArgumentException is thrown when UnixSocketAddress.path is accessed on JVM (JDK 16+) ([KTOR-4695](https://youtrack.jetbrains.com/issue/KTOR-4695))
+* WebSocketDeflateExtension not following RFC ([KTOR-4696](https://youtrack.jetbrains.com/issue/KTOR-4696))
+* The parseWebSocketExtensions function behaves incorrectly ([KTOR-3189](https://youtrack.jetbrains.com/issue/KTOR-3189))
+* Receive non-Nullable Type Throws NPE in Case of Failure ([KTOR-4771](https://youtrack.jetbrains.com/issue/KTOR-4771))
+* Darwin: Symbol not found: _OBJC_CLASS_$_NSURLSessionWebSocketMessage on iOS 12 ([KTOR-4159](https://youtrack.jetbrains.com/issue/KTOR-4159))
+* Fix Merging Date Headers on the Client ([KTOR-4782](https://youtrack.jetbrains.com/issue/KTOR-4782))
+* Replace exception in InputStreamAdapter and OutputStreamAdapter constructors with warning message If parking ([KTOR-4736](https://youtrack.jetbrains.com/issue/KTOR-4736))
+* Clearing Session Cookie in Chrome 80+ with SameSite and Secure ([KTOR-437](https://youtrack.jetbrains.com/issue/KTOR-437))
+* The `OutgoingContent.toByteArray()` stalls when used in combination with a `OutgoingContent.WriteChannelContent` ([KTOR-2126](https://youtrack.jetbrains.com/issue/KTOR-2126))
+* Missing Content-Type header in a request ([KTOR-1407](https://youtrack.jetbrains.com/issue/KTOR-1407))
+* Crash when making requests from browser inside of web worker ([KTOR-4715](https://youtrack.jetbrains.com/issue/KTOR-4715))
+* An error occurs when there is a binary such as protobuf in the response body of error ([KTOR-1619](https://youtrack.jetbrains.com/issue/KTOR-1619))
+* CallLogging configured MDC entries are not passed to StatusPages exception handlers ([KTOR-4193](https://youtrack.jetbrains.com/issue/KTOR-4193))
+* LocalFileContent incorrectly relies on the last modification time of a file to check its existence ([KTOR-4707](https://youtrack.jetbrains.com/issue/KTOR-4707))
+* Sessions: WSS in combination with Secure cookies throws IllegalArgumentException ([KTOR-4697](https://youtrack.jetbrains.com/issue/KTOR-4697))
+* Json request failure with configured form authentication ([KTOR-678](https://youtrack.jetbrains.com/issue/KTOR-678))
+
 # 2.1.0
 > Published 11 August 2022
 
