@@ -26,5 +26,11 @@ kotlin {
                 api(project(":ktor-server:ktor-server-test-host"))
             }
         }
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+                api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
+            }
+        }
     }
 }
