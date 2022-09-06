@@ -6,7 +6,7 @@ package io.ktor.http.cio.internals
 
 import io.ktor.utils.io.pool.*
 
-internal expect val DISABLE_CHAR_ARRAY_POOLING: Boolean
+internal expect fun isPoolingDisabled(): Boolean
 
 internal const val CHAR_ARRAY_POOL_SIZE = 4096
 
@@ -15,7 +15,7 @@ internal const val CHAR_ARRAY_POOL_SIZE = 4096
  */
 internal const val CHAR_BUFFER_ARRAY_LENGTH: Int = 4096 / 2
 
-internal val CharArrayPool: ObjectPool<CharArray> = if (DISABLE_CHAR_ARRAY_POOLING) {
+internal val CharArrayPool: ObjectPool<CharArray> = if (isPoolingDisabled()) {
     object : NoPoolImpl<CharArray>() {
         override fun borrow(): CharArray {
             return CharArray(CHAR_BUFFER_ARRAY_LENGTH)

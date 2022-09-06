@@ -4,4 +4,4 @@
 
 package io.ktor.http.cio.internals
 
-internal actual val DISABLE_CHAR_ARRAY_POOLING: Boolean = false
+internal actual fun isPoolingDisabled(): Boolean = false
