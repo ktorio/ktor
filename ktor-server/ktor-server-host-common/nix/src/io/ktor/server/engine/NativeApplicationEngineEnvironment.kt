@@ -9,9 +9,9 @@ import io.ktor.events.EventDefinition
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
-import kotlinx.atomicfu.*
 import kotlin.coroutines.*
 
+@Deprecated("Use ApplicationEngineEnvironmentBuilder instead.", level = DeprecationLevel.WARNING)
 public class NativeApplicationEngineEnvironment(
     override val log: Logger,
     override val config: ApplicationConfig,

@@ -11,8 +11,7 @@ import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
-internal class StaticApplicationEngineEnvironment(
-    override val classLoader: ClassLoader,
+internal abstract class StaticApplicationEngineEnvironment(
     override val parentCoroutineContext: CoroutineContext,
     override val log: Logger,
     override val config: ApplicationConfig,

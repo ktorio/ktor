@@ -72,7 +72,7 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
-        if (developmentMode) {
+        if (watchPaths.isNotEmpty() && developmentMode) {
             val result = ApplicationEngineEnvironmentReloading(
                 classLoader,
                 log,
@@ -86,13 +86,13 @@ public actual class ApplicationEngineEnvironmentBuilder {
             )
 
             if (result != null) return result
-            val message = """"
-                Failed to initialize reloading environment. 
-                Please make sure `io.ktor:ktor-server-autoreload` dependency installed. Autoreload is disabled.
-                """
+            val message = "Failed to initialize reloading environment. " +
+                "Please make sure `io.ktor:ktor-server-autoreload` dependency installed. " +
+                "Autoreload is disabled."
 
             log.warn(message)
         }
+
         return StaticApplicationEngineEnvironment(
             classLoader,
             parentCoroutineContext,
@@ -117,21 +117,25 @@ private fun ApplicationEngineEnvironmentReloading(
     rootPath: String,
     developmentMode: Boolean
 ): ApplicationEngineEnvironment? {
-    val environment = Class.forName(
-        "io.ktor.server.autoreload.ApplicationEngineEnvironmentReloading",
-        true,
-        classLoader
-    )
-    val constructor = environment.declaredConstructors.get(0)
-    return constructor.newInstance(
-        classLoader,
-        log,
-        config,
-        connectors,
-        modules,
-        watchPaths,
-        parentCoroutineContext,
-        rootPath,
-        developmentMode
-    ) as ApplicationEngineEnvironment?
+    try {
+        val environment = Class.forName(
+            "io.ktor.server.autoreload.ApplicationEngineEnvironmentReloading",
+            true,
+            classLoader
+        )
+        val constructor = environment.declaredConstructors.get(0)
+        return constructor.newInstance(
+            classLoader,
+            log,
+            config,
+            connectors,
+            modules,
+            watchPaths,
+            parentCoroutineContext,
+            rootPath,
+            developmentMode
+        ) as ApplicationEngineEnvironment?
+    } catch (cause: Throwable) {
+        return null
+    }
 }

@@ -67,14 +67,14 @@ public actual class ApplicationEngineEnvironmentBuilder {
      */
     public actual fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
-        return NativeApplicationEngineEnvironment(
+        return StaticApplicationEngineEnvironment(
+            parentCoroutineContext,
             log,
             config,
-            connectors,
-            modules,
-            parentCoroutineContext,
             rootPath,
-            developmentMode
+            developmentMode,
+            connectors,
+            modules
         )
     }
 }

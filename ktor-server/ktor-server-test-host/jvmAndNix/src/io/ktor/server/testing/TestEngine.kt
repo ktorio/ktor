@@ -23,7 +23,6 @@ public fun createTestEnvironment(
     applicationEngineEnvironment {
         config = MapApplicationConfig("ktor.deployment.environment" to "test")
         log = KtorSimpleLogger("ktor.test")
-        developmentMode = true
         configure()
     }
 
