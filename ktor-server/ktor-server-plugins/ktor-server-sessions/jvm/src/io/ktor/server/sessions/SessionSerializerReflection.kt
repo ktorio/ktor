@@ -44,7 +44,6 @@ public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflect
 /**
  * Creates the default [SessionSerializer] for the type [T].
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
     defaultSessionSerializer(typeOf<T>())
 
@@ -75,8 +74,6 @@ public class SessionSerializerReflection<T : Any> internal constructor(
 
     @Suppress("UNCHECKED_CAST")
     public val type: KClass<T> = typeInfo.jvmErasure as KClass<T>
-
-    private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {
         val values = parseQueryString(text)

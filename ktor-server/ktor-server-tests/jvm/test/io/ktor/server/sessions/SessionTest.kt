@@ -10,10 +10,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.serialization.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -514,6 +516,50 @@ class SessionTest {
     }
 
     @Test
+    fun testSessionByIdServerWithKotlinxSerialization() {
+        val sessionStorage = SessionStorageMemory()
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, sessionStorage) {
+                    serializer = KotlinxBackwardCompatibleSessionSerializer()
+                }
+            }
+            var serverSessionId = "_invalid"
+            application.routing {
+                get("/0") {
+                    assertNull(call.sessionId, "There should be no session set by default")
+                    assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
+                    call.respondText("There should be no session started")
+                }
+                get("/1") {
+                    call.sessions.set(TestUserSession("id2", listOf("item1")))
+                    call.respondText("ok")
+                    serverSessionId = call.sessionId ?: error("No session id found.")
+                    assertTrue { serverSessionId.matches("[A-Za-z0-9]+".toRegex()) }
+                }
+            }
+
+            assertNull(
+                handleRequest(HttpMethod.Get, "/0").response.cookies[cookieName],
+                "There should be no session set by default"
+            )
+
+            handleRequest(HttpMethod.Get, "/1").let { response ->
+                val sessionCookie = response.response.cookies[cookieName]
+                assertNotNull(sessionCookie, "No session id cookie found")
+                val clientSessionId = sessionCookie.value
+                assertEquals(serverSessionId, clientSessionId)
+            }
+
+            val serializedSession = runBlocking {
+                sessionStorage.read(serverSessionId)
+            }
+            assertNotNull(serializedSession)
+            assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
+        }
+    }
+
+    @Test
     fun testSessionByIdCookie() {
         val sessionStorage = SessionStorageMemory()
         var id = 777
@@ -769,5 +815,6 @@ class SessionTest {
 }
 
 class EmptySession
+@Serializable
 data class TestUserSession(val userId: String, val cart: List<String>)
 data class TestUserSessionB(val userId: String, val cart: List<String>)
