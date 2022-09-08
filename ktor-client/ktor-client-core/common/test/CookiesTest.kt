@@ -43,7 +43,7 @@ class CookiesTest {
     }
 
     @Test
-    fun testCookiesAreRenderedWithSpaceInBetween() = testSuspend{
+    fun testCookiesAreRenderedWithSpaceInBetween() = testSuspend {
         var storage = AcceptAllCookiesStorage()
         storage.addCookie("http://localhost/", Cookie("name1", "value1"))
         storage.addCookie("http://localhost/", Cookie("name2", "value2"))
