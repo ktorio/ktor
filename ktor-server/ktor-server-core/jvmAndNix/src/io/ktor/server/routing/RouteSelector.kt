@@ -7,7 +7,6 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.util.*
 
 /**
  * A result of a route evaluation against a call.
@@ -552,8 +551,8 @@ public data class HttpMethodRouteSelector(
 
 /**
  * Evaluates a route against a header in the request.
- * @param name is a name of the header
- * @param value is a value of the header
+ * @param name is the name of the header
+ * @param value is the value of the header
  */
 public data class HttpHeaderRouteSelector(
     val name: String,
@@ -570,6 +569,32 @@ public data class HttpHeaderRouteSelector(
     }
 
     override fun toString(): String = "(header:$name = $value)"
+}
+
+/**
+ * Evaluates a route against a `Content-Type` in the [HttpHeaders.ContentType] request header.
+ * @param contentType is an instance of [ContentType]
+ */
+internal data class ContentTypeHeaderRouteSelector(
+    val contentType: ContentType
+) : RouteSelector() {
+
+    private val failedEvaluation = RouteSelectorEvaluation.Failure(
+        RouteSelectorEvaluation.qualityFailedParameter,
+        HttpStatusCode.UnsupportedMediaType
+    )
+
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        val headers = context.call.request.header(HttpHeaders.ContentType)
+        val parsedHeaders = parseAndSortContentTypeHeader(headers)
+
+        val header = parsedHeaders.firstOrNull { ContentType.parse(it.value).match(contentType) }
+            ?: return failedEvaluation
+
+        return RouteSelectorEvaluation.Success(header.quality)
+    }
+
+    override fun toString(): String = "(contentType = $contentType)"
 }
 
 /**
