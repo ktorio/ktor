@@ -8,8 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -247,5 +249,34 @@ class TestApplicationTest {
             request1.await()
             request2.await()
         }
+    }
+
+    @Test
+    fun testExceptionThrowsByDefault() = testApplication {
+        routing {
+            get("/boom") {
+                throw IllegalStateException("error")
+            }
+        }
+
+        val error = assertFailsWith<IllegalStateException> {
+            client.get("/boom")
+        }
+        assertEquals("error", error.message)
+    }
+
+    @Test
+    fun testExceptionRespondsWith500IfFlagSet() = testApplication {
+        environment {
+            config = MapApplicationConfig(CONFIG_KEY_THROW_ON_EXCEPTION to "false")
+        }
+        routing {
+            get("/boom") {
+                throw IllegalStateException("error")
+            }
+        }
+
+        val response = client.get("/boom")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 }
