@@ -7,10 +7,6 @@ pluginManagement {
         mavenCentral()
         google()
         gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-atomicfu/maven").credentials {
-            username = "alexander.likhachev"
-            password = "eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIzWVdlRmUycmc1RWEiLCJhdWQiOiJjaXJjbGV0LXdlYi11aSIsIm9yZ0RvbWFpbiI6InB1YmxpYyIsIm5hbWUiOiJhbGV4YW5kZXIubGlraGFjaGV2IiwiaXNzIjoiaHR0cHM6XC9cL3B1YmxpYy5qZXRicmFpbnMuc3BhY2UiLCJwZXJtX3Rva2VuIjoiMWNtcGNEMG9UdTB2IiwicHJpbmNpcGFsX3R5cGUiOiJVU0VSIiwiaWF0IjoxNjUzNDAxNjQxfQ.Fy-QDPk6PVgC9E6d7vqexq4npZMUp1y2PHr7tMHrwQXPQ4lxSOGfnf9mgAZ7MWzv1PUhCik8vjwpsuEYq3TEGSjxJ_TsAuEJLitlgwPpFIjXwEZ4piSdLFZnilP4i_x1MlyvkFGE6EraOOoCf2CFoCm-Et3ApRbEbxmSM4E6TYE"
-        }
     }
     resolutionStrategy {
         eachPlugin {
