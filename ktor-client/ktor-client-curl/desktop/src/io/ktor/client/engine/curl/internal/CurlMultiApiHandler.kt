@@ -155,15 +155,16 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             when (method) {
                 "GET" -> option(CURLOPT_HTTPGET, 1L)
-                "PUT" -> {
-                    option(CURLOPT_PUT, 1L)
-                }
+                "PUT" -> option(CURLOPT_PUT, 1L)
                 "POST" -> {
                     option(CURLOPT_POST, 1L)
                     option(CURLOPT_POSTFIELDSIZE, size)
                 }
                 "HEAD" -> option(CURLOPT_NOBODY, 1L)
-                else -> option(CURLOPT_CUSTOMREQUEST, method)
+                else -> {
+                    if (size > 0) option(CURLOPT_POST, 1L)
+                    option(CURLOPT_CUSTOMREQUEST, method)
+                }
             }
         }
     }

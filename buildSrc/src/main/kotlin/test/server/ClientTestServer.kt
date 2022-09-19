@@ -69,6 +69,9 @@ internal fun Application.tests() {
             val contentType = call.request.header(HttpHeaders.ContentType)
             call.respondText(contentType ?: "")
         }
+        delete("/delete") {
+            call.respondText("OK ${call.receiveText()}")
+        }
     }
 }
 
