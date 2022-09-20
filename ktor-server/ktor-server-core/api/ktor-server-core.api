@@ -644,8 +644,10 @@ public final class io/ktor/server/response/ApplicationResponseFunctionsKt {
 	public static synthetic fun respondBytes$default (Lio/ktor/server/application/ApplicationCall;[BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun respondBytesWriter (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondBytesWriter$default (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondRedirect (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/Url;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondRedirect (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondRedirect (Lio/ktor/server/application/ApplicationCall;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/Url;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun respondText (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

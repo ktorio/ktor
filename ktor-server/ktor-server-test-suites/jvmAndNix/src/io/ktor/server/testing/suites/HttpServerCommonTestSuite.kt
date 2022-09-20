@@ -35,7 +35,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     fun testRedirect() {
         createAndStartServer {
             handle {
-                call.respondRedirect("http://localhost:${call.request.port()}/page", true)
+                call.respondRedirect(Url("http://localhost:${call.request.port()}/page"), true)
             }
         }
 
