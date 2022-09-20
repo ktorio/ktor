@@ -45,7 +45,7 @@ internal fun Application.cacheTestServer() {
             }
 
             /**
-             * Return same etag for first 2 responses.
+             * Return same etag for the first 2 responses.
              */
             get("/etag") {
                 val maxAge = call.request.queryParameters["max-age"]?.toIntOrNull()
