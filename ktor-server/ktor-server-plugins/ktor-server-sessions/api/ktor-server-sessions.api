@@ -272,3 +272,9 @@ public final class io/ktor/server/sessions/TooLateSessionSetException : java/lan
 	public fun <init> ()V
 }
 
+public final class io/ktor/server/sessions/serialization/KotlinxSessionSerializerKt {
+	public static final fun KotlinxBackwardCompatibleSessionSerializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/modules/SerializersModule;)Lio/ktor/server/sessions/SessionSerializer;
+	public static synthetic fun KotlinxBackwardCompatibleSessionSerializer$default (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/modules/SerializersModule;ILjava/lang/Object;)Lio/ktor/server/sessions/SessionSerializer;
+	public static final fun KotlinxSessionSerializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/StringFormat;)Lio/ktor/server/sessions/SessionSerializer;
+}
+
