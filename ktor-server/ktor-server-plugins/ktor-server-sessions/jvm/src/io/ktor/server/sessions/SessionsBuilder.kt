@@ -22,7 +22,6 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>,
  * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
  * store the serialized session's data in the server [storage].
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage: SessionStorage) {
     val sessionType = S::class
 
@@ -50,7 +49,6 @@ internal fun <S : Any> SessionsConfig.cookie(
  * - add other cookie attributes;
  * - sign and encrypt session data.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
     storage: SessionStorage,
@@ -106,7 +104,6 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String, storage:
  * store the serialized session's data in the server [storage].
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
     storage: SessionStorage,
@@ -170,7 +167,6 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>)
 /**
  * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
     val sessionType = S::class
 
@@ -194,7 +190,6 @@ public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
  * }
  * ```
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
     block: CookieSessionBuilder<S>.() -> Unit
@@ -264,7 +259,6 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String) {
  * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
     block: HeaderSessionBuilder<S>.() -> Unit
@@ -298,10 +292,7 @@ public inline fun <S : Any> SessionsConfig.header(
  * - add cookie attributes;
  * - sign and encrypt session data.
  */
-public class CookieIdSessionBuilder<S : Any>
-
-@PublishedApi
-internal constructor(
+public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
     type: KClass<S>,
     typeInfo: KType
 ) : CookieSessionBuilder<S>(type, typeInfo) {

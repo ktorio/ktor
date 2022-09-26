@@ -1,5 +1,9 @@
 description = ""
 
+plugins {
+    id("kotlinx-serialization")
+}
+
 kotlin.sourceSets {
     commonMain {
         dependencies {
