@@ -119,16 +119,19 @@ class TestApplicationEngine(
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
+        if (environment.connectors.isNotEmpty()) {
+            return environment.connectors
+        }
         return listOf(
             object : EngineConnectorConfig {
                 override val type: ConnectorType = ConnectorType.HTTP
-                override val host: String = environment.connectors.firstOrNull()?.host ?: "localhost"
-                override val port: Int = environment.connectors.firstOrNull()?.port ?: 80
+                override val host: String = "localhost"
+                override val port: Int = 80
             },
             object : EngineConnectorConfig {
                 override val type: ConnectorType = ConnectorType.HTTPS
-                override val host: String = environment.connectors.firstOrNull()?.host ?: "localhost"
-                override val port: Int = environment.connectors.firstOrNull()?.port ?: 443
+                override val host: String = "localhost"
+                override val port: Int = 443
             }
         )
     }
