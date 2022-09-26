@@ -30,8 +30,7 @@ public class SessionTrackerByValue<S : Any>(
     }
 
     override suspend fun store(call: ApplicationCall, value: S): String {
-        val serialized = serializer.serialize(value)
-        return serialized
+        return serializer.serialize(value)
     }
 
     override fun validate(value: S) {
