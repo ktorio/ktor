@@ -94,6 +94,14 @@ public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boole
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
+ * @see [io.ktor.server.response.ApplicationResponse]
+ */
+public suspend fun ApplicationCall.respondRedirect(url: Url, permanent: Boolean = false) {
+    respondRedirect(url.toString(), permanent)
+}
+
+/**
+ * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
  * Unlike the other [respondRedirect], it provides a way to build a URL based on current call using the [block] function.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
