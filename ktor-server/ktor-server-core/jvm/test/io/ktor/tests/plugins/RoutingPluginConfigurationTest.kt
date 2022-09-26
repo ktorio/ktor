@@ -79,4 +79,3 @@ class RoutingPluginConfigurationTest {
         assertEquals("43", lastInstalledValue)
     }
 }
-

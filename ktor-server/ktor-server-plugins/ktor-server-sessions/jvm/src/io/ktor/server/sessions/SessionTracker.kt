@@ -7,7 +7,7 @@ package io.ktor.server.sessions
 import io.ktor.server.application.*
 
 /**
- * SessionTracker provides ability to track and extract session from the call context.
+ * SessionTracker provides the ability to track and extract session from the call context.
  */
 public interface SessionTracker<S : Any> {
     /**
@@ -21,7 +21,7 @@ public interface SessionTracker<S : Any> {
     /**
      * Store session [value] and return respective transport string for the specified [call].
      *
-     * Override if there is existing session.
+     * Override if there is an existing session.
      */
     public suspend fun store(call: ApplicationCall, value: S): String
 
