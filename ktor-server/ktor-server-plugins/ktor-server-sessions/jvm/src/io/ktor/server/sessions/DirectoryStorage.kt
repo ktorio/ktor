@@ -4,7 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import java.io.*
 
 /**
@@ -12,7 +11,6 @@ import java.io.*
  *
  * @see [Sessions]
  */
-@OptIn(InternalAPI::class)
 public fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {
     true -> CacheStorage(DirectoryStorage(rootDir), 60000)
     false -> DirectoryStorage(rootDir)
