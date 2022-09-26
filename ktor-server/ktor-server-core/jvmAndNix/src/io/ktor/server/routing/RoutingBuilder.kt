@@ -96,7 +96,8 @@ public fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Rout
  */
 @KtorDsl
 public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
-    return header(HttpHeaders.ContentType, "${contentType.contentType}/${contentType.contentSubtype}", build)
+    val selector = ContentTypeHeaderRouteSelector(contentType)
+    return createChild(selector).apply(build)
 }
 
 /**

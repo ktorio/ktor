@@ -511,6 +511,48 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testContentTypeHeaderProcessing() = testApplication {
+        routing {
+            route("/") {
+                contentType(ContentType.Text.Plain) {
+                    handle {
+                        call.respond("OK")
+                    }
+                }
+                contentType(ContentType.Application.Any) {
+                    handle {
+                        call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
+                    }
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "text/plain")
+        }.let {
+            assertEquals("OK", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/json")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/pdf")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
+        }
+    }
+
+    @Test
     fun testTransparentSelectorWithHandler() = withTestApplication {
         application.routing {
             route("") {
