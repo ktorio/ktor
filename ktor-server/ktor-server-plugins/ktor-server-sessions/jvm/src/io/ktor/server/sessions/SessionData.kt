@@ -101,7 +101,6 @@ internal data class SessionData(
         return entry.value.provider.name
     }
 
-    @OptIn(InternalAPI::class)
     override fun set(name: String, value: Any?) {
         if (committed) {
             throw TooLateSessionSetException()
