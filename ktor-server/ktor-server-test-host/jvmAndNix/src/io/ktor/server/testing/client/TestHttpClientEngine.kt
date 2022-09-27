@@ -55,7 +55,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
 
         val testServerCall = with(data) {
-            runRequest(method, url.fullPath, headers, body, url.protocol)
+            runRequest(method, url, headers, body, url.protocol)
         }
 
         return with(testServerCall.response) {
@@ -65,13 +65,14 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private suspend fun runRequest(
         method: HttpMethod,
-        url: String,
+        url: Url,
         headers: Headers,
         content: OutgoingContent,
         protocol: URLProtocol
     ): TestApplicationCall {
         return app.handleRequestNonBlocking {
-            this.uri = url
+            this.uri = url.fullPath
+            this.port = url.port
             this.method = method
             appendRequestHeaders(headers, content)
             this.protocol = protocol.name
