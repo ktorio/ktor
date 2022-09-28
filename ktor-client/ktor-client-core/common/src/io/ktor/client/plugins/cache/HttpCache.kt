@@ -91,7 +91,7 @@ public class HttpCache private constructor(
                     return@intercept
                 }
                 val cachedCall = cache.produceResponse().call
-                val validateStatus = cache.shouldValidate(context)
+                val validateStatus = shouldValidate(cache.expires, cache.response.headers, context.headers)
 
                 if (validateStatus == ValidateStatus.ShouldNotValidate) {
                     proceedWithCache(scope, cachedCall)
@@ -185,10 +185,11 @@ public class HttpCache private constructor(
     private suspend fun cacheResponse(response: HttpResponse): HttpResponse {
         val request = response.call.request
         val responseCacheControl: List<HeaderValue> = response.cacheControl()
+        val requestCacheControl: List<HeaderValue> = request.cacheControl()
 
         val storage = if (CacheControl.PRIVATE in responseCacheControl) privateStorage else publicStorage
 
-        if (CacheControl.NO_STORE in responseCacheControl) {
+        if (CacheControl.NO_STORE in responseCacheControl || CacheControl.NO_STORE in requestCacheControl) {
             return response
         }
 

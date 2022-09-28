@@ -385,6 +385,87 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun testNoStoreRequest() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/etag")
+
+            val first = client.get(url) {
+                header(HttpHeaders.CacheControl, "no-store")
+            }.body<String>()
+            assertEquals(0, storage!!.publicStorage.findByUrl(url).size)
+
+            val second = client.get(url).body<String>()
+            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+
+            assertNotEquals(first, second)
+        }
+    }
+
+    @Test
+    fun testNoCacheRequest() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            var requestsCount = 0
+            client.sendPipeline.intercept(HttpSendPipeline.Engine) {
+                requestsCount++
+            }
+
+            val url = Url("$TEST_SERVER/cache/etag?max-age=30")
+
+            val first = client.get(url).body<String>()
+            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+
+            val second = client.get(url) {
+                header(HttpHeaders.CacheControl, "no-cache")
+            }.body<String>()
+            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+
+            assertEquals(2, requestsCount)
+            assertEquals(first, second)
+        }
+    }
+
+    @Test
+    fun testRequestWithMaxAge0() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            var requestsCount = 0
+            client.sendPipeline.intercept(HttpSendPipeline.Engine) {
+                requestsCount++
+            }
+
+            val url = Url("$TEST_SERVER/cache/etag?max-age=30")
+
+            val first = client.get(url).body<String>()
+            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+
+            val second = client.get(url) {
+                header(HttpHeaders.CacheControl, "max-age=0")
+            }.body<String>()
+            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+
+            assertEquals(2, requestsCount)
+            assertEquals(first, second)
+        }
+    }
+
+    @Test
     fun testExpires() = clientTests {
         config {
             install(HttpCache) {
@@ -496,7 +577,6 @@ class CacheTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testWithLogging() = clientTests {
         config {

@@ -5,12 +5,12 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
-import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
+import kotlin.collections.*
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
@@ -90,15 +90,27 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
     } ?: fallback()
 }
 
-internal fun HttpCacheEntry.shouldValidate(request: HttpRequestBuilder): ValidateStatus {
-    val cacheControl = parseHeaderValue(responseHeaders[HttpHeaders.CacheControl])
-    val validMillis = expires.timestamp - getTimeMillis()
+internal fun shouldValidate(
+    cacheExpires: GMTDate,
+    responseHeaders: Headers,
+    requestHeaders: HeadersBuilder
+): ValidateStatus {
+    val responseCacheControl = parseHeaderValue(responseHeaders[HttpHeaders.CacheControl])
+    val requestCacheControl = parseHeaderValue(requestHeaders[HttpHeaders.CacheControl])
 
-    if (CacheControl.NO_CACHE in cacheControl) return ValidateStatus.ShouldValidate
+    if (CacheControl.NO_CACHE in requestCacheControl) return ValidateStatus.ShouldValidate
+
+    val requestMaxAge = requestCacheControl.firstOrNull { it.value.startsWith("max-age=") }
+        ?.value?.split("=")
+        ?.get(1)?.let { it.toIntOrNull() ?: 0 }
+    if (requestMaxAge == 0) return ValidateStatus.ShouldValidate
+
+    val validMillis = cacheExpires.timestamp - getTimeMillis()
+
+    if (CacheControl.NO_CACHE in responseCacheControl) return ValidateStatus.ShouldValidate
     if (validMillis > 0) return ValidateStatus.ShouldNotValidate
-    if (CacheControl.MUST_REVALIDATE in cacheControl) return ValidateStatus.ShouldValidate
+    if (CacheControl.MUST_REVALIDATE in responseCacheControl) return ValidateStatus.ShouldValidate
 
-    val requestCacheControl = parseHeaderValue(request.headers[HttpHeaders.CacheControl])
     val maxStale = requestCacheControl.firstOrNull { it.value.startsWith("max-stale=") }
         ?.value?.substring("max-stale=".length)
         ?.toIntOrNull() ?: 0
