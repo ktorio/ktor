@@ -16,6 +16,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlin.reflect.*
 import kotlin.test.*
 
 class RequestConverterTest {
@@ -35,6 +36,7 @@ class RequestConverterTest {
                         content: ByteReadChannel
                     ): Any? {
                         used = true
+                        if (typeInfo.kotlinType == typeOf<SerializableClass>()) return SerializableClass()
                         return null
                     }
                 }
@@ -76,7 +78,8 @@ class RequestConverterTest {
             contentType(ContentType.Application.Json)
         }
 
-        assertTrue(responseBar.bodyAsText().startsWith("No suitable converter found for TypeInfo"))
+        val body = responseBar.bodyAsText()
+        assertEquals("OK", body)
         assertTrue(used)
     }
 }

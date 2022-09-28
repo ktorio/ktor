@@ -13,8 +13,11 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.contentnegotiation.ContentNegotiation")
 
 /**
  * A functional type for accepted content types contributor.

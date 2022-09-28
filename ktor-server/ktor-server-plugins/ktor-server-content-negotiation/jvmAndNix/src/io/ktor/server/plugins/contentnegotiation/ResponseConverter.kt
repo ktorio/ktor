@@ -15,7 +15,13 @@ import io.ktor.utils.io.charsets.*
 private val NOT_ACCEPTABLE = HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
 
 internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onCallRespond { call, subject ->
-    if (subject is OutgoingContent || pluginConfig.ignoredTypes.any { it.isInstance(subject) }) {
+    if (subject is OutgoingContent) {
+        LOGGER.trace("Skipping because body is already converted.")
+        return@onCallRespond
+    }
+
+    if (pluginConfig.ignoredTypes.any { it.isInstance(subject) }) {
+        LOGGER.trace("Skipping because the type is ignored.")
         return@onCallRespond
     }
 
@@ -45,25 +51,45 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
         val acceptCharset = call.request.headers.suitableCharsetOrNull()
 
         // Pick the first one that can convert the subject successfully
-        val converted: OutgoingContent? = suitableConverters.firstNotNullOfOrNull {
+        for (registration in suitableConverters) {
             val contentType = acceptCharset?.let { charset ->
-                it.contentType.withCharset(charset)
+                registration.contentType.withCharset(charset)
             }
-            it.converter.serializeNullable(
-                contentType = contentType ?: it.contentType,
+
+            val result = registration.converter.serializeNullable(
+                contentType = contentType ?: registration.contentType,
                 charset = acceptCharset ?: Charsets.UTF_8,
                 typeInfo = responseType,
                 value = subject.takeIf { it != NullBody }
             )
+
+            if (result == null) {
+                LOGGER.trace("Can't convert body $subject with ${registration.converter}")
+                continue
+            }
+
+            val transformedContent = transformDefaultContent(call, result)
+            if (transformedContent == null) {
+                LOGGER.trace("Can't convert body $subject with ${registration.converter}")
+                continue
+            }
+
+            if (checkAcceptHeader && !checkAcceptHeader(acceptItems, transformedContent.contentType)) {
+                LOGGER.trace(
+                    "Can't send content with ${transformedContent.contentType} to client " +
+                        "because it is not acceptable"
+                )
+                return@transformBody NOT_ACCEPTABLE
+            }
+
+            return@transformBody transformedContent
         }
 
-        val rendered = converted?.let { transformDefaultContent(call, it) } ?: return@transformBody subject
-
-        if (checkAcceptHeader && !checkAcceptHeader(acceptItems, rendered.contentType)) {
-            return@transformBody NOT_ACCEPTABLE
-        }
-
-        return@transformBody rendered
+        LOGGER.trace(
+            "No suitable content converter found for response type ${responseType.type}" +
+                " and body $subject"
+        )
+        return@transformBody subject
     }
 }
 
