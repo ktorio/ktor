@@ -138,18 +138,17 @@ public class HttpTimeout private constructor(
 
         @OptIn(InternalAPI::class)
         override fun install(plugin: HttpTimeout, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val isWebSocket = context.url.protocol.isWebsocket()
-                if (isWebSocket || context.body is ClientUpgradeContent) return@intercept
+            scope.plugin(HttpSend).intercept { request ->
+                val isWebSocket = request.url.protocol.isWebsocket()
+                if (isWebSocket || request.body is ClientUpgradeContent) return@intercept execute(request)
 
-                var configuration = context.getCapabilityOrNull(HttpTimeout)
+                var configuration = request.getCapabilityOrNull(HttpTimeout)
                 if (configuration == null && plugin.hasNotNullTimeouts()) {
                     configuration = HttpTimeoutCapabilityConfiguration()
-                    context.setCapability(HttpTimeout, configuration)
+                    request.setCapability(HttpTimeout, configuration)
                 }
 
                 configuration?.apply {
-                    val context = this@intercept.context
                     connectTimeoutMillis = connectTimeoutMillis ?: plugin.connectTimeoutMillis
                     socketTimeoutMillis = socketTimeoutMillis ?: plugin.socketTimeoutMillis
                     requestTimeoutMillis = requestTimeoutMillis ?: plugin.requestTimeoutMillis
@@ -157,17 +156,18 @@ public class HttpTimeout private constructor(
                     val requestTimeout = requestTimeoutMillis ?: plugin.requestTimeoutMillis
                     if (requestTimeout == null || requestTimeout == INFINITE_TIMEOUT_MS) return@apply
 
-                    val executionContext = context.executionContext
+                    val executionContext = request.executionContext
                     val killer = scope.launch {
                         delay(requestTimeout)
-                        val cause = HttpRequestTimeoutException(context)
+                        val cause = HttpRequestTimeoutException(request)
                         executionContext.cancel(cause.message!!, cause)
                     }
 
-                    context.executionContext.invokeOnCompletion {
+                    request.executionContext.invokeOnCompletion {
                         killer.cancel()
                     }
                 }
+                execute(request)
             }
         }
     }

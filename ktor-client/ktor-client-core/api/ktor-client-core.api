@@ -419,8 +419,10 @@ public final class io/ktor/client/plugins/HttpRequestRetry$Configuration {
 	public final fun noRetry ()V
 	public final fun retryIf (ILkotlin/jvm/functions/Function3;)V
 	public static synthetic fun retryIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
-	public final fun retryOnException (I)V
+	public final synthetic fun retryOnException (I)V
+	public final fun retryOnException (IZ)V
 	public static synthetic fun retryOnException$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;IILjava/lang/Object;)V
+	public static synthetic fun retryOnException$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;IZILjava/lang/Object;)V
 	public final fun retryOnExceptionIf (ILkotlin/jvm/functions/Function3;)V
 	public static synthetic fun retryOnExceptionIf$default (Lio/ktor/client/plugins/HttpRequestRetry$Configuration;ILkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
 	public final fun retryOnExceptionOrServerErrors (I)V
