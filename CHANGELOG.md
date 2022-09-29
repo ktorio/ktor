@@ -1,3 +1,13 @@
+# 2.1.2
+> Published 29 September 2022
+
+* HttpCacheEntry ignoring Request Cache-Control directives ([KTOR-4894](https://youtrack.jetbrains.com/issue/KTOR-4894))
+* testApplication does not handle port and connectors ([KTOR-4875](https://youtrack.jetbrains.com/issue/KTOR-4875))
+* Native: Wrong status code when requesting with DELETE method and body ([KTOR-3566](https://youtrack.jetbrains.com/issue/KTOR-3566))
+* Default host address 0.0.0.0 isn't reachable on Windows ([KTOR-4834](https://youtrack.jetbrains.com/issue/KTOR-4834))
+* TestApplicationEngine error handling is inconsistent with DefaultEnginePipeline, breaking clients ([KTOR-4009](https://youtrack.jetbrains.com/issue/KTOR-4009))
+* Routing: Wrong content-type results in 400 Bad Request instead of 415 Unsupported Media type ([KTOR-4849](https://youtrack.jetbrains.com/issue/KTOR-4849))
+
 # 2.1.1
 > Published 6 September 2022
 
