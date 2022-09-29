@@ -21,4 +21,25 @@ class ByteChannelTextTest {
             channel.readUTF8Line(50)
         }
     }
+
+    @Test
+    fun testReadUtf8Line32k() = runBlocking {
+        val line = "x".repeat(32 * 1024)
+        val bytes = line.encodeToByteArray()
+        val channel = ByteReadChannel(bytes)
+
+        val result = channel.readUTF8Line()
+        assertEquals(line, result)
+    }
+
+    @Test
+    fun testReadLineUtf8Chunks() = runBlocking {
+        val line = "x".repeat(32 * 1024)
+        val channel = writer {
+            channel.writeStringUtf8(line)
+        }.channel
+
+        val result = channel.readUTF8Line()
+        assertEquals(line, result)
+    }
 }
