@@ -157,8 +157,8 @@ public fun renderSetCookieHeader(
 
         cookiePartFlag("Secure", secure),
         cookiePartFlag("HttpOnly", httpOnly)
-    ) + extensions.map { cookiePartExt(it.key.assertCookieName(), it.value, encoding) } +
-        if (includeEncoding) cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW) else ""
+    ) + extensions.map { cookiePartExt(it.key.assertCookieName(), it.value) } +
+        if (includeEncoding) cookiePartExt("\$x-enc", encoding.name) else ""
     ).filter { it.isNotEmpty() }
     .joinToString("; ")
 
@@ -221,7 +221,7 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
     if (value) name else ""
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
-    if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
+private inline fun cookiePartExt(name: String, value: String?) =
+    if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, CookieEncoding.RAW)
 
 private fun String.toIntClamping(): Int = toLong().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
