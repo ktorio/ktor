@@ -9,7 +9,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.collections.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.math.*
@@ -359,6 +358,59 @@ class HttpRequestRetryTest {
             assertEquals(null, events[1].cause)
             assertEquals(2, events[1].retryCount)
             assertEquals(HttpStatusCode.InternalServerError, events[1].response?.status)
+        }
+    }
+
+    @Test
+    fun testRetryOnExceptionDoesntRetryTimeoutByDefault() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    delay(5000)
+                    fail("Should not be called")
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnException(3)
+                delay { }
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 1000
+            }
+        }
+
+        test { client ->
+            assertFailsWith<HttpRequestTimeoutException> {
+                client.get {}
+            }
+        }
+    }
+
+    @Test
+    fun testRetryOnExceptionRetriesTimeoutIfSet() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    delay(5000)
+                    fail("Should not be called")
+                }
+                addHandler {
+                    respondOk()
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnException(3, retryOnTimeout = true)
+                delay { }
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 1000
+            }
+        }
+
+        test { client ->
+            assertFailsWith<HttpRequestTimeoutException> {
+                client.get {}
+            }
         }
     }
 }

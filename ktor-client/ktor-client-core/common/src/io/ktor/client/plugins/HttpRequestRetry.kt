@@ -13,7 +13,6 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.math.*
-import kotlin.native.concurrent.*
 import kotlin.random.*
 
 /**
@@ -157,8 +156,25 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
          * Enables retrying a request if an exception is thrown during the [HttpSend] phase
          * and specifies the number of retries.
          */
+        @Deprecated(level = DeprecationLevel.HIDDEN, message = "This will be removed")
         public fun retryOnException(maxRetries: Int = -1) {
-            retryOnExceptionIf(maxRetries) { _, cause -> cause !is CancellationException }
+            retryOnException(maxRetries, false)
+        }
+
+        /**
+         * Enables retrying a request if an exception is thrown during the [HttpSend] phase
+         * and specifies the number of retries.
+         * By default, [HttpRequestTimeoutException] is not retried. Set [retryOnTimeout] to `true` to retry on timeout.
+         * Note, that in this case, [HttpTimeout] plugin should be installed after [HttpRequestRetry].
+         */
+        public fun retryOnException(maxRetries: Int = -1, retryOnTimeout: Boolean = false) {
+            retryOnExceptionIf(maxRetries) { _, cause ->
+                when {
+                    cause is CancellationException -> false
+                    cause is HttpRequestTimeoutException && retryOnTimeout -> true
+                    else -> true
+                }
+            }
         }
 
         /**
@@ -236,7 +252,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         }
 
         /**
-         * A function that waits for the specified amount of milliseconds. Uses [kotlinx.coroutines.delay] by default.
+         * A function that waits for the specified number of milliseconds. Uses [kotlinx.coroutines.delay] by default.
          * Useful for tests.
          */
         public fun delay(block: suspend (Long) -> Unit) {
