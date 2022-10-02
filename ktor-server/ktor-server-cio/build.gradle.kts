@@ -5,8 +5,8 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-http:ktor-http-cio"))
-            api(project(":ktor-shared:ktor-websockets"))
             api(project(":ktor-network"))
+            api(project(":ktor-network:ktor-network-tls"))
         }
     }
     jvmAndNixTest {

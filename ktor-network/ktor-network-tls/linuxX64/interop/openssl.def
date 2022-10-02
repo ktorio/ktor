@@ -1,0 +1,5 @@
+package = io.ktor.network.tls.internal.openssl
+headers = openssl/bio.h openssl/ssl.h openssl/err.h openssl/pkcs12.h openssl/pem.h openssl/x509.h openssl/evp.h openssl/tls1.h
+headerFilter = openssl/*
+linkerOpts = -L/home/linuxbrew/.linuxbrew/lib -lssl -lcrypto
+compilerOpts = -I/home/linuxbrew/.linuxbrew/include

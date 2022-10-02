@@ -11,21 +11,21 @@ import kotlin.test.*
 class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
-        enableSsl = false
+        enableSsl = true
     }
 }
 
 class CIOContentTest : ContentTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
-        enableSsl = false
+        enableSsl = true
     }
 }
 
 class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
-        enableSsl = false
+        enableSsl = true
     }
 
     @Ignore
@@ -40,7 +40,7 @@ class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApp
 class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
-        enableSsl = false
+        enableSsl = true
     }
 }
 

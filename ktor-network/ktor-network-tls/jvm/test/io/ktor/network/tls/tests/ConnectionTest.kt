@@ -10,8 +10,10 @@ import io.ktor.network.sockets.*
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
@@ -53,8 +55,57 @@ class ConnectionTest {
             flush()
         }
 
-        socket.openReadChannel().readRemaining()
-        Unit
+        assertTrue(socket.openReadChannel().readRemaining().isNotEmpty)
+    }
+
+    @Test
+    fun testClientServer() = runBlocking {
+        val keyStore = generateCertificate()
+        SelectorManager(Dispatchers.IO).use { selector ->
+            val tcp = aSocket(selector).tcp()
+
+            tcp.bind().use { serverSocket ->
+                val serverJob = GlobalScope.launch {
+                    while (true) serverSocket.accept()
+                        .tls(Dispatchers.Default, isClient = false) {
+                            authentication({ "changeit".toCharArray() }) {
+                                keyStore(keyStore)
+                            }
+                        }
+                        .use { socket ->
+                            val reader = socket.openReadChannel()
+                            val writer = socket.openWriteChannel()
+                            repeat(3) {
+                                val line = assertNotNull(reader.readUTF8Line())
+                                println("SSS: $line")
+                                writer.writeStringUtf8("$line\r\n")
+                                writer.flush()
+                            }
+                            delay(2000) // await reading from client socket
+                        }
+                }
+
+                tcp.connect(serverSocket.localAddress)
+                    .tls(Dispatchers.Default, isClient = true) {
+                        verification {
+                            trustStore(keyStore)
+                        }
+                    }
+                    .use { socket ->
+                        socket.openWriteChannel().apply {
+                            writeStringUtf8("GET / HTTP/1.1\r\n")
+                            writeStringUtf8("Host: www.google.com\r\n")
+                            writeStringUtf8("Connection: close\r\n")
+                            flush()
+                        }
+                        val reader = socket.openReadChannel()
+                        repeat(3) {
+                            println("CCC: ${assertNotNull(reader.readUTF8Line())}")
+                        }
+                    }
+                serverJob.cancelAndJoin()
+            }
+        }
     }
 
     @Test

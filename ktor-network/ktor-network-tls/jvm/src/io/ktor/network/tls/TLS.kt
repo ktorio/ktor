@@ -5,6 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -12,21 +13,44 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-public actual suspend fun Socket.tls(
+public actual suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
     config: TLSConfig
 ): Socket {
-    val reader = openReadChannel()
-    val writer = openWriteChannel()
 
-    return try {
-        openTLSSession(this, reader, writer, config, coroutineContext)
-    } catch (cause: Throwable) {
-        reader.cancel(cause)
-        writer.close(cause)
-        close()
-        throw cause
+    //using old implementation for now if new configuration is not used
+    if (config.isClient && config.authentication == null && config.verification == null) {
+        return try {
+            openTLSSession(socket, input, output, config, coroutineContext)
+        } catch (cause: Throwable) {
+            input.cancel(cause)
+            output.close(cause)
+            socket.close()
+            throw cause
+        }
     }
+
+    //TODO: servername is not validated
+    //TODO: client auth doesn't check if certificate is specific to server or client
+
+    val engine = when (val address = socket.remoteAddress) {
+        is UnixSocketAddress -> config.sslContext.createSSLEngine()
+        is InetSocketAddress -> {
+            config.sslContext.createSSLEngine(
+                config.serverName ?: address.hostname,
+                address.port
+            )
+        }
+    }
+
+    //TODO: we can also set cipherSuites here
+    engine.useClientMode = config.isClient
+
+    if (!config.isClient) {
+        engine.needClientAuth = config.verification != null
+    }
+
+    return SSLEngineSocket(coroutineContext, engine, this)
 }
 
 /**
@@ -44,9 +68,3 @@ public suspend fun Socket.tls(
     this.cipherSuites = cipherSuites
     this.serverName = serverName
 }
-
-/**
- * Make [Socket] connection secure with TLS configured with [block].
- */
-public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
-    tls(coroutineContext, TLSConfigBuilder().apply(block).build())

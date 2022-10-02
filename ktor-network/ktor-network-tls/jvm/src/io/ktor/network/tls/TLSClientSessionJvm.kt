@@ -14,7 +14,7 @@ import kotlinx.coroutines.channels.*
 import java.nio.*
 import kotlin.coroutines.*
 
-internal actual suspend fun openTLSSession(
+internal suspend fun openTLSSession(
     socket: Socket,
     input: ByteReadChannel,
     output: ByteWriteChannel,

@@ -5,6 +5,7 @@
 package io.ktor.network.tls
 
 import kotlinx.coroutines.*
+import java.io.*
 import java.security.*
 import java.security.cert.*
 import java.security.cert.Certificate
@@ -13,7 +14,10 @@ import javax.net.ssl.*
 /**
  * [TLSConfig] builder.
  */
-public actual class TLSConfigBuilder {
+public actual class TLSConfigBuilder actual constructor(private val isClient: Boolean) {
+    private var authenticationBuilder: TLSAuthenticationConfigBuilder? = null
+    private var verificationBuilder: TLSVerificationConfigBuilder? = null
+
     /**
      * List of client certificate chains with private keys.
      */
@@ -51,27 +55,130 @@ public actual class TLSConfigBuilder {
      */
     public actual var serverName: String? = null
 
+    public actual fun authentication(
+        privateKeyPassword: () -> CharArray,
+        block: TLSAuthenticationConfigBuilder.() -> Unit
+    ) {
+        authenticationBuilder = TLSAuthenticationConfigBuilder(privateKeyPassword).apply(block)
+    }
+
+    public actual fun verification(
+        block: TLSVerificationConfigBuilder.() -> Unit
+    ) {
+        verificationBuilder = TLSVerificationConfigBuilder().apply(block)
+    }
+
+    /**
+     * Append config from [other] builder.
+     */
+    public actual fun takeFrom(other: TLSConfigBuilder) {
+        certificates += other.certificates
+        random = other.random
+        cipherSuites = other.cipherSuites
+        trustManager = other.trustManager
+        serverName = other.serverName
+        authenticationBuilder = other.authenticationBuilder
+    }
+
     /**
      * Create [TLSConfig].
      */
     public actual fun build(): TLSConfig = TLSConfig(
-        random ?: SecureRandom(),
-        certificates,
-        trustManager as? X509TrustManager ?: findTrustManager(),
-        cipherSuites,
-        serverName
+        random = random ?: SecureRandom(),
+        certificates = certificates,
+        trustManager = trustManager as? X509TrustManager ?: findTrustManager(),
+        cipherSuites = cipherSuites,
+        isClient = isClient,
+        serverName = serverName,
+        authentication = authenticationBuilder?.build(),
+        verification = verificationBuilder?.build()
     )
 }
 
-/**
- * Append config from [other] builder.
- */
-public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
-    certificates += other.certificates
-    random = other.random
-    cipherSuites = other.cipherSuites
-    serverName = other.serverName
-    trustManager = other.trustManager
+public actual class TLSAuthenticationConfigBuilder actual constructor(
+    private val privateKeyPassword: () -> CharArray
+) {
+    private var keyStore: KeyStore? = null
+
+    public actual fun pkcs12Certificate(
+        certificatePath: String,
+        certificatePassword: (() -> CharArray)?
+    ) {
+        pkcs12Certificate(File(certificatePath), certificatePassword)
+    }
+
+    public fun pkcs12Certificate(
+        certificatePath: File,
+        certificatePassword: (() -> CharArray)? = null
+    ) {
+        keyStore = KeyStore.getInstance("PKCS12").apply {
+            val password = certificatePassword?.invoke()
+            load(certificatePath.inputStream(), password)
+            password?.fill('\u0000')
+        }
+    }
+
+    public fun keyStore(keyStore: KeyStore) {
+        this.keyStore = keyStore
+    }
+
+    public actual fun build(): TLSAuthenticationConfig {
+        //TODO: what is the best place to put this as SSLContext doesn't check it
+        keyStore?.apply {
+            aliases().toList().forEach {
+                (getCertificate(it) as? X509Certificate)?.checkValidity()
+            }
+        }
+
+        return TLSAuthenticationConfig(
+            KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
+                val password = privateKeyPassword()
+                init(keyStore, password)
+                password.fill('\u0000')
+            }
+        )
+    }
+}
+
+public actual class TLSVerificationConfigBuilder {
+    private var keyStore: KeyStore? = null
+
+    public actual fun pkcs12Certificate(
+        certificatePath: String,
+        certificatePassword: (() -> CharArray)?
+    ) {
+        pkcs12Certificate(File(certificatePath), certificatePassword)
+    }
+
+    public fun pkcs12Certificate(
+        certificatePath: File,
+        certificatePassword: (() -> CharArray)? = null
+    ) {
+        keyStore = KeyStore.getInstance("PKCS12").apply {
+            val password = certificatePassword?.invoke()
+            load(certificatePath.inputStream(), password)
+            password?.fill('\u0000')
+        }
+    }
+
+    public fun trustStore(keyStore: KeyStore) {
+        this.keyStore = keyStore
+    }
+
+    public actual fun build(): TLSVerificationConfig {
+        //TODO: what is the best place to put this as SSLContext doesn't check it
+        keyStore?.apply {
+            aliases().toList().forEach {
+                (getCertificate(it) as? X509Certificate)?.checkValidity()
+            }
+        }
+
+        return TLSVerificationConfig(
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
+                init(keyStore)
+            }
+        )
+    }
 }
 
 /**
