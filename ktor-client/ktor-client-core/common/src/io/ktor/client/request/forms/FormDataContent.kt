@@ -14,7 +14,9 @@ import kotlin.random.*
 private val RN_BYTES = "\r\n".toByteArray()
 
 /**
- * [OutgoingContent] with for application/x-www-form-urlencoded formatted request.
+ * [OutgoingContent] with for the `application/x-www-form-urlencoded` formatted request.
+ *
+ * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
  *
  * @param formData: data to send.
  */
@@ -30,7 +32,9 @@ public class FormDataContent(
 }
 
 /**
- * [OutgoingContent] for multipart/form-data formatted request.
+ * [OutgoingContent] for a `multipart/form-data` formatted request.
+ *
+ * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  *
  * @param parts: form part data
  */

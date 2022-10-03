@@ -18,10 +18,10 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
+ * Creates an asynchronous [HttpClient] with the specified [block] configuration.
  *
- * The [HttpClientEngine] is selected from the dependencies.
- * https://ktor.io/docs/http-client-engines.html
+ * Note that the client requires an engine for processing network requests.
+ * The [HttpClientEngine] is selected from the [dependencies](https://ktor.io/docs/client-dependencies.html).
  */
 @KtorDsl
 public expect fun HttpClient(
@@ -29,8 +29,9 @@ public expect fun HttpClient(
 ): HttpClient
 
 /**
- * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
- * and an optional [block] for configuring this client.
+ * Creates an asynchronous [HttpClient] with the specified [HttpClientEngineFactory] and optional [block] configuration.
+ * Note that a specific platform may require a specific engine for processing requests.
+ * You can learn more about available engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 @KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
@@ -51,8 +52,9 @@ public fun <T : HttpClientEngineConfig> HttpClient(
 }
 
 /**
- * Constructs an asynchronous [HttpClient] using the specified [engine]
- * and a [block] for configuring this client.
+ * Creates an asynchronous [HttpClient] with the specified [HttpClientEngine] and optional [block] configuration.
+ * Note that a specific platform may require a specific engine for processing requests.
+ * You can learn more about available engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 @KtorDsl
 public fun HttpClient(
@@ -61,10 +63,12 @@ public fun HttpClient(
 ): HttpClient = HttpClient(engine, HttpClientConfig<HttpClientEngineConfig>().apply(block), manageEngine = false)
 
 /**
- * Asynchronous client to perform HTTP requests.
+ * A multiplatform asynchronous HTTP client, which allows you to make requests and handle responses,
+ * extend its functionality with plugins, such as authentication, JSON serialization, and so on.
  *
- * This is a generic implementation that uses a specific engine [HttpClientEngine].
- * @property engine: [HttpClientEngine] for executing requests.
+ * You can learn how to create a configure [HttpClient] from
+ * [Creating and configuring a client](https://ktor.io/docs/create-client.html).
+ * @property engine [HttpClientEngine] used to execute network requests.
  */
 @OptIn(InternalAPI::class)
 public class HttpClient(
@@ -88,22 +92,22 @@ public class HttpClient(
     public override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
 
     /**
-     * Pipeline used for processing all the requests sent by this client.
+     * A pipeline used for processing all requests sent by this client.
      */
     public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline(userConfig.developmentMode)
 
     /**
-     * Pipeline used for processing all the responses sent by the server.
+     * A pipeline used for processing all responses sent by the server.
      */
     public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline(userConfig.developmentMode)
 
     /**
-     * Pipeline used for sending the request.
+     * A pipeline used for sending a request.
      */
     public val sendPipeline: HttpSendPipeline = HttpSendPipeline(userConfig.developmentMode)
 
     /**
-     * Pipeline used for receiving request.
+     * A pipeline used for receiving a request.
      */
     public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline(userConfig.developmentMode)
 
@@ -113,12 +117,12 @@ public class HttpClient(
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
-     * Client engine config.
+     * Provides access to the client's engine configuration.
      */
     public val engineConfig: HttpClientEngineConfig = engine.config
 
     /**
-     * Provides events on client lifecycle
+     * Provides access to the events of the client's lifecycle.
      */
     public val monitor: Events = Events()
 
@@ -188,14 +192,14 @@ public class HttpClient(
     }
 
     /**
-     * Check if the specified [capability] is supported by this client.
+     * Checks if the specified [capability] is supported by this client.
      */
     public fun isSupported(capability: HttpClientEngineCapability<*>): Boolean {
         return engine.supportedCapabilities.contains(capability)
     }
 
     /**
-     * Returns a new [HttpClient] copying this client configuration,
+     * Returns a new [HttpClient] by copying this client's configuration
      * and additionally configured by the [block] parameter.
      */
     public fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(

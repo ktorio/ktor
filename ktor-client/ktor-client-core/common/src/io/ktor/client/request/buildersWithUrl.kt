@@ -9,8 +9,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 
 /**
- * Executes a [HttpClient] GET request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] GET request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.get(
     url: Url,
@@ -21,8 +23,8 @@ public suspend inline fun HttpClient.get(
 }
 
 /**
- * Prepares a [HttpClient] GET request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] GET request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.prepareGet(
     url: Url,
@@ -33,8 +35,10 @@ public suspend inline fun HttpClient.prepareGet(
 }
 
 /**
- * Executes a [HttpClient] POST request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] POST request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.post(
     url: Url,
@@ -45,8 +49,8 @@ public suspend inline fun HttpClient.post(
 }
 
 /**
- * Prepares a [HttpClient] POST request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] POST request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.preparePost(
     url: Url,
@@ -57,8 +61,10 @@ public suspend inline fun HttpClient.preparePost(
 }
 
 /**
- * Executes a [HttpClient] PUT request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] PUT request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.put(
     url: Url,
@@ -69,8 +75,8 @@ public suspend inline fun HttpClient.put(
 }
 
 /**
- * Prepares a [HttpClient] PUT request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] PUT request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.preparePut(
     url: Url,
@@ -81,8 +87,10 @@ public suspend inline fun HttpClient.preparePut(
 }
 
 /**
- * Executes a [HttpClient] PATCH request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] PATCH request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.patch(
     url: Url,
@@ -93,8 +101,8 @@ public suspend inline fun HttpClient.patch(
 }
 
 /**
- * Prepares a [HttpClient] PATCH request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] PATCH request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.preparePatch(
     url: Url,
@@ -105,8 +113,10 @@ public suspend inline fun HttpClient.preparePatch(
 }
 
 /**
- * Executes a [HttpClient] OPTIONS request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] OPTIONS request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.options(
     url: Url,
@@ -117,8 +127,8 @@ public suspend inline fun HttpClient.options(
 }
 
 /**
- * Prepares a [HttpClient] OPTIONS request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] OPTIONS request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.prepareOptions(
     url: Url,
@@ -129,8 +139,10 @@ public suspend inline fun HttpClient.prepareOptions(
 }
 
 /**
- * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] HEAD request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.head(
     url: Url,
@@ -141,8 +153,8 @@ public suspend inline fun HttpClient.head(
 }
 
 /**
- * Prepares a [HttpClient] HEAD request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] HEAD request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.prepareHead(
     url: Url,
@@ -153,8 +165,10 @@ public suspend inline fun HttpClient.prepareHead(
 }
 
 /**
- * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Executes a [HttpClient] HEAD request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.delete(
     url: Url,
@@ -165,8 +179,8 @@ public suspend inline fun HttpClient.delete(
 }
 
 /**
- * Prepares a [HttpClient] HEAD request, with the specified [url] as Url and
- * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ * Prepares a [HttpClient] HEAD request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  */
 public suspend inline fun HttpClient.prepareDelete(
     url: Url,

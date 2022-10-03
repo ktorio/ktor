@@ -53,7 +53,9 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
 }
 
 /**
- * Class for building [HttpRequestData].
+ * Contains parameters used to make an HTTP request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 @Suppress("DEPRECATION")
 public class HttpRequestBuilder : HttpMessageBuilder {
@@ -98,7 +100,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         internal set
 
     /**
-     * Call specific attributes.
+     * Provides access to attributes specific for this request.
      */
     public val attributes: Attributes = Attributes(concurrent = true)
 
@@ -108,7 +110,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
 
     /**
-     * Create immutable [HttpRequestData]
+     * Creates immutable [HttpRequestData].
      */
     @OptIn(InternalAPI::class)
     public fun build(): HttpRequestData = HttpRequestData(
@@ -121,14 +123,14 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     )
 
     /**
-     * Set request specific attributes specified by [block].
+     * Sets request-specific attributes specified by [block].
      */
     public fun setAttributes(block: Attributes.() -> Unit) {
         attributes.apply(block)
     }
 
     /**
-     * Mutates [this] copying all the data from another [builder] using it as base.
+     * Mutates [this] copying all the data from another [builder] using it as the base.
      */
     @InternalAPI
     public fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
@@ -137,7 +139,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     }
 
     /**
-     * Mutates [this] copying all the data but execution context from another [builder] using it as base.
+     * Mutates [this] by copying all the data but execution context from another [builder] using it as the base.
      */
     @OptIn(InternalAPI::class)
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
@@ -153,7 +155,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     }
 
     /**
-     * Set capability configuration.
+     * Sets capability configuration.
      */
     @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
@@ -162,7 +164,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     }
 
     /**
-     * Retrieve capability by key.
+     * Retrieves capability by the key.
      */
     public fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
@@ -257,14 +259,14 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
 }
 
 /**
- * Executes a [block] that configures the [URLBuilder] associated to thisrequest.
+ * Executes a [block] that configures the [URLBuilder] associated to this request.
  */
 public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
     HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
- * Pass `null` to keep existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [URLBuilder].
  */
 public fun HttpRequestBuilder.url(
     scheme: String? = null,
@@ -279,7 +281,7 @@ public fun HttpRequestBuilder.url(
 /**
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
- * Pass `null` to keep existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [URLBuilder].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
     scheme: String? = null,

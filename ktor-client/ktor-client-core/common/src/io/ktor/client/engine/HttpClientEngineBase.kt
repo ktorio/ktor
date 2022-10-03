@@ -35,13 +35,13 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
 }
 
 /**
- * Exception that indicates that client engine is already closed.
+ * An exception indicating that the client's engine is already closed.
  */
 public class ClientEngineClosedException(override val cause: Throwable? = null) :
     IllegalStateException("Client already closed")
 
 /**
- * Close [CoroutineDispatcher] if it's [CloseableCoroutineDispatcher] or [Closeable].
+ * Closes [CoroutineDispatcher] if it's [CloseableCoroutineDispatcher] or [Closeable].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun CoroutineDispatcher.close() {

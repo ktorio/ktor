@@ -18,9 +18,9 @@ import kotlin.coroutines.*
 import kotlin.reflect.*
 
 /**
- * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
+ * A pair of a [request] and [response] for a specific [HttpClient].
  *
- * @property client: client that executed the call.
+ * @property client the client that executed the call.
  */
 public open class HttpClientCall(
     public val client: HttpClient
@@ -35,13 +35,13 @@ public open class HttpClientCall(
     public val attributes: Attributes get() = request.attributes
 
     /**
-     * Represents the [request] sent by the client
+     * The [request] sent by the client.
      */
     public lateinit var request: HttpRequest
         protected set
 
     /**
-     * Represents the [response] sent by the server.
+     * The [response] sent by the server.
      */
     public lateinit var response: HttpResponse
         protected set
