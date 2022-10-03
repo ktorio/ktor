@@ -19,16 +19,16 @@ internal val CALL_COROUTINE = CoroutineName("call-context")
 internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
 
 /**
- * Base interface use to define engines for [HttpClient].
+ * Serves as the base interface for an [HttpClient]'s engine.
  */
 public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
-     * [CoroutineDispatcher] specified for io operations.
+     * Specifies [CoroutineDispatcher] for I/O operations.
      */
     public val dispatcher: CoroutineDispatcher
 
     /**
-     * Engine configuration
+     * Provides access to an engine's configuration.
      */
     public val config: HttpClientEngineConfig
 
@@ -48,7 +48,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     public suspend fun execute(data: HttpRequestData): HttpResponseData
 
     /**
-     * Install engine into [HttpClient].
+     * Installs the engine to [HttpClient].
      */
     @InternalAPI
     public fun install(client: HttpClient) {
@@ -84,7 +84,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     }
 
     /**
-     * Create call context and use it as a coroutine context to [execute] request.
+     * Creates a call context and uses it as a coroutine context to [execute] a request.
      */
     @OptIn(InternalAPI::class)
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
@@ -108,7 +108,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
 }
 
 /**
- * Factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].
+ * A factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].
  */
 public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
     /**
@@ -135,7 +135,7 @@ public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(
 }
 
 /**
- * Create call context with the specified [parentJob] to be used during call execution in the engine. Call context
+ * Creates a call context with the specified [parentJob] to be used during call execution in the engine. Call context
  * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
  * call coroutine's name is "call-context".
  */

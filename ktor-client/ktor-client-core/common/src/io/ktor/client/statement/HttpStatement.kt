@@ -18,10 +18,11 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * Prepared statement for http client request.
+ * Prepared statement for a HTTP client request.
  * This statement doesn't perform any network requests until [execute] method call.
- *
  * [HttpStatement] is safe to execute multiple times.
+ *
+ * Example: [Streaming data](https://ktor.io/docs/response.html#streaming)
  */
 public class HttpStatement(
     private val builder: HttpRequestBuilder,
@@ -33,7 +34,7 @@ public class HttpStatement(
     }
 
     /**
-     * Executes this statement and call the [block] with the streaming [response].
+     * Executes this statement and calls the [block] with the streaming [response].
      *
      * The [response] argument holds a network connection until the [block] isn't completed. You can read the body
      * on-demand or at once with [body<T>()] method.
@@ -54,9 +55,9 @@ public class HttpStatement(
 
     /**
      * Executes this statement and download the response.
-     * After the method finishes, the client downloads the response body in memory and release the connection.
+     * After the method execution finishes, the client downloads the response body in memory and release the connection.
      *
-     * To receive exact type consider using [body<T>()] method.
+     * To receive exact type, consider using [body<T>()] method.
      */
     public suspend fun execute(): HttpResponse = execute {
         val savedCall = it.call.save()
@@ -65,7 +66,7 @@ public class HttpStatement(
     }
 
     /**
-     * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
+     * Executes this statement and runs [HttpClient.responsePipeline] with the response and expected type [T].
      *
      * Note if T is a streaming type, you should manage how to close it manually.
      */
@@ -80,7 +81,7 @@ public class HttpStatement(
     }
 
     /**
-     * Executes this statement and run the [block] with a [HttpClient.responsePipeline] execution result.
+     * Executes this statement and runs the [block] with a [HttpClient.responsePipeline] execution result.
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
@@ -97,7 +98,7 @@ public class HttpStatement(
     }
 
     /**
-     * Return [HttpResponse] with open streaming body.
+     * Returns [HttpResponse] with open streaming body.
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
@@ -109,7 +110,7 @@ public class HttpStatement(
     }
 
     /**
-     * Complete [HttpResponse] and release resources.
+     * Completes [HttpResponse] and releases resources.
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
@@ -127,7 +128,7 @@ public class HttpStatement(
     }
 
     /**
-     * Check that all request configuration related to client capabilities have correspondent plugin installed.
+     * Checks that all request configuration related to client capabilities have correspondent plugin installed.
      */
     private fun checkCapabilities() {
         builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys

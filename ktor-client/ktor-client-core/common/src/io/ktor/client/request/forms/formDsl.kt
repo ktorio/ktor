@@ -12,7 +12,7 @@ import io.ktor.utils.io.core.*
 import kotlin.contracts.*
 
 /**
- * Multipart form item. Use it to build form in client.
+ * A multipart form item. Use it to build a form in client.
  *
  * @param key multipart name
  * @param value content, could be [String], [Number], [ByteArray], [ByteReadPacket] or [InputProvider]
@@ -21,7 +21,9 @@ import kotlin.contracts.*
 public data class FormPart<T : Any>(val key: String, val value: T, val headers: Headers = Headers.Empty)
 
 /**
- * Build multipart form from [values].
+ * Builds a multipart form from [values].
+ *
+ * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  */
 public fun formData(vararg values: FormPart<*>): List<PartData> {
     val result = mutableListOf<PartData>()
@@ -74,13 +76,13 @@ public fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
- * Form builder type used in [formData] builder function.
+ * A form builder type used in the [formData] builder function.
  */
 public class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     @InternalAPI
     public fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
@@ -88,56 +90,56 @@ public class FormBuilder internal constructor() {
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: String, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: Number, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: InputProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a pair [key]:[InputProvider(block)] with optional [headers].
+     * Appends a pair [key]:[InputProvider(block)] with optional [headers].
      */
     public fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
         parts += FormPart(key, InputProvider(size, block), headers)
     }
 
     /**
-     * Append a pair [key]:[value] with optional [headers].
+     * Appends a pair [key]:[value] with optional [headers].
      */
     public fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a pair [key]:[ChannelProvider] with optional [headers].
+     * Appends a pair [key]:[ChannelProvider] with optional [headers].
      */
     public fun append(key: String, value: ChannelProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a form [part].
+     * Appends a form [part].
      */
     public fun <T : Any> append(part: FormPart<T>) {
         parts += part
@@ -147,7 +149,7 @@ public class FormBuilder internal constructor() {
 }
 
 /**
- * Append a form part with the specified [key] using [bodyBuilder] for it's body.
+ * Appends a form part with the specified [key] using [bodyBuilder] for its body.
  */
 @OptIn(ExperimentalContracts::class)
 public inline fun FormBuilder.append(
@@ -163,7 +165,7 @@ public inline fun FormBuilder.append(
 }
 
 /**
- * Reusable [Input] form entry.
+ * A reusable [Input] form entry.
  *
  * @property size estimate for data produced by the block or `null` if no size estimation known
  * @param block: content generator
@@ -171,14 +173,14 @@ public inline fun FormBuilder.append(
 public class InputProvider(public val size: Long? = null, public val block: () -> Input)
 
 /**
- * Supplies a new [ByteReadChannel]
+ * Supplies a new [ByteReadChannel].
  * @property size is total amount of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
  * @param block returns a new [ByteReadChannel]
  */
 public class ChannelProvider(public val size: Long? = null, public val block: () -> ByteReadChannel)
 
 /**
- * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
+ * Appends a form part with the specified [key], [filename], and optional [contentType] using [bodyBuilder] for its body.
  */
 @OptIn(ExperimentalContracts::class)
 public fun FormBuilder.append(

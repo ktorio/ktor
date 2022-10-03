@@ -16,7 +16,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
- * A response for [HttpClient], second part of [HttpClientCall].
+ * An [HttpClient]'s response, a second part of [HttpClientCall].
+ *
+ * Learn more from [Receiving responses](https://ktor.io/docs/response.html).
  */
 public abstract class HttpResponse : HttpMessage, CoroutineScope {
     /**
@@ -50,7 +52,7 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
      * Unmodified [ByteReadChannel] with the raw payload of the response.
      *
      * **Note:** this content doesn't go through any interceptors from [HttpResponsePipeline].
-     * If you need modified content, use [bodyChannel] function.
+     * If you need the modified content, use the [bodyChannel] function.
      */
     @InternalAPI
     public abstract val content: ByteReadChannel
@@ -59,7 +61,7 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
 }
 
 /**
- * [HttpRequest] associated with this response.
+ * Gets [HttpRequest] associated with this response.
  */
 public val HttpResponse.request: HttpRequest get() = call.request
 
@@ -71,8 +73,8 @@ internal fun HttpResponse.complete() {
 }
 
 /**
- * Read the [HttpResponse.content] as a String. You can pass an optional [charset]
- * to specify a charset in the case no one is specified as part of the Content-Type response.
+ * Reads the [HttpResponse.content] as a String. You can pass an optional [charset]
+ * to specify a charset in the case no one is specified as part of the `Content-Type` response.
  * If no charset specified either as parameter or as part of the response,
  * [io.ktor.client.plugins.HttpPlainText] settings will be used.
  *
@@ -88,6 +90,6 @@ public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.U
 }
 
 /**
- * Read the [HttpResponse.content] as a [ByteReadChannel].
+ * Reads the [HttpResponse.content] as a [ByteReadChannel].
  */
 public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body()

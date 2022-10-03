@@ -12,7 +12,9 @@ import io.ktor.utils.io.concurrent.*
 import kotlin.collections.set
 
 /**
- * Mutable configuration used by [HttpClient].
+ * A mutable [HttpClient] configuration.
+ * Learn more about the client's configuration from
+ * [Creating and configuring a client](https://ktor.io/docs/create-client.html).
  */
 @KtorDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
@@ -23,7 +25,9 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     internal var engineConfig: T.() -> Unit = {}
 
     /**
-     * Configure engine parameters.
+     * Allows you to configure engine parameters.
+     *
+     * You can learn more from [Engines](https://ktor.io/docs/http-client-engines.html).
      */
     public fun engine(block: T.() -> Unit) {
         val oldConfig = engineConfig
@@ -34,27 +38,31 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Use [HttpRedirect] plugin to automatically follow redirects.
+     * Specifies whether the client redirects to URLs provided in the `Location` header.
+     * You can disable redirections by setting this property to `false`.
      */
     public var followRedirects: Boolean = true
 
     /**
-     * Use [defaultTransformers] to automatically handle simple [ContentType].
+     * Uses [defaultTransformers] to automatically handle simple [ContentType].
      */
     public var useDefaultTransformers: Boolean = true
 
     /**
-     * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
+     * Terminates [HttpClient.receivePipeline] if the status code is not successful (>=300).
+     * Learn more from [Response validation](https://ktor.io/docs/response-validation.html).
      */
     public var expectSuccess: Boolean = false
 
     /**
-     * Indicate if client should use development mode. In development mode client pipelines have advanced stack traces.
+     * Indicates whether the client should use [development mode](https://ktor.io/docs/development-mode.html).
+     * In development mode, the client's pipelines have advanced stack traces.
      */
     public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
     /**
-     * Installs a specific [plugin] and optionally [configure] it.
+     * Installs the specified [plugin] and optionally configures it using the [configure] block.
+     * Learn more from [Plugins](https://ktor.io/docs/http-client-plugins.html).
      */
     public fun <TBuilder : Any, TPlugin : Any> install(
         plugin: HttpClientPlugin<TBuilder, TPlugin>,
@@ -98,7 +106,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Clones this [HttpClientConfig] duplicating all the [plugins] and [customInterceptors].
+     * Clones this [HttpClientConfig] by duplicating all the [plugins] and [customInterceptors].
      */
     public fun clone(): HttpClientConfig<T> {
         val result = HttpClientConfig<T>()
@@ -107,7 +115,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
-     * Install plugin from [other] client config.
+     * Installs the plugin from the [other] client's configuration.
      */
     public operator fun plusAssign(other: HttpClientConfig<out T>) {
         followRedirects = other.followRedirects

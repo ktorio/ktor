@@ -9,7 +9,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
 /**
- * Exactly reads [count] bytes of the [HttpResponse.content].
+ * Reads exactly [count] bytes of the [HttpResponse.content].
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(count).also {
@@ -17,8 +17,8 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
 }
 
 /**
- * Reads the whole [HttpResponse.content] if Content-Length was specified.
- * Otherwise it just reads one byte.
+ * Reads the whole [HttpResponse.content] if `Content-Length` is specified.
+ * Otherwise, it just reads one byte.
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpResponse.readBytes(): ByteArray = content.readRemaining().readBytes()
