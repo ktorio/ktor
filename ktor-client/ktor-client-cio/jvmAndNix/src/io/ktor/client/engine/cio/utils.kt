@@ -173,15 +173,9 @@ internal suspend fun startTunnel(
     val builder = RequestResponseBuilder()
 
     try {
-        builder.requestLine(HttpMethod("CONNECT"), request.url.hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
-        // this will only add the port to the host header if the port is non-standard for the protocol
-        val host = if (request.url.protocol.defaultPort == request.url.port) {
-            request.url.host
-        } else {
-            request.url.hostWithPort
-        }
-
-        builder.headerLine(HttpHeaders.Host, host)
+        val hostWithPort = request.url.hostWithPort
+        builder.requestLine(HttpMethod("CONNECT"), hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
+        builder.headerLine(HttpHeaders.Host, hostWithPort)
         builder.headerLine("Proxy-Connection", "Keep-Alive") // For HTTP/1.0 proxies like Squid.
         request.headers[HttpHeaders.UserAgent]?.let {
             builder.headerLine(HttpHeaders.UserAgent, it)
