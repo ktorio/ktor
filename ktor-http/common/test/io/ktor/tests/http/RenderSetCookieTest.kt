@@ -22,7 +22,7 @@ class RenderSetCookieTest {
     }
 
     @Test
-    fun renderCookieDoesntThrowsOnNotEncodedExtensions() {
+    fun renderCookieThrowsOnNotEncodedExtensions() {
         val cookie = Cookie(
             "name",
             "value",
