@@ -28,7 +28,9 @@ public class CIOEngineConfig : HttpClientEngineConfig() {
     public var maxConnectionsCount: Int = 1000
 
     /**
-     * Specifies a time period (in milliseconds) required to process an HTTP call: from sending a request to receiving first response bytes.
+     * Specifies a request timeout in milliseconds.
+     * The request timeout is the time period required to process an HTTP call:
+     * from sending a request to receiving a response.
      *
      * To disable this timeout, set its value to `0`.
      */
