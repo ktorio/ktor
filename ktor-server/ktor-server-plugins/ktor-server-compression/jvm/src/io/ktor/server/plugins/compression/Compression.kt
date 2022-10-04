@@ -12,9 +12,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.ContentEncoding")
 
 /**
  * The default minimal content size to compress.
@@ -75,7 +78,13 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
 
     on(ContentEncoding) { call ->
         val acceptEncodingRaw = call.request.acceptEncoding()
-        if (acceptEncodingRaw == null || call.isCompressionSuppressed()) {
+        if (acceptEncodingRaw == null) {
+            LOGGER.trace("Skip compression because no accept encoding provided.")
+            return@on
+        }
+
+        if (call.isCompressionSuppressed()) {
+            LOGGER.trace("Skip compression because it is suppressed.")
             return@on
         }
 
@@ -91,20 +100,34 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
             .map { it.first }
 
         if (encoders.isEmpty()) {
+            LOGGER.trace("Skip compression because no encoders provided.")
             return@on
         }
 
         transformBody { message ->
-            if (message is CompressedResponse ||
-                options.conditions.any { !it(call, message) } ||
-                message.headers[HttpHeaders.ContentEncoding] != null ||
-                message.headers[HttpHeaders.ContentEncoding] == "identity"
-            ) {
+            if (message is CompressedResponse) {
+                LOGGER.trace("Skip compression because it's already compressed.")
                 return@transformBody null
             }
-            val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
-                ?: return@transformBody null
+            if (options.conditions.any { !it(call, message) }) {
+                LOGGER.trace("Skip compression because preconditions doesn't meet.")
+                return@transformBody null
+            }
 
+            val encodingHeader = message.headers[HttpHeaders.ContentEncoding]
+            if (encodingHeader != null) {
+                LOGGER.trace("Skip compression because content is already encoded.")
+                return@transformBody null
+            }
+
+            val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
+
+            if (encoderOptions == null) {
+                LOGGER.trace("Skip compression because no suitable encoder found.")
+                return@transformBody null
+            }
+
+            LOGGER.trace("Encoding body using ${encoderOptions.name}.")
             return@transformBody when (message) {
                 is OutgoingContent.ReadChannelContent -> CompressedResponse(
                     message,
