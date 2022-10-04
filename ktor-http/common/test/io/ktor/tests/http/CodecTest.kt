@@ -141,7 +141,7 @@ class CodecTest {
         mapOf(
             "a" to listOf("b", "c", "d"),
             "1" to listOf("2"),
-            "x" to listOf("y", "z"),
+            "x" to listOf("y", "z")
         ).entries.formUrlEncodeTo(result)
 
         assertEquals("a=b&a=c&a=d&1=2&x=y&x=z", result.toString())
