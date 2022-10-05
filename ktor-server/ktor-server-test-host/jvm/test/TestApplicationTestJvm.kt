@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -199,6 +200,15 @@ class TestApplicationTestJvm {
         }
     }
 
+    @Test
+    fun testRetrievingPluginInstance() = testApplication {
+        install(MyCalculatorPlugin)
+        application {
+            val result = plugin(MyCalculatorPlugin).add(1, 2)
+            assertEquals(3, result)
+        }
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
@@ -218,5 +228,24 @@ class TestObjectInputStream(input: InputStream) : ObjectInputStream(input) {
         } catch (e: ClassNotFoundException) {
             super.resolveClass(desc)
         }
+    }
+}
+
+class MyCalculatorPlugin {
+    class Configuration
+    companion object Plugin : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, MyCalculatorPlugin> {
+        override val key = AttributeKey<MyCalculatorPlugin>("MyCalculatorPlugin")
+
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): MyCalculatorPlugin {
+            return MyCalculatorPlugin()
+        }
+
+    }
+
+    fun add(x: Int, y: Int): Int {
+        return x + y
     }
 }
