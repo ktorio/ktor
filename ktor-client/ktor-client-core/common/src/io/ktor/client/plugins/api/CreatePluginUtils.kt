@@ -20,15 +20,12 @@ public fun <PluginConfigT : Any> createClientPlugin(
 
         override fun prepare(block: PluginConfigT.() -> Unit): ClientPluginInstance<PluginConfigT> {
             val config = createConfiguration().apply(block)
-            return ClientPluginInstance(config)
+            return ClientPluginInstance(config, name, body)
         }
 
+        @OptIn(InternalAPI::class)
         override fun install(plugin: ClientPluginInstance<PluginConfigT>, scope: HttpClient) {
-            val pluginBuilder = object : ClientPluginBuilder<PluginConfigT>(AttributeKey(name)) {
-                override val client: HttpClient = scope
-                override val pluginConfig: PluginConfigT = plugin.config
-            }.apply(body)
-            pluginBuilder.hooks.forEach { it.install(scope) }
+            plugin.install(scope)
         }
     }
 
@@ -36,9 +33,3 @@ public fun createClientPlugin(
     name: String,
     body: ClientPluginBuilder<Unit>.() -> Unit
 ): ClientPlugin<Unit> = createClientPlugin(name, {}, body)
-
-private fun <Configuration : Any, Plugin : ClientPluginBuilder<Configuration>> Plugin.setupPlugin(
-    body: Plugin.() -> Unit
-) {
-    apply(body)
-}
