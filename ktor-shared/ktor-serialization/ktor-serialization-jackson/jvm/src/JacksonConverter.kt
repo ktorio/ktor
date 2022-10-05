@@ -18,7 +18,23 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlin.text.Charsets
 
-public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
+/**
+ * A content converter that uses [Jackson]
+ *
+ * @param mapper a configured instance of [ObjectMapper]
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
+ */
+public class JacksonConverter(
+    private val objectMapper: ObjectMapper = jacksonObjectMapper(),
+    private val streamRequestBody: Boolean = true
+) : ContentConverter {
+
+    @Deprecated(
+        "Use JacksonConverter(objectMapper, streamRequestBody) instead.",
+        level = DeprecationLevel.HIDDEN,
+    )
+    public constructor(objectMapper: ObjectMapper = jacksonObjectMapper()) : this(objectMapper, true)
 
     @Suppress("OverridingDeprecatedMember")
     @Deprecated(
@@ -41,6 +57,12 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
+        if (!streamRequestBody) {
+            return TextContent(
+                objectMapper.writeValueAsString(value),
+                contentType.withCharsetIfNeeded(charset)
+            )
+        }
         return OutputStreamContent(
             {
                 if (charset == Charsets.UTF_8) {
@@ -48,9 +70,9 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
                     Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
                     InputStream instead of a writer to let Jackson do it's thing.
                      */
-                    objectmapper.writeValue(this, value)
+                    objectMapper.writeValue(this, value)
                 } else {
-                    objectmapper.writeValue(this.writer(charset = charset), value)
+                    objectMapper.writeValue(this.writer(charset = charset), value)
                 }
             },
             contentType.withCharsetIfNeeded(charset)
@@ -61,7 +83,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         try {
             return withContext(Dispatchers.IO) {
                 val reader = content.toInputStream().reader(charset)
-                objectmapper.readValue(reader, objectmapper.constructType(typeInfo.reifiedType))
+                objectMapper.readValue(reader, objectMapper.constructType(typeInfo.reifiedType))
             }
         } catch (deserializeFailure: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
@@ -80,8 +102,27 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
+@Deprecated("This will be removed.", level = DeprecationLevel.HIDDEN)
 public fun Configuration.jackson(
     contentType: ContentType = ContentType.Application.Json,
+    block: ObjectMapper.() -> Unit = {}
+) {
+    jackson(contentType, true, block)
+}
+
+/**
+ * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ * @param contentType the content type to send with request
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
+ * @param block a configuration block for [ObjectMapper]
+ */
+public fun Configuration.jackson(
+    contentType: ContentType = ContentType.Application.Json,
+    streamRequestBody: Boolean = true,
     block: ObjectMapper.() -> Unit = {}
 ) {
     val mapper = ObjectMapper()
@@ -95,6 +136,6 @@ public fun Configuration.jackson(
     }
     mapper.apply(block)
     mapper.registerKotlinModule()
-    val converter = JacksonConverter(mapper)
+    val converter = JacksonConverter(mapper, streamRequestBody)
     register(contentType, converter)
 }
