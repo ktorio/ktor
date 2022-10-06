@@ -41,8 +41,12 @@ public class ApplicationEngineEnvironmentReloading(
     override val developmentMode: Boolean = true
 ) : ApplicationEngineEnvironment {
 
+    private val configuredWatchPath get() = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val watchPatterns: List<String> = configuredWatchPath + watchPaths
+
     override val parentCoroutineContext: CoroutineContext = when {
-        developmentMode -> parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
+        developmentMode && watchPatterns.isNotEmpty() ->
+            parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
         else -> parentCoroutineContext
     }
 
@@ -65,9 +69,6 @@ public class ApplicationEngineEnvironmentReloading(
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
-
-    private val configuredWatchPath get() = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
-    private val watchPatterns: List<String> = configuredWatchPath + watchPaths
 
     private val configModulesNames: List<String> = run {
         config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()

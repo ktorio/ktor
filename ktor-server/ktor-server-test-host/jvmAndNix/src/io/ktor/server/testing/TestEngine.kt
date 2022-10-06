@@ -25,6 +25,7 @@ public fun createTestEnvironment(
         log = KtorSimpleLogger("ktor.test")
         developmentMode = true
         configure()
+        watchPaths = emptyList()
     }
 
 /**
