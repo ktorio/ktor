@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
 
+import io.ktor.util.collections.*
 import kotlinx.coroutines.*
 import java.lang.ref.*
 import java.util.*
@@ -12,67 +13,8 @@ import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-public interface Cache<in K : Any, V : Any> {
-    public suspend fun getOrCompute(key: K): V
-    public fun peek(key: K): V?
-    public fun invalidate(key: K): V?
-    public fun invalidate(key: K, value: V): Boolean
-    public fun invalidateAll()
-}
-
 internal interface CacheReference<out K> {
     val key: K
-}
-
-@OptIn(ExperimentalCoroutinesApi::class)
-internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
-    private val container = ConcurrentHashMap<K, Deferred<V>>()
-
-    override suspend fun getOrCompute(key: K): V {
-        val coroutineContext = coroutineContext
-        return container.computeIfAbsent(key) {
-            CoroutineScope(coroutineContext.minusKey(Job)).async(Dispatchers.Unconfined) {
-                calc(key)
-            }
-        }.await()
-    }
-
-    override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
-
-    override fun invalidate(key: K): V? {
-        container.remove(key)?.let {
-            if (!it.isActive) {
-                try {
-                    it.getCompleted()
-                } catch (_: Throwable) {
-                    // we shouldn't re-throw a failure but simply return null
-                }
-            }
-        }
-
-        return null
-    }
-
-    override fun invalidate(key: K, value: V): Boolean {
-        container[key]?.let { l ->
-            if (!l.isActive) {
-                try {
-                    if (l.getCompleted() == value && container.remove(key, l)) {
-                        return true
-                    }
-                } catch (_: Throwable) {
-                    return false
-                }
-            }
-        }
-
-        return false
-    }
-
-    override fun invalidateAll() {
-        container.clear()
-    }
 }
 
 internal open class ReferenceCache<K : Any, V : Any, out R>(

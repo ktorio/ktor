@@ -52,6 +52,8 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(initialC
 
     override fun remove(key: Key): Value? = delegate.remove(key)
 
+    actual override fun remove(key: Key, value: Value): Boolean = delegate.remove(key, value)
+
     override fun hashCode(): Int = delegate.hashCode()
 
     override fun equals(other: Any?): Boolean {
