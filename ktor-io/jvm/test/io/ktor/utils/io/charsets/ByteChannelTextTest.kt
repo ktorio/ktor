@@ -42,4 +42,18 @@ class ByteChannelTextTest {
         val result = channel.readUTF8Line()
         assertEquals(line, result)
     }
+
+    @Test
+    fun test2EmptyLines() {
+        val text = ByteReadChannel("\r\n\r\n")
+
+        runBlocking {
+            assertEquals(4, text.availableForRead)
+            assertEquals("", text.readUTF8Line())
+            assertEquals(2, text.availableForRead)
+            assertEquals(2, text.totalBytesRead)
+            assertEquals("", text.readUTF8Line())
+            assertNull(text.readUTF8Line())
+        }
+    }
 }

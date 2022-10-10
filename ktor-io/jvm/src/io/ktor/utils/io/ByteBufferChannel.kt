@@ -1962,12 +1962,12 @@ internal open class ByteBufferChannel(
                     newLine = true
                 }
 
-                if (it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
+                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
                     it.position(it.position() + 1)
                     caret = true
                 }
 
-                if (it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
+                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
                     it.position(it.position() + 1)
                     newLine = true
                 }
