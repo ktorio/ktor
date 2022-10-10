@@ -13,7 +13,6 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationResponse constructor(
     call: NettyApplicationCall,
     val handler: NettyHttp2Handler,
@@ -76,13 +75,17 @@ internal class NettyHttp2ApplicationResponse constructor(
         }
     }
 
-    private class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
+    internal class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
             underlying.add(name.toLowerCasePreservingASCIIRules(), value)
         }
 
-        override fun get(name: String): String? = underlying[name]?.toString()
-        override fun getEngineHeaderNames(): List<String> = underlying.names().map { it.toString() }
-        override fun getEngineHeaderValues(name: String): List<String> = underlying.getAll(name).map { it.toString() }
+        override fun get(name: String): String? = if (name.startsWith(':')) null else underlying[name]?.toString()
+
+        override fun getEngineHeaderNames(): List<String> = underlying.names()
+            .filter { !it.startsWith(':') }.map { it.toString() }
+
+        override fun getEngineHeaderValues(name: String): List<String> =
+            if (name.startsWith(':')) emptyList() else underlying.getAll(name).map { it.toString() }
     }
 }
