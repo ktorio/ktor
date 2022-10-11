@@ -1,8 +1,8 @@
-// ktlint-disable experimental:argument-list-wrapping
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
+// ktlint-disable experimental:argument-list-wrapping
 package io.ktor.server.sessions
 
 import io.ktor.http.*
@@ -42,16 +42,10 @@ public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflect
     defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
 /**
- * Creates the default [SessionSerializer] for the type [T].
- */
-public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
-    defaultSessionSerializer(typeOf<T>())
-
-/**
  * Creates the default [SessionSerializer] by [typeInfo].
  */
 @Suppress("DEPRECATION_ERROR")
-public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
+public actual fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
 
 /**

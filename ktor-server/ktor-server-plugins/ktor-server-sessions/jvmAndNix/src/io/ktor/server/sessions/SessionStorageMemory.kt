@@ -4,7 +4,7 @@
 
 package io.ktor.server.sessions
 
-import java.util.concurrent.*
+import io.ktor.util.collections.*
 
 /**
  * A storage that keeps session data in memory.
@@ -14,7 +14,7 @@ import java.util.concurrent.*
  * @see [Sessions]
  */
 public class SessionStorageMemory : SessionStorage {
-    private val sessions = ConcurrentHashMap<String, String>()
+    private val sessions = ConcurrentMap<String, String>()
 
     override suspend fun write(id: String, value: String) {
         sessions[id] = value

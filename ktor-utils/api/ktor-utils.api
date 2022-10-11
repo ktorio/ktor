@@ -505,6 +505,7 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun putAll (Ljava/util/Map;)V
 	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;Ljava/lang/Object;)Z
 	public final fun size ()I
 	public fun toString ()Ljava/lang/String;
 	public final fun values ()Ljava/util/Collection;
