@@ -4,16 +4,20 @@
 
 description = ""
 
+plugins {
+    id("kotlinx-serialization")
+}
+
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
             }
         }
         jvmMain {
             dependencies {
-                api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
                 api("com.googlecode.json-simple:json-simple:1.1.1") {
                     isTransitive = false
                 }
