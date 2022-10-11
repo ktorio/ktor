@@ -242,7 +242,6 @@ class MyCalculatorPlugin {
         ): MyCalculatorPlugin {
             return MyCalculatorPlugin()
         }
-
     }
 
     fun add(x: Int, y: Int): Int {

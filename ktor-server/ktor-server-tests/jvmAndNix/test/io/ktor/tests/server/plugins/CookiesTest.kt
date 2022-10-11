@@ -176,4 +176,3 @@ class CookiesTest {
 
     private fun String.cutSetCookieHeader() = substringBeforeLast("\$x-enc").trimEnd().removeSuffix(";")
 }
-
