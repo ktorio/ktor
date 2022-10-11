@@ -630,6 +630,7 @@ public abstract interface class io/ktor/server/response/ApplicationResponse {
 	public abstract fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
 	public abstract fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 	public abstract fun isCommitted ()Z
+	public abstract fun isSent ()Z
 	public abstract fun push (Lio/ktor/server/response/ResponsePushBuilder;)V
 	public abstract fun status ()Lio/ktor/http/HttpStatusCode;
 	public abstract fun status (Lio/ktor/http/HttpStatusCode;)V
@@ -1162,6 +1163,7 @@ public final class io/ktor/server/routing/RoutingApplicationResponse : io/ktor/s
 	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
 	public fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 	public fun isCommitted ()Z
+	public fun isSent ()Z
 	public fun push (Lio/ktor/server/response/ResponsePushBuilder;)V
 	public fun status ()Lio/ktor/http/HttpStatusCode;
 	public fun status (Lio/ktor/http/HttpStatusCode;)V

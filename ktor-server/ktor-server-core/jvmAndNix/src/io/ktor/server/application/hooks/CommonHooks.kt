@@ -44,7 +44,7 @@ public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable
                 }
             } catch (cause: Throwable) {
                 handler(call, cause)
-                if (!call.isHandled) throw cause
+                if (!call.response.isSent) throw cause
             }
         }
     }
