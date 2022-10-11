@@ -4,6 +4,8 @@
 
 package io.ktor.server.sessions
 
+import kotlin.reflect.*
+
 /**
  * Serializes a session data from and to [String].
  *
@@ -20,3 +22,14 @@ public interface SessionSerializer<T> {
      */
     public fun deserialize(text: String): T
 }
+
+/**
+ * Creates the default [SessionSerializer] for the type [T].
+ */
+public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
+    defaultSessionSerializer(typeOf<T>())
+
+/**
+ * Creates the default [SessionSerializer] by [typeInfo].
+ */
+public expect fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T>
