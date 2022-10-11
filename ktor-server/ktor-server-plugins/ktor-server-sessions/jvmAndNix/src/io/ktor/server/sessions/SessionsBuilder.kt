@@ -5,7 +5,6 @@
 package io.ktor.server.sessions
 
 import kotlin.reflect.*
-import kotlin.reflect.full.*
 
 /**
  * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
@@ -298,7 +297,11 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
 ) : CookieSessionBuilder<S>(type, typeInfo) {
 
     @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
-    public constructor(type: KClass<S>) : this(type, type.starProjectedType)
+    @Suppress("UNREACHABLE_CODE")
+    public constructor(type: KClass<S>) : this(
+        type,
+        throw IllegalStateException("Use builder functions with reified type parameter instead.")
+    )
 
     /**
      * Registers a function used to generate a session ID.
@@ -325,7 +328,11 @@ internal constructor(
     public val typeInfo: KType
 ) {
     @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
-    public constructor(type: KClass<S>) : this(type, type.starProjectedType)
+    @Suppress("UNREACHABLE_CODE")
+    public constructor(type: KClass<S>) : this(
+        type,
+        throw IllegalStateException("Use builder functions with reified type parameter instead.")
+    )
 
     /**
      * Specifies a serializer used to serialize session data.
@@ -364,7 +371,11 @@ internal constructor(
 ) {
 
     @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
-    public constructor(type: KClass<S>) : this(type, type.starProjectedType)
+    @Suppress("UNREACHABLE_CODE")
+    public constructor(type: KClass<S>) : this(
+        type,
+        throw IllegalStateException("Use builder functions with reified type parameter instead.")
+    )
 
     /**
      * Specifies a serializer used to serialize session data.
@@ -397,7 +408,11 @@ internal constructor(
 ) : HeaderSessionBuilder<S>(type, typeInfo) {
 
     @Deprecated("Use builder functions instead.", level = DeprecationLevel.ERROR)
-    public constructor(type: KClass<S>) : this(type, type.starProjectedType)
+    @Suppress("UNREACHABLE_CODE")
+    public constructor(type: KClass<S>) : this(
+        type,
+        throw IllegalStateException("Use builder functions with reified type parameter instead.")
+    )
 
     /**
      * Registers a function used to generate a session ID.

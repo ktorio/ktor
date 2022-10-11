@@ -5,9 +5,15 @@
 package io.ktor.server.sessions
 
 @Suppress("KDocMissingDocumentation")
-public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
-    private val referenceCache = SoftReferenceCache<String, String> { id -> delegate.read(id) }
-    private val cache = BaseTimeoutCache(idleTimeout, true, referenceCache)
+/**
+ * A caching storage for sessions.
+ */
+public class CacheStorage constructor(
+    public val delegate: SessionStorage,
+    idleTimeout: Long,
+) : SessionStorage {
+
+    private val cache = platformCache(delegate, idleTimeout)
 
     override suspend fun read(id: String): String {
         return cache.getOrCompute(id)
@@ -29,3 +35,5 @@ public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long
         delegate.invalidate(id)
     }
 }
+
+internal expect fun platformCache(delegate: SessionStorage, idleTimeout: Long): Cache<String, String>
