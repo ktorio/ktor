@@ -17,7 +17,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
-internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.ContentEncoding")
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.Compression")
 
 /**
  * The default minimal content size to compress.
