@@ -38,13 +38,13 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     override fun isEmpty(): Boolean = delegate.isEmpty()
 
     override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
-        get() = delegate.entries
+        get() = synchronized(lock) { delegate.entries }
 
     override val keys: MutableSet<Key>
-        get() = delegate.keys
+        get() = synchronized(lock) { delegate.keys }
 
     override val values: MutableCollection<Value>
-        get() = delegate.values
+        get() = synchronized(lock) { delegate.values }
 
     override fun clear() {
         synchronized(lock) {
@@ -61,6 +61,12 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     }
 
     override fun remove(key: Key): Value? = synchronized(lock) { delegate.remove(key) }
+
+    public actual fun remove(key: Key, value: Value): Boolean = synchronized(lock) {
+        if (delegate[key] != value) return false
+        delegate.remove(key)
+        return true
+    }
 
     override fun hashCode(): Int = synchronized(lock) { delegate.hashCode() }
 
