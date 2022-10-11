@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.sessions
+package io.ktor.server.sessions
 
-import io.ktor.server.sessions.*
 import kotlin.test.*
 
 class SessionTransportTransformerKtTest {

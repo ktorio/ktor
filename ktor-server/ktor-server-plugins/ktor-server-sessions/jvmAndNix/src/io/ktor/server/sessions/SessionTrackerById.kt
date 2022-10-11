@@ -101,7 +101,7 @@ public class SessionTrackerById<S : Any>(
     }
 
     override fun validate(value: S) {
-        if (!type.javaObjectType.isAssignableFrom(value.javaClass)) {
+        if (!type.isInstance(value)) {
             throw IllegalArgumentException("Value for this session tracker expected to be of type $type but was $value")
         }
     }
