@@ -173,8 +173,9 @@ public class WebSocketDeflateExtension internal constructor(
          * Configure which protocols should send the client.
          */
         public fun configureProtocols(block: (protocols: MutableList<WebSocketExtensionHeader>) -> Unit) {
+            val old = manualConfig
             manualConfig = {
-                manualConfig(it)
+                old(it)
                 block(it)
             }
         }

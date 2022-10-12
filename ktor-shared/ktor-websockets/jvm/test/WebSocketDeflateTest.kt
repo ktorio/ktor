@@ -60,4 +60,16 @@ class WebSocketDeflateTest {
         assertEquals(extension.incomingNoContextTakeover, false)
         assertEquals(extension.outgoingNoContextTakeover, true)
     }
+
+    @Test
+    fun testManualConfig() {
+        val config = WebSocketDeflateExtension.Config()
+        config.manualConfig(mutableListOf())
+
+        config.configureProtocols {
+            it.add(WebSocketExtensionHeader("permessage-deflate", listOf("client_no_context_takeover")))
+        }
+
+        config.manualConfig(mutableListOf())
+    }
 }
