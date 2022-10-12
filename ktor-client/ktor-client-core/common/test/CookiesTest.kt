@@ -44,11 +44,11 @@ class CookiesTest {
 
     @Test
     fun testCookiesAreRenderedWithSpaceInBetween() = testSuspend {
-        var storage = AcceptAllCookiesStorage()
+        val storage = AcceptAllCookiesStorage()
         storage.addCookie("http://localhost/", Cookie("name1", "value1"))
         storage.addCookie("http://localhost/", Cookie("name2", "value2"))
         val feature = HttpCookies(storage, emptyList())
-        var builder = HttpRequestBuilder()
+        val builder = HttpRequestBuilder()
 
         feature.sendCookiesWith(builder)
 
