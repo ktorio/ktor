@@ -35,6 +35,11 @@ public interface ApplicationResponse {
     public val isCommitted: Boolean
 
     /**
+     * Indicates that this response is already fully sent to the client.
+     */
+    public val isSent: Boolean
+
+    /**
      * Provides access to cookies for this response.
      */
     public val cookies: ResponseCookies
