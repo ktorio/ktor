@@ -5,6 +5,7 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -59,20 +60,20 @@ public fun HttpClient.defaultTransformers() {
         val response = context.response
 
         when (info.type) {
+            SavedHttpResponse::class -> {
+                proceedWith(HttpResponseContainer(info, response.call.save().response))
+            }
             Unit::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
-
             Int::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
             }
-
             ByteReadPacket::class,
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
-
             ByteArray::class -> {
                 val bytes = body.toByteArray()
 
@@ -83,7 +84,6 @@ public fun HttpClient.defaultTransformers() {
                 }
                 proceedWith(HttpResponseContainer(info, bytes))
             }
-
             ByteReadChannel::class -> {
                 // the response job could be already completed so the job holder
                 // could be cancelled immediately, but it doesn't matter
@@ -109,7 +109,6 @@ public fun HttpClient.defaultTransformers() {
 
                 proceedWith(HttpResponseContainer(info, channel))
             }
-
             HttpStatusCode::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, response.status))

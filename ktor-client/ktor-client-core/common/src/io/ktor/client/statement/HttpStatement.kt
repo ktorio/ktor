@@ -60,9 +60,7 @@ public class HttpStatement(
      * To receive exact type, consider using [body<T>()] method.
      */
     public suspend fun execute(): HttpResponse = execute {
-        val savedCall = it.call.save()
-
-        savedCall.response
+        it.body<SavedHttpResponse>()
     }
 
     /**

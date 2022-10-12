@@ -118,7 +118,6 @@ public class HttpCallValidator internal constructor(
             )
         }
 
-        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpCallValidator, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {
@@ -143,10 +142,11 @@ public class HttpCallValidator internal constructor(
                 }
             }
 
-            scope.plugin(HttpSend).intercept { request ->
-                val call = execute(request)
-                plugin.validateResponse(call.response)
-                call
+            scope.responsePipeline.intercept(HttpResponsePipeline.After) {
+                val response = it.response as? SavedHttpResponse ?: context.response
+                if (ValidatedMark in response.request.attributes) return@intercept
+                response.request.attributes.put(ValidatedMark, Unit)
+                plugin.validateResponse(response)
             }
         }
     }
@@ -178,6 +178,8 @@ public var HttpRequestBuilder.expectSuccess: Boolean
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
 internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttributeKey")
+
+private val ValidatedMark = AttributeKey<Unit>("Validated")
 
 internal sealed interface HandlerWrapper
 
