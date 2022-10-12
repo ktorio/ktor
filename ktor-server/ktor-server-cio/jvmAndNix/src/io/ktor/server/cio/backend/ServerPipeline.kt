@@ -12,6 +12,7 @@ import io.ktor.server.cio.internal.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -55,18 +56,15 @@ public fun CoroutineScope.startServerConnectionPipeline(
         while (true) { // parse requests loop
             val request = try {
                 parseRequest(connection.input) ?: break
+            } catch (cause: TooLongLineException) {
+                respondBadRequest(actorChannel)
+                break // end pipeline loop
             } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (parseFailed: Throwable) { // try to write 400 Bad Request
-                // TODO log parseFailed?
-                val bc = ByteChannel()
-                if (actorChannel.trySend(bc).isSuccess) {
-                    bc.writePacket(BadRequestPacket.copy())
-                    bc.close()
-                }
-                actorChannel.close()
+                respondBadRequest(actorChannel)
                 break // end pipeline loop
             }
 
@@ -181,6 +179,15 @@ public fun CoroutineScope.startServerConnectionPipeline(
     } finally {
         actorChannel.close()
     }
+}
+
+private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
+    val bc = ByteChannel()
+    if (actorChannel.trySend(bc).isSuccess) {
+        bc.writePacket(BadRequestPacket.copy())
+        bc.close()
+    }
+    actorChannel.close()
 }
 
 @OptIn(InternalAPI::class)
