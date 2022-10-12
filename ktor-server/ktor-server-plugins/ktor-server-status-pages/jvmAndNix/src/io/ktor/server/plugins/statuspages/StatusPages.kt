@@ -67,10 +67,6 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
         call.application.mdcProvider.withMDCBlock(call) {
             handler(call, cause)
         }
-
-        if (!call.isHandled) {
-            throw cause
-        }
     }
 }
 

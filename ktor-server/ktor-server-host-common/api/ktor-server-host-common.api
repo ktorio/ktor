@@ -126,6 +126,7 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/se
 	public fun getCookies ()Lio/ktor/server/response/ResponseCookies;
 	public final fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 	public fun isCommitted ()Z
+	public final fun isSent ()Z
 	public fun push (Lio/ktor/server/response/ResponsePushBuilder;)V
 	protected fun respondFromBytes ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun respondFromChannel (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
