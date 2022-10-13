@@ -69,14 +69,16 @@ private fun id(commonName: String): Counterparty = Counterparty(
     commonName = commonName
 )
 
-private fun certificate(
+internal fun certificate(
     subject: Counterparty,
     issuer: Counterparty,
     keyPair: KeyPair,
     signerKeyPair: KeyPair,
     algorithm: String,
     daysValid: Long = 3,
-    keyType: KeyType = KeyType.Server
+    keyType: KeyType = KeyType.Server,
+    domains: List<String> = listOf("127.0.0.1", "localhost"),
+    ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1")),
 ): Certificate {
     val from = Date()
     val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
@@ -89,8 +91,8 @@ private fun certificate(
             algorithm = algorithm,
             from = from,
             to = to,
-            domains = listOf("127.0.0.1", "localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1")),
+            domains = domains,
+            ipAddresses = ipAddresses,
             keyType = keyType
         )
     }.readBytes()
@@ -188,7 +190,7 @@ internal data class Counterparty(
     val commonName: String = ""
 )
 
-internal fun BytePacketBuilder.writeX509Info(
+private fun BytePacketBuilder.writeX509Info(
     algorithm: String,
     issuer: Counterparty,
     subject: Counterparty,
@@ -340,7 +342,7 @@ private fun BytePacketBuilder.writeX509Counterparty(counterparty: Counterparty) 
     }
 }
 
-internal fun BytePacketBuilder.writeCertificate(
+private fun BytePacketBuilder.writeCertificate(
     issuer: Counterparty,
     subject: Counterparty,
     keyPair: KeyPair,

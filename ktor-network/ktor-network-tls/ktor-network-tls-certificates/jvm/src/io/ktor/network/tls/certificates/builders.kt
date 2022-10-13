@@ -11,10 +11,7 @@ import io.ktor.utils.io.core.*
 import java.io.*
 import java.net.*
 import java.security.*
-import java.security.cert.*
 import java.security.cert.Certificate
-import java.time.*
-import java.util.*
 
 internal data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
 
@@ -60,24 +57,16 @@ public class CertificateBuilder internal constructor() {
             commonName = "localhost"
         )
 
-        val from = Date()
-        val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
-
-        val certificateBytes = buildPacket {
-            writeCertificate(
-                issuer = id,
-                subject = id,
-                keyPair = keys,
-                algorithm = algorithm.name,
-                from = from,
-                to = to,
-                domains = listOf("localhost"),
-                ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
-            )
-        }.readBytes()
-
-        val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
-        cert.verify(keys.public)
+        val cert = certificate(
+            issuer = id,
+            subject = id,
+            keyPair = keys,
+            signerKeyPair = keys,
+            algorithm = algorithm.name,
+            daysValid = daysValid,
+            domains = listOf("localhost"),
+            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
+        )
         return CertificateInfo(cert, keys, password)
     }
 }
