@@ -86,6 +86,33 @@ class DefaultWebSocketTest : BaseTest() {
     }
 
     @Test
+    @OptIn(InternalAPI::class)
+    fun testPingPongTimeout(): Unit = runTest {
+        cleanup()
+
+        parent = Job()
+        client2server = ByteChannel()
+        server2client = ByteChannel()
+
+        server = DefaultWebSocketSession(
+            RawWebSocket(client2server, server2client, coroutineContext = parent),
+            500L,
+            500L
+        )
+        server.start()
+
+        client = RawWebSocket(server2client, client2server, coroutineContext = parent)
+        assertTrue(client.incoming.receive() is Frame.Ping)
+        delay(1000)
+        assertTrue(client.incoming.receive() is Frame.Close)
+
+        assertTrue("server incoming should be closed") { server.incoming.isClosedForReceive }
+        assertTrue("server outgoing should be closed") { server.outgoing.isClosedForSend }
+        assertTrue("server should be closed") { server.closeReason.isCompleted }
+        client.close()
+    }
+
+    @Test
     fun testCancellation(): Unit = runTest {
         server.cancel()
 
@@ -122,5 +149,7 @@ class DefaultWebSocketTest : BaseTest() {
 
         assertTrue("client outgoing should be closed") { client.outgoing.isClosedForSend }
         assertTrue("server outgoing should be closed") { server.outgoing.isClosedForSend }
+
+        assertTrue("server closeReason should be completed") { server.closeReason.isCompleted }
     }
 }
