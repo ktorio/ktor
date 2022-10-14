@@ -64,7 +64,7 @@ public class CertificateBuilder internal constructor() {
 
         val id = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
 
-        val cert = certificate(
+        val cert = generateX509Certificate(
             issuer = id,
             subject = id,
             publicKey = keys.public,

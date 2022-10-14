@@ -51,7 +51,7 @@ public fun generateCertificate(
     val keyPair = keyPairGenerator.genKeyPair()!!
 
     val id = if (keyType == KeyType.CA) jbLocalhostCAPrincipal else jbLocalhostPrincipal
-    val cert = certificate(
+    val cert = generateX509Certificate(
         subject = id,
         issuer = id,
         publicKey = keyPair.public,
@@ -70,7 +70,22 @@ public fun generateCertificate(
     return keyStore
 }
 
-internal fun certificate(
+/**
+ * Generates an X.509 [Certificate] for the given [publicKey], signed using the provided [signerKeyPair].
+ *
+ * The certified key and the signer keys should all be compatible with the given [algorithm], which must be specified
+ * as one of the standard names in the
+ * [Signature section](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#signature-algorithms)
+ * of the Java Security Standard Algorithm Names Specification.
+ *
+ * The generated certificate contains the provided information, and will be valid for the given [validityDuration].
+ *
+ * The allowed [domains] and [ipAddresses] can be customized too, and default to localhost/127.0.0.1.
+ *
+ * The [keyType] determines the extensions that should be written in the certificate, such as [OID.ExtKeyUsage] or
+ * [OID.BasicConstraints] to use the key as CA.
+ */
+internal fun generateX509Certificate(
     subject: X500Principal,
     issuer: X500Principal,
     publicKey: PublicKey,
@@ -80,7 +95,7 @@ internal fun certificate(
     keyType: KeyType = KeyType.Server,
     domains: List<String> = listOf("127.0.0.1", "localhost"),
     ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1")),
-): Certificate {
+): X509Certificate {
     val now = Instant.now()
     val certificateBytes = buildPacket {
         writeCertificate(
@@ -99,7 +114,7 @@ internal fun certificate(
 
     val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
     cert.verify(signerKeyPair.public)
-    return cert
+    return cert as X509Certificate // guaranteed by CertificateFactory specification
 }
 
 public enum class KeyType {
@@ -138,7 +153,7 @@ public fun KeyStore.generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
 
     val certKeyPair = keyPairGenerator.genKeyPair()!!
-    val cert = certificate(
+    val cert = generateX509Certificate(
         issuer = jbLocalhostCAPrincipal,
         subject = jbLocalhostPrincipal,
         algorithm = algorithm,
