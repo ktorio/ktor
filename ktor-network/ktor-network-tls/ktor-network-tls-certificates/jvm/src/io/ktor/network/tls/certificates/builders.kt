@@ -44,6 +44,16 @@ public class CertificateBuilder internal constructor() {
      */
     public var keySizeInBits: Int = 1024
 
+    /**
+     * Domains for which this certificate is valid.
+     */
+    public var domains: List<String> = listOf("localhost")
+
+    /**
+     * IP addresses for which this certificate is valid.
+     */
+    public var ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1"))
+
     internal fun build(): CertificateInfo {
         val algorithm = HashAndSign(hash, sign)
         val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name))!!.apply {
@@ -64,8 +74,8 @@ public class CertificateBuilder internal constructor() {
             signerKeyPair = keys,
             algorithm = algorithm.name,
             daysValid = daysValid,
-            domains = listOf("localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
+            domains = domains,
+            ipAddresses = ipAddresses,
         )
         return CertificateInfo(cert, keys, password)
     }

@@ -5,6 +5,7 @@
 package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.extensions.*
+import java.net.InetAddress
 import java.time.temporal.*
 import javax.security.auth.x500.*
 import kotlin.test.*
@@ -71,5 +72,26 @@ class KeyStoreBuilderTest {
         val cert = assertHasX509Certificate(keyStore, alias = "someKey", algorithm = "SHA1withRSA")
 
         assertValidityRange(cert, from = nowInTests, until = nowInTests.plus(5, ChronoUnit.DAYS))
+    }
+
+    @Test
+    fun buildKeyStore_customIpsAndDomains() {
+        val customDomains = listOf("localhost", "my.custom.host")
+        val customIps = listOf("127.0.0.1", "127.2.3.4")
+
+        val keyStore = buildKeyStore {
+            certificate(alias = "someKey") {
+                hash = HashAlgorithm.SHA1
+                sign = SignatureAlgorithm.RSA
+                password = "keyPass"
+                domains = customDomains
+                ipAddresses = customIps.map { InetAddress.getByName(it) }
+            }
+        }
+
+        assertHasPrivateKey(keyStore, alias = "someKey", password = "keyPass", algorithm = "RSA", size = 1024)
+        val cert = assertHasX509Certificate(keyStore, alias = "someKey", algorithm = "SHA1withRSA")
+
+        assertExtensionsForServerKeyType(cert, expectedDomains = customDomains, expectedIPs = customIps)
     }
 }
