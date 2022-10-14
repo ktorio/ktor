@@ -50,7 +50,7 @@ public fun generateCertificate(
     val cert = certificate(
         subject = id,
         issuer = id,
-        keyPair = keyPair,
+        publicKey = keyPair.public,
         signerKeyPair = keyPair,
         algorithm = algorithm,
         keyType = keyType
@@ -76,7 +76,7 @@ private fun id(commonName: String): Counterparty = Counterparty(
 internal fun certificate(
     subject: Counterparty,
     issuer: Counterparty,
-    keyPair: KeyPair,
+    publicKey: PublicKey,
     signerKeyPair: KeyPair,
     algorithm: String,
     validityDuration: Duration = 3.days,
@@ -89,7 +89,7 @@ internal fun certificate(
         writeCertificate(
             issuer = issuer,
             subject = subject,
-            keyPair = keyPair,
+            publicKey = publicKey,
             signerKeyPair = signerKeyPair,
             algorithm = algorithm,
             validFrom = now,
@@ -145,7 +145,7 @@ public fun KeyStore.generateCertificate(
         issuer = id("localhostCA"),
         subject = id("localhost"),
         algorithm = algorithm,
-        keyPair = certKeyPair,
+        publicKey = certKeyPair.public,
         signerKeyPair = ca,
         keyType = keyType
     )
@@ -348,19 +348,19 @@ private fun BytePacketBuilder.writeX509Counterparty(counterparty: Counterparty) 
 private fun BytePacketBuilder.writeCertificate(
     issuer: Counterparty,
     subject: Counterparty,
-    keyPair: KeyPair,
+    publicKey: PublicKey,
     algorithm: String,
     validFrom: Instant,
     validUntil: Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
-    signerKeyPair: KeyPair = keyPair,
-    keyType: KeyType = KeyType.Server
+    signerKeyPair: KeyPair,
+    keyType: KeyType = KeyType.Server,
 ) {
     require(validFrom < validUntil) { "validFrom must be before validUntil" }
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, validFrom, validUntil, domains, ipAddresses, keyType)
+        writeX509Info(algorithm, issuer, subject, publicKey, validFrom, validUntil, domains, ipAddresses, keyType)
     }
 
     val certInfoBytes = certInfo.readBytes()

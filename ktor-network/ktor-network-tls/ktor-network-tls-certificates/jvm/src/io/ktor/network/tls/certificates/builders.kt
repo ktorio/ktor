@@ -71,7 +71,7 @@ public class CertificateBuilder internal constructor() {
         val cert = certificate(
             issuer = id,
             subject = id,
-            keyPair = keys,
+            publicKey = keys.public,
             signerKeyPair = keys,
             algorithm = algorithm.name,
             validityDuration = daysValid.days,
