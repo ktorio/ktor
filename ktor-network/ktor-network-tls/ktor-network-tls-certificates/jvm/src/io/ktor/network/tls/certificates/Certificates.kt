@@ -14,8 +14,12 @@ import java.security.cert.*
 import java.security.cert.Certificate
 import java.text.*
 import java.time.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.net.ssl.*
+import kotlin.time.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 /**
  * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword].
@@ -75,13 +79,12 @@ internal fun certificate(
     keyPair: KeyPair,
     signerKeyPair: KeyPair,
     algorithm: String,
-    daysValid: Long = 3,
+    validityDuration: Duration = 3.days,
     keyType: KeyType = KeyType.Server,
     domains: List<String> = listOf("127.0.0.1", "localhost"),
     ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1")),
 ): Certificate {
-    val from = Date()
-    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
+    val now = Instant.now()
     val certificateBytes = buildPacket {
         writeCertificate(
             issuer = issuer,
@@ -89,8 +92,8 @@ internal fun certificate(
             keyPair = keyPair,
             signerKeyPair = signerKeyPair,
             algorithm = algorithm,
-            from = from,
-            to = to,
+            validFrom = now,
+            validUntil = now.plus(validityDuration.toJavaDuration()),
             domains = domains,
             ipAddresses = ipAddresses,
             keyType = keyType
@@ -195,8 +198,8 @@ private fun BytePacketBuilder.writeX509Info(
     issuer: Counterparty,
     subject: Counterparty,
     publicKey: PublicKey,
-    from: Date,
-    to: Date,
+    validFrom: Instant,
+    validUntil: Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
     keyType: KeyType = KeyType.Server
@@ -211,8 +214,8 @@ private fun BytePacketBuilder.writeX509Info(
 
         writeX509Counterparty(issuer)
         writeDerSequence {
-            writeDerUTCTime(from)
-            writeDerGeneralizedTime(to)
+            writeDerUTCTime(validFrom)
+            writeDerGeneralizedTime(validUntil)
         }
         writeX509Counterparty(subject)
 
@@ -347,17 +350,17 @@ private fun BytePacketBuilder.writeCertificate(
     subject: Counterparty,
     keyPair: KeyPair,
     algorithm: String,
-    from: Date,
-    to: Date,
+    validFrom: Instant,
+    validUntil: Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
     signerKeyPair: KeyPair = keyPair,
     keyType: KeyType = KeyType.Server
 ) {
-    require(to.after(from))
+    require(validFrom < validUntil) { "validFrom must be before validUntil" }
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses, keyType)
+        writeX509Info(algorithm, issuer, subject, keyPair.public, validFrom, validUntil, domains, ipAddresses, keyType)
     }
 
     val certInfoBytes = certInfo.readBytes()
@@ -411,20 +414,16 @@ private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 
     writeFully(array)
 }
 
-private fun BytePacketBuilder.writeDerUTCTime(date: Date) {
+private fun BytePacketBuilder.writeDerUTCTime(date: Instant) {
     writeDerUTF8String(
-        SimpleDateFormat("yyMMddHHmmss'Z'").apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }.format(date),
+        DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
         0x17
     )
 }
 
-private fun BytePacketBuilder.writeDerGeneralizedTime(date: Date) {
+private fun BytePacketBuilder.writeDerGeneralizedTime(date: Instant) {
     writeDerUTF8String(
-        SimpleDateFormat("yyyyMMddHHmmss'Z'").apply { timeZone = TimeZone.getTimeZone("UTC") }.format(
-            date
-        ),
+        DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
         0x18
     )
 }

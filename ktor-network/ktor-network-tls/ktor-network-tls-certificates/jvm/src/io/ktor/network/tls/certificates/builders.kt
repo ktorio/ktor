@@ -12,6 +12,7 @@ import java.io.*
 import java.net.*
 import java.security.*
 import java.security.cert.Certificate
+import kotlin.time.Duration.Companion.days
 
 internal data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
 
@@ -73,7 +74,7 @@ public class CertificateBuilder internal constructor() {
             keyPair = keys,
             signerKeyPair = keys,
             algorithm = algorithm.name,
-            daysValid = daysValid,
+            validityDuration = daysValid.days,
             domains = domains,
             ipAddresses = ipAddresses,
         )
