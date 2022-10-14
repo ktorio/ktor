@@ -364,15 +364,6 @@ private fun BytePacketBuilder.writeDerOctetString(block: BytePacketBuilder.() ->
     writePacket(sub)
 }
 
-private fun BytePacketBuilder.writeDerBitString(block: BytePacketBuilder.() -> Unit) {
-    val sub = buildPacket { block() }
-
-    writeDerType(0, 3, true)
-    writeDerLength(sub.remaining.toInt() + 1)
-    writeByte(0)
-    writePacket(sub)
-}
-
 private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 0) {
     require(unused in 0..7)
 
@@ -414,14 +405,6 @@ private fun BytePacketBuilder.writeDerSequence(block: BytePacketBuilder.() -> Un
     val sub = buildPacket { block() }
 
     writeDerType(0, 0x10, false)
-    writeDerLength(sub.remaining.toInt())
-    writePacket(sub)
-}
-
-private fun BytePacketBuilder.writeDerSet(block: BytePacketBuilder.() -> Unit) {
-    val sub = buildPacket { block() }
-
-    writeDerType(0, 0x11, false)
     writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
