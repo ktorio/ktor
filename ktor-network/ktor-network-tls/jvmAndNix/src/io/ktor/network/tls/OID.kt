@@ -58,6 +58,16 @@ public data class OID(public val identifier: String) {
     }
 }
 
+/**
+ * Converts the provided [algorithm] name from the standard Signature algorithms into the corresponding
+ * KeyPairGenerator algorithm name.
+ *
+ * See the
+ * [Signature](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#signature-algorithms)
+ * and
+ * [KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#keypairgenerator-algorithms)
+ * sections in the Java Security Standard Algorithm Names Specification for information about standard algorithm names.
+ */
 public fun keysGenerationAlgorithm(algorithm: String): String = when {
     algorithm.endsWith("ecdsa", ignoreCase = true) -> "EC"
     algorithm.endsWith("dsa", ignoreCase = true) -> "DSA"
