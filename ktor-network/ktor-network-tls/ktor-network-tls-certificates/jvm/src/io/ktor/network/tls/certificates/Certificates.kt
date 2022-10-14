@@ -17,9 +17,13 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.net.ssl.*
+import javax.security.auth.x500.X500Principal
 import kotlin.time.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+
+private val jbLocalhostPrincipal = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
+private val jbLocalhostCAPrincipal = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
 
 /**
  * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword].
@@ -46,7 +50,7 @@ public fun generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
     val keyPair = keyPairGenerator.genKeyPair()!!
 
-    val id = id(if (keyType == KeyType.CA) "localhostCA" else "localhost")
+    val id = if (keyType == KeyType.CA) jbLocalhostCAPrincipal else jbLocalhostPrincipal
     val cert = certificate(
         subject = id,
         issuer = id,
@@ -66,16 +70,9 @@ public fun generateCertificate(
     return keyStore
 }
 
-private fun id(commonName: String): Counterparty = Counterparty(
-    country = "RU",
-    organization = "JetBrains",
-    organizationUnit = "Kotlin",
-    commonName = commonName
-)
-
 internal fun certificate(
-    subject: Counterparty,
-    issuer: Counterparty,
+    subject: X500Principal,
+    issuer: X500Principal,
     publicKey: PublicKey,
     signerKeyPair: KeyPair,
     algorithm: String,
@@ -142,8 +139,8 @@ public fun KeyStore.generateCertificate(
 
     val certKeyPair = keyPairGenerator.genKeyPair()!!
     val cert = certificate(
-        issuer = id("localhostCA"),
-        subject = id("localhost"),
+        issuer = jbLocalhostCAPrincipal,
+        subject = jbLocalhostPrincipal,
         algorithm = algorithm,
         publicKey = certKeyPair.public,
         signerKeyPair = ca,
@@ -186,17 +183,10 @@ public val KeyStore.trustManagers: List<TrustManager>
     get() = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         .apply { init(this@trustManagers) }.trustManagers.toList()
 
-internal data class Counterparty(
-    val country: String = "",
-    val organization: String = "",
-    val organizationUnit: String = "",
-    val commonName: String = ""
-)
-
 private fun BytePacketBuilder.writeX509Info(
     algorithm: String,
-    issuer: Counterparty,
-    subject: Counterparty,
+    issuer: X500Principal,
+    subject: X500Principal,
     publicKey: PublicKey,
     validFrom: Instant,
     validUntil: Instant,
@@ -212,12 +202,12 @@ private fun BytePacketBuilder.writeX509Info(
 
         writeAlgorithmIdentifier(algorithm)
 
-        writeX509Counterparty(issuer)
+        writeX500Principal(issuer)
         writeDerSequence {
             writeDerUTCTime(validFrom)
             writeDerGeneralizedTime(validUntil)
         }
-        writeX509Counterparty(subject)
+        writeX500Principal(subject)
 
         writeFully(publicKey.encoded)
 
@@ -319,35 +309,13 @@ private fun BytePacketBuilder.writeX509Extension(id: Int, builder: BytePacketBui
     writePacket(packet)
 }
 
-private fun BytePacketBuilder.writeX509NamePart(id: OID, value: String) {
-    writeDerSet {
-        writeDerSequence {
-            writeDerObjectIdentifier(id)
-            writeDerUTF8String(value)
-        }
-    }
-}
-
-private fun BytePacketBuilder.writeX509Counterparty(counterparty: Counterparty) {
-    writeDerSequence {
-        if (counterparty.country.isNotEmpty()) {
-            writeX509NamePart(OID.CountryName, counterparty.country)
-        }
-        if (counterparty.organization.isNotEmpty()) {
-            writeX509NamePart(OID.OrganizationName, counterparty.organization)
-        }
-        if (counterparty.organizationUnit.isNotEmpty()) {
-            writeX509NamePart(OID.OrganizationalUnitName, counterparty.organizationUnit)
-        }
-        if (counterparty.commonName.isNotEmpty()) {
-            writeX509NamePart(OID.CommonName, counterparty.commonName)
-        }
-    }
+private fun BytePacketBuilder.writeX500Principal(dName: X500Principal) {
+    writeFully(dName.encoded)
 }
 
 private fun BytePacketBuilder.writeCertificate(
-    issuer: Counterparty,
-    subject: Counterparty,
+    issuer: X500Principal,
+    subject: X500Principal,
     publicKey: PublicKey,
     algorithm: String,
     validFrom: Instant,

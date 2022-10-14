@@ -12,6 +12,7 @@ import java.io.*
 import java.net.*
 import java.security.*
 import java.security.cert.Certificate
+import javax.security.auth.x500.X500Principal
 import kotlin.time.Duration.Companion.days
 
 internal data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
@@ -61,12 +62,7 @@ public class CertificateBuilder internal constructor() {
             initialize(keySizeInBits)
         }.genKeyPair()!!
 
-        val id = Counterparty(
-            country = "RU",
-            organization = "JetBrains",
-            organizationUnit = "Kotlin",
-            commonName = "localhost"
-        )
+        val id = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
 
         val cert = certificate(
             issuer = id,
