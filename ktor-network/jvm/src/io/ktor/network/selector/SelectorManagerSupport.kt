@@ -4,6 +4,7 @@
 
 package io.ktor.network.selector
 
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -35,12 +36,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         val flag = interest.flag
         if (interestedOps and flag == 0) {
             val message = if (selectable.isClosed) {
-                "Selectable is closed"
+                "Selectable was closed concurrently"
             } else {
                 "Selectable is invalid state: $interestedOps, $flag"
             }
 
-            throw IllegalArgumentException(message)
+            throw IOException(message)
         }
 
         suspendCancellableCoroutine<Unit> { continuation ->
