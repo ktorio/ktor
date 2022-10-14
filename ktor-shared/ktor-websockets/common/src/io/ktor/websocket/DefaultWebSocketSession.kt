@@ -10,6 +10,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import io.ktor.utils.io.errors.*
 import kotlin.coroutines.*
 
 /**
@@ -210,7 +211,6 @@ internal class DefaultWebSocketSessionImpl(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined,
         start = CoroutineStart.UNDISPATCHED
@@ -247,7 +247,7 @@ internal class DefaultWebSocketSessionImpl(
     }
 
     @OptIn(InternalAPI::class)
-    private suspend fun sendCloseSequence(reason: CloseReason?) {
+    private suspend fun sendCloseSequence(reason: CloseReason?, exception: Throwable? = null) {
         if (!tryClose()) return
         context.complete()
 
@@ -260,6 +260,11 @@ internal class DefaultWebSocketSessionImpl(
             }
         } finally {
             closeReasonRef.complete(reasonToSend)
+
+            if (exception != null) {
+                outgoingToBeProcessed.close(exception)
+                filtered.close(exception)
+            }
         }
     }
 
@@ -270,7 +275,9 @@ internal class DefaultWebSocketSessionImpl(
 
         val newPinger: SendChannel<Frame.Pong>? = when {
             closed.value -> null
-            interval > 0L -> pinger(raw.outgoing, interval, timeoutMillis)
+            interval > 0L -> pinger(raw.outgoing, interval, timeoutMillis) {
+                sendCloseSequence(it, IOException("Ping timeout"))
+            }
             else -> null
         }
 

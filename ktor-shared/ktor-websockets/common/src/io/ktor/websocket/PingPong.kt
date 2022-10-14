@@ -45,6 +45,7 @@ internal fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
     timeoutMillis: Long,
+    onTimeout: suspend (CloseReason) -> Unit
 ): SendChannel<Frame.Pong> {
     val actorJob = Job()
 
@@ -82,8 +83,7 @@ internal fun CoroutineScope.pinger(
                     // we were unable to send the ping or hadn't got a valid pong message in time,
                     // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
-                    val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Ping timeout"))
-                    outgoing.send(closeFrame)
+                    onTimeout(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Ping timeout"))
                     break
                 }
             }
