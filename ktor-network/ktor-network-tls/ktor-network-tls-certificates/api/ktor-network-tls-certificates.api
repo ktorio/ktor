@@ -12,6 +12,7 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun getIpAddresses ()Ljava/util/List;
 	public final fun getKeySizeInBits ()I
+	public final fun getKeyType ()Lio/ktor/network/tls/certificates/KeyType;
 	public final fun getPassword ()Ljava/lang/String;
 	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public final fun setDaysValid (J)V
@@ -19,6 +20,7 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public final fun setHash (Lio/ktor/network/tls/extensions/HashAlgorithm;)V
 	public final fun setIpAddresses (Ljava/util/List;)V
 	public final fun setKeySizeInBits (I)V
+	public final fun setKeyType (Lio/ktor/network/tls/certificates/KeyType;)V
 	public final fun setPassword (Ljava/lang/String;)V
 	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
 }

@@ -94,4 +94,38 @@ class KeyStoreBuilderTest {
 
         assertExtensionsForServerKeyType(cert, expectedDomains = customDomains, expectedIPs = customIps)
     }
+
+    @Test
+    fun buildKeyStore_keyTypeClient() {
+        val keyStore = buildKeyStore {
+            certificate(alias = "someKey") {
+                hash = HashAlgorithm.SHA1
+                sign = SignatureAlgorithm.RSA
+                password = "keyPass"
+                keyType = KeyType.Client
+            }
+        }
+
+        assertHasPrivateKey(keyStore, alias = "someKey", password = "keyPass", algorithm = "RSA", size = 1024)
+        val cert = assertHasX509Certificate(keyStore, alias = "someKey", algorithm = "SHA1withRSA")
+
+        assertExtensionsForClientKeyType(cert)
+    }
+
+    @Test
+    fun buildKeyStore_keyTypeCA() {
+        val keyStore = buildKeyStore {
+            certificate(alias = "someKey") {
+                hash = HashAlgorithm.SHA1
+                sign = SignatureAlgorithm.RSA
+                password = "keyPass"
+                keyType = KeyType.CA
+            }
+        }
+
+        assertHasPrivateKey(keyStore, alias = "someKey", password = "keyPass", algorithm = "RSA", size = 1024)
+        val cert = assertHasX509Certificate(keyStore, alias = "someKey", algorithm = "SHA1withRSA")
+
+        assertExtensionsForCAKeyType(cert)
+    }
 }
