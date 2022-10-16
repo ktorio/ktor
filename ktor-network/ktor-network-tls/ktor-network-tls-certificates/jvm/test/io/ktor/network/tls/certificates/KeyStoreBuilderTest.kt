@@ -23,8 +23,6 @@ class KeyStoreBuilderTest {
     fun buildKeyStore_minimal() {
         val keyStore = buildKeyStore {
             certificate(alias = "someKey") {
-                hash = HashAlgorithm.SHA1
-                sign = SignatureAlgorithm.RSA
                 password = "keyPass"
             }
         }
@@ -61,8 +59,6 @@ class KeyStoreBuilderTest {
     fun buildKeyStore_customValidity() {
         val keyStore = buildKeyStore {
             certificate(alias = "someKey") {
-                hash = HashAlgorithm.SHA1
-                sign = SignatureAlgorithm.RSA
                 password = "keyPass"
                 daysValid = 5
             }
@@ -81,8 +77,6 @@ class KeyStoreBuilderTest {
 
         val keyStore = buildKeyStore {
             certificate(alias = "someKey") {
-                hash = HashAlgorithm.SHA1
-                sign = SignatureAlgorithm.RSA
                 password = "keyPass"
                 domains = customDomains
                 ipAddresses = customIps.map { InetAddress.getByName(it) }
@@ -99,8 +93,6 @@ class KeyStoreBuilderTest {
     fun buildKeyStore_keyTypeClient() {
         val keyStore = buildKeyStore {
             certificate(alias = "someKey") {
-                hash = HashAlgorithm.SHA1
-                sign = SignatureAlgorithm.RSA
                 password = "keyPass"
                 keyType = KeyType.Client
             }
@@ -116,8 +108,6 @@ class KeyStoreBuilderTest {
     fun buildKeyStore_keyTypeCA() {
         val keyStore = buildKeyStore {
             certificate(alias = "someKey") {
-                hash = HashAlgorithm.SHA1
-                sign = SignatureAlgorithm.RSA
                 password = "keyPass"
                 keyType = KeyType.CA
             }

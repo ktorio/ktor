@@ -22,17 +22,17 @@ internal data class CertificateInfo(val certificate: Certificate, val keys: KeyP
  */
 public class CertificateBuilder internal constructor() {
     /**
-     * Certificate hash algorithm (required)
+     * Certificate hash algorithm
      */
-    public lateinit var hash: HashAlgorithm
+    public var hash: HashAlgorithm = HashAlgorithm.SHA1
 
     /**
-     * Certificate signature algorithm (required)
+     * Certificate signature algorithm
      */
-    public lateinit var sign: SignatureAlgorithm
+    public var sign: SignatureAlgorithm = SignatureAlgorithm.RSA
 
     /**
-     * Certificate password
+     * Certificate password (required)
      */
     public lateinit var password: String
 

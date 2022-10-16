@@ -4,9 +4,7 @@ public final class io/ktor/network/tls/certificates/BuildersKt {
 }
 
 public final class io/ktor/network/tls/certificates/CertificateBuilder {
-	public field hash Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public field password Ljava/lang/String;
-	public field sign Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public final fun getDaysValid ()J
 	public final fun getDomains ()Ljava/util/List;
 	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
