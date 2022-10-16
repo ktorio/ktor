@@ -5,6 +5,7 @@
 package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.*
+import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
 import java.io.*
 import java.math.*
@@ -22,8 +23,8 @@ import kotlin.time.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
-private val jbLocalhostPrincipal = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
-private val jbLocalhostCAPrincipal = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
+internal val DEFAULT_PRINCIPAL = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
+private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
 
 /**
  * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword].
@@ -43,29 +44,24 @@ public fun generateCertificate(
     keySizeInBits: Int = 1024,
     keyType: KeyType = KeyType.Server
 ): KeyStore {
-    val keyStore = KeyStore.getInstance("JKS")!!
-    keyStore.load(null, null)
+    val keyStore = buildKeyStore {
+        certificate(keyAlias) {
+            val (hashName, signName) = algorithm.split("with")
+            this.hash = HashAlgorithm.valueOf(hashName)
+            this.sign = SignatureAlgorithm.valueOf(signName)
+            this.password = keyPassword
+            this.keySizeInBits = keySizeInBits
+            this.keyType = keyType
+            this.subject = if (keyType == KeyType.CA) DEFAULT_CA_PRINCIPAL else DEFAULT_PRINCIPAL
+            this.domains = listOf("127.0.0.1", "localhost")
+        }
+    }
 
-    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
-    keyPairGenerator.initialize(keySizeInBits)
-    val keyPair = keyPairGenerator.genKeyPair()!!
+    // for backwards-compatibility, we also register the certificate under this Cert-suffixed alias
+    keyStore.setCertificateEntry(keyAlias + "Cert", keyStore.getCertificate(keyAlias))
 
-    val id = if (keyType == KeyType.CA) jbLocalhostCAPrincipal else jbLocalhostPrincipal
-    val cert = generateX509Certificate(
-        subject = id,
-        issuer = id,
-        publicKey = keyPair.public,
-        signerKeyPair = keyPair,
-        algorithm = algorithm,
-        keyType = keyType
-    )
-
-    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
-    keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
-
-    file?.parentFile?.mkdirs()
-    file?.outputStream()?.use {
-        keyStore.store(it, jksPassword.toCharArray())
+    file?.let {
+        keyStore.saveToFile(it, jksPassword)
     }
     return keyStore
 }
@@ -144,30 +140,28 @@ public fun KeyStore.generateCertificate(
     keyType: KeyType = KeyType.Server
 ): KeyStore {
     val caCert = getCertificate(caKeyAlias)
-    val ca = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
+    val caKeys = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
 
-    val keyStore = KeyStore.getInstance("JKS")!!
-    keyStore.load(null, null)
+    val keyStore = buildKeyStore {
+        certificate(keyAlias) {
+            val (hashName, signName) = algorithm.split("with")
+            this.hash = HashAlgorithm.valueOf(hashName)
+            this.sign = SignatureAlgorithm.valueOf(signName)
+            this.password = keyPassword
+            this.keySizeInBits = keySizeInBits
+            this.keyType = keyType
+            this.subject = DEFAULT_PRINCIPAL
+            this.domains = listOf("127.0.0.1", "localhost")
+            signWith(
+                issuerKeyPair = caKeys,
+                issuerKeyCertificate = caCert,
+                issuerName = DEFAULT_CA_PRINCIPAL,
+            )
+        }
+    }
 
-    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
-    keyPairGenerator.initialize(keySizeInBits)
-
-    val certKeyPair = keyPairGenerator.genKeyPair()!!
-    val cert = generateX509Certificate(
-        issuer = jbLocalhostCAPrincipal,
-        subject = jbLocalhostPrincipal,
-        algorithm = algorithm,
-        publicKey = certKeyPair.public,
-        signerKeyPair = ca,
-        keyType = keyType
-    )
-
-    keyStore.setCertificateEntry(keyAlias, cert)
-    keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(cert, caCert))
-
-    file?.parentFile?.mkdirs()
-    file?.outputStream()?.use {
-        keyStore.store(it, jksPassword.toCharArray())
+    file?.let {
+        keyStore.saveToFile(it, jksPassword)
     }
     return keyStore
 }

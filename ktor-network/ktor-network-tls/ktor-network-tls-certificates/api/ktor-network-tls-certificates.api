@@ -13,6 +13,7 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public final fun getKeyType ()Lio/ktor/network/tls/certificates/KeyType;
 	public final fun getPassword ()Ljava/lang/String;
 	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public final fun getSubject ()Ljavax/security/auth/x500/X500Principal;
 	public final fun setDaysValid (J)V
 	public final fun setDomains (Ljava/util/List;)V
 	public final fun setHash (Lio/ktor/network/tls/extensions/HashAlgorithm;)V
@@ -21,6 +22,9 @@ public final class io/ktor/network/tls/certificates/CertificateBuilder {
 	public final fun setKeyType (Lio/ktor/network/tls/certificates/KeyType;)V
 	public final fun setPassword (Ljava/lang/String;)V
 	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
+	public final fun setSubject (Ljavax/security/auth/x500/X500Principal;)V
+	public final fun signWith (Ljava/security/KeyPair;Ljava/security/cert/Certificate;Ljavax/security/auth/x500/X500Principal;)V
+	public final fun signWith (Ljava/security/KeyPair;Ljava/security/cert/X509Certificate;)V
 }
 
 public final class io/ktor/network/tls/certificates/CertificatesKt {
