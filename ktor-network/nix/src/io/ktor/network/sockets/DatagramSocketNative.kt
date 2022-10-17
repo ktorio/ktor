@@ -18,6 +18,7 @@ import kotlin.coroutines.*
 internal class DatagramSocketNative(
     private val descriptor: Int,
     val selector: SelectorManager,
+    private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : BoundDatagramSocket, ConnectedDatagramSocket, Socket, CoroutineScope {
     private val _context: CompletableJob = Job(parent[Job])
@@ -34,7 +35,7 @@ internal class DatagramSocketNative(
     override val remoteAddress: SocketAddress
         get() = getRemoteAddress(descriptor).toSocketAddress()
 
-    private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this)
+    private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this, remote)
 
     override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
 

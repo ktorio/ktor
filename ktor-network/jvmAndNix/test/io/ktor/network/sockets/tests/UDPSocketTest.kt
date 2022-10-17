@@ -4,7 +4,9 @@
 
 package io.ktor.network.sockets.tests
 
+import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -212,6 +214,18 @@ class UDPSocketTest {
                     assertEquals("hello", incoming.packet.readText())
                 }
             }
+    }
+
+    @Test
+    fun testUdpConnect() = testSockets { selector ->
+        val server = aSocket(selector)
+            .udp()
+            .bind()
+
+        val socket = aSocket(selector).udp().connect(server.localAddress)
+
+        socket.send(Datagram(buildPacket { writeText("hello") }, server.localAddress))
+        assertEquals("hello", server.receive().packet.readText())
     }
 }
 
