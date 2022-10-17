@@ -6,6 +6,7 @@ package io.ktor.server.plugins.defaultheaders
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.date.*
@@ -94,13 +95,15 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
 
     val serverHeader = "Ktor/$ktorPackageVersion"
     onCallRespond { call, _ ->
-        headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
+        headers.forEach { name, value ->
+            if (!call.response.headers.contains(name)) value.forEach { call.response.header(name, it) }
+        }
 
         if (!call.response.headers.contains(HttpHeaders.Date)) {
             call.response.header(HttpHeaders.Date, calculateDateHeader())
         }
         if (!call.response.headers.contains(HttpHeaders.Server)) {
-            call.response.headers.append(HttpHeaders.Server, serverHeader)
+            call.response.header(HttpHeaders.Server, serverHeader)
         }
     }
 }

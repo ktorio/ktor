@@ -7,6 +7,7 @@ package io.ktor.tests.plugins
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -116,5 +117,21 @@ class DefaultHeadersTest {
         }
 
         assertEquals("MyServer", client.get("/").headers[HttpHeaders.Server])
+    }
+
+    @Test
+    fun testCustomServerHeaderDoesntDuplicate(): Unit = testApplication {
+        install(
+            createApplicationPlugin("test") {
+                on(CallSetup) {
+                    it.response.header(HttpHeaders.Server, "MyServer")
+                }
+            }
+        )
+        install(DefaultHeaders) {
+            header(HttpHeaders.Server, "MyServer1")
+        }
+
+        assertEquals(listOf("MyServer"), client.get("/").headers.getAll(HttpHeaders.Server))
     }
 }
