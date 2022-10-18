@@ -7,10 +7,10 @@ package io.ktor.websocket
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.errors.*
 import kotlin.coroutines.*
 
 /**
