@@ -12,10 +12,13 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.engine.DefaultTransform")
 
 /**
  * Default send transformation
@@ -44,6 +47,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
                         val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.UTF_8)
                         parseQueryString(string)
                     }
+
                     contentType.match(ContentType.MultiPart.FormData) -> {
                         Parameters.build {
                             multiPartData(channel).forEachPart { part ->
@@ -57,13 +61,21 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
                             }
                         }
                     }
+
                     else -> null // Respond UnsupportedMediaType? but what if someone else later would like to do it?
                 }
             }
+
             else -> defaultPlatformTransformations(body)
         }
         if (transformed != null) {
+            LOGGER.trace("Transformed ${body::class} to ${transformed::class} for ${call.request.uri}")
             proceedWith(transformed)
+        } else {
+            LOGGER.trace(
+                "No Default Transformations found for ${body::class} and expected type ${call.receiveType} " +
+                    "for call ${call.request.uri}"
+            )
         }
     }
     val afterTransform = PipelinePhase("AfterTransform")
