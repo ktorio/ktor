@@ -30,15 +30,11 @@ internal class MergedApplicationConfig(
         else -> second.propertyOrNull(path)
     }
 
-    override fun config(path: String): ApplicationConfig = when {
-        firstKeys.contains(path) -> first.config(path)
-        else -> second.config(path)
-    }
+    override fun config(path: String): ApplicationConfig =
+        MergedApplicationConfig(first.config(path), second.config(path))
 
-    override fun configList(path: String): List<ApplicationConfig> = when {
-        firstKeys.contains(path) -> first.configList(path)
-        else -> second.configList(path)
-    }
+    override fun configList(path: String): List<ApplicationConfig> =
+        first.configList(path) + second.configList(path)
 
     override fun keys(): Set<String> = firstKeys + second.keys()
 
