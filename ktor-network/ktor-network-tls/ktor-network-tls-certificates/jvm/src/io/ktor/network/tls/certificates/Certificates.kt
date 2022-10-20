@@ -5,6 +5,7 @@
 package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.*
+import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
 import java.io.*
 import java.math.*
@@ -14,8 +15,16 @@ import java.security.cert.*
 import java.security.cert.Certificate
 import java.text.*
 import java.time.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.net.ssl.*
+import javax.security.auth.x500.X500Principal
+import kotlin.time.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+
+internal val DEFAULT_PRINCIPAL = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
+private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
 
 /**
  * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword].
@@ -35,69 +44,73 @@ public fun generateCertificate(
     keySizeInBits: Int = 1024,
     keyType: KeyType = KeyType.Server
 ): KeyStore {
-    val keyStore = KeyStore.getInstance("JKS")!!
-    keyStore.load(null, null)
+    val keyStore = buildKeyStore {
+        certificate(keyAlias) {
+            val (hashName, signName) = algorithm.split("with")
+            this.hash = HashAlgorithm.valueOf(hashName)
+            this.sign = SignatureAlgorithm.valueOf(signName)
+            this.password = keyPassword
+            this.keySizeInBits = keySizeInBits
+            this.keyType = keyType
+            this.subject = if (keyType == KeyType.CA) DEFAULT_CA_PRINCIPAL else DEFAULT_PRINCIPAL
+            this.domains = listOf("127.0.0.1", "localhost")
+        }
+    }
 
-    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
-    keyPairGenerator.initialize(keySizeInBits)
-    val keyPair = keyPairGenerator.genKeyPair()!!
+    // for backwards-compatibility, we also register the certificate under this Cert-suffixed alias
+    keyStore.setCertificateEntry(keyAlias + "Cert", keyStore.getCertificate(keyAlias))
 
-    val id = id(if (keyType == KeyType.CA) "localhostCA" else "localhost")
-    val cert = certificate(
-        subject = id,
-        issuer = id,
-        keyPair = keyPair,
-        signerKeyPair = keyPair,
-        algorithm = algorithm,
-        keyType = keyType
-    )
-
-    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
-    keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
-
-    file?.parentFile?.mkdirs()
-    file?.outputStream()?.use {
-        keyStore.store(it, jksPassword.toCharArray())
+    file?.let {
+        keyStore.saveToFile(it, jksPassword)
     }
     return keyStore
 }
 
-private fun id(commonName: String): Counterparty = Counterparty(
-    country = "RU",
-    organization = "JetBrains",
-    organizationUnit = "Kotlin",
-    commonName = commonName
-)
-
-private fun certificate(
-    subject: Counterparty,
-    issuer: Counterparty,
-    keyPair: KeyPair,
+/**
+ * Generates an X.509 [Certificate] for the given [publicKey], signed using the provided [signerKeyPair].
+ *
+ * The certified key and the signer keys should all be compatible with the given [algorithm], which must be specified
+ * as one of the standard names in the
+ * [Signature section](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#signature-algorithms)
+ * of the Java Security Standard Algorithm Names Specification.
+ *
+ * The generated certificate contains the provided information, and will be valid for the given [validityDuration].
+ *
+ * The allowed [domains] and [ipAddresses] can be customized too, and default to localhost/127.0.0.1.
+ *
+ * The [keyType] determines the extensions that should be written in the certificate, such as [OID.ExtKeyUsage] or
+ * [OID.BasicConstraints] to use the key as CA.
+ */
+internal fun generateX509Certificate(
+    subject: X500Principal,
+    issuer: X500Principal,
+    publicKey: PublicKey,
     signerKeyPair: KeyPair,
     algorithm: String,
-    daysValid: Long = 3,
-    keyType: KeyType = KeyType.Server
-): Certificate {
-    val from = Date()
-    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
+    validityDuration: Duration = 3.days,
+    keyType: KeyType = KeyType.Server,
+    domains: List<String> = listOf("127.0.0.1", "localhost"),
+    ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1")),
+): X509Certificate {
+    val now = Instant.now()
     val certificateBytes = buildPacket {
         writeCertificate(
             issuer = issuer,
             subject = subject,
-            keyPair = keyPair,
+            publicKey = publicKey,
             signerKeyPair = signerKeyPair,
             algorithm = algorithm,
-            from = from,
-            to = to,
-            domains = listOf("127.0.0.1", "localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1")),
+            validFrom = now,
+            validUntil = now.plus(validityDuration.toJavaDuration()),
+            domains = domains,
+            ipAddresses = ipAddresses,
             keyType = keyType
         )
     }.readBytes()
 
     val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
     cert.verify(signerKeyPair.public)
-    return cert
+    return cert as X509Certificate // guaranteed by CertificateFactory specification
 }
 
 public enum class KeyType {
@@ -127,30 +140,28 @@ public fun KeyStore.generateCertificate(
     keyType: KeyType = KeyType.Server
 ): KeyStore {
     val caCert = getCertificate(caKeyAlias)
-    val ca = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
+    val caKeys = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
 
-    val keyStore = KeyStore.getInstance("JKS")!!
-    keyStore.load(null, null)
+    val keyStore = buildKeyStore {
+        certificate(keyAlias) {
+            val (hashName, signName) = algorithm.split("with")
+            this.hash = HashAlgorithm.valueOf(hashName)
+            this.sign = SignatureAlgorithm.valueOf(signName)
+            this.password = keyPassword
+            this.keySizeInBits = keySizeInBits
+            this.keyType = keyType
+            this.subject = DEFAULT_PRINCIPAL
+            this.domains = listOf("127.0.0.1", "localhost")
+            signWith(
+                issuerKeyPair = caKeys,
+                issuerKeyCertificate = caCert,
+                issuerName = DEFAULT_CA_PRINCIPAL,
+            )
+        }
+    }
 
-    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
-    keyPairGenerator.initialize(keySizeInBits)
-
-    val certKeyPair = keyPairGenerator.genKeyPair()!!
-    val cert = certificate(
-        issuer = id("localhostCA"),
-        subject = id("localhost"),
-        algorithm = algorithm,
-        keyPair = certKeyPair,
-        signerKeyPair = ca,
-        keyType = keyType
-    )
-
-    keyStore.setCertificateEntry(keyAlias, cert)
-    keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(cert, caCert))
-
-    file?.parentFile?.mkdirs()
-    file?.outputStream()?.use {
-        keyStore.store(it, jksPassword.toCharArray())
+    file?.let {
+        keyStore.saveToFile(it, jksPassword)
     }
     return keyStore
 }
@@ -181,20 +192,13 @@ public val KeyStore.trustManagers: List<TrustManager>
     get() = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         .apply { init(this@trustManagers) }.trustManagers.toList()
 
-internal data class Counterparty(
-    val country: String = "",
-    val organization: String = "",
-    val organizationUnit: String = "",
-    val commonName: String = ""
-)
-
-internal fun BytePacketBuilder.writeX509Info(
+private fun BytePacketBuilder.writeX509Info(
     algorithm: String,
-    issuer: Counterparty,
-    subject: Counterparty,
+    issuer: X500Principal,
+    subject: X500Principal,
     publicKey: PublicKey,
-    from: Date,
-    to: Date,
+    validFrom: Instant,
+    validUntil: Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
     keyType: KeyType = KeyType.Server
@@ -207,12 +211,12 @@ internal fun BytePacketBuilder.writeX509Info(
 
         writeAlgorithmIdentifier(algorithm)
 
-        writeX509Counterparty(issuer)
+        writeX500Principal(issuer)
         writeDerSequence {
-            writeDerUTCTime(from)
-            writeDerGeneralizedTime(to)
+            writeDerUTCTime(validFrom)
+            writeDerGeneralizedTime(validUntil)
         }
-        writeX509Counterparty(subject)
+        writeX500Principal(subject)
 
         writeFully(publicKey.encoded)
 
@@ -314,48 +318,26 @@ private fun BytePacketBuilder.writeX509Extension(id: Int, builder: BytePacketBui
     writePacket(packet)
 }
 
-private fun BytePacketBuilder.writeX509NamePart(id: OID, value: String) {
-    writeDerSet {
-        writeDerSequence {
-            writeDerObjectIdentifier(id)
-            writeDerUTF8String(value)
-        }
-    }
+private fun BytePacketBuilder.writeX500Principal(dName: X500Principal) {
+    writeFully(dName.encoded)
 }
 
-private fun BytePacketBuilder.writeX509Counterparty(counterparty: Counterparty) {
-    writeDerSequence {
-        if (counterparty.country.isNotEmpty()) {
-            writeX509NamePart(OID.CountryName, counterparty.country)
-        }
-        if (counterparty.organization.isNotEmpty()) {
-            writeX509NamePart(OID.OrganizationName, counterparty.organization)
-        }
-        if (counterparty.organizationUnit.isNotEmpty()) {
-            writeX509NamePart(OID.OrganizationalUnitName, counterparty.organizationUnit)
-        }
-        if (counterparty.commonName.isNotEmpty()) {
-            writeX509NamePart(OID.CommonName, counterparty.commonName)
-        }
-    }
-}
-
-internal fun BytePacketBuilder.writeCertificate(
-    issuer: Counterparty,
-    subject: Counterparty,
-    keyPair: KeyPair,
+private fun BytePacketBuilder.writeCertificate(
+    issuer: X500Principal,
+    subject: X500Principal,
+    publicKey: PublicKey,
     algorithm: String,
-    from: Date,
-    to: Date,
+    validFrom: Instant,
+    validUntil: Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
-    signerKeyPair: KeyPair = keyPair,
-    keyType: KeyType = KeyType.Server
+    signerKeyPair: KeyPair,
+    keyType: KeyType = KeyType.Server,
 ) {
-    require(to.after(from))
+    require(validFrom < validUntil) { "validFrom must be before validUntil" }
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses, keyType)
+        writeX509Info(algorithm, issuer, subject, publicKey, validFrom, validUntil, domains, ipAddresses, keyType)
     }
 
     val certInfoBytes = certInfo.readBytes()
@@ -391,15 +373,6 @@ private fun BytePacketBuilder.writeDerOctetString(block: BytePacketBuilder.() ->
     writePacket(sub)
 }
 
-private fun BytePacketBuilder.writeDerBitString(block: BytePacketBuilder.() -> Unit) {
-    val sub = buildPacket { block() }
-
-    writeDerType(0, 3, true)
-    writeDerLength(sub.remaining.toInt() + 1)
-    writeByte(0)
-    writePacket(sub)
-}
-
 private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 0) {
     require(unused in 0..7)
 
@@ -409,20 +382,16 @@ private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 
     writeFully(array)
 }
 
-private fun BytePacketBuilder.writeDerUTCTime(date: Date) {
+private fun BytePacketBuilder.writeDerUTCTime(date: Instant) {
     writeDerUTF8String(
-        SimpleDateFormat("yyMMddHHmmss'Z'").apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }.format(date),
+        DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
         0x17
     )
 }
 
-private fun BytePacketBuilder.writeDerGeneralizedTime(date: Date) {
+private fun BytePacketBuilder.writeDerGeneralizedTime(date: Instant) {
     writeDerUTF8String(
-        SimpleDateFormat("yyyyMMddHHmmss'Z'").apply { timeZone = TimeZone.getTimeZone("UTC") }.format(
-            date
-        ),
+        DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
         0x18
     )
 }
@@ -445,14 +414,6 @@ private fun BytePacketBuilder.writeDerSequence(block: BytePacketBuilder.() -> Un
     val sub = buildPacket { block() }
 
     writeDerType(0, 0x10, false)
-    writeDerLength(sub.remaining.toInt())
-    writePacket(sub)
-}
-
-private fun BytePacketBuilder.writeDerSet(block: BytePacketBuilder.() -> Unit) {
-    val sub = buildPacket { block() }
-
-    writeDerType(0, 0x11, false)
     writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
