@@ -113,6 +113,378 @@ class AuthBuildersTest {
     }
 
     @Test
+    fun testMultipleRequiredConfigurations() = testApplication {
+        class Principal1(val name: String) : Principal
+        class Principal2(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") Principal2(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Required) {
+                authenticate("second", strategy = AuthenticationStrategy.Required) {
+                    route("/{...}") {
+                        handle {
+                            call.respondText(
+                                call.principal<Principal1>()?.name + " " + call.principal<Principal2>()?.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first second", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testMultipleRequiredConfigurationsAccessByName() = testApplication {
+        class UserNamePrincipal(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") UserNamePrincipal(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") UserNamePrincipal(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Required) {
+                authenticate("second", strategy = AuthenticationStrategy.Required) {
+                    route("/{...}") {
+                        handle {
+                            call.respondText(
+                                call.principal<UserNamePrincipal>("first")?.name
+                                    + " " + call.principal<UserNamePrincipal>("second")?.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first second", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testDefaultConfigurationOverwrittenWithRequired() = testApplication {
+        class Principal1(val name: String) : Principal
+        class Principal2(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") Principal2(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Required) {
+                authenticate("first") {
+                    authenticate("second", strategy = AuthenticationStrategy.Required) {
+                        route("/{...}") {
+                            handle {
+                                call.respondText(
+                                    call.principal<Principal1>()?.name + " " + call.principal<Principal2>()?.name
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first second", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testRequiredAndDefaultConfigurations() = testApplication {
+        class Principal1(val name: String) : Principal
+        class Principal2(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") Principal2(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Required) {
+                authenticate("second") {
+                    route("/{...}") {
+                        handle {
+                            call.respondText(
+                                call.principal<Principal1>()?.name + " " + call.principal<Principal2>()?.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first null", it.bodyAsText())
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first null", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testRequiredAndOptionalConfigurations() = testApplication {
+        class Principal1(val name: String) : Principal
+        class Principal2(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") Principal2(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Optional) {
+                authenticate("second", strategy = AuthenticationStrategy.Required) {
+                    route("/{...}") {
+                        handle {
+                            call.respondText(
+                                call.principal<Principal1>()?.name + " " + call.principal<Principal2>()?.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("null second", it.bodyAsText())
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("null second", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testOptionalAndDefaultConfigurations() = testApplication {
+        class Principal1(val name: String) : Principal
+        class Principal2(val name: String) : Principal
+
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") Principal2(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first", strategy = AuthenticationStrategy.Optional) {
+                authenticate("second") {
+                    route("/{...}") {
+                        handle {
+                            call.respondText(
+                                call.principal<Principal1>()?.name + " " + call.principal<Principal2>()?.name
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first null", it.bodyAsText())
+        }
+
+        client.post("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("null second", it.bodyAsText())
+        }
+
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("first null", it.bodyAsText())
+        }
+    }
+
+    @Test
     fun testMultipleConfigurations() {
         withTestApplication {
             application.install(Authentication) {

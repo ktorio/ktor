@@ -34,7 +34,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         val principal = session?.let { validator(call, it) }
 
         if (principal != null) {
-            context.principal(principal)
+            context.principal(name, principal)
         } else {
             val cause =
                 if (session == null) AuthenticationFailedCause.NoCredentials
