@@ -4,6 +4,7 @@
 
 package io.ktor.network.selector
 
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -33,15 +34,9 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     public final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
         val interestedOps = selectable.interestedOps
         val flag = interest.flag
-        if (interestedOps and flag == 0) {
-            val message = if (selectable.isClosed) {
-                "Selectable is closed"
-            } else {
-                "Selectable is invalid state: $interestedOps, $flag"
-            }
 
-            throw IllegalArgumentException(message)
-        }
+        if (selectable.isClosed) selectableIsClosed()
+        if (interestedOps and flag == 0) selectableIsInvalid(interestedOps, flag)
 
         suspendCancellableCoroutine<Unit> { continuation ->
             continuation.invokeOnCancellation {
@@ -178,4 +173,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         }
 
     public class ClosedSelectorCancellationException : CancellationException("Closed selector")
+}
+
+private fun selectableIsClosed(): Nothing {
+    throw IOException("Selectable is already closed")
+}
+
+private fun selectableIsInvalid(interestedOps: Int, flag: Int): Nothing {
+    error("Selectable is invalid state: $interestedOps, $flag")
 }
