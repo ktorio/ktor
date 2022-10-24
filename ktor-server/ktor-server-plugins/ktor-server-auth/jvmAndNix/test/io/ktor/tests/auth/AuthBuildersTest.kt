@@ -188,8 +188,8 @@ class AuthBuildersTest {
                     route("/{...}") {
                         handle {
                             call.respondText(
-                                call.principal<UserNamePrincipal>("first")?.name
-                                    + " " + call.principal<UserNamePrincipal>("second")?.name
+                                call.principal<UserNamePrincipal>("first")?.name +
+                                    " " + call.principal<UserNamePrincipal>("second")?.name
                             )
                         }
                     }

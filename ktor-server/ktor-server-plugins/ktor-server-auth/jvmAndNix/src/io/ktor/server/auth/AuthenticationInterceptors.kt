@@ -131,7 +131,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
 
     for (error in allErrors) {
         if (!challenge.completed) {
-            LOGGER.trace("Responding unauthorized because of error ${error.message}")
+            LOGGER.trace("Authentication failed for ${call.request.uri} with error ${error.message}")
             if (!call.isHandled) {
                 call.respond(UnauthorizedResponse())
             }
@@ -181,9 +181,9 @@ private fun AuthenticationConfig.findProvider(configurationName: String?): Authe
  *  A resolution strategy for nested authentication providers.
  *  [AuthenticationStrategy.Optional] - if no authentication is provided by the client,
  *  a call continues but with a null [Principal].
- *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication for at least one provider
+ *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
- *  [AuthenticationStrategy.Required] - client must provide authentication for all providers registered for
+ *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for
  *  this route with this strategy
  */
 public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
@@ -220,9 +220,9 @@ public fun Route.authenticate(
  * @param strategy defines resolution strategy for nested authentication providers.
  *  [AuthenticationStrategy.Optional] - if no authentication is provided by the client,
  *  a call continues but with a null [Principal].
- *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication for at least one provider
+ *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
- *  [AuthenticationStrategy.Required] - client must provide authentication for all providers registered for
+ *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for
  *  this route with this strategy
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
