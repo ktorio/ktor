@@ -5,18 +5,14 @@
 package io.ktor.server.sessions
 
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-
-private object BeforeSend : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
-            handler(call)
-        }
-    }
-}
+import io.ktor.util.logging.*
 
 internal val SessionProvidersKey = AttributeKey<List<SessionProvider<*>>>("SessionProvidersKey")
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.sessions.Sessions")
 
 /**
  * A plugin that provides a mechanism to persist data between different HTTP requests.
@@ -40,6 +36,13 @@ public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin
         val providerData = providers.associateBy({ it.name }) {
             it.receiveSessionData(call)
         }
+
+        if (providerData.isEmpty()) {
+            LOGGER.trace("No sessions found for ${call.request.uri}")
+        } else {
+            val sessions = providerData.keys.joinToString()
+            LOGGER.trace("Sessions found for ${call.request.uri}: $sessions")
+        }
         val sessionData = SessionData(providerData)
         call.attributes.put(SessionDataKey, sessionData)
     }
@@ -56,6 +59,7 @@ public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin
         val sessionData = call.attributes.getOrNull(SessionDataKey) ?: return@on
 
         sessionData.providerData.values.forEach { data ->
+            LOGGER.trace("Sending session data for ${call.request.uri}: ${data.provider.name}")
             data.sendSessionData(call)
         }
 
