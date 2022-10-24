@@ -17,6 +17,8 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlin.random.*
 
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.callid.CallId")
+
 /**
  * A function that retrieves or generates call id using provided call
  */
@@ -163,6 +165,7 @@ public class CallIdConfig {
 
 internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCallId")
 
+
 /**
  * A plugin that allows you to trace client requests end-to-end by using unique request IDs or call IDs.
  * Typically, working with a call ID in Ktor might look as follows:
@@ -183,7 +186,6 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
     val providers = (pluginConfig.retrievers + pluginConfig.generators).toTypedArray()
     val repliers = pluginConfig.responseInterceptors.toTypedArray()
     val verifier = pluginConfig.verifier
-    val logger by lazy { KtorSimpleLogger("CallId") }
 
     on(CallSetup) { call ->
         for (provider in providers) {
@@ -191,6 +193,7 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
             if (!verifier(callId)) continue // could throw a RejectedCallIdException
 
             call.attributes.put(CallIdKey, callId)
+            LOGGER.trace("Setting id for a call ${call.request.uri} to $callId")
 
             repliers.forEach { replier ->
                 replier(call, callId)
@@ -201,7 +204,7 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
 
     on(CallFailed) { call, cause ->
         if (cause !is RejectedCallIdException) return@on
-        logger.warn(
+        LOGGER.warn(
             "Illegal call id retrieved or generated that is rejected by call id verifier: (url-encoded) " +
                 cause.illegalCallId.encodeURLParameter()
         )
