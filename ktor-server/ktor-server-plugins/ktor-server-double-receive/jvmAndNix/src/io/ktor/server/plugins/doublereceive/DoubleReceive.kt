@@ -8,9 +8,12 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
 
 /**
  * A plugin that provides the ability to receive a request body several times
@@ -35,21 +38,31 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
         val cache = call.receiveCache
 
         if (cache.containsKey(call.receiveType.type)) {
+            LOGGER.trace("Return cached value for ${call.receiveType.type}")
             return@on cache[call.receiveType.type]!!
         }
 
-        if (!cacheRawRequest) return@on body
+        if (!cacheRawRequest) {
+            LOGGER.trace(
+                "Return origin body because cache is not available for ${call.receiveType.type} and " +
+                    "raw caching is disabled"
+            )
+            return@on body
+        }
 
         val cacheValue = cache[DoubleReceiveCache::class] as? DoubleReceiveCache
         if (cacheValue != null) {
+            LOGGER.trace("Return raw body from cache")
             return@on cacheValue.read()
         }
 
         val value = body as? ByteReadChannel ?: return@on body
 
         val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
+            LOGGER.trace("Storing raw body in file cache")
             FileCache(value, context = coroutineContext)
         } else {
+            LOGGER.trace("Storing raw body in memory cache")
             MemoryCache(body, coroutineContext)
         }
 
@@ -67,6 +80,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val cache = call.receiveCache
         cache[body::class] = body
+        LOGGER.trace("Storing transformed body for type ${body::class} in memory cache")
         return@on body
     }
 }
