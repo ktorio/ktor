@@ -21,13 +21,14 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * It is acting for every client's ping frame and replying with corresponding pong
  */
 internal fun CoroutineScope.ponger(
-    outgoing: SendChannel<Frame.Pong>,
+    outgoing: SendChannel<Frame.Pong>
 ): SendChannel<Frame.Ping> {
     val channel = Channel<Frame.Ping>(5)
 
     launch(PongerCoroutineName) {
         try {
             channel.consumeEach {
+                LOGGER.trace("Received ping message, sending pong message")
                 outgoing.send(Frame.Pong(it.data))
             }
         } catch (_: ClosedSendChannelException) {
@@ -52,6 +53,7 @@ internal fun CoroutineScope.pinger(
     val channel = Channel<Frame.Pong>(Channel.UNLIMITED)
 
     launch(actorJob + PingerCoroutineName) {
+        LOGGER.trace("Starting WebSocket pinger coroutine with perioud $periodMillis ms and timeout $timeoutMillis ms")
         val random = Random(getTimeMillis())
         val pingIdBytes = ByteArray(32)
 
@@ -69,14 +71,22 @@ internal fun CoroutineScope.pinger(
                 val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
 
                 val rc = withTimeoutOrNull(timeoutMillis) {
+                    LOGGER.trace("WebSocket Pinger: sending ping frame")
                     outgoing.send(Frame.Ping(pingMessage.toByteArray(Charsets.ISO_8859_1)))
 
                     // wait for valid pong message
                     while (true) {
                         val msg = channel.receive()
-                        if (String(msg.data, charset = Charsets.ISO_8859_1) == pingMessage) break
+                        if (String(msg.data, charset = Charsets.ISO_8859_1) == pingMessage) {
+                            LOGGER.trace("WebSocket Pinger: received valid pong frame $msg")
+                            break
+                        }
+
+                        LOGGER.trace("WebSocket Pinger: received invalid pong frame $msg, continue waiting")
                     }
                 }
+
+                LOGGER.trace("WebSocket pinger has timed out")
 
                 if (rc == null) {
                     // timeout

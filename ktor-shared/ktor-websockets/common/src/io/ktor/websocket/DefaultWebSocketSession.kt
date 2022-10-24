@@ -6,12 +6,15 @@ package io.ktor.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 
 /**
  * Default websocket session with ping-pong and timeout processing and built-in [closeReason] population
@@ -67,7 +70,7 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Long,
-    timeoutMillis: Long,
+    timeoutMillis: Long
 ) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
@@ -117,8 +120,13 @@ internal class DefaultWebSocketSessionImpl(
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         if (!started.compareAndSet(false, true)) {
-            error("WebSocket session is already started.")
+            error("WebSocket session $this is already started.")
         }
+
+        LOGGER.trace(
+            "Starting default WebSocketSession($this) " +
+                "with negotiated extensions: ${negotiatedExtensions.joinToString()}"
+        )
 
         _extensions.addAll(negotiatedExtensions)
         runOrCancelPinger()
@@ -156,6 +164,7 @@ internal class DefaultWebSocketSessionImpl(
         try {
             @OptIn(ExperimentalCoroutinesApi::class)
             raw.incoming.consumeEach { frame ->
+                LOGGER.trace("WebSocketSession($this) receiving frame $frame")
                 when (frame) {
                     is Frame.Close -> {
                         if (!outgoing.isClosedForSend) {
@@ -164,6 +173,7 @@ internal class DefaultWebSocketSessionImpl(
                         closeFramePresented = true
                         return@launch
                     }
+
                     is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
@@ -232,13 +242,16 @@ internal class DefaultWebSocketSessionImpl(
 
     private suspend fun outgoingProcessorLoop() {
         for (frame in outgoingToBeProcessed) {
+            LOGGER.trace("Sending $frame from session $this")
             val processedFrame: Frame = when (frame) {
                 is Frame.Close -> {
                     sendCloseSequence(frame.readReason())
                     break
                 }
+
                 is Frame.Text,
                 is Frame.Binary -> processOutgoingExtensions(frame)
+
                 else -> frame
             }
 
@@ -249,6 +262,7 @@ internal class DefaultWebSocketSessionImpl(
     @OptIn(InternalAPI::class)
     private suspend fun sendCloseSequence(reason: CloseReason?, exception: Throwable? = null) {
         if (!tryClose()) return
+        LOGGER.trace("Sending Close Sequence for session $this with reason $reason and exception $exception")
         context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
@@ -278,6 +292,7 @@ internal class DefaultWebSocketSessionImpl(
             interval > 0L -> pinger(raw.outgoing, interval, timeoutMillis) {
                 sendCloseSequence(it, IOException("Ping timeout"))
             }
+
             else -> null
         }
 
