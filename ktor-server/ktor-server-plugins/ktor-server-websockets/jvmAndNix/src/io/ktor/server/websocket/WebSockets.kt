@@ -8,9 +8,12 @@ import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
 
 /**
  * WebSockets support plugin. It is required to be installed first before binding any websocket endpoints
@@ -126,6 +129,7 @@ public class WebSockets private constructor(
                 )
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
+                    LOGGER.trace("Shutdown WebSockets due to application stop")
                     webSockets.shutdown()
                 }
 
