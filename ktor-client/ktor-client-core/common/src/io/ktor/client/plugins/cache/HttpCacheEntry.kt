@@ -13,7 +13,7 @@ import io.ktor.utils.io.core.*
 import kotlin.collections.*
 
 @OptIn(InternalAPI::class)
-internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
+public suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
     val body = response.content.readRemaining().readBytes()
     response.complete()
     return HttpCacheEntry(response.cacheExpires(), response.varyKeys(), response, body)
@@ -22,7 +22,7 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
 /**
  * Client single response cache with [expires] and [varyKeys].
  */
-public class HttpCacheEntry internal constructor(
+public class HttpCacheEntry(
     public val expires: GMTDate,
     public val varyKeys: Map<String, String>,
     public val response: HttpResponse,
@@ -49,7 +49,7 @@ public class HttpCacheEntry internal constructor(
     }
 }
 
-internal fun HttpResponse.varyKeys(): Map<String, String> {
+public fun HttpResponse.varyKeys(): Map<String, String> {
     val validationKeys = vary() ?: return emptyMap()
 
     val result = mutableMapOf<String, String>()

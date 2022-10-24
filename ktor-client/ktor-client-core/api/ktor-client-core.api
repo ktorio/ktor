@@ -620,6 +620,7 @@ public final class io/ktor/client/plugins/cache/HttpCache$Config {
 }
 
 public final class io/ktor/client/plugins/cache/HttpCacheEntry {
+	public fun <init> (Lio/ktor/util/date/GMTDate;Ljava/util/Map;Lio/ktor/client/statement/HttpResponse;[B)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBody ()[B
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
