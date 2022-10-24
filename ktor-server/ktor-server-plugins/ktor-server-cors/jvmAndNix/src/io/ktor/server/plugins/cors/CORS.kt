@@ -10,6 +10,9 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
 
 /**
  * A plugin that allows you to configure handling cross-origin requests.
@@ -98,8 +101,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         when (checkOrigin) {
             OriginCheckResult.OK -> {
             }
+
             OriginCheckResult.SkipCORS -> return@onCall
             OriginCheckResult.Failed -> {
+                LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
                 call.respondCorsFailed()
                 return@onCall
             }
@@ -109,6 +114,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             if (contentType != null) {
                 if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
+                    LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
                     call.respondCorsFailed()
                     return@onCall
                 }
@@ -116,6 +122,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (call.request.httpMethod == HttpMethod.Options) {
+            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
             call.respondPreflight(
                 origin,
                 methodsListHeaderValue,
@@ -131,6 +138,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (!call.corsCheckCurrentMethod(methods)) {
+            LOGGER.trace("Respond forbidden ${call.request.uri}: method doesn't match ${call.request.httpMethod}")
             call.respondCorsFailed()
             return@onCall
         }
@@ -157,20 +165,20 @@ private fun checkOrigin(
     hostsWithWildcard: Set<Pair<String, String>>,
     originPredicates: List<(String) -> Boolean>,
     numberRegex: Regex
-): OriginCheckResult =
-    when {
-        !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
-        allowSameOrigin && isSameOrigin(origin, point, numberRegex) -> OriginCheckResult.SkipCORS
-        !corsCheckOrigins(
-            origin,
-            allowsAnyHost,
-            hostsNormalized,
-            hostsWithWildcard,
-            originPredicates,
-            numberRegex
-        ) -> OriginCheckResult.Failed
-        else -> OriginCheckResult.OK
-    }
+): OriginCheckResult = when {
+    !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
+    allowSameOrigin && isSameOrigin(origin, point, numberRegex) -> OriginCheckResult.SkipCORS
+    !corsCheckOrigins(
+        origin,
+        allowsAnyHost,
+        hostsNormalized,
+        hostsWithWildcard,
+        originPredicates,
+        numberRegex
+    ) -> OriginCheckResult.Failed
+
+    else -> OriginCheckResult.OK
+}
 
 private suspend fun ApplicationCall.respondPreflight(
     origin: String,
@@ -183,14 +191,22 @@ private suspend fun ApplicationCall.respondPreflight(
     headerPredicates: List<(String) -> Boolean>,
     allHeadersSet: Set<String>
 ) {
-    val requestHeaders =
-        request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }
-            ?.filter { it.isNotBlank() }
-            ?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+    val requestHeaders = request.headers
+        .getAll(HttpHeaders.AccessControlRequestHeaders)
+        ?.flatMap { it.split(",") }
+        ?.filter { it.isNotBlank() }
+        ?.map {
+            it.trim().toLowerCasePreservingASCIIRules()
+        } ?: emptyList()
 
-    if (!corsCheckRequestMethod(methods) || !corsCheckRequestHeaders(requestHeaders, allHeadersSet, headerPredicates)) {
+    if (!corsCheckRequestMethod(methods)) {
+        LOGGER.trace("Return Forbidden for ${this.request.uri}: CORS method doesn't match ${request.httpMethod}")
+        respond(HttpStatusCode.Forbidden)
+        return
+    }
+
+    if (!corsCheckRequestHeaders(requestHeaders, allHeadersSet, headerPredicates)) {
+        LOGGER.trace("Return Forbidden for ${this.request.uri}: request has not allowed headers.")
         respond(HttpStatusCode.Forbidden)
         return
     }
@@ -211,131 +227,3 @@ private suspend fun ApplicationCall.respondPreflight(
 
     respond(HttpStatusCode.OK)
 }
-
-private fun ApplicationCall.accessControlAllowOrigin(
-    origin: String,
-    allowsAnyHost: Boolean,
-    allowCredentials: Boolean
-) {
-    if (allowsAnyHost && !allowCredentials) {
-        response.header(HttpHeaders.AccessControlAllowOrigin, "*")
-    } else {
-        response.header(HttpHeaders.AccessControlAllowOrigin, origin)
-    }
-}
-
-private fun ApplicationCall.corsVary() {
-    val vary = response.headers[HttpHeaders.Vary]
-    if (vary == null) {
-        response.header(HttpHeaders.Vary, HttpHeaders.Origin)
-    } else {
-        response.header(HttpHeaders.Vary, vary + ", " + HttpHeaders.Origin)
-    }
-}
-
-private fun ApplicationCall.accessControlAllowCredentials(allowCredentials: Boolean) {
-    if (allowCredentials) {
-        response.header(HttpHeaders.AccessControlAllowCredentials, "true")
-    }
-}
-
-private fun ApplicationCall.accessControlMaxAge(maxAgeHeaderValue: String?) {
-    if (maxAgeHeaderValue != null) {
-        response.header(HttpHeaders.AccessControlMaxAge, maxAgeHeaderValue)
-    }
-}
-
-private fun isSameOrigin(origin: String, point: RequestConnectionPoint, numberRegex: Regex): Boolean {
-    val requestOrigin = "${point.scheme}://${point.serverHost}:${point.serverPort}"
-    return normalizeOrigin(requestOrigin, numberRegex) == normalizeOrigin(origin, numberRegex)
-}
-
-private fun corsCheckOrigins(
-    origin: String,
-    allowsAnyHost: Boolean,
-    hostsNormalized: Set<String>,
-    hostsWithWildcard: Set<Pair<String, String>>,
-    originPredicates: List<(String) -> Boolean>,
-    numberRegex: Regex
-): Boolean {
-    val normalizedOrigin = normalizeOrigin(origin, numberRegex)
-    return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
-        normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
-    } || originPredicates.any { it(origin) }
-}
-
-private fun corsCheckRequestHeaders(
-    requestHeaders: List<String>,
-    allHeadersSet: Set<String>,
-    headerPredicates: List<(String) -> Boolean>
-): Boolean {
-    return requestHeaders.all { header ->
-        header in allHeadersSet || headerMatchesAPredicate(header, headerPredicates)
-    }
-}
-
-private fun headerMatchesAPredicate(header: String, headerPredicates: List<(String) -> Boolean>): Boolean {
-    return headerPredicates.any { it(header) }
-}
-
-private fun ApplicationCall.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean {
-    return request.httpMethod in methods
-}
-
-private fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
-    val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
-    return requestMethod != null && requestMethod in methods
-}
-
-private suspend fun ApplicationCall.respondCorsFailed() {
-    respond(HttpStatusCode.Forbidden)
-}
-
-private fun isValidOrigin(origin: String): Boolean {
-    if (origin.isEmpty()) return false
-    if (origin == "null") return true
-    if ("%" in origin) return false
-
-    val protoDelimiter = origin.indexOf("://")
-    if (protoDelimiter <= 0) return false
-
-    val protoValid = origin[0].isLetter() && origin.subSequence(0, protoDelimiter).all { ch ->
-        ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.'
-    }
-
-    if (!protoValid) return false
-
-    var portIndex = origin.length
-    for (index in protoDelimiter + 3 until origin.length) {
-        val ch = origin[index]
-        if (ch == ':' || ch == '/') {
-            portIndex = index + 1
-            break
-        }
-        if (ch == '?') return false
-    }
-
-    for (index in portIndex until origin.length) {
-        if (!origin[index].isDigit()) return false
-    }
-
-    return true
-}
-
-private fun normalizeOrigin(origin: String, numberRegex: Regex) =
-    if (origin == "null" || origin == "*") origin else StringBuilder(origin.length).apply {
-        append(origin)
-
-        if (!origin.substringAfterLast(":", "").matches(numberRegex)) {
-            val port = when (origin.substringBefore(':')) {
-                "http" -> "80"
-                "https" -> "443"
-                else -> null
-            }
-
-            if (port != null) {
-                append(':')
-                append(port)
-            }
-        }
-    }.toString()
