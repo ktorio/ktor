@@ -9,10 +9,14 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.logging.*
+import io.ktor.server.request.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import kotlin.jvm.*
 import kotlin.reflect.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.statuspages.StatusPages")
 
 /**
  * Specifies how the exception should be handled.
@@ -46,12 +50,26 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
     on(ResponseBodyReadyForSend) { call, content ->
         if (call.attributes.contains(statusPageMarker)) return@on
 
-        val status = content.status ?: call.response.status() ?: return@on
-        val handler = statuses[status] ?: return@on
+        val status = content.status ?: call.response.status()
+        if (status == null) {
+            LOGGER.trace("No status code found for call: ${call.request.uri}")
+            return@on
+        }
+
+        val handler = statuses[status]
+        if (handler == null) {
+            LOGGER.trace("No handler found for status code $status for call: ${call.request.uri}")
+            return@on
+        }
+
         call.attributes.put(statusPageMarker, Unit)
         try {
+            LOGGER.trace("Executing $handler for status code $status for call: ${call.request.uri}")
             handler(call, content, status)
         } catch (cause: Throwable) {
+            LOGGER.trace(
+                "Exception $cause while executing $handler for status code $status for call: ${call.request.uri}"
+            )
             call.attributes.remove(statusPageMarker)
             throw cause
         }
@@ -60,11 +78,17 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
     on(CallFailed) { call, cause ->
         if (call.attributes.contains(statusPageMarker)) return@on
 
+        LOGGER.trace("Call ${call.request.uri} failed with cause $cause")
+
         val handler = findHandlerByValue(cause)
-        handler ?: throw cause
+        if (handler == null) {
+            LOGGER.trace("No handler found for exception: $cause for call ${call.request.uri}")
+            throw cause
+        }
 
         call.attributes.put(statusPageMarker, Unit)
         call.application.mdcProvider.withMDCBlock(call) {
+            LOGGER.trace("Executing $handler for exception $cause for call ${call.request.uri}")
             handler(call, cause)
         }
     }
