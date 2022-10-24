@@ -13,10 +13,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.websocket.*
 import kotlin.native.concurrent.*
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
 
 /**
  * Indicates if a client engine supports WebSockets.
@@ -54,7 +57,7 @@ public class WebSockets internal constructor(
      */
     public constructor(
         pingInterval: Long = -1L,
-        maxFrameSize: Long = Int.MAX_VALUE.toLong(),
+        maxFrameSize: Long = Int.MAX_VALUE.toLong()
     ) : this(pingInterval, maxFrameSize, WebSocketExtensionsConfig())
 
     /**
@@ -151,7 +154,12 @@ public class WebSockets internal constructor(
             val extensionsSupported = scope.engine.supportedCapabilities.contains(WebSocketExtensionsCapability)
 
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) {
-                if (!context.url.protocol.isWebsocket()) return@intercept
+                if (!context.url.protocol.isWebsocket()) {
+                    LOGGER.trace("Skipping WebSocket plugin for non-websocket request: ${context.url}")
+                    return@intercept
+                }
+
+                LOGGER.trace("Sending WebSocket request ${context.url}")
                 context.setCapability(WebSocketCapability, Unit)
 
                 if (extensionsSupported) {
@@ -162,7 +170,11 @@ public class WebSockets internal constructor(
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, session) ->
-                if (session !is WebSocketSession) return@intercept
+                if (session !is WebSocketSession) {
+                    LOGGER.trace("Skipping non-websocket response from ${context.request.url}: $session")
+                    return@intercept
+                }
+                LOGGER.trace("Receive websocket session from ${context.request.url}: $session")
 
                 val clientSession: ClientWebSocketSession = when (info.type) {
                     DefaultClientWebSocketSession::class -> {
@@ -177,6 +189,7 @@ public class WebSockets internal constructor(
                             start(negotiated)
                         }
                     }
+
                     else -> DelegatingClientWebSocketSession(context, session)
                 }
 
