@@ -27,8 +27,6 @@ internal class WorkerSelectorManager : SelectorManager {
         selectable: Selectable,
         interest: SelectInterest
     ) {
-        require(selectable is SelectableNative)
-
         return suspendCancellableCoroutine { continuation ->
             val selectorState = EventInfo(selectable.descriptor, interest, continuation)
             if (!selector.interest(selectorState)) {
