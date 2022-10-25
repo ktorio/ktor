@@ -65,10 +65,14 @@ internal fun Class<*>.takeIfNotFacade(): KClass<*>? =
     if (getAnnotation(Metadata::class.java)?.takeIf { it.kind == 1 } != null) kotlin else null
 
 @Suppress("FunctionName")
-internal fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? = try {
-    val modifierClass = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier")
-    val field = modifierClass.getField("HIGH")
-    field.get(modifierClass) as? WatchEvent.Modifier
-} catch (cause: Exception) {
-    null
+internal fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? {
+    if (System.getenv("ANDROID_DATA") != null) return null
+
+    return try {
+        val modifierClass = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier")
+        val field = modifierClass.getField("HIGH")
+        field.get(modifierClass) as? WatchEvent.Modifier
+    } catch (cause: Throwable) {
+        null
+    }
 }
