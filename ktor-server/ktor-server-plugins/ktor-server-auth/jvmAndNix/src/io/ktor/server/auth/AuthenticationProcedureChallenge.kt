@@ -23,7 +23,7 @@ public class AuthenticationProcedureChallenge {
             when (it.first) {
                 AuthenticationFailedCause.InvalidCredentials -> 1
                 AuthenticationFailedCause.NoCredentials -> 2
-                else -> throw IllegalArgumentException("Unknow auth fauled cause: ${it.first}")
+                else -> throw IllegalArgumentException("Unknown Auth fail: ${it.first}")
             }
         }.map { it.second }
 
