@@ -15,7 +15,7 @@ import io.ktor.http.content.*
 public class ForbiddenResponse(public vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {
     public constructor(challenge: HttpAuthHeader?) : this(*if (challenge == null) emptyArray() else arrayOf(challenge))
 
-    override val status: HttpStatusCode?
+    override val status: HttpStatusCode
         get() = HttpStatusCode.Forbidden
 
     override val headers: Headers

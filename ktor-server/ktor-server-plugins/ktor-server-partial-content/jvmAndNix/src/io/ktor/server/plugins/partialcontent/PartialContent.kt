@@ -79,4 +79,3 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRoute
         }
     }
 }
-
