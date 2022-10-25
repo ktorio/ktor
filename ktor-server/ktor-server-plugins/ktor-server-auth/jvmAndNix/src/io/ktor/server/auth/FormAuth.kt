@@ -122,14 +122,11 @@ public fun AuthenticationConfig.form(
 /**
  * A context for [FormAuthChallengeFunction].
  */
-public class FormAuthChallengeContext(
-    public val call: ApplicationCall
-)
+public class FormAuthChallengeContext(public val call: ApplicationCall)
 
 /**
  * Specifies what to send back if form-based authentication fails.
  */
-public typealias FormAuthChallengeFunction =
-    suspend FormAuthChallengeContext.(UserPasswordCredential?) -> Unit
+public typealias FormAuthChallengeFunction = suspend FormAuthChallengeContext.(UserPasswordCredential?) -> Unit
 
 private val formAuthenticationChallengeKey: Any = "FormAuth"

@@ -108,11 +108,9 @@ public fun AuthenticationConfig.basic(
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
-            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case-
-            // sensitive; thus BASIC, or Basic, or basic are all valid.
-            if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) {
-                return null
-            }
+            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be
+            // case-sensitive; thus BASIC, or Basic, or basic are all valid.
+            if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) return null
 
             val userPass = try {
                 String(authHeader.blob.decodeBase64Bytes(), charset = charset ?: Charsets.ISO_8859_1)
@@ -122,9 +120,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
 
             val colonIndex = userPass.indexOf(':')
 
-            if (colonIndex == -1) {
-                return null
-            }
+            if (colonIndex == -1) return null
 
             return UserPasswordCredential(userPass.substring(0, colonIndex), userPass.substring(colonIndex + 1))
         }

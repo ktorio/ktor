@@ -165,7 +165,6 @@ public class CallIdConfig {
 
 internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCallId")
 
-
 /**
  * A plugin that allows you to trace client requests end-to-end by using unique request IDs or call IDs.
  * Typically, working with a call ID in Ktor might look as follows:
