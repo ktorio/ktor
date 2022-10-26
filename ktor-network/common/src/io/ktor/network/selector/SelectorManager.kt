@@ -12,6 +12,4 @@ public expect fun SelectorManager(
     dispatcher: CoroutineContext = EmptyCoroutineContext
 ): SelectorManager
 
-public expect interface SelectorManager : CoroutineScope, Closeable {
-
-}
+public expect interface SelectorManager : CoroutineScope, Closeable

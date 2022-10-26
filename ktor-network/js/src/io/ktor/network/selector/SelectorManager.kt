@@ -16,6 +16,4 @@ public actual fun SelectorManager(dispatcher: kotlin.coroutines.CoroutineContext
     TODO("SelectorManager is not yet implemented on Javascript platform")
 }
 
-public actual interface SelectorManager : CoroutineScope, Closeable {
-
-}
+public actual interface SelectorManager : CoroutineScope, Closeable
