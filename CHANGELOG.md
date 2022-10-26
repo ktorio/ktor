@@ -1,3 +1,25 @@
+# 2.1.3
+> Published 26 October 2022
+
+* JS: window.location.origin returns null when executed in iframe via srcdoc attribute ([KTOR-4993](https://youtrack.jetbrains.com/issue/KTOR-4993))
+* SensitivityWatchEventModifier - Move the reflection call of this modifier out from the Ktor Core ([KTOR-1647](https://youtrack.jetbrains.com/issue/KTOR-1647))
+* "java.lang.IllegalArgumentException: Failed requirement." in SelectorManagerSupport ([KTOR-2914](https://youtrack.jetbrains.com/issue/KTOR-2914))
+* HOCON: CLI parameters don't override custom properties since 2.1.0 ([KTOR-5000](https://youtrack.jetbrains.com/issue/KTOR-5000))
+* Websockets timeout doesn't cause a close of a connection ([KTOR-3504](https://youtrack.jetbrains.com/issue/KTOR-3504))
+* DefaultHeaders: a header is duplicated in a StatusPages's handler ([KTOR-4990](https://youtrack.jetbrains.com/issue/KTOR-4990))
+* Websockets: timeout doesn't cause closing of incoming and outgoing channels ([KTOR-2430](https://youtrack.jetbrains.com/issue/KTOR-2430))
+* RFC 3986 recommendation for encoding URI is NOT followed ([KTOR-993](https://youtrack.jetbrains.com/issue/KTOR-993))
+* Cookies: Invalid encoding of cookies' values since 1.4.0 ([KTOR-917](https://youtrack.jetbrains.com/issue/KTOR-917))
+* ByteReadChannel is unable to read files with long lines ([KTOR-2588](https://youtrack.jetbrains.com/issue/KTOR-2588))
+* WebSocketDeflateExtension configureProtocols always failed with stackOverflow ([KTOR-4916](https://youtrack.jetbrains.com/issue/KTOR-4916))
+* Update Kotlin to 1.7.20 ([KTOR-4963](https://youtrack.jetbrains.com/issue/KTOR-4963))
+* Netty HTTP/2: response headers contain ":status" header and that leads to IllegalHeaderNameException in the ConditionalHeaders plugin ([KTOR-4943](https://youtrack.jetbrains.com/issue/KTOR-4943))
+* Maven: ktor-server-test-host-jvm causes dependency error starting from Ktor 2.0.3 ([KTOR-4900](https://youtrack.jetbrains.com/issue/KTOR-4900))
+* Autoreloading: "Flow invariant is violated" error since Ktor 2.0.3 ([KTOR-4926](https://youtrack.jetbrains.com/issue/KTOR-4926))
+* Autoreloading: ClassCastException when retrieving plugins in testApplication ([KTOR-4729](https://youtrack.jetbrains.com/issue/KTOR-4729))
+* CIO engine has wrong doc for request timeout ([KTOR-4941](https://youtrack.jetbrains.com/issue/KTOR-4941))
+* CIO: A request through a proxy server results in 403 from Cloudflare ([KTOR-4925](https://youtrack.jetbrains.com/issue/KTOR-4925))
+
 # 2.1.2
 > Published 29 September 2022
 
