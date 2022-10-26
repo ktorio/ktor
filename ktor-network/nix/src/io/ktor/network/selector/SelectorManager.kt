@@ -16,7 +16,7 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
      */
-    public actual fun notifyClosed(selectable: Selectable)
+    public fun notifyClosed(selectable: Selectable)
 
     /**
      * Suspends until [interest] is selected for [selectable]
@@ -27,23 +27,21 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
      */
-    public actual suspend fun select(
+    public suspend fun select(
         selectable: Selectable,
         interest: SelectInterest
     )
-
-    public actual companion object
 }
 
 /**
  * Select interest kind
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-public actual enum class SelectInterest {
+public enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 
-    public actual companion object {
-        public actual val AllInterests: Array<SelectInterest>
+    public companion object {
+        public val AllInterests: Array<SelectInterest>
             get() = values()
     }
 }

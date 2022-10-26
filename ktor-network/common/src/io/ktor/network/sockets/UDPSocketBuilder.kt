@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
@@ -28,16 +32,3 @@ public class UDPSocketBuilder(
 
     public companion object
 }
-
-internal expect fun UDPSocketBuilder.Companion.connectUDP(
-    selector: SelectorManager,
-    remoteAddress: SocketAddress,
-    localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions
-): ConnectedDatagramSocket
-
-internal expect fun UDPSocketBuilder.Companion.bindUDP(
-    selector: SelectorManager,
-    localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions
-): BoundDatagramSocket

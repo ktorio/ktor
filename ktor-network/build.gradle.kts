@@ -6,7 +6,7 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndNixMain {
+        commonMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
