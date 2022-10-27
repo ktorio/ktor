@@ -17,6 +17,8 @@ public expect interface Logger {
     public fun trace(message: String, cause: Throwable)
 }
 
+public expect val Logger.isTraceEnabled: Boolean
+
 /**
  * Logs an error from an [exception] using its message
  */

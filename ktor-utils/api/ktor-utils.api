@@ -861,6 +861,10 @@ public final class io/ktor/util/logging/KtorSimpleLoggerJvmKt {
 	public static final fun KtorSimpleLogger (Ljava/lang/String;)Lorg/slf4j/Logger;
 }
 
+public final class io/ktor/util/logging/LoggerJvmKt {
+	public static final fun isTraceEnabled (Lorg/slf4j/Logger;)Z
+}
+
 public final class io/ktor/util/logging/LoggerKt {
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 }
