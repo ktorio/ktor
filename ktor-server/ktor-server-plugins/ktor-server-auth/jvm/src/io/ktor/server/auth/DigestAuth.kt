@@ -80,7 +80,7 @@ public class DigestAuthenticationProvider internal constructor(
                     challenge.complete()
                 }
             }
-            else -> context.principal(principal)
+            else -> context.principal(name, principal)
         }
     }
 

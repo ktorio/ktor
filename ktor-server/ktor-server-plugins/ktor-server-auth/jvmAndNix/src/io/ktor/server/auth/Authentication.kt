@@ -110,7 +110,13 @@ public val ApplicationCall.authentication: AuthenticationContext
 /**
  * Retrieves an authenticated [Principal] for `this` call.
  */
-public inline fun <reified P : Principal> ApplicationCall.principal(): P? = authentication.principal()
+public inline fun <reified P : Principal> ApplicationCall.principal(): P? = principal(null)
+
+/**
+ * Retrieves an authenticated [Principal] for `this` call from provider with name [provider]
+ */
+public inline fun <reified P : Principal> ApplicationCall.principal(provider: String?): P? =
+    authentication.principal(provider)
 
 /**
  * Installs the [Authentication] plugin if not yet installed and invokes [block] on its config.

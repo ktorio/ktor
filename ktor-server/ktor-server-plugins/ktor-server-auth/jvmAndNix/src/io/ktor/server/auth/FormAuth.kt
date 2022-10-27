@@ -34,7 +34,7 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
         val principal = credentials?.let { (authenticationFunction)(call, it) }
 
         if (principal != null) {
-            context.principal(principal)
+            context.principal(name, principal)
             return
         }
         val cause = when (credentials) {

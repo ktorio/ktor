@@ -28,8 +28,8 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
     internal val urlProvider: ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
-        oauth1a(context)
-        oauth2(context)
+        oauth1a(name, context)
+        oauth2(name, context)
     }
 
     /**
@@ -69,7 +69,7 @@ public fun AuthenticationConfig.oauth(
     register(provider)
 }
 
-internal suspend fun OAuthAuthenticationProvider.oauth2(context: AuthenticationContext) {
+internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String?, context: AuthenticationContext) {
     val call = context.call
     val provider = call.providerLookup()
     if (provider !is OAuthServerSettings.OAuth2ServerSettings) return
@@ -79,7 +79,7 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(context: AuthenticationC
     val cause: AuthenticationFailedCause? = if (token == null) {
         AuthenticationFailedCause.NoCredentials
     } else {
-        oauth2RequestToken(provider, callbackRedirectUrl, token, context)
+        oauth2RequestToken(authProviderName, provider, callbackRedirectUrl, token, context)
     }
 
     cause ?: return
@@ -97,7 +97,7 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(context: AuthenticationC
     }
 }
 
-internal suspend fun OAuthAuthenticationProvider.oauth1a(context: AuthenticationContext) {
+internal suspend fun OAuthAuthenticationProvider.oauth1a(authProviderName: String?, context: AuthenticationContext) {
     val call = context.call
     val provider = call.providerLookup()
     if (provider !is OAuthServerSettings.OAuth1aServerSettings) return
@@ -106,7 +106,7 @@ internal suspend fun OAuthAuthenticationProvider.oauth1a(context: Authentication
     val cause: AuthenticationFailedCause? = if (token == null) {
         AuthenticationFailedCause.NoCredentials
     } else {
-        oauth1RequestToken(provider, token, context)
+        oauth1RequestToken(authProviderName, provider, token, context)
     }
 
     if (cause != null) {
@@ -124,12 +124,13 @@ internal suspend fun OAuthAuthenticationProvider.oauth1a(context: Authentication
 }
 
 private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
+    authProviderName: String?,
     provider: OAuthServerSettings.OAuth1aServerSettings,
     token: OAuthCallback.TokenPair,
     context: AuthenticationContext
 ) = try {
     val accessToken = requestOAuth1aAccessToken(client, provider, token)
-    context.principal(accessToken)
+    context.principal(authProviderName, accessToken)
     null
 } catch (cause: OAuth1aException.MissingTokenException) {
     AuthenticationFailedCause.InvalidCredentials
@@ -142,13 +143,14 @@ private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
 }
 
 private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
+    authProviderName: String?,
     provider: OAuthServerSettings.OAuth2ServerSettings,
     callbackRedirectUrl: String,
     token: OAuthCallback.TokenSingle,
     context: AuthenticationContext
 ) = try {
     val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
-    context.principal(accessToken)
+    context.principal(authProviderName, accessToken)
     null
 } catch (cause: OAuth2Exception.InvalidGrant) {
     Logger.trace("OAuth invalid grant reported: {}", cause.message)
