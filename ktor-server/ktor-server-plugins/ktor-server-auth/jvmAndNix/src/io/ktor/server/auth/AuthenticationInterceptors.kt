@@ -82,9 +82,8 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
                 LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
                 authenticationContext.executeChallenges(call)
                 return@on
-            } else {
-                LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
             }
+            LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
         }
 
         for (provider in notRequiredProviders) {
