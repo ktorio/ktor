@@ -7,6 +7,7 @@ package io.ktor.server.auth
 import io.ktor.server.application.*
 import io.ktor.util.*
 import kotlin.properties.*
+import kotlin.reflect.*
 
 /**
  * An authentication context for a call.
@@ -19,13 +20,18 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
 
+    internal val _principal: CombinedPrincipal = CombinedPrincipal()
+
     /**
      * Retrieves an authenticated principal, or returns `null` if a user isn't authenticated.
      */
-    public var principal: Principal? by Delegates.vetoable(null) { _, old, _ ->
-        require(old == null) { "Principal can be only assigned once" }
-        true
-    }
+    @Deprecated("Use accessor methods instead", level = DeprecationLevel.WARNING)
+    public var principal: Principal?
+        get() = _principal.principals.firstOrNull()?.second
+        set(value) {
+            check(value != null)
+            _principal.add(null, value)
+        }
 
     /**
      * Stores authentication failures for keys provided by authentication mechanisms.
@@ -61,17 +67,31 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Sets an authenticated principal for this context.
-     *
-     * This method may be called only once per context.
      */
     public fun principal(principal: Principal) {
-        this.principal = principal
+        _principal.add(null, principal)
+    }
+
+    /**
+     * Sets an authenticated principal for this context from provider with name [provider].
+     */
+    public fun principal(provider: String? = null, principal: Principal) {
+        _principal.add(provider, principal)
+    }
+
+    /**
+     * Retrieves a principal of the type [T] from provider with name [provider], if any.
+     */
+    public inline fun <reified T : Principal> principal(provider: String? = null): T? {
+        return principal(provider, T::class)
     }
 
     /**
      * Retrieves a principal of the type [T], if any.
      */
-    public inline fun <reified T : Principal> principal(): T? = principal as? T
+    public fun <T : Principal> principal(provider: String?, klass: KClass<T>): T? {
+        return _principal.get(provider, klass)
+    }
 
     /**
      * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user.

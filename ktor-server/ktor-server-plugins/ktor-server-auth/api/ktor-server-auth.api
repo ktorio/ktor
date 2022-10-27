@@ -37,6 +37,9 @@ public final class io/ktor/server/auth/AuthenticationContext {
 	public final fun getErrors ()Ljava/util/HashMap;
 	public final fun getPrincipal ()Lio/ktor/server/auth/Principal;
 	public final fun principal (Lio/ktor/server/auth/Principal;)V
+	public final fun principal (Ljava/lang/String;Lio/ktor/server/auth/Principal;)V
+	public final fun principal (Ljava/lang/String;Lkotlin/reflect/KClass;)Lio/ktor/server/auth/Principal;
+	public static synthetic fun principal$default (Lio/ktor/server/auth/AuthenticationContext;Ljava/lang/String;Lio/ktor/server/auth/Principal;ILjava/lang/Object;)V
 	public final fun setPrincipal (Lio/ktor/server/auth/Principal;)V
 }
 
@@ -62,7 +65,9 @@ public final class io/ktor/server/auth/AuthenticationFailedCause$NoCredentials :
 }
 
 public final class io/ktor/server/auth/AuthenticationInterceptorsKt {
+	public static final fun authenticate (Lio/ktor/server/routing/Route;[Ljava/lang/String;Lio/ktor/server/auth/AuthenticationStrategy;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun authenticate (Lio/ktor/server/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun authenticate$default (Lio/ktor/server/routing/Route;[Ljava/lang/String;Lio/ktor/server/auth/AuthenticationStrategy;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 	public static synthetic fun authenticate$default (Lio/ktor/server/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 	public static final fun getAuthenticationInterceptors ()Lio/ktor/server/application/RouteScopedPlugin;
 }
@@ -97,6 +102,14 @@ public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/ser
 	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public final fun getNames ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/AuthenticationStrategy : java/lang/Enum {
+	public static final field FirstSuccessful Lio/ktor/server/auth/AuthenticationStrategy;
+	public static final field Optional Lio/ktor/server/auth/AuthenticationStrategy;
+	public static final field Required Lio/ktor/server/auth/AuthenticationStrategy;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/AuthenticationStrategy;
+	public static fun values ()[Lio/ktor/server/auth/AuthenticationStrategy;
 }
 
 public final class io/ktor/server/auth/BasicAuthKt {
