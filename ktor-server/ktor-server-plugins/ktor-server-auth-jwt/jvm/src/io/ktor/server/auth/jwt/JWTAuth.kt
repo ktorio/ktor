@@ -161,7 +161,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         try {
             val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticationFunction)
             if (principal != null) {
-                context.principal(principal)
+                context.principal(name, principal)
                 return
             }
 
