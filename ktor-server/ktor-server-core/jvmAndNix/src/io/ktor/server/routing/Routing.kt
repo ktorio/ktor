@@ -10,10 +10,13 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 
 @InternalAPI
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.routing.Routing")
 
 /**
  * A root routing node of an [Application].
@@ -32,6 +35,18 @@ public class Routing(
 ) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
+    init {
+        addDefaultTracing()
+    }
+
+    private fun addDefaultTracing() {
+        if (!LOGGER.isTraceEnabled) return
+
+        tracers.add {
+            LOGGER.trace(it.buildText())
+        }
+    }
+
     /**
      * Registers a function used to trace route resolution.
      * Might be useful if you need to understand why a route isn't executed.
@@ -47,6 +62,7 @@ public class Routing(
         when (val resolveResult = resolveContext.resolve()) {
             is RoutingResolveResult.Success ->
                 executeResult(context, resolveResult.route, resolveResult.parameters)
+
             is RoutingResolveResult.Failure ->
                 context.call.attributes.put(RoutingFailureStatusCode, resolveResult.errorStatusCode)
         }
