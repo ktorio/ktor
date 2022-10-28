@@ -27,7 +27,9 @@ public class DigestAuthenticationProvider internal constructor(
 
     private val nonceManager: NonceManager = config.nonceManager
 
-    private val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
+    private val userNameRealmPasswordDigestProvider: DigestProviderFunction = config.digestProvider
+
+    private val authenticationFunction: AuthenticationFunction<DigestCredential> = config.authenticationFunction
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
@@ -53,7 +55,7 @@ public class DigestAuthenticationProvider internal constructor(
                 nonceManager.verifyNonce(it.nonce) &&
                 verify(it)
             ) {
-                UserIdPrincipal(it.userName)
+                call.authenticationFunction(it)
             } else {
                 null
             }
@@ -96,6 +98,8 @@ public class DigestAuthenticationProvider internal constructor(
             }
         }
 
+        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdPrincipal(it.userName) }
+
         /**
          * Specifies a realm to be passed in the `WWW-Authenticate` header.
          */
@@ -112,11 +116,19 @@ public class DigestAuthenticationProvider internal constructor(
         public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
+         * Sets a validation function that checks a specified [DigestCredential] instance and
+         * returns [Principal] in a case of successful authentication or null if authentication fails.
+         */
+        public fun validate(body: AuthenticationFunction<DigestCredential>) {
+            authenticationFunction = body
+        }
+
+        /**
          * Configures a digest provider function that should fetch or compute message digest for the specified
          * `userName` and `realm`. A message digest is usually computed based on username, realm and password
          * concatenated with the colon character ':'. For example, `"$userName:$realm:$password"`.
          */
-        public fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
+        public fun digestProvider(digest: DigestProviderFunction) {
             digestProvider = digest
         }
     }

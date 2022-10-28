@@ -155,6 +155,7 @@ public final class io/ktor/server/auth/DigestAuthenticationProvider$Config : io/
 	public final fun setAlgorithmName (Ljava/lang/String;)V
 	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
 	public final fun setRealm (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/server/auth/DigestCredential : io/ktor/server/auth/Credential {

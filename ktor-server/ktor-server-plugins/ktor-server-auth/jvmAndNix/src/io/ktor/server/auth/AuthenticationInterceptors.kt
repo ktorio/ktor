@@ -65,6 +65,8 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         requiredProviders - firstSuccessfulProviders
 
     on(AuthenticationHook) { call ->
+        if (call.isHandled) return@on
+
         val authenticationContext = AuthenticationContext.from(call)
         if (authenticationContext.principal<Principal>() != null) return@on
 
