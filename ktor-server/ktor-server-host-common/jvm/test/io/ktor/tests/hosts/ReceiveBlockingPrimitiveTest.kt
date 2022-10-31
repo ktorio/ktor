@@ -71,7 +71,38 @@ class ReceiveBlockingPrimitiveTest {
             override val headers: Headers
                 get() = TODO("Not yet implemented")
             override val local: RequestConnectionPoint
-                get() = TODO("Not yet implemented")
+                get() = object : RequestConnectionPoint {
+                    override val scheme: String
+                        get() = TODO("Not yet implemented")
+                    override val version: String
+                        get() = TODO("Not yet implemented")
+                    @Deprecated("Use localPort or serverPort instead")
+                    override val port: Int
+                        get() = TODO("Not yet implemented")
+                    override val localPort: Int
+                        get() = TODO("Not yet implemented")
+                    override val serverPort: Int
+                        get() = TODO("Not yet implemented")
+                    @Deprecated("Use localHost or serverHost instead")
+                    override val host: String
+                        get() = TODO("Not yet implemented")
+                    override val localHost: String
+                        get() = TODO("Not yet implemented")
+                    override val serverHost: String
+                        get() = TODO("Not yet implemented")
+                    override val localAddress: String
+                        get() = TODO("Not yet implemented")
+                    override val uri: String
+                        get() = "http://test-uri.ktor.io/"
+                    override val method: HttpMethod
+                        get() = TODO("Not yet implemented")
+                    override val remoteHost: String
+                        get() = TODO("Not yet implemented")
+                    override val remotePort: Int
+                        get() = TODO("Not yet implemented")
+                    override val remoteAddress: String
+                        get() = TODO("Not yet implemented")
+                }
             override val cookies: RequestCookies
                 get() = TODO("Not yet implemented")
 
