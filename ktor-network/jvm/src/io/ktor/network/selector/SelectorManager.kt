@@ -10,12 +10,10 @@ import java.nio.channels.*
 import java.nio.channels.spi.*
 import kotlin.coroutines.*
 
-public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager = ActorSelectorManager(dispatcher)
-
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
  */
-public actual interface SelectorManager : CoroutineScope, Closeable {
+public interface SelectorManager : CoroutineScope, Closeable {
     /**
      * NIO selector provider
      */

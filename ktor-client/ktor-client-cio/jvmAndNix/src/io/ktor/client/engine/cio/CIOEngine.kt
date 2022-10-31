@@ -10,6 +10,7 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.network.dispatcher.*
 import io.ktor.network.selector.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
@@ -31,10 +32,10 @@ internal class CIOEngine(
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
-    private val selectorManager: SelectorManager by lazy { SelectorManager(dispatcher) }
+    private val socketDispatcher: SocketDispatcher by lazy { SocketDispatcher(dispatcher) }
 
     private val connectionFactory = ConnectionFactory(
-        selectorManager,
+        socketDispatcher,
         config.maxConnectionsCount,
         config.endpoint.maxConnectionsPerRoute
     )
@@ -61,7 +62,7 @@ internal class CIOEngine(
         coroutineContext = parentContext + requestField
 
         val requestJob = requestField[Job]!!
-        val selector = selectorManager
+        val selector = socketDispatcher
 
         @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(parentContext, start = CoroutineStart.ATOMIC) {

@@ -5,9 +5,8 @@
 
 package io.ktor.network.tls.tests
 
-import io.ktor.network.selector.*
+import io.ktor.network.dispatcher.*
 import io.ktor.network.sockets.*
-import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.util.cio.*
@@ -38,8 +37,8 @@ class ConnectionTest {
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {
-        val selectorManager = ActorSelectorManager(Dispatchers.IO)
-        val socket = aSocket(selectorManager)
+        val dispatcher = SocketDispatcher(Dispatchers.IO)
+        val socket = dispatcher
             .tcp()
             .connect("www.google.com", port = 443)
             .tls(Dispatchers.Default)
@@ -109,7 +108,7 @@ class ConnectionTest {
         keyStoreAndPassword: Pair<KeyStore, CharArray>? = null
     ) {
         runBlocking {
-            aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
+            SocketDispatcher(Dispatchers.IO).tcp()
                 .connect(InetSocketAddress("127.0.0.1", port))
                 .tls(Dispatchers.IO) {
                     keyStoreAndPassword?.let { addKeyStore(it.first, it.second) }

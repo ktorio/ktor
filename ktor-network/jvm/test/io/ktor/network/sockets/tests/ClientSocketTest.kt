@@ -4,6 +4,7 @@
 
 package io.ktor.network.sockets.tests
 
+import io.ktor.network.dispatcher.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
@@ -26,7 +27,7 @@ import kotlin.test.Test
 
 class ClientSocketTest {
     private val exec = Executors.newCachedThreadPool()
-    private val selector = ActorSelectorManager(exec.asCoroutineDispatcher())
+    private val dispatcher = SocketDispatcher(exec.asCoroutineDispatcher())
     private var server: Pair<ServerSocket, Thread>? = null
 
     @get:Rule
@@ -41,7 +42,7 @@ class ClientSocketTest {
             server.close()
             thread.interrupt()
         }
-        selector.close()
+        dispatcher.close()
         exec.shutdown()
     }
 
@@ -147,7 +148,7 @@ class ClientSocketTest {
 
     private fun client(block: suspend (Socket) -> Unit) {
         runBlocking {
-            aSocket(selector).tcp().connect(server!!.first.localSocketAddress.toSocketAddress()).use {
+            dispatcher.tcp().connect(server!!.first.localSocketAddress.toSocketAddress()).use {
                 block(it)
             }
         }

@@ -6,13 +6,8 @@ package io.ktor.network.selector
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
-public actual fun SelectorManager(
-    dispatcher: CoroutineContext
-): SelectorManager = WorkerSelectorManager()
-
-public actual interface SelectorManager : CoroutineScope, Closeable {
+public interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
      */

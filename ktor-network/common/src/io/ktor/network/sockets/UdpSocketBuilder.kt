@@ -4,31 +4,24 @@
 
 package io.ktor.network.sockets
 
-import io.ktor.network.selector.*
-
 /**
  * UDP socket builder
  */
-public class UDPSocketBuilder(
-    private val selector: SelectorManager,
-    override var options: SocketOptions.UDPSocketOptions
-) : Configurable<UDPSocketBuilder, SocketOptions.UDPSocketOptions> {
+public interface UdpSocketBuilder {
     /**
      * Bind server socket to listen to [localAddress].
      */
-    public fun bind(
+    public suspend fun bind(
         localAddress: SocketAddress? = null,
         configure: SocketOptions.UDPSocketOptions.() -> Unit = {}
-    ): BoundDatagramSocket = bindUDP(selector, localAddress, options.udp().apply(configure))
+    ): BoundDatagramSocket
 
     /**
      * Create a datagram socket to listen datagrams at [localAddress] and set to [remoteAddress].
      */
-    public fun connect(
+    public suspend fun connect(
         remoteAddress: SocketAddress,
         localAddress: SocketAddress? = null,
         configure: SocketOptions.UDPSocketOptions.() -> Unit = {}
-    ): ConnectedDatagramSocket = connectUDP(selector, remoteAddress, localAddress, options.udp().apply(configure))
-
-    public companion object
+    ): ConnectedDatagramSocket
 }

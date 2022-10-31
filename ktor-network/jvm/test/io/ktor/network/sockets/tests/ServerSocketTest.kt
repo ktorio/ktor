@@ -4,7 +4,7 @@
 
 package io.ktor.network.sockets.tests
 
-import io.ktor.network.selector.*
+import io.ktor.network.dispatcher.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -23,7 +23,7 @@ class ServerSocketTest : CoroutineScope {
     private val testJob = Job()
     private val exec = Executors.newCachedThreadPool()
     private var tearDown = false
-    private val selector = ActorSelectorManager(exec.asCoroutineDispatcher() + testJob)
+    private val dispatcher = SocketDispatcher(exec.asCoroutineDispatcher() + testJob)
     private var client: Pair<java.net.Socket, Thread>? = null
 
     @Volatile
@@ -57,7 +57,7 @@ class ServerSocketTest : CoroutineScope {
             server?.join()
         }
 
-        selector.close()
+        dispatcher.close()
         exec.shutdown()
         failure?.let { throw it }
     }
@@ -106,7 +106,7 @@ class ServerSocketTest : CoroutineScope {
 
         val job = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
             try {
-                val server = aSocket(selector).tcp().bind(null)
+                val server = dispatcher.tcp().bind(null)
                 this@ServerSocketTest.serverSocket.complete(server)
 
                 bound.countDown()

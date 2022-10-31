@@ -14,8 +14,8 @@ class TcpSocketTest {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testEcho() = testSockets { selector ->
-        val tcp = aSocket(selector).tcp()
+    fun testEcho() = testSockets { dispatcher ->
+        val tcp = dispatcher.tcp()
         val server = tcp.bind("localhost", 8000)
 
         val serverConnectionPromise = async {
@@ -57,12 +57,12 @@ class TcpSocketTest {
     }
 
     @Test
-    fun testEchoOverUnixSockets() = testSockets { selector ->
+    fun testEchoOverUnixSockets() = testSockets { dispatcher ->
         if (!supportsUnixDomainSockets()) return@testSockets
 
         val socketPath = createTempFilePath("ktor-echo-test")
 
-        val tcp = aSocket(selector).tcp()
+        val tcp = dispatcher.tcp()
         val server = tcp.bind(UnixSocketAddress(socketPath))
 
         val serverConnectionPromise = async {
