@@ -15,6 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.serialization.Serializable
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -1058,5 +1059,6 @@ class AuthBuildersTest {
         )
     }
 
+    @Serializable
     data class TestSession(val name: String)
 }
