@@ -12,6 +12,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlin.test.*
@@ -909,8 +910,149 @@ class AuthBuildersTest {
         }
     }
 
+    @Test
+    fun testCompleteApplication() = testApplication {
+        install(Sessions) {
+            cookie<TestSession>("S")
+        }
+        install(Authentication) {
+            session<TestSession>("S") {
+                challenge {} // a root session provider doesn't send any challenge
+                validate { UserIdPrincipal(it.name) } // but optionally provides an authenticated user
+            }
+            session<TestSession>("S_web") {
+                challenge("/login") // for web roots it does redirect to login
+                validate { UserIdPrincipal(it.name) } // unfortunately it does check twice
+            }
+            basic("B") {
+                realm = "test-app"
+                validate { UserIdPrincipal(it.name) }
+            }
+            form("F") {
+                validate { UserIdPrincipal(it.name) }
+            }
+        }
+        routing {
+            authenticate("S") {
+                get("/") {
+                    val logText = call.principal<UserIdPrincipal>()?.name
+                        ?.let { "Logged in as $it." } ?: "Not logged in."
+                    call.respondText("Public index. $logText")
+                }
+                route("/user") {
+                    authenticate("S_web") {
+                        get("profile") {
+                            call.respondText("Profile for ${call.principal<UserIdPrincipal>()?.name}.")
+                        }
+                    }
+                    authenticate("B") {
+                        get("files/{name...}") {
+                            call.respondText(
+                                "File ${call.parameters["name"]} for user " +
+                                    "${call.principal<UserIdPrincipal>()?.name}."
+                            )
+                        }
+                    }
+                }
+                get("/login") {
+                    val user = call.principal<UserIdPrincipal>()
+                    if (user != null) {
+                        call.respondRedirect("/")
+                    } else {
+                        call.respondText("Login form goes here.")
+                    }
+                }
+                authenticate("F") {
+                    post("/login") {
+                        val user = call.principal<UserIdPrincipal>()
+                        assertNotNull(user)
+                        call.sessions.set(TestSession(user.name))
+                        call.respondText("Logged in successfully as ${user.name}.")
+                    }
+                }
+            }
+        }
+
+        val serializedSession = defaultSessionSerializer<TestSession>().serialize(
+            TestSession("tester")
+        )
+        val sessionCookieContent = "S=$serializedSession"
+        fun HttpRequestBuilder.addCookie() {
+            header(HttpHeaders.Cookie, sessionCookieContent)
+        }
+
+        fun HttpRequestBuilder.addFormAuth(name: String, pass: String) {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=$name&password=$pass")
+        }
+
+        val client = createClient {
+            followRedirects = false
+        }
+
+        val response1 = client.get("/")
+        assertTrue { response1.status.isSuccess() }
+        assertEquals("Public index. Not logged in.", response1.bodyAsText())
+
+        val response2 = client.get("/") {
+            addCookie()
+        }
+        assertTrue { response2.status.isSuccess() }
+        assertEquals("Public index. Logged in as tester.", response2.bodyAsText())
+
+        val response3 = client.get("/user/profile")
+        assertEquals("/login", response3.headers[HttpHeaders.Location])
+
+        val response4 = client.get("/user/profile") {
+            addCookie()
+        }
+        assertEquals("Profile for tester.", response4.bodyAsText())
+
+        val response5 = client.get("/login") {
+            addCookie()
+        }
+        assertEquals(HttpStatusCode.Found, response5.status)
+
+        val response6 = client.get("/login")
+        assertEquals("Login form goes here.", response6.bodyAsText())
+
+        val response7 = client.post("/login") {
+            addFormAuth("tester", "")
+        }
+        val cookies = response7.headers[HttpHeaders.SetCookie]?.let { parseServerSetCookieHeader(it) }
+        assertNotNull(cookies, "Set-Cookie should be sent")
+        assertEquals(serializedSession, cookies.value)
+        assertEquals("Logged in successfully as tester.", response7.bodyAsText())
+
+        val response8 = client.get("/user/files/doc1.txt") {
+            addCookie()
+        }
+        assertEquals("File doc1.txt for user tester.", response8.bodyAsText())
+
+        val firstAttempt = client.get("/user/files/doc1.txt")
+        // with no auth header we should get basic auth challenge
+        assertEquals(
+            "Basic realm=test-app, charset=UTF-8",
+            firstAttempt.headers[HttpHeaders.WWWAuthenticate]
+        )
+
+        // so a download tool should show a prompt so user can provide name and password
+        // and retry with basic auth credentials
+        val response9 = client.get("/user/files/doc1.txt") {
+            addBasicAuth()
+        }
+        assertEquals("File doc1.txt for user tester.", response9.bodyAsText())
+    }
+
     private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
         addHeader(
+            HttpHeaders.Authorization,
+            HttpAuthHeader.Single("basic", "$name:".encodeBase64()).render()
+        )
+    }
+
+    private fun HttpRequestBuilder.addBasicAuth(name: String = "tester") {
+        header(
             HttpHeaders.Authorization,
             HttpAuthHeader.Single("basic", "$name:".encodeBase64()).render()
         )
