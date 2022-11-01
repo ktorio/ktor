@@ -19,7 +19,8 @@ import kotlin.coroutines.*
 @OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class)
 internal class DarwinWebsocketSession(
     private val requestTime: GMTDate,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    private val challengeHandler: ChallengeHandler?
 ) : WebSocketSession {
 
     internal lateinit var task: NSURLSessionWebSocketTask
@@ -184,6 +185,23 @@ internal class DarwinWebsocketSession(
             }
             socketJob.cancel()
             task.cancelWithCloseCode(didCloseWithCode, reason)
+        }
+
+        override fun URLSession(
+            session: NSURLSession,
+            task: NSURLSessionTask,
+            didReceiveChallenge: NSURLAuthenticationChallenge,
+            completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
+        ) {
+            val handler = challengeHandler
+            if (handler != null) {
+                handler(session, task, didReceiveChallenge, completionHandler)
+            } else {
+                completionHandler(
+                    NSURLSessionAuthChallengePerformDefaultHandling,
+                    didReceiveChallenge.proposedCredential
+                )
+            }
         }
     }
 }

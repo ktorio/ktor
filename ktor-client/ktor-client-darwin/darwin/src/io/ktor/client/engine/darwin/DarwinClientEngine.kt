@@ -44,12 +44,8 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         val request = data.toNSUrlRequest()
             .apply(config.requestConfig)
 
-        val websocketSession = DarwinWebsocketSession(GMTDate(), callContext)
-        val session = NSURLSession.sessionWithConfiguration(
-            NSURLSessionConfiguration.defaultSessionConfiguration(),
-            websocketSession.delegate,
-            requestQueue
-        )
+        val websocketSession = DarwinWebsocketSession(GMTDate(), callContext, config.challengeHandler)
+        val session = createSession(config, websocketSession.delegate, requestQueue)
         val task = session.webSocketTaskWithRequest(request)
         websocketSession.task = task
 

@@ -15,8 +15,10 @@ import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
 internal class DarwinResponseReader(
-    private val config: DarwinClientEngineConfig
+    config: DarwinClientEngineConfig
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
+
+    private val challengeHandler = config.challengeHandler
     private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(initialCapacity = 32)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
@@ -62,7 +64,7 @@ internal class DarwinResponseReader(
         didReceiveChallenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
-        val handler = config.challengeHandler
+        val handler = challengeHandler
         if (handler != null) {
             handler(session, task, didReceiveChallenge, completionHandler)
         } else {
