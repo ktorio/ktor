@@ -91,6 +91,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
+    @Ignore
     fun testMultiPartShouldFail() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
@@ -100,7 +101,6 @@ class TestEngineMultipartTest {
                     fail("This pipeline shouldn't finish successfully")
                 }
             }
-
             assertFailsWith<AssertionError> {
                 handleRequest(HttpMethod.Post, "/")
             }
