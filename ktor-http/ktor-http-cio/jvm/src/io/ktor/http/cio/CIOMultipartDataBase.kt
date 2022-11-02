@@ -98,20 +98,25 @@ public class CIOMultipartDataBase(
         @Suppress("BlockingMethodInNonBlockingContext")
         val tmp = File.createTempFile("file-upload", ".tmp")
 
-        FileOutputStream(tmp).use { stream ->
-            stream.channel.use { out ->
-                out.truncate(0L)
+        try {
+            FileOutputStream(tmp).use { stream ->
+                stream.channel.use { out ->
+                    out.truncate(0L)
 
-                while (true) {
-                    while (buffer.hasRemaining()) {
-                        out.write(buffer)
+                    while (true) {
+                        while (buffer.hasRemaining()) {
+                            out.write(buffer)
+                        }
+                        buffer.clear()
+
+                        if (part.body.readAvailable(buffer) == -1) break
+                        buffer.flip()
                     }
-                    buffer.clear()
-
-                    if (part.body.readAvailable(buffer) == -1) break
-                    buffer.flip()
                 }
             }
+        } catch (cause: Throwable) {
+            tmp.delete()
+            throw cause
         }
 
         var closed = false
