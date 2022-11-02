@@ -1,10 +1,13 @@
 import io.ktor.client.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.websocket.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
@@ -140,6 +143,34 @@ class DarwinEngineTest {
         val response = client.get("$TEST_SERVER/headers/echo?headerName=XCustomHeader")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("my header value", response.bodyAsText())
+    }
+
+    @OptIn(UnsafeNumber::class)
+    @Test
+    fun testConfigureWebsocketRequest(): Unit = runBlocking {
+        var customChallengeCalled = false
+        val client = HttpClient(Darwin) {
+            engine {
+                handleChallenge { session, task, challenge, completionHandler ->
+                    customChallengeCalled = true
+                    challenge.protectionSpace.serverTrust?.let {
+                        if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+                            val credential = NSURLCredential.credentialForTrust(it)
+                            completionHandler(NSURLSessionAuthChallengeUseCredential, credential)
+                        }
+                    }
+                }
+            }
+
+            install(WebSockets)
+        }
+
+        val session = client.webSocketSession("wss://127.0.0.1:8089/websockets/echo")
+        session.send("test")
+        val response = session.incoming.receive() as Frame.Text
+        assertEquals("test", response.readText())
+        assertTrue(customChallengeCalled)
+        session.close()
     }
 
     private fun stringToNSUrlString(value: String): String {

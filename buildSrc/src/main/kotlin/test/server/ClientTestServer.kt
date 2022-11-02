@@ -11,6 +11,7 @@ import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import test.server.tests.*
 
@@ -79,10 +80,25 @@ internal fun Application.tlsTests() {
     install(DefaultHeaders) {
         header("X-Comment", "TLS test server")
     }
-
+    install(WebSockets)
     routing {
         get("/") {
             call.respondText("Hello, TLS!")
+        }
+        route("websockets") {
+            webSocket("echo") {
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val text = frame.readText()
+                            send(Frame.Text(text))
+                        }
+
+                        is Frame.Binary -> send(Frame.Binary(fin = true, frame.data))
+                        else -> error("Unsupported frame type: ${frame.frameType}.")
+                    }
+                }
+            }
         }
     }
 }
