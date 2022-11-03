@@ -327,17 +327,8 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 
     private fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
         val subRequest = HttpRequestBuilder().takeFrom(request)
-        val subRequestJob = Job()
+        val subRequestJob = Job(request.executionContext)
         subRequest.executionContext = subRequestJob
-        CoroutineScope(request.executionContext).launch {
-            subRequestJob.join()
-        }
-        request.executionContext.invokeOnCompletion {
-            when (it) {
-                null -> subRequestJob.complete()
-                else -> subRequestJob.completeExceptionally(it)
-            }
-        }
         return subRequest
     }
 

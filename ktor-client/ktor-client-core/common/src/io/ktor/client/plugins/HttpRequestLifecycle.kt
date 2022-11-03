@@ -26,7 +26,7 @@ internal class HttpRequestLifecycle private constructor() {
 
         override fun install(plugin: HttpRequestLifecycle, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val executionContext = Job(context.executionContext)
+                val executionContext = SupervisorJob(context.executionContext)
 
                 attachToClientEngineJob(executionContext, scope.coroutineContext[Job]!!)
 
