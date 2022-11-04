@@ -19,13 +19,18 @@ import kotlinx.html.stream.*
  * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
  */
 public suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
-    respond(HtmlContent(status, block))
+    val text = buildString {
+        append("<!DOCTYPE html>\n")
+        appendHTML().html(block = block)
+    }
+    respond(TextContent(text, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
 }
 
 /**
  * Represents an [OutgoingContent] build using `kotlinx.html`.
  * @see [respondHtml]
  */
+@Deprecated("This will be removed from public API", level = DeprecationLevel.WARNING)
 public class HtmlContent(
     override val status: HttpStatusCode? = null,
     private val builder: HTML.() -> Unit
