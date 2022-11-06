@@ -16,7 +16,7 @@ class BearerAuthTest {
     fun `unauthorized with no auth`() = testApplication {
         configureServer()
 
-        val response = createClient {  }.get("/")
+        val response = createClient { }.get("/")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         assertEquals("", response.bodyAsText())
@@ -26,7 +26,7 @@ class BearerAuthTest {
     fun `successful with valid token`() = testApplication {
         configureServer()
 
-        val response = createClient {  }.get("/") {
+        val response = createClient { }.get("/") {
             withToken("letmein")
         }
 
@@ -51,7 +51,7 @@ class BearerAuthTest {
             }
         }
 
-        val response = createClient {  }.get("/") {
+        val response = createClient { }.get("/") {
             header(HttpHeaders.Authorization, "Custom letmein")
         }
 
@@ -63,7 +63,7 @@ class BearerAuthTest {
     fun `unauthorized with wrong scheme`() = testApplication {
         configureServer()
 
-        val response = createClient {  }.get("/") {
+        val response = createClient { }.get("/") {
             header(HttpHeaders.Authorization, "Custom letmein")
         }
 
@@ -75,7 +75,7 @@ class BearerAuthTest {
     fun `unauthorized with wrong token`() = testApplication {
         configureServer()
 
-        val response = createClient {  }.get("/") {
+        val response = createClient { }.get("/") {
             withToken("opensaysme")
         }
 
@@ -109,7 +109,7 @@ class BearerAuthTest {
         }
 
         assertFailsWith<NotImplementedError> {
-            createClient {  }.get("/") {
+            createClient { }.get("/") {
                 withToken("letmein")
             }
         }
