@@ -4,6 +4,11 @@ import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.*
 import io.ktor.server.response.respond
 
+/**
+ * A Bearer [Authentication] provider.
+ *
+ * @see [jwt]
+ */
 public class BearerAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
     private val schemes: List<String> = config.schemes
@@ -33,6 +38,9 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
         context.principal(principal)
     }
 
+    /**
+     * A configuration for the [bearer] authentication provider.
+     */
     public class Config(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticate: AuthenticationFunction<BearerTokenCredential> = {
             throw NotImplementedError(
@@ -74,6 +82,11 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
     }
 }
 
+/**
+ * Installs the Bearer [Authentication] provider.
+ * Bearer auth requires the developer to provide a custom 'authenticate' function to authorize the token,
+ * and return the associated principal.
+ */
 public fun AuthenticationConfig.bearer(
     name: String? = null,
     configure: BearerAuthenticationProvider.Config.() -> Unit,

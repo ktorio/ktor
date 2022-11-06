@@ -139,7 +139,7 @@ public typealias JWTConfigureFunction = Verification.() -> Unit
 /**
  * A JWT [Authentication] provider.
  *
- * @see [jwt]
+ * @see [bearer]
  */
 public class JWTAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
