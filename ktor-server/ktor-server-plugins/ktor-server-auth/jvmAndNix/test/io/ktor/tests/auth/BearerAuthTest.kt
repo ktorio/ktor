@@ -19,7 +19,7 @@ class BearerAuthTest {
         val response = createClient {  }.get("/")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertNotEquals("Secret info", response.bodyAsText())
+        assertEquals("", response.bodyAsText())
     }
 
     @Test
@@ -31,7 +31,7 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("Secret info", response.bodyAsText())
+        assertEquals("admin", response.bodyAsText())
     }
 
     @Test
@@ -43,7 +43,7 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertNotEquals("Secret info", response.bodyAsText())
+        assertEquals("", response.bodyAsText())
     }
 
     @Test
@@ -55,7 +55,7 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertNotEquals("Secret info", response.bodyAsText())
+        assertEquals("", response.bodyAsText())
     }
 
     @Test
@@ -67,7 +67,7 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertNotEquals("Secret info", response.bodyAsText())
+        assertEquals("", response.bodyAsText())
     }
 
     @Test
@@ -111,7 +111,7 @@ class BearerAuthTest {
             routing {
                 authenticate {
                     route("/") {
-                        handle { call.respondText("Secret info") }
+                        handle { call.respondText(call.principal<UserIdPrincipal>()?.name ?: "") }
                     }
                 }
             }
