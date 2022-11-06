@@ -24,6 +24,8 @@ public data class UserIdPrincipal(val name: String) : Principal
  */
 public data class UserPasswordCredential(val name: String, val password: String) : Credential
 
+public data class BearerTokenCredential(val token: String) : Credential
+
 /**
  * An in-memory table that keeps usernames and password hashes.
  * This allows you not to compromise user passwords if your data source is leaked.
