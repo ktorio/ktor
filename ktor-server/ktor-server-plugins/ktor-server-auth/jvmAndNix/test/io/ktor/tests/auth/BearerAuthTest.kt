@@ -35,11 +35,36 @@ class BearerAuthTest {
     }
 
     @Test
+    fun `successful with custom scheme`() = testApplication {
+        install(Authentication) {
+            bearer {
+                authSchemes("Custom")
+                authenticate { UserIdPrincipal("admin") }
+            }
+        }
+
+        routing {
+            authenticate {
+                route("/") {
+                    handle { call.respondText("hi") }
+                }
+            }
+        }
+
+        val response = createClient {  }.get("/") {
+            header(HttpHeaders.Authorization, "Custom letmein")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("hi", response.bodyAsText())
+    }
+
+    @Test
     fun `unauthorized with wrong scheme`() = testApplication {
         configureServer()
 
         val response = createClient {  }.get("/") {
-            header(HttpHeaders.Authorization, "Barer letmein")
+            header(HttpHeaders.Authorization, "Custom letmein")
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
@@ -99,23 +124,20 @@ class BearerAuthTest {
             if (token.token == "letmein") UserIdPrincipal("admin") else null
         }
     ) {
-        application {
-            install(Authentication) {
-                bearer {
-                    authenticate {
-                        authenticate(it)
-                    }
-                }
-            }
-
-            routing {
+        install(Authentication) {
+            bearer {
                 authenticate {
-                    route("/") {
-                        handle { call.respondText(call.principal<UserIdPrincipal>()?.name ?: "") }
-                    }
+                    authenticate(it)
                 }
             }
         }
 
+        routing {
+            authenticate {
+                route("/") {
+                    handle { call.respondText(call.principal<UserIdPrincipal>()?.name ?: "") }
+                }
+            }
+        }
     }
 }
