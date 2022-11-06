@@ -7,7 +7,7 @@ import io.ktor.server.response.respond
 /**
  * A Bearer [Authentication] provider.
  *
- * @see [jwt]
+ * @see [bearer]
  */
 public class BearerAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
