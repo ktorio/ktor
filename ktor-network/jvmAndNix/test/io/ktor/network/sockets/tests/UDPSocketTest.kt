@@ -15,7 +15,7 @@ class UDPSocketTest {
     private val done = atomic(0)
 
     @Test
-    fun testBroadcastFails(): Unit = testSockets { selector ->
+    fun testBroadcastFails(): Unit = testSockets { dispatcher ->
         if (isJvmWindows()) {
             return@testSockets
         }
@@ -23,7 +23,7 @@ class UDPSocketTest {
         lateinit var socket: BoundDatagramSocket
         var denied = false
         try {
-            socket = aSocket(selector)
+            socket = dispatcher
                 .udp()
                 .bind()
 
@@ -49,10 +49,10 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testBroadcastSuccessful() = testSockets { selector ->
+    fun testBroadcastSuccessful() = testSockets { dispatcher ->
         val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
         val server = launch {
-            aSocket(selector)
+            dispatcher
                 .udp()
                 .bind(InetSocketAddress("0.0.0.0", 0))
                 .use { socket ->
@@ -64,7 +64,7 @@ class UDPSocketTest {
 
         val serverSocket = serverSocketCompletable.await()
 
-        val clientSocket = aSocket(selector)
+        val clientSocket = dispatcher
             .udp()
             .bind {
                 broadcast = true
@@ -91,8 +91,8 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testClose(): Unit = testSockets { selector ->
-        val socket = aSocket(selector)
+    fun testClose(): Unit = testSockets { dispatcher ->
+        val socket = dispatcher
             .udp()
             .bind()
 
@@ -104,8 +104,8 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testInvokeOnClose() = testSockets { selector ->
-        val socket: BoundDatagramSocket = aSocket(selector)
+    fun testInvokeOnClose() = testSockets { dispatcher ->
+        val socket: BoundDatagramSocket = dispatcher
             .udp()
             .bind()
 
@@ -129,8 +129,8 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClose() = testSockets { selector ->
-        val socket: BoundDatagramSocket = aSocket(selector)
+    fun testOutgoingInvokeOnClose() = testSockets { dispatcher ->
+        val socket: BoundDatagramSocket = dispatcher
             .udp()
             .bind()
 
@@ -148,8 +148,8 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnCloseWithSocketClose() = testSockets { selector ->
-        val socket: BoundDatagramSocket = aSocket(selector)
+    fun testOutgoingInvokeOnCloseWithSocketClose() = testSockets { dispatcher ->
+        val socket: BoundDatagramSocket = dispatcher
             .udp()
             .bind()
 
@@ -167,8 +167,8 @@ class UDPSocketTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testOutgoingInvokeOnClosed() = testSockets { selector ->
-        val socket: BoundDatagramSocket = aSocket(selector)
+    fun testOutgoingInvokeOnClosed() = testSockets { dispatcher ->
+        val socket: BoundDatagramSocket = dispatcher
             .udp()
             .bind()
 
@@ -186,8 +186,8 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testSendReceive(): Unit = testSockets { selector ->
-        aSocket(selector)
+    fun testSendReceive(): Unit = testSockets { dispatcher ->
+        dispatcher
             .udp()
             .bind(InetSocketAddress("127.0.0.1", 8000)) {
                 reuseAddress = true

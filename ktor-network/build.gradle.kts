@@ -6,8 +6,9 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndNixMain {
+        commonMain {
             dependencies {
+                api(libs.kotlinx.coroutines.core)
                 api(project(":ktor-utils"))
             }
         }

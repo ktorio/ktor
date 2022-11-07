@@ -5,7 +5,10 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.nio.channels.*
 
-public actual interface Selectable : Closeable, DisposableHandle {
+/**
+ * A selectable entity with selectable NIO [channel], [interestedOps] subscriptions.
+ */
+public interface Selectable : Closeable, DisposableHandle {
     /**
      * Current selectable suspensions map
      */

@@ -6,31 +6,6 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 
 /**
- * Start building a socket
- */
-public fun aSocket(selector: SelectorManager): SocketBuilder = SocketBuilder(selector, SocketOptions.create())
-
-/**
- * Socket builder
- */
-@Suppress("PublicApiImplicitType", "unused")
-public class SocketBuilder internal constructor(
-    private val selector: SelectorManager,
-    override var options: SocketOptions
-) : Configurable<SocketBuilder, SocketOptions> {
-
-    /**
-     * Build TCP socket.
-     */
-    public fun tcp(): TcpSocketBuilder = TcpSocketBuilder(selector, options.peer())
-
-    /**
-     * Build UDP socket.
-     */
-    public fun udp(): UDPSocketBuilder = UDPSocketBuilder(selector, options.peer().udp())
-}
-
-/**
  * Set TCP_NODELAY socket option to disable the Nagle algorithm.
  */
 public fun <T : Configurable<T, *>> T.tcpNoDelay(): T {

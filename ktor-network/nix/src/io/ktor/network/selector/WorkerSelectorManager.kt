@@ -4,14 +4,12 @@
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class WorkerSelectorManager : SelectorManager {
+internal class WorkerSelectorManager(parent: CoroutineContext) : SelectorManager {
     private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
-    private val job = Job()
-    override val coroutineContext: CoroutineContext = selectorContext + job
+    override val coroutineContext: CoroutineContext = parent + selectorContext
 
     private val selector = SelectorHelper()
 

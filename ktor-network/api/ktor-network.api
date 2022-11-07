@@ -1,3 +1,23 @@
+public final class io/ktor/network/dispatcher/JvmSocketDispatcher : io/ktor/network/dispatcher/SocketDispatcher {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun tcp ()Lio/ktor/network/sockets/TcpSocketBuilder;
+	public fun udp ()Lio/ktor/network/sockets/UdpSocketBuilder;
+}
+
+public final class io/ktor/network/dispatcher/JvmSocketDispatcherKt {
+	public static final fun SocketDispatcher ()Lio/ktor/network/dispatcher/SocketDispatcher;
+	public static final fun SocketDispatcher (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/network/dispatcher/SocketDispatcher;
+}
+
+public abstract interface class io/ktor/network/dispatcher/SocketDispatcher : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public abstract fun tcp ()Lio/ktor/network/sockets/TcpSocketBuilder;
+	public abstract fun udp ()Lio/ktor/network/sockets/UdpSocketBuilder;
+}
+
 public final class io/ktor/network/selector/ActorSelectorManager : io/ktor/network/selector/SelectorManagerSupport, java/io/Closeable, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
 	public fun close ()V
@@ -49,18 +69,12 @@ public abstract interface class io/ktor/network/selector/Selectable : java/io/Cl
 }
 
 public abstract interface class io/ktor/network/selector/SelectorManager : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
-	public static final field Companion Lio/ktor/network/selector/SelectorManager$Companion;
 	public abstract fun getProvider ()Ljava/nio/channels/spi/SelectorProvider;
 	public abstract fun notifyClosed (Lio/ktor/network/selector/Selectable;)V
 	public abstract fun select (Lio/ktor/network/selector/Selectable;Lio/ktor/network/selector/SelectInterest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/network/selector/SelectorManager$Companion {
-}
-
 public final class io/ktor/network/selector/SelectorManagerKt {
-	public static final fun SelectorManager (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/network/selector/SelectorManager;
-	public static synthetic fun SelectorManager$default (Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/network/selector/SelectorManager;
 	public static final fun buildOrClose (Lio/ktor/network/selector/SelectorManager;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -126,11 +140,6 @@ public final class io/ktor/network/sockets/BoundDatagramSocket$DefaultImpls {
 	public static fun send (Lio/ktor/network/sockets/BoundDatagramSocket;Lio/ktor/network/sockets/Datagram;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/network/sockets/BuildersKt {
-	public static final fun aSocket (Lio/ktor/network/selector/SelectorManager;)Lio/ktor/network/sockets/SocketBuilder;
-	public static final fun tcpNoDelay (Lio/ktor/network/sockets/Configurable;)Lio/ktor/network/sockets/Configurable;
-}
-
 public abstract interface class io/ktor/network/sockets/Configurable {
 	public abstract fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
 	public abstract fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
@@ -139,6 +148,10 @@ public abstract interface class io/ktor/network/sockets/Configurable {
 
 public final class io/ktor/network/sockets/Configurable$DefaultImpls {
 	public static fun configure (Lio/ktor/network/sockets/Configurable;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
+}
+
+public final class io/ktor/network/sockets/ConfigurableKt {
+	public static final fun tcpNoDelay (Lio/ktor/network/sockets/Configurable;)Lio/ktor/network/sockets/Configurable;
 }
 
 public abstract interface class io/ktor/network/sockets/ConnectedDatagramSocket : io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AConnectedSocket, io/ktor/network/sockets/ASocket, io/ktor/network/sockets/DatagramReadWriteChannel, io/ktor/network/sockets/ReadWriteSocket {
@@ -231,15 +244,6 @@ public final class io/ktor/network/sockets/Socket$DefaultImpls {
 public abstract class io/ktor/network/sockets/SocketAddress {
 }
 
-public final class io/ktor/network/sockets/SocketBuilder : io/ktor/network/sockets/Configurable {
-	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
-	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/SocketBuilder;
-	public fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
-	public fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
-	public final fun tcp ()Lio/ktor/network/sockets/TcpSocketBuilder;
-	public final fun udp ()Lio/ktor/network/sockets/UDPSocketBuilder;
-}
-
 public abstract class io/ktor/network/sockets/SocketOptions {
 	public static final field Companion Lio/ktor/network/sockets/SocketOptions$Companion;
 	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -300,25 +304,21 @@ public final class io/ktor/network/sockets/SocketsKt {
 	public static synthetic fun openWriteChannel$default (Lio/ktor/network/sockets/AWritable;ZILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
-public final class io/ktor/network/sockets/TCPSocketBuilderJvmKt {
-	public static final fun connect (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class io/ktor/network/sockets/TcpSocketBuilder {
+	public abstract fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun connect (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/network/sockets/TcpSocketBuilder$DefaultImpls {
+	public static synthetic fun bind$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun connect$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class io/ktor/network/sockets/TcpSocketBuilder : io/ktor/network/sockets/Configurable {
-	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions;)V
-	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ServerSocket;
-	public final fun bind (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ServerSocket;
-	public static synthetic fun bind$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/ServerSocket;
-	public static synthetic fun bind$default (Lio/ktor/network/sockets/TcpSocketBuilder;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/ServerSocket;
-	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
-	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/TcpSocketBuilder;
-	public final fun connect (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun connect (Ljava/lang/String;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun connect$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+public final class io/ktor/network/sockets/TcpSocketBuilderKt {
+	public static final fun bind (Lio/ktor/network/sockets/TcpSocketBuilder;Ljava/lang/String;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun bind$default (Lio/ktor/network/sockets/TcpSocketBuilder;Ljava/lang/String;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun connect (Lio/ktor/network/sockets/TcpSocketBuilder;Ljava/lang/String;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun connect$default (Lio/ktor/network/sockets/TcpSocketBuilder;Ljava/lang/String;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
-	public fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
 }
 
 public final class io/ktor/network/sockets/TypeOfService {
@@ -346,22 +346,14 @@ public final class io/ktor/network/sockets/TypeOfService$Companion {
 	public final fun getUNDEFINED-zieKYfw ()B
 }
 
-public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/sockets/Configurable {
-	public static final field Companion Lio/ktor/network/sockets/UDPSocketBuilder$Companion;
-	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;)V
-	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/BoundDatagramSocket;
-	public static synthetic fun bind$default (Lio/ktor/network/sockets/UDPSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/BoundDatagramSocket;
-	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
-	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/UDPSocketBuilder;
-	public final fun connect (Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ConnectedDatagramSocket;
-	public static synthetic fun connect$default (Lio/ktor/network/sockets/UDPSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/ConnectedDatagramSocket;
-	public fun getOptions ()Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;
-	public synthetic fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
-	public fun setOptions (Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;)V
-	public synthetic fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
+public abstract interface class io/ktor/network/sockets/UdpSocketBuilder {
+	public abstract fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun connect (Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/network/sockets/UDPSocketBuilder$Companion {
+public final class io/ktor/network/sockets/UdpSocketBuilder$DefaultImpls {
+	public static synthetic fun bind$default (Lio/ktor/network/sockets/UdpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun connect$default (Lio/ktor/network/sockets/UdpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/network/sockets/UnixSocketAddress : io/ktor/network/sockets/SocketAddress {

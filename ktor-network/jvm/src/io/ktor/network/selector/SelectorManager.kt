@@ -10,12 +10,10 @@ import java.nio.channels.*
 import java.nio.channels.spi.*
 import kotlin.coroutines.*
 
-public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager = ActorSelectorManager(dispatcher)
-
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
  */
-public actual interface SelectorManager : CoroutineScope, Closeable {
+public interface SelectorManager : CoroutineScope, Closeable {
     /**
      * NIO selector provider
      */
@@ -24,7 +22,7 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
      */
-    public actual fun notifyClosed(selectable: Selectable)
+    public fun notifyClosed(selectable: Selectable)
 
     /**
      * Suspends until [interest] is selected for [selectable]
@@ -35,9 +33,7 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
      */
-    public actual suspend fun select(selectable: Selectable, interest: SelectInterest)
-
-    public actual companion object
+    public suspend fun select(selectable: Selectable, interest: SelectInterest)
 }
 
 /**
@@ -65,14 +61,14 @@ public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
  * @property [flag] to be set in NIO selector
  */
 @Suppress("KDocMissingDocumentation")
-public actual enum class SelectInterest(public val flag: Int) {
+public enum class SelectInterest(public val flag: Int) {
     READ(SelectionKey.OP_READ),
     WRITE(SelectionKey.OP_WRITE),
     ACCEPT(SelectionKey.OP_ACCEPT),
     CONNECT(SelectionKey.OP_CONNECT);
 
-    public actual companion object {
-        public actual val AllInterests: Array<SelectInterest> = values()
+    public companion object {
+        public val AllInterests: Array<SelectInterest> = values()
 
         public val flags: IntArray = values().map { it.flag }.toIntArray()
 

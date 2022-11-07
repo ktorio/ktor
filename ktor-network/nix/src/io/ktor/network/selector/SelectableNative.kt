@@ -4,7 +4,7 @@
 
 package io.ktor.network.selector
 
-public actual interface Selectable {
+public interface Selectable {
     public val descriptor: Int
 }
 

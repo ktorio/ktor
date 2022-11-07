@@ -4,17 +4,17 @@
 
 package io.ktor.network.sockets.tests
 
-import io.ktor.network.selector.*
+import io.ktor.network.dispatcher.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
-internal fun testSockets(block: suspend CoroutineScope.(SelectorManager) -> Unit) {
+internal fun testSockets(block: suspend CoroutineScope.(SocketDispatcher) -> Unit) {
     if (!PlatformUtils.IS_JVM && !PlatformUtils.IS_NATIVE) return
     testSuspend {
         withTimeout(1000) {
-            SelectorManager().use { selector ->
+            SocketDispatcher().use { selector ->
                 block(selector)
             }
         }

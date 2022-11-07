@@ -4,10 +4,10 @@
 
 package io.ktor.server.cio.backend
 
-import io.ktor.network.selector.*
+import io.ktor.network.dispatcher.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.WeakTimeoutQueue
+import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
@@ -35,7 +35,7 @@ public fun CoroutineScope.httpServer(
         serverLatch.join()
     }
 
-    val selector = SelectorManager(coroutineContext)
+    val socketDispatcher = SocketDispatcher(coroutineContext)
     val timeout = WeakTimeoutQueue(
         settings.connectionIdleTimeoutSeconds * 1000L
     )
@@ -45,7 +45,7 @@ public fun CoroutineScope.httpServer(
     )
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
-        aSocket(selector).tcp().bind(settings.host, settings.port).use { server ->
+        socketDispatcher.tcp().bind(settings.host, settings.port).use { server ->
             socket.complete(server)
 
             val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
@@ -100,7 +100,7 @@ public fun CoroutineScope.httpServer(
         timeout.cancel()
     }
     serverJob.invokeOnCompletion {
-        selector.close()
+        socketDispatcher.close()
     }
 
     return HttpServer(serverJob, acceptJob, socket)
