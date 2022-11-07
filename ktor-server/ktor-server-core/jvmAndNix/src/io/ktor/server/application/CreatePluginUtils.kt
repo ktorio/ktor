@@ -12,7 +12,7 @@ import io.ktor.util.pipeline.*
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -56,7 +56,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -94,7 +94,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
 /**
  * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.Route].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -119,7 +119,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
 public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
-    body: PluginBuilder<PluginConfigT>.() -> Unit
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
 ): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
 
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
@@ -134,14 +134,14 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
 
-        return createPluginInstance(application, pipeline, body, createConfiguration, configure)
+        return createRouteScopedPluginInstance(application, pipeline, body, createConfiguration, configure)
     }
 }
 
 /**
  * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.Route].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -168,7 +168,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     configurationPath: String,
     createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
-    body: PluginBuilder<PluginConfigT>.() -> Unit
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
 ): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
 
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
@@ -192,14 +192,14 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
 
-        return createPluginInstance(application, pipeline, body, { createConfiguration(config) }, configure)
+        return createRouteScopedPluginInstance(application, pipeline, body, { createConfiguration(config) }, configure)
     }
 }
 
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -224,7 +224,7 @@ public fun createApplicationPlugin(
 /**
  * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.Route].
  *
- * The example below create a plugin that prints a requested URL each time your application receives a call:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
  * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
@@ -245,7 +245,7 @@ public fun createApplicationPlugin(
  **/
 public fun createRouteScopedPlugin(
     name: String,
-    body: PluginBuilder<Unit>.() -> Unit
+    body: RouteScopedPluginBuilder<Unit>.() -> Unit
 ): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name, {}, body)
 
 private fun <
@@ -271,8 +271,32 @@ private fun <
     return PluginInstance(pluginBuilder)
 }
 
-private fun <Configuration : Any, Plugin : PluginBuilder<Configuration>> Plugin.setupPlugin(
-    body: Plugin.() -> Unit
+private fun <
+    PipelineT : ApplicationCallPipeline,
+    PluginConfigT : Any
+    > Plugin<PipelineT, PluginConfigT, PluginInstance>.createRouteScopedPluginInstance(
+    application: Application,
+    pipeline: ApplicationCallPipeline,
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit,
+    createConfiguration: () -> PluginConfigT,
+    configure: PluginConfigT.() -> Unit
+): PluginInstance {
+    val config = createConfiguration().apply(configure)
+
+    val currentPlugin = this
+    val pluginBuilder = object : RouteScopedPluginBuilder<PluginConfigT>(currentPlugin.key) {
+        override val application: Application = application
+        override val pipeline: ApplicationCallPipeline = pipeline
+        override val pluginConfig: PluginConfigT = config
+        override val route: Route? = pipeline as? Route
+    }
+
+    pluginBuilder.setupPlugin(body)
+    return PluginInstance(pluginBuilder)
+}
+
+private fun <Configuration : Any, Builder : PluginBuilder<Configuration>> Builder.setupPlugin(
+    body: Builder.() -> Unit
 ) {
     apply(body)
 
@@ -294,3 +318,27 @@ private fun <Configuration : Any, Plugin : PluginBuilder<Configuration>> Plugin.
 
     hooks.forEach { it.install(pipeline) }
 }
+
+@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
+@kotlin.jvm.JvmName("createRouteScopedPluginOld")
+public fun createRouteScopedPlugin(
+    name: String,
+    body: PluginBuilder<Unit>.() -> Unit
+): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name, {}, body)
+
+@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
+@kotlin.jvm.JvmName("createRouteScopedPluginOld")
+public fun <PluginConfigT : Any> createRouteScopedPlugin(
+    name: String,
+    createConfiguration: () -> PluginConfigT,
+    body: PluginBuilder<PluginConfigT>.() -> Unit
+): RouteScopedPlugin<PluginConfigT> = createRouteScopedPlugin(name, createConfiguration, body)
+
+@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
+@kotlin.jvm.JvmName("createRouteScopedPluginOld")
+public fun <PluginConfigT : Any> createRouteScopedPlugin(
+    name: String,
+    configurationPath: String,
+    createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
+    body: PluginBuilder<PluginConfigT>.() -> Unit
+): RouteScopedPlugin<PluginConfigT> = createRouteScopedPlugin(name, configurationPath, createConfiguration, body)

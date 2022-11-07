@@ -96,6 +96,9 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 	public static final fun createRouteScopedPlugin (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 	public static final fun createRouteScopedPlugin (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
+	public static final synthetic fun createRouteScopedPluginOld (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
+	public static final synthetic fun createRouteScopedPluginOld (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
+	public static final synthetic fun createRouteScopedPluginOld (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/RouteScopedPlugin;
 }
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
@@ -163,6 +166,11 @@ public final class io/ktor/server/application/PluginInstance {
 }
 
 public abstract interface class io/ktor/server/application/RouteScopedPlugin : io/ktor/server/application/BaseRouteScopedPlugin {
+}
+
+public abstract class io/ktor/server/application/RouteScopedPluginBuilder : io/ktor/server/application/PluginBuilder {
+	public fun <init> (Lio/ktor/util/AttributeKey;)V
+	public abstract fun getRoute ()Lio/ktor/server/routing/Route;
 }
 
 public final class io/ktor/server/application/RouteScopedPluginKt {
