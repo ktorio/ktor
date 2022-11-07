@@ -4,7 +4,17 @@
 
 package io.ktor.server.application
 
+import io.ktor.server.routing.*
+import io.ktor.util.*
+
 /**
  * Utility class to build a [RouteScopedPlugin] instance.
  **/
-public typealias RouteScopedPluginBuilder<PluginConfig> = PluginBuilder<PluginConfig>
+public abstract class RouteScopedPluginBuilder<PluginConfig : Any>(key: AttributeKey<PluginInstance>) :
+    PluginBuilder<PluginConfig>(key) {
+
+    /**
+     * A [Route] to which this plugin was installed. Can be `null` if plugin in installed into [Application].
+     **/
+    public abstract val route: Route?
+}

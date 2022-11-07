@@ -4,6 +4,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -235,6 +236,52 @@ class ApplicationPluginTest {
                 assertEquals("default", it.response.content)
             }
         }
+    }
+
+    @Suppress("UNUSED_VARIABLE")
+    @Test
+    fun `test routing scoped install can access route`() = testApplication {
+        // check that route property exists in all builders
+        val pluginWithConfig = createRouteScopedPlugin("A", ::FConfig) {
+            val path = route?.toString() ?: "no route"
+        }
+        val pluginWithConfigAndConfigPath = createRouteScopedPlugin("A", "configPath", { FConfig() }) {
+            val path = route?.toString() ?: "no route"
+        }
+        val plugin1 = createRouteScopedPlugin("A") {
+            val path = route?.toString() ?: "no route"
+            onCall { call ->
+                call.response.headers.append("PATH-1", path)
+            }
+        }
+
+        val plugin2 = createRouteScopedPlugin("B") {
+            val path = route?.toString() ?: "no route"
+            onCall { call ->
+                call.response.headers.append("PATH-2", path)
+            }
+        }
+
+        install(plugin1)
+        routing {
+            get {
+                call.respond("OK")
+            }
+            route("/a") {
+                install(plugin2)
+                get {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        val response1 = client.get("/")
+        assertEquals("no route", response1.headers["PATH-1"])
+        assertNull(response1.headers["PATH-2"])
+
+        val response2 = client.get("/a")
+        assertEquals("no route", response2.headers["PATH-1"])
+        assertEquals("/a", response2.headers["PATH-2"])
     }
 
     var globalSideEffect = ""
