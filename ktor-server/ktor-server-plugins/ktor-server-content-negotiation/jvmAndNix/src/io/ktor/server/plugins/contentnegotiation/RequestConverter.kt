@@ -5,11 +5,11 @@
 package io.ktor.server.plugins.contentnegotiation
 
 import io.ktor.http.*
-import io.ktor.serialization.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
@@ -18,7 +18,12 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
         val registrations = pluginConfig.registrations
         val requestedType = call.receiveType
 
-        if (requestedType.type in pluginConfig.ignoredTypes) return@onCallReceive
+        if (requestedType.type in pluginConfig.ignoredTypes) {
+            LOGGER.trace(
+                "Skipping for request type ${requestedType.type} because the type is ignored."
+            )
+            return@onCallReceive
+        }
 
         transformBody { body: ByteReadChannel ->
             val requestContentType = try {
@@ -29,20 +34,45 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
                     parseFailure
                 )
             }
-            val suitableConverters = registrations
-                .filter { converter -> requestContentType.match(converter.contentType) }
-                .map { it.converter }
-                .takeIf { it.isNotEmpty() } ?: return@transformBody body
 
-            try {
-                @OptIn(InternalAPI::class)
-                suitableConverters.deserialize(body, requestedType, call.request.contentCharset() ?: Charsets.UTF_8)
-            } catch (convertException: ContentConvertException) {
-                throw BadRequestException(
-                    convertException.message ?: "Can't convert parameters",
-                    convertException.cause
-                )
+            val charset = call.request.contentCharset() ?: Charsets.UTF_8
+            for (registration in registrations) {
+                return@transformBody convertBody(body, charset, registration, requestedType, requestContentType)
+                    ?: continue
             }
+
+            LOGGER.trace("No suitable content converter found for request type ${requestedType.type}")
+            return@transformBody body
         }
+    }
+}
+
+private suspend fun convertBody(
+    body: ByteReadChannel,
+    charsets: Charset,
+    registration: ConverterRegistration,
+    receiveType: TypeInfo,
+    requestContentType: ContentType
+): Any? {
+    if (!requestContentType.match(registration.contentType)) {
+        LOGGER.trace(
+            "Skipping content converter for request type ${receiveType.type} because " +
+                "content type $requestContentType does not match ${registration.contentType}"
+        )
+        return null
+    }
+
+    val converter = registration.converter
+    val convertedBody = try {
+        converter.deserialize(charsets, receiveType, body)
+    } catch (cause: Throwable) {
+        throw BadRequestException("Failed to convert request body to ${receiveType.type}", cause)
+    }
+
+    return when {
+        convertedBody != null -> convertedBody
+        !body.isClosedForRead -> body
+        receiveType.kotlinType?.isMarkedNullable == true -> NullBody
+        else -> throw BadRequestException("Cannot convert request body to ${receiveType.type}")
     }
 }
