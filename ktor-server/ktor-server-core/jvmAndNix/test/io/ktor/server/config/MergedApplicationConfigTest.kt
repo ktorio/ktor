@@ -51,6 +51,29 @@ class MergedApplicationConfigTest {
     }
 
     @Test
+    fun testConfigListWhenOneHasNoKey() {
+        val first = MapApplicationConfig(
+            "first1.second.size" to "2",
+            "first1.second.0.third" to "value1",
+            "first1.second.1.third" to "value2"
+        )
+        val second = MapApplicationConfig(
+            "first2.second.size" to "2",
+            "first2.second.0.third" to "value1",
+            "first2.second.1.third" to "value2"
+        )
+        val config = MergedApplicationConfig(first, second)
+        val configs1 = config.configList("first1.second")
+        assertEquals(2, configs1.size)
+        assertEquals("value1", configs1[0].property("third").getString())
+        assertEquals("value2", configs1[1].property("third").getString())
+        val configs2 = config.configList("first2.second")
+        assertEquals(2, configs2.size)
+        assertEquals("value1", configs2[0].property("third").getString())
+        assertEquals("value2", configs2[1].property("third").getString())
+    }
+
+    @Test
     fun testPropertyOrNull() {
         val first = MapApplicationConfig("first" to "value1")
         val second = MapApplicationConfig("first" to "value2", "second" to "value3")
