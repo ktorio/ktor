@@ -222,7 +222,6 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
                         replaced = true
                         HeaderValueParam(name, value)
                     }
-
                     else -> null
                 }
             }
