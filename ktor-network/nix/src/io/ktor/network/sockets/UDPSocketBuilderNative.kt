@@ -34,6 +34,7 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     return DatagramSocketNative(
         descriptor = descriptor,
         selector = selector,
+        remote = remoteAddress,
         parent = selector.coroutineContext
     )
 }
@@ -57,6 +58,7 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     return DatagramSocketNative(
         descriptor = descriptor,
         selector = selector,
+        remote = null,
         parent = selector.coroutineContext
     )
 }

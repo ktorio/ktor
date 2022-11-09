@@ -22,7 +22,8 @@ private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
 
 internal class DatagramSendChannel(
     val descriptor: Int,
-    val socket: DatagramSocketNative
+    val socket: DatagramSocketNative,
+    val remote: SocketAddress?
 ) : SendChannel<Datagram> {
     private val onCloseHandler = atomic<((Throwable?) -> Unit)?>(null)
     private val closed = atomic(false)
@@ -52,6 +53,11 @@ internal class DatagramSendChannel(
     @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
+        if (remote != null) {
+            check(element.address == remote) {
+                "Datagram address ${element.address} doesn't match the connected address $remote"
+            }
+        }
 
         var result = false
 
@@ -60,20 +66,9 @@ internal class DatagramSendChannel(
                 element.packet.copy().readAvailable(buffer)
 
                 val bytes = element.packet.copy().readBytes()
-                var bytesWritten: Int? = null
-                bytes.usePinned { pinned ->
-                    element.address.address.nativeAddress { address, addressSize ->
-                        bytesWritten = sendto(
-                            descriptor,
-                            pinned.addressOf(0),
-                            bytes.size.convert(),
-                            0,
-                            address,
-                            addressSize
-                        ).toInt()
-                    }
-                }
-                result = when (bytesWritten ?: error("bytesWritten cannot be null")) {
+                val bytesWritten = sento(element, bytes)
+
+                result = when (bytesWritten) {
                     0 -> throw IOException("Failed writing to closed socket")
                     -1 -> {
                         if (errno == EAGAIN) {
@@ -97,9 +92,43 @@ internal class DatagramSendChannel(
     }
 
     override suspend fun send(element: Datagram) {
+        if (remote != null) {
+            check(element.address == remote) {
+                "Datagram address ${element.address} doesn't match the connected address $remote"
+            }
+        }
+
         lock.withLock {
             sendImpl(element)
         }
+    }
+
+    private fun sento(datagram: Datagram, bytes: ByteArray): Int {
+        var bytesWritten: Int? = null
+        bytes.usePinned { pinned ->
+            if (remote == null) {
+                datagram.address.address.nativeAddress { address, addressSize ->
+                    bytesWritten = sendto(
+                        descriptor,
+                        pinned.addressOf(0),
+                        bytes.size.convert(),
+                        0,
+                        address,
+                        addressSize
+                    ).toInt()
+                }
+            } else {
+                bytesWritten = sendto(
+                    descriptor,
+                    pinned.addressOf(0),
+                    bytes.size.convert(),
+                    0,
+                    null,
+                    0
+                ).toInt()
+            }
+        }
+        return bytesWritten ?: error("bytesWritten cannot be null")
     }
 
     @OptIn(UnsafeNumber::class)
@@ -107,20 +136,9 @@ internal class DatagramSendChannel(
         datagram: Datagram,
         bytes: ByteArray = datagram.packet.readBytes()
     ) {
-        var bytesWritten: Int? = null
-        bytes.usePinned { pinned ->
-            datagram.address.address.nativeAddress { address, addressSize ->
-                bytesWritten = sendto(
-                    descriptor,
-                    pinned.addressOf(0),
-                    bytes.size.convert(),
-                    0,
-                    address,
-                    addressSize
-                ).toInt()
-            }
-        }
-        when (bytesWritten ?: error("bytesWritten cannot be null")) {
+        val bytesWritten: Int = sento(datagram, bytes)
+
+        when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (errno == EAGAIN) {
