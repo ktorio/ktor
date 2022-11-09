@@ -222,6 +222,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
                         replaced = true
                         HeaderValueParam(name, value)
                     }
+
                     else -> null
                 }
             }
@@ -229,8 +230,11 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             return Parameterized(authScheme, newParameters, encoding)
         }
 
-        override fun render(encoding: HeaderValueEncoding): String =
+        override fun render(encoding: HeaderValueEncoding): String = if (parameters.isEmpty()) {
+            authScheme
+        } else {
             parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
+        }
 
         /**
          * Tries to extract the first value of a parameter [name]. Returns null when not found.
@@ -285,6 +289,14 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
                     put(Parameters.Charset, charset.name)
                 }
             }
+        )
+
+        /**
+         * Generates an [AuthScheme.Bearer] challenge as a [HttpAuthHeader].
+         */
+        public fun bearerAuthChallenge(scheme: String, realm: String?): HttpAuthHeader = Parameterized(
+            authScheme = scheme,
+            parameters = if (realm == null) emptyMap() else mapOf(Parameters.Realm to realm)
         )
 
         /**

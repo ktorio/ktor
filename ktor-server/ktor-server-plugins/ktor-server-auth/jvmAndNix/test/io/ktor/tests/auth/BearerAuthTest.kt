@@ -7,6 +7,7 @@ package io.ktor.tests.auth
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -23,6 +24,7 @@ class BearerAuthTest {
         val response = client.get("/")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Bearer", response.headers[HttpHeaders.WWWAuthenticate])
         assertEquals("", response.bodyAsText())
     }
 
@@ -39,10 +41,22 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `successful with custom scheme`() = testApplication {
+    fun `successful with different cased scheme`() = testApplication {
+        configureServer()
+
+        val response = client.get("/") {
+            header(HttpHeaders.Authorization, "${AuthScheme.Bearer.lowercase()} letmein")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("admin", response.bodyAsText())
+    }
+
+    @Test
+    fun `successful with additional scheme`() = testApplication {
         install(Authentication) {
             bearer {
-                authSchemes("Custom")
+                authSchemes(additionalSchemes = arrayOf("Custom"))
                 authenticate { UserIdPrincipal("admin") }
             }
         }
@@ -72,6 +86,18 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Bearer", response.headers[HttpHeaders.WWWAuthenticate])
+        assertEquals("", response.bodyAsText())
+    }
+
+    @Test
+    fun `unauthorized with no token`() = testApplication {
+        configureServer()
+
+        val response = client.get("/")
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Bearer", response.headers[HttpHeaders.WWWAuthenticate])
         assertEquals("", response.bodyAsText())
     }
 
@@ -84,11 +110,12 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Bearer", response.headers[HttpHeaders.WWWAuthenticate])
         assertEquals("", response.bodyAsText())
     }
 
     @Test
-    fun `unauthorized with parameterized header`() = testApplication {
+    fun `unauthorized with parameterized token`() = testApplication {
         configureServer()
 
         val response = client.get("/") {
@@ -96,21 +123,15 @@ class BearerAuthTest {
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Bearer", response.headers[HttpHeaders.WWWAuthenticate])
         assertEquals("", response.bodyAsText())
     }
 
     @Test
     fun `exception when auth not configured`() = testApplication {
-        install(Authentication) {
-            bearer { }
-        }
-
-        routing {
-            authenticate {
-                get("/") {
-                }
-            }
-        }
+        configureServer(
+            authenticate = { throw NotImplementedError() }
+        )
 
         assertFailsWith<NotImplementedError> {
             client.get("/") {
@@ -119,20 +140,38 @@ class BearerAuthTest {
         }
     }
 
+    @Test
+    fun `unauthorized with custom realm and scheme`() = testApplication {
+        configureServer(
+            realm = "serverland",
+            defaultScheme = "Stuff"
+        )
+
+        val response = client.get("/") {
+            withToken("Token=letmein")
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("Stuff realm=serverland", response.headers[HttpHeaders.WWWAuthenticate])
+        assertEquals("", response.bodyAsText())
+    }
+
     private fun HttpRequestBuilder.withToken(token: String) {
-        header(HttpHeaders.Authorization, "Bearer $token")
+        header(HttpHeaders.Authorization, "${AuthScheme.Bearer} $token")
     }
 
     private fun ApplicationTestBuilder.configureServer(
-        authenticate: suspend (BearerTokenCredential) -> Principal? = { token ->
+        authenticate: AuthenticationFunction<BearerTokenCredential> = { token ->
             if (token.token == "letmein") UserIdPrincipal("admin") else null
-        }
+        },
+        realm: String? = null,
+        defaultScheme: String = AuthScheme.Bearer
     ) {
         install(Authentication) {
             bearer {
-                authenticate {
-                    authenticate(it)
-                }
+                this.defaultScheme = defaultScheme
+                this.realm = realm
+                this.authenticate = authenticate
             }
         }
 

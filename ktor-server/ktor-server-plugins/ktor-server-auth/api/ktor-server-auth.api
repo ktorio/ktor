@@ -143,8 +143,11 @@ public final class io/ktor/server/auth/BearerAuthenticationProvider : io/ktor/se
 public final class io/ktor/server/auth/BearerAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
-	public final fun authSchemes ([Ljava/lang/String;)V
+	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/BearerAuthenticationProvider$Config;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun authenticate (Lkotlin/jvm/functions/Function3;)V
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setRealm (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/auth/BearerTokenCredential : io/ktor/server/auth/Credential {

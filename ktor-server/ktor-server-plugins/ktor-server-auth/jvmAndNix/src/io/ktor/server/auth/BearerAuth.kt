@@ -4,7 +4,7 @@
 
 package io.ktor.server.auth
 
-import io.ktor.http.auth.HttpAuthHeader
+import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.response.respond
 
@@ -15,25 +15,27 @@ import io.ktor.server.response.respond
  */
 public class BearerAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
-    private val schemes: List<String> = config.schemes
+    private val realm = config.realm
+    private val defaultScheme = config.defaultScheme
+    private val schemesLowerCase = setOf(config.defaultScheme.lowercase()) + config.additionalSchemes.map { it.lowercase() }
     private val authenticate = config.authenticate
-    private val getAuthHeader: (ApplicationCall) -> HttpAuthHeader? = config.getAuthHeader
+    private val getAuthHeader = config.getAuthHeader
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val authHeader = getAuthHeader(context.call) ?: let {
             context.challenge(challengeKey, AuthenticationFailedCause.NoCredentials) { challenge, call ->
-                call.respond(UnauthorizedResponse())
+                call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(defaultScheme, realm)))
                 challenge.complete()
             }
             return
         }
 
         val principal = (authHeader as? HttpAuthHeader.Single)
-            ?.takeIf { it.authScheme.lowercase() in schemes }
+            ?.takeIf { it.authScheme.lowercase() in schemesLowerCase }
             ?.let { authenticate(context.call, BearerTokenCredential(it.blob)) }
             ?: let {
                 context.challenge(challengeKey, AuthenticationFailedCause.InvalidCredentials) { challenge, call ->
-                    call.respond(UnauthorizedResponse())
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(defaultScheme, realm)))
                     challenge.complete()
                 }
                 return
@@ -56,7 +58,13 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
             call.request.parseAuthorizationHeader()
         }
 
-        internal var schemes = listOf("bearer")
+        internal var defaultScheme = AuthScheme.Bearer
+        internal var additionalSchemes = emptySet<String>()
+
+        /**
+         * Specifies an options Bearer realm to be passed in `WWW-Authenticate` header.
+         */
+        public var realm: String? = null
 
         /**
          * Exchanges the token for a Principal.
@@ -76,10 +84,11 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
 
         /**
          * Provide the auth schemes accepted when validating the authentication.
-         * By default, it accepts "Bearer" scheme.
+         * By default, it accepts the "Bearer" scheme.
          */
-        public fun authSchemes(vararg schemes: String) {
-            this.schemes = schemes.map { it.lowercase() }
+        public fun authSchemes(defaultScheme: String = AuthScheme.Bearer, vararg additionalSchemes: String) {
+            this.defaultScheme = defaultScheme
+            this.additionalSchemes = additionalSchemes.toSet()
         }
 
         internal fun build() = BearerAuthenticationProvider(this)
