@@ -293,7 +293,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         /**
          * Generates an [AuthScheme.Bearer] challenge as a [HttpAuthHeader].
          */
-        public fun bearerAuthChallenge(scheme: String, realm: String?): HttpAuthHeader = Parameterized(
+        public fun bearerAuthChallenge(scheme: String, realm: String? = null): HttpAuthHeader = Parameterized(
             authScheme = scheme,
             parameters = if (realm == null) emptyMap() else mapOf(Parameters.Realm to realm)
         )
