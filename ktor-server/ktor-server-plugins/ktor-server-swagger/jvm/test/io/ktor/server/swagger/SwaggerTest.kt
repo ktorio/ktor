@@ -56,6 +56,6 @@ class SwaggerTest {
         }
 
         val response = client.get("/swagger/openapi/documentation.yaml").bodyAsText()
-        assertEquals("""hello:\n  world"".filter { it.isLetterOrDigit() }, response.filter { it.isLetterOrDigit() })
+        assertEquals("hello:\n  world".filter { it.isLetterOrDigit() }, response.filter { it.isLetterOrDigit() })
     }
 }
