@@ -1,6 +1,7 @@
 /*
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
+
 package io.ktor.client.tests.plugins
 
 import io.ktor.client.call.*
@@ -17,16 +18,17 @@ import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class CacheTest : ClientLoader() {
-    val publicStorage = CacheStorage.Unlimited()
-    val privateStorage = CacheStorage.Unlimited()
+@Suppress("DEPRECATION")
+class CacheLegacyStorageTest : ClientLoader() {
+    val publicStorage = HttpCacheStorage.Unlimited()
+    val privateStorage = HttpCacheStorage.Unlimited()
 
     @Test
     fun testNoStore() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -34,12 +36,12 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/no-store")
 
             val first = client.get(url).body<String>()
-            assertTrue(privateStorage.findAll(url).isEmpty())
-            assertTrue(publicStorage.findAll(url).isEmpty())
+            assertTrue(privateStorage.findByUrl(url).isEmpty())
+            assertTrue(publicStorage.findByUrl(url).isEmpty())
 
             val second = client.get(url).body<String>()
-            assertTrue(privateStorage.findAll(url).isEmpty())
-            assertTrue(publicStorage.findAll(url).isEmpty())
+            assertTrue(privateStorage.findByUrl(url).isEmpty())
+            assertTrue(publicStorage.findByUrl(url).isEmpty())
 
             assertNotEquals(first, second)
         }
@@ -49,8 +51,8 @@ class CacheTest : ClientLoader() {
     fun testNoCache() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -58,12 +60,12 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/no-cache")
 
             val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-            assertEquals(0, privateStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
+            assertEquals(0, privateStorage.findByUrl(url).size)
 
             val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-            assertEquals(0, privateStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
+            assertEquals(0, privateStorage.findByUrl(url).size)
 
             assertNotEquals(first, second)
         }
@@ -73,8 +75,8 @@ class CacheTest : ClientLoader() {
     fun testETagCache() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -82,10 +84,10 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/etag")
 
             val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             assertEquals(first, second)
         }
@@ -95,8 +97,8 @@ class CacheTest : ClientLoader() {
     fun testLastModified() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -104,10 +106,10 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/last-modified")
 
             val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             assertEquals(first, second)
         }
@@ -117,8 +119,8 @@ class CacheTest : ClientLoader() {
     fun testVary() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -172,8 +174,8 @@ class CacheTest : ClientLoader() {
     fun testVaryStale() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -228,8 +230,8 @@ class CacheTest : ClientLoader() {
     fun testNoVaryIn304() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -307,8 +309,8 @@ class CacheTest : ClientLoader() {
     fun testMaxAge() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -316,7 +318,7 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/max-age")
 
             val first = client.get(url).body<String>()
-            val cache = publicStorage.findAll(url)
+            val cache = publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
             val second = client.get(url).body<String>()
@@ -333,8 +335,8 @@ class CacheTest : ClientLoader() {
     fun testOnlyIfCached() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -361,8 +363,8 @@ class CacheTest : ClientLoader() {
     fun testMaxStale() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -370,7 +372,7 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/max-age")
 
             val original = client.get(url).body<String>()
-            val cache = publicStorage.findAll(url)
+            val cache = publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
             delay(2500)
@@ -400,8 +402,8 @@ class CacheTest : ClientLoader() {
     fun testNoStoreRequest() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -411,10 +413,10 @@ class CacheTest : ClientLoader() {
             val first = client.get(url) {
                 header(HttpHeaders.CacheControl, "no-store")
             }.body<String>()
-            assertEquals(0, publicStorage.findAll(url).size)
+            assertEquals(0, publicStorage.findByUrl(url).size)
 
             val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             assertNotEquals(first, second)
         }
@@ -424,8 +426,8 @@ class CacheTest : ClientLoader() {
     fun testNoCacheRequest() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -438,12 +440,12 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/etag?max-age=30")
 
             val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             val second = client.get(url) {
                 header(HttpHeaders.CacheControl, "no-cache")
             }.body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             assertEquals(2, requestsCount)
             assertEquals(first, second)
@@ -454,8 +456,8 @@ class CacheTest : ClientLoader() {
     fun testRequestWithMaxAge0() = clientTests(listOf("Js")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -468,12 +470,12 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/etag?max-age=30")
 
             val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             val second = client.get(url) {
                 header(HttpHeaders.CacheControl, "max-age=0")
             }.body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
+            assertEquals(1, publicStorage.findByUrl(url).size)
 
             assertEquals(2, requestsCount)
             assertEquals(first, second)
@@ -484,8 +486,8 @@ class CacheTest : ClientLoader() {
     fun testExpires() = clientTests {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -502,7 +504,7 @@ class CacheTest : ClientLoader() {
             }
 
             val first = getWithHeader(now.toHttpDate())
-            val cache = publicStorage.findAll(url)
+            val cache = publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
             // this should be from the cache
@@ -543,8 +545,8 @@ class CacheTest : ClientLoader() {
     fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
         config {
             install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
+                publicStorage = this@CacheLegacyStorageTest.publicStorage
+                privateStorage = this@CacheLegacyStorageTest.privateStorage
             }
         }
 
@@ -552,8 +554,8 @@ class CacheTest : ClientLoader() {
             val privateUrl = Url("$TEST_SERVER/cache/private")
             val publicUrl = Url("$TEST_SERVER/cache/public")
 
-            suspend fun publicCache() = publicStorage.findAll(publicUrl)
-            suspend fun privateCache() = privateStorage.findAll(privateUrl)
+            fun publicCache() = publicStorage.findByUrl(publicUrl)
+            fun privateCache() = privateStorage.findByUrl(privateUrl)
 
             val firstPrivate = client.get(privateUrl).body<String>()
             assertEquals(firstPrivate, "private")
@@ -601,10 +603,7 @@ class CacheTest : ClientLoader() {
                 level = LogLevel.ALL
                 logger = Logger.EMPTY
             }
-            install(HttpCache) {
-                publicStorage(this@CacheTest.publicStorage)
-                privateStorage(this@CacheTest.privateStorage)
-            }
+            install(HttpCache)
         }
         test { client ->
             client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
