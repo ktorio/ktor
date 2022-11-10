@@ -32,7 +32,7 @@ class SwaggerTest {
                 <script src="https://unpkg.com/swagger-ui-dist@4.14.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
                 <script>window.onload = function() {
                 window.ui = SwaggerUIBundle({
-                    url: '/swagger/documentation.json',
+                    url: '/swagger/openapi/documentation.yaml',
                     dom_id: '#swagger-ui',
                     presets: [
                         SwaggerUIBundle.presets.apis,
@@ -55,7 +55,7 @@ class SwaggerTest {
             swaggerUI("swagger")
         }
 
-        val response = client.get("/swagger/documentation.json").bodyAsText()
-        assertEquals("""{"hello":"world"}""".filter { it.isLetterOrDigit() }, response.filter { it.isLetterOrDigit() })
+        val response = client.get("/swagger/openapi/documentation.yaml").bodyAsText()
+        assertEquals("""hello:\n  world"".filter { it.isLetterOrDigit() }, response.filter { it.isLetterOrDigit() })
     }
 }

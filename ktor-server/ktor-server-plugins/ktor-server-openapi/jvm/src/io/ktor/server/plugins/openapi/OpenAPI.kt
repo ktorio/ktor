@@ -21,7 +21,7 @@ import java.io.*
  */
 public fun Routing.openAPI(
     path: String,
-    swaggerFile: String = "documentation.json",
+    swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
     val resource = application.environment.classLoader.getResource(swaggerFile)
