@@ -131,6 +131,36 @@ public final class io/ktor/server/auth/BasicAuthenticationProvider$Config : io/k
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
+public final class io/ktor/server/auth/BearerAuthKt {
+	public static final fun bearer (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun bearer$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/auth/BearerAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/BearerAuthenticationProvider$Config : io/ktor/server/auth/AuthenticationProvider$Config {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
+	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/BearerAuthenticationProvider$Config;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun authenticate (Lkotlin/jvm/functions/Function3;)V
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setRealm (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/BearerTokenCredential : io/ktor/server/auth/Credential {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/ktor/server/auth/BearerTokenCredential;
+	public static synthetic fun copy$default (Lio/ktor/server/auth/BearerTokenCredential;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/BearerTokenCredential;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getToken ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class io/ktor/server/auth/Credential {
 }
 
