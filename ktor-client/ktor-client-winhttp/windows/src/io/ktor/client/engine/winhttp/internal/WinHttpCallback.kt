@@ -28,9 +28,7 @@ internal fun winHttpCallback(
     statusInfo: LPVOID?,
     statusInfoLength: DWORD
 ) {
-    val contextPtr = dwContext.toLong().toCPointer<COpaque>() ?: run {
-        return
-    }
+    val contextPtr = dwContext.toLong().toCPointer<COpaque>() ?: return
 
     val connect = contextPtr.asStableRef<WinHttpConnect>().get()
     if (connect.isClosed) {
