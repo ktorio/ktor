@@ -20,15 +20,15 @@ import kotlin.test.*
 
 @Suppress("DEPRECATION")
 class CacheLegacyStorageTest : ClientLoader() {
-    val publicStorage = HttpCacheStorage.Unlimited()
-    val privateStorage = HttpCacheStorage.Unlimited()
 
     @Test
     fun testNoStore() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -49,10 +49,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testNoCache() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -73,10 +75,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testETagCache() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -95,10 +99,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testLastModified() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -117,10 +123,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testVary() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -172,10 +180,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testVaryStale() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -228,10 +238,12 @@ class CacheLegacyStorageTest : ClientLoader() {
     @OptIn(InternalAPI::class)
     @Test
     fun testNoVaryIn304() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -307,10 +319,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testMaxAge() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -333,10 +347,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testOnlyIfCached() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -361,10 +377,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testMaxStale() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -400,10 +418,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testNoStoreRequest() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -424,10 +444,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testNoCacheRequest() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -454,10 +476,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testRequestWithMaxAge0() = clientTests(listOf("Js")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -484,10 +508,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testExpires() = clientTests {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
@@ -543,10 +569,12 @@ class CacheLegacyStorageTest : ClientLoader() {
 
     @Test
     fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
+        val publicStorage = HttpCacheStorage.Unlimited()
+        val privateStorage = HttpCacheStorage.Unlimited()
         config {
             install(HttpCache) {
-                publicStorage = this@CacheLegacyStorageTest.publicStorage
-                privateStorage = this@CacheLegacyStorageTest.privateStorage
+                this.publicStorage = publicStorage
+                this.privateStorage = privateStorage
             }
         }
 
