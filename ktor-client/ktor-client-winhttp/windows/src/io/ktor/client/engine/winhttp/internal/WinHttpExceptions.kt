@@ -36,7 +36,7 @@ internal fun getWinHttpException(message: String, errorCode: UInt): Exception {
     return if (errorCode == ERROR_WINHTTP_TIMEOUT) {
         ConnectTimeoutException(cause)
     } else {
-        WinHttpIllegalStateException(cause)
+        IllegalStateException(cause)
     }
 }
 

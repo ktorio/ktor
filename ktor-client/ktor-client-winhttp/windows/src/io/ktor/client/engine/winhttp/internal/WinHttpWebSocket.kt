@@ -91,7 +91,7 @@ internal class WinHttpWebSocket(
         return closeableCoroutine(connect, ERROR_FAILED_TO_RECEIVE_FRAME) { continuation ->
             connect.on(WinHttpCallbackStatus.ReadComplete) { statusInfo, _ ->
                 if (statusInfo == null) {
-                    val exception = WinHttpIllegalStateException(ERROR_FAILED_TO_RECEIVE_FRAME)
+                    val exception = IllegalStateException(ERROR_FAILED_TO_RECEIVE_FRAME)
                     continuation.resumeWithException(exception)
                 } else {
                     val status = statusInfo.reinterpret<WINHTTP_WEB_SOCKET_STATUS>().pointed

@@ -59,6 +59,3 @@ internal class WinHttpClientEngine(
         return rawResponse.convert(requestTime, responseBody, callContext)
     }
 }
-
-@Suppress("KDocMissingDocumentation")
-public class WinHttpIllegalStateException(cause: String) : IllegalStateException(cause)

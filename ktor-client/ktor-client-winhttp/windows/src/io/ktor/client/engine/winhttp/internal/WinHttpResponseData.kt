@@ -26,7 +26,7 @@ internal suspend fun WinHttpResponseData.convert(
 ): HttpResponseData {
     val headers = parseResponse(ByteReadChannel(headers))?.use { response ->
         HeadersImpl(response.headers.toMap())
-    } ?: throw WinHttpIllegalStateException("Failed to parse response header")
+    } ?: throw IllegalStateException("Failed to parse response header")
 
     return HttpResponseData(
         HttpStatusCode.fromValue(statusCode),
