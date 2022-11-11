@@ -17,7 +17,8 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
 
     private val realm = config.realm
     private val defaultScheme = config.defaultScheme
-    private val schemesLowerCase = setOf(config.defaultScheme.lowercase()) + config.additionalSchemes.map { it.lowercase() }
+    private val schemesLowerCase =
+        config.additionalSchemes.map { it.lowercase() }.toSet() + config.defaultScheme.lowercase()
     private val authenticate = config.authenticate
     private val getAuthHeader = config.getAuthHeader
 
