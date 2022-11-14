@@ -90,6 +90,12 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-darwin-legacy"))
         }
     }
+
+    windowsTest {
+        dependencies {
+            api(project(":ktor-client:ktor-client-winhttp"))
+        }
+    }
 }
 
 useJdkVersionForJvmTests(11)
