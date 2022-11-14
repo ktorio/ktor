@@ -13,8 +13,8 @@ import java.nio.file.*
 import kotlin.test.*
 
 class FileCacheTest : ClientLoader() {
-    val publicStorage = FileCacheStorage(Files.createTempDirectory("cache-test-public").toFile())
-    val privateStorage = FileCacheStorage(Files.createTempDirectory("cache-test-private").toFile())
+    private val publicStorage = FileStorage(Files.createTempDirectory("cache-test-public").toFile())
+    private val privateStorage = FileStorage(Files.createTempDirectory("cache-test-private").toFile())
 
     @Test
     fun testVaryHeader() = clientTests(listOf("Js")) {
