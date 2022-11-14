@@ -92,6 +92,7 @@ class TestEngineMultipartTest {
     }
 
     @Test
+    @Ignore
     fun testMultiPartShouldFail() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
