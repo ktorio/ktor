@@ -77,7 +77,7 @@ class SessionTest {
                     call.respondText("ok")
                 }
                 get("/2") {
-                    assertEquals(TestUserSession("id1", emptyList()), call.sessions.get<TestUserSession>())
+                    assertEquals(TestUserSession("id1", emptyList()), call.sessions.get())
 
                     call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
                 }
@@ -104,7 +104,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -183,7 +183,7 @@ class SessionTest {
                         call.respondText("ok")
                     }
                     get("/2") {
-                        assertEquals(TestUserSession("id1", emptyList()), call.sessions.get<TestUserSession>())
+                        assertEquals(TestUserSession("id1", emptyList()), call.sessions.get())
 
                         call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
                     }
@@ -208,7 +208,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -231,7 +231,7 @@ class SessionTest {
                         call.respondText("ok")
                     }
                     get("/2") {
-                        assertEquals(sessionA, call.sessions.get<TestUserSession>())
+                        assertEquals(sessionA, call.sessions.get())
                         call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
                     }
                 }
@@ -245,7 +245,7 @@ class SessionTest {
                         call.respondText("ok")
                     }
                     get("/2") {
-                        assertEquals(sessionB, call.sessions.get<TestUserSessionB>())
+                        assertEquals(sessionB, call.sessions.get())
                         call.respondText("ok, ${call.sessions.get<TestUserSessionB>()?.userId}")
                     }
                 }
@@ -261,7 +261,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/a/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -275,7 +275,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/b/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
             }.let { call ->
                 assertEquals("ok, id2", call.response.content)
             }

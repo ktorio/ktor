@@ -194,7 +194,7 @@ class CookiesTest : ClientLoader() {
                 val response = httpResponse.bodyAsText()
                 val cookieStrings = response.split("; ").filter { it.isNotBlank() }
                 assertEquals(4, cookieStrings.size)
-                assertEquals("uri=first,+cookie", cookieStrings[0])
+                assertEquals("uri=first%2C+cookie", cookieStrings[0])
                 assertEquals("raw=first%2C+cookie", cookieStrings[1])
                 assertEquals("base64=Zmlyc3QsIGNvb2tpZQ==", cookieStrings[2])
                 assertEquals("dquotes=\"first, cookie\"", cookieStrings[3])
