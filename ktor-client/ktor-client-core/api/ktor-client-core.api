@@ -729,12 +729,9 @@ public final class io/ktor/client/plugins/cache/storage/CachedResponseData {
 	public fun hashCode ()I
 }
 
-public final class io/ktor/client/plugins/cache/storage/FileCacheStorage : io/ktor/client/plugins/cache/storage/CacheStorage {
-	public fun <init> (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)V
-	public synthetic fun <init> (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun find (Lio/ktor/http/Url;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun findAll (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun store (Lio/ktor/http/Url;Lio/ktor/client/plugins/cache/storage/CachedResponseData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public final class io/ktor/client/plugins/cache/storage/FileCacheStorageKt {
+	public static final fun FileStorage (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
 public abstract class io/ktor/client/plugins/cache/storage/HttpCacheStorage {

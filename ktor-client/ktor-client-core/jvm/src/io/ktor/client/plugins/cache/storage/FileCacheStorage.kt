@@ -15,7 +15,44 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import java.io.*
 
-public class FileCacheStorage(
+/**
+ * Creates storage that uses file system to store cache data.
+ * @param directory directory to store cache data.
+ * @param dispatcher dispatcher to use for file operations.
+ */
+public fun FileStorage(
+    directory: File,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+): CacheStorage = CachingCacheStorage(FileCacheStorage(directory, dispatcher))
+
+internal class CachingCacheStorage(
+    private val delegate: CacheStorage
+) : CacheStorage {
+
+    private val store = ConcurrentMap<Url, Set<CachedResponseData>>()
+
+    override suspend fun store(url: Url, data: CachedResponseData) {
+        delegate.store(url, data)
+        store[url] = delegate.findAll(url)
+    }
+
+    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+        if (!store.containsKey(url)) {
+            store[url] = delegate.findAll(url)
+        }
+        val data = store.getValue(url)
+        return data.find { it.varyKeys == varyKeys }
+    }
+
+    override suspend fun findAll(url: Url): Set<CachedResponseData> {
+        if (!store.containsKey(url)) {
+            store[url] = delegate.findAll(url)
+        }
+        return store.getValue(url)
+    }
+}
+
+private class FileCacheStorage(
     private val directory: File,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CacheStorage {
@@ -78,10 +115,7 @@ public class FileCacheStorage(
         }
     }
 
-    private suspend fun writeCache(
-        channel: ByteChannel,
-        cache: CachedResponseData
-    ) {
+    private suspend fun writeCache(channel: ByteChannel, cache: CachedResponseData) {
         channel.writeStringUtf8(cache.url.toString() + "\n")
         channel.writeInt(cache.statusCode.value)
         channel.writeStringUtf8(cache.statusCode.description + "\n")
