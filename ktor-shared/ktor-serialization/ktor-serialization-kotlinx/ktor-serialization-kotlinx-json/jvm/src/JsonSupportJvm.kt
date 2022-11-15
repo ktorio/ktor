@@ -15,9 +15,27 @@ import kotlinx.serialization.json.*
  * @param json format instance (optional)
  * @param contentType to register with, application/json by default
  */
+@Deprecated(message = "Please use json function with streamRequestBody parameter", level = DeprecationLevel.HIDDEN)
 public actual fun Configuration.json(
     json: Json,
     contentType: ContentType
 ) {
-    register(contentType, KotlinxSerializationJsonJvmConverter(json))
+    json(json, contentType, true)
+}
+
+/**
+ * Register `application/json` (or another specified [contentType]) content type
+ * to [ContentNegotiation] plugin using kotlinx.serialization.
+ *
+ * @param json format instance (optional)
+ * @param contentType to register with, application/json by default
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
+ */
+public fun Configuration.json(
+    json: Json = DefaultJson,
+    contentType: ContentType = ContentType.Application.Json,
+    streamRequestBody: Boolean = true
+) {
+    register(contentType, KotlinxSerializationJsonJvmConverter(json, streamRequestBody))
 }

@@ -20,9 +20,22 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 /**
- * A GSON converter for the [ContentNegotiation] plugin.
+ * A content converter that uses [Gson]
+ *
+ * @param gson a configured instance of [Gson]
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
  */
-public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
+public class GsonConverter(
+    private val gson: Gson = Gson(),
+    private val streamRequestBody: Boolean = true
+) : ContentConverter {
+
+    @Deprecated(
+        "Use GsonConverter(gson, streamRequestBody) instead.",
+        level = DeprecationLevel.HIDDEN,
+    )
+    public constructor(gson: Gson = Gson()) : this(gson, true)
 
     @Suppress("OverridingDeprecatedMember")
     @Deprecated(
@@ -46,6 +59,9 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
+        if (!streamRequestBody) {
+            return TextContent(gson.toJson(value), contentType.withCharsetIfNeeded(charset))
+        }
         return OutputStreamContent(
             {
                 val writer = this.writer(charset = charset)
@@ -136,12 +152,31 @@ internal class ExcludedTypeGsonException(
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
+@Deprecated("This will be removed.", level = DeprecationLevel.HIDDEN)
 public fun Configuration.gson(
     contentType: ContentType = ContentType.Application.Json,
     block: GsonBuilder.() -> Unit = {}
 ) {
+    gson(contentType, true, block)
+}
+
+/**
+ * Registers the `application/json` content type to the [ContentNegotiation] plugin using GSON.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ * @param contentType the content type to send with request
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
+ * @param block a configuration block for [Gson]
+ */
+public fun Configuration.gson(
+    contentType: ContentType = ContentType.Application.Json,
+    streamRequestBody: Boolean = true,
+    block: GsonBuilder.() -> Unit = {}
+) {
     val builder = GsonBuilder()
     builder.apply(block)
-    val converter = GsonConverter(builder.create())
+    val converter = GsonConverter(builder.create(), streamRequestBody)
     register(contentType, converter)
 }

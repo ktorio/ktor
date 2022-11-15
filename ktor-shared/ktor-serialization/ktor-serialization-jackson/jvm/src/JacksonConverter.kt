@@ -24,7 +24,7 @@ import kotlin.text.*
 /**
  * A content converter that uses [Jackson]
  *
- * @param mapper a configured instance of [ObjectMapper]
+ * @param objectMapper a configured instance of [ObjectMapper]
  * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
  * This will set `Transfer-Encoding: chunked` header.
  */

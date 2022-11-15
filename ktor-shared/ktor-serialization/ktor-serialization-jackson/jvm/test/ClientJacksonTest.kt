@@ -39,13 +39,6 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
                 ContentType.Application.Json
             )
         }
-        post("/headers") {
-            call.respondText(
-                "${call.request.headers[HttpHeaders.TransferEncoding]}" +
-                    ":" +
-                    "${call.request.headers[HttpHeaders.ContentLength]}"
-            )
-        }
     }
 
     @Test

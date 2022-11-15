@@ -23,8 +23,10 @@ import kotlin.reflect.*
 import kotlin.text.*
 
 @OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
-public class KotlinxSerializationJsonJvmConverter(private val json: Json) :
-    AbstractKotlinxSerializationConverter(json) {
+public class KotlinxSerializationJsonJvmConverter(
+    private val json: Json,
+    private val streamRequestBody: Boolean = true
+) : AbstractKotlinxSerializationConverter(json) {
 
     override suspend fun serializeNullable(
         contentType: ContentType,
@@ -32,31 +34,31 @@ public class KotlinxSerializationJsonJvmConverter(private val json: Json) :
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
-        // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
-        if (charset == Charsets.UTF_8) {
-            OutputStreamContent(
-                {
-                    // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in OutputStream
-                    if (typeInfo.type == Flow::class) {
-                        (value as Flow<*>).serializeJson(this)
-                    } else {
-                        // non flow content
-                        outputStreamSerializationBase.serialize(
-                            OutputStreamSerializationParameters(
-                                json,
-                                value,
-                                typeInfo,
-                                Charsets.UTF_8,
-                                this
-                            )
-                        )
-                    }
-                },
-                contentType.withCharsetIfNeeded(Charsets.UTF_8)
-            )
+        if (!streamRequestBody || charset != Charsets.UTF_8) {
+            // fallback to common KotlinxSerializationConverter that uses TextContent
+            return fallbackConverter.serializeNullable(contentType, charset, typeInfo, value)
         }
-        // else fallback to common KotlinxSerializationConverter
-        return fallbackConverter.serializeNullable(contentType, charset, typeInfo, value)
+        // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
+        return OutputStreamContent(
+            {
+                // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in OutputStream
+                if (typeInfo.type == Flow::class) {
+                    (value as Flow<*>).serializeJson(this)
+                } else {
+                    // non flow content
+                    outputStreamSerializationBase.serialize(
+                        OutputStreamSerializationParameters(
+                            json,
+                            value,
+                            typeInfo,
+                            Charsets.UTF_8,
+                            this
+                        )
+                    )
+                }
+            },
+            contentType.withCharsetIfNeeded(Charsets.UTF_8)
+        )
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
