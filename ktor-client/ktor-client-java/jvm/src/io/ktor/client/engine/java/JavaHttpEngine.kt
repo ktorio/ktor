@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import java.net.http.*
 import java.time.*
+import java.time.temporal.*
 import java.util.concurrent.*
 
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
@@ -79,7 +80,13 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
                 data.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttribute ->
                     timeoutAttribute.connectTimeoutMillis?.let {
-                        connectTimeout(Duration.ofMillis(it))
+                        try {
+                            // Check that timeout end date as the number of milliseconds can fit Long type
+                            Instant.now().plus(it, ChronoUnit.MILLIS).toEpochMilli()
+                            connectTimeout(Duration.ofMillis(it))
+                        } catch (_: ArithmeticException) {
+                            // Do not set connect timeout if it's too big (default timeout is infinite)
+                        }
                     }
                 }
             }.build().also {

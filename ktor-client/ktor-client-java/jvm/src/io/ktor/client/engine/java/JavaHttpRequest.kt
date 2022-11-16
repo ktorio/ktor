@@ -16,6 +16,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.http.HttpRequest
 import java.time.*
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.coroutines.*
 
@@ -42,7 +43,13 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     with(builder) {
         getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
             timeoutAttributes.requestTimeoutMillis?.let {
-                timeout(Duration.ofMillis(it))
+                try {
+                    // Check that timeout end date as the number of milliseconds can fit Long type
+                    Instant.now().plus(it, ChronoUnit.MILLIS).toEpochMilli()
+                    timeout(Duration.ofMillis(it))
+                } catch (_: ArithmeticException) {
+                    // Do not set request timeout if it's too big (default timeout is infinite)
+                }
             }
         }
 

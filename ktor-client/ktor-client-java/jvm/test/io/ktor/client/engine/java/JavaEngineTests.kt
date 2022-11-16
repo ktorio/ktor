@@ -6,6 +6,7 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -103,6 +104,58 @@ class JavaEngineTests {
         }.use { client ->
             val response = client.get("https://httpbin.org/get")
             assertEquals(HttpProtocolVersion.HTTP_2_0, response.version)
+        }
+    }
+
+    @Test
+    fun infiniteConnectTimeout() = runBlocking {
+        HttpClient(Java) {
+            install(HttpTimeout) {
+                connectTimeoutMillis = Long.MAX_VALUE
+            }
+        }.use { client ->
+            val response = withTimeout(1000) { client.get("http://www.google.com") }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun infiniteRequestTimeout() = runBlocking {
+        HttpClient(Java) {
+            install(HttpTimeout)
+        }.use { client ->
+            val response = withTimeout(1000) {
+                client.get("http://www.google.com") {
+                    timeout { requestTimeoutMillis = Long.MAX_VALUE }
+                }
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun usualConnectTimeout() = runBlocking {
+        HttpClient(Java) {
+            install(HttpTimeout) {
+                connectTimeoutMillis = 1000
+            }
+        }.use { client ->
+            val response = withTimeout(1000) { client.get("http://www.google.com") }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun usualRequestTimeout() = runBlocking {
+        HttpClient(Java) {
+            install(HttpTimeout)
+        }.use { client ->
+            val response = withTimeout(1000) {
+                client.get("http://www.google.com") {
+                    timeout { requestTimeoutMillis = 3000 }
+                }
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 }
