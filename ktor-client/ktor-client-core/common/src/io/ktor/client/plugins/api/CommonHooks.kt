@@ -45,8 +45,8 @@ public object Send : ClientHook<suspend Send.Sender.(HttpRequestBuilder) -> Http
 
 /**
  * A hook that is executed for every request, even if it's not user initiated.
- * For example, if requests results in redirect,
- * [ClientPluginBuilder.onRequest] will be executed only for original, requests,
+ * For example, if a request results in redirect,
+ * [ClientPluginBuilder.onRequest] will be executed only for the original request,
  * but this hook will be executed for both original and redirected requests.
  */
 public object SendingRequest :
