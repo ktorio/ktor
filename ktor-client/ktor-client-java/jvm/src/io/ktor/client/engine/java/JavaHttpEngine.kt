@@ -80,13 +80,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
                 data.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttribute ->
                     timeoutAttribute.connectTimeoutMillis?.let {
-                        try {
-                            // Check that timeout end date as the number of milliseconds can fit Long type
-                            Instant.now().plus(it, ChronoUnit.MILLIS).toEpochMilli()
-                            connectTimeout(Duration.ofMillis(it))
-                        } catch (_: ArithmeticException) {
-                            // Do not set connect timeout if it's too big (default timeout is infinite)
-                        }
+                        if (!isTimeoutInfinite(it)) connectTimeout(Duration.ofMillis(it))
                     }
                 }
             }.build().also {
@@ -112,5 +106,16 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
             else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }
+    }
+}
+
+internal fun isTimeoutInfinite(timeoutMs: Long): Boolean {
+    if (timeoutMs == HttpTimeout.INFINITE_TIMEOUT_MS) return true
+    return try {
+        // Check that timeout end date as the number of milliseconds can fit Long type
+        Instant.now().plus(timeoutMs, ChronoUnit.MILLIS).toEpochMilli()
+        false
+    } catch (_: ArithmeticException) {
+        true
     }
 }
