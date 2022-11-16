@@ -14,9 +14,9 @@ import io.ktor.util.*
 public interface ClientPlugin<PluginConfig : Any> : HttpClientPlugin<PluginConfig, ClientPluginInstance<PluginConfig>>
 
 /**
- * Creates an [ClientPlugin] that can be installed into an [HttpClient].
+ * Creates a [ClientPlugin] that can be installed into an [HttpClient].
  *
- * The example below creates a plugin that prints adds header to every request:
+ * The example below creates a plugin that adds a custom header to every request:
  * ```
  * class CustomHeaderPluginConfig {
  *    var headerName: String = "X-Custom-Header"
@@ -63,10 +63,11 @@ public fun <PluginConfigT : Any> createClientPlugin(
     }
 
 /**
- * Creates an [ClientPlugin] with empty config that can be installed into an [HttpClient].
+ * Creates a [ClientPlugin] with empty config that can be installed into an [HttpClient].
  *
- * The example below creates a plugin that p
- * val CustomHeaderPlugin = createClientPlugin("CustomHeaderPlugin") { *
+ * The example below creates a plugin that adds a custom header to every request:
+ * ```
+ * val CustomHeaderPlugin = createClientPlugin("CustomHeaderPlugin") {
  *     onRequest { request, _ ->
  *        request.headers.append("X-Custom-Header", "Custom-Header-Value")
  *     }

@@ -16,7 +16,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
 /**
- * A utility class to build an [ClientPlugin] instance.
+ * An utility class used to build a [ClientPlugin] instance.
  **/
 @KtorDsl
 public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
@@ -35,14 +35,14 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
     internal var onClose: () -> Unit = {}
 
     /**
-     * Specifies the [block] handler for every http request.
+     * Specifies the [block] handler for every HTTP request.
      *
      * This block is invoked for every [HttpClient.request] call.
-     * There you can modify the request in a way you want: add headers, logging, etc.
+     * There you can modify the request in a way you want: add headers, configure logging, etc.
      *
      * @see [createClientPlugin]
      *
-     * @param block An action that needs to be executed when a client creates http request.
+     * @param block An action that needs to be executed when a client creates an HTTP request.
      */
     public fun onRequest(
         block: suspend OnRequestContext.(request: HttpRequestBuilder, content: Any) -> Unit
@@ -51,14 +51,14 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every http response.
+     * Specifies the [block] handler for every HTTP response.
      *
      * This block is invoked for every incoming response.
      * There you can inspect the response in a way you want: save cookies, add logging, etc.
      *
      * @see [createClientPlugin]
      *
-     * @param block An action that needs to be executed when a client receives http response.
+     * @param block An action that needs to be executed when a client receives an HTTP response.
      */
     public fun onResponse(
         block: suspend OnResponseContext.(response: HttpResponse) -> Unit
@@ -67,10 +67,10 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] transformer for request body.
+     * Specifies the [block] transformer for a request body.
      *
      * This block is invoked for every [HttpClient.request] call.
-     * There you should serialize body into [OutgoingContent] or return `null` if your transformation is not applicable.
+     * Here you should serialize body into [OutgoingContent] or return `null` if your transformation is not applicable.
      *
      * @see [createClientPlugin]
      *
@@ -87,10 +87,10 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] transformer for response body.
+     * Specifies the [block] transformer for a response body.
      *
      * This block is invoked for every [HttpResponse.body] call.
-     * There you should deserialize body into an instance of [requestedType]
+     * Here you should deserialize body into an instance of [requestedType]
      * or return `null` if your transformation is not applicable.
      *
      * @see [createClientPlugin]
@@ -117,7 +117,7 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies a [handler] for a specific [hook].
      * A [hook] can be a specific place in time or event during the request
-     * processing like receiving response, an exception during call processing, etc.
+     * processing like receiving a response, an exception during call processing, etc.
      *
      * @see [createClientPlugin]
      */
