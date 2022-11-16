@@ -7,7 +7,6 @@ package io.ktor.server.auth.jwt
 import com.auth0.jwt.impl.*
 import kotlin.test.*
 
-
 class JWTPayloadHolderTest {
 
     @Test
@@ -20,11 +19,13 @@ class JWTPayloadHolderTest {
     @Test
     fun claimListOfDifferentTypes() {
         val payload = JWTParser().parsePayload(
-            """{
+            """
+            {
                 "iss": ["issuer1", "issuer2"],
                 "sub": [true, false],
                 "aud": []
-            }""".trimIndent()
+            }
+            """.trimIndent()
         )
         val holder = object : JWTPayloadHolder(payload) {}
 
