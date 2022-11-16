@@ -108,8 +108,7 @@ public abstract class JWTPayloadHolder(
      */
     public fun <T : Any> getListClaim(name: String, clazz: KClass<T>): List<T> {
         return try {
-            val claim = payload.getClaim(name)
-            if (claim.isNull) emptyList() else claim.asList(clazz.javaObjectType)
+            payload.getClaim(name).asList(clazz.javaObjectType) ?: emptyList()
         } catch (ex: JWTDecodeException) {
             emptyList()
         }
