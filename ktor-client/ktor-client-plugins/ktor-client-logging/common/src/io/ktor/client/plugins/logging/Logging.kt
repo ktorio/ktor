@@ -42,7 +42,7 @@ public class Logging private constructor(
         /**
          * Specifies a [Logger] instance.
          */
-        public var logger: Logger = Logger.DEFAULT
+        public var logger: Logger? = null
 
         /**
          * Specifies the log the logging level.
@@ -214,7 +214,7 @@ public class Logging private constructor(
 
         override fun prepare(block: Config.() -> Unit): Logging {
             val config = Config().apply(block)
-            return Logging(config.logger, config.level, config.filters)
+            return Logging(config.logger ?: Logger.DEFAULT, config.level, config.filters)
         }
 
         override fun install(plugin: Logging, scope: HttpClient) {
