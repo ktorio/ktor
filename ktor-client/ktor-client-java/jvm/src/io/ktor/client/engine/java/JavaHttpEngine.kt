@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import java.net.http.*
 import java.time.*
+import java.time.temporal.*
 import java.util.concurrent.*
 
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
@@ -79,7 +80,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
                 data.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttribute ->
                     timeoutAttribute.connectTimeoutMillis?.let {
-                        connectTimeout(Duration.ofMillis(it))
+                        if (!isTimeoutInfinite(it)) connectTimeout(Duration.ofMillis(it))
                     }
                 }
             }.build().also {
@@ -105,5 +106,16 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
             else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }
+    }
+}
+
+internal fun isTimeoutInfinite(timeoutMs: Long, now: Instant = Instant.now()): Boolean {
+    if (timeoutMs == HttpTimeout.INFINITE_TIMEOUT_MS) return true
+    return try {
+        // Check that timeout end date as the number of milliseconds can fit Long type
+        now.plus(timeoutMs, ChronoUnit.MILLIS).toEpochMilli()
+        false
+    } catch (_: ArithmeticException) {
+        true
     }
 }
