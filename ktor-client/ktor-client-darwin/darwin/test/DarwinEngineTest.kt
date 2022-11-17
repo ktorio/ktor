@@ -112,22 +112,49 @@ class DarwinEngineTest {
     @Test
     fun testOverrideDefaultSession(): Unit = runBlocking {
         val client = HttpClient(Darwin) {
+            val delegate = KtorNSURLSessionDelegate()
+            val session = NSURLSession.sessionWithConfiguration(
+                NSURLSessionConfiguration.defaultSessionConfiguration(),
+                delegate,
+                delegateQueue = NSOperationQueue()
+            )
             engine {
-                usePreconfiguredSession(MySession())
+                usePreconfiguredSession(session, delegate)
             }
         }
 
-        var failedCause: Throwable? = null
-
         try {
-            client.get(TEST_SERVER)
-        } catch (cause: IllegalStateException) {
-            failedCause = cause
+            val response = client.get(TEST_SERVER)
+            assertEquals("Hello, world!", response.bodyAsText())
         } finally {
             client.close()
         }
+    }
 
-        assertEquals("It works", failedCause?.message)
+    @Test
+    fun testOverrideDefaultSessionWithWebSockets(): Unit = runBlocking {
+        val client = HttpClient(Darwin) {
+            val delegate = KtorNSURLSessionDelegate()
+            val session = NSURLSession.sessionWithConfiguration(
+                NSURLSessionConfiguration.defaultSessionConfiguration(),
+                delegate,
+                delegateQueue = NSOperationQueue()
+            )
+            engine {
+                usePreconfiguredSession(session, delegate)
+            }
+            install(WebSockets)
+        }
+
+        try {
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/echo")
+            session.send("test")
+            val response = session.incoming.receive() as Frame.Text
+            assertEquals("test", response.readText())
+            session.close()
+        } finally {
+            client.close()
+        }
     }
 
     @Test
@@ -151,7 +178,7 @@ class DarwinEngineTest {
         var customChallengeCalled = false
         val client = HttpClient(Darwin) {
             engine {
-                handleChallenge { session, task, challenge, completionHandler ->
+                handleChallenge { _, _, challenge, completionHandler ->
                     customChallengeCalled = true
                     challenge.protectionSpace.serverTrust?.let {
                         if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
@@ -175,11 +202,5 @@ class DarwinEngineTest {
 
     private fun stringToNSUrlString(value: String): String {
         return Url(value).toNSUrl().absoluteString!!
-    }
-}
-
-class MySession : NSURLSession() {
-    override fun dataTaskWithRequest(request: NSURLRequest): NSURLSessionDataTask {
-        error("It works")
     }
 }

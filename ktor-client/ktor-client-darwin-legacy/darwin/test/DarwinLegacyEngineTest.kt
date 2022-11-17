@@ -14,7 +14,7 @@ import kotlin.test.*
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-class DarwinEngineTest {
+class DarwinLegacyEngineTest {
 
     @Test
     fun testRequestInRunBlocking() = runBlocking {
@@ -109,22 +109,23 @@ class DarwinEngineTest {
     @Test
     fun testOverrideDefaultSession(): Unit = runBlocking {
         val client = HttpClient(DarwinLegacy) {
+            val delegate = KtorLegacyNSURLSessionDelegate()
+            val session = NSURLSession.sessionWithConfiguration(
+                NSURLSessionConfiguration.defaultSessionConfiguration(),
+                delegate,
+                delegateQueue = NSOperationQueue()
+            )
             engine {
-                usePreconfiguredSession(MySession())
+                usePreconfiguredSession(session, delegate)
             }
         }
 
-        var failedCause: Throwable? = null
-
         try {
-            client.get(TEST_SERVER)
-        } catch (cause: IllegalStateException) {
-            failedCause = cause
+            val response = client.get(TEST_SERVER)
+            assertEquals("Hello, world!", response.bodyAsText())
         } finally {
             client.close()
         }
-
-        assertEquals("It works", failedCause?.message)
     }
 
     @Test
@@ -144,11 +145,5 @@ class DarwinEngineTest {
 
     private fun stringToNSUrlString(value: String): String {
         return Url(value).toNSUrl().absoluteString!!
-    }
-}
-
-class MySession : NSURLSession() {
-    override fun dataTaskWithRequest(request: NSURLRequest): NSURLSessionDataTask {
-        error("It works")
     }
 }

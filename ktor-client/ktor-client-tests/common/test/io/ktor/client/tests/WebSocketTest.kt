@@ -81,6 +81,36 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    fun testParallelWebsocketSessions() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            coroutineScope {
+                launch {
+                    val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/echo")
+                    repeat(100) {
+                        session.send("test 1 $it")
+                        val response = session.incoming.receive() as Frame.Text
+                        assertEquals("test 1 $it", response.readText())
+                    }
+                    session.close()
+                }
+                launch {
+                    val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/echo")
+                    repeat(100) {
+                        session.send("test 2 $it")
+                        val response = session.incoming.receive() as Frame.Text
+                        assertEquals("test 2 $it", response.readText())
+                    }
+                    session.close()
+                }
+            }
+        }
+    }
+
+    @Test
     fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)

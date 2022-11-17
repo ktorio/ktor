@@ -28,38 +28,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-
-        if (data.isUpgradeRequest()) {
-            return executeWebSocketRequest(data, callContext)
-        }
-
         return session.execute(data, callContext)
-    }
-
-    @OptIn(UnsafeNumber::class)
-    private suspend fun executeWebSocketRequest(
-        data: HttpRequestData,
-        callContext: CoroutineContext
-    ): HttpResponseData {
-        val request = data.toNSUrlRequest()
-            .apply(config.requestConfig)
-
-        val websocketSession = DarwinWebsocketSession(GMTDate(), callContext, config.challengeHandler)
-        val session = createSession(config, websocketSession.delegate, requestQueue)
-        val task = session.webSocketTaskWithRequest(request)
-        websocketSession.task = task
-
-        launch(callContext) {
-            task.resume()
-        }
-
-        return try {
-            websocketSession.response.await()
-        } catch (cause: CancellationException) {
-            if (task.state == NSURLSessionTaskStateRunning) {
-                task.cancel()
-            }
-            throw cause
-        }
     }
 }
