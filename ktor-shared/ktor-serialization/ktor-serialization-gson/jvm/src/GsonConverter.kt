@@ -71,9 +71,15 @@ public class GsonConverter(
         return OutputStreamContent(
             {
                 val writer = this.writer(charset = charset)
-                // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in Writer
+                // specific behavior for kotlinx.coroutines.flow.Flow
                 if (typeInfo.type == Flow::class) {
-                    (value as Flow<*>).serializeJson(writer)
+                    if (prettyPrinting) {
+                        // for pretty print we must collect the flow into a List
+                        gson.toJson((value as Flow<*>).toList(), writer)
+                    } else {
+                        // emit asynchronous values in Writer : no pretty print here
+                        (value as Flow<*>).serializeJson(writer)
+                    }
                 } else {
                     // non flow content
                     gson.toJson(value, writer)
@@ -99,6 +105,12 @@ public class GsonConverter(
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
+    }
+
+    private val prettyPrinting by lazy {
+        val field = Gson::class.java.getDeclaredField("prettyPrinting")
+        field.isAccessible = true
+        field.get(gson) as Boolean
     }
 
     private companion object {

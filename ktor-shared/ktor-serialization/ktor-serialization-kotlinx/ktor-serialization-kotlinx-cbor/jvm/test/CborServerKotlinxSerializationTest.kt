@@ -17,7 +17,8 @@ class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTes
 
     override fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean
+        streamRequestBody: Boolean,
+        prettyPrint: Boolean
     ) {
         cbor(contentType = contentType)
     }
@@ -26,7 +27,7 @@ class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTes
         return DefaultCbor.decodeFromByteArray(serializer, t)
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
         return DefaultCbor.decodeFromByteArray(listSerializer, t)
     }
 

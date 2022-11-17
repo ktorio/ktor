@@ -19,23 +19,37 @@ import kotlin.test.*
 @Suppress("DEPRECATION")
 class ServerGsonTest : AbstractServerSerializationTest() {
     private val gson = Gson()
+    private val prettyPrintGson = gson.newBuilder().setPrettyPrinting().create()
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
     override fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean
+        streamRequestBody: Boolean,
+        prettyPrint: Boolean
     ) {
-        register(contentType, GsonConverter(gson, streamRequestBody))
+        register(contentType, GsonConverter(gson(prettyPrint), streamRequestBody))
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {
         return gson.fromJson(String(t), TestEntity::class.java)
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
-        return gson.fromJson(String(t, charset), object : TypeToken<List<TestEntity>>() {}.type)
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
+        val jsonString = String(t, charset)
+        val deserialized =
+            gson(prettyPrint).fromJson<List<TestEntity>>(jsonString, object : TypeToken<List<TestEntity>>() {}.type)
+        val pretty = gson(prettyPrint).toJson(deserialized)
+        assertEquals(pretty, jsonString)
+        return deserialized
     }
+
+    private fun gson(prettyPrint: Boolean) =
+        if (prettyPrint) {
+            prettyPrintGson
+        } else {
+            gson
+        }
 
     override fun simpleSerialize(any: TestEntity): ByteArray {
         return gson.toJson(any, TestEntity::class.java).toByteArray()

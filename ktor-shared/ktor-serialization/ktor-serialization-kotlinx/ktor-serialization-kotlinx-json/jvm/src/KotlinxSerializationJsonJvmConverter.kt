@@ -41,9 +41,22 @@ public class KotlinxSerializationJsonJvmConverter(
         // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
         return OutputStreamContent(
             {
-                // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in OutputStream
+                // specific behavior for kotlinx.coroutines.flow.Flow
                 if (typeInfo.type == Flow::class) {
-                    (value as Flow<*>).serializeJson(this)
+                    if (prettyPrinting) {
+                        // for pretty print we must collect the flow into a List
+                        outputStreamSerializationBase.serialize(
+                            OutputStreamSerializationParameters(
+                                json,
+                                (value as Flow<*>).toList(),
+                                typeInfo,
+                                this
+                            )
+                        )
+                    } else {
+                        // emit asynchronous values in OutputStream : no pretty print here
+                        (value as Flow<*>).serializeJson(this)
+                    }
                 } else {
                     // non flow content
                     outputStreamSerializationBase.serialize(
@@ -51,7 +64,6 @@ public class KotlinxSerializationJsonJvmConverter(
                             json,
                             value,
                             typeInfo,
-                            Charsets.UTF_8,
                             this
                         )
                     )
@@ -89,6 +101,10 @@ public class KotlinxSerializationJsonJvmConverter(
         return fallbackConverter.deserialize(charset, typeInfo, content)
     }
 
+    private val prettyPrinting by lazy {
+        json.configuration.prettyPrint
+    }
+
     private companion object {
         private const val beginArrayCharCode = '['.code
         private const val endArrayCharCode = ']'.code
@@ -110,7 +126,6 @@ public class KotlinxSerializationJsonJvmConverter(
                     json,
                     value as Any,
                     typeInfo<T>(),
-                    Charsets.UTF_8,
                     outputStream
                 )
             )
@@ -155,6 +170,5 @@ internal class OutputStreamSerializationParameters(
     override val format: SerialFormat,
     override val value: Any?,
     override val typeInfo: TypeInfo,
-    override val charset: Charset,
     internal val outputStream: OutputStream
-) : SerializationParameters(format, value, typeInfo, charset)
+) : SerializationParameters(format, value, typeInfo, Charsets.UTF_8)

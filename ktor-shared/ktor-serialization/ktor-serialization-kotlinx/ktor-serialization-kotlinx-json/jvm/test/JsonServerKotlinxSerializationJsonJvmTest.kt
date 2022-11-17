@@ -7,26 +7,43 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.server.plugins.contentnegotiation.*
+import kotlinx.serialization.json.*
 import java.nio.charset.*
+import kotlin.test.*
 
 class JsonServerKotlinxSerializationJsonJvmTest : AbstractServerSerializationKotlinxTest() {
+    private val prettyPrintJson = Json(DefaultJson) {
+        prettyPrint = true
+    }
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
     override fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean
+        streamRequestBody: Boolean,
+        prettyPrint: Boolean
     ) {
-        json(contentType = contentType, streamRequestBody = streamRequestBody) // = KotlinxSerializationJsonJvmConverter
+        json(json(prettyPrint), contentType = contentType, streamRequestBody = streamRequestBody) // = KotlinxSerializationJsonJvmConverter
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {
         return DefaultJson.decodeFromString(serializer, String(t))
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
-        return DefaultJson.decodeFromString(listSerializer, String(t, charset))
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
+        val jsonString = String(t, charset)
+        val deserialized = json(prettyPrint).decodeFromString(listSerializer, String(t, charset))
+        val pretty = json(prettyPrint).encodeToString(listSerializer, deserialized)
+        assertEquals(pretty, jsonString)
+        return deserialized
     }
+
+    private fun json(prettyPrint: Boolean) =
+        if (prettyPrint) {
+            prettyPrintJson
+        } else {
+            DefaultJson
+        }
 
     override fun simpleSerialize(any: TestEntity): ByteArray {
         return DefaultJson.encodeToString(serializer, any).toByteArray()

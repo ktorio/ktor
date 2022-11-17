@@ -79,9 +79,15 @@ public class JacksonConverter(
                 InputStream instead of a Writer to let Jackson do its thing.
                 */
                 if (charset == Charsets.UTF_8) {
-                    // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in OutputStream
+                    // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
-                        (value as Flow<*>).serializeJson(this)
+                        if (prettyPrinting) {
+                            // for pretty print we must collect the flow into a List
+                            objectMapper.writeValue(this, (value as Flow<*>).toList())
+                        } else {
+                            // emit asynchronous values in OutputStream : no pretty print here
+                            (value as Flow<*>).serializeJson(this)
+                        }
                     } else {
                         // non flow content
                         objectMapper.writeValue(this, value)
@@ -90,9 +96,15 @@ public class JacksonConverter(
                     // For other charsets, we use a Writer
                     val writer = this.writer(charset = charset)
 
-                    // specific behavior for kotlinx.coroutines.flow.Flow : emit asynchronous values in Writer
+                    // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
-                        (value as Flow<*>).serializeJson(writer)
+                        if (prettyPrinting) {
+                            // for pretty print we must collect the flow into a List
+                            objectMapper.writeValue(writer, (value as Flow<*>).toList())
+                        } else {
+                            // emit asynchronous values in Writer : no pretty print here
+                            (value as Flow<*>).serializeJson(writer)
+                        }
                     } else {
                         // non flow content
                         objectMapper.writeValue(writer, value)
@@ -120,6 +132,10 @@ public class JacksonConverter(
         }
     }
 
+    private val prettyPrinting by lazy {
+        objectMapper.isEnabled(SerializationFeature.INDENT_OUTPUT)
+    }
+
     private companion object {
         private const val beginArrayCharCode = '['.code
         private const val endArrayCharCode = ']'.code
@@ -134,6 +150,7 @@ public class JacksonConverter(
         val jfactory = JsonFactory()
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream
         val jGenerator = jfactory.createGenerator(outputStream, JsonEncoding.UTF8)
+        jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
         jGenerator.codec = objectMapper
 
         outputStream.write(beginArrayCharCode)
@@ -154,6 +171,7 @@ public class JacksonConverter(
         val jfactory = JsonFactory()
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream
         val jGenerator = jfactory.createGenerator(writer)
+        jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
         jGenerator.configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
         jGenerator.codec = objectMapper
 

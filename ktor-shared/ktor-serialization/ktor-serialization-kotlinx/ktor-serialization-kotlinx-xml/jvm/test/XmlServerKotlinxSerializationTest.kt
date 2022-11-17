@@ -14,7 +14,8 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest
 
     override fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean
+        streamRequestBody: Boolean,
+        prettyPrint: Boolean
     ) {
         xml(contentType = contentType)
     }
@@ -23,7 +24,7 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest
         return DefaultXml.decodeFromString(serializer, String(t))
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
         return DefaultXml.decodeFromString(listSerializer, String(t, charset))
     }
 
