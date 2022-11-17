@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import java.time.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -157,5 +158,15 @@ class JavaEngineTests {
             }
             assertEquals(HttpStatusCode.OK, response.status)
         }
+    }
+
+    @Test
+    fun isTimeoutInfiniteFunction() {
+        assertTrue(isTimeoutInfinite(HttpTimeout.INFINITE_TIMEOUT_MS))
+        assertTrue(isTimeoutInfinite(Long.MAX_VALUE, Instant.ofEpochMilli(1)))
+
+        assertFalse(isTimeoutInfinite(1000, Instant.ofEpochMilli(0)))
+        assertFalse(isTimeoutInfinite(0, Instant.ofEpochMilli(0)))
+        assertFalse(isTimeoutInfinite(0, Instant.ofEpochMilli(Long.MAX_VALUE)))
     }
 }

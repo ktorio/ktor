@@ -109,11 +109,11 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     }
 }
 
-internal fun isTimeoutInfinite(timeoutMs: Long): Boolean {
+internal fun isTimeoutInfinite(timeoutMs: Long, now: Instant = Instant.now()): Boolean {
     if (timeoutMs == HttpTimeout.INFINITE_TIMEOUT_MS) return true
     return try {
         // Check that timeout end date as the number of milliseconds can fit Long type
-        Instant.now().plus(timeoutMs, ChronoUnit.MILLIS).toEpochMilli()
+        now.plus(timeoutMs, ChronoUnit.MILLIS).toEpochMilli()
         false
     } catch (_: ArithmeticException) {
         true
