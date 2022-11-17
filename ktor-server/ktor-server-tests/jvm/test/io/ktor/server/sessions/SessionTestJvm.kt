@@ -83,7 +83,7 @@ class SessionTestJvm {
     private fun TestApplicationEngine.commonSignedChecks() {
         application.routing {
             get("/1") {
-                call.sessions.set(TestUserSession("id2", emptyList()))
+                call.sessions.set(TestUserSession("id 2", emptyList()))
                 call.respondText("ok")
             }
             get("/2") {
@@ -92,34 +92,40 @@ class SessionTestJvm {
         }
 
         var sessionId: String
+        var sessionHeader: String
         handleRequest(HttpMethod.Get, "/1").let { call ->
             val sessionCookie = call.response.cookies[cookieName]
             assertNotNull(sessionCookie, "No session cookie found")
             sessionId = sessionCookie.value
+            sessionHeader = call.response.headers[HttpHeaders.SetCookie]!!
         }
 
         handleRequest(HttpMethod.Get, "/2") {
-            addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLParameter()}")
         }.let { call ->
-            assertEquals("ok, id2", call.response.content)
+            assertEquals("ok, id 2", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/2") {
-            //                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
+            addHeader(HttpHeaders.Cookie, sessionHeader)
         }.let { call ->
+            assertEquals("ok, id 2", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/2").let { call ->
             assertEquals("ok, null", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/2") {
             val brokenSession = flipLastHexDigit(sessionId)
-            addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLParameter()}")
         }.let { call ->
             assertEquals("ok, null", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/2") {
             val invalidHex = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
-            addHeader(HttpHeaders.Cookie, "$cookieName=${invalidHex.encodeURLQueryComponent()}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${invalidHex.encodeURLParameter()}")
         }.let { call ->
             assertEquals("ok, null", call.response.content)
         }

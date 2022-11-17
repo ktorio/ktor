@@ -37,10 +37,9 @@ internal val ATTRIBUTE_CHARACTERS: Set<Char> = URL_ALPHABET_CHARS + setOf(
 )
 
 /**
- * Oauth specific percent encoding
- * https://tools.ietf.org/html/rfc5849#section-3.6
+ * Characters allowed in url according to https://tools.ietf.org/html/rfc3986#section-2.3
  */
-private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
+private val SPECIAL_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
 
 /**
  * Encode url part as specified in
@@ -120,7 +119,7 @@ public fun String.encodeURLParameter(
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
     content.forEach {
         when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toInt().toChar())
+            it in URL_ALPHABET || it in SPECIAL_SYMBOLS -> append(it.toInt().toChar())
             spaceToPlus && it == ' '.code.toByte() -> append('+')
             else -> append(it.percentEncode())
         }

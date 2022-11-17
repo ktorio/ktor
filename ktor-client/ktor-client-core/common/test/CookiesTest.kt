@@ -31,6 +31,21 @@ class CookiesTest {
     }
 
     @Test
+    fun testCookiesWithPlus() = testSuspend {
+        val storage = AcceptAllCookiesStorage()
+        val cookie = parseServerSetCookieHeader("name=some+value; HttpOnly")
+        storage.addCookie("http://localhost/", cookie)
+
+        val plugin = HttpCookies(storage, emptyList())
+        val builder = HttpRequestBuilder()
+
+        plugin.captureHeaderCookies(builder)
+        plugin.sendCookiesWith(builder)
+
+        assertEquals("name=some+value", builder.headers[HttpHeaders.Cookie])
+    }
+
+    @Test
     fun testRequestCookiesAreNotDroppedWhenEmptyStorage() = testSuspend {
         val feature = HttpCookies(AcceptAllCookiesStorage(), emptyList())
         val builder = HttpRequestBuilder()

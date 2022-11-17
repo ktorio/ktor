@@ -20,7 +20,7 @@ class URIEncodingCookiesTest {
 
     @Test
     fun `equals inside`() {
-        testEncode("abc=123", "abc=123")
+        testEncode("abc%3D123", "abc=123")
     }
 
     @Test

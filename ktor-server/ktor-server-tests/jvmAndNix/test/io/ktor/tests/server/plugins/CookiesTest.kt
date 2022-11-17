@@ -81,8 +81,8 @@ class CookiesTest {
 
     @Test
     fun `add cookies bad characters`() {
-        testSetCookies("AB=1:2") {
-            cookies.append("AB", "1:2")
+        testSetCookies("AB=1-2") {
+            cookies.append("AB", "1-2")
         }
     }
 
