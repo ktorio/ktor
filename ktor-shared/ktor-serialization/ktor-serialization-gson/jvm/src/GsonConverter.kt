@@ -60,7 +60,13 @@ public class GsonConverter(
         value: Any?
     ): OutgoingContent {
         if (!streamRequestBody) {
-            return TextContent(gson.toJson(value), contentType.withCharsetIfNeeded(charset))
+            // specific behavior for kotlinx.coroutines.flow.Flow : collect it into a List
+            val resolvedValue = if (typeInfo.type == Flow::class) {
+                (value as Flow<*>).toList()
+            } else {
+                value
+            }
+            return TextContent(gson.toJson(resolvedValue), contentType.withCharsetIfNeeded(charset))
         }
         return OutputStreamContent(
             {

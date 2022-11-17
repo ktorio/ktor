@@ -61,8 +61,14 @@ public class JacksonConverter(
         value: Any?
     ): OutgoingContent {
         if (!streamRequestBody) {
+            // specific behavior for kotlinx.coroutines.flow.Flow : collect it into a List
+            val resolvedValue = if (typeInfo.type == Flow::class) {
+                (value as Flow<*>).toList()
+            } else {
+                value
+            }
             return TextContent(
-                objectMapper.writeValueAsString(value),
+                objectMapper.writeValueAsString(resolvedValue),
                 contentType.withCharsetIfNeeded(charset)
             )
         }

@@ -20,16 +20,22 @@ import kotlin.test.*
 public abstract class AbstractServerSerializationTest {
     protected abstract val defaultContentType: ContentType
     protected abstract val customContentType: ContentType
-    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
+    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(
+        contentType: ContentType,
+        streamRequestBody: Boolean
+    )
 
     protected abstract fun simpleSerialize(any: TestEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): TestEntity
     protected abstract fun simpleDeserializeList(t: ByteArray, charset: Charset = Charsets.UTF_8): List<TestEntity>
 
-    private fun withTestSerializingApplication(block: suspend TestApplicationEngine.() -> Unit): Unit =
+    private fun withTestSerializingApplication(
+        streamRequestBody: Boolean = true,
+        block: suspend TestApplicationEngine.() -> Unit
+    ): Unit =
         withTestApplication {
             application.install(ContentNegotiation) {
-                configureContentNegotiation(defaultContentType)
+                configureContentNegotiation(defaultContentType, streamRequestBody)
             }
 
             application.routing {
@@ -109,11 +115,24 @@ public abstract class AbstractServerSerializationTest {
     }
 
     @Test
+    public fun testFlowNoAcceptUtf8NoStreamRequestBody(): Unit = withTestSerializingApplication(false) {
+        handleRequest(HttpMethod.Get, "/flow").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
+    }
+
+    @Test
     public fun testFlowNoAcceptUtf16(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/flow") {
             addHeader("Accept-Charset", "UTF-16")
         }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
     }
+
+    @Test
+    public fun testFlowNoAcceptUtf16NoStreamRequestBody(): Unit =
+        withTestSerializingApplication(false) {
+            handleRequest(HttpMethod.Get, "/flow") {
+                addHeader("Accept-Charset", "UTF-16")
+            }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
+        }
 
     private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
         assertEquals(HttpStatusCode.OK, response.status())

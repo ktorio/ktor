@@ -13,8 +13,11 @@ class JsonServerKotlinxSerializationJsonJvmTest : AbstractServerSerializationKot
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
-        json(contentType = contentType) // = KotlinxSerializationJsonJvmConverter
+    override fun ContentNegotiationConfig.configureContentNegotiation(
+        contentType: ContentType,
+        streamRequestBody: Boolean
+    ) {
+        json(contentType = contentType, streamRequestBody = streamRequestBody) // = KotlinxSerializationJsonJvmConverter
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {

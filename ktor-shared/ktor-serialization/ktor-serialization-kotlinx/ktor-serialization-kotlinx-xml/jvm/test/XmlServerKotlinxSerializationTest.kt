@@ -12,7 +12,10 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
+    override fun ContentNegotiationConfig.configureContentNegotiation(
+        contentType: ContentType,
+        streamRequestBody: Boolean
+    ) {
         xml(contentType = contentType)
     }
 
