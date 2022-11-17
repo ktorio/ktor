@@ -80,7 +80,6 @@ public class GsonConverter(
         )
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         if (gson.isExcluded(typeInfo.type)) {
             throw ExcludedTypeGsonException(typeInfo.type)
@@ -88,22 +87,8 @@ public class GsonConverter(
 
         try {
             return withContext(Dispatchers.IO) {
-                // specific behavior for Sequence : collect it into a List
-                var isSequence = false
-                val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
-                    isSequence = true
-                    typeInfo.sequenceToListTypeInfo()
-                } else {
-                    typeInfo
-                }
                 val reader = content.toInputStream().reader(charset)
-                val decoded: Any? = gson.fromJson(reader, resolvedTypeInfo.reifiedType)
-
-                if (decoded != null && isSequence) {
-                    (decoded as List<*>).asSequence()
-                } else {
-                    decoded
-                }
+                gson.fromJson(reader, typeInfo.reifiedType)
             }
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)

@@ -63,6 +63,24 @@ class JsonClientKotlinxSerializationJsonJvmTest : AbstractClientContentNegotiati
         }
     }
 
+    @Test
+    fun testSequence(): Unit = testWithEngine(CIO) {
+        configureClient()
+
+        test { client ->
+            val result = client.post {
+                url(path = "/echo", port = serverPort)
+                contentType(defaultContentType)
+                setBody(users)
+            }.body<Sequence<User>>()
+
+            assertContentEquals(
+                users.asSequence(),
+                result
+            )
+        }
+    }
+
     @Serializable
     data class Json(val value: String)
 }

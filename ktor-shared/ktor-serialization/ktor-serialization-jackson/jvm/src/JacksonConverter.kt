@@ -97,29 +97,11 @@ public class JacksonConverter(
         )
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         try {
             return withContext(Dispatchers.IO) {
-                // specific behavior for Sequence : collect it into a List
-                var isSequence = false
-                val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
-                    isSequence = true
-                    typeInfo.sequenceToListTypeInfo()
-                } else {
-                    typeInfo
-                }
                 val reader = content.toInputStream().reader(charset)
-                val decoded: Any? = objectMapper.readValue(
-                    reader,
-                    objectMapper.constructType(resolvedTypeInfo.reifiedType)
-                )
-
-                if (decoded != null && isSequence) {
-                    (decoded as List<*>).asSequence()
-                } else {
-                    decoded
-                }
+                objectMapper.readValue(reader, objectMapper.constructType(typeInfo.reifiedType))
             }
         } catch (deserializeFailure: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)

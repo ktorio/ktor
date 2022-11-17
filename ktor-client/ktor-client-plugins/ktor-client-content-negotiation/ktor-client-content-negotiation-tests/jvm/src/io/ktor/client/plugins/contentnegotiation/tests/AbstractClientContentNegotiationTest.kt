@@ -31,7 +31,7 @@ import kotlin.test.*
 @Suppress("KDocMissingDocumentation")
 abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
-    private val users = listOf(
+    protected val users = listOf(
         User("x", 10),
         User("y", 45)
     )
@@ -301,24 +301,6 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             assertTrue(result.ok)
             assertNotNull(result.result)
             assertEquals(users, result.result)
-        }
-    }
-
-    @Test
-    fun testSequence(): Unit = testWithEngine(CIO) {
-        configureClient()
-
-        test { client ->
-            val result = client.post {
-                url(path = "/echo", port = serverPort)
-                contentType(defaultContentType)
-                setBody(users)
-            }.body<Sequence<User>>()
-
-            assertContentEquals(
-                users.asSequence(),
-                result
-            )
         }
     }
 

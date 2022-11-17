@@ -96,30 +96,17 @@ public class KotlinxSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        // specific behavior for Sequence : collect it into a List
-        var isSequence = false
-        val resolvedTypeInfo = if (typeInfo.type == Sequence::class) {
-            isSequence = true
-            typeInfo.sequenceToListTypeInfo()
-        } else {
-            typeInfo
-        }
-        val serializer = serializerFromTypeInfo(resolvedTypeInfo)
+        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
         val contentPacket = content.readRemaining()
 
         try {
-            val decoded = when (format) {
+            return when (format) {
                 is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
                 is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
                 else -> {
                     contentPacket.discard()
                     error("Unsupported format $format")
                 }
-            }
-            return if (decoded != null && isSequence) {
-                (decoded as List<*>).asSequence()
-            } else {
-                decoded
             }
         } catch (cause: Throwable) {
             throw JsonConvertException("Illegal input", cause)
