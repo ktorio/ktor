@@ -525,7 +525,10 @@ class LoggingTest : ClientLoader() {
         )
 
         config {
-            install(ContentNegotiation) { json() }
+            install(ContentNegotiation) {
+                // turn off Transfer-Encoding: chunked, so we can easily check the full content
+                json(streamRequestBody = false)
+            }
 
             Logging {
                 logger = testLogger
