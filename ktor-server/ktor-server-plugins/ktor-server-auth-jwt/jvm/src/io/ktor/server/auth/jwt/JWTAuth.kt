@@ -8,13 +8,11 @@ import com.auth0.jwk.*
 import com.auth0.jwt.*
 import com.auth0.jwt.algorithms.*
 import com.auth0.jwt.exceptions.*
-import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import org.slf4j.*
 import java.util.*
@@ -110,7 +108,7 @@ public abstract class JWTPayloadHolder(
      */
     public fun <T : Any> getListClaim(name: String, clazz: KClass<T>): List<T> {
         return try {
-            payload.getClaim(name).asList(clazz.javaObjectType)
+            payload.getClaim(name).asList(clazz.javaObjectType) ?: emptyList()
         } catch (ex: JWTDecodeException) {
             emptyList()
         }
