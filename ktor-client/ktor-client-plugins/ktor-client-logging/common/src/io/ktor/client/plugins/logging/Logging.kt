@@ -39,10 +39,16 @@ public class Logging private constructor(
          */
         internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
 
+        private var _logger: Logger? = null
+
         /**
          * Specifies a [Logger] instance.
          */
-        public var logger: Logger? = null
+        public var logger: Logger
+            get() = _logger ?: Logger.DEFAULT
+            set(value) {
+                _logger = value
+            }
 
         /**
          * Specifies the log the logging level.
@@ -214,7 +220,7 @@ public class Logging private constructor(
 
         override fun prepare(block: Config.() -> Unit): Logging {
             val config = Config().apply(block)
-            return Logging(config.logger ?: Logger.DEFAULT, config.level, config.filters)
+            return Logging(config.logger, config.level, config.filters)
         }
 
         override fun install(plugin: Logging, scope: HttpClient) {
