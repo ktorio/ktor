@@ -24,16 +24,11 @@ public fun Routing.openAPI(
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    val resource = application.environment.classLoader.getResource(swaggerFile)
-    val file = if (resource != null) File(resource.toURI()) else File(swaggerFile)
-
-    if (!file.exists()) {
-        throw FileNotFoundException("Swagger file not found: $swaggerFile")
-    }
+    val file = resolveOpenAPIFile(swaggerFile)
 
     val config = OpenAPIConfig()
     with(config) {
-        val swagger = parser.readContents(File(swaggerFile).readText(), null, options)
+        val swagger = parser.readContents(file.readText(), null, options)
 
         opts.apply {
             config(codegen)
@@ -52,4 +47,15 @@ public fun Routing.openAPI(
             default("index.html")
         }
     }
+}
+
+internal fun Routing.resolveOpenAPIFile(swaggerFile: String): File {
+    val resource = application.environment.classLoader.getResource(swaggerFile)
+    val file = if (resource != null) File(resource.toURI()) else File(swaggerFile)
+
+    if (!file.exists()) {
+        throw FileNotFoundException("Swagger file not found: $swaggerFile")
+    }
+
+    return file
 }
