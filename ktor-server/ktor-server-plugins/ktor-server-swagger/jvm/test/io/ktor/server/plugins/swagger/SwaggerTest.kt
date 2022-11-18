@@ -2,7 +2,7 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.swagger
+package io.ktor.server.plugins.swagger
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -10,7 +10,6 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 class SwaggerTest {
-
     @Test
     fun testSwaggerFromResources() = testApplication {
         routing {
