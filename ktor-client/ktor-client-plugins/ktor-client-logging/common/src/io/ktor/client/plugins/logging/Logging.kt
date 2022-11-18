@@ -39,10 +39,16 @@ public class Logging private constructor(
          */
         internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
 
+        private var _logger: Logger? = null
+
         /**
          * Specifies a [Logger] instance.
          */
-        public var logger: Logger = Logger.DEFAULT
+        public var logger: Logger
+            get() = _logger ?: Logger.DEFAULT
+            set(value) {
+                _logger = value
+            }
 
         /**
          * Specifies the log the logging level.
