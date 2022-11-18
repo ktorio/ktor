@@ -1,17 +1,20 @@
 public abstract class io/ktor/serialization/test/AbstractServerSerializationTest {
 	public fun <init> ()V
-	protected abstract fun configureContentNegotiation (Lio/ktor/server/plugins/contentnegotiation/ContentNegotiationConfig;Lio/ktor/http/ContentType;)V
+	protected abstract fun configureContentNegotiation (Lio/ktor/server/plugins/contentnegotiation/ContentNegotiationConfig;Lio/ktor/http/ContentType;ZZ)V
 	protected abstract fun getCustomContentType ()Lio/ktor/http/ContentType;
 	protected abstract fun getDefaultContentType ()Lio/ktor/http/ContentType;
 	protected abstract fun simpleDeserialize ([B)Lio/ktor/serialization/test/AbstractServerSerializationTest$TestEntity;
-	protected abstract fun simpleDeserializeList ([BLjava/nio/charset/Charset;)Ljava/util/List;
-	public static synthetic fun simpleDeserializeList$default (Lio/ktor/serialization/test/AbstractServerSerializationTest;[BLjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/util/List;
+	protected abstract fun simpleDeserializeList ([BLjava/nio/charset/Charset;Z)Ljava/util/List;
+	public static synthetic fun simpleDeserializeList$default (Lio/ktor/serialization/test/AbstractServerSerializationTest;[BLjava/nio/charset/Charset;ZILjava/lang/Object;)Ljava/util/List;
 	protected abstract fun simpleSerialize (Lio/ktor/serialization/test/AbstractServerSerializationTest$TestEntity;)[B
 	public final fun testDumpNoAccept ()V
 	public final fun testDumpWithAccept ()V
 	public final fun testDumpWithMultipleAccept ()V
 	public final fun testFlowNoAcceptUtf16 ()V
+	public final fun testFlowNoAcceptUtf16NoStreamRequestBody ()V
 	public final fun testFlowNoAcceptUtf8 ()V
+	public final fun testFlowNoAcceptUtf8NoStreamRequestBody ()V
+	public final fun testFlowNoAcceptUtf8PrettyPrint ()V
 	public final fun testListNoAcceptUtf16 ()V
 	public final fun testListNoAcceptUtf8 ()V
 	public final fun testParseWithContentType ()V
