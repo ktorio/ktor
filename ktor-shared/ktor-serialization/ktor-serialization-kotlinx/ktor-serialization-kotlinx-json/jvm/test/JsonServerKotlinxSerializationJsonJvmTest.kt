@@ -23,7 +23,7 @@ class JsonServerKotlinxSerializationJsonJvmTest : AbstractServerSerializationKot
         streamRequestBody: Boolean,
         prettyPrint: Boolean
     ) {
-        json(json(prettyPrint), contentType = contentType, streamRequestBody = streamRequestBody) // = KotlinxSerializationJsonJvmConverter
+        json(kotlinxJson(prettyPrint), contentType = contentType) // = KotlinxSerializationJsonJvmConverter
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {
@@ -32,13 +32,13 @@ class JsonServerKotlinxSerializationJsonJvmTest : AbstractServerSerializationKot
 
     override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
         val jsonString = String(t, charset)
-        val deserialized = json(prettyPrint).decodeFromString(listSerializer, String(t, charset))
-        val pretty = json(prettyPrint).encodeToString(listSerializer, deserialized)
+        val deserialized = kotlinxJson(prettyPrint).decodeFromString(listSerializer, String(t, charset))
+        val pretty = kotlinxJson(prettyPrint).encodeToString(listSerializer, deserialized)
         assertEquals(pretty, jsonString)
         return deserialized
     }
 
-    private fun json(prettyPrint: Boolean) =
+    private fun kotlinxJson(prettyPrint: Boolean) =
         if (prettyPrint) {
             prettyPrintJson
         } else {

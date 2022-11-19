@@ -22,10 +22,13 @@ import java.io.*
 import kotlin.reflect.*
 import kotlin.text.*
 
+/**
+ * Creates a JVM converter serializing with the specified string [format] and
+ * [defaultCharset] (optional, usually it is UTF-8).
+ */
 @OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
 public class KotlinxSerializationJsonJvmConverter(
-    private val json: Json,
-    private val streamRequestBody: Boolean = true
+    private val json: Json
 ) : AbstractKotlinxSerializationConverter(json) {
 
     override suspend fun serializeNullable(
@@ -34,15 +37,11 @@ public class KotlinxSerializationJsonJvmConverter(
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
-        if (!streamRequestBody || charset != Charsets.UTF_8) {
-            // fallback to common KotlinxSerializationConverter that uses TextContent
-            return fallbackConverter.serializeNullable(contentType, charset, typeInfo, value)
-        }
-        // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
-        return OutputStreamContent(
-            {
-                // specific behavior for kotlinx.coroutines.flow.Flow
-                if (typeInfo.type == Flow::class) {
+        // specific behavior for kotlinx.coroutines.flow.Flow
+        if (typeInfo.type == Flow::class && charset == Charsets.UTF_8) {
+            // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
+            return OutputStreamContent(
+                {
                     if (prettyPrinting) {
                         // for pretty print we must collect the flow into a List
                         outputStreamSerializationBase.serialize(
@@ -57,20 +56,13 @@ public class KotlinxSerializationJsonJvmConverter(
                         // emit asynchronous values in OutputStream : no pretty print here
                         (value as Flow<*>).serializeJson(this)
                     }
-                } else {
-                    // non flow content
-                    outputStreamSerializationBase.serialize(
-                        OutputStreamSerializationParameters(
-                            json,
-                            value,
-                            typeInfo,
-                            this
-                        )
-                    )
-                }
-            },
-            contentType.withCharsetIfNeeded(Charsets.UTF_8)
-        )
+                },
+                contentType.withCharsetIfNeeded(Charsets.UTF_8)
+            )
+        }
+
+        // fallback to common KotlinxSerializationConverter that uses TextContent
+        return fallbackConverter.serializeNullable(contentType, charset, typeInfo, value)
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {

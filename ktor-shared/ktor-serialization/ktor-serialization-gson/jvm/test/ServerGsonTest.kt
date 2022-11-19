@@ -28,7 +28,7 @@ class ServerGsonTest : AbstractServerSerializationTest() {
         streamRequestBody: Boolean,
         prettyPrint: Boolean
     ) {
-        register(contentType, GsonConverter(gson(prettyPrint), streamRequestBody))
+        register(contentType, GsonConverter(gson(prettyPrint)))
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {

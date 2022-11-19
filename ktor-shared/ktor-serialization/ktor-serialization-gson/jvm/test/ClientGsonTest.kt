@@ -25,29 +25,10 @@ class ClientGsonTest : AbstractClientContentNegotiationTest() {
     }
 
     @Test
-    fun testChunkedEncodingByDefault() = testWithEngine(CIO) {
+    fun testNotChunkedEncodingByDefault() = testWithEngine(CIO) {
         config {
             install(ContentNegotiation) {
                 gson()
-            }
-        }
-
-        test { client ->
-            val response = client.post {
-                url(port = serverPort, path = "headers")
-                setBody(Gson("request"))
-                contentType(ContentType.Application.Json)
-            }.body<String>()
-
-            assertEquals("chunked:null", response)
-        }
-    }
-
-    @Test
-    fun testNotChunkedEncodingIfSet() = testWithEngine(CIO) {
-        config {
-            install(ContentNegotiation) {
-                gson(streamRequestBody = false)
             }
         }
 
