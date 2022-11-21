@@ -169,25 +169,6 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testQueryParameters() = clientTests(ENGINES_WITHOUT_WS) {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            client.ws(
-                host = "127.0.0.1",
-                port = 8080,
-                path = "/websockets/echo-query?param=hello"
-            ) {
-                val response = incoming.receive() as Frame.Text
-                val query = response.readText()
-                assertEquals("hello", query)
-            }
-        }
-    }
-
-    @Test
     fun testRequestTimeoutIsNotApplied() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
