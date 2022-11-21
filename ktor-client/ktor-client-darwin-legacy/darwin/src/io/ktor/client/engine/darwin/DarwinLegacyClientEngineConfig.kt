@@ -61,6 +61,11 @@ public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
         private set
 
     /**
+     * Specifies a session to use for making HTTP requests.
+     */
+    internal var sessionAndDelegate: Pair<NSURLSession, KtorLegacyNSURLSessionDelegate>? = null
+
+    /**
      * Appends a block with the [NSMutableURLRequest] configuration to [requestConfig].
      */
     public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
@@ -90,8 +95,20 @@ public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
      * Set a [session] to be used to make HTTP requests, [null] to create default session.
      * If the preconfigured session is set, [configureSession] block will be ignored.
      */
+    @Deprecated("Please use method with delegate parameter")
     public fun usePreconfiguredSession(session: NSURLSession?) {
         preconfiguredSession = session
+    }
+
+    /**
+     * Set a [session] to be used to make HTTP requests.
+     * If the preconfigured session is set, [configureSession] and [handleChallenge] blocks will be ignored.
+     *
+     * The [session] must be created with [KtorLegacyNSURLSessionDelegate] as a delegate.
+     * @see [KtorLegacyNSURLSessionDelegate] for details.
+     */
+    public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorLegacyNSURLSessionDelegate) {
+        sessionAndDelegate = session to delegate
     }
 
     /**

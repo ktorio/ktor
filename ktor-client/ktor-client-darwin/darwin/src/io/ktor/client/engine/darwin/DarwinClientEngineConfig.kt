@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.darwin.internal.*
 import kotlinx.cinterop.*
 import platform.Foundation.*
 
@@ -61,6 +62,11 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
         private set
 
     /**
+     * Specifies a session to use for making HTTP requests.
+     */
+    internal var sessionAndDelegate: Pair<NSURLSession, KtorNSURLSessionDelegate>? = null
+
+    /**
      * Appends a block with the [NSMutableURLRequest] configuration to [requestConfig].
      */
     public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
@@ -90,8 +96,20 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      * Set a [session] to be used to make HTTP requests, [null] to create default session.
      * If the preconfigured session is set, [configureSession] block will be ignored.
      */
+    @Deprecated("Please use method with delegate parameter")
     public fun usePreconfiguredSession(session: NSURLSession?) {
         preconfiguredSession = session
+    }
+
+    /**
+     * Set a [session] to be used to make HTTP requests.
+     * If the preconfigured session is set, [configureSession] and [handleChallenge] blocks will be ignored.
+     *
+     * The [session] must be created with [KtorNSURLSessionDelegate] as a delegate.
+     * @see [KtorNSURLSessionDelegate] for details.
+     */
+    public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorNSURLSessionDelegate) {
+        sessionAndDelegate = session to delegate
     }
 
     /**

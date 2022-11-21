@@ -2,6 +2,7 @@ package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
@@ -15,21 +16,29 @@ internal class DarwinSession(
     requestQueue: NSOperationQueue
 ) : Closeable {
     private val closed = atomic(false)
-    private val responseReader = DarwinResponseReader(config)
 
-    private val session: NSURLSession = config.preconfiguredSession
-        ?: createSession(config, responseReader, requestQueue)
+    private val sessionAndDelegate = config.sessionAndDelegate ?: createSession(config, requestQueue)
+    private val session = sessionAndDelegate.first
+    private val delegate = sessionAndDelegate.second
 
+    @OptIn(InternalAPI::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)
-        val task = session.dataTaskWithRequest(nativeRequest)
+        val (task, response) = if (request.isUpgradeRequest()) {
+            val task = session.webSocketTaskWithRequest(nativeRequest)
+            val response = delegate.read(task, callContext)
+            task to response
+        } else {
+            val task = session.dataTaskWithRequest(nativeRequest)
+            val response = delegate.read(request, callContext, task)
+            task to response
+        }
 
-        val result: CompletableDeferred<HttpResponseData> = responseReader.read(request, callContext, task)
         task.resume()
 
         try {
-            return result.await()
+            return response.await()
         } catch (cause: Throwable) {
             if (task.state == NSURLSessionTaskStateRunning) task.cancel()
             throw cause
@@ -42,21 +51,22 @@ internal class DarwinSession(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 internal fun createSession(
     config: DarwinClientEngineConfig,
-    delegate: NSURLSessionDelegateProtocol,
     requestQueue: NSOperationQueue
-): NSURLSession {
+): Pair<NSURLSession, KtorNSURLSessionDelegate> {
     val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
         setupProxy(config)
         setHTTPCookieStorage(null)
 
         config.sessionConfig(this)
     }
+    val delegate = KtorNSURLSessionDelegate(config.challengeHandler)
 
     return NSURLSession.sessionWithConfiguration(
         configuration,
         delegate,
         delegateQueue = requestQueue
-    )
+    ) to delegate
 }

@@ -2,8 +2,9 @@
  * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.engine.darwin
+package io.ktor.client.engine.darwin.internal
 
+import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -18,14 +19,12 @@ import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class)
 internal class DarwinWebsocketSession(
-    private val requestTime: GMTDate,
     callContext: CoroutineContext,
-    private val challengeHandler: ChallengeHandler?
+    private val task: NSURLSessionWebSocketTask,
 ) : WebSocketSession {
 
-    internal lateinit var task: NSURLSessionWebSocketTask
-
-    internal val response = CompletableDeferred<HttpResponseData>()
+    private val requestTime: GMTDate = GMTDate()
+    val response = CompletableDeferred<HttpResponseData>()
 
     private val _incoming = Channel<Frame>(Channel.UNLIMITED)
     private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
@@ -50,8 +49,6 @@ internal class DarwinWebsocketSession(
 
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
-
-    internal val delegate: NSURLSessionWebSocketDelegateProtocol = WebSocketDelegate()
 
     init {
         launch {
@@ -144,65 +141,40 @@ internal class DarwinWebsocketSession(
         coroutineContext.cancel()
     }
 
-    private inner class WebSocketDelegate : NSURLSessionWebSocketDelegateProtocol, NSObject() {
+    fun didOpen() {
+        val response = HttpResponseData(
+            HttpStatusCode.OK,
+            requestTime,
+            Headers.Empty,
+            HttpProtocolVersion.HTTP_1_1,
+            this,
+            coroutineContext
+        )
+        this.response.complete(response)
+    }
 
-        override fun URLSession(
-            session: NSURLSession,
-            webSocketTask: NSURLSessionWebSocketTask,
-            didOpenWithProtocol: String?
-        ) {
-            val response = HttpResponseData(
-                HttpStatusCode.OK,
-                requestTime,
-                Headers.Empty,
-                HttpProtocolVersion.HTTP_1_1,
-                this@DarwinWebsocketSession,
-                coroutineContext
-            )
-            this@DarwinWebsocketSession.response.complete(response)
-        }
-
-        override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
-            if (didCompleteWithError == null) {
-                socketJob.cancel()
-                return
-            }
-
-            val exception = DarwinHttpRequestException(didCompleteWithError)
-            this@DarwinWebsocketSession.response.completeExceptionally(exception)
-            socketJob.completeExceptionally(exception)
-        }
-
-        override fun URLSession(
-            session: NSURLSession,
-            webSocketTask: NSURLSessionWebSocketTask,
-            didCloseWithCode: NSURLSessionWebSocketCloseCode,
-            reason: NSData?
-        ) {
-            val closeReason = CloseReason(didCloseWithCode.toShort(), reason?.toByteArray()?.let { String(it) } ?: "")
-            if (!_incoming.isClosedForSend) {
-                _incoming.trySend(Frame.Close(closeReason))
-            }
+    fun didComplete(error: NSError?) {
+        if (error == null) {
             socketJob.cancel()
-            task.cancelWithCloseCode(didCloseWithCode, reason)
+            return
         }
 
-        override fun URLSession(
-            session: NSURLSession,
-            task: NSURLSessionTask,
-            didReceiveChallenge: NSURLAuthenticationChallenge,
-            completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
-        ) {
-            val handler = challengeHandler
-            if (handler != null) {
-                handler(session, task, didReceiveChallenge, completionHandler)
-            } else {
-                completionHandler(
-                    NSURLSessionAuthChallengePerformDefaultHandling,
-                    didReceiveChallenge.proposedCredential
-                )
-            }
+        val exception = DarwinHttpRequestException(error)
+        response.completeExceptionally(exception)
+        socketJob.completeExceptionally(exception)
+    }
+
+    fun didClose(
+        code: NSURLSessionWebSocketCloseCode,
+        reason: NSData?,
+        webSocketTask: NSURLSessionWebSocketTask
+    ) {
+        val closeReason = CloseReason(code.toShort(), reason?.toByteArray()?.let { String(it) } ?: "")
+        if (!_incoming.isClosedForSend) {
+            _incoming.trySend(Frame.Close(closeReason))
         }
+        socketJob.cancel()
+        webSocketTask.cancelWithCloseCode(code, reason)
     }
 }
 

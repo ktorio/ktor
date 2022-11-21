@@ -2,6 +2,7 @@ package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
@@ -15,20 +16,22 @@ internal class DarwinLegacySession(
     private val requestQueue: NSOperationQueue
 ) : Closeable {
     private val closed = atomic(false)
-    private val responseReader = DarwinLegacyResponseReader(config)
 
-    private val session: NSURLSession = config.preconfiguredSession ?: createSession()
+    private val sessionAndDelegate = config.sessionAndDelegate ?: createSession(config, requestQueue)
+    private val session = sessionAndDelegate.first
+    private val delegate = sessionAndDelegate.second
 
+    @OptIn(InternalAPI::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)
         val task = session.dataTaskWithRequest(nativeRequest)
+        val response = delegate.read(request, callContext, task)
 
-        val result: CompletableDeferred<HttpResponseData> = responseReader.read(request, callContext, task)
         task.resume()
 
         try {
-            return result.await()
+            return response.await()
         } catch (cause: Throwable) {
             if (task.state == NSURLSessionTaskStateRunning) task.cancel()
             throw cause
@@ -39,19 +42,24 @@ internal class DarwinLegacySession(
         if (!closed.compareAndSet(false, true)) return
         session.finishTasksAndInvalidate()
     }
+}
 
-    private fun createSession(): NSURLSession {
-        val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
-            setupProxy(config)
-            setHTTPCookieStorage(null)
+@OptIn(UnsafeNumber::class)
+internal fun createSession(
+    config: DarwinLegacyClientEngineConfig,
+    requestQueue: NSOperationQueue
+): Pair<NSURLSession, KtorLegacyNSURLSessionDelegate> {
+    val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
+        setupProxy(config)
+        setHTTPCookieStorage(null)
 
-            config.sessionConfig(this)
-        }
-
-        return NSURLSession.sessionWithConfiguration(
-            configuration,
-            responseReader,
-            delegateQueue = requestQueue
-        )
+        config.sessionConfig(this)
     }
+    val delegate = KtorLegacyNSURLSessionDelegate(config.challengeHandler)
+
+    return NSURLSession.sessionWithConfiguration(
+        configuration,
+        delegate,
+        delegateQueue = requestQueue
+    ) to delegate
 }
