@@ -4,20 +4,28 @@
 
 package io.ktor.server.config
 
-/**
- * Merge configuration combining all their keys.
- * If key is not found in one of the configs, search will continue in the next config in the list.
- */
 @Deprecated("Use mergeWith/mergeWithFallback instead.")
 public fun List<ApplicationConfig>.merge(): ApplicationConfig {
     require(isNotEmpty()) { "List of configs can not be empty" }
     return foldRight(last()) { config, acc -> config.mergeWithFallback(acc) }
 }
 
+/**
+ * Merge configuration combining all their keys.
+ * If the key is in both configs - the value from Second config will be used.
+ *
+ * @see [mergeWithFallback]
+ */
 public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig {
     return MergedApplicationConfig(other, this)
 }
 
+/**
+ * Merge configuration combining all their keys.
+ * If the key is in both configs - the value from First config will be used.
+ *
+ * @see [mergeWith]
+ */
 public fun ApplicationConfig.mergeWithFallback(other: ApplicationConfig): ApplicationConfig {
     return MergedApplicationConfig(this, other)
 }
