@@ -101,7 +101,7 @@ internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
     val environmentConfig = getConfigFromEnvironment()
     val fileConfig = ConfigLoader.load(configPath)
 
-    return listOf(commandLineConfig, environmentConfig, fileConfig).merge()
+    return fileConfig.mergeWith(environmentConfig).mergeWith(commandLineConfig)
 }
 
 internal expect fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(

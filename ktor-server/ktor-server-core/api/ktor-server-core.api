@@ -314,6 +314,8 @@ protected final class io/ktor/server/config/MapApplicationConfig$MapApplicationC
 
 public final class io/ktor/server/config/MergedApplicationConfigKt {
 	public static final fun merge (Ljava/util/List;)Lio/ktor/server/config/ApplicationConfig;
+	public static final fun mergeWith (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
+	public static final fun withFallback (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
 }
 
 public final class io/ktor/server/http/HttpDateJvmKt {

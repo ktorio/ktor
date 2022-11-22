@@ -98,4 +98,44 @@ class MergedApplicationConfigTest {
         val config = MergedApplicationConfig(first, second)
         assertEquals(mapOf("first" to "value1", "second" to "value3"), config.toMap())
     }
+
+    @Test
+    fun testMergeWith() {
+        val first = MapApplicationConfig(
+            "value1" to "1",
+            "value2" to "2",
+            "value3" to "3",
+            "value4" to "4"
+        )
+        val second = MapApplicationConfig(
+            "value1" to "2",
+            "value2" to "2",
+            "value3" to "1",
+        )
+        val mergedConfig = first.mergeWith(second)
+        assertEquals("2", mergedConfig.property("value1").getString())
+        assertEquals("2", mergedConfig.property("value2").getString())
+        assertEquals("1", mergedConfig.property("value3").getString())
+        assertEquals("4", mergedConfig.property("value4").getString())
+    }
+
+    @Test
+    fun testMergeWithFallback() {
+        val first = MapApplicationConfig(
+            "value1" to "1",
+            "value2" to "2",
+            "value3" to "3"
+        )
+        val second = MapApplicationConfig(
+            "value1" to "2",
+            "value2" to "2",
+            "value3" to "1",
+            "value4" to "4"
+        )
+        val mergedConfig = first.withFallback(second)
+        assertEquals("1", mergedConfig.property("value1").getString())
+        assertEquals("2", mergedConfig.property("value2").getString())
+        assertEquals("3", mergedConfig.property("value3").getString())
+        assertEquals("4", mergedConfig.property("value4").getString())
+    }
 }
