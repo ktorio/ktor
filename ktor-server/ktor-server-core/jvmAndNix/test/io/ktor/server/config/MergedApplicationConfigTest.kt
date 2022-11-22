@@ -132,7 +132,7 @@ class MergedApplicationConfigTest {
             "value3" to "1",
             "value4" to "4"
         )
-        val mergedConfig = first.mergeWithFallback(second)
+        val mergedConfig = first.withFallback(second)
         assertEquals("1", mergedConfig.property("value1").getString())
         assertEquals("2", mergedConfig.property("value2").getString())
         assertEquals("3", mergedConfig.property("value3").getString())
