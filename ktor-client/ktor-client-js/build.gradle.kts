@@ -1,5 +1,5 @@
 kotlin {
-    fastTarget()
+    if (fastTarget()) return@kotlin
 
     sourceSets {
         jsMain {

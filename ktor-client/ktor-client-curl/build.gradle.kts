@@ -34,7 +34,7 @@ plugins {
 }
 
 kotlin {
-    fastTarget()
+    if (fastTarget()) return@kotlin
 
     createCInterop("libcurl", listOf("macosX64", "linuxX64", "mingwX64")) {
         defFile = File(projectDir, "desktop/interop/libcurl.def")
@@ -61,9 +61,6 @@ kotlin {
         }
     }
 
-    afterEvaluate {
-        if (HOST_NAME != "windows") return@afterEvaluate
-        val winTests = tasks.findByName("mingwX64Test") as? KotlinNativeTest? ?: return@afterEvaluate
-        winTests.environment("PATH", WIN_LIBRARY_PATH)
-    }
+
+    tasks.findByName("linkDebugTestMingwX64")?.onlyIf { false }
 }

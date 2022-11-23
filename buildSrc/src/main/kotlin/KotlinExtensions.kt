@@ -37,6 +37,11 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndNixTest(block: KotlinSourc
     block(sourceSet)
 }
 
+fun NamedDomainObjectContainer<KotlinSourceSet>.nixTest(block: KotlinSourceSet.() -> Unit) {
+    val sourceSet = findByName("nixTest") ?: return
+    block(sourceSet)
+}
+
 fun NamedDomainObjectContainer<KotlinSourceSet>.posixMain(block: KotlinSourceSet.() -> Unit) {
     val sourceSet = findByName("posixMain") ?: return
     block(sourceSet)

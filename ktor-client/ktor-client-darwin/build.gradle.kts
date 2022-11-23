@@ -1,7 +1,7 @@
 apply<test.server.TestServerPlugin>()
 
 kotlin {
-    fastTarget()
+    if (fastTarget()) return@kotlin
 
     sourceSets {
         darwinMain {
