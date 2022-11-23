@@ -146,6 +146,7 @@ include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-seriali
 include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json")
 include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-cbor")
 include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-xml")
+include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-protobuf")
 include(":ktor-shared:ktor-serialization:ktor-serialization-gson")
 include(":ktor-shared:ktor-serialization:ktor-serialization-jackson")
 include(":ktor-shared:ktor-events")
