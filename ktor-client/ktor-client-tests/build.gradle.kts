@@ -78,7 +78,7 @@ kotlin.sourceSets {
         }
     }
 
-    desktopTest {
+    nixTest {
         dependencies {
             api(project(":ktor-client:ktor-client-curl"))
         }
