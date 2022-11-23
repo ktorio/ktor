@@ -156,8 +156,7 @@ public object HttpHeaders {
      */
     public fun checkHeaderValue(value: String) {
         value.forEachIndexed { index, ch ->
-            if (ch == ' ' || ch == '\u0009') return@forEachIndexed
-            if (ch < ' ') {
+            if (ch < ' ' && ch != '\u0009') {
                 throw IllegalHeaderValueException(value, index)
             }
         }
