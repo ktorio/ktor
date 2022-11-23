@@ -13,6 +13,9 @@ import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
+private const val HTTP_REQUESTS_INITIAL_CAPACITY = 32
+private const val WS_REQUESTS_INITIAL_CAPACITY = 16
+
 /**
  * Creates an instance of [KtorNSURLSessionDelegate]
  */
@@ -42,8 +45,10 @@ public class KtorNSURLSessionDelegate internal constructor(
     private val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol, NSURLSessionWebSocketDelegateProtocol {
 
-    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(initialCapacity = 32)
-    private val webSocketSessions = ConcurrentMap<NSURLSessionWebSocketTask, DarwinWebsocketSession>()
+    private val taskHandlers =
+        ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(HTTP_REQUESTS_INITIAL_CAPACITY)
+    private val webSocketSessions =
+        ConcurrentMap<NSURLSessionWebSocketTask, DarwinWebsocketSession>(WS_REQUESTS_INITIAL_CAPACITY)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
         val taskHandler = taskHandlers[dataTask] ?: return
