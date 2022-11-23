@@ -14,6 +14,7 @@ fun KotlinMultiplatformExtension.ideaTarget(): KotlinNativeTarget = when (HostMa
     else -> error("Unsupported target ${HostManager.host}")
 }
 
-fun Project.fastTarget() {
+fun Project.fastTarget(): Boolean {
     if (COMMON_JVM_ONLY) kotlin.jvm()
+    return COMMON_JVM_ONLY
 }
