@@ -146,7 +146,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testSerializeSimple(): Unit = testWithEngine(CIO) {
+    fun testSerializeSimple(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->

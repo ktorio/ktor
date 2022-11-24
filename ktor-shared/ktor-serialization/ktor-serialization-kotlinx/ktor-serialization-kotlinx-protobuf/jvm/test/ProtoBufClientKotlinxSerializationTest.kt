@@ -4,9 +4,11 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.protobuf.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.serialization.*
-import org.junit.Ignore
-import org.junit.Test
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -21,14 +23,18 @@ class ProtoBufClientKotlinxSerializationTest : AbstractClientContentNegotiationT
         register(contentType, converter)
     }
 
-    @Test
-    @Ignore
-    override fun testSerializeSimple() {
+    override suspend fun <T : Any> ApplicationCall.respond(
+        responseJson: String,
+        contentType: ContentType,
+        serializer: KSerializer<T>
+    ) {
+        val actual = Json.decodeFromString(serializer, responseJson)
+        val bytes = DefaultProtoBuf.encodeToByteArray(serializer, actual)
+        respondBytes(bytes, contentType)
     }
 
-    @Test
-    @Ignore
-    override fun testSerializeNested() {
+    override suspend fun ApplicationCall.respondWithRequestBody(contentType: ContentType) {
+        respondBytes(receive(), contentType)
     }
 
     @Test
