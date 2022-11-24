@@ -41,7 +41,6 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         return serializeNullable(contentType, charset, typeInfo, value)
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun serializeNullable(
         contentType: ContentType,
         charset: Charset,
@@ -55,9 +54,6 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
                     val writer = this.writer(charset = charset)
                     // emit asynchronous values in Writer without pretty print
                     (value as Flow<*>).serializeJson(writer)
-
-                    // must flush manually
-                    writer.flush()
                 },
                 contentType.withCharsetIfNeeded(charset)
             )
@@ -95,10 +91,12 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         collectIndexed { index, value ->
             if (index > 0) {
                 writer.write(objectSeparator)
+                writer.flush()
             }
             gson.toJson(value, writer)
         }
         writer.write(endArrayCharCode)
+        writer.flush()
     }
 }
 

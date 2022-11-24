@@ -134,7 +134,7 @@ public class JacksonConverter(
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun <T> Flow<T>.serializeJson(outputStream: OutputStream) {
         val jfactory = JsonFactory()
-        // cannot use ObjectMapper write to Stream because it flushes the OutputStream
+        // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(outputStream, JsonEncoding.UTF8)
         jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
         jGenerator.codec = objectMapper
@@ -143,6 +143,7 @@ public class JacksonConverter(
         collectIndexed { index, value ->
             if (index > 0) {
                 outputStream.write(objectSeparator)
+                outputStream.flush()
             }
             jGenerator.writeObject(value)
         }
@@ -155,7 +156,7 @@ public class JacksonConverter(
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun <T> Flow<T>.serializeJson(writer: Writer) {
         val jfactory = JsonFactory()
-        // cannot use ObjectMapper write to Stream because it flushes the OutputStream
+        // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(writer)
         jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
         jGenerator.configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
@@ -165,6 +166,7 @@ public class JacksonConverter(
         collectIndexed { index, value ->
             if (index > 0) {
                 writer.write(objectSeparator)
+                writer.flush()
             }
             jGenerator.writeObject(value)
         }

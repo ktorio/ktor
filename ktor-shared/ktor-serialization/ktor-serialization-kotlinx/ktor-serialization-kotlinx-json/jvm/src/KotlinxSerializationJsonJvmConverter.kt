@@ -59,6 +59,9 @@ public class KotlinxSerializationJsonJvmConverter(
             try {
                 return withContext(Dispatchers.IO) {
                     val inputStream = content.toInputStream()
+                    // kotlinx.serialization provides optimized sequence deserialization
+                    // Elements are parsed lazily when resulting Sequence is evaluated. Resulting sequence is tied to
+                    // the stream and can be evaluated only once.
                     if (typeInfo.type == Sequence::class) {
                         // build TypeInfo of the generic Sequence, for Sequence<T> it means T
                         val elementType = typeInfo.kotlinType!!.arguments[0].type!!
@@ -96,6 +99,7 @@ public class KotlinxSerializationJsonJvmConverter(
         collectIndexed { index, value ->
             if (index > 0) {
                 outputStream.write(objectSeparator)
+                outputStream.flush()
             }
             outputStreamSerializationBase.serialize(
                 OutputStreamSerializationParameters(
