@@ -13,7 +13,6 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.*
 import kotlin.test.*
 
 class JsonClientKotlinxSerializationJsonJvmTest : AbstractClientContentNegotiationTest() {
@@ -23,25 +22,6 @@ class JsonClientKotlinxSerializationJsonJvmTest : AbstractClientContentNegotiati
 
     override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
         json(contentType = contentType) // = KotlinxSerializationJsonJvmConverter
-    }
-
-    @Test
-    fun testNotChunkedEncodingByDefault() = testWithEngine(CIO) {
-        config {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-
-        test { client ->
-            val response = client.post {
-                url(port = serverPort, path = "headers")
-                setBody(Json("request"))
-                contentType(ContentType.Application.Json)
-            }.body<String>()
-
-            assertEquals("null:19", response)
-        }
     }
 
     @Test
@@ -61,7 +41,4 @@ class JsonClientKotlinxSerializationJsonJvmTest : AbstractClientContentNegotiati
             )
         }
     }
-
-    @Serializable
-    data class Json(val value: String)
 }
