@@ -81,13 +81,8 @@ public class JacksonConverter(
                 if (charset == Charsets.UTF_8) {
                     // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
-                        if (prettyPrinting) {
-                            // for pretty print we must collect the flow into a List
-                            objectMapper.writeValue(this, (value as Flow<*>).toList())
-                        } else {
-                            // emit asynchronous values in OutputStream : no pretty print here
-                            (value as Flow<*>).serializeJson(this)
-                        }
+                        // emit asynchronous values in OutputStream without pretty print
+                        (value as Flow<*>).serializeJson(this)
                     } else {
                         // non flow content
                         objectMapper.writeValue(this, value)
@@ -98,13 +93,8 @@ public class JacksonConverter(
 
                     // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
-                        if (prettyPrinting) {
-                            // for pretty print we must collect the flow into a List
-                            objectMapper.writeValue(writer, (value as Flow<*>).toList())
-                        } else {
-                            // emit asynchronous values in Writer : no pretty print here
-                            (value as Flow<*>).serializeJson(writer)
-                        }
+                        // emit asynchronous values in Writer without pretty print
+                        (value as Flow<*>).serializeJson(writer)
                     } else {
                         // non flow content
                         objectMapper.writeValue(writer, value)
@@ -130,10 +120,6 @@ public class JacksonConverter(
                 else -> throw deserializeFailure
             }
         }
-    }
-
-    private val prettyPrinting by lazy {
-        objectMapper.isEnabled(SerializationFeature.INDENT_OUTPUT)
     }
 
     private companion object {

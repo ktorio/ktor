@@ -19,36 +19,23 @@ import kotlin.test.*
 @Suppress("DEPRECATION")
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()
-    private val prettyPrintObjectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT)
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
     override fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean,
-        prettyPrint: Boolean
+        streamRequestBody: Boolean
     ) {
-        register(contentType, JacksonConverter(objectMapper(prettyPrint), streamRequestBody))
+        register(contentType, JacksonConverter(objectMapper, streamRequestBody))
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {
         return objectMapper.readValue(String(t), jacksonTypeRef<TestEntity>())
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset, prettyPrint: Boolean): List<TestEntity> {
-        val jsonString = String(t, charset)
-        val deserialized = objectMapper(prettyPrint).readValue(String(t, charset), jacksonTypeRef<List<TestEntity>>())
-        val pretty = objectMapper(prettyPrint).writeValueAsString(deserialized)
-        assertEquals(pretty, jsonString)
-        return deserialized
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
+        return objectMapper.readValue(String(t, charset), jacksonTypeRef<List<TestEntity>>())
     }
-
-    private fun objectMapper(prettyPrint: Boolean) =
-        if (prettyPrint) {
-            prettyPrintObjectMapper
-        } else {
-            objectMapper
-        }
 
     override fun simpleSerialize(any: TestEntity): ByteArray {
         return objectMapper.writeValueAsBytes(any)

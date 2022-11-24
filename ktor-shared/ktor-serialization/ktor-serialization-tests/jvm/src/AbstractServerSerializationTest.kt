@@ -22,26 +22,23 @@ public abstract class AbstractServerSerializationTest {
     protected abstract val customContentType: ContentType
     protected abstract fun ContentNegotiationConfig.configureContentNegotiation(
         contentType: ContentType,
-        streamRequestBody: Boolean,
-        prettyPrint: Boolean
+        streamRequestBody: Boolean
     )
 
     protected abstract fun simpleSerialize(any: TestEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): TestEntity
     protected abstract fun simpleDeserializeList(
         t: ByteArray,
-        charset: Charset = Charsets.UTF_8,
-        prettyPrint: Boolean
+        charset: Charset = Charsets.UTF_8
     ): List<TestEntity>
 
     private fun withTestSerializingApplication(
         streamRequestBody: Boolean = true,
-        prettyPrint: Boolean = false,
         block: suspend TestApplicationEngine.() -> Unit
     ): Unit =
         withTestApplication {
             application.install(ContentNegotiation) {
-                configureContentNegotiation(defaultContentType, streamRequestBody, prettyPrint)
+                configureContentNegotiation(defaultContentType, streamRequestBody)
             }
 
             application.routing {
@@ -126,11 +123,6 @@ public abstract class AbstractServerSerializationTest {
     }
 
     @Test
-    public fun testFlowNoAcceptUtf8PrettyPrint(): Unit = withTestSerializingApplication(prettyPrint = true) {
-        handleRequest(HttpMethod.Get, "/flow").let { call -> verifyListResponse(call.response, Charsets.UTF_8, true) }
-    }
-
-    @Test
     public fun testFlowNoAcceptUtf16(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/flow") {
             addHeader("Accept-Charset", "UTF-16")
@@ -145,11 +137,11 @@ public abstract class AbstractServerSerializationTest {
             }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
         }
 
-    private fun verifyListResponse(response: TestApplicationResponse, charset: Charset, prettyPrint: Boolean = false) {
+    private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
         assertEquals(HttpStatusCode.OK, response.status())
         val bytes = response.byteContent
         assertNotNull(bytes)
-        val listEntity = simpleDeserializeList(bytes, charset, prettyPrint)
+        val listEntity = simpleDeserializeList(bytes, charset)
         assertEquals(testEntities, listEntity)
     }
 

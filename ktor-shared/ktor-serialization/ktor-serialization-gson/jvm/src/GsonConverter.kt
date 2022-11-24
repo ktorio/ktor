@@ -53,13 +53,8 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
             return OutputStreamContent(
                 {
                     val writer = this.writer(charset = charset)
-                    if (prettyPrinting) {
-                        // for pretty print we must collect the flow into a List
-                        gson.toJson((value as Flow<*>).toList(), writer)
-                    } else {
-                        // emit asynchronous values in Writer : no pretty print here
-                        (value as Flow<*>).serializeJson(writer)
-                    }
+                    // emit asynchronous values in Writer without pretty print
+                    (value as Flow<*>).serializeJson(writer)
 
                     // must flush manually
                     writer.flush()
@@ -83,12 +78,6 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
-    }
-
-    private val prettyPrinting by lazy {
-        val field = Gson::class.java.getDeclaredField("prettyPrinting")
-        field.isAccessible = true
-        field.get(gson) as Boolean
     }
 
     private companion object {

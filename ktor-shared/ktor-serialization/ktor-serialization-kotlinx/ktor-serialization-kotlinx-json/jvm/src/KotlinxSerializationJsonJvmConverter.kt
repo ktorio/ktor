@@ -42,20 +42,8 @@ public class KotlinxSerializationJsonJvmConverter(
             // kotlinx.serialization internally does special casing on UTF-8, presumably for performance reasons
             return OutputStreamContent(
                 {
-                    if (prettyPrinting) {
-                        // for pretty print we must collect the flow into a List
-                        outputStreamSerializationBase.serialize(
-                            OutputStreamSerializationParameters(
-                                json,
-                                (value as Flow<*>).toList(),
-                                typeInfo,
-                                this
-                            )
-                        )
-                    } else {
-                        // emit asynchronous values in OutputStream : no pretty print here
-                        (value as Flow<*>).serializeJson(this)
-                    }
+                    // emit asynchronous values in OutputStream without pretty print
+                    (value as Flow<*>).serializeJson(this)
                 },
                 contentType.withCharsetIfNeeded(Charsets.UTF_8)
             )
@@ -91,10 +79,6 @@ public class KotlinxSerializationJsonJvmConverter(
         }
         // fallback to common KotlinxSerializationConverter
         return fallbackConverter.deserialize(charset, typeInfo, content)
-    }
-
-    private val prettyPrinting by lazy {
-        json.configuration.prettyPrint
     }
 
     private companion object {
