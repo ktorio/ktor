@@ -38,7 +38,7 @@ dependencies {
     implementation("io.ktor:ktor-server-conditional-headers:2.0.2")
     implementation("io.ktor:ktor-server-compression:2.0.2")
     implementation("io.ktor:ktor-server-content-negotiation:2.0.2")
-    implementation("io.ktor:ktor-serialization-kotlinx:2.0.2")
+    implementation("io.ktor:ktor-serialization-kotlinx:2.1.3")
     implementation("io.ktor:ktor-network-tls-certificates:2.0.2")
 
     implementation(libs.kotlinx.serialization.json)
