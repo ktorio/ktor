@@ -168,7 +168,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
             val data: Widget? = null
             val result = client.post {
                 url(path = "/null", port = serverPort)
-                contentType(ContentType.Application.Json)
+                contentType(defaultContentType)
                 setBody(data)
             }.body<Widget?>()
 
