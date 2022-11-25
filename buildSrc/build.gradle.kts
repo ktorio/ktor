@@ -35,7 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-server-websockets:2.0.2")
     implementation("io.ktor:ktor-server-auth:2.0.2")
     implementation("io.ktor:ktor-server-caching-headers:2.0.2")
-    implementation("io.ktor:ktor-server-conditional-headers:2.0.2")
+    implementation("io.ktor:ktor-server-conditional-headers:2.1.3")
     implementation("io.ktor:ktor-server-compression:2.0.2")
     implementation("io.ktor:ktor-server-content-negotiation:2.0.2")
     implementation("io.ktor:ktor-serialization-kotlinx:2.0.2")
