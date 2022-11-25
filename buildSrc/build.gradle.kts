@@ -4,7 +4,7 @@
 
 plugins {
     `kotlin-dsl`
-    kotlin("plugin.serialization") version "1.6.21"
+    kotlin("plugin.serialization") version "1.8.20-mercury-607"
 }
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
