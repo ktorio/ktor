@@ -32,13 +32,13 @@ class TestApplicationEngine(
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
 
-    private enum class State {
+    internal enum class State {
         Stopped, Starting, Started
     }
 
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
-    private val state = atomic(State.Stopped)
+    internal val state = atomic(State.Stopped)
 
     override val coroutineContext: CoroutineContext = testEngineJob
 

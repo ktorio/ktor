@@ -72,3 +72,12 @@ public abstract class ResponseHeaders {
      */
     protected abstract fun getEngineHeaderValues(name: String): List<String>
 }
+
+/**
+ * Appends a response header with the specified [name] and [value] if this is no header with [name] yet.
+ * @param safeOnly prevents from setting unsafe headers; `true` by default
+ */
+public fun ResponseHeaders.appendIfAbsent(name: String, value: String, safeOnly: Boolean = true) {
+    if (contains(name)) return
+    append(name, value, safeOnly)
+}

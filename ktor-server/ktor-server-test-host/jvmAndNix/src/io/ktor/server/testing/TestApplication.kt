@@ -60,6 +60,7 @@ public class TestApplication internal constructor(
      * Starts this [TestApplication] instance.
      */
     public fun start() {
+        if (builder.engine.state.value != TestApplicationEngine.State.Stopped) return
         builder.engine.start()
         builder.externalServices.externalApplications.values.forEach { it.start() }
     }

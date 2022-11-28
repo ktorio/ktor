@@ -765,6 +765,11 @@ public abstract class io/ktor/server/response/ResponseHeaders {
 	public final fun values (Ljava/lang/String;)Ljava/util/List;
 }
 
+public final class io/ktor/server/response/ResponseHeadersKt {
+	public static final fun appendIfAbsent (Lio/ktor/server/response/ResponseHeaders;Ljava/lang/String;Ljava/lang/String;Z)V
+	public static synthetic fun appendIfAbsent$default (Lio/ktor/server/response/ResponseHeaders;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)V
+}
+
 public abstract interface class io/ktor/server/response/ResponsePushBuilder {
 	public abstract fun getHeaders ()Lio/ktor/http/HeadersBuilder;
 	public abstract fun getMethod ()Lio/ktor/http/HttpMethod;
