@@ -34,6 +34,7 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
 
     val exceptions = HashMap(pluginConfig.exceptions)
     val statuses = HashMap(pluginConfig.statuses)
+    val unhandled = pluginConfig.unhandled
 
     fun findHandlerByValue(cause: Throwable): HandlerFunction? {
         val keys = exceptions.keys.filter { cause.instanceOf(it) }
@@ -92,6 +93,11 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
             handler(call, cause)
         }
     }
+
+    on(BeforeFallback) { call ->
+        if (call.isHandled) return@on
+        unhandled(call)
+    }
 }
 
 /**
@@ -110,6 +116,8 @@ public class StatusPagesConfig {
     public val statuses: MutableMap<HttpStatusCode,
         suspend (call: ApplicationCall, content: OutgoingContent, code: HttpStatusCode) -> Unit> =
         mutableMapOf()
+
+    internal var unhandled: suspend (ApplicationCall) -> Unit = {}
 
     /**
      * Register an exception [handler] for the exception type [T] and its children.
@@ -141,6 +149,13 @@ public class StatusPagesConfig {
         status.forEach {
             statuses[it] = { call, _, code -> handler(call, code) }
         }
+    }
+
+    /**
+     * Register a [handler] for the unhandled calls.
+     */
+    public fun unhandled(handler: suspend (ApplicationCall) -> Unit) {
+        unhandled = handler
     }
 
     /**

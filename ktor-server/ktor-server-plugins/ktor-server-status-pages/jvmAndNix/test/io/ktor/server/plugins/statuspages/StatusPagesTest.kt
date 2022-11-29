@@ -540,4 +540,31 @@ class StatusPagesTest {
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertEquals("Handled", response.bodyAsText())
     }
+
+    @Test
+    fun testUnhandled() = testApplication {
+        install(StatusPages) {
+            unhandled { call -> call.respond(HttpStatusCode.InternalServerError, "body") }
+        }
+        routing {
+            get("route") {
+                call.response.headers.append("Custom-Header", "Custom-Value")
+            }
+            get("handled") {
+                call.respond("OK")
+            }
+        }
+
+        val responseHandled = client.get("handled")
+        assertEquals("OK", responseHandled.bodyAsText())
+
+        val responseNoRoute = client.get("/no-route")
+        assertEquals(HttpStatusCode.InternalServerError, responseNoRoute.status)
+        assertEquals("body", responseNoRoute.bodyAsText())
+
+        val responseWithRoute = client.get("/route")
+        assertEquals(HttpStatusCode.InternalServerError, responseWithRoute.status)
+        assertEquals("Custom-Value", responseWithRoute.headers["Custom-Header"])
+        assertEquals("body", responseWithRoute.bodyAsText())
+    }
 }
