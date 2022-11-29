@@ -4,11 +4,12 @@
 pluginManagement {
     val build_snapshot_train: String? by settings
     repositories {
-        maven("https://plugins.gradle.org/m2")
         if (build_snapshot_train?.toBoolean() == true) {
             mavenLocal()
         }
 
+        maven("https://plugins.gradle.org/m2")
+        mavenCentral()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 }
