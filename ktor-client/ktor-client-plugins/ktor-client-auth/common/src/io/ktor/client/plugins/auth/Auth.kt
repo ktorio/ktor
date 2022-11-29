@@ -54,13 +54,13 @@ public class Auth private constructor(
                 val candidateProviders = HashSet(plugin.providers)
 
                 while (call.response.status == HttpStatusCode.Unauthorized) {
-                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
+                    val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
+                    val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
-                    val authHeader = headerValue?.let { parseAuthorizationHeader(headerValue) }
-                    val provider = when {
-                        authHeader == null && candidateProviders.size == 1 -> candidateProviders.first()
-                        authHeader == null -> return@intercept call
-                        else -> candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    val (provider, authHeader) = when {
+                        authHeaders.isEmpty() && candidateProviders.size == 1 -> candidateProviders.first() to null
+                        authHeaders.isEmpty() -> return@intercept call
+                        else -> findProviderAndHeader(candidateProviders, authHeaders) ?: return@intercept call
                     }
                     if (!provider.refreshToken(call.response)) return@intercept call
 
@@ -75,6 +75,21 @@ public class Auth private constructor(
                 }
                 return@intercept call
             }
+        }
+
+        private fun findProviderAndHeader(
+            providers: Collection<AuthProvider>,
+            authHeaders: List<HttpAuthHeader>
+        ): Pair<AuthProvider, HttpAuthHeader>? {
+            authHeaders.forEach { header ->
+                providers.forEach { provider ->
+                    if (provider.isApplicable(header)) {
+                        return provider to header
+                    }
+                }
+            }
+
+            return null
         }
     }
 }
