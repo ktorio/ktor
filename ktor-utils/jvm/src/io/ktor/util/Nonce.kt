@@ -11,8 +11,11 @@ import java.security.*
 
 private const val SHA1PRNG = "SHA1PRNG"
 
-private val SECURE_RANDOM_PROVIDER_NAME: String =
-    System.getProperty("io.ktor.random.secure.random.provider") ?: "NativePRNGNonBlocking"
+private val SECURE_RANDOM_PROVIDERS: List<String> = listOf(
+    "NativePRNGNonBlocking",
+    "WINDOWS-PRNG",
+    "DRBG"
+)
 
 private const val SECURE_RESEED_PERIOD = 30_000
 
@@ -91,11 +94,16 @@ internal fun ensureNonceGeneratorRunning() {
 }
 
 private fun lookupSecureRandom(): SecureRandom {
-    val secure = getInstanceOrNull(SECURE_RANDOM_PROVIDER_NAME)
-    if (secure != null) return secure
+    System.getProperty("io.ktor.random.secure.random.provider")?.let { name ->
+        getInstanceOrNull(name)?.let { return it }
+    }
+
+    for (name in SECURE_RANDOM_PROVIDERS) {
+        getInstanceOrNull(name)?.let { return it }
+    }
 
     LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to default")
+        .warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString(separator = ", ")} found, fallback to default")
 
     return getInstanceOrNull() ?: error("No SecureRandom implementation found")
 }
