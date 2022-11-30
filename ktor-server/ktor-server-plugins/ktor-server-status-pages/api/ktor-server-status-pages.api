@@ -5,6 +5,7 @@ public final class io/ktor/server/plugins/statuspages/StatusPagesConfig {
 	public final fun getStatuses ()Ljava/util/Map;
 	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
 	public final fun statusWithContext ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
+	public final fun unhandled (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/plugins/statuspages/StatusPagesConfig$StatusContext {
