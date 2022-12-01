@@ -5,8 +5,11 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
@@ -15,6 +18,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
@@ -148,7 +152,8 @@ class OAuth2Test {
                         when (state) {
                             null -> parametersOf("noState", "Had no state")
                             else -> Parameters.Empty
-                        }
+                        },
+                        state
                     )
                 } else if (grantType == OAuthGrantTypes.Password) {
                     if (userName != "user1") {
@@ -793,6 +798,78 @@ class OAuth2Test {
         ).response.content
 
         assertEquals("Had no state", result)
+    }
+
+    @Test
+    fun testApplicationState() = testApplication {
+        class UserSession(val token: String)
+
+        val client = createClient {
+            install(HttpCookies)
+        }
+        val redirects = mutableMapOf<String, String>()
+        externalServices {
+            hosts("http://oauth.com") {
+                routing {
+                    post("/oauth/access_token") {
+                        call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                    }
+                    get("/oauth/authorize") {
+                        val state = call.parameters["state"]!!
+                        call.respondText("code=code&state=$state", ContentType.Application.FormUrlEncoded)
+                    }
+                }
+            }
+        }
+        install(Sessions) {
+            cookie<UserSession>("user_session")
+        }
+        install(Authentication) {
+            oauth("login") {
+                this@oauth.client = client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://oauth.com/oauth/authorize",
+                        accessTokenUrl = "http://oauth.com/oauth/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        onStateCreated = { call, state ->
+                            redirects[state] = call.request.queryParameters["redirectUrl"]!!
+                        }
+                    )
+                }
+            }
+        }
+        routing {
+            authenticate("login") {
+                get("login") {
+                    val state = call.principal<OAuthAccessTokenResponse.OAuth2>()!!.state!!
+                    call.sessions.set(UserSession(state))
+                    val redirect = redirects[state]!!
+                    call.respondRedirect(redirect)
+                }
+            }
+            get("{path}") {
+                val session = call.sessions.get<UserSession>()
+                if (session == null) {
+                    val redirectUrl = URLBuilder("http://localhost/login").run {
+                        parameters.append("redirectUrl", call.request.uri)
+                        build()
+                    }
+                    call.respondRedirect(redirectUrl)
+                    return@get
+                }
+                call.respond(call.parameters["path"]!!)
+            }
+        }
+        val request1Auth = client.get("/some-url").body<String>().let { parseQueryString(it) }
+        val code1 = request1Auth["code"]!!
+        val state1 = request1Auth["state"]!!
+        val response1 = client.get("/login?code=$code1&state=$state1")
+        assertEquals("some-url", response1.bodyAsText())
     }
 
     private fun waitExecutor() {

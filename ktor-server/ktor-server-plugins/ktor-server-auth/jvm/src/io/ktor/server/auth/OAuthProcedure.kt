@@ -85,10 +85,12 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
     cause ?: return
     @Suppress("NAME_SHADOWING")
     context.challenge(OAuthKey, cause) { challenge, call ->
+        val state = provider.nonceManager.newNonce()
+        provider.onStateCreated(call, state)
         call.redirectAuthenticateOAuth2(
             provider,
             callbackRedirectUrl,
-            state = provider.nonceManager.newNonce(),
+            state = state,
             scopes = provider.defaultScopes,
             extraParameters = provider.extraAuthParameters,
             interceptor = provider.authorizeUrlInterceptor
