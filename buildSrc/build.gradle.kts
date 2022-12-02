@@ -48,6 +48,6 @@ dependencies {
 kotlin {
     jvmToolchain {
         check(this is JavaToolchainSpec)
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
