@@ -84,7 +84,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val passParamsInURL: Boolean = false,
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
-        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+        public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
     ) : OAuthServerSettings(name, OAuthVersion.V20) {
 
         @Deprecated("This constructor will be removed", level = DeprecationLevel.HIDDEN)
@@ -116,6 +117,40 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
             emptyList(),
             emptyList(),
             accessTokenInterceptor
+        )
+
+        @Deprecated("This constructor will be removed", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+            extraAuthParameters: List<Pair<String, String>> = emptyList(),
+            extraTokenParameters: List<Pair<String, String>> = emptyList(),
+            accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            authorizeUrlInterceptor,
+            passParamsInURL,
+            extraAuthParameters,
+            extraTokenParameters,
+            accessTokenInterceptor,
+            { _, _ -> }
         )
     }
 }
@@ -161,6 +196,7 @@ public sealed class OAuthAccessTokenResponse : Principal {
      * @property tokenType OAuth2 token type (usually Bearer)
      * @property expiresIn token expiration timestamp
      * @property refreshToken to be used to refresh access token after expiration
+     * @property state generated state used for the OAuth procedure
      * @property extraParameters contains additional parameters provided by the server
      */
     public data class OAuth2(
@@ -168,8 +204,23 @@ public sealed class OAuthAccessTokenResponse : Principal {
         val tokenType: String,
         val expiresIn: Long,
         val refreshToken: String?,
-        val extraParameters: Parameters = Parameters.Empty
-    ) : OAuthAccessTokenResponse()
+        val extraParameters: Parameters = Parameters.Empty,
+    ) : OAuthAccessTokenResponse() {
+
+        public var state: String? = null
+            private set
+
+        public constructor(
+            accessToken: String,
+            tokenType: String,
+            expiresIn: Long,
+            refreshToken: String?,
+            extraParameters: Parameters = Parameters.Empty,
+            state: String? = null
+        ) : this(accessToken, tokenType, expiresIn, refreshToken, extraParameters) {
+            this.state = state
+        }
+    }
 }
 
 /**
@@ -214,6 +265,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
             }
         }
+
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(
                 provider,
@@ -275,6 +327,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
                 }
             }
         }
+
         is OAuthServerSettings.OAuth2ServerSettings -> {
             val code = call.oauth2HandleCallback()
             if (code == null) {

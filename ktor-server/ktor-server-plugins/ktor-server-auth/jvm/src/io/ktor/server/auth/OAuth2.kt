@@ -265,6 +265,7 @@ private suspend fun oauth2RequestAccessToken(
         accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]
             ?: throw OAuth2Exception.MissingAccessToken(),
         tokenType = contentDecoded[OAuth2ResponseParameters.TokenType] ?: "",
+        state = state,
         expiresIn = contentDecoded[OAuth2ResponseParameters.ExpiresIn]?.toLong() ?: 0L,
         refreshToken = contentDecoded[OAuth2ResponseParameters.RefreshToken],
         extraParameters = contentDecoded
