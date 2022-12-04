@@ -152,6 +152,41 @@ internal fun Application.authTestServer() {
                     call.respond("OK")
                 }
             }
+
+            route("multiple") {
+                get("header") {
+                    val token = call.request.headers[HttpHeaders.Authorization]
+
+                    if (token.isNullOrEmpty() || token.contains("Invalid")) {
+                        call.response.header(
+                            HttpHeaders.WWWAuthenticate,
+                            "Basic realm=\"TestServer\", charset=UTF-8, Digest, Bearer realm=\"my-server\""
+                        )
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond("OK")
+                }
+                get("headers") {
+                    val token = call.request.headers[HttpHeaders.Authorization]
+
+                    if (token.isNullOrEmpty() || token.contains("Invalid")) {
+                        call.response.header(
+                            HttpHeaders.WWWAuthenticate,
+                            "Basic realm=\"TestServer\", charset=UTF-8, Digest"
+                        )
+                        call.response.header(
+                            HttpHeaders.WWWAuthenticate,
+                            "Bearer realm=\"my-server\""
+                        )
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond("OK")
+                }
+            }
         }
     }
 }

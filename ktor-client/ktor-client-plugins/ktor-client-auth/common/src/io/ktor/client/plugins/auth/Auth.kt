@@ -57,11 +57,23 @@ public class Auth private constructor(
                     val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
                     val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
-                    val (provider, authHeader) = when {
-                        authHeaders.isEmpty() && candidateProviders.size == 1 -> candidateProviders.first() to null
+                    var providerOrNull: AuthProvider? = null
+                    var authHeader: HttpAuthHeader? = null
+
+                    when {
+                        authHeaders.isEmpty() && candidateProviders.size == 1 -> {
+                            providerOrNull = candidateProviders.first()
+                        }
+
                         authHeaders.isEmpty() -> return@intercept call
-                        else -> findProviderAndHeader(candidateProviders, authHeaders) ?: return@intercept call
+
+                        else -> authHeader = authHeaders.find { header ->
+                            providerOrNull = candidateProviders.find { it.isApplicable(header) }
+                            providerOrNull != null
+                        }
                     }
+                    val provider = providerOrNull ?: return@intercept call
+
                     if (!provider.refreshToken(call.response)) return@intercept call
 
                     candidateProviders.remove(provider)
@@ -75,21 +87,6 @@ public class Auth private constructor(
                 }
                 return@intercept call
             }
-        }
-
-        private fun findProviderAndHeader(
-            providers: Collection<AuthProvider>,
-            authHeaders: List<HttpAuthHeader>
-        ): Pair<AuthProvider, HttpAuthHeader>? {
-            authHeaders.forEach { header ->
-                providers.forEach { provider ->
-                    if (provider.isApplicable(header)) {
-                        return provider to header
-                    }
-                }
-            }
-
-            return null
         }
     }
 }
