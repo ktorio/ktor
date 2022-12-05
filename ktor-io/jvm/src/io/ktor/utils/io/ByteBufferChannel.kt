@@ -1949,41 +1949,44 @@ internal open class ByteBufferChannel(
 
         val output = CharArray(8 * 1024)
         while (!isClosedForRead && !newLine && !caret && (limit == Int.MAX_VALUE || consumed <= limit)) {
-            read(required) {
-                val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
-                val decodeResult = it.decodeUTF8Line(output, 0, readLimit)
+            try {
+                read(required) {
+                    val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
+                    val decodeResult = it.decodeUTF8Line(output, 0, readLimit)
 
-                val decoded = (decodeResult shr 32).toInt()
-                val requiredBytes = (decodeResult and 0xffffffffL).toInt()
+                    val decoded = (decodeResult shr 32).toInt()
+                    val requiredBytes = (decodeResult and 0xffffffffL).toInt()
 
-                required = kotlin.math.max(1, requiredBytes)
+                    required = kotlin.math.max(1, requiredBytes)
 
-                if (requiredBytes == -1) {
-                    newLine = true
+                    if (requiredBytes == -1) {
+                        newLine = true
+                    }
+
+                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
+                        it.position(it.position() + 1)
+                        caret = true
+                    }
+
+                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
+                        it.position(it.position() + 1)
+                        newLine = true
+                    }
+
+                    if (out is StringBuilder) {
+                        out.append(output, 0, decoded)
+                    } else {
+                        val buffer = CharBuffer.wrap(output, 0, decoded)
+                        out.append(buffer, 0, decoded)
+                    }
+
+                    consumed += decoded
+
+                    if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
+                        throw TooLongLineException("Line is longer than limit")
+                    }
                 }
-
-                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
-                    it.position(it.position() + 1)
-                    caret = true
-                }
-
-                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
-                    it.position(it.position() + 1)
-                    newLine = true
-                }
-
-                if (out is StringBuilder) {
-                    out.append(output, 0, decoded)
-                } else {
-                    val buffer = CharBuffer.wrap(output, 0, decoded)
-                    out.append(buffer, 0, decoded)
-                }
-
-                consumed += decoded
-
-                if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
-                    throw TooLongLineException("Line is longer than limit")
-                }
+            } catch (_: EOFException) {
             }
         }
 

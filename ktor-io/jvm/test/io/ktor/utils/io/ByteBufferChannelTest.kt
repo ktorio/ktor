@@ -62,6 +62,29 @@ class ByteBufferChannelTest {
     }
 
     @Test
+    fun testReadUtf8LineEOF() = testSuspend {
+        (1..20000).forEach { num ->
+            val channel = ByteChannel(true)
+            val writer = launch(Dispatchers.IO) {
+                channel.writeFully("1\n".toByteArray())
+                channel.close()
+            }
+
+            val reader = async(Dispatchers.IO) {
+                val lines = mutableListOf<String>()
+                while (true) {
+                    val line = channel.readUTF8Line(5000) ?: break
+                    lines.add(line)
+                }
+                lines
+            }
+
+            val readerResult = reader.await()
+            writer.join()
+        }
+    }
+
+    @Test
     fun testWriteWriteAvailableRaceCondition() = runBlocking {
         testWriteXRaceCondition { it.writeAvailable(1) { it.put(1) } }
     }
