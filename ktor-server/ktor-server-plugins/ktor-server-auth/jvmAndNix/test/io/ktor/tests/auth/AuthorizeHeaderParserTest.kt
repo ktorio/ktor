@@ -5,6 +5,7 @@
 package io.ktor.tests.auth
 
 import io.ktor.http.auth.*
+import io.ktor.util.*
 import kotlin.random.*
 import kotlin.test.*
 
@@ -114,6 +115,7 @@ class AuthorizeHeaderParserTest {
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun testParserMultipleChallenges(expected: List<HttpAuthHeader>, headerValue: String) {
         val actual = parseAuthorizationHeaders(headerValue)
 

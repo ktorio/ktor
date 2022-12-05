@@ -61,6 +61,7 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
  * @return a list of [HttpAuthHeader]
  * @throws [ParseException] on invalid header
  */
+@InternalAPI
 public fun parseAuthorizationHeaders(headerValue: String): List<HttpAuthHeader> {
     var index = 0
     val headers = mutableListOf<HttpAuthHeader>()
@@ -107,6 +108,12 @@ private fun parseAuthorizationHeader(
     return nextIndexChallenge
 }
 
+/**
+ * Check for the ending of the current challenge in a header
+ * @return -1 if at the end of the header
+ * @return null if the challenge is not ended
+ * @return a positive number - the index of the beginning of the next challenge
+ */
 private fun nextChallengeIndex(
     headers: MutableList<HttpAuthHeader>,
     header: HttpAuthHeader,
