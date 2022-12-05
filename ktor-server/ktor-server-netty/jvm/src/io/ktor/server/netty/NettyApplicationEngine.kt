@@ -222,6 +222,8 @@ public class NettyApplicationEngine(
             throw cause
         }
 
+        environment.monitor.raise(ServerReady, environment)
+
         cancellationDeferred = stopServerOnCancellation()
 
         if (wait) {
@@ -310,7 +312,7 @@ public class EventLoopGroupProxy(
         private fun markParkingProhibited() {
             try {
                 prohibitParkingFunction?.invoke(null)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
             }
         }
     }

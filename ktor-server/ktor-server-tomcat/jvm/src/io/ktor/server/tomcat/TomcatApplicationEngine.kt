@@ -147,6 +147,7 @@ public class TomcatApplicationEngine(
         val connectors = server.service.findConnectors().zip(environment.connectors)
             .map { it.second.withPort(it.first.localPort) }
         resolvedConnectors.complete(connectors)
+        environment.monitor.raise(ServerReady, environment)
 
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {

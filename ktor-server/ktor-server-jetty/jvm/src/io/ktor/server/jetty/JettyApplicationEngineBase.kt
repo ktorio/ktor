@@ -54,6 +54,8 @@ public open class JettyApplicationEngineBase(
             .map { it.second.withPort((it.first as ServerConnector).localPort) }
         resolvedConnectors.complete(connectors)
 
+        environment.monitor.raise(ServerReady, environment)
+
         if (wait) {
             server.join()
             stop(1, 5, TimeUnit.SECONDS)

@@ -57,6 +57,7 @@ public class CIOApplicationEngine(
 
         runBlocking {
             startupJob.await()
+            environment.monitor.raise(ServerReady, environment)
 
             if (wait) {
                 serverJob.join()
