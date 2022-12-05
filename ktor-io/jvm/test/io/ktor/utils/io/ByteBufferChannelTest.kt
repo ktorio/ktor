@@ -63,7 +63,7 @@ class ByteBufferChannelTest {
 
     @Test
     fun testReadUtf8LineEOF() = testSuspend {
-        (1..20000).forEach { num ->
+        repeat(20000) {
             val channel = ByteChannel(true)
             val writer = launch(Dispatchers.IO) {
                 channel.writeFully("1\n".toByteArray())
@@ -79,7 +79,7 @@ class ByteBufferChannelTest {
                 lines
             }
 
-            val readerResult = reader.await()
+            reader.await()
             writer.join()
         }
     }
