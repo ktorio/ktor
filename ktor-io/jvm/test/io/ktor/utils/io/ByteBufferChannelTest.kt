@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io
 
+import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.core.EOFException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -22,6 +24,29 @@ class ByteBufferChannelTest {
         Job().also { channel.attachJob(it) }.completeExceptionally(IOException("Text exception"))
 
         assertFailsWith<IOException> { runBlocking { channel.readByte() } }
+    }
+
+    @Test
+    fun testEarlyEOF() = testSuspend {
+        repeat(20000) {
+            val channel = ByteChannel(true)
+            launch(Dispatchers.IO) {
+                channel.writeFully("1\n".toByteArray())
+                channel.close()
+            }
+
+            launch(Dispatchers.IO) {
+                channel.read(1) {
+                    it.get(ByteArray(it.remaining()))
+                }
+
+                assertFailsWith<EOFException> {
+                    channel.read(1) {
+                        it.get(ByteArray(it.remaining()))
+                    }
+                }
+            }.join()
+        }
     }
 
     @Test

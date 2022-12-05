@@ -1655,7 +1655,7 @@ internal open class ByteBufferChannel(
 
         if (!read) {
             if (isClosedForRead) {
-                return
+                throw EOFException("Got EOF but at least $min bytes were expected")
             }
 
             readBlockSuspend(min, consumer)
