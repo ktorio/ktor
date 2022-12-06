@@ -133,3 +133,19 @@ public open class Route(
         }
     }
 }
+
+/**
+ * Return list of endpoints with handlers under this route.
+ */
+public fun Route.getAllRoutes(): List<Route> {
+    val endpoints = mutableListOf<Route>()
+    getAllRoutes(endpoints)
+    return endpoints
+}
+
+private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
+    if (handlers.isNotEmpty()) {
+        endpoints.add(this)
+    }
+    children.forEach { it.getAllRoutes(endpoints) }
+}

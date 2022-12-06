@@ -4,7 +4,11 @@
 
 package io.ktor.tests.routing
 
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import kotlin.test.*
 
 class RouteTest {
@@ -36,5 +40,54 @@ class RouteTest {
         val simpleChild = root.createChild(PathSegmentConstantRouteSelector("simpleChild"))
         assertTrue(root.developmentMode)
         assertTrue(simpleChild.developmentMode)
+    }
+
+    @Test
+    fun testGetAllRoutes() = testApplication {
+        application {
+            val root = routing {
+                route("/shop") {
+                    route("/customer") {
+                        get("/{id}") {
+                            call.respondText("OK")
+                        }
+                        post("/new") { }
+                    }
+
+                    route("/order") {
+                        route("/shipment") {
+                            get { }
+                            post {
+                                call.respondText("OK")
+                            }
+                            put {
+                                call.respondText("OK")
+                            }
+                        }
+                    }
+                }
+
+                route("/info", HttpMethod.Get) {
+                    post("new") {}
+
+                    handle {
+                        call.respondText("OK")
+                    }
+                }
+            }
+
+            val endpoints = root.getAllRoutes()
+            assertTrue { endpoints.size == 7 }
+            val expected = setOf(
+                "/shop/customer/{id}/(method:GET)",
+                "/shop/customer/new/(method:POST)",
+                "/shop/order/shipment/(method:GET)",
+                "/shop/order/shipment/(method:PUT)",
+                "/shop/order/shipment/(method:POST)",
+                "/info/(method:GET)",
+                "/info/(method:GET)/new/(method:POST)"
+            )
+            assertEquals(expected, endpoints.map { it.toString() }.toSet())
+        }
     }
 }
