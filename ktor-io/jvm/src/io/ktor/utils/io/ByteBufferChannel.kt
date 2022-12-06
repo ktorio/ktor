@@ -1655,7 +1655,7 @@ internal open class ByteBufferChannel(
 
         if (!read) {
             if (isClosedForRead) {
-                return
+                throw EOFException("Got EOF but at least $min bytes were expected")
             }
 
             readBlockSuspend(min, consumer)
@@ -1949,41 +1949,45 @@ internal open class ByteBufferChannel(
 
         val output = CharArray(8 * 1024)
         while (!isClosedForRead && !newLine && !caret && (limit == Int.MAX_VALUE || consumed <= limit)) {
-            read(required) {
-                val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
-                val decodeResult = it.decodeUTF8Line(output, 0, readLimit)
+            try {
+                read(required) {
+                    val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
+                    val decodeResult = it.decodeUTF8Line(output, 0, readLimit)
 
-                val decoded = (decodeResult shr 32).toInt()
-                val requiredBytes = (decodeResult and 0xffffffffL).toInt()
+                    val decoded = (decodeResult shr 32).toInt()
+                    val requiredBytes = (decodeResult and 0xffffffffL).toInt()
 
-                required = kotlin.math.max(1, requiredBytes)
+                    required = kotlin.math.max(1, requiredBytes)
 
-                if (requiredBytes == -1) {
-                    newLine = true
+                    if (requiredBytes == -1) {
+                        newLine = true
+                    }
+
+                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
+                        it.position(it.position() + 1)
+                        caret = true
+                    }
+
+                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
+                        it.position(it.position() + 1)
+                        newLine = true
+                    }
+
+                    if (out is StringBuilder) {
+                        out.append(output, 0, decoded)
+                    } else {
+                        val buffer = CharBuffer.wrap(output, 0, decoded)
+                        out.append(buffer, 0, decoded)
+                    }
+
+                    consumed += decoded
+
+                    if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
+                        throw TooLongLineException("Line is longer than limit")
+                    }
                 }
-
-                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
-                    it.position(it.position() + 1)
-                    caret = true
-                }
-
-                if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
-                    it.position(it.position() + 1)
-                    newLine = true
-                }
-
-                if (out is StringBuilder) {
-                    out.append(output, 0, decoded)
-                } else {
-                    val buffer = CharBuffer.wrap(output, 0, decoded)
-                    out.append(buffer, 0, decoded)
-                }
-
-                consumed += decoded
-
-                if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
-                    throw TooLongLineException("Line is longer than limit")
-                }
+            } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
         }
 
@@ -1996,6 +2000,7 @@ internal open class ByteBufferChannel(
                     }
                 }
             } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
         }
 
@@ -2325,19 +2330,23 @@ internal open class ByteBufferChannel(
         var bytesCopied = 0
         val desiredSize = (min + offset).coerceAtMost(4088L).toInt()
 
-        read(desiredSize) { nioBuffer ->
-            if (nioBuffer.remaining() > offset) {
-                val view = nioBuffer.duplicate()!!
-                view.position(view.position() + offset.toInt())
+        try {
+            read(desiredSize) { nioBuffer ->
+                if (nioBuffer.remaining() > offset) {
+                    val view = nioBuffer.duplicate()!!
+                    view.position(view.position() + offset.toInt())
 
-                val oldLimit = view.limit()
-                val canCopyToDestination = minOf(max, destination.size - destinationOffset)
-                val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
-                view.limit(newLimit.toInt())
-                bytesCopied = view.remaining()
-                view.copyTo(destination, destinationOffset.toInt())
-                view.limit(oldLimit)
+                    val oldLimit = view.limit()
+                    val canCopyToDestination = minOf(max, destination.size - destinationOffset)
+                    val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
+                    view.limit(newLimit.toInt())
+                    bytesCopied = view.remaining()
+                    view.copyTo(destination, destinationOffset.toInt())
+                    view.limit(oldLimit)
+                }
             }
+        } catch (_: EOFException) {
+            // ignored by the contract of peekTo method
         }
 
         return bytesCopied.toLong()
