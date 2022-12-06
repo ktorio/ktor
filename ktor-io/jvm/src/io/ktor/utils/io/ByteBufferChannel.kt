@@ -1987,6 +1987,7 @@ internal open class ByteBufferChannel(
                     }
                 }
             } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
         }
 
@@ -1999,6 +2000,7 @@ internal open class ByteBufferChannel(
                     }
                 }
             } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
         }
 
@@ -2344,7 +2346,7 @@ internal open class ByteBufferChannel(
                 }
             }
         } catch (_: EOFException) {
-            // ignore
+            // ignored by the contract of peekTo method
         }
 
         return bytesCopied.toLong()
