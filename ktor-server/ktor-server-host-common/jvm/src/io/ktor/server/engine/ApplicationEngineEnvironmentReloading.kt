@@ -202,11 +202,7 @@ public class ApplicationEngineEnvironmentReloading(
     }
 
     private fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
-        try {
-            monitor.raise(event, application)
-        } catch (cause: Throwable) {
-            log.error("One or more of the handlers thrown an exception", cause)
-        }
+        monitor.raiseCatching(event, application)
     }
 
     private fun destroyApplication() {

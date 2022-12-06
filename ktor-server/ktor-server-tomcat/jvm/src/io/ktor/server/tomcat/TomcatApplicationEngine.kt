@@ -4,6 +4,7 @@
 
 package io.ktor.server.tomcat
 
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -147,7 +148,7 @@ public class TomcatApplicationEngine(
         val connectors = server.service.findConnectors().zip(environment.connectors)
             .map { it.second.withPort(it.first.localPort) }
         resolvedConnectors.complete(connectors)
-        environment.monitor.raise(ServerReady, environment)
+        environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {

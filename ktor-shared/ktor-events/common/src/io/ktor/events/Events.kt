@@ -6,6 +6,7 @@ package io.ktor.events
 
 import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.internal.*
 
@@ -58,6 +59,17 @@ public class Events {
         override fun dispose() {
             remove()
         }
+    }
+}
+
+/**
+ * Raises an event the same way as [Events.raise] but catches an exception and logs it if the [logger] is provided
+ */
+public fun <T> Events.raiseCatching(definition: EventDefinition<T>, value: T, logger: Logger? = null) {
+    try {
+        raise(definition, value)
+    } catch (cause: Throwable) {
+        logger?.error("Some handlers have thrown an exception", cause)
     }
 }
 

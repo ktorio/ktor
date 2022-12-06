@@ -4,6 +4,7 @@
 
 package io.ktor.server.jetty
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
@@ -54,7 +55,7 @@ public open class JettyApplicationEngineBase(
             .map { it.second.withPort((it.first as ServerConnector).localPort) }
         resolvedConnectors.complete(connectors)
 
-        environment.monitor.raise(ServerReady, environment)
+        environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
         if (wait) {
             server.join()

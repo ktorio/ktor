@@ -4,6 +4,7 @@
 
 package io.ktor.server.netty
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
@@ -222,7 +223,7 @@ public class NettyApplicationEngine(
             throw cause
         }
 
-        environment.monitor.raise(ServerReady, environment)
+        environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
         cancellationDeferred = stopServerOnCancellation()
 
