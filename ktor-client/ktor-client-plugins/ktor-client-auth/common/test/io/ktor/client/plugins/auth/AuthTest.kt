@@ -535,4 +535,73 @@ class AuthTest : ClientLoader() {
             assertEquals(2, loadCount)
         }
     }
+
+    @Test
+    fun testMultipleChallengesInHeader() = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("Invalid", "Invalid") }
+                }
+                bearer {
+                    loadTokens { BearerTokens("test", "test") }
+                }
+            }
+        }
+        test { client ->
+            val responseOneHeader = client.get("$TEST_SERVER/auth/multiple/header").bodyAsText()
+            assertEquals("OK", responseOneHeader)
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInHeaders() = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("Invalid", "Invalid") }
+                }
+                bearer {
+                    loadTokens { BearerTokens("test", "test") }
+                }
+            }
+        }
+        test { client ->
+            val responseMultipleHeaders = client.get("$TEST_SERVER/auth/multiple/headers").bodyAsText()
+            assertEquals("OK", responseMultipleHeaders)
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInHeaderUnauthorized() = clientTests {
+        test { client ->
+            val response = client.get("$TEST_SERVER/auth/multiple/header")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            response.headers[HttpHeaders.WWWAuthenticate]?.also {
+                assertTrue { it.contains("Bearer") }
+                assertTrue { it.contains("Basic") }
+                assertTrue { it.contains("Digest") }
+            } ?: run {
+                fail("Expected WWWAuthenticate header")
+            }
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInMultipleHeadersUnauthorized() = clientTests(listOf("Js")) {
+        test { client ->
+            val response = client.get("$TEST_SERVER/auth/multiple/headers")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            response.headers.getAll(HttpHeaders.WWWAuthenticate)?.let {
+                assertEquals(2, it.size)
+                it.joinToString().let { header ->
+                    assertTrue { header.contains("Basic") }
+                    assertTrue { header.contains("Digest") }
+                    assertTrue { header.contains("Bearer") }
+                }
+            } ?: run {
+                fail("Expected WWWAuthenticate header")
+            }
+        }
+    }
 }

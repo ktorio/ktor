@@ -54,14 +54,26 @@ public class Auth private constructor(
                 val candidateProviders = HashSet(plugin.providers)
 
                 while (call.response.status == HttpStatusCode.Unauthorized) {
-                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
+                    val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
+                    val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
-                    val authHeader = headerValue?.let { parseAuthorizationHeader(headerValue) }
-                    val provider = when {
-                        authHeader == null && candidateProviders.size == 1 -> candidateProviders.first()
-                        authHeader == null -> return@intercept call
-                        else -> candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    var providerOrNull: AuthProvider? = null
+                    var authHeader: HttpAuthHeader? = null
+
+                    when {
+                        authHeaders.isEmpty() && candidateProviders.size == 1 -> {
+                            providerOrNull = candidateProviders.first()
+                        }
+
+                        authHeaders.isEmpty() -> return@intercept call
+
+                        else -> authHeader = authHeaders.find { header ->
+                            providerOrNull = candidateProviders.find { it.isApplicable(header) }
+                            providerOrNull != null
+                        }
                     }
+                    val provider = providerOrNull ?: return@intercept call
+
                     if (!provider.refreshToken(call.response)) return@intercept call
 
                     candidateProviders.remove(provider)

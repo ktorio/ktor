@@ -1114,6 +1114,7 @@ public final class io/ktor/http/auth/HttpAuthHeader$Single : io/ktor/http/auth/H
 
 public final class io/ktor/http/auth/HttpAuthHeaderKt {
 	public static final fun parseAuthorizationHeader (Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader;
+	public static final fun parseAuthorizationHeaders (Ljava/lang/String;)Ljava/util/List;
 }
 
 public final class io/ktor/http/content/ByteArrayContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
