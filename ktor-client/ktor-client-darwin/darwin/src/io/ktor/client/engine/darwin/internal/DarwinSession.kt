@@ -13,7 +13,7 @@ import kotlin.coroutines.*
 @OptIn(UnsafeNumber::class)
 internal class DarwinSession(
     private val config: DarwinClientEngineConfig,
-    requestQueue: NSOperationQueue
+    requestQueue: NSOperationQueue?
 ) : Closeable {
     private val closed = atomic(false)
 
@@ -54,7 +54,7 @@ internal class DarwinSession(
 @OptIn(UnsafeNumber::class)
 internal fun createSession(
     config: DarwinClientEngineConfig,
-    requestQueue: NSOperationQueue
+    requestQueue: NSOperationQueue?
 ): Pair<NSURLSession, KtorNSURLSessionDelegate> {
     val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
         setupProxy(config)
