@@ -2328,19 +2328,23 @@ internal open class ByteBufferChannel(
         var bytesCopied = 0
         val desiredSize = (min + offset).coerceAtMost(4088L).toInt()
 
-        read(desiredSize) { nioBuffer ->
-            if (nioBuffer.remaining() > offset) {
-                val view = nioBuffer.duplicate()!!
-                view.position(view.position() + offset.toInt())
+        try {
+            read(desiredSize) { nioBuffer ->
+                if (nioBuffer.remaining() > offset) {
+                    val view = nioBuffer.duplicate()!!
+                    view.position(view.position() + offset.toInt())
 
-                val oldLimit = view.limit()
-                val canCopyToDestination = minOf(max, destination.size - destinationOffset)
-                val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
-                view.limit(newLimit.toInt())
-                bytesCopied = view.remaining()
-                view.copyTo(destination, destinationOffset.toInt())
-                view.limit(oldLimit)
+                    val oldLimit = view.limit()
+                    val canCopyToDestination = minOf(max, destination.size - destinationOffset)
+                    val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
+                    view.limit(newLimit.toInt())
+                    bytesCopied = view.remaining()
+                    view.copyTo(destination, destinationOffset.toInt())
+                    view.limit(oldLimit)
+                }
             }
+        } catch (_: EOFException) {
+            // ignore
         }
 
         return bytesCopied.toLong()
