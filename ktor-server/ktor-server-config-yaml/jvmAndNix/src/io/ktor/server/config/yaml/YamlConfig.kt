@@ -15,7 +15,7 @@ public class YamlConfigLoader : ConfigLoader {
     /**
      * Tries loading an application configuration from the specified [path].
      *
-     * @return configuration or null if the path is not found or configuration format is not supported.
+     * @return configuration or null if the path is not found or a configuration format is not supported.
      */
     override fun load(path: String?): ApplicationConfig? {
         return YamlConfig(path)?.apply { checkEnvironmentVariables() }
@@ -24,14 +24,14 @@ public class YamlConfigLoader : ConfigLoader {
 
 /**
  * Loads a configuration from the YAML file, if found.
- * On JVM, loads a configuration from application resources, if exist; otherwise, reads a configuration from a file.
+ * On JVM, loads a configuration from application resources, if exists; otherwise, reads a configuration from a file.
  * On Native, always reads a configuration from a file.
  */
 public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
- * Values can reference to environment variables with `$ENV_VAR` syntax.
+ * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
  */
 public class YamlConfig(private val yaml: YamlMap) : ApplicationConfig {
 
@@ -125,9 +125,18 @@ public class YamlConfig(private val yaml: YamlMap) : ApplicationConfig {
 private fun resolveValue(value: String): String {
     val isEnvVariable = value.startsWith("\$")
     if (!isEnvVariable) return value
-    val key = value.drop(1)
+    val keyWithDefault = value.drop(1)
+    val separatorIndex = keyWithDefault.indexOf(':')
+    val (key, default) = if (separatorIndex == -1) {
+        keyWithDefault to null
+    } else {
+        keyWithDefault.substring(0, separatorIndex) to keyWithDefault.substring(separatorIndex + 1)
+    }
     return getEnvironmentValue(key)
-        ?: throw ApplicationConfigurationException("Environment variable \"$key\" not found")
+        ?: default
+        ?: throw ApplicationConfigurationException(
+            "Environment variable \"$key\" not found and no default value is present"
+        )
 }
 
 internal expect fun getEnvironmentValue(key: String): String?
