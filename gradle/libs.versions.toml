@@ -47,7 +47,7 @@ velocity-version = "2.3"
 velocity-tools-version = "3.1"
 webjars-locator-version = "0.52"
 webjars-jquery-version = "3.6.1"
-thymeleaf-version = "3.0.15.RELEASE"
+thymeleaf-version = "3.1.1.RELEASE"
 javax-servlet-version = "4.0.1"
 
 node-fetch-version = "2.6.7"
