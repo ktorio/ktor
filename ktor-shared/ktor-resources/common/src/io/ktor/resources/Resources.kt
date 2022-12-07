@@ -22,13 +22,12 @@ public class Resources(configuration: Configuration) {
     /**
      * Configuration for the Resources plugin instance.
      */
-    @OptIn(ExperimentalSerializationApi::class)
     @KtorDsl
     public class Configuration {
 
         /**
          * [SerializersModule] used to (de)serialize the Resource instances.
          */
-        public var serializersModule: SerializersModule = EmptySerializersModule
+        public var serializersModule: SerializersModule = EmptySerializersModule()
     }
 }

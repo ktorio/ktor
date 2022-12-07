@@ -15,7 +15,7 @@ import kotlinx.serialization.modules.*
  */
 @OptIn(ExperimentalSerializationApi::class)
 public class ResourcesFormat(
-    override val serializersModule: SerializersModule = EmptySerializersModule
+    override val serializersModule: SerializersModule = EmptySerializersModule()
 ) : SerialFormat {
 
     /**
