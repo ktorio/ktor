@@ -68,6 +68,7 @@
 * When unable to get JWKS, JWTAuth swallows the underlying exception and only logs the last message ([KTOR-636](https://youtrack.jetbrains.com/issue/KTOR-636))
 * CIO Server generates wrong URL for OAuth URL provider using Locations ([KTOR-2143](https://youtrack.jetbrains.com/issue/KTOR-2143))
 * Inconsistency among server engines when determining port/host of an incoming request ([KTOR-4141](https://youtrack.jetbrains.com/issue/KTOR-4141))
+* Update Versions of Dependencies ([KTOR-5293](https://youtrack.jetbrains.com/issue/KTOR-5293))
 
 # 2.1.3
 > Published 26 October 2022
