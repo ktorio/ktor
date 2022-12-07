@@ -2,7 +2,7 @@
 kotlin-version = "1.7.22"
 kotlinx-html-version = "0.8.0"
 coroutines-version = "1.6.4"
-atomicfu-version = "0.17.3"
+atomicfu-version = "0.18.5"
 serialization-version = "1.4.1"
 validator-version = "0.8.0"
 ktlint-version = "3.10.0"
