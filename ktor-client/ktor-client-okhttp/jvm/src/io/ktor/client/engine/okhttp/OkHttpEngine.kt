@@ -21,6 +21,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*
 import java.io.*
+import java.io.Closeable
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
