@@ -134,6 +134,34 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testMissingEnvironmentVariableWithDefault() {
+        val content = """
+            ktor:
+                variable: "${'$'}NON_EXISTING_VARIABLE:DEFAULT_VALUE"
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        config.checkEnvironmentVariables()
+        assertEquals("DEFAULT_VALUE", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testExistingEnvironmentVariableWithDefault() {
+        val content = """
+            ktor:
+                variable: "${'$'}PATH:DEFAULT_VALUE"
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        config.checkEnvironmentVariables()
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+        assertFalse(value.contains("DEFAULT_VALUE"))
+    }
+
+    @Test
     fun testToMap() {
         val content = """
             hashAlgorithm: SHA-256
