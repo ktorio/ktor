@@ -176,15 +176,23 @@ fun configureDokka() {
 configureDokka()
 
 fun Project.setupJvmToolchain() {
-    val jdk = when (project.name) {
-        in jdk11Modules -> 11
-        else -> 8
-    }
-
     kotlin {
         jvmToolchain {
             check(this is JavaToolchainSpec)
-            languageVersion.set(JavaLanguageVersion.of(jdk))
+            languageVersion.set(JavaLanguageVersion.of(11))
+        }
+    }
+
+    tasks.withType(KotlinCompile::class.java).configureEach {
+        kotlinOptions {
+            when (this) {
+                is KotlinJvmOptions -> {
+                    jvmTarget = when (project.name) {
+                        in jdk11Modules -> "11"
+                        else -> "1.8"
+                    }
+                }
+            }
         }
     }
 }
