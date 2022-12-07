@@ -37,7 +37,8 @@ typesafe-version = "1.4.2"
 mockk-version = "1.13.3"
 mokito-kotlin-version = "1.6.0"
 
-java-jwt-version = "3.19.2"
+java-jwt-version = "3.19.3"
+
 jwks-rsa-version = "0.17.0"
 mustache-version = "0.9.10"
 freemarker-version = "2.3.31"
