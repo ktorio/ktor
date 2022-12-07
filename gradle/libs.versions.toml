@@ -53,7 +53,7 @@ javax-servlet-version = "4.0.1"
 node-fetch-version = "2.6.7"
 abort-controller-version = "3.0.0"
 ws-version = "8.5.0"
-xmlutil-version = "0.84.0"
+xmlutil-version = "0.84.3"
 yamlkt-version = "0.11.0"
 
 [libraries]
