@@ -1,3 +1,8 @@
+# 2.2.1
+> Published 7 December 2022
+
+The critical error `java.lang.NoClassDefFoundError: kotlinx/atomicfu/AtomicFU` in the 2.2.0 release is fixed
+
 # 2.2.0
 > Published 7 December 2022
 
