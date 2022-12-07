@@ -42,7 +42,7 @@ public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("
     require(webjarsPrefix.endsWith("/"))
 
     val locator = WebJarAssetLocator()
-    val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
+    val knownWebJars = locator.webJars.keys.toSet()
     val lastModified = GMTDate()
 
     onCall { call ->
