@@ -23,6 +23,11 @@ public val ApplicationStarting: EventDefinition<Application> = EventDefinition()
 public val ApplicationStarted: EventDefinition<Application> = EventDefinition()
 
 /**
+ * Fired when the server is ready to accept connections
+ */
+public val ServerReady: EventDefinition<ApplicationEnvironment> = EventDefinition()
+
+/**
  * Event definition for an event that is fired when the application is going to stop
  */
 public val ApplicationStopPreparing: EventDefinition<ApplicationEnvironment> = EventDefinition()

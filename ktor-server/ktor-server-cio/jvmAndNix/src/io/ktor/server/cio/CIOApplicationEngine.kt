@@ -4,6 +4,7 @@
 
 package io.ktor.server.cio
 
+import io.ktor.events.*
 import io.ktor.http.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
@@ -57,6 +58,7 @@ public class CIOApplicationEngine(
 
         runBlocking {
             startupJob.await()
+            environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
             if (wait) {
                 serverJob.join()

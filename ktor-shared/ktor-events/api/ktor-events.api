@@ -9,3 +9,8 @@ public final class io/ktor/events/Events {
 	public final fun unsubscribe (Lio/ktor/events/EventDefinition;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/events/EventsKt {
+	public static final fun raiseCatching (Lio/ktor/events/Events;Lio/ktor/events/EventDefinition;Ljava/lang/Object;Lorg/slf4j/Logger;)V
+	public static synthetic fun raiseCatching$default (Lio/ktor/events/Events;Lio/ktor/events/EventDefinition;Ljava/lang/Object;Lorg/slf4j/Logger;ILjava/lang/Object;)V
+}
+

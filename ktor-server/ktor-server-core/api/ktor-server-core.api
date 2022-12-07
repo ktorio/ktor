@@ -107,6 +107,7 @@ public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopped ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopping ()Lio/ktor/events/EventDefinition;
+	public static final fun getServerReady ()Lio/ktor/events/EventDefinition;
 }
 
 public class io/ktor/server/application/DuplicateApplicationPluginException : java/lang/Exception {

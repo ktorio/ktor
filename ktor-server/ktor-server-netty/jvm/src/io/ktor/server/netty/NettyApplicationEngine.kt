@@ -4,6 +4,7 @@
 
 package io.ktor.server.netty
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
@@ -222,6 +223,8 @@ public class NettyApplicationEngine(
             throw cause
         }
 
+        environment.monitor.raiseCatching(ServerReady, environment, environment.log)
+
         cancellationDeferred = stopServerOnCancellation()
 
         if (wait) {
@@ -310,7 +313,7 @@ public class EventLoopGroupProxy(
         private fun markParkingProhibited() {
             try {
                 prohibitParkingFunction?.invoke(null)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
             }
         }
     }
