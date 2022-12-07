@@ -36,9 +36,8 @@ public fun <T : Any> KotlinxSessionSerializer(
  * such as JSON
  */
 @Suppress("FunctionName")
-@OptIn(ExperimentalSerializationApi::class)
 public inline fun <reified T : Any> KotlinxBackwardCompatibleSessionSerializer(
-    serializersModule: SerializersModule = EmptySerializersModule
+    serializersModule: SerializersModule = EmptySerializersModule()
 ): SessionSerializer<T> {
     return KotlinxBackwardCompatibleSessionSerializer(serializer(), serializersModule)
 }
@@ -50,10 +49,9 @@ public inline fun <reified T : Any> KotlinxBackwardCompatibleSessionSerializer(
  * such as JSON
  */
 @Suppress("FunctionName")
-@OptIn(ExperimentalSerializationApi::class)
 public fun <T : Any> KotlinxBackwardCompatibleSessionSerializer(
     serializer: KSerializer<T>,
-    serializersModule: SerializersModule = EmptySerializersModule
+    serializersModule: SerializersModule = EmptySerializersModule()
 ): SessionSerializer<T> {
     return KotlinxSessionSerializer(serializer, SessionsBackwardCompatibleFormat(serializersModule))
 }

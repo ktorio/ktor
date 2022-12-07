@@ -27,11 +27,10 @@ class SessionsBackwardCompatibleFormatTest {
         val enum: Enum
     )
 
-    @OptIn(ExperimentalSerializationApi::class)
     @Test
     @Suppress("DEPRECATION_ERROR")
     fun testEncoderPrimitive() {
-        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule)
+        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule())
         val primitives = Primitives(1, "2", true, 3.0, 4.0f, 5L, null, Enum.A)
         val encoded = format.encodeToString(Primitives.serializer(), primitives)
         assertEquals(
@@ -56,11 +55,10 @@ class SessionsBackwardCompatibleFormatTest {
         val mapI: Map<String, Int>
     )
 
-    @OptIn(ExperimentalSerializationApi::class)
     @Test
     @Suppress("DEPRECATION_ERROR")
     fun testEncoderCollections() {
-        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule)
+        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule())
         val collections = WithCollections(
             listOf("1", "2"),
             listOf(Enum.A, Enum.B),
@@ -91,11 +89,10 @@ class SessionsBackwardCompatibleFormatTest {
         val primitives: Primitives,
     )
 
-    @OptIn(ExperimentalSerializationApi::class)
     @Test
     @Suppress("DEPRECATION_ERROR")
     fun testNestedClass() {
-        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule)
+        val format = SessionsBackwardCompatibleFormat(EmptySerializersModule())
         val nestedClass = WithNestedClass(
             Primitives(1, "2", true, 3.0, 4.0f, 5L, null, Enum.A)
         )
