@@ -90,6 +90,7 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
     formatFlags = formatFlags or FORMAT_MESSAGE_ALLOCATE_BUFFER
 
     val bufferPtr = alloc<CPointerVar<UShortVar>>()
+    @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_ERROR")
     readChars = FormatMessageW(
         formatFlags.convert(),
         moduleHandle,
@@ -105,6 +106,7 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
             bufferPtr.value?.toKStringFromUtf16(readChars.convert())
         } else null
     } finally {
+        @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_ERROR")
         LocalFree(bufferPtr.reinterpret())
     }
 }

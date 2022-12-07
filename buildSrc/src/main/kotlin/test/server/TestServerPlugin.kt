@@ -30,17 +30,14 @@ class TestServerPlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project) {
-        target.testTasks {
-            it.doFirst {
-                start()
+        target.configure(target.tasks, object : Action<Task> {
+            override fun execute(task: Task) {
+                task.doFirst(object : Action<Task> {
+                    override fun execute(t: Task) {
+                        start()
+                    }
+                })
             }
-        }
-    }
-}
-
-fun Project.testTasks(block: (Task) -> Unit) {
-    configure(tasks) {
-        if (!name.endsWith("Test")) return@configure
-        block(this)
+        })
     }
 }
