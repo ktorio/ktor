@@ -7,8 +7,16 @@ package io.ktor.tests.server.netty
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.cio.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
+import io.ktor.server.plugins.hsts.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -116,5 +124,36 @@ class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, Ne
     init {
         enableSsl = false
         enableHttp2 = false
+    }
+}
+
+class NettyServerWithCustomPluginTest :
+    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    @Test
+    fun testWithCustomPlugin() {
+        createAndStartServer {
+            val plugin = createApplicationPlugin("plugin") {
+                on(CallSetup) { call ->
+                    call.mutableOriginConnectionPoint.scheme = "https"
+                    call.mutableOriginConnectionPoint.serverPort = 443
+                }
+
+                onCall { call ->
+                    call.respondText { "From plugin" }
+                }
+            }
+            application.install(plugin)
+            application.install(HSTS)
+
+            get("/") {
+                call.respondText { "OK" }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("From plugin", bodyAsText())
+        }
     }
 }

@@ -104,7 +104,7 @@ public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS",
 
     val hostHeaderValues: Map<String, String> = pluginConfig.hostSpecific.mapValues { constructHeaderValue(it.value) }
 
-    onCall { call ->
+    onCallRespond { call ->
         if (call.request.origin.run { scheme == "https" && serverPort == 443 }) {
             call.response.header(
                 HttpHeaders.StrictTransportSecurity,

@@ -40,6 +40,7 @@ kotlin.sourceSets {
             api(libs.logback.classic)
 
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
         }
     }
 }
