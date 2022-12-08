@@ -1,6 +1,9 @@
 name: "Validate Gradle Wrapper"
 on: [push, pull_request]
 
+permissions:
+  contents: read #  to fetch code (actions/checkout)
+
 jobs:
   validation:
     name: "Validation"
