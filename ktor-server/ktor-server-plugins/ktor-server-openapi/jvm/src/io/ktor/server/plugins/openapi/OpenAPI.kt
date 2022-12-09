@@ -19,7 +19,7 @@ import java.io.*
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
  */
-public fun Routing.openAPI(
+public fun Route.openAPI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
@@ -49,7 +49,7 @@ public fun Routing.openAPI(
     }
 }
 
-internal fun Routing.resolveOpenAPIFile(swaggerFile: String): File {
+internal fun Route.resolveOpenAPIFile(swaggerFile: String): File {
     val resource = application.environment.classLoader.getResource(swaggerFile)
     val file = if (resource != null) File(resource.toURI()) else File(swaggerFile)
 
@@ -58,4 +58,13 @@ internal fun Routing.resolveOpenAPIFile(swaggerFile: String): File {
     }
 
     return file
+}
+
+@Deprecated( "Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+public fun Routing.openAPI(
+    path: String,
+    swaggerFile: String = "openapi/documentation.yaml",
+    block: OpenAPIConfig.() -> Unit = {}
+) {
+    openAPI(path, swaggerFile, block)
 }
