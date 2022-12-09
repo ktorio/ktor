@@ -29,7 +29,7 @@ dependencies {
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
     implementation("io.ktor:ktor-server-default-headers:2.0.2")
-    implementation("io.ktor:ktor-server-netty:2.0.2")
+    implementation("io.ktor:ktor-server-netty:2.2.1")
     implementation("io.ktor:ktor-server-cio:2.0.2")
     implementation("io.ktor:ktor-server-jetty:2.0.2")
     implementation("io.ktor:ktor-server-websockets:2.0.2")
