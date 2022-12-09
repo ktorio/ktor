@@ -5,7 +5,6 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 
 private val rawMimes: String
     get() = """
@@ -147,6 +146,7 @@ private val rawMimes: String
 .cmp,application/vnd.yellowriver-custom-menu
 .cmx,image/x-cmx
 .cod,application/vnd.rim.cod
+.collection,font/collection	
 .com,application/octet-stream
 .com,text/plain
 .conf,text/plain
@@ -325,8 +325,10 @@ private val rawMimes: String
 .gtw,model/vnd.gtw
 .gv,text/vnd.graphviz
 .gxt,application/vnd.geonext
+.gz,application/gzip
 .gz,application/x-compressed
 .gz,application/x-gzip
+.gzip,application/gzip
 .gzip,application/x-gzip
 .gzip,multipart/x-gzip
 .h261,video/h261
@@ -651,7 +653,7 @@ N/A,application/andrew-inset
 .osf,application/vnd.yamaha.openscoreformat
 .osfpvg,application/vnd.yamaha.openscoreformat.osfpvg+xml
 .otc,application/vnd.oasis.opendocument.chart-template
-.otf,application/x-font-otf
+.otf,font/otf
 .otg,application/vnd.oasis.opendocument.graphics-template
 .oth,application/vnd.oasis.opendocument.text-web
 .oti,application/vnd.oasis.opendocument.image-template
@@ -859,6 +861,7 @@ N/A,application/andrew-inset
 .setpay,application/set-payment-initiation
 .setreg,application/set-registration-initiation
 .sfd-hdstx,application/vnd.hydrostatix.sof-data
+.sfnt,font/sfnt
 .sfs,application/vnd.spotfire.sfs
 .sgl,application/vnd.stardivision.writer-global
 .sgml,text/sgml
@@ -986,7 +989,7 @@ N/A,application/andrew-inset
 .tsp,audio/tsplayer
 .tsv,text/tab-separated-values
 .t,text/troff
-.ttf,application/x-font-ttf
+.ttf,font/ttf
 .ttl,text/turtle
 .turbot,image/florian
 .twd,application/vnd.simtech-mindmapper
@@ -1085,7 +1088,8 @@ N/A,application/andrew-inset
 .wmv,video/x-ms-wmv
 .wmx,video/x-ms-wmx
 .wmz,application/x-ms-wmz
-.woff,application/x-font-woff
+.woff,font/woff
+.woff2,font/woff2
 .word,application/msword
 .wp5,application/wordperfect
 .wp5,application/wordperfect6.0

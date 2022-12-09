@@ -156,7 +156,6 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getAtom ()Lio/ktor/http/ContentType;
 	public final fun getCbor ()Lio/ktor/http/ContentType;
 	public final fun getDocx ()Lio/ktor/http/ContentType;
-	public final fun getFontWoff ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
 	public final fun getHalJson ()Lio/ktor/http/ContentType;
@@ -187,6 +186,17 @@ public final class io/ktor/http/ContentType$Audio {
 public final class io/ktor/http/ContentType$Companion {
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun parse (Ljava/lang/String;)Lio/ktor/http/ContentType;
+}
+
+public final class io/ktor/http/ContentType$Font {
+	public static final field INSTANCE Lio/ktor/http/ContentType$Font;
+	public final fun getAny ()Lio/ktor/http/ContentType;
+	public final fun getCollection ()Lio/ktor/http/ContentType;
+	public final fun getOtf ()Lio/ktor/http/ContentType;
+	public final fun getSfnt ()Lio/ktor/http/ContentType;
+	public final fun getTtf ()Lio/ktor/http/ContentType;
+	public final fun getWoff ()Lio/ktor/http/ContentType;
+	public final fun getWoff2 ()Lio/ktor/http/ContentType;
 }
 
 public final class io/ktor/http/ContentType$Image {
