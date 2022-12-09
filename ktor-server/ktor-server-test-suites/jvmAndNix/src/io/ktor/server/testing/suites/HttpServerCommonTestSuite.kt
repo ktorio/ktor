@@ -11,10 +11,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.forwardedheaders.*
+import io.ktor.server.plugins.hsts.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -585,6 +588,33 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 assertContentEquals(channel.readRemaining().readBytes(), content)
             }
             client.close()
+        }
+    }
+
+    @Test
+    fun testHSTSWithCustomPlugin() {
+        createAndStartServer {
+            val plugin = createApplicationPlugin("plugin") {
+                on(CallSetup) { call ->
+                    call.mutableOriginConnectionPoint.scheme = "https"
+                    call.mutableOriginConnectionPoint.serverPort = 443
+                }
+
+                onCall { call ->
+                    call.respondText { "From plugin" }
+                }
+            }
+            application.install(plugin)
+            application.install(HSTS)
+
+            get("/") {
+                call.respondText { "OK" }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("From plugin", bodyAsText())
         }
     }
 

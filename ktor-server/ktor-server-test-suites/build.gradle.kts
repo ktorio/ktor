@@ -9,6 +9,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
             implementation(project(":ktor-server:ktor-server-test-host"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
         }
     }
 
