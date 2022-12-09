@@ -4,6 +4,7 @@
 
 package io.ktor.server.plugins.swagger
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
@@ -24,17 +25,15 @@ public fun Route.swaggerUI(
     swaggerFile: String = "openapi/documentation.yaml",
     block: SwaggerConfig.() -> Unit = {}
 ) {
-    val resource = application.environment.classLoader.getResource(swaggerFile)
+    val resource = application.environment.classLoader.getResourceAsStream(swaggerFile)
+        ?.bufferedReader()
+
     if (resource != null) {
-        swaggerUI(path, File(resource.toURI()), block)
+        swaggerUI(path, swaggerFile.takeLastWhile { it != '/' }, resource.readText(), block)
         return
     }
-    val file = File(swaggerFile)
-    if (!file.exists()) {
-        throw FileNotFoundException("Swagger file not found: $swaggerFile")
-    }
 
-    swaggerUI(path, file, block)
+    swaggerUI(path, File(swaggerFile), block)
 }
 
 /**
@@ -45,12 +44,21 @@ public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() 
         throw FileNotFoundException("Swagger file not found: ${apiFile.absolutePath}")
     }
 
-    val fileName = apiFile.name
+    val content = apiFile.readText()
+    swaggerUI(path, apiFile.name, content, block)
+}
+
+internal fun Route.swaggerUI(
+    path: String,
+    apiUrl: String,
+    api: String,
+    block: SwaggerConfig.() -> Unit = {}
+) {
     val config = SwaggerConfig().apply(block)
 
     route(path) {
-        get(apiFile.name) {
-            call.respondFile(apiFile)
+        get(apiUrl) {
+            call.respondText(api, ContentType.fromFilePath(apiUrl).firstOrNull())
         }
         get {
             val fullPath = call.request.path()
@@ -81,7 +89,7 @@ public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() 
                             +"""
 window.onload = function() {
     window.ui = SwaggerUIBundle({
-        url: '$fullPath/$fileName',
+        url: '$fullPath/$apiUrl',
         dom_id: '#swagger-ui',
         presets: [
             SwaggerUIBundle.presets.apis,
@@ -99,10 +107,11 @@ window.onload = function() {
     }
 }
 
+
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  */
-@Deprecated( "Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
 public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
     swaggerUI(path, apiFile, block)
 }
@@ -114,7 +123,7 @@ public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.(
  * the file system using [java.io.File].
  *
  */
-@Deprecated( "Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
 public fun Routing.swaggerUI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",

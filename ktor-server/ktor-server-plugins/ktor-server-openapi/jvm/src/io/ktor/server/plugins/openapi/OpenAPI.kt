@@ -24,11 +24,12 @@ public fun Route.openAPI(
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    val file = resolveOpenAPIFile(swaggerFile)
+    val api = resolveOpenAPIFileContent(swaggerFile)
 
     val config = OpenAPIConfig()
     with(config) {
-        val swagger = parser.readContents(file.readText(), null, options)
+        val swagger = parser.readContents(api, null, options)
+        File("docs").mkdirs()
 
         opts.apply {
             config(codegen)
@@ -49,15 +50,18 @@ public fun Route.openAPI(
     }
 }
 
-internal fun Route.resolveOpenAPIFile(swaggerFile: String): File {
-    val resource = application.environment.classLoader.getResource(swaggerFile)
-    val file = if (resource != null) File(resource.toURI()) else File(swaggerFile)
+internal fun Route.resolveOpenAPIFileContent(swaggerFile: String): String {
+    val resource = application.environment.classLoader.getResourceAsStream(swaggerFile)
+        ?.bufferedReader()?.readText()
 
+    if (resource != null) return resource
+
+    val file = File(swaggerFile)
     if (!file.exists()) {
         throw FileNotFoundException("Swagger file not found: $swaggerFile")
     }
 
-    return file
+    return file.readText()
 }
 
 @Deprecated( "Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
