@@ -107,7 +107,6 @@ window.onload = function() {
     }
 }
 
-
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  */

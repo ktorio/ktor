@@ -64,7 +64,7 @@ internal fun Route.resolveOpenAPIFileContent(swaggerFile: String): String {
     return file.readText()
 }
 
-@Deprecated( "Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
 public fun Routing.openAPI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
