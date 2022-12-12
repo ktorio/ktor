@@ -94,6 +94,10 @@ internal class RawWebSocketCommon(
         } catch (cause: FrameTooBigException) {
             outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
             _incoming.close(cause)
+        } catch (cause: ProtocolViolationException) {
+            // same as above
+            outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
+            _incoming.close(cause)
         } catch (cause: CancellationException) {
             _incoming.cancel(cause)
         } catch (eof: EOFException) {
@@ -207,10 +211,21 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
     val flagsAndOpcode = readByte().toInt()
     val maskAndLength = readByte().toInt()
 
+    val opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
+    val frameType = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode: $opcode")
+
+    val fin = flagsAndOpcode and 0x80 != 0
+    if (frameType.controlFrame && !fin) {
+        throw ProtocolViolationException("control frames can't be fragmented")
+    }
+
     val length = when (val length = maskAndLength and 0x7f) {
         126 -> readShort().toLong() and 0xffff
         127 -> readLong()
         else -> length.toLong()
+    }
+    if (frameType.controlFrame && length > 125) {
+        throw ProtocolViolationException("control frames can't be larger than 125 bytes")
     }
 
     val maskKey = when (maskAndLength and 0x80 != 0) {
@@ -228,10 +243,8 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
         else -> data.mask(maskKey)
     }
 
-    val opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
-    val frameType = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode: $opcode")
     return Frame.byType(
-        fin = flagsAndOpcode and 0x80 != 0,
+        fin = fin,
         frameType = frameType,
         data = maskedData.readBytes(),
         rsv1 = flagsAndOpcode and 0x40 != 0,

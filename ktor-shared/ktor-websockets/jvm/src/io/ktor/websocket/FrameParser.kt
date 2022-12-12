@@ -92,9 +92,15 @@ public class FrameParser {
         opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
         if (!frameType.controlFrame) {
             lastOpcode = opcode
+        } else if (!fin) {
+            throw ProtocolViolationException("control frames can't be fragmented")
         }
         mask = maskAndLength1 and 0x80 != 0
         val length1 = maskAndLength1 and 0x7f
+
+        if (frameType.controlFrame && length1 > 125) {
+            throw ProtocolViolationException("control frames can't be larger than 125 bytes")
+        }
 
         lengthLength = when (length1) {
             126 -> 2
