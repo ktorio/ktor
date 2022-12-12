@@ -19,16 +19,17 @@ import java.io.*
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
  */
-public fun Routing.openAPI(
+public fun Route.openAPI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    val file = resolveOpenAPIFile(swaggerFile)
+    val apiDocument = readOpenAPIFile(swaggerFile, application.environment.classLoader)
 
     val config = OpenAPIConfig()
     with(config) {
-        val swagger = parser.readContents(file.readText(), null, options)
+        val swagger = parser.readContents(apiDocument, null, options)
+        File("docs").mkdirs()
 
         opts.apply {
             config(codegen)
@@ -49,13 +50,25 @@ public fun Routing.openAPI(
     }
 }
 
-internal fun Routing.resolveOpenAPIFile(swaggerFile: String): File {
-    val resource = application.environment.classLoader.getResource(swaggerFile)
-    val file = if (resource != null) File(resource.toURI()) else File(swaggerFile)
+internal fun readOpenAPIFile(swaggerFile: String, classLoader: ClassLoader): String {
+    val resource = classLoader.getResourceAsStream(swaggerFile)
+        ?.bufferedReader()?.readText()
 
+    if (resource != null) return resource
+
+    val file = File(swaggerFile)
     if (!file.exists()) {
         throw FileNotFoundException("Swagger file not found: $swaggerFile")
     }
 
-    return file
+    return file.readText()
+}
+
+@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+public fun Routing.openAPI(
+    path: String,
+    swaggerFile: String = "openapi/documentation.yaml",
+    block: OpenAPIConfig.() -> Unit = {}
+) {
+    openAPI(path, swaggerFile, block)
 }

@@ -6,6 +6,7 @@ package io.ktor.server.plugins.swagger
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
@@ -54,7 +55,9 @@ class SwaggerTest {
             swaggerUI("openapi")
         }
 
-        val response = client.get("/openapi/documentation.yaml").bodyAsText()
-        assertEquals("hello:\n  world".filter { it.isLetterOrDigit() }, response.filter { it.isLetterOrDigit() })
+        val response = client.get("/openapi/documentation.yaml")
+        val body = response.bodyAsText()
+        assertEquals("text/yaml; charset=UTF-8", response.contentType().toString())
+        assertEquals("hello:\n  world".filter { it.isLetterOrDigit() }, body.filter { it.isLetterOrDigit() })
     }
 }

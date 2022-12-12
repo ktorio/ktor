@@ -14,7 +14,9 @@ import kotlin.test.*
 class ClientHeadersTest : ClientLoader() {
 
     @Test
-    fun testHeadersReturnNullWhenMissing() = clientTests(listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")) {
+    fun testHeadersReturnNullWhenMissing() = clientTests(
+        listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")
+    ) {
         test { client ->
             client.get("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
