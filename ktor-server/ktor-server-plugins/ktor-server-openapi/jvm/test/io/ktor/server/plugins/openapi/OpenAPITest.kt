@@ -12,8 +12,8 @@ class OpenAPITest {
     @Test
     fun testResolveOpenAPIFile() = testApplication {
         routing {
-            val file = resolveOpenAPIFile("openapi/documentation.yaml")
-            assertEquals("hello:world".filter(Char::isLetterOrDigit), file.readText().filter(Char::isLetterOrDigit))
+            val content = readOpenAPIFile("openapi/documentation.yaml", application.environment.classLoader)
+            assertEquals("hello:world".filter(Char::isLetterOrDigit), content.filter(Char::isLetterOrDigit))
         }
     }
 }

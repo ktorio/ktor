@@ -24,11 +24,11 @@ public fun Route.openAPI(
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    val api = resolveOpenAPIFileContent(swaggerFile)
+    val apiDocument = readOpenAPIFile(swaggerFile, application.environment.classLoader)
 
     val config = OpenAPIConfig()
     with(config) {
-        val swagger = parser.readContents(api, null, options)
+        val swagger = parser.readContents(apiDocument, null, options)
         File("docs").mkdirs()
 
         opts.apply {
@@ -50,8 +50,8 @@ public fun Route.openAPI(
     }
 }
 
-internal fun Route.resolveOpenAPIFileContent(swaggerFile: String): String {
-    val resource = application.environment.classLoader.getResourceAsStream(swaggerFile)
+internal fun readOpenAPIFile(swaggerFile: String, classLoader: ClassLoader): String {
+    val resource = classLoader.getResourceAsStream(swaggerFile)
         ?.bufferedReader()?.readText()
 
     if (resource != null) return resource
