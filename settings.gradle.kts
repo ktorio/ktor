@@ -62,6 +62,7 @@ include(":ktor-client")
 include(":ktor-client:ktor-client-core")
 include(":ktor-client:ktor-client-tests")
 include(":ktor-client:ktor-client-apache")
+include(":ktor-client:ktor-client-apache5")
 include(":ktor-client:ktor-client-android")
 include(":ktor-client:ktor-client-cio")
 if (native_targets_enabled) {
