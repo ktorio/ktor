@@ -45,6 +45,9 @@ public class WebSocketReader(
         } catch (cause: FrameTooBigException) {
             // Bypass exception via queue to prevent cancellation and handle it on the top level.
             queue.close(cause)
+        } catch (cause: ProtocolViolationException) {
+            // same as above
+            queue.close(cause)
         } catch (cause: Throwable) {
             throw cause
         } finally {
