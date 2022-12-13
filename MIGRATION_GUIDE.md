@@ -1,10 +1,14 @@
 ## Ktor Migration Guide
 
+### [Migrating from 2.0.x to 2.2.x](https://ktor.io/docs/migrating-2-2.html)
+
+### [Migrating from 1.6.x to 2.0.x](https://ktor.io/docs/migrating-2.html)
+
+
+### Migrating to 1.6.x
+
 While Ktor provides migration support in the code itself (by using the `@Deprecated` annotation), this document
-serves as a reference point for all migrations as of version 1.6.0. 
-
-
-### Upgrading to 1.6.0
+serves as a reference point for all migrations as of version 1.6.0.
 
 * `TestApplicationCall.requestHandled` has been [deprecated](https://youtrack.jetbrains.com/issue/KTOR-2712). For proper
 validation, it is recommended to check the corresponding status, header, or content of the request, depending on the 
