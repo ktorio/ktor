@@ -7,10 +7,8 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.CoroutineContext
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 /*
