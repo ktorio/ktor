@@ -164,7 +164,6 @@ public class ContentType private constructor(
         public val HalJson: ContentType = ContentType("application", "hal+json")
         public val JavaScript: ContentType = ContentType("application", "javascript")
         public val OctetStream: ContentType = ContentType("application", "octet-stream")
-        public val FontWoff: ContentType = ContentType("application", "font-woff")
         public val Rss: ContentType = ContentType("application", "rss+xml")
         public val Xml: ContentType = ContentType("application", "xml")
         public val Xml_Dtd: ContentType = ContentType("application", "xml-dtd")
@@ -267,6 +266,20 @@ public class ContentType private constructor(
         public val MP4: ContentType = ContentType("video", "mp4")
         public val OGG: ContentType = ContentType("video", "ogg")
         public val QuickTime: ContentType = ContentType("video", "quicktime")
+    }
+
+    /**
+     * Provides a list of standard subtypes of a `font` content type.
+     */
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Font {
+        public val Any: ContentType = ContentType("font", "*")
+        public val Collection: ContentType = ContentType("font", "collection")
+        public val Otf: ContentType = ContentType("font", "otf")
+        public val Sfnt: ContentType = ContentType("font", "sfnt")
+        public val Ttf: ContentType = ContentType("font", "ttf")
+        public val Woff: ContentType = ContentType("font", "woff")
+        public val Woff2: ContentType = ContentType("font", "woff2")
     }
 }
 
