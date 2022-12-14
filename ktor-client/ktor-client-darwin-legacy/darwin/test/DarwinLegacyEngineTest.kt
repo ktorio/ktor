@@ -8,6 +8,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 /*
@@ -16,8 +17,10 @@ import kotlin.test.*
 
 class DarwinLegacyEngineTest {
 
+    val testCoroutineContext: CoroutineContext = Dispatchers.Default
+
     @Test
-    fun testRequestInRunBlocking() = runBlocking {
+    fun testRequestInRunBlocking() = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy)
 
         try {
@@ -31,7 +34,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testQueryWithCyrillic() = runBlocking {
+    fun testQueryWithCyrillic() = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy)
 
         try {
@@ -45,7 +48,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testQueryWithMultipleParams() = runBlocking {
+    fun testQueryWithMultipleParams() = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy)
 
         try {
@@ -72,7 +75,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testCookieIsNotPersistedByDefault() = runBlocking {
+    fun testCookieIsNotPersistedByDefault() = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy)
         try {
             client.get("$TEST_SERVER/cookies")
@@ -86,7 +89,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testCookiePersistedWithSessionStore() = runBlocking {
+    fun testCookiePersistedWithSessionStore() = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy) {
             engine {
                 configureSession {
@@ -107,7 +110,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testOverrideDefaultSession(): Unit = runBlocking {
+    fun testOverrideDefaultSession(): Unit = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy) {
             val delegate = KtorLegacyNSURLSessionDelegate()
             val session = NSURLSession.sessionWithConfiguration(
@@ -129,7 +132,7 @@ class DarwinLegacyEngineTest {
     }
 
     @Test
-    fun testConfigureRequest(): Unit = runBlocking {
+    fun testConfigureRequest(): Unit = runBlocking(testCoroutineContext) {
         val client = HttpClient(DarwinLegacy) {
             engine {
                 configureRequest {

@@ -11,6 +11,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 /*
@@ -19,8 +20,10 @@ import kotlin.test.*
 
 class DarwinEngineTest {
 
+    val testCoroutineContext: CoroutineContext = Dispatchers.Default
+
     @Test
-    fun testRequestInRunBlocking() = runBlocking {
+    fun testRequestInRunBlocking() = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin)
 
         try {
@@ -34,7 +37,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testQueryWithCyrillic() = runBlocking {
+    fun testQueryWithCyrillic() = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin)
 
         try {
@@ -48,7 +51,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testQueryWithMultipleParams() = runBlocking {
+    fun testQueryWithMultipleParams() = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin)
 
         try {
@@ -75,7 +78,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testCookieIsNotPersistedByDefault() = runBlocking {
+    fun testCookieIsNotPersistedByDefault() = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin)
         try {
             client.get("$TEST_SERVER/cookies")
@@ -89,7 +92,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testCookiePersistedWithSessionStore() = runBlocking {
+    fun testCookiePersistedWithSessionStore() = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin) {
             engine {
                 configureSession {
@@ -110,7 +113,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testOverrideDefaultSession(): Unit = runBlocking {
+    fun testOverrideDefaultSession(): Unit = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin) {
             val delegate = KtorNSURLSessionDelegate()
             val session = NSURLSession.sessionWithConfiguration(
@@ -132,7 +135,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testOverrideDefaultSessionWithWebSockets(): Unit = runBlocking {
+    fun testOverrideDefaultSessionWithWebSockets(): Unit = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin) {
             val delegate = KtorNSURLSessionDelegate()
             val session = NSURLSession.sessionWithConfiguration(
@@ -158,7 +161,7 @@ class DarwinEngineTest {
     }
 
     @Test
-    fun testConfigureRequest(): Unit = runBlocking {
+    fun testConfigureRequest(): Unit = runBlocking(testCoroutineContext) {
         val client = HttpClient(Darwin) {
             engine {
                 configureRequest {
@@ -174,7 +177,7 @@ class DarwinEngineTest {
 
     @OptIn(UnsafeNumber::class)
     @Test
-    fun testConfigureWebsocketRequest(): Unit = runBlocking {
+    fun testConfigureWebsocketRequest(): Unit = runBlocking(testCoroutineContext) {
         var customChallengeCalled = false
         val client = HttpClient(Darwin) {
             engine {
