@@ -276,7 +276,7 @@ internal class WinHttpWebSocket(
             NULL,
             0
         )
-        WinHttpCloseHandle(hWebSocket)
+        platform.winhttp.WinHttpCloseHandle(hWebSocket)
         connect.close()
     }
 

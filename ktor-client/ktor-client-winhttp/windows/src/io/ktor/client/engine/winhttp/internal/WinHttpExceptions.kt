@@ -8,6 +8,7 @@ import io.ktor.client.engine.winhttp.*
 import io.ktor.client.network.sockets.*
 import kotlinx.cinterop.*
 import platform.windows.*
+import platform.winhttp.*
 
 private val winHttpModuleHandle by lazy {
     GetModuleHandleW("winhttp.dll")
@@ -15,7 +16,7 @@ private val winHttpModuleHandle by lazy {
 private val languageId = makeLanguageId(LANG_NEUTRAL.convert(), SUBLANG_DEFAULT.convert())
 
 private val ERROR_INSUFFICIENT_BUFFER: UInt = platform.windows.ERROR_INSUFFICIENT_BUFFER.convert()
-private val ERROR_WINHTTP_TIMEOUT: UInt = ktor.cinterop.winhttp.ERROR_WINHTTP_TIMEOUT.convert()
+private val ERROR_WINHTTP_TIMEOUT: UInt = platform.winhttp.ERROR_WINHTTP_TIMEOUT.convert()
 
 /**
  * Creates an exception from last WinAPI error.
