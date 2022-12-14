@@ -10,12 +10,9 @@ import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
-import ktor.cinterop.winhttp.*
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_CN_INVALID
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_UNKNOWN_CA
-import platform.windows.*
+import platform.winhttp.*
 import kotlin.coroutines.*
+import platform.windows.*
 
 internal class WinHttpRequest(
     hSession: COpaquePointer,
@@ -285,10 +282,10 @@ internal class WinHttpRequest(
     private fun disableTlsVerification() = memScoped {
         val flags = alloc<UIntVar> {
             value = (
-                SECURITY_FLAG_IGNORE_UNKNOWN_CA or
-                    SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE or
-                    SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
-                    SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
+                platform.winhttp.SECURITY_FLAG_IGNORE_UNKNOWN_CA or
+                    platform.winhttp.SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE or
+                    platform.winhttp.SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
+                    platform.winhttp.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
                 ).convert()
         }
         if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, flags.ptr, UINT_SIZE) == 0) {

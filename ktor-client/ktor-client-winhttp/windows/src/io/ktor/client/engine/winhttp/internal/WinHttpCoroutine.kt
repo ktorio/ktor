@@ -7,7 +7,7 @@ package io.ktor.client.engine.winhttp.internal
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import ktor.cinterop.winhttp.*
+import platform.winhttp.*
 import kotlin.coroutines.*
 
 internal suspend inline fun <T> Closeable.closeableCoroutine(
