@@ -56,6 +56,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
+            api(project(":ktor-client:ktor-client-apache5"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
             if (currentJdk >= 11) {

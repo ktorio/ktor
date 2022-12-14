@@ -14,7 +14,7 @@ private const val TEST_SIZE: Int = 100
 class WebSocketJvmTest : ClientLoader(100000) {
 
     @Test
-    fun testWebSocketDeflateBinary() = clientTests(listOf("Android", "Apache")) {
+    fun testWebSocketDeflateBinary() = clientTests(listOf("Android", "Apache", "Apache5")) {
         config {
             WebSockets {
                 extensions {
@@ -38,7 +38,7 @@ class WebSocketJvmTest : ClientLoader(100000) {
     }
 
     @Test
-    fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache")) {
+    fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache", "Apache5")) {
         config {
             WebSockets {
                 extensions {
