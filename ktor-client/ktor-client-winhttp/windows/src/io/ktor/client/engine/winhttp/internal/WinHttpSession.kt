@@ -11,7 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
-import ktor.cinterop.winhttp.*
+import platform.winhttp.*
 
 internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : Closeable {
 
