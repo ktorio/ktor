@@ -20,32 +20,50 @@ internal class AuthTokenHolder<T>(
 
     internal suspend fun loadToken(): T? {
         var deferred: CompletableDeferred<T?>?
+        var newDeferred: CompletableDeferred<T?>? = null
         while (true) {
             deferred = loadTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (loadTokensDeferred.compareAndSet(deferred, newValue))
+                newDeferred = newValue
+                break
         }
 
+        // if there's already a pending loadTokens(), just wait for it to complete
         if (deferred != null) {
             return deferred.await()
         }
 
+        // load the tokens, but keep in mind this is a suspending function
         val newTokens = loadTokens()
-        loadTokensDeferred.value!!.complete(newTokens)
+
+        // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
+        // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+        // [newDeferred] can't be null as it must have been set to exit the while loop earlier on.
+        newDeferred!!.complete(newTokens)
+
         return newTokens
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
         var deferred: CompletableDeferred<T?>?
+        var newDeferred: CompletableDeferred<T?>? = null
         while (true) {
             deferred = refreshTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (refreshTokensDeferred.compareAndSet(deferred, newValue))
+                newDeferred = newValue
+                break
         }
 
         val newToken = if (deferred == null) {
+            // set the tokens, which is a suspending call
             val newTokens = block()
-            refreshTokensDeferred.value!!.complete(newTokens)
+
+            // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
+            // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+            // [newDeferred] can't be null as it must have been set to exit the while loop earlier on.
+            newDeferred!!.complete(newTokens)
             refreshTokensDeferred.value = null
             newTokens
         } else {
