@@ -327,8 +327,11 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 
     private fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
         val subRequest = HttpRequestBuilder().takeFrom(request)
-        val subRequestJob = Job(request.executionContext)
-        subRequest.executionContext = subRequestJob
+        request.executionContext.invokeOnCompletion { cause ->
+            val subRequestJob = subRequest.executionContext as CompletableJob
+            if (cause == null) subRequestJob.complete()
+            else subRequestJob.completeExceptionally(cause)
+        }
         return subRequest
     }
 
