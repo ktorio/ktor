@@ -17,6 +17,7 @@ jetty-alpn-boot-version = "8.1.13.v20181017"
 tomcat-version = "9.0.70"
 
 apache-version = "4.1.5"
+apache5-version = "5.2"
 apacheds-version = "2.0.0-M24"
 okhttp-version = "4.10.0"
 
@@ -123,6 +124,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 junit = { module = "junit:junit", version.ref = "junit-version" }
 
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version.ref = "apache-version" }
+apache-client5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "apache5-version" }
 apacheds-server = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "apacheds-version" }
 apacheds-core = { module = "org.apache.directory.server:apacheds-core-integ", version.ref = "apacheds-version" }
 
