@@ -17,7 +17,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Curl", "DarwinLegacy")
+internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
 
 private const val TEST_SIZE: Int = 100
 
@@ -111,7 +111,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
             defaultRequest {
@@ -142,7 +142,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionWss() = clientTests(listOf("Android", "Apache", "Curl", "JS", "DarwinLegacy")) {
+    fun testExceptionWss() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
         }
