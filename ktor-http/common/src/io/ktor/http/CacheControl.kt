@@ -9,7 +9,7 @@ package io.ktor.http
  *
  * @param visibility specifies an optional visibility such as private or public
  */
-public sealed class CacheControl(public val visibility: Visibility?) {
+public abstract class CacheControl(public val visibility: Visibility?) {
 
     /**
      * Controls caching by proxies

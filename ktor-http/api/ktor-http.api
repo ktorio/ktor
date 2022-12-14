@@ -7,7 +7,7 @@ public final class io/ktor/http/BadContentTypeFormatException : java/lang/Except
 }
 
 public abstract class io/ktor/http/CacheControl {
-	public synthetic fun <init> (Lio/ktor/http/CacheControl$Visibility;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/http/CacheControl$Visibility;)V
 	public final fun getVisibility ()Lio/ktor/http/CacheControl$Visibility;
 }
 
