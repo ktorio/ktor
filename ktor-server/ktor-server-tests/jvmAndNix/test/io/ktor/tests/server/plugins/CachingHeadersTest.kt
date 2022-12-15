@@ -62,6 +62,26 @@ class CachingHeadersTest {
         }
     )
 
+    object Immutable: CacheControl(null) {
+        override fun toString(): String = "immutable"
+    }
+
+    @Test
+    fun testCustomCacheControl(): Unit = test(
+        configure = {
+            install(CachingHeaders) {
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(Immutable) }
+            }
+        },
+        test = { response ->
+            assertEquals(
+                "no-cache, private, no-store, immutable",
+                response.headers[HttpHeaders.CacheControl]
+            )
+        }
+    )
+
     @Test
     fun testSetInCall() = testApplication {
         install(CachingHeaders)

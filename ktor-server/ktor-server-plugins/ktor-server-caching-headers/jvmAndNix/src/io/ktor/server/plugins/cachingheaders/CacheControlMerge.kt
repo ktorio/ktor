@@ -12,8 +12,8 @@ import io.ktor.http.*
  * Currently, visibility is pinned to the expiration directive,
  * then to the first no-cache,
  * then to the no-store directive.
- * The RFC doesn't state, where a visibility modifier should be so we can place it at any place
- * so there is nothing behind the rule beyond, therefore could be changed.
+ * The RFC doesn't state where a visibility modifier should be, so we can place it at any place
+ * so there is nothing behind the rule beyond, therefore, could be changed.
  *
  * Only one visibility specifier is kept.
  *
@@ -26,7 +26,7 @@ import io.ktor.http.*
  *
  * Revalidation directives are collected as well.
  * Currently, revalidation directives are tied to max age by-design.
- * This is not fair according to RFC so will be changed in the future.
+ * This is not fair, according to RFC, so it will be changed in the future.
  */
 internal fun List<CacheControl>.mergeCacheControlDirectives(): List<CacheControl> {
     if (size < 2) return this
@@ -49,6 +49,12 @@ internal fun List<CacheControl>.mergeCacheControlDirectives(): List<CacheControl
     return mutableListOf<CacheControl>().apply {
         noCacheDirective?.let { add(CacheControl.NoCache(null)) }
         noStoreDirective?.let { add(CacheControl.NoStore(null)) }
+
+        this@mergeCacheControlDirectives
+            .filter {
+                it !is CacheControl.NoCache && it !is CacheControl.NoStore && it !is CacheControl.MaxAge
+            }
+            .let { addAll(it) }
 
         if (maxAgeDirectives.isNotEmpty()) {
             add(
