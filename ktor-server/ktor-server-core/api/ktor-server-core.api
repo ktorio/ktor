@@ -126,6 +126,10 @@ public final class io/ktor/server/application/InvalidBodyException : java/lang/E
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class io/ktor/server/application/KtorCallContextsKt {
+	public static final fun transformBody (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/server/application/MissingApplicationPluginException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/util/AttributeKey;)V
 	public fun createCopy ()Lio/ktor/server/application/MissingApplicationPluginException;
@@ -222,6 +226,12 @@ public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend : i
 public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend$Context {
 	public fun <init> (Lio/ktor/util/pipeline/PipelineContext;)V
 	public final fun transformBodyTo (Lio/ktor/http/content/OutgoingContent;)V
+}
+
+public final class io/ktor/server/application/hooks/ResponseContent : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseContent;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/server/application/hooks/ResponseSent : io/ktor/server/application/Hook {
@@ -718,6 +728,7 @@ public class io/ktor/server/response/ApplicationSendPipeline : io/ktor/util/pipe
 public final class io/ktor/server/response/ApplicationSendPipeline$Phases {
 	public final fun getAfter ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getBefore ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getContent ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getContentEncoding ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getEngine ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getRender ()Lio/ktor/util/pipeline/PipelinePhase;

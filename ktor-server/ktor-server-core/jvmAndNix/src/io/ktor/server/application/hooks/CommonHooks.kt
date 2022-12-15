@@ -127,3 +127,18 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
         }
     }
 }
+
+/**
+ * A hook that is invoked in `Content` phase.
+ * Useful for some plugins which used for templates as views within application.
+ */
+public object ResponseContent : Hook<suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any> {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any
+    ) {
+        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Content) { body ->
+            handler(body)
+        }
+    }
+}

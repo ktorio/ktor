@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.util.*
 
 /**
@@ -55,7 +56,7 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
         return result
     }
 
-    onCallRespond { _, message ->
+    on(ResponseContent) { message ->
         if (message is JteContent) {
             transformBody {
                 process(message)

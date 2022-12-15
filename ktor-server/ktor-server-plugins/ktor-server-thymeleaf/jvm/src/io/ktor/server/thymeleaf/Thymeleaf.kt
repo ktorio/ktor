@@ -7,6 +7,7 @@ package io.ktor.server.thymeleaf
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
 import java.util.*
@@ -52,8 +53,8 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
         return result
     }
 
-    onCallRespond { _, body ->
-        if (body !is ThymeleafContent) return@onCallRespond
+    on(ResponseContent) { body ->
+        if (body !is ThymeleafContent) return@on
         transformBody {
             process(body)
         }

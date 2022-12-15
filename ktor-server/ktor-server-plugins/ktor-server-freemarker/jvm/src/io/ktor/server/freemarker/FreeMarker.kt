@@ -8,6 +8,7 @@ import freemarker.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import java.io.*
 
 /**
@@ -45,7 +46,7 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
         return result
     }
 
-    onCallRespond { _, message ->
+    on(ResponseContent) { message ->
         if (message is FreeMarkerContent) {
             transformBody {
                 process(message)

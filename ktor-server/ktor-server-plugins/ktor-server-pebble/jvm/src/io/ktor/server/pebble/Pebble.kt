@@ -8,6 +8,7 @@ import com.mitchellbosecke.pebble.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.util.*
 import java.io.*
@@ -70,7 +71,8 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
         return result
     }
 
-    onCallRespond { call, value ->
+    on(ResponseContent) { value ->
+        val call = this.call
         if (value is PebbleContent) {
             transformBody {
                 process(value, call)

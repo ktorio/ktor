@@ -12,7 +12,9 @@ import io.ktor.util.pipeline.*
  */
 public open class ApplicationSendPipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+) : Pipeline<Any, ApplicationCall>(
+    Before, Content, Transform, Render, ContentEncoding, TransferEncoding, After, Engine
+) {
     /**
      * Send pipeline phases.
      */
@@ -22,6 +24,11 @@ public open class ApplicationSendPipeline(
          * The earliest phase that happens before any other
          */
         public val Before: PipelinePhase = PipelinePhase("Before")
+
+        /**
+         * The phase that can transform body
+         */
+        public val Content: PipelinePhase = PipelinePhase("Content")
 
         /**
          * A transformation phase that can proceed with any supported data like String.

@@ -7,6 +7,7 @@ package io.ktor.server.velocity
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 import org.apache.velocity.context.*
@@ -61,7 +62,7 @@ public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin
         )
     }
 
-    onCallRespond { _, value ->
+    on(ResponseContent) { value ->
         if (value is VelocityContent) {
             transformBody {
                 process(value)

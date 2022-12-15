@@ -8,10 +8,8 @@ import com.github.mustachejava.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
+import io.ktor.server.application.hooks.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
-import io.ktor.utils.io.*
 import java.io.*
 
 /**
@@ -53,7 +51,7 @@ public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin
         return result
     }
 
-    onCallRespond { _, body ->
+    on(ResponseContent) { body ->
         if (body is MustacheContent) {
             transformBody { process(body) }
         }
