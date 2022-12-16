@@ -53,7 +53,7 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
         return result
     }
 
-    on(ResponseContent) { body ->
+    on(ResponseBeforeTransform) { body ->
         if (body !is ThymeleafContent) return@on
         transformBody {
             process(body)

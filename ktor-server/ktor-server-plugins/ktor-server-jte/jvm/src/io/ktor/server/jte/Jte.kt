@@ -56,7 +56,7 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
         return result
     }
 
-    on(ResponseContent) { message ->
+    on(ResponseBeforeTransform) { message ->
         if (message is JteContent) {
             transformBody {
                 process(message)

@@ -62,7 +62,7 @@ public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin
         )
     }
 
-    on(ResponseContent) { value ->
+    on(ResponseBeforeTransform) { value ->
         if (value is VelocityContent) {
             transformBody {
                 process(value)

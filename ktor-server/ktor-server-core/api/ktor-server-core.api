@@ -217,6 +217,12 @@ public final class io/ktor/server/application/hooks/ReceiveRequestBytes : io/kto
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function2;)V
 }
 
+public final class io/ktor/server/application/hooks/ResponseBeforeTransform : io/ktor/server/application/Hook {
+	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseBeforeTransform;
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
+}
+
 public final class io/ktor/server/application/hooks/ResponseBodyReadyForSend : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseBodyReadyForSend;
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
@@ -728,7 +734,6 @@ public class io/ktor/server/response/ApplicationSendPipeline : io/ktor/util/pipe
 public final class io/ktor/server/response/ApplicationSendPipeline$Phases {
 	public final fun getAfter ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getBefore ()Lio/ktor/util/pipeline/PipelinePhase;
-	public final fun getContent ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getContentEncoding ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getEngine ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getRender ()Lio/ktor/util/pipeline/PipelinePhase;

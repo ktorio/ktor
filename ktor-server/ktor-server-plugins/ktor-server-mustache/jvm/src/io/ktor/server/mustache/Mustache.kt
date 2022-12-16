@@ -51,7 +51,7 @@ public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin
         return result
     }
 
-    on(ResponseContent) { body ->
+    on(ResponseBeforeTransform) { body ->
         if (body is MustacheContent) {
             transformBody { process(body) }
         }

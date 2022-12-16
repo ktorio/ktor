@@ -129,15 +129,17 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
 }
 
 /**
- * A hook that is invoked in `Content` phase.
+ * A hook that is invoked before `Transform` phase.
  * Useful for some plugins which used for templates as views within application.
  */
-public object ResponseContent : Hook<suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any> {
+public object ResponseBeforeTransform : Hook<suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any> {
     override fun install(
         pipeline: ApplicationCallPipeline,
         handler: suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any
     ) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Content) { body ->
+        val beforeTransform = PipelinePhase("BeforeTransform")
+        pipeline.sendPipeline.insertPhaseBefore(ApplicationSendPipeline.Transform, beforeTransform)
+        pipeline.sendPipeline.intercept(beforeTransform) { body ->
             handler(body)
         }
     }

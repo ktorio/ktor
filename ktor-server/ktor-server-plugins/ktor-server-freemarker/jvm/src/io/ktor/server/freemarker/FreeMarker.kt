@@ -46,7 +46,7 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
         return result
     }
 
-    on(ResponseContent) { message ->
+    on(ResponseBeforeTransform) { message ->
         if (message is FreeMarkerContent) {
             transformBody {
                 process(message)

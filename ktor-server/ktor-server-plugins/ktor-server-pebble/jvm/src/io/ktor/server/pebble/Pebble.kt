@@ -71,7 +71,7 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
         return result
     }
 
-    on(ResponseContent) { value ->
+    on(ResponseBeforeTransform) { value ->
         val call = this.call
         if (value is PebbleContent) {
             transformBody {
