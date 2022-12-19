@@ -358,7 +358,7 @@ class WebSocketTest {
 
             handleWebSocket("/") {
                 bodyChannel = writer {
-                    channel.writeFully(sendBuffer.array())
+                    channel.writeFully(sendBuffer.moveToByteArray())
                     channel.flush()
                     conversation.join()
                 }.channel
