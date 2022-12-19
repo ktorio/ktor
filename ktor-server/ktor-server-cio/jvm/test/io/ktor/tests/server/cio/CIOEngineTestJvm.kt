@@ -44,7 +44,7 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
     }
 }
 
-class CIOConfigTest : ConfigTestSuite(CIO)
+class CIOConfigTest : ConfigTestSuite(CIO, { CIOApplicationEngine.Configuration() })
 
 class CIOConnectionTest : ConnectionTestSuite(CIO)
 

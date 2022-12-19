@@ -104,7 +104,7 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
     }
 }
 
-class NettyConfigTest : ConfigTestSuite(Netty)
+class NettyConfigTest : ConfigTestSuite(Netty, { NettyApplicationEngine.Configuration() })
 
 class NettyConnectionTest : ConnectionTestSuite(Netty)
 

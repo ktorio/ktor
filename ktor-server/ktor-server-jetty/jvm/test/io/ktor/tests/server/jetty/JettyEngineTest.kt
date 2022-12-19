@@ -88,7 +88,7 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 class JettySustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
 
-class JettyConfigTest : ConfigTestSuite(Jetty)
+class JettyConfigTest : ConfigTestSuite(Jetty, { JettyApplicationEngineBase.Configuration() })
 
 class JettyConnectionTest : ConnectionTestSuite(Jetty)
 
