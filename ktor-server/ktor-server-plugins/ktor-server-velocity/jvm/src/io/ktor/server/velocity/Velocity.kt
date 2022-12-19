@@ -8,6 +8,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.response.*
+import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 import org.apache.velocity.context.*
@@ -53,20 +56,13 @@ public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin
 
     pluginConfig.init()
 
-    fun process(content: VelocityContent): OutgoingContent {
-        return velocityOutgoingContent(
+    @OptIn(InternalAPI::class)
+    onResponseBeforeTransform<VelocityContent> { _, content ->
+        velocityOutgoingContent(
             pluginConfig.getTemplate(content.template),
             VelocityContext(content.model),
             content.etag,
             content.contentType
         )
-    }
-
-    on(ResponseBeforeTransform) { value ->
-        if (value is VelocityContent) {
-            transformBody {
-                process(value)
-            }
-        }
     }
 }

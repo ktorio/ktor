@@ -11,8 +11,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.reflect.*
 
 /**
  * A hook that is invoked as a first step in processing a call.
@@ -132,15 +134,27 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
  * A hook that is invoked before `Transform` phase.
  * Useful for some plugins which used for templates as views within application.
  */
-public object ResponseBeforeTransform : Hook<suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any> {
+@InternalAPI
+public class ResponseBeforeTransform<T : Any>(private val clazz: KClass<T>) :
+    Hook<suspend (call: ApplicationCall, body: T) -> Any> {
     override fun install(
         pipeline: ApplicationCallPipeline,
-        handler: suspend PipelineContext<Any, ApplicationCall>.(body: Any) -> Any
+        handler: suspend (call: ApplicationCall, body: T) -> Any
     ) {
         val beforeTransform = PipelinePhase("BeforeTransform")
         pipeline.sendPipeline.insertPhaseBefore(ApplicationSendPipeline.Transform, beforeTransform)
         pipeline.sendPipeline.intercept(beforeTransform) { body ->
-            handler(body)
+            if (body.instanceOf(this@ResponseBeforeTransform.clazz)) {
+                @Suppress("UNCHECKED_CAST")
+                subject = handler(call, body as T)
+            }
         }
     }
+}
+
+@InternalAPI
+public inline fun <reified T : Any> PluginBuilder<*>.onResponseBeforeTransform(
+    noinline handler: suspend (call: ApplicationCall, body: T) -> Any
+) {
+    on(ResponseBeforeTransform(T::class), handler)
 }

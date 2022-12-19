@@ -10,7 +10,9 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import java.io.*
 import java.util.*
 
@@ -53,30 +55,24 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
     val engine = pluginConfig.build()
     val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
-    fun process(content: PebbleContent, call: ApplicationCall): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        var locale = locale
+    @OptIn(InternalAPI::class)
+    onResponseBeforeTransform<PebbleContent> { call, content ->
+        with(content) {
+            val writer = StringWriter()
+            var locale = locale
 
-        if (availableLanguages != null && locale == null) {
-            locale = call.request.acceptLanguageItems()
-                .firstOrNull { pluginConfig.availableLanguages!!.contains(it.value) }
-                ?.value?.let { Locale.forLanguageTag(it) }
-        }
-        engine.getTemplate(content.template).evaluate(writer, model, locale)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-
-    on(ResponseBeforeTransform) { value ->
-        val call = this.call
-        if (value is PebbleContent) {
-            transformBody {
-                process(value, call)
+            if (availableLanguages != null && locale == null) {
+                locale = call.request.acceptLanguageItems()
+                    .firstOrNull { pluginConfig.availableLanguages!!.contains(it.value) }
+                    ?.value?.let { Locale.forLanguageTag(it) }
             }
+            engine.getTemplate(template).evaluate(writer, model, locale)
+
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
+            }
+            result
         }
     }
 }

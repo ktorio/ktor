@@ -86,11 +86,3 @@ public class OnCallRespondContext<PluginConfig : Any> internal constructor(
         context.subject = transformContext.transform(context.subject)
     }
 }
-
-public suspend fun <T : Any> PipelineContext<T, ApplicationCall>.transformBody(
-    transform: suspend TransformBodyContext.(body: Any) -> T
-) {
-    val transformContext = TransformBodyContext(call.response.responseType)
-
-    subject = transformContext.transform(subject)
-}

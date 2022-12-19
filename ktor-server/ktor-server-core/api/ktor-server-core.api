@@ -218,7 +218,7 @@ public final class io/ktor/server/application/hooks/ReceiveRequestBytes : io/kto
 }
 
 public final class io/ktor/server/application/hooks/ResponseBeforeTransform : io/ktor/server/application/Hook {
-	public static final field INSTANCE Lio/ktor/server/application/hooks/ResponseBeforeTransform;
+	public fun <init> (Lkotlin/reflect/KClass;)V
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
 }

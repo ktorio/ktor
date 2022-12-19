@@ -8,6 +8,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.response.*
+import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
 import java.util.*
@@ -40,23 +43,19 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
     "Thymeleaf",
     ::TemplateEngine
 ) {
-    fun process(content: ThymeleafContent): OutgoingContent = with(content) {
-        val context = Context(locale).apply { setVariables(model) }
+    @OptIn(InternalAPI::class)
+    onResponseBeforeTransform<ThymeleafContent> { _, content ->
+        with(content) {
+            val context = Context(locale).apply { setVariables(model) }
 
-        val result = TextContent(
-            text = pluginConfig.process(template, fragments, context),
-            contentType
-        )
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-
-    on(ResponseBeforeTransform) { body ->
-        if (body !is ThymeleafContent) return@on
-        transformBody {
-            process(body)
+            val result = TextContent(
+                text = pluginConfig.process(template, fragments, context),
+                contentType
+            )
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
+            }
+            result
         }
     }
 }
