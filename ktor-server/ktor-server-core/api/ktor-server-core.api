@@ -126,10 +126,6 @@ public final class io/ktor/server/application/InvalidBodyException : java/lang/E
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class io/ktor/server/application/KtorCallContextsKt {
-	public static final fun transformBody (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/application/MissingApplicationPluginException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/util/AttributeKey;)V
 	public fun createCopy ()Lio/ktor/server/application/MissingApplicationPluginException;
