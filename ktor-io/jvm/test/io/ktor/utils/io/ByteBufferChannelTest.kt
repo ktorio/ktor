@@ -228,4 +228,29 @@ class ByteBufferChannelTest {
         yield()
         assertFalse(awaitingContent)
     }
+
+    @Test
+    fun testReadLine(): Unit = runBlocking {
+        val channel = ByteChannel(autoFlush = true)
+
+        val writer = launch(Dispatchers.IO) {
+            repeat(4087) {
+                channel.writeByte('a'.code.toByte())
+            }
+
+            // U+2588
+            channel.writeByte(0xE2.toByte())
+            channel.writeByte(0x96.toByte())
+            channel.writeByte(0x88.toByte())
+
+            channel.writeByte('\n'.code.toByte())
+        }
+
+        val reader = async(Dispatchers.IO) {
+            channel.readUTF8Line(100_000)
+        }
+
+        reader.await()
+        writer.join()
+    }
 }
