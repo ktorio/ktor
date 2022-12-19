@@ -87,7 +87,7 @@ internal class RawWebSocketCommon(
             while (true) {
                 val frame = input.readFrame(maxFrameSize, lastOpcode)
                 if (!frame.frameType.controlFrame) {
-                    lastOpcode = frame.frameType.opcode
+                    lastOpcode = if (frame.fin) 0 else frame.frameType.opcode
                 }
                 _incoming.send(frame)
             }
@@ -211,8 +211,16 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
     val flagsAndOpcode = readByte().toInt()
     val maskAndLength = readByte().toInt()
 
-    val opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
+    val rawOpcode = flagsAndOpcode and 0x0f
+    if (rawOpcode == 0 && lastOpcode == 0) {
+        throw ProtocolViolationException("Can't continue finished frames")
+    }
+    val opcode = if (rawOpcode == 0) lastOpcode else rawOpcode
     val frameType = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode: $opcode")
+    if (rawOpcode != 0 && lastOpcode != 0 && !frameType.controlFrame) {
+        // trying to intermix data frames
+        throw ProtocolViolationException("Can't start new data frame before finishing previous one")
+    }
 
     val fin = flagsAndOpcode and 0x80 != 0
     if (frameType.controlFrame && !fin) {

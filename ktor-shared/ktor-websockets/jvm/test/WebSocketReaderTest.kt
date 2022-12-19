@@ -11,21 +11,43 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class WebSocketReaderTest {
+    private suspend fun writeFrame(channel: ByteWriteChannel, frame: Frame) {
+        val serializer = Serializer()
+        serializer.enqueue(frame)
+
+        while (serializer.hasOutstandingBytes) {
+            channel.write {
+                serializer.serialize(it)
+            }
+        }
+    }
+
     @Test
     fun testFailFragmentedControl() {
-        val serializer = Serializer()
         val channel = ByteChannel(true)
         runBlocking {
             val reader = WebSocketReader(channel, coroutineContext, 1000)
             val frame = Frame.Ping(ByteArray(126))
-            serializer.enqueue(frame)
-
-            while (serializer.hasOutstandingBytes) {
-                channel.write {
-                    serializer.serialize(it)
-                }
-            }
+            writeFrame(channel, frame)
             assertFailsWith<ProtocolViolationException> {
+                reader.incoming.receive()
+            }
+        }
+    }
+
+    @Test
+    fun testInterruptedContinuation() {
+        val channel = ByteChannel(true)
+        runBlocking {
+            val reader = WebSocketReader(channel, coroutineContext, 1000)
+            writeFrame(channel, Frame.Text(false, "Foo".toByteArray()))
+            writeFrame(channel, Frame.Ping("Ping!".toByteArray()))
+            writeFrame(channel, Frame.Text(true, "Foo".toByteArray()))
+            assertIs<Frame.Text>(reader.incoming.receive())
+            assertIs<Frame.Ping>(reader.incoming.receive())
+
+            assertFailsWith<ProtocolViolationException> {
+                // serializer will re-send the opcode
                 reader.incoming.receive()
             }
         }
