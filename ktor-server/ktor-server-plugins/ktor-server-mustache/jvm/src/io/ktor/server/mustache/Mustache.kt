@@ -8,10 +8,10 @@ import com.github.mustachejava.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
-import io.ktor.utils.io.*
+import io.ktor.util.pipeline.*
 import java.io.*
 
 /**
@@ -42,20 +42,17 @@ public class MustacheConfig {
 public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
     val mustacheFactory = pluginConfig.mustacheFactory
 
-    fun process(content: MustacheContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        mustacheFactory.compile(content.template).execute(writer, model)
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(MustacheContent::class)) { _, content ->
+        with(content) {
+            val writer = StringWriter()
+            mustacheFactory.compile(content.template).execute(writer, model)
 
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-
-    onCallRespond { _, body ->
-        if (body is MustacheContent) {
-            transformBody { process(body) }
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
+            }
+            result
         }
     }
 }
