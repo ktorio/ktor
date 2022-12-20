@@ -16,10 +16,10 @@ buildscript {
      * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
      * DO NOT change the name of these properties without adapting kotlinx.train build chain.
      */
-    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"].let { it != null && it != "" }
-    val build_snapshot_train: Boolean by extra
+    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
+    val build_snapshot_train: String? by extra
 
-    if (build_snapshot_train) {
+    if (build_snapshot_train?.toBoolean() == true) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
         if (kotlin_version == null) {
