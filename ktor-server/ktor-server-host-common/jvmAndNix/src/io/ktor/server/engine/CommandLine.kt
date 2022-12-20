@@ -130,11 +130,11 @@ public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymen
     deploymentConfig.propertyOrNull("workerGroupSize")?.getString()?.toInt()?.let {
         workerGroupSize = it
     }
-    deploymentConfig.propertyOrNull("gracePeriod")?.getString()?.toLong()?.let {
-        gracePeriodMillis = it
+    deploymentConfig.propertyOrNull("shutdownGracePeriod")?.getString()?.toLong()?.let {
+        shutdownGracePeriodMillis = it
     }
-    deploymentConfig.propertyOrNull("timeout")?.getString()?.toLong()?.let {
-        timeoutMillis = it
+    deploymentConfig.propertyOrNull("shutdownTimeout")?.getString()?.toLong()?.let {
+        shutdownTimeoutMillis = it
     }
 }
 

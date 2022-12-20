@@ -72,8 +72,8 @@ abstract class ConfigTestSuite(
                 """
                     ktor {
                         deployment {
-                            gracePeriod: 2000,
-                            timeout: 6000
+                            shutdownGracePeriod: 2000,
+                            shutdownTimeout: 6000
                         }
                     }
                 """.trimIndent()
@@ -81,7 +81,7 @@ abstract class ConfigTestSuite(
         )
 
         val configuration = configuration().apply { loadCommonConfiguration(config.config("ktor.deployment")) }
-        assertEquals(2000, configuration.gracePeriodMillis)
-        assertEquals(6000, configuration.timeoutMillis)
+        assertEquals(2000, configuration.shutdownGracePeriodMillis)
+        assertEquals(6000, configuration.shutdownTimeoutMillis)
     }
 }

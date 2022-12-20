@@ -41,12 +41,12 @@ public interface ApplicationEngine {
         /**
          * Specifies the maximum amount of time for activity to cool down in milliseconds.
          */
-        public var gracePeriodMillis: Long = 500
+        public var shutdownGracePeriodMillis: Long = 500
 
         /**
          * Specifies the maximum amount of time to wait until a server stops gracefully in milliseconds.
          */
-        public var timeoutMillis: Long = 500
+        public var shutdownTimeoutMillis: Long = 500
     }
 
     /**
