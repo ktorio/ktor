@@ -20,9 +20,11 @@ public object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         val gracePeriod =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong() ?: 50
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong()
+                ?: 50
         val timeout =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong() ?: 5000
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong()
+                ?: 5000
         engine.addShutdownHook {
             engine.stop(gracePeriod, timeout)
         }

@@ -21,9 +21,11 @@ public object EngineMain {
         val engine = NettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
 
         val gracePeriod =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong() ?: 3000
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong()
+                ?: 3000
         val timeout =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong() ?: 5000
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong()
+                ?: 5000
         engine.addShutdownHook {
             engine.stop(gracePeriod, timeout)
         }
