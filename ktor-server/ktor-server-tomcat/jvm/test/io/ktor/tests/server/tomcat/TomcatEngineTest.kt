@@ -167,7 +167,7 @@ class TomcatSustainabilityTestSuite :
     }
 }
 
-class TomcatConfigTest : ConfigTestSuite(Tomcat, { TomcatApplicationEngine.Configuration() })
+class TomcatConfigTest : ConfigTestSuite(Tomcat)
 
 class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
 

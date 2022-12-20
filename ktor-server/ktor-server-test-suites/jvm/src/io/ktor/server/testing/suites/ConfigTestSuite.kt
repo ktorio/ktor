@@ -4,8 +4,6 @@
 
 package io.ktor.server.testing.suites
 
-import com.typesafe.config.*
-import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import org.junit.*
@@ -15,10 +13,7 @@ import kotlin.system.*
 
 var count = 0
 
-abstract class ConfigTestSuite(
-    val engine: ApplicationEngineFactory<*, *>,
-    val configuration: () -> BaseApplicationEngine.Configuration
-) {
+abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @Test
     fun testStartOnceWhenException() {
@@ -63,25 +58,5 @@ abstract class ConfigTestSuite(
         }
 
         assertTrue("Stop time is $time", time < 100)
-    }
-
-    @Test
-    fun testCommonEngineConfiguration() {
-        val config = HoconApplicationConfig(
-            ConfigFactory.parseString(
-                """
-                    ktor {
-                        deployment {
-                            shutdownGracePeriod: 2000,
-                            shutdownTimeout: 6000
-                        }
-                    }
-                """.trimIndent()
-            )
-        )
-
-        val configuration = configuration().apply { loadCommonConfiguration(config.config("ktor.deployment")) }
-        assertEquals(2000, configuration.shutdownGracePeriodMillis)
-        assertEquals(6000, configuration.shutdownTimeoutMillis)
     }
 }

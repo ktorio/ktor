@@ -11,13 +11,9 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 	public final fun getCallGroupSize ()I
 	public final fun getConnectionGroupSize ()I
 	public final fun getParallelism ()I
-	public final fun getShutdownGracePeriodMillis ()J
-	public final fun getShutdownTimeoutMillis ()J
 	public final fun getWorkerGroupSize ()I
 	public final fun setCallGroupSize (I)V
 	public final fun setConnectionGroupSize (I)V
-	public final fun setShutdownGracePeriodMillis (J)V
-	public final fun setShutdownTimeoutMillis (J)V
 	public final fun setWorkerGroupSize (I)V
 }
 

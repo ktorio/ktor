@@ -130,12 +130,6 @@ public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymen
     deploymentConfig.propertyOrNull("workerGroupSize")?.getString()?.toInt()?.let {
         workerGroupSize = it
     }
-    deploymentConfig.propertyOrNull("shutdownGracePeriod")?.getString()?.toLong()?.let {
-        shutdownGracePeriodMillis = it
-    }
-    deploymentConfig.propertyOrNull("shutdownTimeout")?.getString()?.toLong()?.let {
-        shutdownTimeoutMillis = it
-    }
 }
 
 internal fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
