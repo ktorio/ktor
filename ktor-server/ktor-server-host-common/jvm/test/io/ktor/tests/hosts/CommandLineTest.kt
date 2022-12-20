@@ -88,6 +88,25 @@ class CommandLineTest {
         assertEquals("8081", port)
     }
 
+    @Test
+    fun testListPropertiesConfig() {
+        val args = arrayOf(
+            "-P:array.first.0=first", "-P:array.first.1=second", "-P:array.first.2=third",
+            "-P:array.second.0=1", "-P:array.second.1=2",
+            "-P:array.third.0=zero"
+        )
+        val env = commandLineEnvironment(args)
+        val firstList = env.config.property("array.first").getList()
+        val secondList = env.config.property("array.second").getList()
+        val thirdList = env.config.property("array.third").getList()
+        assertEquals(3, firstList.size)
+        assertEquals(2, secondList.size)
+        assertEquals(1, thirdList.size)
+        assertEquals("first", firstList[0])
+        assertEquals("2", secondList[1])
+        assertEquals("zero", thirdList[0])
+    }
+
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
             return Pair(File(uri.path.substringBefore("!")), null)

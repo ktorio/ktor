@@ -23,7 +23,12 @@ public open class MapApplicationConfig : ApplicationConfig {
         this.path = path
     }
 
-    public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "")
+    public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
+        values.filter { isListElement(it.first) }
+            .groupingBy { it.first.substringBeforeLast(".") }.eachCount()
+            .forEach { (listProperty, size) -> this.map["$listProperty.size"] = "$size" }
+    }
+
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
     public constructor() : this(mutableMapOf<String, String>(), "")
 
@@ -126,3 +131,9 @@ public open class MapApplicationConfig : ApplicationConfig {
 }
 
 private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
+
+private fun isListElement(value: String): Boolean {
+    var index = value.length - 1
+    while (index > 0 && value[index].isDigit()) index--
+    return value[index] == '.'
+}
