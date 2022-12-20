@@ -183,6 +183,12 @@ public final class io/ktor/server/application/TransformBodyContext {
 	public final fun getRequestedType ()Lio/ktor/util/reflect/TypeInfo;
 }
 
+public final class io/ktor/server/application/hooks/BeforeResponseTransform : io/ktor/server/application/Hook {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function3;)V
+}
+
 public final class io/ktor/server/application/hooks/CallFailed : io/ktor/server/application/Hook {
 	public static final field INSTANCE Lio/ktor/server/application/hooks/CallFailed;
 	public synthetic fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V

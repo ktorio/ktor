@@ -10,7 +10,10 @@ import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 
 /**
  * A response content handled by the [Jte] plugin.
@@ -44,7 +47,8 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
 
     val templateEngine = pluginConfig.templateEngine
 
-    fun process(content: JteContent): OutgoingContent {
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(JteContent::class)) { _, content ->
         val writer = StringOutput()
         templateEngine.render(content.template, content.params, writer)
 
@@ -52,14 +56,6 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
         if (content.etag != null) {
             result.versions += EntityTagVersion(content.etag)
         }
-        return result
-    }
-
-    onCallRespond { _, message ->
-        if (message is JteContent) {
-            transformBody {
-                process(message)
-            }
-        }
+        result
     }
 }
