@@ -8,6 +8,11 @@ import freemarker.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.response.*
+import io.ktor.util.*
+import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import java.io.*
 
 /**
@@ -34,22 +39,18 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
     "FreeMarker",
     { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
 ) {
-    fun process(content: FreeMarkerContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        pluginConfig.getTemplate(content.template).process(model, writer)
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(FreeMarkerContent::class)) { _, content ->
+        with(content) {
+            val writer = StringWriter()
+            pluginConfig.getTemplate(template).process(model, writer)
 
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
-    }
-
-    onCallRespond { _, message ->
-        if (message is FreeMarkerContent) {
-            transformBody {
-                process(message)
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
+
+            result
         }
     }
 }
