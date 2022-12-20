@@ -6,7 +6,6 @@ package io.ktor.server.tomcat
 
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Tomcat engine
@@ -22,8 +21,14 @@ public object EngineMain {
         val engine = TomcatApplicationEngine(applicationEnvironment) {
             loadConfiguration(applicationEnvironment.config)
         }
+        val gracePeriod =
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong()
+                ?: 3000
+        val timeout =
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong()
+                ?: 5000
         engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+            engine.stop(gracePeriod, timeout)
         }
         engine.start(true)
     }
