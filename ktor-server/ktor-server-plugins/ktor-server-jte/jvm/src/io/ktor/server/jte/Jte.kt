@@ -48,7 +48,7 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
     val templateEngine = pluginConfig.templateEngine
 
     @OptIn(InternalAPI::class)
-    onResponseBeforeTransform<JteContent> { _, content ->
+    on(BeforeResponseTransform(JteContent::class)) { _, content ->
         val writer = StringOutput()
         templateEngine.render(content.template, content.params, writer)
 

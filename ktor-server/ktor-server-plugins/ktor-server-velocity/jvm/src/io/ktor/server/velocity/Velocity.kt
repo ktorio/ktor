@@ -57,7 +57,7 @@ public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin
     pluginConfig.init()
 
     @OptIn(InternalAPI::class)
-    onResponseBeforeTransform<VelocityContent> { _, content ->
+    on(BeforeResponseTransform(VelocityContent::class)) { _, content ->
         velocityOutgoingContent(
             pluginConfig.getTemplate(content.template),
             VelocityContext(content.model),

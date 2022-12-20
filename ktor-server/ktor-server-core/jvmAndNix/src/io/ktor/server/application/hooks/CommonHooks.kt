@@ -135,7 +135,7 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
  * Useful for some plugins which used for templates as views within application.
  */
 @InternalAPI
-public class ResponseBeforeTransform<T : Any>(private val clazz: KClass<T>) :
+public class BeforeResponseTransform<T : Any>(private val clazz: KClass<T>) :
     Hook<suspend (call: ApplicationCall, body: T) -> Any> {
     override fun install(
         pipeline: ApplicationCallPipeline,
@@ -144,17 +144,10 @@ public class ResponseBeforeTransform<T : Any>(private val clazz: KClass<T>) :
         val beforeTransform = PipelinePhase("BeforeTransform")
         pipeline.sendPipeline.insertPhaseBefore(ApplicationSendPipeline.Transform, beforeTransform)
         pipeline.sendPipeline.intercept(beforeTransform) { body ->
-            if (body.instanceOf(this@ResponseBeforeTransform.clazz)) {
+            if (body.instanceOf(this@BeforeResponseTransform.clazz)) {
                 @Suppress("UNCHECKED_CAST")
                 subject = handler(call, body as T)
             }
         }
     }
-}
-
-@InternalAPI
-public inline fun <reified T : Any> PluginBuilder<*>.onResponseBeforeTransform(
-    noinline handler: suspend (call: ApplicationCall, body: T) -> Any
-) {
-    on(ResponseBeforeTransform(T::class), handler)
 }

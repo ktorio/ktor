@@ -43,7 +43,7 @@ public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin
     val mustacheFactory = pluginConfig.mustacheFactory
 
     @OptIn(InternalAPI::class)
-    onResponseBeforeTransform<MustacheContent> { _, content ->
+    on(BeforeResponseTransform(MustacheContent::class)) { _, content ->
         with(content) {
             val writer = StringWriter()
             mustacheFactory.compile(content.template).execute(writer, model)

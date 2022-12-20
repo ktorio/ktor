@@ -56,7 +56,7 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
     val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
     @OptIn(InternalAPI::class)
-    onResponseBeforeTransform<PebbleContent> { call, content ->
+    on(BeforeResponseTransform(PebbleContent::class)) { call, content ->
         with(content) {
             val writer = StringWriter()
             var locale = locale

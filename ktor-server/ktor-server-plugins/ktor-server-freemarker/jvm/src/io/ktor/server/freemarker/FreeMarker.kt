@@ -40,7 +40,7 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
     { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
 ) {
     @OptIn(InternalAPI::class)
-    onResponseBeforeTransform<FreeMarkerContent> { _, content ->
+    on(BeforeResponseTransform(FreeMarkerContent::class)) { _, content ->
         with(content) {
             val writer = StringWriter()
             pluginConfig.getTemplate(template).process(model, writer)
