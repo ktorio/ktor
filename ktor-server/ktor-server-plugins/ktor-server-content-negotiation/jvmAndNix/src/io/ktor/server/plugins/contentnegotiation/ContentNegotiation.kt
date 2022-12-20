@@ -43,7 +43,7 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
  * A plugin that serves two primary purposes:
  * - Negotiating media types between the client and server. For this, it uses the `Accept` and `Content-Type` headers.
  * - Serializing/deserializing the content in a specific format.
- *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
+ *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, `CBOR` and `ProtoBuf`.
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  */
