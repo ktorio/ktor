@@ -9,6 +9,7 @@ import io.ktor.serialization.kotlinx.test.*
 import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.*
 import java.nio.charset.*
+import kotlin.test.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest() {
@@ -22,15 +23,23 @@ class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTes
         cbor(contentType = contentType)
     }
 
-    override fun simpleDeserialize(t: ByteArray): TestEntity {
+    override fun simpleDeserialize(t: ByteArray): MyEntity {
         return DefaultCbor.decodeFromByteArray(serializer, t)
     }
 
-    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<TestEntity> {
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<MyEntity> {
         return DefaultCbor.decodeFromByteArray(listSerializer, t)
     }
 
-    override fun simpleSerialize(any: TestEntity): ByteArray {
+    override fun simpleSerialize(any: MyEntity): ByteArray {
         return DefaultCbor.encodeToByteArray(serializer, any)
+    }
+
+    @Ignore
+    override fun testMap() {
+    }
+
+    @Ignore
+    override fun testReceiveNullValue() {
     }
 }

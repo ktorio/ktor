@@ -22,12 +22,8 @@ import java.io.*
 import kotlin.reflect.*
 import kotlin.text.*
 
-/**
- * Creates a JVM converter serializing with the specified string [format] and
- * [defaultCharset] (optional, usually it is UTF-8).
- */
 @OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
-public class KotlinxSerializationJsonJvmConverter(
+internal class KotlinxSerializationJsonJvmConverter(
     private val json: Json
 ) : AbstractKotlinxSerializationConverter(json) {
 

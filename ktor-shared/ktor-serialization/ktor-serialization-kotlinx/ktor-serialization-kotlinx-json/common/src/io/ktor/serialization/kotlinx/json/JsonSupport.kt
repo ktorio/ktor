@@ -50,7 +50,6 @@ public val DefaultJson: Json = Json {
  * @param json a format instance (optional)
  * @param contentType to register with, `application/json` by default
  */
-@OptIn(ExperimentalSerializationApi::class)
 public expect fun Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json

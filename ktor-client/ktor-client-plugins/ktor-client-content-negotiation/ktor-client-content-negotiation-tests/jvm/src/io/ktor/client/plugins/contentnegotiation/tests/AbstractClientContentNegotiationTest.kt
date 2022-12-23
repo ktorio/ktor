@@ -117,13 +117,6 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
                 outgoing.send(frame)
             }
         }
-        post("/headers") {
-            call.respondText(
-                "${call.request.headers[HttpHeaders.TransferEncoding]}" +
-                    ":" +
-                    "${call.request.headers[HttpHeaders.ContentLength]}"
-            )
-        }
     }
 
     @Test

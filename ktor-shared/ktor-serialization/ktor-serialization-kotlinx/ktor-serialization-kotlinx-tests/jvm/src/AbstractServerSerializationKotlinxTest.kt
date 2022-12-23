@@ -7,6 +7,6 @@ import io.ktor.serialization.test.*
 import kotlinx.serialization.*
 
 public abstract class AbstractServerSerializationKotlinxTest : AbstractServerSerializationTest() {
-    protected val serializer: KSerializer<TestEntity> = TestEntity.serializer()
-    protected val listSerializer: KSerializer<List<TestEntity>> = serializer()
+    protected val serializer: KSerializer<MyEntity> = MyEntity.serializer()
+    protected val listSerializer: KSerializer<List<MyEntity>> = serializer()
 }

@@ -75,16 +75,15 @@ public class JacksonConverter(
         return OutputStreamContent(
             {
                 /*
-                Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
-                InputStream instead of a Writer to let Jackson do its thing.
+                Jackson internally does special casing on UTF-8, presumably for performance reasons.
+                Thus, we pass an InputStream instead of a Writer to let Jackson do its thing.
                 */
                 if (charset == Charsets.UTF_8) {
                     // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
                         // emit asynchronous values in OutputStream without pretty print
-                        (value as Flow<*>).serializeJson(this)
+                        serializeJson((value as Flow<*>), this)
                     } else {
-                        // non flow content
                         objectMapper.writeValue(this, value)
                     }
                 } else {
@@ -94,9 +93,8 @@ public class JacksonConverter(
                     // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {
                         // emit asynchronous values in Writer without pretty print
-                        (value as Flow<*>).serializeJson(writer)
+                        serializeJson((value as Flow<*>), writer)
                     } else {
-                        // non flow content
                         objectMapper.writeValue(writer, value)
                     }
                 }
@@ -128,51 +126,45 @@ public class JacksonConverter(
         private const val objectSeparator = ','.code
     }
 
-    /**
-     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
-     */
-    @Suppress("BlockingMethodInNonBlockingContext")
-    private suspend fun <T> Flow<T>.serializeJson(outputStream: OutputStream) {
-        val jfactory = JsonFactory()
+    private val jfactory by lazy { JsonFactory() }
+
+    private suspend fun <T> serializeJson(flow: Flow<T>, outputStream: OutputStream) {
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(outputStream, JsonEncoding.UTF8)
-        jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
-        jGenerator.codec = objectMapper
-
-        outputStream.write(beginArrayCharCode)
-        collectIndexed { index, value ->
-            if (index > 0) {
-                outputStream.write(objectSeparator)
-                outputStream.flush()
-            }
-            jGenerator.writeObject(value)
-        }
-        outputStream.write(endArrayCharCode)
+        jGenerator.setup()
+        serialize(flow, jGenerator, outputStream) { outputStream.write(it) }
     }
 
-    /**
-     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
-     */
-    @Suppress("BlockingMethodInNonBlockingContext")
-    private suspend fun <T> Flow<T>.serializeJson(writer: Writer) {
-        val jfactory = JsonFactory()
+    private suspend fun <T> serializeJson(flow: Flow<T>, writer: Writer) {
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(writer)
-        jGenerator.prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
-        jGenerator.configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
-        jGenerator.codec = objectMapper
+        jGenerator.setup()
+        serialize(flow, jGenerator, writer) { writer.write(it) }
+    }
 
-        writer.write(beginArrayCharCode)
-        collectIndexed { index, value ->
+    private fun JsonGenerator.setup() {
+        configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
+        prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
+        codec = objectMapper
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun <Stream : Flushable, T> serialize(
+        flow: Flow<T>,
+        jGenerator: JsonGenerator,
+        stream: Stream,
+        writeByte: Stream.(Int) -> Unit
+    ) {
+        stream.writeByte(beginArrayCharCode)
+        flow.collectIndexed { index, value ->
             if (index > 0) {
-                writer.write(objectSeparator)
-                writer.flush()
+                stream.writeByte(objectSeparator)
+                stream.flush()
             }
             jGenerator.writeObject(value)
         }
-        writer.write(endArrayCharCode)
-        // must flush manually
-        writer.flush()
+        stream.writeByte(endArrayCharCode)
+        stream.flush()
     }
 }
 

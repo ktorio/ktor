@@ -14,8 +14,7 @@ import kotlin.test.*
 class ClientHeadersTest : ClientLoader() {
 
     @Test
-    fun testHeadersReturnNullWhenMissing() =
-        clientTests(
+    fun testHeadersReturnNullWhenMissing() = clientTests(
         listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")
     ) {
         test { client ->
