@@ -62,7 +62,7 @@ class CachingHeadersTest {
         }
     )
 
-    object Immutable: CacheControl(null) {
+    object Immutable : CacheControl(null) {
         override fun toString(): String = "immutable"
     }
 

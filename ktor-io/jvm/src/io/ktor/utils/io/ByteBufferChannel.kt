@@ -15,6 +15,7 @@ import java.lang.Float.*
 import java.nio.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
+import kotlin.math.*
 
 internal const val DEFAULT_CLOSE_MESSAGE: String = "Byte channel was closed"
 private const val BYTE_BUFFER_CAPACITY: Int = 4088
@@ -1948,39 +1949,70 @@ internal open class ByteBufferChannel(
         var newLine = false
 
         val output = CharArray(8 * 1024)
+        var transferBuffer: ByteBuffer? = null
+        var transferredRemaining = 0
         while (!isClosedForRead && !newLine && !caret && (limit == Int.MAX_VALUE || consumed <= limit)) {
             try {
-                read(required) {
+                read(required) { buffer ->
+                    val oldPosition = buffer.position()
+                    val bufferToDecode = transferBuffer?.also {
+                        val oldLimit = buffer.limit()
+                        buffer.limit(min(buffer.limit(), buffer.position() + it.remaining()))
+                        it.put(buffer)
+                        it.flip()
+                        buffer.limit(oldLimit)
+                    } ?: buffer
+
                     val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
-                    val decodeResult = it.decodeUTF8Line(output, 0, readLimit)
+                    val decodeResult = bufferToDecode.decodeUTF8Line(output, 0, readLimit)
+
+                    transferBuffer?.let {
+                        buffer.position(oldPosition + it.position() - transferredRemaining)
+                        BufferPool.recycle(it)
+                        transferBuffer = null
+                        transferredRemaining = 0
+                    }
 
                     val decoded = (decodeResult shr 32).toInt()
                     val requiredBytes = (decodeResult and 0xffffffffL).toInt()
 
-                    required = kotlin.math.max(1, requiredBytes)
+                    required = max(1, requiredBytes)
 
                     if (requiredBytes == -1) {
                         newLine = true
                     }
 
-                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\r'.code.toByte()) {
-                        it.position(it.position() + 1)
+                    if (requiredBytes != -1 &&
+                        buffer.hasRemaining() &&
+                        buffer[buffer.position()] == '\r'.code.toByte()
+                    ) {
+                        buffer.position(buffer.position() + 1)
                         caret = true
                     }
 
-                    if (requiredBytes != -1 && it.hasRemaining() && it[it.position()] == '\n'.code.toByte()) {
-                        it.position(it.position() + 1)
+                    if (requiredBytes != -1 &&
+                        buffer.hasRemaining() &&
+                        buffer[buffer.position()] == '\n'.code.toByte()
+                    ) {
+                        buffer.position(buffer.position() + 1)
                         newLine = true
                     }
 
                     if (out is StringBuilder) {
                         out.append(output, 0, decoded)
                     } else {
-                        val buffer = CharBuffer.wrap(output, 0, decoded)
-                        out.append(buffer, 0, decoded)
+                        val charBuffer = CharBuffer.wrap(output, 0, decoded)
+                        out.append(charBuffer, 0, decoded)
                     }
 
                     consumed += decoded
+
+                    if (decoded == 0 && buffer.remaining() < requiredBytes) {
+                        transferBuffer = BufferPool.borrow().also {
+                            transferredRemaining = buffer.remaining()
+                            it.put(buffer)
+                        }
+                    }
 
                     if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
                         throw TooLongLineException("Line is longer than limit")
@@ -1989,6 +2021,10 @@ internal open class ByteBufferChannel(
             } catch (_: EOFException) {
                 // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
+        }
+
+        if (transferBuffer != null) {
+            BufferPool.recycle(transferBuffer!!)
         }
 
         if (!isClosedForRead && caret && !newLine) {
