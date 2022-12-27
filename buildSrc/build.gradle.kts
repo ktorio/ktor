@@ -38,8 +38,9 @@ configurations.configureEach {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin", "1.7.20"))
-    implementation(kotlin("serialization", "1.7.20"))
+    val kotlinVersion = libs.versions.kotlin.version.get()
+    implementation(kotlin("gradle-plugin", kotlinVersion))
+    implementation(kotlin("serialization", kotlinVersion))
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version") {
