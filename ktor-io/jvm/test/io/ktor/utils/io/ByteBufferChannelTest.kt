@@ -253,4 +253,19 @@ class ByteBufferChannelTest {
         reader.await()
         writer.join()
     }
+
+    @Test
+    fun testReadWithNoMinDoesntThrow() = runBlocking {
+        val channel = ByteChannel(true)
+
+        channel.writeByte(1)
+        channel.read(0) {
+            assertEquals(1, it.remaining())
+            it.get()
+        }
+        channel.close()
+        channel.read(0) {
+            assertEquals(0, it.remaining())
+        }
+    }
 }

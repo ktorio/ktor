@@ -5,8 +5,9 @@ import java.nio.*
 import java.nio.channels.*
 
 /**
- * Copy up to [limit] bytes to blocking NIO [channel]. Copying to non-blocking channel requires selection and
- * not supported. It does suspend if no data available in byte channel but may block if destination NIO channel blocks.
+ * Copy up to [limit] bytes to blocking NIO [channel].
+ * Copying to a non-blocking channel requires selection and not supported.
+ * It is suspended if no data are available in a byte channel but may block if destination NIO channel blocks.
  *
  * @return number of bytes copied
  */
