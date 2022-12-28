@@ -9,6 +9,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -16,6 +17,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
@@ -135,6 +137,8 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
 
     @Test
     fun testSequence() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val dogListJson = """[{"age": 8,"name":"Auri"}]"""
         assertContentEquals(

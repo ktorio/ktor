@@ -54,7 +54,7 @@ internal class KotlinxSerializationJsonExtensions(private val format: Json) : Ko
                     this
                 )
             },
-            contentType.withCharsetIfNeeded(Charsets.UTF_8)
+            contentType.withCharsetIfNeeded(charset)
         )
     }
 
