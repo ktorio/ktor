@@ -92,23 +92,34 @@ public class TomcatApplicationEngine(
                                         "Make sure you're setting the property in the EngineSSLConnectorConfig class."
                                 )
                             }
-                            if (ktorConnector.trustStorePath != null) {
-                                setProperty("clientAuth", "true")
-                                setProperty("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
-                            } else {
-                                setProperty("clientAuth", "false")
-                            }
 
-                            setProperty("keyAlias", ktorConnector.keyAlias)
-                            setProperty("keystorePass", String(ktorConnector.keyStorePassword()))
-                            setProperty("keyPass", String(ktorConnector.privateKeyPassword()))
-                            setProperty("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                            setProperty("sslProtocol", "TLS")
+                            addSslHostConfig(SSLHostConfig().apply {
+                                if (ktorConnector.trustStorePath != null) {
+                                    setProperty("clientAuth", "true")
+                                    truststoreFile = ktorConnector.trustStorePath!!.absolutePath
+                                } else {
+                                    setProperty("clientAuth", "false")
+                                }
+
+                                sslProtocol = "TLS"
+                                setProperty("SSLEnabled", "true")
+                                addCertificate(
+                                    SSLHostConfigCertificate(
+                                        this,
+                                        SSLHostConfigCertificate.Type.UNDEFINED
+                                    ).apply {
+                                        certificateKeyAlias = ktorConnector.keyAlias
+                                        certificateKeystorePassword = String(ktorConnector.keyStorePassword())
+                                        certificateKeyPassword = String(ktorConnector.privateKeyPassword())
+                                        certificateKeystoreFile = ktorConnector.keyStorePath!!.absolutePath
+                                    })
+
+                                ktorConnector.enabledProtocols?.let {
+                                    enabledProtocols = it.toTypedArray()
+                                }
+                            })
+
                             setProperty("SSLEnabled", "true")
-
-                            ktorConnector.enabledProtocols?.let {
-                                setProperty("sslEnabledProtocols", it.joinToString())
-                            }
 
                             val sslImpl = chooseSSLImplementation()
 
