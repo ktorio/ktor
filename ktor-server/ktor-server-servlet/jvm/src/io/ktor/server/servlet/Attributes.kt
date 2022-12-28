@@ -5,13 +5,12 @@
 package io.ktor.server.servlet
 
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.util.*
-import javax.servlet.*
+import jakarta.servlet.*
 
 /**
- * Provides javax.servlet request attributes or fail it the underlying engine is not
+ * Provides jakarta.servlet request attributes or fail it the underlying engine is not
  * servlet-backed.
  */
 public val ApplicationRequest.servletRequestAttributes: Map<String, Any>

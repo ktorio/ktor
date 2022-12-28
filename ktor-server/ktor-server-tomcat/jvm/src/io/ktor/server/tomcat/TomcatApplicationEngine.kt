@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
+import jakarta.servlet.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.catalina.connector.*
@@ -21,7 +22,6 @@ import org.apache.tomcat.util.net.openssl.*
 import org.slf4j.*
 import java.nio.file.*
 import java.util.concurrent.*
-import javax.servlet.*
 import kotlin.coroutines.*
 
 /**

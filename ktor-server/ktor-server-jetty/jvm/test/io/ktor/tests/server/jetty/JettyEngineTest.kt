@@ -11,10 +11,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.suites.*
+import jakarta.servlet.http.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.component.*
-import javax.servlet.http.*
 import kotlin.test.*
 
 class JettyCompressionTest :
@@ -55,7 +55,7 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
     }
 
     private fun Server.addAttributesHandler() {
-        addLifeCycleListener(
+        addEventListener(
             object : LifeCycle.Listener {
                 override fun lifeCycleStarting(event: LifeCycle?) {
                     super.lifeCycleStarting(event)

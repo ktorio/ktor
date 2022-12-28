@@ -10,11 +10,12 @@ ktlint-version = "3.10.0"
 netty-version = "4.1.85.Final"
 netty-tcnative-version = "2.0.54.Final"
 
-jetty-version = "9.4.49.v20220914"
+jetty-version = "11.0.13"
 jetty-alpn-api-version = "1.1.3.v20160715"
 jetty-alpn-boot-version = "8.1.13.v20181017"
+jetty-alpn-openjdk8 = "9.4.50.v20221201"
 
-tomcat-version = "9.0.70"
+tomcat-version = "10.0.27"
 
 apache-version = "4.1.5"
 apache5-version = "5.2"
@@ -50,6 +51,7 @@ webjars-locator-version = "0.52"
 webjars-jquery-version = "3.6.1"
 thymeleaf-version = "3.1.1.RELEASE"
 javax-servlet-version = "4.0.1"
+jakarta-servlet-version = "5.0.0"
 
 node-fetch-version = "2.6.7"
 abort-controller-version = "3.0.0"
@@ -99,8 +101,8 @@ jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty
 jetty-servlets = { module = "org.eclipse.jetty:jetty-servlets", version.ref = "jetty-version" }
 jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty-version" }
 jetty-alpn-server = { module = "org.eclipse.jetty:jetty-alpn-server", version.ref = "jetty-version" }
-jetty-alpn-openjdk8-server = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-server", version.ref = "jetty-version" }
-jetty-alpn-openjdk8-client = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-client", version.ref = "jetty-version" }
+jetty-alpn-openjdk8-server = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-server", version.ref = "jetty-alpn-openjdk8" }
+jetty-alpn-openjdk8-client = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-client", version.ref = "jetty-alpn-openjdk8" }
 jetty-alpn-java-server = { module = "org.eclipse.jetty:jetty-alpn-java-server", version.ref = "jetty-version" }
 jetty-alpn-java-client = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty-version" }
 
@@ -144,6 +146,7 @@ webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery-
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf-version" }
 
 javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet-version" }
+jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-version" }
 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }
 yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt-version" }

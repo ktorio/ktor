@@ -5,12 +5,11 @@
 package io.ktor.server.jetty
 
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.jetty.internal.*
 import io.ktor.server.servlet.*
 import io.ktor.util.*
+import jakarta.servlet.http.*
 import org.eclipse.jetty.server.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 @InternalAPI

@@ -11,14 +11,14 @@ import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
+import jakarta.servlet.*
+import jakarta.servlet.http.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.*
-import javax.servlet.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
@@ -71,7 +71,7 @@ internal class JettyKtorHandler(
         try {
             val contentType = request.contentType
             if (contentType != null && contentType.startsWith("multipart/")) {
-                baseRequest.setAttribute(Request.MULTIPART_CONFIG_ELEMENT, multipartConfig)
+                baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multipartConfig)
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
 

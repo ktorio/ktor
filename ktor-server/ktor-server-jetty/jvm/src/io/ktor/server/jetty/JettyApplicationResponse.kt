@@ -10,8 +10,8 @@ import io.ktor.server.jetty.internal.*
 import io.ktor.server.response.*
 import io.ktor.server.servlet.*
 import io.ktor.util.*
+import jakarta.servlet.http.*
 import org.eclipse.jetty.server.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
@@ -37,7 +37,7 @@ public class JettyApplicationResponse(
     @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         if (baseRequest.isPushSupported) {
-            baseRequest.pushBuilder.apply {
+            baseRequest.newPushBuilder().apply {
                 this.method(builder.method.value)
                 this.path(builder.url.encodedPath)
                 val query = builder.url.buildString().substringAfter('?', "").takeIf { it.isNotEmpty() }

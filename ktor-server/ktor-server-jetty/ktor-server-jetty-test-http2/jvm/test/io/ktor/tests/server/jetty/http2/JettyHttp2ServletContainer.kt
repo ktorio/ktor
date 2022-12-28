@@ -7,8 +7,8 @@ package io.ktor.tests.server.jetty.http2
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
+import jakarta.servlet.*
 import org.eclipse.jetty.servlet.*
-import javax.servlet.*
 
 // the factory and engine are only suitable for testing
 // you shouldn't use it for production code

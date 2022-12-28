@@ -10,10 +10,10 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import jakarta.servlet.http.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")

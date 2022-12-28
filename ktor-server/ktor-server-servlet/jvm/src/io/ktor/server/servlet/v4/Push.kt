@@ -5,10 +5,9 @@
 package io.ktor.server.servlet.v4
 
 import io.ktor.http.*
-import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import javax.servlet.http.*
+import jakarta.servlet.http.*
 
 @InternalAPI
 @UseHttp2Push

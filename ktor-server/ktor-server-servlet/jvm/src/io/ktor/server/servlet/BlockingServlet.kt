@@ -10,9 +10,9 @@ import io.ktor.server.engine.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import jakarta.servlet.*
+import jakarta.servlet.http.*
 import kotlinx.coroutines.*
-import javax.servlet.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 internal class BlockingServletApplicationCall(

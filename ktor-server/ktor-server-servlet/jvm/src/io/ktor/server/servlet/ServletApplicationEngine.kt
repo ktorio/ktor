@@ -9,9 +9,9 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import jakarta.servlet.*
+import jakarta.servlet.annotation.*
 import org.slf4j.*
-import javax.servlet.*
-import javax.servlet.annotation.*
 import kotlin.coroutines.*
 
 /**

@@ -10,7 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import javax.servlet.http.*
+import jakarta.servlet.http.*
 
 public abstract class ServletApplicationResponse(
     call: ApplicationCall,

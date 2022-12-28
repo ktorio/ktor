@@ -6,11 +6,11 @@ package io.ktor.server.servlet
 
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import jakarta.servlet.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.TimeoutException
-import javax.servlet.*
 
 internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
     val reader = ServletReader(input, contentLength)

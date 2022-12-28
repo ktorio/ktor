@@ -10,9 +10,9 @@ import io.ktor.server.servlet.*
 import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEngineEnvironmentAttributeKey
 import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
 import io.mockk.*
+import jakarta.servlet.*
+import jakarta.servlet.http.*
 import java.util.*
-import javax.servlet.*
-import javax.servlet.http.*
 import kotlin.test.*
 
 class HoconTest {

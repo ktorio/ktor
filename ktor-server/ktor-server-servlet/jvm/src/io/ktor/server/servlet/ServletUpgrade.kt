@@ -10,9 +10,9 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import jakarta.servlet.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 /**

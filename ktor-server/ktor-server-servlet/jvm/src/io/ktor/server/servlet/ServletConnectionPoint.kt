@@ -5,7 +5,7 @@
 package io.ktor.server.servlet
 
 import io.ktor.http.*
-import javax.servlet.http.*
+import jakarta.servlet.http.*
 
 internal class ServletConnectionPoint(private val servletRequest: HttpServletRequest) : RequestConnectionPoint {
 

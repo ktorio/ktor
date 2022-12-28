@@ -5,7 +5,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
 
-            compileOnly(libs.javax.servlet)
+            compileOnly(libs.jakarta.servlet)
         }
     }
 
@@ -13,7 +13,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             implementation(libs.mockk)
-            implementation(libs.javax.servlet)
+            implementation(libs.jakarta.servlet)
         }
     }
 }

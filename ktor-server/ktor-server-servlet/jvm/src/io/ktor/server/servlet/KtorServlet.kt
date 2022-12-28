@@ -9,11 +9,11 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
+import jakarta.servlet.*
+import jakarta.servlet.http.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.util.concurrent.CancellationException
-import javax.servlet.*
-import javax.servlet.http.*
 import kotlin.coroutines.*
 
 /**

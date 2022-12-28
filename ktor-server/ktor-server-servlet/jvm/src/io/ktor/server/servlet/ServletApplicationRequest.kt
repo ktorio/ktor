@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import javax.servlet.http.*
+import jakarta.servlet.http.*
 
 public abstract class ServletApplicationRequest(
     call: ApplicationCall,

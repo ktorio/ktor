@@ -5,7 +5,7 @@
 package io.ktor.server.servlet
 
 import io.ktor.server.request.*
-import javax.servlet.http.*
+import jakarta.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 public class ServletApplicationRequestCookies(
