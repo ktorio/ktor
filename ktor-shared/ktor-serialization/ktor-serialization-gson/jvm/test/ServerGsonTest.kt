@@ -22,10 +22,7 @@ class ServerGsonTest : AbstractServerSerializationTest() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(
-        contentType: ContentType,
-        streamRequestBody: Boolean
-    ) {
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
         register(contentType, GsonConverter(gson))
     }
 

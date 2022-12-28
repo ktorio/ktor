@@ -22,11 +22,8 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(
-        contentType: ContentType,
-        streamRequestBody: Boolean
-    ) {
-        register(contentType, JacksonConverter(objectMapper, streamRequestBody))
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
+        register(contentType, JacksonConverter(objectMapper, false))
     }
 
     override fun simpleDeserialize(t: ByteArray): MyEntity {

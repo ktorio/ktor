@@ -13,10 +13,7 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(
-        contentType: ContentType,
-        streamRequestBody: Boolean
-    ) {
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
         xml(contentType = contentType)
     }
 
@@ -34,6 +31,14 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest
 
     @Ignore
     override fun testMap() {
+    }
+
+    @Ignore
+    override fun testFlowNoAcceptUtf8() {
+    }
+
+    @Ignore
+    override fun testFlowAcceptUtf16() {
     }
 
     @Ignore

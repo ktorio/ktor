@@ -20,7 +20,6 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
 
-@OptIn(ExperimentalSerializationApi::class)
 class JsonSerializationTest : AbstractSerializationTest<Json>() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val defaultSerializationFormat: Json = DefaultJson

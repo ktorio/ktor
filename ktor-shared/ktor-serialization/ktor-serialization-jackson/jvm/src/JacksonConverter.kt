@@ -60,15 +60,9 @@ public class JacksonConverter(
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
-        if (!streamRequestBody) {
-            // specific behavior for kotlinx.coroutines.flow.Flow : collect it into a List
-            val resolvedValue = if (typeInfo.type == Flow::class) {
-                (value as Flow<*>).toList()
-            } else {
-                value
-            }
+        if (!streamRequestBody && typeInfo.type != Flow::class) {
             return TextContent(
-                objectMapper.writeValueAsString(resolvedValue),
+                objectMapper.writeValueAsString(value),
                 contentType.withCharsetIfNeeded(charset)
             )
         }
@@ -131,21 +125,13 @@ public class JacksonConverter(
     private suspend fun <T> serializeJson(flow: Flow<T>, outputStream: OutputStream) {
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(outputStream, JsonEncoding.UTF8)
-        jGenerator.setup()
         serialize(flow, jGenerator, outputStream) { outputStream.write(it) }
     }
 
     private suspend fun <T> serializeJson(flow: Flow<T>, writer: Writer) {
         // cannot use ObjectMapper write to Stream because it flushes the OutputStream on each write
         val jGenerator = jfactory.createGenerator(writer)
-        jGenerator.setup()
         serialize(flow, jGenerator, writer) { writer.write(it) }
-    }
-
-    private fun JsonGenerator.setup() {
-        configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
-        prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
-        codec = objectMapper
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -155,16 +141,23 @@ public class JacksonConverter(
         stream: Stream,
         writeByte: Stream.(Int) -> Unit
     ) {
+        jGenerator.setup()
         stream.writeByte(beginArrayCharCode)
         flow.collectIndexed { index, value ->
             if (index > 0) {
                 stream.writeByte(objectSeparator)
-                stream.flush()
             }
             jGenerator.writeObject(value)
+            stream.flush()
         }
         stream.writeByte(endArrayCharCode)
         stream.flush()
+    }
+
+    private fun JsonGenerator.setup() {
+        configure(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM, false)
+        prettyPrinter = MinimalPrettyPrinter("") // avoid single space between items
+        codec = objectMapper
     }
 }
 

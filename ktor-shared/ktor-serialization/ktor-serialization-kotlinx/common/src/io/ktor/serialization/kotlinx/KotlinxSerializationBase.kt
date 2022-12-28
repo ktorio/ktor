@@ -5,22 +5,21 @@
 package io.ktor.serialization.kotlinx
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 
-@OptIn(InternalAPI::class)
-public abstract class KotlinxSerializationBase<T>(
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+internal abstract class KotlinxSerializationBase<T>(
     private val format: SerialFormat
 ) {
-    protected abstract suspend fun serializeContent(parameters: SerializationParameters): T
+    internal abstract suspend fun serializeContent(parameters: SerializationParameters): T
 
-    public suspend fun serialize(
+    internal suspend fun serialize(
         parameters: SerializationParameters
     ): T {
         val result = try {
-            serializerFromTypeInfo(parameters.typeInfo, format.serializersModule).let {
+            format.serializersModule.serializerForTypeInfo(parameters.typeInfo).let {
                 parameters.serializer = it
                 serializeContent(parameters)
             }
@@ -39,17 +38,15 @@ public abstract class KotlinxSerializationBase<T>(
     }
 }
 
-@InternalAPI
-public open class SerializationParameters(
-    public open val format: SerialFormat,
-    public open val value: Any?,
-    public open val typeInfo: TypeInfo,
-    public open val charset: Charset
+internal open class SerializationParameters(
+    open val format: SerialFormat,
+    open val value: Any?,
+    open val typeInfo: TypeInfo,
+    open val charset: Charset
 ) {
-    public lateinit var serializer: KSerializer<*>
+    lateinit var serializer: KSerializer<*>
 }
 
-@OptIn(InternalAPI::class)
 internal class SerializationNegotiationParameters(
     override val format: SerialFormat,
     override val value: Any?,

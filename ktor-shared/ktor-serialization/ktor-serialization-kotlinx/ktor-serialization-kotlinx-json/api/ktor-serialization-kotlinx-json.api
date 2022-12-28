@@ -1,15 +1,11 @@
-public final class io/ktor/serialization/kotlinx/json/JsonSupportJvmKt {
+public final class io/ktor/serialization/kotlinx/json/JsonSupportKt {
+	public static final fun getDefaultJson ()Lkotlinx/serialization/json/Json;
 	public static final fun json (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;)V
 	public static synthetic fun json$default (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/json/Json;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
 }
 
-public final class io/ktor/serialization/kotlinx/json/JsonSupportKt {
-	public static final fun getDefaultJson ()Lkotlinx/serialization/json/Json;
-}
-
-public final class io/ktor/serialization/kotlinx/json/KotlinxSerializationJsonJvmConverter : io/ktor/serialization/kotlinx/AbstractKotlinxSerializationConverter {
-	public fun <init> (Lkotlinx/serialization/json/Json;)V
-	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun serializeNullable (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public final class io/ktor/serialization/kotlinx/json/KotlinxSerializationJsonExtensionProvider : io/ktor/serialization/kotlinx/KotlinxSerializationExtensionProvider {
+	public fun <init> ()V
+	public fun extension (Lkotlinx/serialization/SerialFormat;)Lio/ktor/serialization/kotlinx/KotlinxSerializationExtension;
 }
 

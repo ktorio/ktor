@@ -91,9 +91,9 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         collectIndexed { index, value ->
             if (index > 0) {
                 writer.write(objectSeparator)
-                writer.flush()
             }
             gson.toJson(value, writer)
+            writer.flush()
         }
         writer.write(endArrayCharCode)
         writer.flush()

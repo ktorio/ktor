@@ -16,10 +16,7 @@ class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTes
     override val defaultContentType: ContentType = ContentType.Application.Cbor
     override val customContentType: ContentType = ContentType.parse("application/x-cbor")
 
-    override fun ContentNegotiationConfig.configureContentNegotiation(
-        contentType: ContentType,
-        streamRequestBody: Boolean
-    ) {
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
         cbor(contentType = contentType)
     }
 
@@ -41,5 +38,13 @@ class CborServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTes
 
     @Ignore
     override fun testReceiveNullValue() {
+    }
+
+    @Ignore
+    override fun testFlowNoAcceptUtf8() {
+    }
+
+    @Ignore
+    override fun testFlowAcceptUtf16() {
     }
 }

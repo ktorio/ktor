@@ -22,21 +22,17 @@ public abstract class AbstractServerSerializationTest {
 
     protected abstract val defaultContentType: ContentType
     protected abstract val customContentType: ContentType
-    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(
-        contentType: ContentType,
-        streamRequestBody: Boolean
-    )
+    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
 
     protected abstract fun simpleSerialize(any: MyEntity): ByteArray
     protected abstract fun simpleDeserialize(t: ByteArray): MyEntity
     protected abstract fun simpleDeserializeList(t: ByteArray, charset: Charset = Charsets.UTF_8): List<MyEntity>
 
     private fun withTestSerializingApplication(
-        streamRequestBody: Boolean = true,
         block: suspend TestApplicationEngine.() -> Unit
     ): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            configureContentNegotiation(defaultContentType, streamRequestBody)
+            configureContentNegotiation(defaultContentType)
         }
 
         application.routing {
@@ -121,36 +117,26 @@ public abstract class AbstractServerSerializationTest {
     }
 
     @Test
-    public fun testListNoAcceptUtf16(): Unit = withTestSerializingApplication {
+    public fun testListAcceptUtf16(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/list") {
             addHeader("Accept-Charset", "UTF-16")
         }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
     }
 
     @Test
-    public fun testFlowNoAcceptUtf8(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/flow").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
+    public open fun testFlowNoAcceptUtf8(): Unit = withTestSerializingApplication {
+        handleRequest(HttpMethod.Get, "/flow").let { call ->
+            verifyListResponse(call.response, Charsets.UTF_8)
+            assertEquals("chunked", call.response.headers[HttpHeaders.TransferEncoding])
+        }
     }
 
     @Test
-    public fun testFlowNoAcceptUtf8NoStreamRequestBody(): Unit = withTestSerializingApplication(false) {
-        handleRequest(HttpMethod.Get, "/flow").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
-    }
-
-    @Test
-    public fun testFlowNoAcceptUtf16(): Unit = withTestSerializingApplication {
+    public open fun testFlowAcceptUtf16(): Unit = withTestSerializingApplication {
         handleRequest(HttpMethod.Get, "/flow") {
             addHeader("Accept-Charset", "UTF-16")
         }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
     }
-
-    @Test
-    public fun testFlowNoAcceptUtf16NoStreamRequestBody(): Unit =
-        withTestSerializingApplication(false) {
-            handleRequest(HttpMethod.Get, "/flow") {
-                addHeader("Accept-Charset", "UTF-16")
-            }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
-        }
 
     private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
         assertEquals(HttpStatusCode.OK, response.status())
@@ -207,7 +193,6 @@ public abstract class AbstractServerSerializationTest {
             assertEquals("OK", it.response.content)
         }
     }
-
 
     @Serializable
     private class NullValues
