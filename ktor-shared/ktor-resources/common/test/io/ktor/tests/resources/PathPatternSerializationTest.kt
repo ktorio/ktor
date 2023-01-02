@@ -14,7 +14,6 @@ class PathPatternSerializationTest {
     private val locationsFormat = ResourcesFormat()
 
     @Resource("some/path/")
-    @Serializable
     class SimplePath
 
     @Test
@@ -24,10 +23,8 @@ class PathPatternSerializationTest {
     }
 
     @Resource("parent/{path}")
-    @Serializable
     class NestedClass {
         @Resource("{child}/path")
-        @Serializable
         data class ChildClass(val parent: NestedClass)
     }
 
@@ -38,22 +35,17 @@ class PathPatternSerializationTest {
     }
 
     @Resource("parent/{path}/")
-    @Serializable
     class NestedClassWithSlash {
         @Resource("{child}/path")
-        @Serializable
         data class ChildClassWithSlash(val parent: NestedClass)
 
         @Resource("/{child}/path")
-        @Serializable
         data class ChildClassWithoutSlash(val parent: NestedClass)
     }
 
     @Resource("parent/{path}")
-    @Serializable
     class NestedClassWithoutSlash {
         @Resource("/{child}/path")
-        @Serializable
         data class ChildClassWithSlash(val parent: NestedClass)
     }
 
@@ -76,13 +68,11 @@ class PathPatternSerializationTest {
     }
 
     @Resource("/{child}/path")
-    @Serializable
     data class Container(
         val child: MultipleParents
     )
 
     @Resource("/{child}/path")
-    @Serializable
     data class MultipleParents(val parent1: NestedClass, val value: String, val parent2: NestedClassWithSlash)
 
     @Test

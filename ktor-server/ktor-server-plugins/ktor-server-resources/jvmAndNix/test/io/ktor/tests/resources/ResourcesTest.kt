@@ -29,7 +29,6 @@ internal fun withResourcesApplication(test: ApplicationTestBuilder.() -> Unit) =
 }
 
 class ResourcesTest {
-    @Serializable
     @Resource("/")
     class index
 
@@ -47,7 +46,6 @@ class ResourcesTest {
 
     @Test
     fun resourceLocal() {
-        @Serializable
         @Resource("/")
         class indexLocal
         withResourcesApplication {
@@ -61,7 +59,6 @@ class ResourcesTest {
         }
     }
 
-    @Serializable
     @Resource("/about")
     class about
 
@@ -76,7 +73,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/about/123")
     }
 
-    @Serializable
     @Resource("/user/{id}")
     class user(val id: Int)
 
@@ -93,7 +89,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/user?id=123")
     }
 
-    @Serializable
     @Resource("/user/{id}/{name}")
     class named(val id: Int, val name: String)
 
@@ -111,7 +106,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/user/123")
     }
 
-    @Serializable
     @Resource("/favorite")
     class favorite(val id: Int)
 
@@ -128,10 +122,8 @@ class ResourcesTest {
         urlShouldBeUnhandled("/favorite")
     }
 
-    @Serializable
     @Resource("/container/{id}")
     class pathContainer(val id: Int) {
-        @Serializable
         @Resource("/items")
         class items(val container: pathContainer)
     }
@@ -150,10 +142,8 @@ class ResourcesTest {
         urlShouldBeUnhandled("/container/items?id=123")
     }
 
-    @Serializable
     @Resource("/container")
     class queryContainer(val id: Int) {
-        @Serializable
         @Resource("/items")
         class items(val container: queryContainer)
     }
@@ -172,7 +162,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/container/123/items")
     }
 
-    @Serializable
     @Resource("/container")
     class optionalName(val id: Int, val optional: String? = null)
 
@@ -190,7 +179,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/container/123")
     }
 
-    @Serializable
     @Resource("/container")
     class optionalIndex(val id: Int, val optional: Int = 42)
 
@@ -222,10 +210,8 @@ class ResourcesTest {
         urlShouldBeUnhandled("/container/123")
     }
 
-    @Serializable
     @Resource("/container/{id?}")
     class optionalContainer(val id: Int? = null) {
-        @Serializable
         @Resource("/items")
         class items(val parent: optionalContainer, val optional: String? = null)
     }
@@ -250,10 +236,8 @@ class ResourcesTest {
         )
     }
 
-    @Serializable
     @Resource("/container")
     class simpleContainer {
-        @Serializable
         @Resource("/items")
         class items(val parent: simpleContainer)
     }
@@ -273,7 +257,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/items")
     }
 
-    @Serializable
     @Resource("/container/{path...}")
     class tailCard(val path: List<String>)
 
@@ -289,11 +272,9 @@ class ResourcesTest {
         urlShouldBeHandled(tailCard(listOf("123", "items")), "/container/123/items")
     }
 
-    @Serializable
     @Resource("/")
     class multiquery(val value: List<Int>)
 
-    @Serializable
     @Resource("/")
     class multiquery2(val name: List<String>)
 
@@ -333,7 +314,6 @@ class ResourcesTest {
         urlShouldBeHandled(multiquery2(listOf("john, mary")), "2: /?name=john%2C+mary")
     }
 
-    @Serializable
     @Resource("/")
     class multiqueryWithDefault(val value: List<Int> = emptyList())
 
@@ -347,7 +327,6 @@ class ResourcesTest {
         urlShouldBeHandled(multiqueryWithDefault(listOf()), "/ []")
     }
 
-    @Serializable
     @Resource("/")
     class root
 
@@ -362,7 +341,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/index")
     }
 
-    @Serializable
     @Resource("/help")
     class help
 
@@ -377,14 +355,11 @@ class ResourcesTest {
         urlShouldBeUnhandled("/help/123")
     }
 
-    @Serializable
     @Resource("/users")
     class users {
-        @Serializable
         @Resource("/me")
         class me(val parent: users)
 
-        @Serializable
         @Resource("/{id}")
         class user(val parent: users, val id: Int)
     }
@@ -408,7 +383,6 @@ class ResourcesTest {
         urlShouldBeUnhandled("/users/me")
     }
 
-    @Serializable
     @Resource("/items/{id}")
     class items
 
@@ -423,11 +397,9 @@ class ResourcesTest {
         }
     }
 
-    @Serializable
     @Resource("/items/{itemId}/{extra?}")
     class OverlappingPath1(val itemId: Int, val extra: String?)
 
-    @Serializable
     @Resource("/items/{extra}")
     class OverlappingPath2(val extra: String)
 
@@ -450,7 +422,6 @@ class ResourcesTest {
         A, B, C
     }
 
-    @Serializable
     @Resource("/")
     class resourceWithEnum(val e: resourceEnum)
 
@@ -472,7 +443,6 @@ class ResourcesTest {
 
     @Test
     fun resourceParameterMismatchShouldLeadToBadRequestStatus() = withResourcesApplication {
-        @Serializable
         @Resource("/")
         data class L(val text: String, val number: Int, val longNumber: Long)
 
@@ -506,7 +476,6 @@ class ResourcesTest {
 
     @Test
     fun resourceWithUInt() = withResourcesApplication {
-        @Serializable
         @Resource("/{id}/{valueParam}")
         data class Request(val id: UInt, val query: ULong, val valueParam: ValueClass, val valueQuery: ValueClass)
 
@@ -522,7 +491,6 @@ class ResourcesTest {
     @Test
     fun resourceShouldReturnHttpMethodRouteObject() = withResourcesApplication {
         @Resource("/resource")
-        @Serializable
         class someResource
 
         routing {

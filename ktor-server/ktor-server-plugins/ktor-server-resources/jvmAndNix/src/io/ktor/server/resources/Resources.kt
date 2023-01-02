@@ -15,14 +15,11 @@ import io.ktor.resources.Resources as ResourcesCore
  *
  * Example:
  * ```kotlin
- * @Serializable
  * @Resource("/users")
  * data class Users {
- *   @Serializable
  *   @Resource("/{id}")
  *   data class ById(val parent: Users = Users(), val id: Long)
  *
- *   @Serializable
  *   @Resource("/add")
  *   data class Add(val parent: Users = Users(), val name: String)
  * }
