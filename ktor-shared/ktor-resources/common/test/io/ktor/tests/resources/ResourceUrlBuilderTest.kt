@@ -13,7 +13,6 @@ class ResourceUrlBuilderTest {
 
     private val resourcesFormat = ResourcesFormat()
 
-    @Serializable
     @Resource("resource/{id}/")
     data class SimpleResource(
         val id: Int
@@ -26,7 +25,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource/123/", url)
     }
 
-    @Serializable
     @Resource("resource/{id}")
     data class SimpleResourceWithQuery(
         val id: Int,
@@ -40,7 +38,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource/123?key=456", url)
     }
 
-    @Serializable
     @Resource("resource/{id}")
     data class SimpleResourceWithQueryList(
         val id: Int,
@@ -54,7 +51,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource/123?key=456&key=789", url)
     }
 
-    @Serializable
     @Resource("resource/{ids...}")
     data class SimpleResourceWithWildcard(
         val ids: List<String>
@@ -71,7 +67,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource", url2)
     }
 
-    @Serializable
     @Resource("resource/{id?}")
     data class SimpleResourceWithNullable(
         val id: Boolean?
@@ -88,7 +83,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource", url2)
     }
 
-    @Serializable
     @Resource("user/{user}")
     data class NestedResource(
         val user: String,
@@ -102,7 +96,6 @@ class ResourceUrlBuilderTest {
         assertEquals("/resource/123/user/me", url)
     }
 
-    @Serializable
     @Resource("user/{id}")
     class ResourceWithoutParameter
 
@@ -116,7 +109,6 @@ class ResourceUrlBuilderTest {
         }
     }
 
-    @Serializable
     @Resource("user/{id}")
     class ResourceWithExtraParameter(
         val id: List<String>
@@ -132,7 +124,6 @@ class ResourceUrlBuilderTest {
         }
     }
 
-    @Serializable
     @Resource("user/{id?}")
     class ResourceWithExtraNullableParameter(
         val id: List<String>

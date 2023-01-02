@@ -31,7 +31,6 @@ class ResourcesTestJvm {
         }
     }
 
-    @Serializable
     @Resource("/")
     class LocationWithBigNumbers(
         @Serializable(with = BigDecimalSerializer::class)

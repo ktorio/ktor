@@ -15,10 +15,8 @@ import kotlin.test.*
 
 class ResourcesTest {
 
-    @Serializable
     @Resource("path/{id}/{method}")
     class Path(val id: Long, val method: String) {
-        @Serializable
         @Resource("child/{path?}")
         data class Child(val parent: Path, val path: String, val query: List<Int>)
     }
@@ -108,7 +106,6 @@ class ResourcesTest {
         }
     }
 
-    @Serializable
     @Resource("path/{id}/{value?}")
     class PathWithDefault(val id: Boolean = true, val value: String? = null, val query1: Int?, val query2: Int? = 5)
 
@@ -131,7 +128,6 @@ class ResourcesTest {
         }
     }
 
-    @Serializable
     @Resource("{path}")
     class ParametersEncoded(val path: String, val query: String, val queryList: List<String>)
 
