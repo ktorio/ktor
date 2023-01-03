@@ -20,7 +20,7 @@ internal class AuthTokenHolder<T>(
 
     internal suspend fun loadToken(): T? {
         var deferred: CompletableDeferred<T?>?
-        var newDeferred: CompletableDeferred<T?>? = null
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = loadTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
@@ -34,20 +34,18 @@ internal class AuthTokenHolder<T>(
             return deferred.await()
         }
 
-        // load the tokens, but keep in mind this is a suspending function
         val newTokens = loadTokens()
 
         // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
         // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-        // [newDeferred] can't be null as it must have been set to exit the while loop earlier on.
-        newDeferred!!.complete(newTokens)
+        newDeferred.complete(newTokens)
 
         return newTokens
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
         var deferred: CompletableDeferred<T?>?
-        var newDeferred: CompletableDeferred<T?>? = null
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = refreshTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
@@ -57,13 +55,11 @@ internal class AuthTokenHolder<T>(
         }
 
         val newToken = if (deferred == null) {
-            // set the tokens, which is a suspending call
             val newTokens = block()
 
             // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
             // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-            // [newDeferred] can't be null as it must have been set to exit the while loop earlier on.
-            newDeferred!!.complete(newTokens)
+            newDeferred.complete(newTokens)
             refreshTokensDeferred.value = null
             newTokens
         } else {

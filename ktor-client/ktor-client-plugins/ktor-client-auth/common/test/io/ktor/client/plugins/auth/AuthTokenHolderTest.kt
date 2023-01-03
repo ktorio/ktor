@@ -103,7 +103,7 @@ class AuthTokenHolderTest {
 
         var clearTokenCalled = false
         val holder = AuthTokenHolder<BearerTokens> {
-            fail("unexpected call")
+            fail("loadTokens argument function shouldn't be invoked")
         }
 
         val first = GlobalScope.async(Dispatchers.Unconfined) {
