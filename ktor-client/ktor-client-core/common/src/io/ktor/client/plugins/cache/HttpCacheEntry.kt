@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -93,29 +94,49 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
 internal fun shouldValidate(
     cacheExpires: GMTDate,
     responseHeaders: Headers,
-    requestHeaders: HeadersBuilder
+    request: HttpRequestBuilder
 ): ValidateStatus {
+    val requestHeaders = request.headers
     val responseCacheControl = parseHeaderValue(responseHeaders[HttpHeaders.CacheControl])
     val requestCacheControl = parseHeaderValue(requestHeaders[HttpHeaders.CacheControl])
 
-    if (CacheControl.NO_CACHE in requestCacheControl) return ValidateStatus.ShouldValidate
+    if (CacheControl.NO_CACHE in requestCacheControl) {
+        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
 
     val requestMaxAge = requestCacheControl.firstOrNull { it.value.startsWith("max-age=") }
         ?.value?.split("=")
         ?.get(1)?.let { it.toIntOrNull() ?: 0 }
-    if (requestMaxAge == 0) return ValidateStatus.ShouldValidate
+    if (requestMaxAge == 0) {
+        LOGGER.trace("\"max-age\" is not set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
 
     val validMillis = cacheExpires.timestamp - getTimeMillis()
 
-    if (CacheControl.NO_CACHE in responseCacheControl) return ValidateStatus.ShouldValidate
-    if (validMillis > 0) return ValidateStatus.ShouldNotValidate
-    if (CacheControl.MUST_REVALIDATE in responseCacheControl) return ValidateStatus.ShouldValidate
+    if (CacheControl.NO_CACHE in responseCacheControl) {
+        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
+    if (validMillis > 0) {
+        LOGGER.trace("Cached response is valid for ${request.url}, should not validate")
+        return ValidateStatus.ShouldNotValidate
+    }
+    if (CacheControl.MUST_REVALIDATE in responseCacheControl) {
+        LOGGER.trace("\"must-revalidate\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
 
     val maxStale = requestCacheControl.firstOrNull { it.value.startsWith("max-stale=") }
         ?.value?.substring("max-stale=".length)
         ?.toIntOrNull() ?: 0
     val maxStaleMillis = maxStale * 1000L
-    if (validMillis + maxStaleMillis > 0) return ValidateStatus.ShouldWarn
+    if (validMillis + maxStaleMillis > 0) {
+        LOGGER.trace("Cached response is stale for ${request.url} but less than max-stale, should warn")
+        return ValidateStatus.ShouldWarn
+    }
+    LOGGER.trace("Cached response is stale for ${request.url}, should validate cached response")
     return ValidateStatus.ShouldValidate
 }
 

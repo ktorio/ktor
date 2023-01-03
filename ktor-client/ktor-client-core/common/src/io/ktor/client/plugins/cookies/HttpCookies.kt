@@ -11,8 +11,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCookies")
 
 /**
  * A plugin that allows you to keep cookies between calls in a storage.
@@ -45,6 +48,7 @@ public class HttpCookies internal constructor(
         with(builder) {
             val url = builder.url.clone().build()
             val cookies = headers[HttpHeaders.Cookie]?.let { cookieHeader ->
+                LOGGER.trace("Saving cookie $cookieHeader for ${builder.url}")
                 parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) -> Cookie(name, encodedValue) }
             }
             cookies?.forEach { storage.addCookie(url, it) }
@@ -56,7 +60,9 @@ public class HttpCookies internal constructor(
 
         with(builder) {
             if (cookies.isNotEmpty()) {
-                headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+                val cookieHeader = renderClientCookies(cookies)
+                headers[HttpHeaders.Cookie] = cookieHeader
+                LOGGER.trace("Sending cookie $cookieHeader for ${builder.url}")
             } else {
                 headers.remove(HttpHeaders.Cookie)
             }
@@ -65,6 +71,9 @@ public class HttpCookies internal constructor(
 
     internal suspend fun saveCookiesFrom(response: HttpResponse) {
         val url = response.request.url
+        response.headers.getAll(HttpHeaders.SetCookie)?.forEach {
+            LOGGER.trace("Received cookie $it in response for ${response.call.request.url}")
+        }
         response.setCookie().forEach {
             storage.addCookie(url, it)
         }

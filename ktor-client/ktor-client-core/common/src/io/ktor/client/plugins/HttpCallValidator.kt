@@ -13,7 +13,10 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCallValidator")
 
 /**
  * Response validator method.
@@ -44,10 +47,12 @@ public class HttpCallValidator internal constructor(
 ) {
 
     private suspend fun validateResponse(response: HttpResponse) {
+        LOGGER.trace("Validating response for request ${response.call.request.url}")
         responseValidators.forEach { it(response) }
     }
 
     private suspend fun processException(cause: Throwable, request: HttpRequest) {
+        LOGGER.trace("Processing exception $cause for request ${request.url}")
         callExceptionHandlers.forEach {
             when (it) {
                 is ExceptionHandlerWrapper -> it.handler(cause)
@@ -118,7 +123,6 @@ public class HttpCallValidator internal constructor(
             )
         }
 
-        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpCallValidator, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {
@@ -166,7 +170,7 @@ private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
 /**
  * Install [HttpCallValidator] with [block] configuration.
  */
-public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Config.() -> Unit) {
+public fun HttpClientConfig<*>.HttpResponseValidator(block: Config.() -> Unit) {
     install(HttpCallValidator, block)
 }
 

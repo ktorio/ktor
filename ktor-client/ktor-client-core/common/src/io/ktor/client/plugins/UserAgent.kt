@@ -8,6 +8,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.UserAgent")
 
 /**
  * A plugin that adds a `User-Agent` header to all requests.
@@ -26,6 +29,7 @@ public class UserAgent private constructor(public val agent: String) {
 
         override fun install(plugin: UserAgent, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
+                LOGGER.trace("Adding User-Agent header: ${plugin.agent} for ${context.url}")
                 context.header(HttpHeaders.UserAgent, plugin.agent)
             }
         }

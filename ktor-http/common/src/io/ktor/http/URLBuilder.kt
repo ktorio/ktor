@@ -81,6 +81,10 @@ public class URLBuilder(
         return appendTo(StringBuilder(256)).toString()
     }
 
+    override fun toString(): String {
+        return appendTo(StringBuilder(256)).toString()
+    }
+
     /**
      * Build a [Url] instance (everything is copied to a new instance)
      */

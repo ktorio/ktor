@@ -8,6 +8,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
 
 /**
  * Sets default request parameters. Used to add common headers and URL for a request.
@@ -64,6 +67,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
 
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
+                val originalUrlString = context.url.toString()
                 val defaultRequest = DefaultRequestBuilder().apply {
                     headers.appendAll(this@intercept.context.headers)
                     plugin.block(this)
@@ -77,6 +81,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                     }
                 }
                 context.headers.appendMissing(defaultRequest.headers.build())
+                LOGGER.trace("Applied DefaultRequest to $originalUrlString. New url: ${context.url}")
             }
         }
 

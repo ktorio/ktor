@@ -140,5 +140,5 @@ public class HttpStatement(
             }
     }
 
-    override fun toString(): String = "HttpStatement[${builder.url.buildString()}]"
+    override fun toString(): String = "HttpStatement[${builder.url}]"
 }

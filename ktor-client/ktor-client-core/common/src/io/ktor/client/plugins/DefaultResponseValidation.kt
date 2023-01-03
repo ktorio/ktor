@@ -8,12 +8,14 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.concurrent.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultResponseValidation")
 
 /**
  * Default response validation.
@@ -27,6 +29,7 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
         validateResponse { response ->
             val expectSuccess = response.call.attributes[ExpectSuccessAttributeKey]
             if (!expectSuccess) {
+                LOGGER.trace("Skipping default response validation for ${response.call.request.url}")
                 return@validateResponse
             }
 
@@ -46,12 +49,14 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             } catch (_: MalformedInputException) {
                 BODY_FAILED_DECODING
             }
-            when (statusCode) {
-                in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
-                in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
-                in 500..599 -> throw ServerResponseException(exceptionResponse, exceptionResponseText)
-                else -> throw ResponseException(exceptionResponse, exceptionResponseText)
+            val exception = when (statusCode) {
+                in 300..399 -> RedirectResponseException(exceptionResponse, exceptionResponseText)
+                in 400..499 -> ClientRequestException(exceptionResponse, exceptionResponseText)
+                in 500..599 -> ServerResponseException(exceptionResponse, exceptionResponseText)
+                else -> ResponseException(exceptionResponse, exceptionResponseText)
             }
+            LOGGER.trace("Default response validation for ${response.call.request.url} failed with $exception")
+            throw exception
         }
     }
 }

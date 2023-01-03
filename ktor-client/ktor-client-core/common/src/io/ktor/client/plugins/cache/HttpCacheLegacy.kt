@@ -32,7 +32,7 @@ internal suspend fun PipelineContext<Any, HttpRequestBuilder>.interceptSendLegac
         return
     }
     val cachedCall = cache.produceResponse().call
-    val validateStatus = shouldValidate(cache.expires, cache.response.headers, context.headers)
+    val validateStatus = shouldValidate(cache.expires, cache.response.headers, context)
 
     if (validateStatus == ValidateStatus.ShouldNotValidate) {
         proceedWithCache(scope, cachedCall)

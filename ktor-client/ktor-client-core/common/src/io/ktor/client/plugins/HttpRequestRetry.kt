@@ -11,9 +11,12 @@ import io.ktor.client.statement.*
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.math.*
 import kotlin.random.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRequestRetry")
 
 /**
  * A plugin that enables the client to retry failed requests.
@@ -305,6 +308,7 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
 
                 val delayContext = DelayContext(lastRetryData.request, lastRetryData.response, lastRetryData.cause)
                 delay(delayMillis(delayContext, retryCount))
+                LOGGER.trace("Retrying request ${request.url} attempt: $retryCount")
             }
             call
         }

@@ -903,6 +903,7 @@ public final class io/ktor/http/URLBuilder {
 	public final fun setProtocol (Lio/ktor/http/URLProtocol;)V
 	public final fun setTrailingQuery (Z)V
 	public final fun setUser (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/URLBuilder$Companion {

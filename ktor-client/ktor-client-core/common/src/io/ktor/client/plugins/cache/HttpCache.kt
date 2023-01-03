@@ -18,6 +18,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
@@ -29,6 +30,8 @@ internal object CacheControl {
     internal val ONLY_IF_CACHED = HeaderValue("only-if-cached")
     internal val MUST_REVALIDATE = HeaderValue("must-revalidate")
 }
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCache")
 
 /**
  * A plugin that allows you to save previously fetched resources in an in-memory cache.
@@ -131,13 +134,15 @@ public class HttpCache private constructor(
 
                 val cache = plugin.findResponse(context, content)
                 if (cache == null) {
+                    LOGGER.trace("No cached response for ${context.url} found")
                     val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
                     if (CacheControl.ONLY_IF_CACHED in header) {
+                        LOGGER.trace("No cache found and \"only-if-cached\" set for ${context.url}")
                         proceedWithMissingCache(scope)
                     }
                     return@intercept
                 }
-                val validateStatus = shouldValidate(cache.expires, cache.headers, context.headers)
+                val validateStatus = shouldValidate(cache.expires, cache.headers, context)
 
                 if (validateStatus == ValidateStatus.ShouldNotValidate) {
                     val cachedCall = cache
@@ -153,9 +158,11 @@ public class HttpCache private constructor(
                 }
 
                 cache.headers[HttpHeaders.ETag]?.let { etag ->
+                    LOGGER.trace("Adding If-None-Match=$etag for ${context.url}")
                     context.header(HttpHeaders.IfNoneMatch, etag)
                 }
                 cache.headers[HttpHeaders.LastModified]?.let {
+                    LOGGER.trace("Adding If-Modified-Since=$it for ${context.url}")
                     context.header(HttpHeaders.IfModifiedSince, it)
                 }
             }
@@ -169,6 +176,7 @@ public class HttpCache private constructor(
                 }
 
                 if (response.status.isSuccess()) {
+                    LOGGER.trace("Caching response for ${response.call.request.url}")
                     val cachedData = plugin.cacheResponse(response)
                     if (cachedData != null) {
                         val reusableResponse = cachedData
@@ -179,6 +187,7 @@ public class HttpCache private constructor(
                 }
 
                 if (response.status == HttpStatusCode.NotModified) {
+                    LOGGER.trace("Not modified response for ${response.call.request.url}, replying from cache")
                     response.complete()
                     val responseFromCache = plugin.findAndRefresh(response.call.request, response)
                         ?: throw InvalidCacheStateException(response.call.request.url)
