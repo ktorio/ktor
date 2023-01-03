@@ -1,3 +1,23 @@
+# 2.2.2
+> Published 3 January 2023
+
+### Improvements
+
+* Resource annotation should be MetaSerializable ([KTOR-5397](https://youtrack.jetbrains.com/issue/KTOR-5397))
+* The swaggerUI method is too restrictive and cannot be called inside a route ([KTOR-5307](https://youtrack.jetbrains.com/issue/KTOR-5307))
+* Engine shutdown grace period and timeout are not configurable ([KTOR-5359](https://youtrack.jetbrains.com/issue/KTOR-5359))
+* Allow specifying immutable in CacheControl ([KTOR-3757](https://youtrack.jetbrains.com/issue/KTOR-3757))
+
+### Bugfixes
+
+* Server cannot be started with the Swagger plugin ([KTOR-5308](https://youtrack.jetbrains.com/issue/KTOR-5308))
+* Regression in 2.2.1: Got EOF but at least 0 bytes were expected ([5372](https://youtrack.jetbrains.com/issue/KTOR-5372))
+* HttpRequestRetry: Memory leak of coroutines objects when using the plugin ([KTOR-5099](https://youtrack.jetbrains.com/issue/KTOR-5099))
+* iOS unit test deadlocks with DarwinClientEngine ([KTOR-5332](https://youtrack.jetbrains.com/issue/KTOR-5332))
+* Gzip encoding: IllegalStateException: Expected 112, actual 113 ([KTOR-5300](https://youtrack.jetbrains.com/issue/KTOR-5300))
+* Netty, HSTS: UnsupportedOperationException is thrown when the server responds before HSTS plugin ([KTOR-5276](https://youtrack.jetbrains.com/issue/KTOR-5276))
+
+
 # 2.2.1
 > Published 7 December 2022
 
