@@ -116,14 +116,20 @@ public class BasicAuthProvider(
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
-        if (!AuthScheme.Basic.equals(auth.authScheme, ignoreCase = true)) return false
-
-        if (realm != null) {
-            if (auth !is HttpAuthHeader.Parameterized) return false
-            return auth.parameter("realm") == realm
+        if (!AuthScheme.Basic.equals(auth.authScheme, ignoreCase = true)) {
+            LOGGER.trace("Basic Auth Provider is not applicable for $auth")
+            return false
         }
 
-        return true
+        val isSameRealm = when {
+            realm == null -> true
+            auth !is HttpAuthHeader.Parameterized -> false
+            else -> auth.parameter("realm") == realm
+        }
+        if (!isSameRealm) {
+            LOGGER.trace("Basic Auth Provider is not applicable for this realm")
+        }
+        return isSameRealm
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {

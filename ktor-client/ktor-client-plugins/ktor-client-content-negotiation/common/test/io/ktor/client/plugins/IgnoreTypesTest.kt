@@ -64,7 +64,12 @@ class IgnoreTypesTest {
         assertEquals("This should not be called", message)
 
         message = assertFails {
-            plugin.convertResponse(typeInfo<String>(), ByteReadChannel("FOO"), ContentType.Application.Json)
+            plugin.convertResponse(
+                URLBuilder().build(),
+                typeInfo<String>(),
+                ByteReadChannel("FOO"),
+                ContentType.Application.Json
+            )
         }.message
 
         assertEquals("This should not be called", message)
@@ -86,7 +91,14 @@ class IgnoreTypesTest {
         )
 
         assertNull(plugin.convertRequest(request, "Hello"))
-        assertNull(plugin.convertResponse(typeInfo<String>(), ByteReadChannel.Empty, ContentType.Application.Json))
+        assertNull(
+            plugin.convertResponse(
+                URLBuilder().build(),
+                typeInfo<String>(),
+                ByteReadChannel.Empty,
+                ContentType.Application.Json
+            )
+        )
     }
 
     @Test

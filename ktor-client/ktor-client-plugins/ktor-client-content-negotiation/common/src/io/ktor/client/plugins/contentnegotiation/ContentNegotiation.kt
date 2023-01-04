@@ -9,15 +9,17 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.reflect.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.contentnegotiation.ContentNegotiation")
 
 internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
     ByteArray::class,
@@ -136,29 +138,55 @@ public class ContentNegotiation internal constructor(
     }
 
     internal suspend fun convertRequest(request: HttpRequestBuilder, body: Any): Any? {
-        registrations.forEach { request.accept(it.contentTypeToSend) }
+        registrations.forEach {
+            LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header for ${request.url}")
+            request.accept(it.contentTypeToSend)
+        }
 
-        if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) return null
-        val contentType = request.contentType() ?: return null
+        if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
+            LOGGER.trace(
+                "Body type ${body::class} is in ignored types. " +
+                    "Skipping ContentNegotiation for ${request.url}."
+            )
+            return null
+        }
+        val contentType = request.contentType() ?: run {
+            LOGGER.trace("Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}.")
+            return null
+        }
 
         if (body is Unit) {
+            LOGGER.trace("Sending empty body for ${request.url}")
             request.headers.remove(HttpHeaders.ContentType)
             return EmptyContent
         }
 
         val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
-            .takeIf { it.isNotEmpty() } ?: return null
-        if (request.bodyType == null) return null
+            .takeIf { it.isNotEmpty() } ?: run {
+            LOGGER.trace(
+                "None of the registered converters match request Content-Type=$contentType. " +
+                    "Skipping ContentNegotiation for ${request.url}."
+            )
+            return null
+        }
+        if (request.bodyType == null) {
+            LOGGER.trace("Request has unknown body type. Skipping ContentNegotiation for ${request.url}.")
+            return null
+        }
         request.headers.remove(HttpHeaders.ContentType)
 
         // Pick the first one that can convert the subject successfully
         val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
-            registration.converter.serializeNullable(
+            val result = registration.converter.serializeNullable(
                 contentType,
                 contentType.charset() ?: Charsets.UTF_8,
                 request.bodyType!!,
                 body.takeIf { it != NullBody }
             )
+            if (result != null) {
+                LOGGER.trace("Converted request body using ${registration.converter} for ${request.url}")
+            }
+            result
         } ?: throw ContentConverterException(
             "Can't convert $body with contentType $contentType using converters " +
                 matchingRegistrations.joinToString { it.converter.toString() }
@@ -169,20 +197,41 @@ public class ContentNegotiation internal constructor(
 
     @OptIn(InternalAPI::class)
     internal suspend fun convertResponse(
+        requestUrl: Url,
         info: TypeInfo,
         body: Any,
         responseContentType: ContentType,
         charset: Charset = Charsets.UTF_8
     ): Any? {
-        if (body !is ByteReadChannel) return null
-        if (info.type in ignoredTypes) return null
+        if (body !is ByteReadChannel) {
+            LOGGER.trace("Response body is already transformed. Skipping ContentNegotiation for $requestUrl.")
+            return null
+        }
+        if (info.type in ignoredTypes) {
+            LOGGER.trace(
+                "Response body type ${info.type} is in ignored types. " +
+                    "Skipping ContentNegotiation for $requestUrl."
+            )
+            return null
+        }
 
         val suitableConverters = registrations
             .filter { it.contentTypeMatcher.contains(responseContentType) }
             .map { it.converter }
-            .takeIf { it.isNotEmpty() } ?: return null
+            .takeIf { it.isNotEmpty() }
+            ?: run {
+                LOGGER.trace(
+                    "None of the registered converters match response with Content-Type=$responseContentType. " +
+                        "Skipping ContentNegotiation for $requestUrl."
+                )
+                return null
+            }
 
-        return suitableConverters.deserialize(body, info, charset)
+        val result = suitableConverters.deserialize(body, info, charset)
+        if (result !is ByteReadChannel) {
+            LOGGER.trace("Response body was converted to ${result::class} for $requestUrl.")
+        }
+        return result
     }
 
     /**
@@ -204,10 +253,14 @@ public class ContentNegotiation internal constructor(
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
-                val contentType = context.response.contentType() ?: return@intercept
+                val contentType = context.response.contentType() ?: run {
+                    LOGGER.trace("Response doesn't have \"Content-Type\" header, skipping ContentNegotiation plugin")
+                    return@intercept
+                }
                 val charset = context.request.headers.suitableCharset()
 
-                val deserializedBody = plugin.convertResponse(info, body, contentType, charset) ?: return@intercept
+                val deserializedBody = plugin.convertResponse(context.request.url, info, body, contentType, charset)
+                    ?: return@intercept
                 val result = HttpResponseContainer(info, deserializedBody)
                 proceedWith(result)
             }

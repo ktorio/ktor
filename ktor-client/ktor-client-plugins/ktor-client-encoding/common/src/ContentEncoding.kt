@@ -10,8 +10,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.ContentEncoding")
 
 /**
  * A plugin that allows you to enable specified compression algorithms (such as `gzip` and `deflate`) and configure their settings.
@@ -39,19 +42,27 @@ public class ContentEncoding private constructor(
         }
     }
 
-    private fun setRequestHeaders(headers: HeadersBuilder) {
-        if (headers.contains(HttpHeaders.AcceptEncoding)) return
-        headers[HttpHeaders.AcceptEncoding] = requestHeader
+    private fun setRequestHeaders(request: HttpRequestBuilder) {
+        if (request.headers.contains(HttpHeaders.AcceptEncoding)) return
+        LOGGER.trace("Adding Accept-Encoding=$request for ${request.url}")
+        request.headers[HttpHeaders.AcceptEncoding] = requestHeader
     }
 
-    private fun CoroutineScope.decode(headers: Headers, content: ByteReadChannel): ByteReadChannel {
-        val encodings = headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
-            ?: return content
+    private fun CoroutineScope.decode(response: HttpResponse, content: ByteReadChannel): ByteReadChannel {
+        val encodings = response.headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
+            ?: run {
+                LOGGER.trace(
+                    "Empty or no Content-Encoding header in response. " +
+                        "Skipping ContentEncoding for ${response.call.request.url}"
+                )
+                return content
+            }
 
         var current = content
         for (encoding in encodings.reversed()) {
             val encoder: Encoder = encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
 
+            LOGGER.trace("Recoding response with $encoder for ${response.call.request.url}")
             with(encoder) {
                 current = decode(current)
             }
@@ -126,7 +137,7 @@ public class ContentEncoding private constructor(
 
         override fun install(plugin: ContentEncoding, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                plugin.setRequestHeaders(context.headers)
+                plugin.setRequestHeaders(context)
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) { (type, content) ->
@@ -138,7 +149,7 @@ public class ContentEncoding private constructor(
                 if (content !is ByteReadChannel) return@intercept
 
                 val response = with(plugin) {
-                    HttpResponseContainer(type, context.decode(context.response.headers, content))
+                    HttpResponseContainer(type, context.decode(context.response, content))
                 }
 
                 proceedWith(response)
