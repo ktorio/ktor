@@ -93,7 +93,8 @@ public class TomcatApplicationEngine(
                                 )
                             }
 
-                            addSslHostConfig(SSLHostConfig().apply {
+                            addSslHostConfig(
+                                SSLHostConfig().apply {
                                 if (ktorConnector.trustStorePath != null) {
                                     setProperty("clientAuth", "true")
                                     truststoreFile = ktorConnector.trustStorePath!!.absolutePath
@@ -112,12 +113,14 @@ public class TomcatApplicationEngine(
                                         certificateKeystorePassword = String(ktorConnector.keyStorePassword())
                                         certificateKeyPassword = String(ktorConnector.privateKeyPassword())
                                         certificateKeystoreFile = ktorConnector.keyStorePath!!.absolutePath
-                                    })
+                                    }
+                                )
 
                                 ktorConnector.enabledProtocols?.let {
                                     enabledProtocols = it.toTypedArray()
                                 }
-                            })
+                            }
+                            )
 
                             setProperty("SSLEnabled", "true")
 
