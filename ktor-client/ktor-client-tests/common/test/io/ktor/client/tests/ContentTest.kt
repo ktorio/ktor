@@ -165,7 +165,6 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    @Ignore
     fun testMultipartFormData() = clientTests(listOf("Js")) {
         val data = {
             formData {
@@ -184,6 +183,7 @@ class ContentTest : ClientLoader(5 * 60) {
                     }
                 }
                 append("hello", 5)
+                append("world", true)
             }
         }
 
