@@ -20,7 +20,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import java.util.concurrent.TimeUnit
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -169,7 +168,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         runBlocking {
             result.await()
         }
-        TimeUnit.SECONDS.sleep(5)
+        delay(5000)
     }
 
     @Test
