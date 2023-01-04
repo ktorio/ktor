@@ -52,8 +52,6 @@ include(":ktor-server:ktor-server-tests")
 include(":ktor-server:ktor-server-host-common")
 include(":ktor-server:ktor-server-test-host")
 include(":ktor-server:ktor-server-test-suites")
-include(":ktor-server:ktor-server-jetty")
-include(":ktor-server:ktor-server-jetty:ktor-server-jetty-test-http2")
 include(":ktor-server:ktor-server-servlet")
 include(":ktor-server:ktor-server-tomcat")
 include(":ktor-server:ktor-server-netty")
@@ -74,8 +72,10 @@ if (native_targets_enabled) {
 }
 if (currentJdk >= 11) {
     include(":ktor-client:ktor-client-java")
+    include(":ktor-client:ktor-client-jetty")
+    include(":ktor-server:ktor-server-jetty")
+    include(":ktor-server:ktor-server-jetty:ktor-server-jetty-test-http2")
 }
-include(":ktor-client:ktor-client-jetty")
 include(":ktor-client:ktor-client-js")
 include(":ktor-client:ktor-client-mock")
 include(":ktor-client:ktor-client-okhttp")
