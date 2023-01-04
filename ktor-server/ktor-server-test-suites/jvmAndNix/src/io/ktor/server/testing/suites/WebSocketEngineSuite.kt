@@ -2,7 +2,7 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-package io.ktor.tests.websocket
+package io.ktor.server.testing.suites
 
 import io.ktor.http.*
 import io.ktor.network.selector.*
@@ -20,6 +20,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import java.util.concurrent.TimeUnit
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -168,6 +169,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         runBlocking {
             result.await()
         }
+        TimeUnit.SECONDS.sleep(5)
     }
 
     @Test
