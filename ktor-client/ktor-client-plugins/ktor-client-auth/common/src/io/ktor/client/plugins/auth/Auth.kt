@@ -10,6 +10,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+
+internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.auth.Auth")
 
 /**
  * A client's plugin that handles authentication and authorization.
@@ -40,6 +43,7 @@ public class Auth private constructor(
         override fun install(plugin: Auth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
                 plugin.providers.filter { it.sendWithoutRequest(context) }.forEach {
+                    LOGGER.trace("Adding auth headers for ${context.url} from provider $it")
                     it.addRequestHeaders(context)
                 }
             }
@@ -54,6 +58,7 @@ public class Auth private constructor(
                 val candidateProviders = HashSet(plugin.providers)
 
                 while (call.response.status == HttpStatusCode.Unauthorized) {
+                    LOGGER.trace("Received 401 for ${call.request.url}")
                     val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
                     val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
@@ -65,16 +70,30 @@ public class Auth private constructor(
                             providerOrNull = candidateProviders.first()
                         }
 
-                        authHeaders.isEmpty() -> return@intercept call
+                        authHeaders.isEmpty() -> {
+                            LOGGER.trace(
+                                "401 response ${call.request.url} has no or empty \"WWW-Authenticate\" header. " +
+                                    "Can not add or refresh token"
+                            )
+                            return@intercept call
+                        }
 
                         else -> authHeader = authHeaders.find { header ->
                             providerOrNull = candidateProviders.find { it.isApplicable(header) }
                             providerOrNull != null
                         }
                     }
-                    val provider = providerOrNull ?: return@intercept call
+                    val provider = providerOrNull ?: run {
+                        LOGGER.trace("Can not provider find auth provider for ${call.request.url}")
+                        return@intercept call
+                    }
+                    LOGGER.trace("Using provider $provider for ${call.request.url}")
 
-                    if (!provider.refreshToken(call.response)) return@intercept call
+                    LOGGER.trace("Refreshing token for ${call.request.url}")
+                    if (!provider.refreshToken(call.response)) {
+                        LOGGER.trace("Refreshing token failed for ${call.request.url}")
+                        return@intercept call
+                    }
 
                     candidateProviders.remove(provider)
 
@@ -83,6 +102,7 @@ public class Auth private constructor(
                     provider.addRequestHeaders(request, authHeader)
                     request.attributes.put(AuthCircuitBreaker, Unit)
 
+                    LOGGER.trace("Sending new request to ${call.request.url}")
                     call = execute(request)
                 }
                 return@intercept call

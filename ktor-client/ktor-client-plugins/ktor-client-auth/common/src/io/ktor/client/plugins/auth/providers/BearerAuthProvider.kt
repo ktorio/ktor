@@ -105,11 +105,19 @@ public class BearerAuthProvider(
      * Checks if current provider is applicable to the request.
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
-        if (auth.authScheme != AuthScheme.Bearer) return false
-        if (realm == null) return true
-        if (auth !is HttpAuthHeader.Parameterized) return false
-
-        return auth.parameter("realm") == realm
+        if (auth.authScheme != AuthScheme.Bearer) {
+            LOGGER.trace("Bearer Auth Provider is not applicable for $auth")
+            return false
+        }
+        val isSameRealm = when {
+            realm == null -> true
+            auth !is HttpAuthHeader.Parameterized -> false
+            else -> auth.parameter("realm") == realm
+        }
+        if (!isSameRealm) {
+            LOGGER.trace("Bearer Auth Provider is not applicable for this realm")
+        }
+        return isSameRealm
     }
 
     /**

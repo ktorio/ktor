@@ -119,13 +119,9 @@ public suspend fun List<ContentConverter>.deserialize(
     // 1. there is no suitable converter
     // 2. result of deserialization is null
     // We can differentiate these cases by checking if body was consumed or not
-    val result = asFlow().map { converter ->
-        converter.deserialize(
-            charset = charset,
-            typeInfo = typeInfo,
-            content = body
-        )
-    }.firstOrNull { it != null || body.isClosedForRead }
+    val result = asFlow()
+        .map { converter -> converter.deserialize(charset = charset, typeInfo = typeInfo, content = body) }
+        .firstOrNull { it != null || body.isClosedForRead }
 
     return when {
         result != null -> result
