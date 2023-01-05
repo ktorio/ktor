@@ -30,6 +30,7 @@ public object CIO : HttpClientEngineFactory<CIOEngineConfig> {
         addToLoader()
     }
 
+    @OptIn(InternalAPI::class)
     override fun create(block: CIOEngineConfig.() -> Unit): HttpClientEngine =
         CIOEngine(CIOEngineConfig().apply(block))
 

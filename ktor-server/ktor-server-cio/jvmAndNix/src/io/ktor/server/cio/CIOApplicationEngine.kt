@@ -12,10 +12,20 @@ import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+
+public interface CIOApplicationEngineInterface : ApplicationEngine {
+    @InternalAPI
+    public fun CoroutineScope.startHttpServer(
+        connectorConfig: EngineConnectorConfig,
+        connectionIdleTimeoutSeconds: Long,
+        handleRequest: suspend ServerRequestScope.(Request) -> Unit
+    ): HttpServer
+}
 
 /**
  * Engine that based on CIO backend
@@ -23,7 +33,7 @@ import kotlinx.coroutines.*
 public class CIOApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
-) : BaseApplicationEngine(environment) {
+) : BaseApplicationEngine(environment), CIOApplicationEngineInterface {
 
     /**
      * CIO-based server configuration
@@ -109,10 +119,15 @@ public class CIOApplicationEngine(
         }
     }
 
-    private fun CoroutineScope.startConnector(host: String, port: Int): HttpServer {
+    @InternalAPI
+    override fun CoroutineScope.startHttpServer(
+        connectorConfig: EngineConnectorConfig,
+        connectionIdleTimeoutSeconds: Long,
+        handleRequest: suspend ServerRequestScope.(Request) -> Unit
+    ): HttpServer {
         val settings = HttpServerSettings(
-            host = host,
-            port = port,
+            host = connectorConfig.host,
+            port = connectorConfig.port,
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
             reuseAddress = configuration.reuseAddress
         )
@@ -180,6 +195,7 @@ public class CIOApplicationEngine(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun initServerJob(): Job {
         val environment = environment
         val userDispatcher = userDispatcher
@@ -207,7 +223,10 @@ public class CIOApplicationEngine(
                 }
 
                 val connectorsAndServers = environment.connectors.map { connectorSpec ->
-                    connectorSpec to startConnector(connectorSpec.host, connectorSpec.port)
+                    connectorSpec to startHttpServer(
+                        connectorConfig = connectorSpec,
+                        connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
+                    ) { handleRequest(it) }
                 }
                 connectors.addAll(connectorsAndServers.map { it.second })
 
