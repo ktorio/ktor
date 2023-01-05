@@ -23,7 +23,8 @@ internal class CIOEngine(
     override val config: CIOEngineConfig
 ) : HttpClientEngineBase("ktor-cio") {
 
-    override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
+    override val dispatcher: CoroutineDispatcher =
+        Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
 
     override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability)
 
