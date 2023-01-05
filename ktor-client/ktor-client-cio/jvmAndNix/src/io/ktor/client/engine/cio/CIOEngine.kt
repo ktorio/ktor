@@ -31,7 +31,7 @@ internal class CIOEngine(
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
-    private val selectorManager: SelectorManager by lazy { SelectorManager(dispatcher) }
+    private val selectorManager = SelectorManager(dispatcher)
 
     private val connectionFactory = ConnectionFactory(
         selectorManager,
