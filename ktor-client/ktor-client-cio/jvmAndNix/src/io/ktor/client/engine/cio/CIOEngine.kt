@@ -23,15 +23,14 @@ internal class CIOEngine(
     override val config: CIOEngineConfig
 ) : HttpClientEngineBase("ktor-cio") {
 
-    override val dispatcher: CoroutineDispatcher by lazy {
+    override val dispatcher: CoroutineDispatcher =
         Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
-    }
 
     override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability)
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
-    private val selectorManager: SelectorManager by lazy { SelectorManager(dispatcher) }
+    private val selectorManager = SelectorManager(dispatcher)
 
     private val connectionFactory = ConnectionFactory(
         selectorManager,
