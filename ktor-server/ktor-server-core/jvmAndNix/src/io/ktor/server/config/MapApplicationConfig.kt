@@ -24,9 +24,9 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
-        values.filter { isListElement(it.first) }
-            .groupingBy { it.first.substringBeforeLast(".") }.eachCount()
-            .forEach { (listProperty, size) -> this.map["$listProperty.size"] = "$size" }
+        val listElements = mutableMapOf<String, Int>()
+        values.forEach { findListElements(it.first, listElements) }
+        listElements.forEach { (listProperty, size) -> this.map["$listProperty.size"] = "$size" }
     }
 
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
@@ -132,8 +132,14 @@ public open class MapApplicationConfig : ApplicationConfig {
 
 private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
 
-private fun isListElement(value: String): Boolean {
-    var index = value.length - 1
-    while (index > 0 && value[index].isDigit()) index--
-    return value[index] == '.'
+private fun findListElements(input: String, listElements: MutableMap<String, Int>) {
+    var pointBegin = input.indexOf('.')
+    while (pointBegin != input.length) {
+        val pointEnd = input.indexOf('.', pointBegin + 1).let { if (it == -1) input.length else it }
+
+        input.substring(pointBegin + 1, pointEnd).toIntOrNull()?.let {
+            listElements.merge(input.substring(0, pointBegin), it + 1, ::maxOf)
+        }
+        pointBegin = pointEnd
+    }
 }

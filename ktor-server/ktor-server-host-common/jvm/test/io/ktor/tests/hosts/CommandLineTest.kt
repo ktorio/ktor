@@ -89,22 +89,46 @@ class CommandLineTest {
     }
 
     @Test
-    fun testListPropertiesConfig() {
+    fun testListPropertiesHocon() {
         val args = arrayOf(
             "-P:array.first.0=first", "-P:array.first.1=second", "-P:array.first.2=third",
             "-P:array.second.0=1", "-P:array.second.1=2",
             "-P:array.third.0=zero"
         )
-        val env = commandLineEnvironment(args)
-        val firstList = env.config.property("array.first").getList()
-        val secondList = env.config.property("array.second").getList()
-        val thirdList = env.config.property("array.third").getList()
+        val config = commandLineEnvironment(args).config
+        val firstList = config.property("array.first").getList()
+        val secondList = config.property("array.second").getList()
+        val thirdList = config.property("array.third").getList()
         assertEquals(3, firstList.size)
         assertEquals(2, secondList.size)
         assertEquals(1, thirdList.size)
         assertEquals("first", firstList[0])
         assertEquals("2", secondList[1])
         assertEquals("zero", thirdList[0])
+    }
+
+    @Test
+    fun testConfigListPropertiesHocon() {
+        val args = arrayOf(
+            "-P:users.0.name=test0", "-P:users.0.password=asd",
+            "-P:users.1.name=test1", "-P:users.1.password=qwe",
+            "-P:users.2.name=test2", "-P:users.2.password=zxc",
+            "-P:users.2.groups.0=group0", "-P:users.2.groups.1=group1",
+            "-P:users.2.tasks.0.id=id0", "-P:users.2.tasks.1.id=id1"
+        )
+        val config = commandLineEnvironment(args).config
+
+        val users = config.configList("users")
+        val groups = users[2].property("groups").getList()
+        val tasks = users[2].configList("tasks")
+        assertEquals(3, users.size)
+        assertEquals(2, groups.size)
+        assertEquals("test0", users[0].property("name").getString())
+        assertEquals("qwe", users[1].property("password").getString())
+        assertEquals("group0", groups[0])
+        assertEquals("group1", groups[1])
+        assertEquals("id0", tasks[0].property("id").getString())
+        assertEquals("id1", tasks[1].property("id").getString())
     }
 
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
