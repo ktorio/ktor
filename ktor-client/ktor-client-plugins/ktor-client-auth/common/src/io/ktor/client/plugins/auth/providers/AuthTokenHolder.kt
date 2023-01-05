@@ -20,32 +20,46 @@ internal class AuthTokenHolder<T>(
 
     internal suspend fun loadToken(): T? {
         var deferred: CompletableDeferred<T?>?
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = loadTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (loadTokensDeferred.compareAndSet(deferred, newValue))
+                newDeferred = newValue
+                break
         }
 
+        // if there's already a pending loadTokens(), just wait for it to complete
         if (deferred != null) {
             return deferred.await()
         }
 
         val newTokens = loadTokens()
-        loadTokensDeferred.value!!.complete(newTokens)
+
+        // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
+        // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+        newDeferred.complete(newTokens)
+
         return newTokens
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
         var deferred: CompletableDeferred<T?>?
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = refreshTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (refreshTokensDeferred.compareAndSet(deferred, newValue))
+                newDeferred = newValue
+                break
         }
 
         val newToken = if (deferred == null) {
             val newTokens = block()
-            refreshTokensDeferred.value!!.complete(newTokens)
+
+            // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
+            // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+            newDeferred.complete(newTokens)
             refreshTokensDeferred.value = null
             newTokens
         } else {
