@@ -11,10 +11,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.math.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpPlainText")
 
 /**
  * [HttpClient] plugin that encodes [String] request bodies to [TextContent]
@@ -124,7 +127,7 @@ public class HttpPlainText internal constructor(
                     return@intercept
                 }
 
-                proceedWith(plugin.wrapContent(content, contentType))
+                proceedWith(plugin.wrapContent(context, content, contentType))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
@@ -137,20 +140,23 @@ public class HttpPlainText internal constructor(
         }
     }
 
-    private fun wrapContent(content: String, requestContentType: ContentType?): Any {
+    private fun wrapContent(request: HttpRequestBuilder, content: String, requestContentType: ContentType?): Any {
         val contentType: ContentType = requestContentType ?: ContentType.Text.Plain
         val charset = requestContentType?.charset() ?: requestCharset
 
+        LOGGER.trace("Sending request body to ${request.url} as text/plain with charset $charset")
         return TextContent(content, contentType.withCharset(charset))
     }
 
     internal fun read(call: HttpClientCall, body: Input): String {
         val actualCharset = call.response.charset() ?: responseCharsetFallback
+        LOGGER.trace("Reading response body for ${call.request.url} as String with charset $actualCharset")
         return body.readText(charset = actualCharset)
     }
 
     internal fun addCharsetHeaders(context: HttpRequestBuilder) {
         if (context.headers[HttpHeaders.AcceptCharset] != null) return
+        LOGGER.trace("Adding Accept-Charset=$acceptCharsetHeader to ${context.url}")
         context.headers[HttpHeaders.AcceptCharset] = acceptCharsetHeader
     }
 }

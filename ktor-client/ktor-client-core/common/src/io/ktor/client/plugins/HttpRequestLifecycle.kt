@@ -7,8 +7,11 @@ package io.ktor.client.plugins
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRequestLifecycle")
 
 /**
  * A client's HTTP plugin that sets up [HttpRequestBuilder.executionContext] and completes it when the pipeline is fully
@@ -53,8 +56,10 @@ private fun attachToClientEngineJob(
 ) {
     val handler = clientEngineJob.invokeOnCompletion { cause ->
         if (cause != null) {
+            LOGGER.trace("Cancelling request because engine Job failed with error: $cause")
             requestJob.cancel("Engine failed", cause)
         } else {
+            LOGGER.trace("Cancelling request because engine Job completed")
             requestJob.complete()
         }
     }

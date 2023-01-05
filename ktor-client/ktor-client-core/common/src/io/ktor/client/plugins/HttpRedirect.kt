@@ -11,9 +11,12 @@ import io.ktor.client.statement.*
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlin.native.concurrent.*
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
 /**
  * An [HttpClient] plugin that handles HTTP redirects
@@ -85,6 +88,7 @@ public class HttpRedirect private constructor(
                 client.monitor.raise(HttpResponseRedirect, call.response)
 
                 val location = call.response.headers[HttpHeaders.Location]
+                LOGGER.trace("Received redirect response to $location for request ${context.url}")
 
                 requestBuilder = HttpRequestBuilder().apply {
                     takeFromWithExecutionContext(requestBuilder)
@@ -96,11 +100,13 @@ public class HttpRedirect private constructor(
                      * Disallow redirect with a security downgrade.
                      */
                     if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
+                        LOGGER.trace("Can not redirect ${context.url} because of security downgrade")
                         return call
                     }
 
                     if (originAuthority != url.authority) {
                         headers.remove(HttpHeaders.Authorization)
+                        LOGGER.trace("Removing Authorization header from redirect for ${context.url}")
                     }
                 }
 

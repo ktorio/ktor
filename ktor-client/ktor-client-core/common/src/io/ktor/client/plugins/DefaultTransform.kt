@@ -10,10 +10,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
 
 /**
  * Install default transformers.
@@ -50,6 +53,7 @@ public fun HttpClient.defaultTransformers() {
         }
         if (content?.contentType != null) {
             context.headers.remove(HttpHeaders.ContentType)
+            LOGGER.trace("Transformed with default transformers request body for ${context.url} from ${body::class}")
             proceedWith(content)
         }
     }
@@ -58,7 +62,7 @@ public fun HttpClient.defaultTransformers() {
         if (body !is ByteReadChannel) return@intercept
         val response = context.response
 
-        when (info.type) {
+        val result = when (info.type) {
             Unit::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
@@ -85,7 +89,7 @@ public fun HttpClient.defaultTransformers() {
             }
 
             ByteReadChannel::class -> {
-                // the response job could be already completed so the job holder
+                // the response job could be already completed, so the job holder
                 // could be cancelled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext[Job])
@@ -114,6 +118,14 @@ public fun HttpClient.defaultTransformers() {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, response.status))
             }
+
+            else -> null
+        }
+        if (result != null) {
+            LOGGER.trace(
+                "Transformed with default transformers response body " +
+                    "for ${context.request.url} to ${info.type}"
+            )
         }
     }
 

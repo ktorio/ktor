@@ -11,8 +11,11 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpTimeout")
 
 /**
  * A plugin that allows you to configure the following timeouts:
@@ -160,6 +163,7 @@ public class HttpTimeout private constructor(
                     val killer = scope.launch {
                         delay(requestTimeout)
                         val cause = HttpRequestTimeoutException(request)
+                        LOGGER.trace("Request timeout: ${request.url}")
                         executionContext.cancel(cause.message!!, cause)
                     }
 
