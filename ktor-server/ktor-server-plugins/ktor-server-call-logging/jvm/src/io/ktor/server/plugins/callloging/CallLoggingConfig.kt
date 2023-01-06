@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
@@ -17,6 +18,7 @@ import org.slf4j.event.*
  */
 @KtorDsl
 public class CallLoggingConfig {
+    internal var clock: () -> Long = { getTimeMillis() }
     internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
     internal val mdcEntries = mutableListOf<MDCEntry>()
     internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
@@ -69,6 +71,15 @@ public class CallLoggingConfig {
     }
 
     /**
+     * Allows you to configure a clock that will be used to measure call processing time.
+     *
+     * @see [CallLogging]
+     */
+    public fun clock(clock: () -> Long) {
+        this.clock = clock
+    }
+
+    /**
      * Disables colors in a log message when a default formatter is used.
      * */
     public fun disableDefaultColors() {
@@ -79,12 +90,13 @@ public class CallLoggingConfig {
         when (val status = call.response.status() ?: "Unhandled") {
             HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: " +
                 "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
+
             "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 
     internal fun ApplicationRequest.toLogStringWithColors(): String =
-        "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()}"
+        "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()} in ${call.processingTimeMillis(clock)}ms"
 
     private fun colored(status: HttpStatusCode): String {
         try {
@@ -100,12 +112,14 @@ public class CallLoggingConfig {
                 status,
                 Ansi.Color.GREEN
             )
+
             HttpStatusCode.Continue, HttpStatusCode.Processing, HttpStatusCode.PartialContent,
             HttpStatusCode.NotModified, HttpStatusCode.UseProxy, HttpStatusCode.UpgradeRequired,
             HttpStatusCode.NoContent -> colored(
                 status,
                 Ansi.Color.YELLOW
             )
+
             else -> colored(status, Ansi.Color.RED)
         }
     }
