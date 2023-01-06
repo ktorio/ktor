@@ -314,6 +314,7 @@ public data class PathSegmentConstantRouteSelector(
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
             RouteSelectorEvaluation.ConstantPath
+
         else -> RouteSelectorEvaluation.FailedPath
     }
 
@@ -605,6 +606,23 @@ public data class HttpAcceptRouteSelector(
     val contentType: ContentType
 ) : RouteSelector() {
 
+    private val delegate = HttpMultiAcceptRouteSelector(listOf(contentType))
+
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        return delegate.evaluate(context, segmentIndex)
+    }
+
+    override fun toString(): String = "(contentType:$contentType)"
+}
+
+/**
+ * Evaluates a route against a `Content-Type` in the [HttpHeaders.Accept] request header.
+ * @param contentTypes a list of [ContentType] to accept
+ */
+public data class HttpMultiAcceptRouteSelector(
+    val contentTypes: List<ContentType>
+) : RouteSelector() {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val acceptHeaderContent = context.call.request.headers[HttpHeaders.Accept]
         try {
@@ -614,7 +632,7 @@ public data class HttpAcceptRouteSelector(
                 return RouteSelectorEvaluation.Missing
             }
 
-            val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
+            val header = parsedHeaders.firstOrNull { header -> contentTypes.any { it.match(header.value) } }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)
             }
@@ -625,7 +643,7 @@ public data class HttpAcceptRouteSelector(
         }
     }
 
-    override fun toString(): String = "(contentType:$contentType)"
+    override fun toString(): String = "(contentTypes:$contentTypes)"
 }
 
 internal fun evaluatePathSegmentParameter(
@@ -642,6 +660,7 @@ internal fun evaluatePathSegmentParameter(
             failedPart == null -> RouteSelectorEvaluation.Missing
             failedPart.isEmpty() -> // trailing slash
                 RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
+
             else -> RouteSelectorEvaluation.Missing
         }
     }
