@@ -50,4 +50,14 @@ class ParametersTest {
 
         assertEquals(listOf(3L, 4L), multiple)
     }
+
+    @Test
+    fun parametersBuilderTest() {
+        val params = parameters {
+            append("x", "1")
+            appendAll("y", listOf("2", "3"))
+        }
+        assertEquals(listOf("1"), params.getAll("x"))
+        assertEquals(listOf("2", "3"), params.getAll("y"))
+    }
 }
