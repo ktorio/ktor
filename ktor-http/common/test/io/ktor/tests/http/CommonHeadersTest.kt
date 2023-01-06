@@ -334,4 +334,14 @@ class CommonHeadersTest {
             "a=b; Expires=Wed, 21 Oct 2015 07:28:00 GMT,x=0".splitSetCookieHeader()
         )
     }
+
+    @Test
+    fun headersBuilderTest() {
+        val headers = headers {
+            append("x", "1")
+            appendAll("y", listOf("2", "3"))
+        }
+        assertEquals(listOf("1"), headers.getAll("x"))
+        assertEquals(listOf("2", "3"), headers.getAll("y"))
+    }
 }
