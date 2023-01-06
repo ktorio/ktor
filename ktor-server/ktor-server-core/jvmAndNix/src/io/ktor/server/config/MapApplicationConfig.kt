@@ -137,8 +137,10 @@ private fun findListElements(input: String, listElements: MutableMap<String, Int
     while (pointBegin != input.length) {
         val pointEnd = input.indexOf('.', pointBegin + 1).let { if (it == -1) input.length else it }
 
-        input.substring(pointBegin + 1, pointEnd).toIntOrNull()?.let {
-            listElements.merge(input.substring(0, pointBegin), it + 1, ::maxOf)
+        input.substring(pointBegin + 1, pointEnd).toIntOrNull()?.let { pos ->
+            val element = input.substring(0, pointBegin)
+            val newSize = pos + 1
+            listElements[element] = listElements[element]?.let { maxOf(it, newSize) } ?: newSize
         }
         pointBegin = pointEnd
     }
