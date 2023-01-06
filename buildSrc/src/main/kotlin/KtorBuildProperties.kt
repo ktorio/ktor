@@ -35,9 +35,11 @@ val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versio
 
 val jdk11Modules = listOf(
     "ktor-client-java",
-    "ktor-client-jetty",
-    "ktor-server-jetty",
-    "ktor-server-jetty-test-http2",
+    "ktor-server-servlet-jakarta",
+    "ktor-client-jetty-jakarta",
+    "ktor-server-jetty-jakarta",
+    "ktor-server-jetty-test-http2-jakarta",
+    "ktor-server-tomcat-jakarta",
 )
 
 fun Project.useJdkVersionForJvmTests(version: Int) {

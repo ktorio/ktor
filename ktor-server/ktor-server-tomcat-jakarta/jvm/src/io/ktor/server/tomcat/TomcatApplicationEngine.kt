@@ -44,7 +44,7 @@ public class TomcatApplicationEngine(
 
     private val configuration = Configuration().apply(configure)
 
-    private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
+    private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-jakarta-") }
 
     private var cancellationDeferred: CompletableJob? = null
 

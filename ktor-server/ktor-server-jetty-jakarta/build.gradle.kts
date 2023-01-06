@@ -5,7 +5,7 @@ kotlin {
         jvmMain {
             dependencies {
                 api(project(":ktor-server:ktor-server-host-common"))
-                api(project(":ktor-server:ktor-server-servlet"))
+                api(project(":ktor-server:ktor-server-servlet-jakarta"))
                 api(libs.jetty.server)
                 api(libs.jetty.servlets)
                 api(libs.jetty.alpn.server)
