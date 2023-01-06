@@ -77,6 +77,12 @@ public fun headersOf(name: String, values: List<String>): Headers = HeadersSingl
  */
 public fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = HeadersImpl(pairs.asList().toMap())
 
+/**
+ * Builds a [Headers] instance with the given [builder] function
+ * @param builder specifies a function to build a map
+ */
+public fun headers(builder: HeadersBuilder.() -> Unit): Headers = Headers.build(builder)
+
 @Suppress("KDocMissingDocumentation")
 public class HeadersImpl(
     values: Map<String, List<String>> = emptyMap()
