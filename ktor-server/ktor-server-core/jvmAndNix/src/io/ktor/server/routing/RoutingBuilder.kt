@@ -85,8 +85,18 @@ public fun Route.header(name: String, value: String, build: Route.() -> Unit): R
  * @see [Application.routing]
  */
 @KtorDsl
+@Deprecated("Please use method with vararg parameter", level = DeprecationLevel.HIDDEN)
 public fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Route {
-    val selector = HttpAcceptRouteSelector(contentType)
+    return accept(contentType) { build() }
+}
+
+/**
+ * Builds a route to match requests with the [HttpHeaders.Accept] header matching any of the specified [contentTypes].
+ * @see [Application.routing]
+ */
+@KtorDsl
+public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Unit): Route {
+    val selector = HttpMultiAcceptRouteSelector(listOf(*contentTypes))
     return createChild(selector).apply(build)
 }
 
@@ -345,6 +355,7 @@ public object PathSegmentSelectorBuilder {
                 }
                 PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")
             }
+
             else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
         }
     }

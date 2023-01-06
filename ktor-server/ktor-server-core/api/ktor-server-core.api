@@ -893,6 +893,18 @@ public final class io/ktor/server/routing/HttpMethodRouteSelector : io/ktor/serv
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/routing/HttpMultiAcceptRouteSelector : io/ktor/server/routing/RouteSelector {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/ktor/server/routing/HttpMultiAcceptRouteSelector;
+	public static synthetic fun copy$default (Lio/ktor/server/routing/HttpMultiAcceptRouteSelector;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/server/routing/HttpMultiAcceptRouteSelector;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
+	public final fun getContentTypes ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/ktor/server/routing/IgnoreTrailingSlashKt {
 	public static final fun getIgnoreTrailingSlash ()Lio/ktor/server/application/ApplicationPlugin;
 }
@@ -1196,7 +1208,8 @@ public final class io/ktor/server/routing/RoutingApplicationResponse : io/ktor/s
 }
 
 public final class io/ktor/server/routing/RoutingBuilderKt {
-	public static final fun accept (Lio/ktor/server/routing/Route;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final synthetic fun accept (Lio/ktor/server/routing/Route;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun accept (Lio/ktor/server/routing/Route;[Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun contentType (Lio/ktor/server/routing/Route;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun createRouteFromPath (Lio/ktor/server/routing/Route;Ljava/lang/String;)Lio/ktor/server/routing/Route;
 	public static final fun delete (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
