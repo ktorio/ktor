@@ -43,29 +43,35 @@ public class ParametersBuilderImpl(
 }
 
 /**
- * Returns an empty parameters instance
+ * Returns an empty [Parameters] instance
  */
 public fun parametersOf(): Parameters = Parameters.Empty
 
 /**
- * Creates a parameters instance containing only single pair
+ * Creates a [Parameters] instance containing only single pair
  */
 public fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl(name, listOf(value))
 
 /**
- * Creates a parameters instance containing only single pair of [name] with multiple [values]
+ * Creates a [Parameters] instance containing only single pair of [name] with multiple [values]
  */
 public fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 
 /**
- * Creates a parameters instance from the entries of the given [map]
+ * Creates a [Parameters] instance from the entries of the given [map]
  */
 public fun parametersOf(map: Map<String, List<String>>): Parameters = ParametersImpl(map)
 
 /**
- * Creates a parameters instance from the specified [pairs]
+ * Creates a [Parameters] instance from the specified [pairs]
  */
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
+
+/**
+ * Builds a [Parameters] instance with the given [builder] function
+ * @param builder specifies a function to build a map
+ */
+public fun parameters(builder: ParametersBuilder.() -> Unit): Parameters = Parameters.build(builder)
 
 @Suppress("KDocMissingDocumentation")
 public class ParametersImpl(
@@ -89,6 +95,7 @@ public operator fun Parameters.plus(other: Parameters): Parameters = when {
         other.isEmpty() -> this
         else -> Parameters.build { appendAll(this@plus); appendAll(other) }
     }
+
     else -> {
         throw IllegalArgumentException(
             "Cannot concatenate Parameters with case-sensitive and case-insensitive names"
