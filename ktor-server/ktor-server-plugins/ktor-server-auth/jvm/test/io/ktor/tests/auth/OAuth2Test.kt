@@ -23,7 +23,7 @@ import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.json.simple.*
+import kotlinx.serialization.json.*
 import java.net.*
 import java.util.concurrent.*
 import kotlin.test.*
@@ -955,28 +955,29 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                                 password
                             )
 
-                            JSONObject().apply {
-                                put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
-                                put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
-                                put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
-                                put(OAuth2ResponseParameters.RefreshToken, tokens.refreshToken)
+                            val jsonMap = buildMap<String, JsonElement> {
+                                put(OAuth2ResponseParameters.AccessToken, JsonPrimitive(tokens.accessToken))
+                                put(OAuth2ResponseParameters.TokenType, JsonPrimitive(tokens.tokenType))
+                                put(OAuth2ResponseParameters.ExpiresIn, JsonPrimitive(tokens.expiresIn))
+                                put(OAuth2ResponseParameters.RefreshToken, JsonPrimitive(tokens.refreshToken))
                                 for (extraParam in tokens.extraParameters.flattenEntries()) {
-                                    put(extraParam.first, extraParam.second)
+                                    put(extraParam.first, JsonPrimitive(extraParam.second))
                                 }
                             }
+                            JsonObject(jsonMap)
                         } catch (cause: OAuth2Exception) {
-                            JSONObject().apply {
-                                put(OAuth2ResponseParameters.Error, cause.errorCode ?: "?")
-                                put(OAuth2ResponseParameters.ErrorDescription, cause.message)
+                            val jsonMap = buildMap<String, JsonElement> {
+                                put(OAuth2ResponseParameters.Error, JsonPrimitive(cause.errorCode ?: "?"))
+                                put(OAuth2ResponseParameters.ErrorDescription, JsonPrimitive(cause.message))
                             }
+                            JsonObject(jsonMap)
                         } catch (t: Throwable) {
-                            JSONObject().apply {
-                                put(
-                                    OAuth2ResponseParameters.Error,
-                                    1
-                                ) // in fact we should provide code here, good enough for testing
-                                put(OAuth2ResponseParameters.ErrorDescription, t.message)
+                            val jsonMap = buildMap<String, JsonElement> {
+                                // in fact we should provide code here, good enough for testing
+                                put(OAuth2ResponseParameters.Error, JsonPrimitive(1))
+                                put(OAuth2ResponseParameters.ErrorDescription, JsonPrimitive(t.message))
                             }
+                            JsonObject(jsonMap)
                         }
 
                         val contentType = when {
@@ -985,7 +986,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                         }
 
                         val status = respondStatus?.let { HttpStatusCode.fromValue(it.toInt()) } ?: HttpStatusCode.OK
-                        call.respondText(obj.toJSONString(), contentType, status)
+                        call.respondText(Json.encodeToString(JsonObject.serializer(), obj), contentType, status)
                     }
                 }
             }
