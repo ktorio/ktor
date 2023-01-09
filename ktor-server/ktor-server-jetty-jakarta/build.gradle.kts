@@ -6,12 +6,12 @@ kotlin {
             dependencies {
                 api(project(":ktor-server:ktor-server-host-common"))
                 api(project(":ktor-server:ktor-server-servlet-jakarta"))
-                api(libs.jetty.server)
-                api(libs.jetty.servlets)
-                api(libs.jetty.alpn.server)
-                api(libs.jetty.alpn.java.server)
+                api(libs.jetty.server.jakarta)
+                api(libs.jetty.servlets.jakarta)
+                api(libs.jetty.alpn.server.jakarta)
+                api(libs.jetty.alpn.java.server.jakarta)
                 api(libs.jetty.alpn.openjdk8.server)
-                api(libs.jetty.http2.server)
+                api(libs.jetty.http2.server.jakarta)
             }
         }
         jvmTest {
@@ -20,7 +20,7 @@ kotlin {
                 api(project(":ktor-server:ktor-server-test-host"))
                 api(project(":ktor-server:ktor-server-test-suites"))
 
-                api(libs.jetty.servlet)
+                api(libs.jetty.servlet.jakarta)
                 api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
                 api(libs.logback.classic)
             }

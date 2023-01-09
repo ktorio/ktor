@@ -5,8 +5,8 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-server:ktor-server-servlet-jakarta"))
-            api(libs.tomcat.catalina)
-            api(libs.tomcat.embed.core)
+            api(libs.tomcat.catalina.jakarta)
+            api(libs.tomcat.embed.core.jakarta)
         }
     }
     jvmTest {
