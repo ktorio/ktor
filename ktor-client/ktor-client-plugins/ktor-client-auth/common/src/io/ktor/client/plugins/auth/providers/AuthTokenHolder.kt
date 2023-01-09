@@ -24,9 +24,10 @@ internal class AuthTokenHolder<T>(
         while (true) {
             deferred = loadTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue))
+            if (loadTokensDeferred.compareAndSet(deferred, newValue)) {
                 newDeferred = newValue
                 break
+            }
         }
 
         // if there's already a pending loadTokens(), just wait for it to complete
@@ -49,9 +50,10 @@ internal class AuthTokenHolder<T>(
         while (true) {
             deferred = refreshTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue))
+            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) {
                 newDeferred = newValue
                 break
+            }
         }
 
         val newToken = if (deferred == null) {
