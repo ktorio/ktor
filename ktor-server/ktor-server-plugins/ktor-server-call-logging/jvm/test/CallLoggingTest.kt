@@ -50,7 +50,9 @@ class CallLoggingTest {
     }
     private val environment: ApplicationEngineEnvironmentBuilder.() -> Unit = {
         module {
-            install(CallLogging)
+            install(CallLogging) {
+                clock { 0 }
+            }
         }
         log = logger
     }
@@ -95,7 +97,7 @@ class CallLoggingTest {
 
         createClient { expectSuccess = false }.get("/")
 
-        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
+        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - / in 0ms" in messages)
     }
 
     @Test
@@ -109,7 +111,7 @@ class CallLoggingTest {
 
         client.get("/")
 
-        assertTrue("INFO: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
+        assertTrue("INFO: ${green("200 OK")}: ${cyan("GET")} - / in 0ms" in messages)
     }
 
     @Test
@@ -118,8 +120,9 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     format { call ->
-                        "${call.request.uri} -> ${call.response.status()}"
+                        "${call.request.uri} -> ${call.response.status()}, took ${call.processingTimeMillis { 3 }}ms"
                     }
+                    clock { 0 }
                 }
                 routing {
                     get("/{...}") {
@@ -131,7 +134,28 @@ class CallLoggingTest {
         }
 
         client.get("/uri-123")
-        assertTrue("INFO: /uri-123 -> 200 OK" in messages)
+        assertTrue("INFO: /uri-123 -> 200 OK, took 3ms" in messages)
+    }
+
+    @Test
+    fun `logs request processing time`() = testApplication {
+        var time = 123L
+        environment {
+            module {
+                install(CallLogging) {
+                    clock { time.also { time += 100 } }
+                }
+                routing {
+                    get("/{...}") {
+                        call.respondText("OK")
+                    }
+                }
+            }
+            log = logger
+        }
+
+        client.get("/")
+        assertTrue("INFO: ${green("200 OK")}: ${cyan("GET")} - / in 100ms" in messages)
     }
 
     @Test
@@ -140,6 +164,7 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     filter { !it.request.origin.uri.contains("avoid") }
+                    clock { 0 }
                 }
             }
             log = logger
@@ -148,8 +173,8 @@ class CallLoggingTest {
         client.get("/")
         client.get("/avoid")
 
-        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /" in messages)
-        assertFalse("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /avoid" in messages)
+        assertTrue("INFO: ${red("404 Not Found")}: ${cyan("GET")} - / in 0ms" in messages)
+        assertFalse("INFO: ${red("404 Not Found")}: ${cyan("GET")} - /avoid in 0ms" in messages)
     }
 
     @Test
@@ -158,6 +183,7 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     level = Level.DEBUG
+                    clock { 0 }
                 }
             }
             log = logger
@@ -170,7 +196,7 @@ class CallLoggingTest {
 
         client.get("/")
 
-        assertTrue("DEBUG: ${green("200 OK")}: ${cyan("GET")} - /" in messages)
+        assertTrue("DEBUG: ${green("200 OK")}: ${cyan("GET")} - / in 0ms" in messages)
     }
 
     @Test
@@ -181,6 +207,7 @@ class CallLoggingTest {
                     mdc("mdc-uri") { it.request.uri }
                     mdc("mdc-status") { it.response.status()?.value?.toString() }
                     format { it.request.uri }
+                    clock { 0 }
                 }
             }
             log = logger
@@ -209,6 +236,7 @@ class CallLoggingTest {
                     mdc("mdc-test-header") { it.response.headers["test-header"] }
                     mdc("mdc-status") { it.response.status()?.value?.toString() }
                     format { it.request.uri }
+                    clock { 0 }
                 }
                 install(TestPlugin)
             }
@@ -236,6 +264,7 @@ class CallLoggingTest {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
                     callIdMdc("mdc-call-id")
+                    clock { 0 }
                 }
                 install(CallId) {
                     generate { "generated-call-id-${counter++}" }
@@ -258,7 +287,7 @@ class CallLoggingTest {
         assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
         assertTrue {
             "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
-                "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                "/uri1 in 0ms [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
         }
         dispatcher.close()
     }
@@ -274,6 +303,7 @@ class CallLoggingTest {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
                     callIdMdc("mdc-call-id")
+                    clock { 0 }
                 }
                 install(CallId) {
                     generate { "generated-call-id-${counter++}" }
@@ -296,7 +326,7 @@ class CallLoggingTest {
         assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
         assertTrue {
             "INFO: ${green("200 OK")}: ${cyan("GET")} - " +
-                "/uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                "/uri1 in 0ms [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
         }
         dispatcher.close()
     }
@@ -307,6 +337,7 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     mdc("mdc-uri") { it.request.uri }
+                    clock { 0 }
                 }
                 install(StatusPages) {
                     exception<Throwable> { call, _ ->
@@ -346,6 +377,7 @@ class CallLoggingTest {
                 module {
                     install(CallLogging) {
                         this.logger = customLogger
+                        clock { 0 }
                     }
                 }
             }
@@ -363,13 +395,14 @@ class CallLoggingTest {
             module {
                 install(CallLogging) {
                     disableDefaultColors()
+                    clock { 0 }
                 }
             }
             log = logger
         }
         createClient { expectSuccess = false }.get("/")
 
-        assertTrue("INFO: 404 Not Found: GET - /" in messages)
+        assertTrue("INFO: 404 Not Found: GET - / in 0ms" in messages)
     }
 
     @Test

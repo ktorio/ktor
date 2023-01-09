@@ -7,7 +7,19 @@ package io.ktor.server.plugins.callloging
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.util.*
+import io.ktor.util.date.*
 import org.slf4j.event.*
+
+internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
+
+/**
+ * Returns time in millis from the moment the call was received until now
+ */
+public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
+    val startTime = attributes[CALL_START_TIME]
+    return clock() - startTime
+}
 
 /**
  * A plugin that allows you to log incoming client requests.
@@ -23,6 +35,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     val log = pluginConfig.logger ?: application.log
     val filters = pluginConfig.filters
     val formatCall = pluginConfig.formatCall
+    val clock = pluginConfig.clock
 
     fun log(message: String) = when (pluginConfig.level) {
         Level.ERROR -> log.error(message)
@@ -40,6 +53,10 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
 
     setupMDCProvider()
     setupLogging(application.environment.monitor, ::log)
+
+    on(CallSetup) { call ->
+        call.attributes.put(CALL_START_TIME, clock())
+    }
 
     if (pluginConfig.mdcEntries.isEmpty()) {
         logCompletedCalls(::logSuccess)
