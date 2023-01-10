@@ -195,7 +195,7 @@ public class NettyApplicationEngine(
                 )
             )
             if (configuration.tcpKeepAlive) {
-                option(NioChannelOption.SO_KEEPALIVE, true)
+                childOption(ChannelOption.SO_KEEPALIVE, true)
             }
         }
     }
