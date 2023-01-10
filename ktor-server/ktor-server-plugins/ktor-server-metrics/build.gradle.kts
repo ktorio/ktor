@@ -7,5 +7,10 @@ kotlin {
                 api(libs.dropwizard.jvm)
             }
         }
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
+            }
+        }
     }
 }

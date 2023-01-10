@@ -79,22 +79,15 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             )
         }
 
-        on(MonitoringEvent(Routing.RoutingCallFinished)) { call ->
-            val routingMetrics = call.attributes.take(routingMetricsKey)
-            val status = call.response.status()?.value ?: 0
-            val statusMeter =
-                pluginConfig.registry.meter(name(pluginConfig.baseName, routingMetrics.name, status.toString()))
-            statusMeter.mark()
-            routingMetrics.context.stop()
-        }
-
         @OptIn(InternalAPI::class)
         on(Metrics) { call ->
             active.inc()
             call.attributes.put(measureKey, CallMeasure(duration.time()))
         }
 
-        on(AfterCall) { call ->
+        on(ResponseSent) { call ->
+            callFinished(call)
+
             active.dec()
             val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
                 pluginConfig.registry.meter(name(pluginConfig.baseName, "status", it.toString()))
@@ -105,3 +98,12 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             }
         }
     }
+
+private fun PluginBuilder<DropwizardMetricsConfig>.callFinished(call: ApplicationCall) {
+    val routingMetrics = call.attributes.take(routingMetricsKey)
+    val status = call.response.status()?.value ?: 0
+    val statusMeter =
+        pluginConfig.registry.meter(name(pluginConfig.baseName, routingMetrics.name, status.toString()))
+    statusMeter.mark()
+    routingMetrics.context.stop()
+}
