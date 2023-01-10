@@ -22,7 +22,7 @@ class CurlNativeTests {
     fun testDownload() = runBlocking {
         HttpClient(Curl).use {
             val res = it.get("http://google.com").body<String>()
-            assert(res.isNotEmpty())
+            assertTrue(res.isNotEmpty())
         }
     }
 
