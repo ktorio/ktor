@@ -14,14 +14,16 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.internal.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import org.json.simple.*
-import org.slf4j.*
-import java.io.*
-import java.net.*
+import kotlinx.serialization.json.*
 
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
+private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
     client: HttpClient,
@@ -47,7 +49,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
-                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
+                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause)
                     call.redirectAuthenticateOAuth2(
                         provider,
                         callbackRedirectUrl,
@@ -136,7 +138,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     interceptor: URLBuilder.() -> Unit
 ) {
     val url = URLBuilder()
-    url.takeFrom(URI(authenticateUrl))
+    url.takeFrom(authenticateUrl)
     url.parameters.apply {
         append(OAuth2RequestParameters.ClientId, clientId)
         append(OAuth2RequestParameters.RedirectUri, callbackRedirectUrl)
@@ -173,7 +175,7 @@ private suspend fun oauth2RequestAccessToken(
     }
 
     val request = HttpRequestBuilder()
-    request.url.takeFrom(URI(baseUrl))
+    request.url.takeFrom(baseUrl)
 
     val urlParameters = ParametersBuilder().apply {
         append(OAuth2RequestParameters.ClientId, clientId)
@@ -205,6 +207,7 @@ private suspend fun oauth2RequestAccessToken(
                 )
             }
         }
+
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
 
@@ -275,18 +278,19 @@ private suspend fun oauth2RequestAccessToken(
 private fun decodeContent(content: String, contentType: ContentType): Parameters = when {
     contentType.match(ContentType.Application.FormUrlEncoded) -> content.parseUrlEncodedParameters()
     contentType.match(ContentType.Application.Json) -> Parameters.build {
-        (JSONValue.parseWithException(content) as JSONObject).forEach {
-            append(it.key.toString(), it.value.toString())
+        Json.decodeFromString(JsonObject.serializer(), content).forEach {
+            append(it.key, it.value.jsonPrimitive.content)
         }
-    } // TODO better json handling
+    }
 // TODO text/xml
     else -> {
-        // some servers may respond with wrong content type so we have to try to guess
+        // some servers may respond with a wrong content type, so we have to try to guess
         when {
             content.startsWith("{") && content.trim().endsWith("}") -> decodeContent(
                 content.trim(),
                 ContentType.Application.Json
             )
+
             content.matches("([a-zA-Z\\d_-]+=[^=&]+&?)+".toRegex()) -> decodeContent(
                 content,
                 ContentType.Application.FormUrlEncoded
@@ -401,7 +405,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
         ),
         CopyableThrowable<UnsupportedGrantType> {
         override fun createCopy(): UnsupportedGrantType = UnsupportedGrantType(grantType).also {
-            it.initCause(this)
+            it.initCauseBridge(this)
         }
     }
 
@@ -415,7 +419,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
         errorCode: String
     ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {
         override fun createCopy(): UnknownException = UnknownException(details, errorCode!!).also {
-            it.initCause(this)
+            it.initCauseBridge(this)
         }
     }
 }

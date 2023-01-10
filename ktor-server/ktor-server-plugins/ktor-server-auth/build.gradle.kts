@@ -14,13 +14,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
-            }
-        }
-        jvmMain {
-            dependencies {
-                api("com.googlecode.json-simple:json-simple:1.1.1") {
-                    isTransitive = false
-                }
+                api(libs.kotlinx.serialization.json)
             }
         }
         commonTest {

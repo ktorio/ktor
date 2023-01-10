@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
 
 import io.ktor.client.*
 import io.ktor.server.application.*
-import org.slf4j.*
-import java.io.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.errors.*
 
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
+private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 /**
  * An OAuth provider key.
@@ -99,50 +99,10 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
     }
 }
 
-internal suspend fun OAuthAuthenticationProvider.oauth1a(authProviderName: String?, context: AuthenticationContext) {
-    val call = context.call
-    val provider = call.providerLookup()
-    if (provider !is OAuthServerSettings.OAuth1aServerSettings) return
-
-    val token = call.oauth1aHandleCallback()
-    val cause: AuthenticationFailedCause? = if (token == null) {
-        AuthenticationFailedCause.NoCredentials
-    } else {
-        oauth1RequestToken(authProviderName, provider, token, context)
-    }
-
-    if (cause != null) {
-        @Suppress("NAME_SHADOWING")
-        context.challenge(OAuthKey, cause) { challenge, call ->
-            try {
-                val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
-                call.redirectAuthenticateOAuth1a(provider, t)
-                challenge.complete()
-            } catch (ioe: IOException) {
-                context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
-            }
-        }
-    }
-}
-
-private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
+internal expect suspend fun OAuthAuthenticationProvider.oauth1a(
     authProviderName: String?,
-    provider: OAuthServerSettings.OAuth1aServerSettings,
-    token: OAuthCallback.TokenPair,
     context: AuthenticationContext
-) = try {
-    val accessToken = requestOAuth1aAccessToken(client, provider, token)
-    context.principal(authProviderName, accessToken)
-    null
-} catch (cause: OAuth1aException.MissingTokenException) {
-    AuthenticationFailedCause.InvalidCredentials
-} catch (cause: Throwable) {
-    context.error(
-        OAuthKey,
-        AuthenticationFailedCause.Error("OAuth1a failed to get OAuth1 access token")
-    )
-    null
-}
+)
 
 private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     authProviderName: String?,
@@ -155,7 +115,7 @@ private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     context.principal(authProviderName, accessToken)
     null
 } catch (cause: OAuth2Exception.InvalidGrant) {
-    Logger.trace("OAuth invalid grant reported: {}", cause.message)
+    Logger.trace("OAuth invalid grant reported: {}", cause)
     AuthenticationFailedCause.InvalidCredentials
 } catch (cause: Throwable) {
     Logger.trace("OAuth2 request access token failed", cause)
