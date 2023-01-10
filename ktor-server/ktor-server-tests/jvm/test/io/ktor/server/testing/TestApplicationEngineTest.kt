@@ -25,10 +25,7 @@ import kotlin.test.*
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
-        @OptIn(
-            ExperimentalCoroutinesApi::class,
-            InternalCoroutinesApi::class
-        )
+        @OptIn(InternalCoroutinesApi::class)
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
             object : CoroutineDispatcher(), Delay by delay {
                 override fun isDispatchNeeded(context: CoroutineContext): Boolean =
@@ -277,7 +274,7 @@ class TestApplicationEngineTest {
                     HttpHeaders.ContentType,
                     ContentType.MultiPart.FormData.withParameter("boundary", boundary).toString()
                 )
-                setBody(boundary, multipart)
+                bodyChannel = buildMultipart(boundary, multipart)
             }
             assertEquals(HttpStatusCode.OK, response.response.status())
         }

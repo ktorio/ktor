@@ -70,7 +70,7 @@ class TestEngineMultipartTest {
             },
             setup = {
                 addHeader(HttpHeaders.ContentType, contentType.toString())
-                setBody(
+                bodyChannel = buildMultipart(
                     boundary,
                     listOf(
                         PartData.FileItem(
@@ -142,7 +142,7 @@ class TestEngineMultipartTest {
             },
             setup = {
                 addHeader(HttpHeaders.ContentType, contentType.toString())
-                setBody(
+                bodyChannel = buildMultipart(
                     boundary,
                     listOf(
                         PartData.FileItem(

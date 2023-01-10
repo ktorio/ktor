@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.plugins
+package io.ktor.server.plugins.contentnegotiation
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -11,7 +12,6 @@ import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.doublereceive.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -25,6 +25,119 @@ import kotlin.test.*
 
 @Suppress("DEPRECATION")
 class ContentNegotiationTest {
+
+    private val alwaysFailingConverter = object : ContentConverter {
+        override suspend fun serializeNullable(
+            contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any?
+        ): OutgoingContent? {
+            fail("This converter should be never started for send")
+        }
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+            fail("This converter should be never started for receive")
+        }
+    }
+
+    @Test
+    fun testRespondByteArray() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+                }
+                get("/") {
+                    call.respond("test".toByteArray())
+                }
+            }
+        }
+        val response = client.get("/").body<ByteArray>()
+        assertContentEquals("test".toByteArray(), response)
+    }
+
+    object OK
+
+    @Test
+    fun testMultipleConverters() = testApplication {
+        var nullSerialized = false
+        var nullDeserialized = false
+        var okSerialized = false
+        var okDeserialized = false
+
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    val nullConverter = object : ContentConverter {
+                        override suspend fun serializeNullable(
+                            contentType: ContentType,
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            value: Any?
+                        ): OutgoingContent? {
+                            nullSerialized = true
+                            return null
+                        }
+
+                        override suspend fun deserialize(
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            content: ByteReadChannel
+                        ): Any? {
+                            nullDeserialized = true
+                            return null
+                        }
+                    }
+                    val okConverter = object : ContentConverter {
+                        override suspend fun serializeNullable(
+                            contentType: ContentType,
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            value: Any?
+                        ): OutgoingContent {
+                            okSerialized = true
+                            return TextContent("OK", contentType)
+                        }
+
+                        override suspend fun deserialize(
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            content: ByteReadChannel
+                        ): Any {
+                            okDeserialized = true
+                            return OK
+                        }
+                    }
+
+                    register(ContentType.Application.Json, nullConverter)
+                    register(ContentType.Application.Json, okConverter)
+                }
+
+                get("/FOO") {
+                    try {
+                        call.receive<OK>()
+                        call.respond(OK)
+                    } catch (cause: Throwable) {
+                        call.respond(cause)
+                    }
+                }
+            }
+        }
+
+        val response = client.get("FOO") {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+        }
+
+        assertEquals("OK", response.bodyAsText())
+
+        assertTrue(nullSerialized)
+        assertTrue(nullDeserialized)
+        assertTrue(okSerialized)
+        assertTrue(okDeserialized)
+    }
+
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
@@ -58,22 +171,6 @@ class ContentNegotiationTest {
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             if (typeInfo.type != Wrapper::class) return null
             return Wrapper(content.readRemaining().readText())
-        }
-    }
-
-    private fun alwaysFailingConverter(ignoreString: Boolean) = object : ContentConverter {
-        override suspend fun serializeNullable(
-            contentType: ContentType,
-            charset: Charset,
-            typeInfo: TypeInfo,
-            value: Any?
-        ): OutgoingContent? {
-            fail("This converter should be never started for send")
-        }
-
-        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-            if (ignoreString && typeInfo.type == String::class) return null
-            fail("This converter should be never started for receive")
         }
     }
 
@@ -444,7 +541,7 @@ class ContentNegotiationTest {
             }
         }
 
-       client.post("/text") {
+        client.post("/text") {
             setBody("\"k=v\"")
             contentType(ContentType.Application.Json)
         }.let { response ->

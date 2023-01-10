@@ -3,3 +3,13 @@
  */
 
 description = ""
+
+kotlin {
+    sourceSets {
+        jvmAndNixTest {
+            dependencies {
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-double-receive"))
+            }
+        }
+    }
+}
