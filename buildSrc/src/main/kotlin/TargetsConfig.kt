@@ -52,7 +52,11 @@ fun Project.configureTargets() {
 
             if (hasDarwin) {
                 val darwinMain by creating
-                val darwinTest by creating
+                val darwinTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
 
                 val macosMain by creating
                 val macosTest by creating
@@ -69,7 +73,11 @@ fun Project.configureTargets() {
 
             if (hasDesktop) {
                 val desktopMain by creating
-                val desktopTest by creating
+                val desktopTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
             }
 
             if (hasWindows) {
@@ -104,6 +112,10 @@ fun Project.configureTargets() {
 
                 val posixTest by getting {
                     findByName("commonTest")?.let { dependsOn(it) }
+
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
                 }
 
                 posixTargets().forEach {
@@ -192,7 +204,11 @@ fun Project.configureTargets() {
                     findByName("posixMain")?.let { dependsOn(it) }
                 }
 
-                val windowsTest by getting
+                val windowsTest by getting {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
 
                 windowsTargets().forEach {
                     getByName("${it}Main").dependsOn(windowsMain)
