@@ -1,6 +1,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.*
 
 /**
  * TCP socket builder
@@ -31,6 +32,7 @@ public class TcpSocketBuilder(
     /**
      * Connect to [remoteAddress].
      */
+    @OptIn(InternalAPI::class)
     public suspend fun connect(
         remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
@@ -39,6 +41,7 @@ public class TcpSocketBuilder(
     /**
      * Bind server socket to listen to [localAddress].
      */
+    @OptIn(InternalAPI::class)
     public fun bind(
         localAddress: SocketAddress? = null,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
