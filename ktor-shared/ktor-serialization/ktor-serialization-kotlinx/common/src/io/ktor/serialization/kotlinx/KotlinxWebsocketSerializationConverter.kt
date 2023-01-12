@@ -7,6 +7,7 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -18,7 +19,7 @@ import kotlinx.serialization.*
  * Creates a converter for WebSocket serializing with the specified string [format] and
  * [defaultCharset] (optional, usually it is UTF-8).
  */
-@OptIn(ExperimentalSerializationApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 public class KotlinxWebsocketSerializationConverter(
     private val format: SerialFormat,
 ) : WebsocketContentConverter {
@@ -45,7 +46,7 @@ public class KotlinxWebsocketSerializationConverter(
         if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
 
         return when (format) {
             is StringFormat -> {

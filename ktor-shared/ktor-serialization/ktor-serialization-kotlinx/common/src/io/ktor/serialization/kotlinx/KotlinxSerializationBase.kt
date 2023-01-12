@@ -9,15 +9,16 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 internal abstract class KotlinxSerializationBase<T>(
-    private val format: SerialFormat
+    private val format: SerialFormat,
 ) {
     internal abstract suspend fun serializeContent(parameters: SerializationParameters): T
 
     internal suspend fun serialize(
-        parameters: SerializationParameters
+        parameters: SerializationParameters,
     ): T {
-        val result = serializerFromTypeInfo(parameters.typeInfo, format.serializersModule).let {
+        val result = format.serializersModule.serializerForTypeInfo(parameters.typeInfo).let {
             parameters.serializer = it
             serializeContent(parameters)
         }
@@ -35,7 +36,7 @@ internal open class SerializationParameters(
     open val format: SerialFormat,
     open val value: Any?,
     open val typeInfo: TypeInfo,
-    open val charset: Charset
+    open val charset: Charset,
 ) {
     lateinit var serializer: KSerializer<*>
 }
@@ -45,5 +46,5 @@ internal class SerializationNegotiationParameters(
     override val value: Any?,
     override val typeInfo: TypeInfo,
     override val charset: Charset,
-    val contentType: ContentType
+    val contentType: ContentType,
 ) : SerializationParameters(format, value, typeInfo, charset)

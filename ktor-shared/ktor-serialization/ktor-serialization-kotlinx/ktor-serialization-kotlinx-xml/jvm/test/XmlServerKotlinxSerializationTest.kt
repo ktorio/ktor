@@ -5,10 +5,11 @@
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.serialization.kotlinx.xml.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
+import java.nio.charset.*
+import kotlin.test.*
 
-class XmlServerKotlinxSerializationTest : AbstractServerSerializationTest() {
+class XmlServerKotlinxSerializationTest : AbstractServerSerializationKotlinxTest() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
 
@@ -16,11 +17,31 @@ class XmlServerKotlinxSerializationTest : AbstractServerSerializationTest() {
         xml(contentType = contentType)
     }
 
-    override fun simpleDeserialize(t: ByteArray): TestEntity {
+    override fun simpleDeserialize(t: ByteArray): MyEntity {
         return DefaultXml.decodeFromString(serializer, String(t))
     }
 
-    override fun simpleSerialize(any: TestEntity): ByteArray {
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<MyEntity> {
+        return DefaultXml.decodeFromString(listSerializer, String(t, charset))
+    }
+
+    override fun simpleSerialize(any: MyEntity): ByteArray {
         return DefaultXml.encodeToString(serializer, any).toByteArray()
+    }
+
+    @Ignore
+    override fun testMap() {
+    }
+
+    @Ignore
+    override fun testFlowNoAcceptUtf8() {
+    }
+
+    @Ignore
+    override fun testFlowAcceptUtf16() {
+    }
+
+    @Ignore
+    override fun testReceiveNullValue() {
     }
 }

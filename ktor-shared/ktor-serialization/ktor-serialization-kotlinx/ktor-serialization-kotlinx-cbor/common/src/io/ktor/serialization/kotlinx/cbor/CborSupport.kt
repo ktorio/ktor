@@ -19,7 +19,6 @@ import kotlin.native.concurrent.*
  * See [Cbor] for more details.
  */
 @OptIn(ExperimentalSerializationApi::class)
-
 public val DefaultCbor: Cbor = Cbor {
     encodeDefaults = true
 }
