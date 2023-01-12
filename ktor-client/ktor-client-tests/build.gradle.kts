@@ -42,7 +42,6 @@ kotlin.sourceSets {
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
-            api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))

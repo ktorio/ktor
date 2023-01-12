@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
@@ -19,7 +19,7 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>
 ) : TestWithKtor() {
 
-    override val server = embeddedServer(Jetty, serverPort) {}
+    override val server = embeddedServer(Netty, serverPort) {}
 
     protected val trustAllCertificates = arrayOf<X509TrustManager>(
         object : X509TrustManager {

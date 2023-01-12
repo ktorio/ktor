@@ -74,6 +74,11 @@ if (native_targets_enabled) {
 }
 if (currentJdk >= 11) {
     include(":ktor-client:ktor-client-java")
+    include(":ktor-client:ktor-client-jetty-jakarta")
+    include(":ktor-server:ktor-server-servlet-jakarta")
+    include(":ktor-server:ktor-server-jetty-jakarta")
+    include(":ktor-server:ktor-server-jetty-jakarta:ktor-server-jetty-test-http2-jakarta")
+    include(":ktor-server:ktor-server-tomcat-jakarta")
 }
 include(":ktor-client:ktor-client-jetty")
 include(":ktor-client:ktor-client-js")
