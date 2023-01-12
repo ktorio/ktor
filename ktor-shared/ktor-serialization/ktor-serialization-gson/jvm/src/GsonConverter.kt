@@ -8,16 +8,21 @@ import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import java.io.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 /**
- * A GSON converter for the [ContentNegotiation] plugin.
+ * A content converter that uses [Gson]
+ *
+ * @param gson a configured instance of [Gson]
  */
 public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
@@ -42,6 +47,17 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
+        // specific behavior for kotlinx.coroutines.flow.Flow
+        if (typeInfo.type == Flow::class) {
+            return OutputStreamContent(
+                {
+                    val writer = this.writer(charset = charset)
+                    // emit asynchronous values in Writer without pretty print
+                    (value as Flow<*>).serializeJson(writer)
+                },
+                contentType.withCharsetIfNeeded(charset)
+            )
+        }
         return TextContent(gson.toJson(value), contentType.withCharsetIfNeeded(charset))
     }
 
@@ -58,6 +74,29 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         } catch (deserializeFailure: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found", deserializeFailure)
         }
+    }
+
+    private companion object {
+        private const val beginArrayCharCode = '['.code
+        private const val endArrayCharCode = ']'.code
+        private const val objectSeparator = ','.code
+    }
+
+    /**
+     * Guaranteed to be called inside a [Dispatchers.IO] context, see [OutputStreamContent]
+     */
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun <T> Flow<T>.serializeJson(writer: Writer) {
+        writer.write(beginArrayCharCode)
+        collectIndexed { index, value ->
+            if (index > 0) {
+                writer.write(objectSeparator)
+            }
+            gson.toJson(value, writer)
+            writer.flush()
+        }
+        writer.write(endArrayCharCode)
+        writer.flush()
     }
 }
 
