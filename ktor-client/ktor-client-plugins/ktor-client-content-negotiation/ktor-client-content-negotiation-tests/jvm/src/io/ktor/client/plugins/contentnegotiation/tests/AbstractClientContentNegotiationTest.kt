@@ -31,7 +31,7 @@ import kotlin.test.*
 @Suppress("KDocMissingDocumentation")
 abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
-    private val users = listOf(
+    protected val users = listOf(
         User("x", 10),
         User("y", 45)
     )

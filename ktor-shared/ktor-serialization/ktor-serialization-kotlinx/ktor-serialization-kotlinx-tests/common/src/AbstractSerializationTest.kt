@@ -9,7 +9,11 @@ import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -26,7 +30,6 @@ public data class GithubProfile(
     val name: String
 )
 
-@OptIn(ExperimentalSerializationApi::class)
 public abstract class AbstractSerializationTest<T : SerialFormat> {
     protected abstract val defaultContentType: ContentType
     protected abstract val defaultSerializationFormat: T
@@ -105,8 +108,39 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
         )
     }
 
+    @Test
+    public open fun testRegisterCustomFlow(): Unit = testSuspend {
+        val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
+
+        val user = User(2, "petya")
+        val photo = Photo(3, "petya.jpg")
+
+        assertEquals(
+            """[{"id":2,"login":"petya"}]""",
+            serializer.testSerialize(flowOf(user)),
+            defaultSerializationFormat
+        )
+        assertEquals(
+            """[{"id":3,"path":"petya.jpg"}]""",
+            serializer.testSerialize(flowOf(photo)),
+            defaultSerializationFormat
+        )
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
     protected suspend inline fun <reified T : Any> ContentConverter.testSerialize(data: T): ByteArray {
-        val content = serializeNullable(defaultContentType, Charsets.UTF_8, typeInfo<T>(), data)
-        return (content as? OutgoingContent.ByteArrayContent)?.bytes() ?: error("Failed to get serialized $data")
+        return when (val content = serializeNullable(defaultContentType, Charsets.UTF_8, typeInfo<T>(), data)) {
+            is OutgoingContent.ByteArrayContent -> content.bytes()
+            is ChannelWriterContent -> {
+                val channel = ByteChannel()
+                GlobalScope.launch {
+                    content.writeTo(channel)
+                    channel.close()
+                }
+                channel.readRemaining().readBytes()
+            }
+
+            else -> error("Failed to get serialized $data")
+        }
     }
 }

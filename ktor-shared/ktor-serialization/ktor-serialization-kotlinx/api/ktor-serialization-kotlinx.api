@@ -10,11 +10,24 @@ public final class io/ktor/serialization/kotlinx/KotlinxSerializationConverterKt
 	public static final fun serialization (Lio/ktor/serialization/Configuration;Lio/ktor/http/ContentType;Lkotlinx/serialization/StringFormat;)V
 }
 
+public abstract interface class io/ktor/serialization/kotlinx/KotlinxSerializationExtension {
+	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun serialize (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/serialization/kotlinx/KotlinxSerializationExtensionProvider {
+	public abstract fun extension (Lkotlinx/serialization/SerialFormat;)Lio/ktor/serialization/kotlinx/KotlinxSerializationExtension;
+}
+
 public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationConverter : io/ktor/serialization/WebsocketContentConverter {
 	public fun <init> (Lkotlinx/serialization/SerialFormat;)V
 	public fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun isApplicable (Lio/ktor/websocket/Frame;)Z
 	public fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun serializeNullable (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/serialization/kotlinx/SerializerLookupKt {
+	public static final fun serializerForTypeInfo (Lkotlinx/serialization/modules/SerializersModule;Lio/ktor/util/reflect/TypeInfo;)Lkotlinx/serialization/KSerializer;
 }
 

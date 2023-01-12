@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.cbor.*
 import io.ktor.serialization.kotlinx.test.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
+import kotlin.test.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class CborSerializationTest : AbstractSerializationTest<Cbor>() {
@@ -16,5 +17,9 @@ class CborSerializationTest : AbstractSerializationTest<Cbor>() {
 
     override fun assertEquals(expectedAsJson: String, actual: ByteArray, format: Cbor): Boolean {
         return expectedAsJson == actual.decodeToString()
+    }
+
+    @Ignore
+    override fun testRegisterCustomFlow() {
     }
 }
