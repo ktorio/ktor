@@ -31,7 +31,6 @@ subprojects {
                     runtimeOnly(project(":ktor-client:ktor-client-java"))
                 } catch (_: UnknownProjectException) {
                 }
-//            runtimeOnly(project(":ktor-client:ktor-client-jetty"))
             }
         }
 

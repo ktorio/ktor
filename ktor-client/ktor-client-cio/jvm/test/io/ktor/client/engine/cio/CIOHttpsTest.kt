@@ -12,7 +12,7 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -27,7 +27,7 @@ import kotlin.test.Test
 class CIOHttpsTest : TestWithKtor() {
 
     override val server: ApplicationEngine = embeddedServer(
-        Jetty,
+        Netty,
         applicationEngineEnvironment {
             sslConnector(
                 keyStore,

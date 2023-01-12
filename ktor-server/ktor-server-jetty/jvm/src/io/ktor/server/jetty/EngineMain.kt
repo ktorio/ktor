@@ -6,7 +6,6 @@ package io.ktor.server.jetty
 
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Jetty engine
@@ -20,8 +19,14 @@ public object EngineMain {
     public fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = JettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
+        val gracePeriod =
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong()
+                ?: 3000
+        val timeout =
+            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong()
+                ?: 5000
         engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+            engine.stop(gracePeriod, timeout)
         }
         engine.start(true)
     }

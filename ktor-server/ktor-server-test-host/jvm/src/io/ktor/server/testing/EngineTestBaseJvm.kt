@@ -6,8 +6,8 @@
 package io.ktor.server.testing
 
 import io.ktor.client.*
+import io.ktor.client.engine.apache.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -18,13 +18,13 @@ import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
+import java.security.cert.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -181,6 +181,7 @@ actual abstract class EngineTestBase<
                     server.stop(1L, 1L, TimeUnit.SECONDS)
                     lastFailures = failures
                 }
+
                 else -> {
                     server.stop(1L, 1L, TimeUnit.SECONDS)
                     throw MultipleFailureException(failures)
@@ -295,12 +296,14 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        HttpClient(Jetty) {
+        HttpClient(Apache) {
             followRedirects = false
             expectSuccess = false
             engine {
                 pipelining = true
-                sslContextFactory = SslContextFactory.Client(true)
+                sslContext = SSLContext.getInstance("SSL").apply {
+                    init(null, trustAllCertificates, SecureRandom())
+                }
             }
         }.use { client ->
             client.prepareRequest(url) {
@@ -340,4 +343,12 @@ actual abstract class EngineTestBase<
             } while (true)
         }
     }
+
+    private val trustAllCertificates = arrayOf<X509TrustManager>(
+        object : X509TrustManager {
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
+        }
+    )
 }
