@@ -9,6 +9,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -16,11 +17,11 @@ import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
 
-@OptIn(ExperimentalSerializationApi::class)
 class JsonSerializationTest : AbstractSerializationTest<Json>() {
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val defaultSerializationFormat: Json = DefaultJson
@@ -118,6 +119,36 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
                 ByteReadChannel(dogExtraFieldJson.toByteArray())
             )
         }
+    }
+
+    @Test
+    fun testList() = testSuspend {
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val dogListJson = """[{"age": 8,"name":"Auri"}]"""
+        assertEquals(
+            listOf(DogDTO(8, "Auri")),
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<List<DogDTO>>(),
+                ByteReadChannel(dogListJson.toByteArray())
+            )
+        )
+    }
+
+    @Test
+    fun testSequence() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val dogListJson = """[{"age": 8,"name":"Auri"}]"""
+        assertContentEquals(
+            sequenceOf(DogDTO(8, "Auri")),
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<Sequence<DogDTO>>(),
+                ByteReadChannel(dogListJson.toByteArray())
+            ) as Sequence<*>
+        )
     }
 }
 

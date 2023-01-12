@@ -9,6 +9,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 internal abstract class KotlinxSerializationBase<T>(
     private val format: SerialFormat
 ) {
@@ -18,7 +19,7 @@ internal abstract class KotlinxSerializationBase<T>(
         parameters: SerializationParameters
     ): T {
         val result = try {
-            serializerFromTypeInfo(parameters.typeInfo, format.serializersModule).let {
+            format.serializersModule.serializerForTypeInfo(parameters.typeInfo).let {
                 parameters.serializer = it
                 serializeContent(parameters)
             }
