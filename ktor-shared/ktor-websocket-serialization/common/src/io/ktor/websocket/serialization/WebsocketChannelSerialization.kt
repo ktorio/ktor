@@ -39,6 +39,7 @@ public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
  *
+ * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] fun and will be used to work with result [T] type
  * @param converter The WebSocket converter
  * @param charset Response charset
  *
