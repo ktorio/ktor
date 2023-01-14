@@ -71,12 +71,27 @@ public suspend inline fun <reified T> DefaultClientWebSocketSession.sendSerializ
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
-public suspend inline fun <reified T> DefaultClientWebSocketSession.receiveDeserialized(): T {
+public suspend inline fun <T> DefaultClientWebSocketSession.receiveDeserialized(typeInfo: TypeInfo): T {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
     return receiveDeserializedBase<T>(
+        typeInfo,
         converter,
         call.request.headers.suitableCharset()
     ) as T
 }
+
+/**
+ * Dequeues a frame and deserializes it to the type [T] using WebSocket content converter.
+ * May throw an exception [WebsocketDeserializeException] if the converter can't deserialize frame data to type [T].
+ * May throw [WebsocketDeserializeException] if the received frame type is not [Frame.Text] or [Frame.Binary].
+ * In this case, [WebsocketDeserializeException.frame] contains the received frame.
+ * May throw [ClosedReceiveChannelException] if a channel was closed
+ *
+ * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
+ */
+public suspend inline fun <reified T> DefaultClientWebSocketSession.receiveDeserialized(): T = receiveDeserialized(
+    typeInfo<T>()
+)
