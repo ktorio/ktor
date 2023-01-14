@@ -68,6 +68,8 @@ public suspend inline fun <reified T> DefaultClientWebSocketSession.sendSerializ
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
  *
+ * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] fun and will be used to work with result [T] type
+ *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
