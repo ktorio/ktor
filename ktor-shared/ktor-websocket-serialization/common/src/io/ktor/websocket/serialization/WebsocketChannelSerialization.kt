@@ -46,6 +46,7 @@ public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
  * can't deserialize frame data to type [T]
  */
 public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
+    typeInfo: TypeInfo,
     converter: WebsocketContentConverter,
     charset: Charset
 ): Any? {
@@ -58,17 +59,18 @@ public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
         )
     }
 
-    val typeInfo = typeInfo<T>()
     val result = converter.deserialize(
         charset = charset,
         typeInfo = typeInfo,
         content = frame
     )
-
-    if (result is T) return result
-    if (result == null) {
-        if (typeInfo.kotlinType?.isMarkedNullable == true) return null
-        throw WebsocketDeserializeException("Frame has null content", frame = frame)
+    
+    when {
+        typeInfo.type.isInstance(result) -> return result
+        result == null -> {
+            if (typeInfo.kotlinType?.isMarkedNullable == true) return null
+            throw WebsocketDeserializeException("Frame has null content", frame = frame)
+        }
     }
 
     throw WebsocketDeserializeException(
@@ -77,3 +79,24 @@ public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
         frame = frame
     )
 }
+
+/**
+ * Dequeues a frame and deserializes it to the type [T] using [converter].
+ * May throw [WebsocketDeserializeException] if the received frame type is not [Frame.Text] or [Frame.Binary].
+ * In this case, [WebsocketDeserializeException.frame] contains the received frame.
+ * May throw [ClosedReceiveChannelException] if a channel was closed
+ *
+ * @param converter The WebSocket converter
+ * @param charset Response charset
+ *
+ * @returns A deserialized value or throws [WebsocketDeserializeException] if the [converter]
+ * can't deserialize frame data to type [T]
+ */
+public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
+    converter: WebsocketContentConverter,
+    charset: Charset
+): Any? = receiveDeserializedBase(
+    typeInfo<T>(),
+    converter,
+    charset
+)
