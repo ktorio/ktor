@@ -102,7 +102,6 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(
                 inputChannel,
