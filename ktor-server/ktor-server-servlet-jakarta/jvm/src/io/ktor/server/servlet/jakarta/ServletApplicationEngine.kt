@@ -119,7 +119,8 @@ public open class ServletApplicationEngine : KtorServlet() {
 
         private val jettyUpgrade by lazy {
             try {
-                Class.forName("io.ktor.server.jetty.internal.JettyUpgradeImpl").kotlin.objectInstance as ServletUpgrade
+                Class.forName("io.ktor.server.jetty.jakarta.internal.JettyUpgradeImpl").kotlin.objectInstance
+                    as ServletUpgrade
             } catch (t: Throwable) {
                 null
             }
