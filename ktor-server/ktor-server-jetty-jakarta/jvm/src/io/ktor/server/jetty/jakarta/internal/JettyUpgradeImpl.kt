@@ -31,7 +31,7 @@ public object JettyUpgradeImpl : ServletUpgrade {
         val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
         val endPoint = connection.endPoint
 
-        // for upgraded connections IDLE timeout should be significantly increased
+        // for upgraded connections, IDLE timeout should be significantly increased
         endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
 
         withContext(engineContext + CoroutineName("upgrade-scope")) {
