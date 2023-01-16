@@ -19,7 +19,6 @@ import kotlin.coroutines.*
 /**
  * A base class for servlet engine implementations
  */
-@OptIn(InternalAPI::class)
 public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     /**
      * Set of headers that will be managed my the engine and should not be added manually
