@@ -9,6 +9,7 @@ import com.codahale.metrics.jvm.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -122,5 +123,30 @@ class DropwizardMetricsTests {
         client.get("/uri")
 
         assertEquals(1, testRegistry.meter("/uri/(method:GET).500").count)
+    }
+
+    @Test
+    fun `with CORS plugin`() = testApplication {
+        val testRegistry = MetricRegistry()
+        install(DropwizardMetrics) {
+            registry = testRegistry
+        }
+        install(CORS) {
+            anyHost()
+        }
+
+        routing {
+            get("/") {
+                call.respond("Hello, World")
+            }
+        }
+
+        val response = client.options("") {
+            header("Access-Control-Request-Method", "GET")
+            header("Origin", "https://ktor.io")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(1, testRegistry.meter("ktor.calls./(method:OPTIONS).200").count)
     }
 }

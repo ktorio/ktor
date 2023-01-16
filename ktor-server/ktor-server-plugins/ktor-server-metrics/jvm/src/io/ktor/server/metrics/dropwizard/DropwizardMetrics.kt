@@ -9,6 +9,7 @@ import com.codahale.metrics.MetricRegistry.*
 import com.codahale.metrics.jvm.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
@@ -100,10 +101,17 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
     }
 
 private fun PluginBuilder<DropwizardMetricsConfig>.callFinished(call: ApplicationCall) {
-    val routingMetrics = call.attributes.take(routingMetricsKey)
+    val routingMetrics = call.attributes.takeOrNull(routingMetricsKey)
+    val name = routingMetrics?.name ?: call.request.routeName
     val status = call.response.status()?.value ?: 0
     val statusMeter =
-        pluginConfig.registry.meter(name(pluginConfig.baseName, routingMetrics.name, status.toString()))
+        pluginConfig.registry.meter(name(pluginConfig.baseName, name, status.toString()))
     statusMeter.mark()
-    routingMetrics.context.stop()
+    routingMetrics?.context?.stop()
 }
+
+private val ApplicationRequest.routeName: String
+    get() {
+        val metricUri = uri.ifEmpty { "/" }.let { if (it.endsWith('/')) it else "$it/" }
+        return "$metricUri(method:${httpMethod.value})"
+    }
