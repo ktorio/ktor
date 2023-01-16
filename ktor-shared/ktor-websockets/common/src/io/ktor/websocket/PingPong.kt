@@ -53,7 +53,7 @@ internal fun CoroutineScope.pinger(
     val channel = Channel<Frame.Pong>(Channel.UNLIMITED)
 
     launch(actorJob + PingerCoroutineName) {
-        LOGGER.trace("Starting WebSocket pinger coroutine with perioud $periodMillis ms and timeout $timeoutMillis ms")
+        LOGGER.trace("Starting WebSocket pinger coroutine with period $periodMillis ms and timeout $timeoutMillis ms")
         val random = Random(getTimeMillis())
         val pingIdBytes = ByteArray(32)
 
