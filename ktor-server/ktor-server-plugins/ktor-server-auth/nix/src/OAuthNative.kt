@@ -17,7 +17,7 @@ internal actual suspend fun OAuthAuthenticationProvider.oauth1a(
     authProviderName: String?,
     context: AuthenticationContext
 ) {
-    throw NotImplementedError("Oauth1 is not supported on native targets")
+    throw NotImplementedError("OAuth1 is not supported on native targets")
 }
 
 /**
