@@ -93,7 +93,8 @@ internal actual class ConnectionPipeline actual constructor(
 
                     val version = HttpProtocolVersion.parse(rawResponse.version)
 
-                    shouldClose = (connectionType == ConnectionOptions.Close)
+                    shouldClose = (connectionType == null && version == HttpProtocolVersion.HTTP_1_0)
+                        || connectionType == ConnectionOptions.Close
 
                     val hasBody = (contentLength > 0 || chunked) &&
                         (method != HttpMethod.Head) &&
@@ -118,6 +119,7 @@ internal actual class ConnectionPipeline actual constructor(
 
                     responseChannel?.use {
                         parseHttpBody(
+                            version,
                             contentLength,
                             transferEncoding,
                             connectionType,
