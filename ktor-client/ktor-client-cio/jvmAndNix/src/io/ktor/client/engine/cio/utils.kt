@@ -155,7 +155,7 @@ internal suspend fun readResponse(
             else -> {
                 val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
                 val httpBodyParser = coroutineScope.writer(autoFlush = true) {
-                    parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+                    parseHttpBody(version, contentLength, transferEncoding, connectionType, input, channel)
                 }
                 httpBodyParser.channel
             }
