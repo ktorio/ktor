@@ -141,8 +141,50 @@ public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
 /**
  * Sets a multipart HTTP request body.
  */
+public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
+    bodyChannel = writer(Dispatchers.IOBridge) {
+        if (parts.isEmpty()) return@writer
+
+        try {
+            append("\r\n\r\n")
+            parts.forEach {
+                append("--$boundary\r\n")
+                for ((key, values) in it.headers.entries()) {
+                    append("$key: ${values.joinToString(";")}\r\n")
+                }
+                append("\r\n")
+                append(
+                    when (it) {
+                        is PartData.FileItem -> {
+                            channel.writeFully(it.provider().readBytes())
+                            ""
+                        }
+                        is PartData.BinaryItem -> {
+                            channel.writeFully(it.provider().readBytes())
+                            ""
+                        }
+                        is PartData.FormItem -> it.value
+                        is PartData.BinaryChannelItem -> {
+                            it.provider().copyTo(channel)
+                            ""
+                        }
+                    }
+                )
+                append("\r\n")
+            }
+
+            append("--$boundary--\r\n")
+        } finally {
+            parts.forEach { it.dispose() }
+        }
+    }.channel
+}
+
+/**
+ * Sets a multipart HTTP request body.
+ */
 @OptIn(DelicateCoroutinesApi::class)
-public fun buildMultipart(
+internal fun buildMultipart(
     boundary: String,
     parts: List<PartData>
 ): ByteReadChannel = GlobalScope.writer(Dispatchers.IOBridge) {

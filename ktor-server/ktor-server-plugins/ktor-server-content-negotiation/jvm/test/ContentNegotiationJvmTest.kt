@@ -13,11 +13,15 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.internal.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.io.*
 import kotlin.test.*
+import kotlin.text.toByteArray
 
 class ContentNegotiationJvmTest {
     private val alwaysFailingConverter = object : ContentConverter {
@@ -102,4 +106,49 @@ class ContentNegotiationJvmTest {
         val response = client.get("/").bodyAsText()
         assertEquals("""{"x": 123}""", response)
     }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal fun buildMultipart(
+    boundary: String,
+    parts: List<PartData>
+): ByteReadChannel = GlobalScope.writer(Dispatchers.IO) {
+    if (parts.isEmpty()) return@writer
+
+    try {
+        append("\r\n\r\n")
+        parts.forEach {
+            append("--$boundary\r\n")
+            for ((key, values) in it.headers.entries()) {
+                append("$key: ${values.joinToString(";")}\r\n")
+            }
+            append("\r\n")
+            append(
+                when (it) {
+                    is PartData.FileItem -> {
+                        channel.writeFully(it.provider().readBytes())
+                        ""
+                    }
+                    is PartData.BinaryItem -> {
+                        channel.writeFully(it.provider().readBytes())
+                        ""
+                    }
+                    is PartData.FormItem -> it.value
+                    is PartData.BinaryChannelItem -> {
+                        it.provider().copyTo(channel)
+                        ""
+                    }
+                }
+            )
+            append("\r\n")
+        }
+
+        append("--$boundary--\r\n")
+    } finally {
+        parts.forEach { it.dispose() }
+    }
+}.channel
+
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
 }
