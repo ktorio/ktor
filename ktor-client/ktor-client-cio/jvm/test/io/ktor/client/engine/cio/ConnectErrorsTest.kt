@@ -82,6 +82,60 @@ class ConnectErrorsTest {
     }
 
     @Test
+    fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10(): Unit = runBlocking {
+        val client = HttpClient(CIO)
+
+        client.use {
+            serverSocket.close()
+
+            ServerSocket(serverSocket.localPort).use { newServer ->
+                val thread = thread {
+                    try {
+                        newServer.accept().use { client ->
+                            client.getOutputStream().let { out ->
+                                out.write("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\nOK".toByteArray())
+                                out.flush()
+                                out.close()
+                            }
+                            client.getInputStream().readBytes()
+                        }
+                    } catch (ignore: SocketException) {
+                    }
+                }
+                assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
+                thread.join()
+            }
+        }
+    }
+
+    @Test
+    fun testResponseErrorWithNoLengthChunkedAndConnectionClosedWithHttp11(): Unit = runBlocking {
+        val client = HttpClient(CIO)
+
+        client.use {
+            serverSocket.close()
+
+            ServerSocket(serverSocket.localPort).use { newServer ->
+                val thread = thread {
+                    try {
+                        newServer.accept().use { client ->
+                            client.getOutputStream().let { out ->
+                                out.write("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nOK".toByteArray())
+                                out.flush()
+                                out.close()
+                            }
+                            client.getInputStream().readBytes()
+                        }
+                    } catch (ignore: SocketException) {
+                    }
+                }
+                assertFails { client.get("http://localhost:${serverSocket.localPort}/") }
+                thread.join()
+            }
+        }
+    }
+
+    @Test
     fun testLateServerStart(): Unit = runBlocking {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)

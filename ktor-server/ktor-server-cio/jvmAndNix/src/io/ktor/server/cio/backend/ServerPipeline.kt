@@ -73,7 +73,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             val transferEncoding = request.headers["Transfer-Encoding"]
             val upgrade = request.headers["Upgrade"]
             val contentType = request.headers["Content-Type"]
-            val http11 = request.version == "HTTP/1.1"
+            val version = HttpProtocolVersion.parse(request.version)
 
             val connectionOptions: ConnectionOptions?
             val contentLength: Long
@@ -156,6 +156,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             if (expectedHttpBody && requestBody is ByteWriteChannel) {
                 try {
                     parseHttpBody(
+                        version,
                         contentLength,
                         transferEncoding,
                         connectionOptions,
@@ -172,7 +173,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 }
             }
 
-            if (isLastHttpRequest(http11, connectionOptions)) break
+            if (isLastHttpRequest(version, connectionOptions)) break
         }
     } catch (cause: IOException) { // already handled
         coroutineContext.cancel()
@@ -219,9 +220,10 @@ private val BadRequestPacket = RequestResponseBuilder().apply {
     emptyLine()
 }.build()
 
-internal fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+internal fun isLastHttpRequest(version: HttpProtocolVersion, connectionOptions: ConnectionOptions?): Boolean {
     return when {
-        connectionOptions == null -> !http11
+        connectionOptions == null && version == HttpProtocolVersion.HTTP_1_0 -> true
+        connectionOptions == null -> version != HttpProtocolVersion.HTTP_1_1
         connectionOptions.keepAlive -> false
         connectionOptions.close -> true
         else -> false
