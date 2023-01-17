@@ -149,8 +149,10 @@ public class HttpCallValidator internal constructor(
 
             scope.plugin(HttpSend).intercept { request ->
                 val call = execute(request)
-                plugin.validateResponse(call.response)
-                call
+                val body = call.response.body<ByteArray>()
+                val responseToValidate = SavedHttpCall(scope, call.request, call.response, body)
+                plugin.validateResponse(responseToValidate.response)
+                SavedHttpCall(scope, call.request, call.response, body)
             }
         }
     }

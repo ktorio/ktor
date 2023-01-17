@@ -487,6 +487,26 @@ class CallValidatorTest {
             }
         }
     }
+
+    @Test
+    fun testResponseValidatorNotConsumesBody() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    respond("Hello, world")
+                }
+            }
+            HttpResponseValidator {
+                validateResponse { response ->
+                    assertEquals("Hello, world", response.bodyAsText())
+                }
+            }
+        }
+
+        test { client ->
+            assertEquals("Hello, world", client.get("").bodyAsText())
+        }
+    }
 }
 
 internal class CallValidatorTestException : Throwable()
