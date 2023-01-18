@@ -73,6 +73,6 @@ private suspend fun convertBody(
         convertedBody != null -> convertedBody
         !body.isClosedForRead -> body
         receiveType.kotlinType?.isMarkedNullable == true -> NullBody
-        else -> throw BadRequestException("Cannot convert request body to ${receiveType.type}")
+        else -> null
     }
 }
