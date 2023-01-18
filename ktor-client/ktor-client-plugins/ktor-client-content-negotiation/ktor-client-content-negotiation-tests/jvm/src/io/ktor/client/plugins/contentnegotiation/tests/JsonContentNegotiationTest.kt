@@ -209,4 +209,26 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             assertEquals(null, response.body<Wrapper?>())
         }
     }
+
+    @Test
+    fun testNoCharsetIsAdded() = testApplication {
+        routing {
+            post("/") {
+                assertNull(call.request.contentType().charset())
+                call.respond("OK")
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType("application", "json-patch+json"), converter)
+            }
+        }.post("/") {
+            val data: Wrapper? = null
+            contentType(ContentType("application", "json-patch+json"))
+            setBody(data)
+        }.let {
+            assertEquals("OK", it.bodyAsText())
+        }
+    }
 }
