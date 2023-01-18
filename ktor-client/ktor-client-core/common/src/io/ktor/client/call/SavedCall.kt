@@ -15,6 +15,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+internal fun HttpResponse.withBody(body: ByteArray): HttpResponse =
+    SavedHttpCall(call.client, call.request, this, body).response
+
 internal class SavedHttpCall(
     client: HttpClient,
     request: HttpRequest,

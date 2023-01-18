@@ -15,6 +15,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.core.*
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCallValidator")
 
@@ -46,9 +47,14 @@ public class HttpCallValidator internal constructor(
     private val expectSuccess: Boolean
 ) {
 
-    private suspend fun validateResponse(response: HttpResponse) {
+    @OptIn(InternalAPI::class)
+    private suspend fun validateResponse(response: HttpResponse): HttpResponse {
         LOGGER.trace("Validating response for request ${response.call.request.url}")
-        responseValidators.forEach { it(response) }
+        if (responseValidators.isEmpty()) return response
+
+        val body = response.content.readRemaining().readBytes()
+        responseValidators.forEach { it(response.withBody(body)) }
+        return response.withBody(body)
     }
 
     private suspend fun processException(cause: Throwable, request: HttpRequest) {
@@ -149,10 +155,7 @@ public class HttpCallValidator internal constructor(
 
             scope.plugin(HttpSend).intercept { request ->
                 val call = execute(request)
-                val body = call.response.body<ByteArray>()
-                val responseToValidate = SavedHttpCall(scope, call.request, call.response, body)
-                plugin.validateResponse(responseToValidate.response)
-                SavedHttpCall(scope, call.request, call.response, body)
+                return@intercept plugin.validateResponse(call.response).call
             }
         }
     }
