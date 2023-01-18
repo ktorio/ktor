@@ -14,6 +14,7 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import java.io.*
+import java.security.*
 
 /**
  * Creates storage that uses file system to store cache data.
@@ -77,7 +78,7 @@ private class FileCacheStorage(
         return readCache(key(url)).find { it.varyKeys == varyKeys }
     }
 
-    private fun key(url: Url) = hex(url.toString().encodeToByteArray())
+    private fun key(url: Url) = hex(MessageDigest.getInstance("MD5").digest(url.toString().encodeToByteArray()))
 
     private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
