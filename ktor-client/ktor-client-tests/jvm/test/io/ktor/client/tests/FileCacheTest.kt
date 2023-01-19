@@ -7,7 +7,6 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import java.nio.file.*
@@ -84,8 +83,8 @@ class FileCacheTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_SERVER/cache/cache_${"a".repeat(256)}")
-            assertEquals("abc", response.bodyAsText())
+            val response = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}").body<String>()
+            assertEquals("abc", response)
         }
     }
 }

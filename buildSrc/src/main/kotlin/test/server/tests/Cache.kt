@@ -94,7 +94,7 @@ internal fun Application.cacheTestServer() {
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Private))
                 call.respondText("private")
             }
-            get("/cache_${"a".repeat(256)}") {
+            get("/cache_${"a".repeat(3000)}") {
                 call.respondText { "abc" }
             }
         }
