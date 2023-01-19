@@ -47,9 +47,11 @@ public class DropwizardMetricsConfig {
  */
 public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
     createApplicationPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
-        val duration = pluginConfig.registry.timer(name(pluginConfig.baseName, "duration"))
-        val active = pluginConfig.registry.counter(name(pluginConfig.baseName, "active"))
-        val exceptions = pluginConfig.registry.meter(name(pluginConfig.baseName, "exceptions"))
+        val registry = pluginConfig.registry
+        val baseName = pluginConfig.baseName
+        val duration = registry.timer(name(baseName, "duration"))
+        val active = registry.counter(name(baseName, "active"))
+        val exceptions = registry.meter(name(baseName, "exceptions"))
         val httpStatus = ConcurrentHashMap<Int, Meter>()
 
         if (pluginConfig.registerJvmMetricSets) {
@@ -60,8 +62,8 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
                 "jvm.files" to ::FileDescriptorRatioGauge,
                 "jvm.attributes" to ::JvmAttributeGaugeSet
             ).filter { (name, _) ->
-                !pluginConfig.registry.names.any { existingName -> existingName.startsWith(name) }
-            }.forEach { (name, metric) -> pluginConfig.registry.register(name, metric()) }
+                !registry.names.any { existingName -> existingName.startsWith(name) }
+            }.forEach { (name, metric) -> registry.register(name, metric()) }
         }
 
         on(CallFailed) { _, _ ->
@@ -70,8 +72,8 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
 
         on(MonitoringEvent(Routing.RoutingCallStarted)) { call ->
             val name = call.route.toString()
-            val meter = pluginConfig.registry.meter(name(pluginConfig.baseName, name, "meter"))
-            val timer = pluginConfig.registry.timer(name(pluginConfig.baseName, name, "timer"))
+            val meter = registry.meter(name(baseName, name, "meter"))
+            val timer = registry.timer(name(baseName, name, "timer"))
             meter.mark()
             val context = timer.time()
             call.attributes.put(
@@ -87,11 +89,17 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
         }
 
         on(ResponseSent) { call ->
-            callFinished(call)
+            val routingMetrics = call.attributes.takeOrNull(routingMetricsKey)
+            val name = routingMetrics?.name ?: call.request.routeName
+            val status = call.response.status()?.value ?: 0
+            val statusMeter =
+                registry.meter(name(baseName, name, status.toString()))
+            statusMeter.mark()
+            routingMetrics?.context?.stop()
 
             active.dec()
             val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
-                pluginConfig.registry.meter(name(pluginConfig.baseName, "status", it.toString()))
+                registry.meter(name(baseName, "status", it.toString()))
             }
             meter.mark()
             call.attributes.getOrNull(measureKey)?.apply {
@@ -99,16 +107,6 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             }
         }
     }
-
-private fun PluginBuilder<DropwizardMetricsConfig>.callFinished(call: ApplicationCall) {
-    val routingMetrics = call.attributes.takeOrNull(routingMetricsKey)
-    val name = routingMetrics?.name ?: call.request.routeName
-    val status = call.response.status()?.value ?: 0
-    val statusMeter =
-        pluginConfig.registry.meter(name(pluginConfig.baseName, name, status.toString()))
-    statusMeter.mark()
-    routingMetrics?.context?.stop()
-}
 
 private val ApplicationRequest.routeName: String
     get() {
