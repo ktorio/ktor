@@ -235,6 +235,7 @@ public final class io/ktor/network/sockets/SocketBuilder : io/ktor/network/socke
 	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
 	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/SocketBuilder;
 	public fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
+	public final fun getSelector ()Lio/ktor/network/selector/SelectorManager;
 	public fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun tcp ()Lio/ktor/network/sockets/TcpSocketBuilder;
 	public final fun udp ()Lio/ktor/network/sockets/UDPSocketBuilder;
@@ -248,6 +249,7 @@ public abstract class io/ktor/network/sockets/SocketOptions {
 	public final fun getReuseAddress ()Z
 	public final fun getReusePort ()Z
 	public final fun getTypeOfService-zieKYfw ()B
+	public final fun peer ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
 	public final fun setReuseAddress (Z)V
 	public final fun setReusePort (Z)V
 	public final fun setTypeOfService-SNCuOGA (B)V
@@ -267,8 +269,15 @@ public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/n
 	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun getReceiveBufferSize ()I
 	public final fun getSendBufferSize ()I
+	public final fun quic ()Lio/ktor/network/sockets/SocketOptions$QUICSocketOptions;
 	public final fun setReceiveBufferSize (I)V
 	public final fun setSendBufferSize (I)V
+}
+
+public final class io/ktor/network/sockets/SocketOptions$QUICSocketOptions : io/ktor/network/sockets/SocketOptions$UDPSocketOptions {
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 }
 
 public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
@@ -284,9 +293,10 @@ public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions 
 	public final fun setSocketTimeout (J)V
 }
 
-public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
+public class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun getBroadcast ()Z
 	public final fun setBroadcast (Z)V
 }
@@ -362,6 +372,11 @@ public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/so
 }
 
 public final class io/ktor/network/sockets/UDPSocketBuilder$Companion {
+}
+
+public final class io/ktor/network/sockets/UDPSocketBuilderJvmKt {
+	public static final fun bindUDPConfigurable (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/BoundDatagramSocket;
+	public static synthetic fun bindUDPConfigurable$default (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketAddress;Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/sockets/BoundDatagramSocket;
 }
 
 public final class io/ktor/network/sockets/UnixSocketAddress : io/ktor/network/sockets/SocketAddress {

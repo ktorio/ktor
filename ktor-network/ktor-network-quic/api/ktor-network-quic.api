@@ -1,0 +1,55 @@
+public final class io/ktor/network/quic/sockets/BuildersKt {
+	public static final fun quic (Lio/ktor/network/sockets/SocketBuilder;)Lio/ktor/network/quic/sockets/QUICSocketBuilder;
+}
+
+public final class io/ktor/network/quic/sockets/QUICSocketBuilder : io/ktor/network/sockets/Configurable {
+	public static final field Companion Lio/ktor/network/quic/sockets/QUICSocketBuilder$Companion;
+	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions$QUICSocketOptions;)V
+	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/quic/streams/BoundQUICSocket;
+	public static synthetic fun bind$default (Lio/ktor/network/quic/sockets/QUICSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/network/quic/streams/BoundQUICSocket;
+	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/quic/sockets/QUICSocketBuilder;
+	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
+	public fun getOptions ()Lio/ktor/network/sockets/SocketOptions$QUICSocketOptions;
+	public synthetic fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
+	public fun setOptions (Lio/ktor/network/sockets/SocketOptions$QUICSocketOptions;)V
+	public synthetic fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
+}
+
+public final class io/ktor/network/quic/sockets/QUICSocketBuilder$Companion {
+}
+
+public abstract interface class io/ktor/network/quic/streams/BoundQUICSocket : io/ktor/network/quic/streams/QUICStreamReadWriteChannel, io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AReadable, io/ktor/network/sockets/ASocket {
+}
+
+public final class io/ktor/network/quic/streams/BoundQUICSocket$DefaultImpls {
+	public static fun dispose (Lio/ktor/network/quic/streams/BoundQUICSocket;)V
+	public static fun receive (Lio/ktor/network/quic/streams/BoundQUICSocket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun send (Lio/ktor/network/quic/streams/BoundQUICSocket;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/network/quic/streams/QUICStreamReadChannel {
+	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public abstract fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/network/quic/streams/QUICStreamReadChannel$DefaultImpls {
+	public static fun receive (Lio/ktor/network/quic/streams/QUICStreamReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/network/quic/streams/QUICStreamReadWriteChannel : io/ktor/network/quic/streams/QUICStreamReadChannel, io/ktor/network/quic/streams/QUICStreamWriteChannel {
+}
+
+public final class io/ktor/network/quic/streams/QUICStreamReadWriteChannel$DefaultImpls {
+	public static fun receive (Lio/ktor/network/quic/streams/QUICStreamReadWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun send (Lio/ktor/network/quic/streams/QUICStreamReadWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/network/quic/streams/QUICStreamWriteChannel {
+	public abstract fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
+	public abstract fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/network/quic/streams/QUICStreamWriteChannel$DefaultImpls {
+	public static fun send (Lio/ktor/network/quic/streams/QUICStreamWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
