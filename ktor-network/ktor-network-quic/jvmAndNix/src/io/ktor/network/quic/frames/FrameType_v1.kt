@@ -12,7 +12,7 @@ package io.ktor.network.quic.frames
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-frame-types-and-formats)
  */
-internal enum class FrameType_v1(val typeValue: Int) {
+internal enum class FrameType_v1(val typeValue: Byte) {
     PADDING(0x00),
     PING(0x01),
 

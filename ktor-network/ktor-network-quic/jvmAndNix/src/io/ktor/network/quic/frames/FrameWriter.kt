@@ -291,7 +291,7 @@ internal object FrameWriter {
 
     fun writeConnectionCloseWithQUICError(
         packetBuilder: BytePacketBuilder,
-        errorCode: TransportErrorCode_v1,
+        errorCode: QUICTransportErrorCode_v1,
         frameTypeV1: FrameType_v1,
         reasonPhase: ByteArray
     ) = writeConnectionClose(
@@ -336,7 +336,7 @@ internal object FrameWriter {
 
     private fun BytePacketBuilder.writeType(typeV1: FrameType_v1) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
-        writeByte(typeV1.typeValue.toByte())
+        writeByte(typeV1.typeValue)
     }
 
     private fun BytePacketBuilder.writeConnectionId(idV1: ConnectionId_v1) {
@@ -345,6 +345,6 @@ internal object FrameWriter {
     }
 
     private fun BytePacketBuilder.writeErrorCode(errorCode: ErrorCode_v1) {
-        TODO("write as varint")
+        errorCode.writeToFrame(this)
     }
 }
