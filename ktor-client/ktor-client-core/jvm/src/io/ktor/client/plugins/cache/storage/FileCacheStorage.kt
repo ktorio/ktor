@@ -4,6 +4,7 @@
 
 package io.ktor.client.plugins.cache.storage
 
+import io.ktor.client.plugins.cache.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
@@ -84,15 +85,19 @@ private class FileCacheStorage(
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val channel = ByteChannel()
-            File(directory, urlHex).outputStream().buffered().use { output ->
-                launch {
-                    channel.writeInt(caches.size)
-                    for (cache in caches) {
-                        writeCache(channel, cache)
+            try {
+                File(directory, urlHex).outputStream().buffered().use { output ->
+                    launch {
+                        channel.writeInt(caches.size)
+                        for (cache in caches) {
+                            writeCache(channel, cache)
+                        }
+                        channel.close()
                     }
-                    channel.close()
+                    channel.copyTo(output)
                 }
-                channel.copyTo(output)
+            } catch (e: Exception) {
+                LOGGER.trace("Exception during caching: ${e.stackTraceToString()}")
             }
         }
     }
@@ -103,15 +108,20 @@ private class FileCacheStorage(
             val file = File(directory, urlHex)
             if (!file.exists()) return emptySet()
 
-            file.inputStream().buffered().use {
-                val channel = it.toByteReadChannel()
-                val requestsCount = channel.readInt()
-                val caches = mutableSetOf<CachedResponseData>()
-                for (i in 0 until requestsCount) {
-                    caches.add(readCache(channel))
+            try {
+                file.inputStream().buffered().use {
+                    val channel = it.toByteReadChannel()
+                    val requestsCount = channel.readInt()
+                    val caches = mutableSetOf<CachedResponseData>()
+                    for (i in 0 until requestsCount) {
+                        caches.add(readCache(channel))
+                    }
+                    channel.discard()
+                    return caches
                 }
-                channel.discard()
-                return caches
+            } catch (e: Exception) {
+                LOGGER.trace("Exception during cache lookup: ${e.stackTraceToString()}")
+                return emptySet()
             }
         }
     }
