@@ -73,4 +73,18 @@ class FileCacheTest : ClientLoader() {
             assertEquals(0, privateStorage.findAll(url).size)
         }
     }
+
+    @Test
+    fun testLongPath() = clientTests {
+        config {
+            install(HttpCache) {
+                publicStorage(this@FileCacheTest.publicStorage)
+            }
+        }
+
+        test { client ->
+            val response = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}").body<String>()
+            assertEquals("abc", response)
+        }
+    }
 }
