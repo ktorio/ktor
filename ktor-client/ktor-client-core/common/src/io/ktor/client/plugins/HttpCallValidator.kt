@@ -52,9 +52,15 @@ public class HttpCallValidator internal constructor(
         LOGGER.trace("Validating response for request ${response.call.request.url}")
         if (responseValidators.isEmpty()) return response
 
-        val body = response.content.readRemaining().readBytes()
-        responseValidators.forEach { it(response.withBody(body)) }
-        return response.withBody(body)
+        val contentLength = response.contentLength() ?: -1L
+        return if (contentLength <= 0) {
+            responseValidators.forEach { it(response) }
+            response
+        } else {
+            val body = response.content.readRemaining().readBytes()
+            responseValidators.forEach { it(response.withBody(body)) }
+            response.withBody(body)
+        }
     }
 
     private suspend fun processException(cause: Throwable, request: HttpRequest) {
