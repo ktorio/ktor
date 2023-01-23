@@ -4,6 +4,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.util.*
 
 /**
  * Start building a socket
@@ -15,18 +16,20 @@ public fun aSocket(selector: SelectorManager): SocketBuilder = SocketBuilder(sel
  */
 @Suppress("PublicApiImplicitType", "unused")
 public class SocketBuilder internal constructor(
-    private val selector: SelectorManager,
+    public val selector: SelectorManager,
     override var options: SocketOptions
 ) : Configurable<SocketBuilder, SocketOptions> {
 
     /**
      * Build TCP socket.
      */
+    @OptIn(InternalAPI::class)
     public fun tcp(): TcpSocketBuilder = TcpSocketBuilder(selector, options.peer())
 
     /**
      * Build UDP socket.
      */
+    @OptIn(InternalAPI::class)
     public fun udp(): UDPSocketBuilder = UDPSocketBuilder(selector, options.peer().udp())
 }
 
