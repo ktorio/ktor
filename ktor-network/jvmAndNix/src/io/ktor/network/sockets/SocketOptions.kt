@@ -4,6 +4,8 @@
 
 package io.ktor.network.sockets
 
+import io.ktor.util.*
+
 internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
 
 /**
@@ -25,7 +27,8 @@ public sealed class SocketOptions(
         reusePort = from.reusePort
     }
 
-    internal fun peer(): PeerSocketOptions {
+    @InternalAPI
+    public fun peer(): PeerSocketOptions {
         return PeerSocketOptions(HashMap(customOptions)).apply {
             copyCommon(this@SocketOptions)
         }
@@ -126,12 +129,19 @@ public sealed class SocketOptions(
                 copyCommon(this@PeerSocketOptions)
             }
         }
+
+        @InternalAPI
+        public fun quic(): QUICSocketOptions {
+            return QUICSocketOptions(HashMap(customOptions)).apply {
+                copyCommon(this@PeerSocketOptions)
+            }
+        }
     }
 
     /**
      * Represents UDP socket options
      */
-    public class UDPSocketOptions internal constructor(
+    public open class UDPSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
     ) : PeerSocketOptions(customOptions) {
 
@@ -150,6 +160,19 @@ public sealed class SocketOptions(
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)
+            }
+        }
+    }
+
+    /**
+     * Represents QUIC socket options
+     */
+    public class QUICSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : UDPSocketOptions(customOptions) {
+        override fun copy(): QUICSocketOptions {
+            return QUICSocketOptions(HashMap(customOptions)).apply {
+                copyCommon(this@QUICSocketOptions)
             }
         }
     }
