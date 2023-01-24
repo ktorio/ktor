@@ -9,50 +9,50 @@ import io.ktor.util.*
 private typealias ExtensionInstaller = () -> WebSocketExtension<*>
 
 /**
- * Factory that defines WebSocket extension. The factory is used in pair with [WebSocketExtensionsConfig.install]
- * method to install WebSocket extension in client or server.
+ * A factory that defines a WebSocket extension. The factory is used in pair with the
+ * [WebSocketExtensionsConfig.install] method to install the WebSocket extension in client or server.
  *
- * Usually this interface implemented in `companion object` of the origin [WebSocketExtension].
+ * Usually this interface is implemented in `companion object` of the origin [WebSocketExtension].
  */
 public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : WebSocketExtension<ConfigType>> {
     /**
-     * Key is used to locate extension.
+     * A key used to locate an extension.
      */
     public val key: AttributeKey<ExtensionType>
 
     /**
-     * First extension bit used by current extension.
+     * The first extension bit used by the current extension.
      *
-     * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
-     * To set the flag value please consult with specification of the extension you're using.
+     * This flag is used to detect extension conflicts: only one plugin with the enabled flag is allowed.
+     * To set the flag value, consult with specification of the extension you're using.
      */
     public val rsv1: Boolean
 
     /**
-     * Second extension bit used by current extension.
+     * A second extension bit used by the current extension.
      *
-     * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
-     * To set the flag value please consult with specification of the extension you're using.
+     * This flag is used to detect extension conflicts: only one plugin with the enabled flag is allowed.
+     * To set the flag value, consult with specification of the extension you're using.
      */
     public val rsv2: Boolean
 
     /**
-     * Third extension bit used by current extension.
+     * A third extension bit used by the current extension.
      *
      * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
-     * To set the flag value please consult with specification of the extension you're using.
+     * To set the flag value, consult with specification of the extension you're using.
      */
     public val rsv3: Boolean
 
     /**
-     * Create extension instance using [config] block. The extension instance is created for each WebSocket request.
+     * Creates an extension instance using [config] block. The extension instance is created for each WebSocket request.
      */
     public fun install(config: ConfigType.() -> Unit): ExtensionType
 }
 
 /**
- * WebSocket extension instance. This instance is created for each WebSocket request, for every installed extension by
- * [WebSocketExtensionFactory].
+ * A WebSocket extension instance.
+ * This instance is created for each WebSocket request, for every installed extension by [WebSocketExtensionFactory].
  */
 public interface WebSocketExtension<ConfigType : Any> {
 
@@ -63,14 +63,14 @@ public interface WebSocketExtension<ConfigType : Any> {
 
     /**
      * List of WebSocket extension protocols which will be sent by client in headers.
-     * They are required to inform server that client wants to negotiate current extension.
+     * They are required to inform server that client wants to negotiate the current extension.
      */
     public val protocols: List<WebSocketExtensionHeader>
 
     /**
-     * This method is called only for a client, when it receives the WebSocket upgrade response.
+     * This method is called only for the client, when it receives the WebSocket upgrade response.
      *
-     * @param negotiatedProtocols contains list of negotiated extensions from server (can be empty).
+     * @param negotiatedProtocols contains list of negotiated extensions from the server (can be empty).
      *
      * It's up to extension to decide if it should be used or not.
      * @return `true` if the extension should be used by the client.
@@ -78,11 +78,11 @@ public interface WebSocketExtension<ConfigType : Any> {
     public fun clientNegotiation(negotiatedProtocols: List<WebSocketExtensionHeader>): Boolean
 
     /**
-     * This method is called only for a server, when it receives websocket session.
+     * This method is called only for the server, when it receives WebSocket session.
      *
-     * @param requestedProtocols contains list of requested extensions from client (can be empty).
+     * @param requestedProtocols contains list of requested extensions from the client (can be empty).
      *
-     * @return list of protocols (with parameters) which server prefer to use for current client request.
+     * @return list of protocols (with parameters), which server prefers to use for the current client request.
      */
     public fun serverNegotiation(
         requestedProtocols: List<WebSocketExtensionHeader>
@@ -100,14 +100,14 @@ public interface WebSocketExtension<ConfigType : Any> {
 }
 
 /**
- * Extensions configuration for WebSocket client and server plugins.
+ * Extensions configuration for the WebSocket client and server plugins.
  */
 public class WebSocketExtensionsConfig {
     private val installers: MutableList<ExtensionInstaller> = mutableListOf()
     private val rcv: Array<Boolean> = arrayOf(false, false, false)
 
     /**
-     * Install provided [extension] using [config]. Every extension is processed in order of installation.
+     * Installs the provided [extension] using [config]. Every extension is processed in order of installation.
      */
     public fun <ConfigType : Any> install(
         extension: WebSocketExtensionFactory<ConfigType, *>,
@@ -118,7 +118,7 @@ public class WebSocketExtensionsConfig {
     }
 
     /**
-     * Instantiate all installed extensions.
+     * Instantiates all installed extensions.
      */
     public fun build(): List<WebSocketExtension<*>> = installers.map { it() }
 
