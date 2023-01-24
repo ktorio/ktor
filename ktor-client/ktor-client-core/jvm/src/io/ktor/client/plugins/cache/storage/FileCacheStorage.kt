@@ -97,7 +97,7 @@ private class FileCacheStorage(
                     channel.copyTo(output)
                 }
             } catch (cause: Exception) {
-                LOGGER.trace("Exception during saving cache to file: ${cause.stackTraceToString()}")
+                LOGGER.trace("Exception during saving a cache to a file: ${cause.stackTraceToString()}")
             }
         }
     }
@@ -120,7 +120,7 @@ private class FileCacheStorage(
                     return caches
                 }
             } catch (cause: Exception) {
-                LOGGER.trace("Exception during cache lookup in file: ${cause.stackTraceToString()}")
+                LOGGER.trace("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
                 return emptySet()
             }
         }
