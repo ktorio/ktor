@@ -2,12 +2,9 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("LocalVariableName")
-
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 import io.ktor.utils.io.core.*
 
@@ -17,53 +14,57 @@ import io.ktor.utils.io.core.*
  */
 internal object FrameWriter {
     fun writePadding(
-        packetBuilder: BytePacketBuilder
+        packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.PADDING)
+        writeFrameType(FrameType_v1.PADDING)
     }
 
     fun writePing(
-        packetBuilder: BytePacketBuilder
+        packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.PING)
+        writeFrameType(FrameType_v1.PING)
     }
 
+    /**
+     * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
+     * Example: (18, 16, 14, 12, 10, 8, 6, 4) - here ranges are (18, 16), (14, 12), (10, 8), (6, 4) (both ends are inclusive)
+     * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
+     * fields of the ACK frame
+     */
     fun writeACK(
         packetBuilder: BytePacketBuilder,
-        largestAcknowledged: VarInt,
-        ackRangeCount: VarInt,
-        firstACKRange: VarInt,
-        ackRangesGaps: Array<VarInt>,
-        ackRangesCounts: Array<VarInt>,
+        ackDelay: Long,
+        ack_delay_exponent: Int,
+        ackRanges: LongArray,
     ) = packetBuilder.writeACK(
         typeV1 = FrameType_v1.ACK,
-        largestAcknowledged = largestAcknowledged,
-        ackRangeCount = ackRangeCount,
-        firstACKRange = firstACKRange,
-        ackRangesGaps = ackRangesGaps,
-        ackRangesCounts = ackRangesCounts,
+        ackDelay = ackDelay,
+        ack_delay_exponent = ack_delay_exponent,
+        ackRanges = ackRanges,
         ect0 = null,
         ect1 = null,
         ectCE = null
     )
 
+    /**
+     * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
+     * Example: (18, 16, 14, 12, 10, 8, 6, 4) - here ranges are (18, 16), (14, 12), (10, 8), (6, 4) (both ends are inclusive)
+     * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
+     * fields of the ACK frame
+     */
     fun writeACKWithECN(
         packetBuilder: BytePacketBuilder,
-        largestAcknowledged: VarInt,
-        ackRangeCount: VarInt,
-        firstACKRange: VarInt,
-        ackRangesGaps: Array<VarInt>,
-        ackRangesCounts: Array<VarInt>,
-        ect0: VarInt,
-        ect1: VarInt,
-        ectCE: VarInt,
+        ackDelay: Long,
+        ack_delay_exponent: Int,
+        ackRanges: LongArray,
+        ect0: Long,
+        ect1: Long,
+        ectCE: Long,
     ) = packetBuilder.writeACK(
         typeV1 = FrameType_v1.ACK_ECN,
-        largestAcknowledged = largestAcknowledged,
-        ackRangeCount = ackRangeCount,
-        firstACKRange = firstACKRange,
-        ackRangesGaps = ackRangesGaps,
-        ackRangesCounts = ackRangesCounts,
+        ackDelay = ackDelay,
+        ack_delay_exponent = ack_delay_exponent,
+        ackRanges = ackRanges,
         ect0 = ect0,
         ect1 = ect1,
         ectCE = ectCE
@@ -71,27 +72,41 @@ internal object FrameWriter {
 
     private fun BytePacketBuilder.writeACK(
         typeV1: FrameType_v1,
-        largestAcknowledged: VarInt,
-        ackRangeCount: VarInt,
-        firstACKRange: VarInt,
-        ackRangesGaps: Array<VarInt>,
-        ackRangesCounts: Array<VarInt>,
-        ect0: VarInt?,
-        ect1: VarInt?,
-        ectCE: VarInt?,
+        ackDelay: Long,
+        ack_delay_exponent: Int,
+        ackRanges: LongArray,
+        ect0: Long?,
+        ect1: Long?,
+        ectCE: Long?,
     ) {
-        require(ackRangesGaps.size == ackRangesCounts.size) {
-            "Array of ACK Ranges gaps should be the same size as the corresponding ACK counts array"
+        require(ackRanges.isNotEmpty()) {
+            "'ackRanges' parameter can not be empty"
+        }
+        require(ackRanges.size % 2 == 0) {
+            "'ackRanges' parameter's size should be even"
         }
 
-        writeType(typeV1)
+        val largestAcknowledged = ackRanges.first()
+        val firstACKRange = largestAcknowledged - ackRanges[1]
+        val ackRangeCount = ackRanges.size / 2 - 1
+
+        writeFrameType(typeV1)
         writeVarInt(largestAcknowledged)
+        writeVarInt(ackDelay ushr ack_delay_exponent)
         writeVarInt(ackRangeCount)
         writeVarInt(firstACKRange)
 
-        ackRangesGaps.forEachIndexed { i, gap ->
+        var lastSmallestAcknowledged = ackRanges[1]
+        var i = 2
+        while (i < ackRanges.size) {
+            val gap = ackRanges[i] - lastSmallestAcknowledged - 2
+            lastSmallestAcknowledged = ackRanges[i + 1]
+            val length = ackRanges[i] - lastSmallestAcknowledged
+
             writeVarInt(gap)
-            writeVarInt(ackRangesCounts[i])
+            writeVarInt(length)
+
+            i += 2
         }
 
         ect0?.let {
@@ -103,34 +118,34 @@ internal object FrameWriter {
 
     fun writeResetStream(
         packetBuilder: BytePacketBuilder,
-        streamId: VarInt,
-        applicationProtocolErrorCode: VarInt,
-        finaSize: VarInt,
+        streamId: Long,
+        applicationProtocolErrorCode: AppError_v1,
+        finaSize: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.RESET_STREAM)
+        writeFrameType(FrameType_v1.RESET_STREAM)
         writeVarInt(streamId)
-        writeVarInt(applicationProtocolErrorCode)
+        writeErrorCode(applicationProtocolErrorCode)
         writeVarInt(finaSize)
     }
 
     fun writeStopSending(
         packetBuilder: BytePacketBuilder,
-        streamId: VarInt,
-        applicationProtocolErrorCode: VarInt,
+        streamId: Long,
+        applicationProtocolErrorCode: AppError_v1,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.STOP_SENDING)
+        writeFrameType(FrameType_v1.STOP_SENDING)
         writeVarInt(streamId)
-        writeVarInt(applicationProtocolErrorCode)
+        writeErrorCode(applicationProtocolErrorCode)
     }
 
     fun writeCrypto(
         packetBuilder: BytePacketBuilder,
-        offset: VarInt,
+        offset: Long,
         data: ByteArray,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.CRYPTO)
+        writeFrameType(FrameType_v1.CRYPTO)
         writeVarInt(offset)
-        writeVarInt(data.size.toVarInt()) // todo check that should size in bytes
+        writeVarInt(data.size) // todo check that should size in bytes
         writeFully(data)
     }
 
@@ -138,16 +153,16 @@ internal object FrameWriter {
         packetBuilder: BytePacketBuilder,
         token: ByteArray,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.NEW_TOKEN)
-        writeVarInt(token.size.toVarInt())
+        writeFrameType(FrameType_v1.NEW_TOKEN)
+        writeVarInt(token.size)
         writeFully(token)
     }
 
     fun writeStream(
         packetBuilder: BytePacketBuilder,
-        streamId: VarInt,
-        offset: VarInt?,
-        length: VarInt?,
+        streamId: Long,
+        offset: Long?,
+        length: Long?,
         fin: Boolean,
         data: ByteArray,
     ) = with(packetBuilder) {
@@ -163,7 +178,7 @@ internal object FrameWriter {
             else -> error("unreachable")
         }
 
-        writeType(type)
+        writeFrameType(type)
         writeVarInt(streamId)
         offset?.let { writeVarInt(it) }
         length?.let { writeVarInt(it) }
@@ -172,87 +187,90 @@ internal object FrameWriter {
 
     fun writeMaxData(
         packetBuilder: BytePacketBuilder,
-        maximumData: VarInt
+        maximumData: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.MAX_DATA)
+        writeFrameType(FrameType_v1.MAX_DATA)
         writeVarInt(maximumData)
     }
 
     fun writeMaxStreamData(
         packetBuilder: BytePacketBuilder,
-        streamId: VarInt,
-        maximumStreamData: VarInt
+        streamId: Long,
+        maximumStreamData: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.MAX_STREAM_DATA)
+        writeFrameType(FrameType_v1.MAX_STREAM_DATA)
         writeVarInt(streamId)
         writeVarInt(maximumStreamData)
     }
 
     fun writeMaxStreamsBidirectional(
         packetBuilder: BytePacketBuilder,
-        maximumStreams: VarInt,
+        maximumStreams: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL)
+        writeFrameType(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
     fun writeMaxStreamsUnidirectional(
         packetBuilder: BytePacketBuilder,
-        maximumStreams: VarInt,
+        maximumStreams: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL)
+        writeFrameType(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
     fun writeDataBlocked(
         packetBuilder: BytePacketBuilder,
-        maximumData: VarInt,
+        maximumData: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.DATA_BLOCKED)
+        writeFrameType(FrameType_v1.DATA_BLOCKED)
         writeVarInt(maximumData)
     }
 
     fun writeStreamDataBlocked(
         packetBuilder: BytePacketBuilder,
-        streamId: VarInt,
-        maximumStreamData: VarInt
+        streamId: Long,
+        maximumStreamData: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.STREAM_DATA_BLOCKED)
+        writeFrameType(FrameType_v1.STREAM_DATA_BLOCKED)
         writeVarInt(streamId)
         writeVarInt(maximumStreamData)
     }
 
     fun writeStreamsBlockedBidirectional(
         packetBuilder: BytePacketBuilder,
-        maximumStreams: VarInt,
+        maximumStreams: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL)
+        writeFrameType(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
     fun writeStreamsBlockedUnidirectional(
         packetBuilder: BytePacketBuilder,
-        maximumStreams: VarInt,
+        maximumStreams: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL)
+        writeFrameType(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
     fun writeNewConnectionId(
         packetBuilder: BytePacketBuilder,
-        sequenceNumber: VarInt,
-        retirePriorTo: VarInt,
-        connectionId: ConnectionId_v1,
+        sequenceNumber: Long,
+        retirePriorTo: Long,
+        connectionId: ByteArray,
         statelessResetToken: ByteArray,
     ) = with(packetBuilder) {
-        require(connectionId.array.isNotEmpty()) {
-            "Length of Connection ID in NEW_CONNECTION_ID frame should be at least 1 byte"
+        require(retirePriorTo <= sequenceNumber) {
+            "The value in the 'Retire Prior To' field in NEW_CONNECTION_ID frame MUST be less than or equal to the value in the 'Sequence Number' field"
+        }
+        require(connectionId.size in 1..20) {
+            "The size of the value in the 'Connection ID' field in NEW_CONNECTION_ID frame MUST be at least 1 byte and at most 20 bytes"
         }
         require(statelessResetToken.size == 16) {
-            "Stateless Reset Token size in NEW_CONNECTION_ID frame should be 16 bytes"
+            "The size of the value in the 'Stateless Reset Token' field in NEW_CONNECTION_ID frame MUST be 16 bytes"
         }
 
-        writeType(FrameType_v1.NEW_CONNECTION_ID)
+        writeFrameType(FrameType_v1.NEW_CONNECTION_ID)
         writeVarInt(sequenceNumber)
         writeVarInt(retirePriorTo)
         writeConnectionId(connectionId)
@@ -261,90 +279,92 @@ internal object FrameWriter {
 
     fun writeRetireConnectionId(
         packetBuilder: BytePacketBuilder,
-        sequenceNumber: VarInt
+        sequenceNumber: Long,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.RETIRE_CONNECTION_ID)
+        writeFrameType(FrameType_v1.RETIRE_CONNECTION_ID)
         writeVarInt(sequenceNumber)
     }
 
     fun writePathChallenge(
         packetBuilder: BytePacketBuilder,
-        data: ByteArray
+        data: ByteArray,
     ) = with(packetBuilder) {
         require(data.size == 8) {
-            "Data field size in PATH_CHALLENGE frame should be 8 bytes"
+            "The size of the value in the 'Data' field in PATH_CHALLENGE frame MUST be 8 bytes"
         }
-        writeType(FrameType_v1.PATH_CHALLENGE)
+        writeFrameType(FrameType_v1.PATH_CHALLENGE)
         writeFully(data)
     }
 
     fun writePathResponse(
         packetBuilder: BytePacketBuilder,
-        data: ByteArray
+        data: ByteArray,
     ) = with(packetBuilder) {
         require(data.size == 8) {
-            "Data field size in PATH_RESPONSE frame should be 8 bytes"
+            "The size of the value in the 'Data' field in PATH_RESPONSE frame MUST be 8 bytes"
         }
-        writeType(FrameType_v1.PATH_RESPONSE)
+        writeFrameType(FrameType_v1.PATH_RESPONSE)
         writeFully(data)
     }
 
     fun writeConnectionCloseWithQUICError(
         packetBuilder: BytePacketBuilder,
-        errorCode: QUICTransportErrorCode_v1,
+        errorCode: QUICTransportError_v1,
         frameTypeV1: FrameType_v1,
-        reasonPhase: ByteArray
+        reasonPhrase: ByteArray,
     ) = writeConnectionClose(
         packetBuilder = packetBuilder,
         typeV1 = FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR,
         errorCode = errorCode,
         frameTypeV1 = frameTypeV1,
-        reasonPhase = reasonPhase
+        reasonPhrase = reasonPhrase
     )
 
     fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
-        errorCode: AppErrorCode_v1,
-        reasonPhase: ByteArray
+        errorCode: AppError_v1,
+        reasonPhrase: ByteArray,
     ) = writeConnectionClose(
         packetBuilder = packetBuilder,
         typeV1 = FrameType_v1.CONNECTION_CLOSE_APP_ERR,
         errorCode = errorCode,
         frameTypeV1 = null,
-        reasonPhase = reasonPhase
+        reasonPhrase = reasonPhrase
     )
 
     private fun writeConnectionClose(
         packetBuilder: BytePacketBuilder,
         typeV1: FrameType_v1,
-        errorCode: ErrorCode_v1,
+        errorCode: Error_v1,
         frameTypeV1: FrameType_v1?,
-        reasonPhase: ByteArray
+        reasonPhrase: ByteArray,
     ) = with(packetBuilder) {
-        writeType(typeV1)
+        writeFrameType(typeV1)
         writeErrorCode(errorCode)
-        frameTypeV1?.let { writeType(it) }
-        writeVarInt(reasonPhase.size.toVarInt())
-        writeFully(reasonPhase)
+        frameTypeV1?.let { writeFrameType(it) }
+        writeVarInt(reasonPhrase.size)
+        writeFully(reasonPhrase)
     }
 
     fun writeHandShakeDone(
-        packetBuilder: BytePacketBuilder
+        packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeType(FrameType_v1.HANDSHAKE_DONE)
+        writeFrameType(FrameType_v1.HANDSHAKE_DONE)
     }
 
-    private fun BytePacketBuilder.writeType(typeV1: FrameType_v1) {
+    // HELPER FUNCTIONS AND VALUES
+
+    private fun BytePacketBuilder.writeFrameType(typeV1: FrameType_v1) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
         writeByte(typeV1.typeValue)
     }
 
-    private fun BytePacketBuilder.writeConnectionId(idV1: ConnectionId_v1) {
-        writeByte(idV1.array.size.toByte())
-        writeFully(idV1.array)
+    private fun BytePacketBuilder.writeConnectionId(id: ByteArray) {
+        writeByte(id.size.toByte())
+        writeFully(id)
     }
 
-    private fun BytePacketBuilder.writeErrorCode(errorCode: ErrorCode_v1) {
+    private fun BytePacketBuilder.writeErrorCode(errorCode: Error_v1) {
         errorCode.writeToFrame(this)
     }
 }

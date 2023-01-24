@@ -15,7 +15,7 @@ import kotlin.jvm.*
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-error-codes)
  */
-internal sealed interface ErrorCode_v1 {
+internal sealed interface Error_v1 {
     fun writeToFrame(packetBuilder: BytePacketBuilder)
 }
 
@@ -25,23 +25,35 @@ internal sealed interface ErrorCode_v1 {
  * Used in CONNECTION_CLOSED frames with the type of 0x1d
  */
 @JvmInline
-internal value class AppErrorCode_v1(val intCode: Long) : ErrorCode_v1 {
+internal value class AppError_v1(val intCode: Long) : Error_v1 {
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
-        packetBuilder.writeVarInt(intCode.toVarInt())
+        packetBuilder.writeVarInt(intCode)
     }
 }
 
 /**
  * Transport layer error codes.
  *
- * Codes are divided into general errors [TransportErrorCode_v1] and [CryptoHandshakeError_v1]
+ * Codes are divided into general errors [TransportError_v1] and [CryptoHandshakeError_v1]
  * to write them into frame efficiently (as first are always 1 byte length, and last are 2 bytes)
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1c
  */
-internal sealed interface QUICTransportErrorCode_v1 : ErrorCode_v1
+internal sealed interface QUICTransportError_v1 : Error_v1 {
+    companion object {
+        fun readFromFrame(payload: ByteReadPacket): QUICTransportError_v1? {
+            val byte = payload.readByteOrNull()?.toInt() ?: return null
+            val length = byte ushr 6
+            return when {
+                length == 0 -> TransportError_v1.fromErrorCode(byte)
+                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readByteOrNull() ?: return null)
+                else -> null
+            }
+        }
+    }
+}
 
-internal enum class TransportErrorCode_v1(val intCode: Byte) : QUICTransportErrorCode_v1 {
+internal enum class TransportError_v1(val intCode: Byte) : QUICTransportError_v1 {
     NO_ERROR(0x00),
     INTERNAL_ERROR(0x01),
     CONNECTION_REFUSED(0x02),
@@ -65,10 +77,21 @@ internal enum class TransportErrorCode_v1(val intCode: Byte) : QUICTransportErro
         // it is varint with length 8 (leading bits are 00)
         packetBuilder.writeByte(intCode)
     }
+
+    companion object {
+        private val array = TransportError_v1.values()
+
+        fun fromErrorCode(code: Int): TransportError_v1? {
+            return when {
+                code > 0x10 -> null
+                else -> array[code]
+            }
+        }
+    }
 }
 
 @JvmInline
-internal value class CryptoHandshakeError_v1(val tlsAlertCode: Byte) : QUICTransportErrorCode_v1 {
+internal value class CryptoHandshakeError_v1(val tlsAlertCode: Byte) : QUICTransportError_v1 {
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         // 0b01000001, where 0100 prefix - varint length,
         //                   0001 byte - prefix of crypto error (reserved range: 0x0100..0x01ff)

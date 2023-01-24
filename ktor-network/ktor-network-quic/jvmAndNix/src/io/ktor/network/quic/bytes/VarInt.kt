@@ -4,15 +4,8 @@
 
 package io.ktor.network.quic.bytes
 
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
-import kotlin.jvm.*
-
-@JvmInline
-internal value class VarInt(val value: Long)
-
-internal inline fun Long.toVarInt() = VarInt(this)
-
-internal inline fun Int.toVarInt() = VarInt(this.toLong())
 
 
 /**
@@ -20,7 +13,7 @@ internal inline fun Int.toVarInt() = VarInt(this.toLong())
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-variable-length-integer-enc)
  */
-internal fun ByteReadPacket.readVarIntOrNull(): VarInt? {
+internal fun ByteReadPacket.readVarIntOrNull(): Long? {
     val value = readByteOrNull()?.toInt() ?: return null
     val length = 1 shl (value ushr 6)
 
@@ -30,24 +23,25 @@ internal fun ByteReadPacket.readVarIntOrNull(): VarInt? {
         varInt = (varInt shl 8) + (readByteOrNull()?.toLong() ?: return null)
         i++
     }
-    return varInt.toVarInt()
+    return varInt
 }
+
+internal fun BytePacketBuilder.writeVarInt(varInt: Int) = writeVarInt(varInt.toLong())
 
 /**
  * Writes variable-length non-negative integer value
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-variable-length-integer-enc)
  */
-internal fun BytePacketBuilder.writeVarInt(varInt: VarInt) {
-    val value = varInt.value
-    require(value >= 0) { "Variable-length integer cannot be negative" }
-    require(value <= 4611686018427387903L) { "Max value of variable-length integer value is 4611686018427387903, actual: $value" }
+internal fun BytePacketBuilder.writeVarInt(value: Long) {
+    require(value >= 0) { "Variable-length integer cannot be negative, actual: $value" }
+    require(value < POW_2_62) { "Max value of variable-length integer value is ${POW_2_62 - 1}, actual: $value" }
 
     var shift = when {
-        value < 64L -> 0
-        value < 16384L -> 8
-        value < 1073741824L -> 16
-        value < 4611686018427387904L -> 24
+        value < POW_2_06 -> 0
+        value < POW_2_14 -> 8
+        value < POW_2_30 -> 16
+        value < POW_2_62 -> 24
         else -> error("unreachable")
     }
 

@@ -65,4 +65,15 @@ internal enum class FrameType_v1(val typeValue: Byte) {
 
     HANDSHAKE_DONE(0x1E),
     ;
+
+    companion object {
+        private val array = FrameType_v1.values()
+
+        fun fromByte(byte: Byte): FrameType_v1? {
+            return when {
+                byte > 0x1E -> null
+                else -> array[byte.toInt()]
+            }
+        }
+    }
 }
