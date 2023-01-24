@@ -17,17 +17,17 @@ import kotlin.coroutines.*
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 
 /**
- * Default websocket session with ping-pong and timeout processing and built-in [closeReason] population
+ * A default WebSocket session with ping-pong and timeout processing and built-in [closeReason] population.
  */
 public interface DefaultWebSocketSession : WebSocketSession {
 
     /**
-     * Ping interval or `-1L` to disable pinger. Please note that pongs will be handled despite this setting.
+     * Specifies the ping interval or `-1L` to disable pinger. Note that pongs will be handled despite this setting.
      */
     public var pingIntervalMillis: Long
 
     /**
-     * A timeout to wait for pong reply to ping otherwise the session will be terminated immediately.
+     * Specifies a timeout to wait for pong reply to ping; otherwise, the session will be terminated immediately.
      * It doesn't have any effect if [pingIntervalMillis] is `-1` (pinger is disabled).
      */
     public var timeoutMillis: Long
@@ -39,7 +39,7 @@ public interface DefaultWebSocketSession : WebSocketSession {
     public val closeReason: Deferred<CloseReason?>
 
     /**
-     * Start WebSocket conversation.
+     * Starts a WebSocket conversation.
      *
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
      */
@@ -48,7 +48,7 @@ public interface DefaultWebSocketSession : WebSocketSession {
 }
 
 /**
- * Create [DefaultWebSocketSession] from session.
+ * Creates [DefaultWebSocketSession] from a session.
  */
 public fun DefaultWebSocketSession(
     session: WebSocketSession,
@@ -65,7 +65,7 @@ private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processo
 private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 
 /**
- * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
+ * A default WebSocket session implementation that handles ping-pongs, close sequence and frame fragmentation.
  */
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,

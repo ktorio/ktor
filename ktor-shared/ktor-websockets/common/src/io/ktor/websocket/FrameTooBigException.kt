@@ -8,7 +8,7 @@ import io.ktor.util.internal.*
 import kotlinx.coroutines.*
 
 /**
- * Raised when the frame is bigger than allowed in a current websocket session
+ * Raised when the frame is bigger than allowed in a current WebSocket session.
  * @param frameSize size of received or posted frame that is too big
  */
 @OptIn(ExperimentalCoroutinesApi::class)

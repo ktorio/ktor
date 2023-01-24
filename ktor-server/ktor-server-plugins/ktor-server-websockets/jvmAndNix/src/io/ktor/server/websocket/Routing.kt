@@ -15,15 +15,15 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 /**
- * Bind RAW websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Binds RAW WebSocket at the current route + [path] optionally checking the for WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
- * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * Unlike regular (default) [webSocket], a raw WebSocket is not handling any ping/pongs, timeouts or close frames.
  * So [WebSocketSession.incoming] channel will contain all low-level control frames and all fragmented frames need
- * to be reassembled
+ * to be reassembled.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websockets
+ * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
  */
 public fun Route.webSocketRaw(
@@ -35,15 +35,15 @@ public fun Route.webSocketRaw(
 }
 
 /**
- * Bind RAW websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind RAW WebSocket at the current route + [path] optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
- * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * Unlike regular (default) [webSocket], a raw WebSocket is not handling any ping/pongs, timeouts or close frames.
  * So [WebSocketSession.incoming] channel will contain all low-level control frames and all fragmented frames need
- * to be reassembled
+ * to be reassembled.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websockets
+ * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
@@ -62,15 +62,15 @@ public fun Route.webSocketRaw(
 }
 
 /**
- * Bind RAW websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind RAW WebSocket at the current route optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
- * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * Unlike regular (default) [webSocket], a raw WebSocket is not handling any ping/pongs, timeouts or close frames.
  * So [WebSocketSession]'s incoming channel will contain all low-level control frames and all fragmented frames need
- * to be reassembled
+ * to be reassembled.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
+ * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  */
 public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
@@ -78,15 +78,15 @@ public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSock
 }
 
 /**
- * Bind RAW websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind RAW WebSocket at the current route optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
- * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * Unlike regular (default) [webSocket], a raw WebSocket is not handling any ping/pongs, timeouts or close frames.
  * So [WebSocketSession]'s incoming channel will contain all low-level control frames and all fragmented frames need
- * to be reassembled
+ * to be reassembled.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
+ * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
@@ -112,15 +112,15 @@ public fun Route.webSocketRaw(
 }
 
 /**
- * Bind RAW websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind RAW WebSocket at the current route optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
  * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
  * So [WebSocketSession]'s incoming channel will contain all low-level control frames and all fragmented frames need
- * to be reassembled
+ * to be reassembled.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
+ * When a websocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  */
 @Deprecated(
@@ -138,16 +138,16 @@ public fun Route.webSocketRaw(
 }
 
 /**
- * Bind websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind WebSocket at the current route optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
  * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
- * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ * Default WebSocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
- * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
- * a timeout exceeds
+ * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the websocket termination sequence will be scheduled, so you shouldn't use
+ * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
+ * a timeout exceeds.
  */
 public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol, negotiateExtensions = true) {
@@ -156,16 +156,16 @@ public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWeb
 }
 
 /**
- * Bind websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind WebSocket at the current route optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
  * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
- * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ * Default WebSocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * When a websocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
  * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
- * a timeout exceeds
+ * a timeout exceeds.
  */
 @Deprecated(
     "Use webSocket(protocol = protocol, handler = handler) instead.",
@@ -182,16 +182,16 @@ public fun Route.webSocket(
 }
 
 /**
- * Bind websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
- * Requires [WebSockets] plugin to be installed first
+ * Bind WebSocket at the current route + [path] optionally checking for the WebSocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] plugin to be installed.
  *
  * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
- * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ * Default WebSocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames.
  *
- * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
- * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
- * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
- * a timeout exceeds
+ * When a websocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
+ * Once [handler] function returns, the WebSocket termination sequence will be scheduled so you shouldn't use
+ * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
+ * a timeout exceeds.
  */
 public fun Route.webSocket(
     path: String,

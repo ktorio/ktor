@@ -8,7 +8,7 @@ import io.ktor.util.*
 import kotlin.jvm.*
 
 /**
- * Websocket close reason
+ * A WebSocket close reason.
  * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
  * @property message - a close reason message, could be empty
  */

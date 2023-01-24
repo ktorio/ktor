@@ -16,7 +16,7 @@ import kotlin.coroutines.*
 import kotlin.random.*
 
 /**
- * Creates a RAW web socket session from connection
+ * Creates a RAW web socket session from connection.
  *
  * @param input is a [ByteReadChannel] of connection
  * @param output is a [ByteWriteChannel] of connection
@@ -197,7 +197,7 @@ public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
 }
 
 /**
- * Reads bits from [ByteReadChannel] and converts into Websocket [Frame].
+ * Reads bits from [ByteReadChannel] and converts into a WebSocket [Frame].
  *
  * @param maxFrameSize maximum frame size that could be read
  * @param lastOpcode last read opcode
