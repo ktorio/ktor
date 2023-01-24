@@ -103,7 +103,7 @@ internal interface FrameProcessor {
     suspend fun acceptNewConnectionId(
         sequenceNumber: Long,
         retirePriorTo: Long,
-        length: Byte,
+        length: Int,
         connectionId: ByteArray,
         statelessResetToken: ByteArray,
     ): QUICTransportError_v1?

@@ -354,13 +354,15 @@ internal object FrameWriter {
 
     // HELPER FUNCTIONS AND VALUES
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun BytePacketBuilder.writeFrameType(typeV1: FrameType_v1) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
-        writeByte(typeV1.typeValue)
+        writeUByte(typeV1.typeValue)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun BytePacketBuilder.writeConnectionId(id: ByteArray) {
-        writeByte(id.size.toByte())
+        writeUByte(id.size.toUByte())
         writeFully(id)
     }
 

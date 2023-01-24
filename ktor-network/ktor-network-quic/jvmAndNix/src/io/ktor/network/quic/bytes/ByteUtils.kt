@@ -7,6 +7,7 @@ package io.ktor.network.quic.bytes
 import io.ktor.utils.io.core.*
 
 /**
- * Reads a byte from a [ByteReadPacket]. Returns null if EOF
+ * Reads an unsigned byte from a [ByteReadPacket]. Returns null if EOF
  */
-internal fun ByteReadPacket.readByteOrNull() = if (isNotEmpty) readByte() else null
+@ExperimentalUnsignedTypes
+internal fun ByteReadPacket.readUByteOrNull() = if (isNotEmpty) readUByte() else null

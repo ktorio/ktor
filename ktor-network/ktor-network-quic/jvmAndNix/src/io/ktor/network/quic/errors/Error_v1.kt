@@ -41,41 +41,43 @@ internal value class AppError_v1(val intCode: Long) : Error_v1 {
  */
 internal sealed interface QUICTransportError_v1 : Error_v1 {
     companion object {
+        @OptIn(ExperimentalUnsignedTypes::class)
         fun readFromFrame(payload: ByteReadPacket): QUICTransportError_v1? {
-            val byte = payload.readByteOrNull()?.toInt() ?: return null
+            val byte = payload.readUByteOrNull()?.toInt() ?: return null
             val length = byte ushr 6
             return when {
                 length == 0 -> TransportError_v1.fromErrorCode(byte)
-                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readByteOrNull() ?: return null)
+                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readUByteOrNull() ?: return null)
                 else -> null
             }
         }
     }
 }
 
-internal enum class TransportError_v1(val intCode: Byte) : QUICTransportError_v1 {
-    NO_ERROR(0x00),
-    INTERNAL_ERROR(0x01),
-    CONNECTION_REFUSED(0x02),
-    FLOW_CONTROL_ERROR(0x03),
-    STREAM_LIMIT_ERROR(0x04),
-    STREAM_STATE_ERROR(0x05),
-    FINAL_SIZE_ERROR(0x06),
-    FRAME_ENCODING_ERROR(0x07),
-    TRANSPORT_PARAMETER_ERROR(0x08),
-    CONNECTION_ID_LIMIT_ERROR(0x09),
-    PROTOCOL_VIOLATION(0x0A),
-    INVALID_TOKEN(0x0B),
-    APPLICATION_ERROR(0x0C),
-    CRYPTO_BUFFER_EXCEEDED(0x0D),
-    KEY_UPDATE_ERROR(0x0E),
-    AEAD_LIMIT_REACHED(0x0F),
-    NO_VIABLE_PATH(0x10),
+internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v1 {
+    NO_ERROR(0x00u),
+    INTERNAL_ERROR(0x01u),
+    CONNECTION_REFUSED(0x02u),
+    FLOW_CONTROL_ERROR(0x03u),
+    STREAM_LIMIT_ERROR(0x04u),
+    STREAM_STATE_ERROR(0x05u),
+    FINAL_SIZE_ERROR(0x06u),
+    FRAME_ENCODING_ERROR(0x07u),
+    TRANSPORT_PARAMETER_ERROR(0x08u),
+    CONNECTION_ID_LIMIT_ERROR(0x09u),
+    PROTOCOL_VIOLATION(0x0Au),
+    INVALID_TOKEN(0x0Bu),
+    APPLICATION_ERROR(0x0Cu),
+    CRYPTO_BUFFER_EXCEEDED(0x0Du),
+    KEY_UPDATE_ERROR(0x0Eu),
+    AEAD_LIMIT_REACHED(0x0Fu),
+    NO_VIABLE_PATH(0x10u),
     ;
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         // it is varint with length 8 (leading bits are 00)
-        packetBuilder.writeByte(intCode)
+        packetBuilder.writeUByte(intCode)
     }
 
     companion object {
@@ -91,13 +93,14 @@ internal enum class TransportError_v1(val intCode: Byte) : QUICTransportError_v1
 }
 
 @JvmInline
-internal value class CryptoHandshakeError_v1(val tlsAlertCode: Byte) : QUICTransportError_v1 {
+internal value class CryptoHandshakeError_v1(val tlsAlertCode: UByte) : QUICTransportError_v1 {
+    @OptIn(ExperimentalUnsignedTypes::class)
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         // 0b01000001, where 0100 prefix - varint length,
         //                   0001 byte - prefix of crypto error (reserved range: 0x0100..0x01ff)
         //
         // RFC Reference: https://www.rfc-editor.org/rfc/rfc9001#name-tls-errors
-        packetBuilder.writeByte(0x41)
-        packetBuilder.writeByte(tlsAlertCode)
+        packetBuilder.writeUByte(0x41u)
+        packetBuilder.writeUByte(tlsAlertCode)
     }
 }

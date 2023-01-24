@@ -328,6 +328,7 @@ internal object FrameReader {
         return processor.acceptStreamsBlockedUnidirectional(maximumStreams)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     private suspend fun readAndProcessNewConnectionId(
         processor: FrameProcessor,
         payload: ByteReadPacket,
@@ -339,15 +340,15 @@ internal object FrameReader {
             return FRAME_ENCODING_ERROR
         }
 
-        val length = payload.readByteOrNull() ?: return FRAME_ENCODING_ERROR
+        val length = payload.readUByteOrNull()?.toInt() ?: return FRAME_ENCODING_ERROR
 
         if (length !in 1..20) {
             return FRAME_ENCODING_ERROR
         }
 
-        val connectionId = payload.readBytes(length.toInt()) // todo remove allocation?
+        val connectionId = payload.readBytes(length) // todo remove allocation?
 
-        if (connectionId.size != length.toInt()) {
+        if (connectionId.size != length) {
             return FRAME_ENCODING_ERROR
         }
 
@@ -440,8 +441,9 @@ internal object FrameReader {
         return QUICTransportError_v1.readFromFrame(this)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     private fun ByteReadPacket.readFrameType(): FrameType_v1? {
-        return FrameType_v1.fromByte(readByteOrNull() ?: return null)
+        return FrameType_v1.fromByte(readUByteOrNull() ?: return null)
     }
 
     private val FRAME_ENCODING_ERROR = TransportError_v1.FRAME_ENCODING_ERROR
