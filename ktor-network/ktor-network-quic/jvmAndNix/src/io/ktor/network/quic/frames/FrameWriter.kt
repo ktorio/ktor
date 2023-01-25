@@ -12,18 +12,14 @@ import io.ktor.utils.io.core.*
 /**
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-frame-types-and-formats)
  */
-internal object FrameWriter {
+internal interface FrameWriter {
     fun writePadding(
         packetBuilder: BytePacketBuilder,
-    ) = with(packetBuilder) {
-        writeFrameType(FrameType_v1.PADDING)
-    }
+    )
 
     fun writePing(
         packetBuilder: BytePacketBuilder,
-    ) = with(packetBuilder) {
-        writeFrameType(FrameType_v1.PING)
-    }
+    )
 
     /**
      * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
@@ -32,6 +28,158 @@ internal object FrameWriter {
      * fields of the ACK frame
      */
     fun writeACK(
+        packetBuilder: BytePacketBuilder,
+        ackDelay: Long,
+        ack_delay_exponent: Int,
+        ackRanges: LongArray,
+    )
+
+    /**
+     * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
+     * Example: (18, 16, 14, 12, 10, 8, 6, 4) - here ranges are (18, 16), (14, 12), (10, 8), (6, 4) (both ends are inclusive)
+     * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
+     * fields of the ACK frame
+     */
+    fun writeACKWithECN(
+        packetBuilder: BytePacketBuilder,
+        ackDelay: Long,
+        ack_delay_exponent: Int,
+        ackRanges: LongArray,
+        ect0: Long,
+        ect1: Long,
+        ectCE: Long,
+    )
+
+    fun writeResetStream(
+        packetBuilder: BytePacketBuilder,
+        streamId: Long,
+        applicationProtocolErrorCode: AppError_v1,
+        finaSize: Long,
+    )
+
+    fun writeStopSending(
+        packetBuilder: BytePacketBuilder,
+        streamId: Long,
+        applicationProtocolErrorCode: AppError_v1,
+    )
+
+    fun writeCrypto(
+        packetBuilder: BytePacketBuilder,
+        offset: Long,
+        data: ByteArray,
+    )
+
+    fun writeNewToken(
+        packetBuilder: BytePacketBuilder,
+        token: ByteArray,
+    )
+
+    fun writeStream(
+        packetBuilder: BytePacketBuilder,
+        streamId: Long,
+        offset: Long?,
+        length: Long?,
+        fin: Boolean,
+        data: ByteArray,
+    )
+
+    fun writeMaxData(
+        packetBuilder: BytePacketBuilder,
+        maximumData: Long,
+    )
+
+    fun writeMaxStreamData(
+        packetBuilder: BytePacketBuilder,
+        streamId: Long,
+        maximumStreamData: Long,
+    )
+
+    fun writeMaxStreamsBidirectional(
+        packetBuilder: BytePacketBuilder,
+        maximumStreams: Long,
+    )
+
+    fun writeMaxStreamsUnidirectional(
+        packetBuilder: BytePacketBuilder,
+        maximumStreams: Long,
+    )
+
+    fun writeDataBlocked(
+        packetBuilder: BytePacketBuilder,
+        maximumData: Long,
+    )
+
+    fun writeStreamDataBlocked(
+        packetBuilder: BytePacketBuilder,
+        streamId: Long,
+        maximumStreamData: Long,
+    )
+
+    fun writeStreamsBlockedBidirectional(
+        packetBuilder: BytePacketBuilder,
+        maximumStreams: Long,
+    )
+
+    fun writeStreamsBlockedUnidirectional(
+        packetBuilder: BytePacketBuilder,
+        maximumStreams: Long,
+    )
+
+    fun writeNewConnectionId(
+        packetBuilder: BytePacketBuilder,
+        sequenceNumber: Long,
+        retirePriorTo: Long,
+        connectionId: ByteArray,
+        statelessResetToken: ByteArray,
+    )
+
+    fun writeRetireConnectionId(
+        packetBuilder: BytePacketBuilder,
+        sequenceNumber: Long,
+    )
+
+    fun writePathChallenge(
+        packetBuilder: BytePacketBuilder,
+        data: ByteArray,
+    )
+
+    fun writePathResponse(
+        packetBuilder: BytePacketBuilder,
+        data: ByteArray,
+    )
+
+    fun writeConnectionCloseWithTransportError(
+        packetBuilder: BytePacketBuilder,
+        errorCode: QUICTransportError_v1,
+        frameTypeV1: FrameType_v1,
+        reasonPhrase: ByteArray,
+    )
+
+    fun writeConnectionCloseWithAppError(
+        packetBuilder: BytePacketBuilder,
+        errorCode: AppError_v1,
+        reasonPhrase: ByteArray,
+    )
+
+    fun writeHandshakeDone(
+        packetBuilder: BytePacketBuilder,
+    )
+}
+
+internal object FrameWriterImpl : FrameWriter {
+    override fun writePadding(
+        packetBuilder: BytePacketBuilder,
+    ) = with(packetBuilder) {
+        writeFrameType(FrameType_v1.PADDING)
+    }
+
+    override fun writePing(
+        packetBuilder: BytePacketBuilder,
+    ) = with(packetBuilder) {
+        writeFrameType(FrameType_v1.PING)
+    }
+
+    override fun writeACK(
         packetBuilder: BytePacketBuilder,
         ackDelay: Long,
         ack_delay_exponent: Int,
@@ -46,13 +194,7 @@ internal object FrameWriter {
         ectCE = null
     )
 
-    /**
-     * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
-     * Example: (18, 16, 14, 12, 10, 8, 6, 4) - here ranges are (18, 16), (14, 12), (10, 8), (6, 4) (both ends are inclusive)
-     * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
-     * fields of the ACK frame
-     */
-    fun writeACKWithECN(
+    override fun writeACKWithECN(
         packetBuilder: BytePacketBuilder,
         ackDelay: Long,
         ack_delay_exponent: Int,
@@ -116,7 +258,7 @@ internal object FrameWriter {
         }
     }
 
-    fun writeResetStream(
+    override fun writeResetStream(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         applicationProtocolErrorCode: AppError_v1,
@@ -128,7 +270,7 @@ internal object FrameWriter {
         writeVarInt(finaSize)
     }
 
-    fun writeStopSending(
+    override fun writeStopSending(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         applicationProtocolErrorCode: AppError_v1,
@@ -138,7 +280,7 @@ internal object FrameWriter {
         writeErrorCode(applicationProtocolErrorCode)
     }
 
-    fun writeCrypto(
+    override fun writeCrypto(
         packetBuilder: BytePacketBuilder,
         offset: Long,
         data: ByteArray,
@@ -149,7 +291,7 @@ internal object FrameWriter {
         writeFully(data)
     }
 
-    fun writeNewToken(
+    override fun writeNewToken(
         packetBuilder: BytePacketBuilder,
         token: ByteArray,
     ) = with(packetBuilder) {
@@ -158,7 +300,7 @@ internal object FrameWriter {
         writeFully(token)
     }
 
-    fun writeStream(
+    override fun writeStream(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         offset: Long?,
@@ -185,7 +327,7 @@ internal object FrameWriter {
         writeFully(data)
     }
 
-    fun writeMaxData(
+    override fun writeMaxData(
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
     ) = with(packetBuilder) {
@@ -193,7 +335,7 @@ internal object FrameWriter {
         writeVarInt(maximumData)
     }
 
-    fun writeMaxStreamData(
+    override fun writeMaxStreamData(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         maximumStreamData: Long,
@@ -203,7 +345,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreamData)
     }
 
-    fun writeMaxStreamsBidirectional(
+    override fun writeMaxStreamsBidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
@@ -211,7 +353,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreams)
     }
 
-    fun writeMaxStreamsUnidirectional(
+    override fun writeMaxStreamsUnidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
@@ -219,7 +361,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreams)
     }
 
-    fun writeDataBlocked(
+    override fun writeDataBlocked(
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
     ) = with(packetBuilder) {
@@ -227,7 +369,7 @@ internal object FrameWriter {
         writeVarInt(maximumData)
     }
 
-    fun writeStreamDataBlocked(
+    override fun writeStreamDataBlocked(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         maximumStreamData: Long,
@@ -237,7 +379,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreamData)
     }
 
-    fun writeStreamsBlockedBidirectional(
+    override fun writeStreamsBlockedBidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
@@ -245,7 +387,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreams)
     }
 
-    fun writeStreamsBlockedUnidirectional(
+    override fun writeStreamsBlockedUnidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
@@ -253,7 +395,7 @@ internal object FrameWriter {
         writeVarInt(maximumStreams)
     }
 
-    fun writeNewConnectionId(
+    override fun writeNewConnectionId(
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
@@ -277,7 +419,7 @@ internal object FrameWriter {
         writeFully(statelessResetToken)
     }
 
-    fun writeRetireConnectionId(
+    override fun writeRetireConnectionId(
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
     ) = with(packetBuilder) {
@@ -285,7 +427,7 @@ internal object FrameWriter {
         writeVarInt(sequenceNumber)
     }
 
-    fun writePathChallenge(
+    override fun writePathChallenge(
         packetBuilder: BytePacketBuilder,
         data: ByteArray,
     ) = with(packetBuilder) {
@@ -296,7 +438,7 @@ internal object FrameWriter {
         writeFully(data)
     }
 
-    fun writePathResponse(
+    override fun writePathResponse(
         packetBuilder: BytePacketBuilder,
         data: ByteArray,
     ) = with(packetBuilder) {
@@ -307,7 +449,7 @@ internal object FrameWriter {
         writeFully(data)
     }
 
-    fun writeConnectionCloseWithQUICError(
+    override fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
         errorCode: QUICTransportError_v1,
         frameTypeV1: FrameType_v1,
@@ -320,7 +462,7 @@ internal object FrameWriter {
         reasonPhrase = reasonPhrase
     )
 
-    fun writeConnectionCloseWithAppError(
+    override fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
         errorCode: AppError_v1,
         reasonPhrase: ByteArray,
@@ -346,7 +488,7 @@ internal object FrameWriter {
         writeFully(reasonPhrase)
     }
 
-    fun writeHandShakeDone(
+    override fun writeHandshakeDone(
         packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.HANDSHAKE_DONE)
