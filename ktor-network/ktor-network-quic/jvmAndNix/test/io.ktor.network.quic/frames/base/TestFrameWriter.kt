@@ -10,7 +10,20 @@ import io.ktor.utils.io.core.*
 
 internal class TestFrameWriter : FrameWriter {
     private val _writtenFrames = mutableListOf<FrameType_v1>()
-    val writtenFrames: List<FrameType_v1> = _writtenFrames
+    val expectedFrames: List<FrameType_v1> = _writtenFrames
+    var writtenFramesCnt: Int = 0
+        private set
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun writeCustomFrame(
+        packetBuilder: BytePacketBuilder,
+        typeV1: FrameType_v1,
+        shouldFailOnRead: Boolean,
+        body: BytePacketBuilder.() -> Unit,
+    ) = withLog(typeV1, shouldFailOnRead) {
+        packetBuilder.writeUByte(typeV1.typeValue)
+        packetBuilder.body()
+    }
 
     override fun writePadding(
         packetBuilder: BytePacketBuilder,
@@ -200,8 +213,11 @@ internal class TestFrameWriter : FrameWriter {
         writeHandshakeDone(packetBuilder)
     }
 
-    private fun withLog(typeV1: FrameType_v1, body: FrameWriter.() -> Unit) {
-        _writtenFrames.add(typeV1)
+    private fun withLog(typeV1: FrameType_v1, shouldFailOnRead: Boolean = false, body: FrameWriter.() -> Unit) {
         FrameWriterImpl.body()
+        if (!shouldFailOnRead) {
+            _writtenFrames.add(typeV1)
+        }
+        writtenFramesCnt++
     }
 }

@@ -22,7 +22,7 @@ internal class TestFrameProcessor(
         ackDelay: Long,
         ackRanges: LongArray,
     ) = testAccept(FrameType_v1.ACK) {
-        validateACK(ackDelay, ackRanges)
+        listACKValidators[it](ackDelay, ackRanges)
     }
 
     override suspend fun acceptACKWithECN(
@@ -32,7 +32,7 @@ internal class TestFrameProcessor(
         ect1: Long,
         ectCE: Long,
     ) = testAccept(FrameType_v1.ACK) {
-        validateACKWithECN(ackDelay, ackRanges, ect0, ect1, ectCE)
+        listACKWithECNValidators[it](ackDelay, ackRanges, ect0, ect1, ectCE)
     }
 
     override suspend fun acceptResetStream(
@@ -40,14 +40,14 @@ internal class TestFrameProcessor(
         applicationProtocolErrorCode: AppError_v1,
         finalSize: Long,
     ) = testAccept(FrameType_v1.RESET_STREAM) {
-        validateResetStream(streamId, applicationProtocolErrorCode, finalSize)
+        listResetStreamValidators[it](streamId, applicationProtocolErrorCode, finalSize)
     }
 
     override suspend fun acceptStopSending(
         streamId: Long,
         applicationProtocolErrorCode: AppError_v1,
     ) = testAccept(FrameType_v1.STOP_SENDING) {
-        validateStopSending(streamId, applicationProtocolErrorCode)
+        listStopSendingValidators[it](streamId, applicationProtocolErrorCode)
     }
 
     override suspend fun acceptCrypto(
@@ -55,14 +55,14 @@ internal class TestFrameProcessor(
         length: Long,
         cryptoData: ByteArray,
     ) = testAccept(FrameType_v1.CRYPTO) {
-        validateCrypto(offset, length, cryptoData)
+        listCryptoValidators[it](offset, length, cryptoData)
     }
 
     override suspend fun acceptNewToken(
         tokenLength: Long,
         token: ByteArray,
     ) = testAccept(FrameType_v1.NEW_TOKEN) {
-        validateNewToken(tokenLength, token)
+        listNewTokenValidators[it](tokenLength, token)
     }
 
     override suspend fun acceptStream(
@@ -72,57 +72,57 @@ internal class TestFrameProcessor(
         fin: Boolean,
         streamData: ByteArray,
     ) = testAccept(FrameType_v1.STREAM) {
-        validateStream(streamId, offset, length, fin, streamData)
+        listStreamValidators[it](streamId, offset, length, fin, streamData)
     }
 
     override suspend fun acceptMaxData(
         maximumData: Long,
     ) = testAccept(FrameType_v1.MAX_DATA) {
-        validateMaxData(maximumData)
+        listMaxDataValidators[it](maximumData)
     }
 
     override suspend fun acceptMaxStreamData(
         streamId: Long,
         maximumStreamData: Long,
     ) = testAccept(FrameType_v1.MAX_STREAM_DATA) {
-        validateMaxStreamData(streamId, maximumStreamData)
+        listMaxStreamDataValidators[it](streamId, maximumStreamData)
     }
 
     override suspend fun acceptMaxStreamsBidirectional(
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL) {
-        validateMaxStreamsBidirectional(maximumStreams)
+        listMaxStreamsBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptMaxStreamsUnidirectional(
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL) {
-        validateMaxStreamsUnidirectional(maximumStreams)
+        listMaxStreamsUnidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptDataBlocked(
         maximumData: Long,
     ) = testAccept(FrameType_v1.DATA_BLOCKED) {
-        validateDataBlocked(maximumData)
+        listDataBlockedValidators[it](maximumData)
     }
 
     override suspend fun acceptStreamDataBlocked(
         streamId: Long,
         maximumStreamData: Long,
     ) = testAccept(FrameType_v1.STREAM_DATA_BLOCKED) {
-        validateStreamDataBlocked(streamId, maximumStreamData)
+        listStreamDataBlockedValidators[it](streamId, maximumStreamData)
     }
 
     override suspend fun acceptStreamsBlockedBidirectional(
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL) {
-        validateStreamsBlockedBidirectional(maximumStreams)
+        listStreamsBlockedBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptStreamsBlockedUnidirectional(
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL) {
-        validateStreamsBlockedUnidirectional(maximumStreams)
+        listStreamsBlockedUnidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptNewConnectionId(
@@ -132,25 +132,25 @@ internal class TestFrameProcessor(
         connectionId: ByteArray,
         statelessResetToken: ByteArray,
     ) = testAccept(FrameType_v1.NEW_CONNECTION_ID) {
-        validateNewConnectionId(sequenceNumber, retirePriorTo, length, connectionId, statelessResetToken)
+        listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, length, connectionId, statelessResetToken)
     }
 
     override suspend fun acceptRetireConnectionId(
         sequenceNumber: Long,
     ) = testAccept(FrameType_v1.RETIRE_CONNECTION_ID) {
-        validateRetireConnectionId(sequenceNumber)
+        listRetireConnectionIdValidators[it](sequenceNumber)
     }
 
     override suspend fun acceptPathChallenge(
         data: ByteArray,
     ) = testAccept(FrameType_v1.PATH_CHALLENGE) {
-        validatePathChallenge(data)
+        listPathChallengeValidators[it](data)
     }
 
     override suspend fun acceptPathResponse(
         data: ByteArray,
     ) = testAccept(FrameType_v1.PATH_RESPONSE) {
-        validatePathResponse(data)
+        listPathResponseValidators[it](data)
     }
 
     override suspend fun acceptConnectionCloseWithTransportError(
@@ -158,21 +158,25 @@ internal class TestFrameProcessor(
         frameType: FrameType_v1,
         reasonPhrase: ByteArray,
     ) = testAccept(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR) {
-        validateConnectionCloseWithTransportError(errorCode, frameType, reasonPhrase)
+        listConnectionCloseWithTransportErrorValidators[it](errorCode, frameType, reasonPhrase)
     }
 
     override suspend fun acceptConnectionCloseWithAppError(
         errorCode: AppError_v1,
         reasonPhrase: ByteArray,
     ) = testAccept(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
-        validateConnectionCloseWithAppError(errorCode, reasonPhrase)
+        listConnectionCloseWithAppErrorValidators[it](errorCode, reasonPhrase)
     }
 
     override suspend fun acceptHandshakeDone() = testAccept(FrameType_v1.HANDSHAKE_DONE)
 
-    private fun testAccept(typeV1: FrameType_v1, body: ReadFramesValidator.() -> Unit = {}): QUICTransportError_v1? {
+    private val mapAccess = mutableMapOf<FrameType_v1, Int>()
+    
+    private fun testAccept(typeV1: FrameType_v1, body: ReadFramesValidator.(Int) -> Unit = {}): QUICTransportError_v1? {
         assertIsExpectedFrame(typeV1)
-        validator.body()
+        val index = mapAccess.getOrPut(typeV1) { 0 }
+        mapAccess[typeV1] = index + 1
+        validator.body(index)
         return null
     }
 
@@ -191,48 +195,109 @@ internal class TestFrameProcessor(
 }
 
 internal class ReadFramesValidator {
-    var validateACK: (ackDelay: Long, ackRanges: LongArray) -> Unit =
-        { _, _ -> emptyValidatorFail() }
-    var validateACKWithECN: (ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit =
-        { _, _, _, _, _ -> emptyValidatorFail() }
-    var validateResetStream: (streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit =
-        { _, _, _ -> emptyValidatorFail() }
-    var validateStopSending: (streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit =
-        { _, _ -> emptyValidatorFail() }
-    var validateCrypto: (offset: Long, length: Long, cryptoData: ByteArray) -> Unit =
-        { _, _, _ -> emptyValidatorFail() }
-    var validateNewToken: (tokenLength: Long, token: ByteArray) -> Unit =
-        { _, _ -> emptyValidatorFail() }
-    var validateStream: (streamId: Long, offset: Long, length: Long, fin: Boolean, streamData: ByteArray) -> Unit =
-        { _, _, _, _, _ -> emptyValidatorFail() }
-    var validateMaxData: (maximumData: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateMaxStreamData: (streamId: Long, maximumStreamData: Long) -> Unit =
-        { _, _ -> emptyValidatorFail() }
-    var validateMaxStreamsBidirectional: (maximumStreams: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateMaxStreamsUnidirectional: (maximumStreams: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateDataBlocked: (maximumData: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateStreamDataBlocked: (streamId: Long, maximumStreamData: Long) -> Unit =
-        { _, _ -> emptyValidatorFail() }
-    var validateStreamsBlockedBidirectional: (maximumStreams: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateStreamsBlockedUnidirectional: (maximumStreams: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validateNewConnectionId: (sequenceNumber: Long, retirePriorTo: Long, length: Int, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit =
-        { _, _, _, _, _ -> emptyValidatorFail() }
-    var validateRetireConnectionId: (sequenceNumber: Long) -> Unit =
-        { emptyValidatorFail() }
-    var validatePathChallenge: (data: ByteArray) -> Unit =
-        { emptyValidatorFail() }
-    var validatePathResponse: (data: ByteArray) -> Unit =
-        { emptyValidatorFail() }
-    var validateConnectionCloseWithTransportError: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit =
-        { _, _, _ -> emptyValidatorFail() }
-    var validateConnectionCloseWithAppError: (errorCode: AppError_v1, reasonPhrase: ByteArray) -> Unit =
-        { _, _ -> emptyValidatorFail() }
+    val listACKValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray) -> Unit>()
+    val listACKWithECNValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit>()
+    val listResetStreamValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit>()
+    val listStopSendingValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit>()
+    val listCryptoValidators = mutableListOf<(offset: Long, length: Long, cryptoData: ByteArray) -> Unit>()
+    val listNewTokenValidators = mutableListOf<(tokenLength: Long, token: ByteArray) -> Unit>()
+    val listStreamValidators = mutableListOf<(streamId: Long, offset: Long, length: Long, fin: Boolean, streamData: ByteArray) -> Unit>()
+    val listMaxDataValidators = mutableListOf<(maximumData: Long) -> Unit>()
+    val listMaxStreamDataValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
+    val listMaxStreamsBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
+    val listMaxStreamsUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
+    val listDataBlockedValidators = mutableListOf<(maximumData: Long) -> Unit>()
+    val listStreamDataBlockedValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
+    val listStreamsBlockedBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
+    val listStreamsBlockedUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
+    val listNewConnectionIdValidators = mutableListOf<(sequenceNumber: Long, retirePriorTo: Long, length: Int, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit>()
+    val listRetireConnectionIdValidators = mutableListOf<(sequenceNumber: Long) -> Unit>()
+    val listPathChallengeValidators = mutableListOf<(data: ByteArray) -> Unit>()
+    val listPathResponseValidators = mutableListOf<(data: ByteArray) -> Unit>()
+    val listConnectionCloseWithTransportErrorValidators = mutableListOf<(errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit>()
+    val listConnectionCloseWithAppErrorValidators = mutableListOf<(errorCode: AppError_v1, reasonPhrase: ByteArray) -> Unit>()
 
-    private fun emptyValidatorFail(): Nothing = error("Called validator's body is empty")
+    fun validateACK(body: (ackDelay: Long, ackRanges: LongArray) -> Unit) {
+        listACKValidators.add(body)
+    }
+
+    fun validateACKWithECN(body: (ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit) {
+        listACKWithECNValidators.add(body)
+    }
+
+    fun validateResetStream(body: (streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit) {
+        listResetStreamValidators.add(body)
+    }
+
+    fun validateStopSending(body: (streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit) {
+        listStopSendingValidators.add(body)
+    }
+
+    fun validateCrypto(body: (offset: Long, length: Long, cryptoData: ByteArray) -> Unit) {
+        listCryptoValidators.add(body)
+    }
+
+    fun validateNewToken(body: (tokenLength: Long, token: ByteArray) -> Unit) {
+        listNewTokenValidators.add(body)
+    }
+
+    fun validateStream(body: (streamId: Long, offset: Long, length: Long, fin: Boolean, streamData: ByteArray) -> Unit) {
+        listStreamValidators.add(body)
+    }
+
+    fun validateMaxData(body: (maximumData: Long) -> Unit) {
+        listMaxDataValidators.add(body)
+    }
+
+    fun validateMaxStreamData(body: (streamId: Long, maximumStreamData: Long) -> Unit) {
+        listMaxStreamDataValidators.add(body)
+    }
+
+    fun validateMaxStreamsBidirectional(body: (maximumStreams: Long) -> Unit) {
+        listMaxStreamsBidirectionalValidators.add(body)
+    }
+
+    fun validateMaxStreamsUnidirectional(body: (maximumStreams: Long) -> Unit) {
+        listMaxStreamsUnidirectionalValidators.add(body)
+    }
+
+    fun validateDataBlocked(body: (maximumData: Long) -> Unit) {
+        listDataBlockedValidators.add(body)
+    }
+
+    fun validateStreamDataBlocked(body: (streamId: Long, maximumStreamData: Long) -> Unit) {
+        listStreamDataBlockedValidators.add(body)
+    }
+
+    fun validateStreamsBlockedBidirectional(body: (maximumStreams: Long) -> Unit) {
+        listStreamsBlockedBidirectionalValidators.add(body)
+    }
+
+    fun validateStreamsBlockedUnidirectional(body: (maximumStreams: Long) -> Unit) {
+        listStreamsBlockedUnidirectionalValidators.add(body)
+    }
+
+    fun validateNewConnectionId(body: (sequenceNumber: Long, retirePriorTo: Long, length: Int, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit) {
+        listNewConnectionIdValidators.add(body)
+    }
+
+    fun validateRetireConnectionId(body: (sequenceNumber: Long) -> Unit) {
+        listRetireConnectionIdValidators.add(body)
+    }
+
+    fun validatePathChallenge(body: (data: ByteArray) -> Unit) {
+        listPathChallengeValidators.add(body)
+    }
+
+    fun validatePathResponse(body: (data: ByteArray) -> Unit) {
+        listPathResponseValidators.add(body)
+    }
+
+    fun validateConnectionCloseWithTransportError(body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit) {
+        listConnectionCloseWithTransportErrorValidators.add(body)
+    }
+
+    fun validateConnectionCloseWithAppError(body: (errorCode: AppError_v1, reasonPhrase: ByteArray) -> Unit) {
+        listConnectionCloseWithAppErrorValidators.add(body)
+    }
 }

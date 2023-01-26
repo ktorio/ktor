@@ -241,7 +241,7 @@ internal object FrameWriterImpl : FrameWriter {
         var lastSmallestAcknowledged = ackRanges[1]
         var i = 2
         while (i < ackRanges.size) {
-            val gap = ackRanges[i] - lastSmallestAcknowledged - 2
+            val gap = lastSmallestAcknowledged - ackRanges[i] - 2
             lastSmallestAcknowledged = ackRanges[i + 1]
             val length = ackRanges[i] - lastSmallestAcknowledged
 

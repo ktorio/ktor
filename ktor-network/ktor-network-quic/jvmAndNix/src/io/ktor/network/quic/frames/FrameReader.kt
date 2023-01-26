@@ -111,11 +111,20 @@ internal object FrameReader {
         var i = 2
         while (i < ackRanges.size) {
             val gap = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
-            val length = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
-
             val largest = previousSmallest - gap - 2
+
+            if (largest < 0) {
+                return FRAME_ENCODING_ERROR
+            }
+
+            val length = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
             ackRanges[i] = largest
             previousSmallest = largest - length
+
+            if (previousSmallest < 0) {
+                return FRAME_ENCODING_ERROR
+            }
+
             ackRanges[i + 1] = previousSmallest
 
             i += 2
