@@ -49,19 +49,16 @@ internal interface FrameProcessor {
 
     suspend fun acceptCrypto(
         offset: Long,
-        length: Long,
         cryptoData: ByteArray, // todo remove allocation?
     ): QUICTransportError_v1?
 
     suspend fun acceptNewToken(
-        tokenLength: Long,
         token: ByteArray, // todo remove allocation?
     ): QUICTransportError_v1?
 
     suspend fun acceptStream(
         streamId: Long,
         offset: Long,
-        length: Long,
         fin: Boolean,
         streamData: ByteArray, // todo remove allocation?
     ): QUICTransportError_v1?
@@ -103,7 +100,6 @@ internal interface FrameProcessor {
     suspend fun acceptNewConnectionId(
         sequenceNumber: Long,
         retirePriorTo: Long,
-        length: Int,
         connectionId: ByteArray,
         statelessResetToken: ByteArray,
     ): QUICTransportError_v1?

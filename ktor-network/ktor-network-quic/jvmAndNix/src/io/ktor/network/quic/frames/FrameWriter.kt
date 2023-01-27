@@ -6,6 +6,7 @@ package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.errors.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 
@@ -78,7 +79,7 @@ internal interface FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         offset: Long?,
-        length: Long?,
+        specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
     )
@@ -151,7 +152,7 @@ internal interface FrameWriter {
     fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
         errorCode: QUICTransportError_v1,
-        frameTypeV1: FrameType_v1,
+        frameTypeV1: FrameType_v1?,
         reasonPhrase: ByteArray,
     )
 
@@ -285,9 +286,13 @@ internal object FrameWriterImpl : FrameWriter {
         offset: Long,
         data: ByteArray,
     ) = with(packetBuilder) {
+        require(offset + data.size < POW_2_62) {
+            "The sum of the 'offset' and 'data length' cannot exceed (2^62 - 1)"
+        }
+
         writeFrameType(FrameType_v1.CRYPTO)
         writeVarInt(offset)
-        writeVarInt(data.size) // todo check that should size in bytes
+        writeVarInt(data.size)
         writeFully(data)
     }
 
@@ -295,6 +300,10 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         token: ByteArray,
     ) = with(packetBuilder) {
+        require(token.isNotEmpty()) {
+            "The 'token' MUST NOT be empty."
+        }
+
         writeFrameType(FrameType_v1.NEW_TOKEN)
         writeVarInt(token.size)
         writeFully(token)
@@ -304,10 +313,16 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         offset: Long?,
-        length: Long?,
+        specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
     ) = with(packetBuilder) {
+        require((offset ?: 0) + data.size.toLong() <= POW_2_62 - 1) {
+            "The sum of the 'offset' and 'data length' - MUST NOT exceed 2^62 - 1"
+        }
+
+        val length = if (specifyLength) data.size.toLong() else null
+
         val type = when {
             offset == null && length == null && !fin -> FrameType_v1.STREAM
             offset == null && length == null && fin -> FrameType_v1.STREAM_FIN
@@ -349,6 +364,10 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
+        require(maximumStreams <= POW_2_60) {
+            "'Maximum streams' MUST NOT exceed 2^60."
+        }
+
         writeFrameType(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
@@ -357,6 +376,10 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
+        require(maximumStreams <= POW_2_60) {
+            "'Maximum streams' MUST NOT exceed 2^60."
+        }
+
         writeFrameType(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
@@ -383,6 +406,10 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
+        require(maximumStreams <= POW_2_60) {
+            "'Maximum streams' MUST NOT exceed 2^60."
+        }
+
         writeFrameType(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
@@ -391,6 +418,10 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
     ) = with(packetBuilder) {
+        require(maximumStreams <= POW_2_60) {
+            "'Maximum streams' MUST NOT exceed 2^60."
+        }
+
         writeFrameType(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
@@ -452,13 +483,13 @@ internal object FrameWriterImpl : FrameWriter {
     override fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
         errorCode: QUICTransportError_v1,
-        frameTypeV1: FrameType_v1,
+        frameTypeV1: FrameType_v1?,
         reasonPhrase: ByteArray,
     ) = writeConnectionClose(
         packetBuilder = packetBuilder,
         typeV1 = FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR,
         errorCode = errorCode,
-        frameTypeV1 = frameTypeV1,
+        frameTypeV1 = frameTypeV1 ?: FrameType_v1.PADDING,
         reasonPhrase = reasonPhrase
     )
 

@@ -180,14 +180,14 @@ internal object FrameReader {
         val offset = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
         val length = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
 
-        if (offset + length >= POW_2_62) {
+        if (offset + length >= POW_2_62 || payload.remaining < length) {
             return FRAME_ENCODING_ERROR
         }
 
         // conversion to int should be ok here, as we are restricted by common sense (datagram size)
         val data = payload.readBytes(length.toInt()) // todo remove allocation?
 
-        return processor.acceptCrypto(offset, length, data)
+        return processor.acceptCrypto(offset, data)
     }
 
     private suspend fun readAndProcessNewToken(
@@ -196,17 +196,14 @@ internal object FrameReader {
     ): QUICTransportError_v1? {
         val tokenLength = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
 
-        if (tokenLength == 0L) {
+        if (tokenLength == 0L || payload.remaining < tokenLength) {
             return FRAME_ENCODING_ERROR
         }
 
         // conversion to int should be ok here, as we are restricted by common sense (datagram size)
         val token = payload.readBytes(tokenLength.toInt())  // todo remove allocation?
-        if (token.size != tokenLength.toInt()) {
-            return FRAME_ENCODING_ERROR
-        }
 
-        return processor.acceptNewToken(tokenLength, token)
+        return processor.acceptNewToken(token)
     }
 
     private suspend fun readAndProcessStream(
@@ -228,23 +225,20 @@ internal object FrameReader {
             return FRAME_ENCODING_ERROR
         }
 
-        val streamData = when (length) {
-            null -> payload.readBytes()
+        val streamData = when {
+            length == null -> payload.readBytes()
+
             // conversion to int should be ok here, as we are restricted by common sense (datagram size)
-            else -> payload.readBytes(length.toInt())
+            payload.remaining >= length -> payload.readBytes(length.toInt())
+
+            else -> return FRAME_ENCODING_ERROR
         }
 
-        if (length != null) {
-            if (streamData.size != length.toInt()) {
-                return FRAME_ENCODING_ERROR
-            }
-        } else {
-            if (streamData.size + offset >= POW_2_60) {
-                return FRAME_ENCODING_ERROR
-            }
+        if (length == null && streamData.size + offset >= POW_2_60) {
+            return FRAME_ENCODING_ERROR
         }
 
-        return processor.acceptStream(streamId, offset, length ?: streamData.size.toLong(), fin, streamData)
+        return processor.acceptStream(streamId, offset, fin, streamData)
     }
 
     private suspend fun readAndProcessMaxData(
@@ -345,29 +339,25 @@ internal object FrameReader {
         val sequenceNumber = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
         val retirePriorTo = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
 
-        if (retirePriorTo <= sequenceNumber) {
+        if (retirePriorTo > sequenceNumber) {
             return FRAME_ENCODING_ERROR
         }
 
         val length = payload.readUByteOrNull()?.toInt() ?: return FRAME_ENCODING_ERROR
 
-        if (length !in 1..20) {
+        if (length !in 1..20 || payload.remaining < length) {
             return FRAME_ENCODING_ERROR
         }
 
         val connectionId = payload.readBytes(length) // todo remove allocation?
 
-        if (connectionId.size != length) {
+        if (payload.remaining < 16) {
             return FRAME_ENCODING_ERROR
         }
 
         val statelessResetToken = payload.readBytes(16) // todo remove allocation?
 
-        if (statelessResetToken.size != 16) {
-            return FRAME_ENCODING_ERROR
-        }
-
-        return processor.acceptNewConnectionId(sequenceNumber, retirePriorTo, length, connectionId, statelessResetToken)
+        return processor.acceptNewConnectionId(sequenceNumber, retirePriorTo, connectionId, statelessResetToken)
     }
 
     private suspend fun readAndProcessRetireConnectionId(
@@ -383,11 +373,11 @@ internal object FrameReader {
         processor: FrameProcessor,
         payload: ByteReadPacket,
     ): QUICTransportError_v1? {
-        val data = payload.readBytes(8)
-
-        if (data.size != 8) {
+        if (payload.remaining < 8) {
             return FRAME_ENCODING_ERROR
         }
+
+        val data = payload.readBytes(8)
 
         return processor.acceptPathChallenge(data)
     }
@@ -396,11 +386,11 @@ internal object FrameReader {
         processor: FrameProcessor,
         payload: ByteReadPacket,
     ): QUICTransportError_v1? {
-        val data = payload.readBytes(8)
-
-        if (data.size != 8) {
+        if (payload.remaining < 8) {
             return FRAME_ENCODING_ERROR
         }
+
+        val data = payload.readBytes(8)
 
         return processor.acceptPathResponse(data)
     }
@@ -413,12 +403,12 @@ internal object FrameReader {
         val frameType = payload.readFrameType() ?: return FRAME_ENCODING_ERROR
         val reasonPhraseLength = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
 
-        // conversion to int should be ok here, as we are restricted by common sense (datagram size)
-        val reasonPhrase = payload.readBytes(reasonPhraseLength.toInt()) // todo remove allocation ?
-
-        if (reasonPhrase.size != reasonPhraseLength.toInt()) {
+        if (payload.remaining < reasonPhraseLength) {
             return FRAME_ENCODING_ERROR
         }
+
+        // conversion to int should be ok here, as we are restricted by common sense (datagram size)
+        val reasonPhrase = payload.readBytes(reasonPhraseLength.toInt()) // todo remove allocation ?
 
         return processor.acceptConnectionCloseWithTransportError(errorCode, frameType, reasonPhrase)
     }
@@ -430,12 +420,12 @@ internal object FrameReader {
         val errorCode = payload.readAppError() ?: return FRAME_ENCODING_ERROR
         val reasonPhraseLength = payload.readVarIntOrNull() ?: return FRAME_ENCODING_ERROR
 
-        // conversion to int should be ok here, as we are restricted by common sense (datagram size)
-        val reasonPhrase = payload.readBytes(reasonPhraseLength.toInt()) // todo remove allocation ?
-
-        if (reasonPhrase.size != reasonPhraseLength.toInt()) {
+        if (payload.remaining < reasonPhraseLength) {
             return FRAME_ENCODING_ERROR
         }
+
+        // conversion to int should be ok here, as we are restricted by common sense (datagram size)
+        val reasonPhrase = payload.readBytes(reasonPhraseLength.toInt()) // todo remove allocation ?
 
         return processor.acceptConnectionCloseWithAppError(errorCode, reasonPhrase)
     }

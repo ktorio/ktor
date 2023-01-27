@@ -31,7 +31,7 @@ internal class TestFrameProcessor(
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ) = testAccept(FrameType_v1.ACK) {
+    ) = testAccept(FrameType_v1.ACK_ECN) {
         listACKWithECNValidators[it](ackDelay, ackRanges, ect0, ect1, ectCE)
     }
 
@@ -52,27 +52,24 @@ internal class TestFrameProcessor(
 
     override suspend fun acceptCrypto(
         offset: Long,
-        length: Long,
         cryptoData: ByteArray,
     ) = testAccept(FrameType_v1.CRYPTO) {
-        listCryptoValidators[it](offset, length, cryptoData)
+        listCryptoValidators[it](offset, cryptoData)
     }
 
     override suspend fun acceptNewToken(
-        tokenLength: Long,
         token: ByteArray,
     ) = testAccept(FrameType_v1.NEW_TOKEN) {
-        listNewTokenValidators[it](tokenLength, token)
+        listNewTokenValidators[it](token)
     }
 
     override suspend fun acceptStream(
         streamId: Long,
         offset: Long,
-        length: Long,
         fin: Boolean,
         streamData: ByteArray,
     ) = testAccept(FrameType_v1.STREAM) {
-        listStreamValidators[it](streamId, offset, length, fin, streamData)
+        listStreamValidators[it](streamId, offset, fin, streamData)
     }
 
     override suspend fun acceptMaxData(
@@ -128,11 +125,10 @@ internal class TestFrameProcessor(
     override suspend fun acceptNewConnectionId(
         sequenceNumber: Long,
         retirePriorTo: Long,
-        length: Int,
         connectionId: ByteArray,
         statelessResetToken: ByteArray,
     ) = testAccept(FrameType_v1.NEW_CONNECTION_ID) {
-        listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, length, connectionId, statelessResetToken)
+        listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, connectionId, statelessResetToken)
     }
 
     override suspend fun acceptRetireConnectionId(
@@ -199,9 +195,9 @@ internal class ReadFramesValidator {
     val listACKWithECNValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit>()
     val listResetStreamValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit>()
     val listStopSendingValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit>()
-    val listCryptoValidators = mutableListOf<(offset: Long, length: Long, cryptoData: ByteArray) -> Unit>()
-    val listNewTokenValidators = mutableListOf<(tokenLength: Long, token: ByteArray) -> Unit>()
-    val listStreamValidators = mutableListOf<(streamId: Long, offset: Long, length: Long, fin: Boolean, streamData: ByteArray) -> Unit>()
+    val listCryptoValidators = mutableListOf<(offset: Long, cryptoData: ByteArray) -> Unit>()
+    val listNewTokenValidators = mutableListOf<(token: ByteArray) -> Unit>()
+    val listStreamValidators = mutableListOf<(streamId: Long, offset: Long, fin: Boolean, streamData: ByteArray) -> Unit>()
     val listMaxDataValidators = mutableListOf<(maximumData: Long) -> Unit>()
     val listMaxStreamDataValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
     val listMaxStreamsBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
@@ -210,7 +206,7 @@ internal class ReadFramesValidator {
     val listStreamDataBlockedValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
     val listStreamsBlockedBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
     val listStreamsBlockedUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
-    val listNewConnectionIdValidators = mutableListOf<(sequenceNumber: Long, retirePriorTo: Long, length: Int, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit>()
+    val listNewConnectionIdValidators = mutableListOf<(sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit>()
     val listRetireConnectionIdValidators = mutableListOf<(sequenceNumber: Long) -> Unit>()
     val listPathChallengeValidators = mutableListOf<(data: ByteArray) -> Unit>()
     val listPathResponseValidators = mutableListOf<(data: ByteArray) -> Unit>()
@@ -233,15 +229,15 @@ internal class ReadFramesValidator {
         listStopSendingValidators.add(body)
     }
 
-    fun validateCrypto(body: (offset: Long, length: Long, cryptoData: ByteArray) -> Unit) {
+    fun validateCrypto(body: (offset: Long, cryptoData: ByteArray) -> Unit) {
         listCryptoValidators.add(body)
     }
 
-    fun validateNewToken(body: (tokenLength: Long, token: ByteArray) -> Unit) {
+    fun validateNewToken(body: (token: ByteArray) -> Unit) {
         listNewTokenValidators.add(body)
     }
 
-    fun validateStream(body: (streamId: Long, offset: Long, length: Long, fin: Boolean, streamData: ByteArray) -> Unit) {
+    fun validateStream(body: (streamId: Long, offset: Long, fin: Boolean, streamData: ByteArray) -> Unit) {
         listStreamValidators.add(body)
     }
 
@@ -277,7 +273,7 @@ internal class ReadFramesValidator {
         listStreamsBlockedUnidirectionalValidators.add(body)
     }
 
-    fun validateNewConnectionId(body: (sequenceNumber: Long, retirePriorTo: Long, length: Int, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit) {
+    fun validateNewConnectionId(body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit) {
         listNewConnectionIdValidators.add(body)
     }
 

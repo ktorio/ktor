@@ -9,8 +9,8 @@ import io.ktor.network.quic.frames.*
 import io.ktor.utils.io.core.*
 
 internal class TestFrameWriter : FrameWriter {
-    private val _writtenFrames = mutableListOf<FrameType_v1>()
-    val expectedFrames: List<FrameType_v1> = _writtenFrames
+    private val _expectedFrames = mutableListOf<FrameType_v1>()
+    val expectedFrames: List<FrameType_v1> = _expectedFrames
     var writtenFramesCnt: Int = 0
         private set
 
@@ -54,7 +54,7 @@ internal class TestFrameWriter : FrameWriter {
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ) = withLog(FrameType_v1.ACK) {
+    ) = withLog(FrameType_v1.ACK_ECN) {
         writeACKWithECN(packetBuilder, ackDelay, ack_delay_exponent, ackRanges, ect0, ect1, ectCE)
     }
 
@@ -94,11 +94,11 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         offset: Long?,
-        length: Long?,
+        specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
     ) = withLog(FrameType_v1.STREAM) {
-        writeStream(packetBuilder, streamId, offset, length, fin, data)
+        writeStream(packetBuilder, streamId, offset, specifyLength, fin, data)
     }
 
     override fun writeMaxData(
@@ -193,7 +193,7 @@ internal class TestFrameWriter : FrameWriter {
     override fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
         errorCode: QUICTransportError_v1,
-        frameTypeV1: FrameType_v1,
+        frameTypeV1: FrameType_v1?,
         reasonPhrase: ByteArray,
     ) = withLog(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR) {
         writeConnectionCloseWithTransportError(packetBuilder, errorCode, frameTypeV1, reasonPhrase)
@@ -216,7 +216,7 @@ internal class TestFrameWriter : FrameWriter {
     private fun withLog(typeV1: FrameType_v1, shouldFailOnRead: Boolean = false, body: FrameWriter.() -> Unit) {
         FrameWriterImpl.body()
         if (!shouldFailOnRead) {
-            _writtenFrames.add(typeV1)
+            _expectedFrames.add(typeV1)
         }
         writtenFramesCnt++
     }
