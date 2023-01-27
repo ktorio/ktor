@@ -167,7 +167,7 @@ internal class TestFrameProcessor(
     override suspend fun acceptHandshakeDone() = testAccept(FrameType_v1.HANDSHAKE_DONE)
 
     private val mapAccess = mutableMapOf<FrameType_v1, Int>()
-    
+
     private fun testAccept(typeV1: FrameType_v1, body: ReadFramesValidator.(Int) -> Unit = {}): QUICTransportError_v1? {
         assertIsExpectedFrame(typeV1)
         val index = mapAccess.getOrPut(typeV1) { 0 }

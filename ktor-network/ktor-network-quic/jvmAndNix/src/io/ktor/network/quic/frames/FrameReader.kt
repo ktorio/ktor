@@ -201,7 +201,7 @@ internal object FrameReader {
         }
 
         // conversion to int should be ok here, as we are restricted by common sense (datagram size)
-        val token = payload.readBytes(tokenLength.toInt())  // todo remove allocation?
+        val token = payload.readBytes(tokenLength.toInt()) // todo remove allocation?
 
         return processor.acceptNewToken(token)
     }

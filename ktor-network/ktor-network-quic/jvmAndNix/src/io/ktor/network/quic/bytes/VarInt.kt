@@ -7,7 +7,6 @@ package io.ktor.network.quic.bytes
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
-
 /**
  * Reads variable-length non-negative integer value. Returns null if EOF.
  *
