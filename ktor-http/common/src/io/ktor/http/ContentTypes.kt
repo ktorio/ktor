@@ -255,6 +255,7 @@ public class ContentType private constructor(
         public val VCard: ContentType = ContentType("text", "vcard")
         public val Xml: ContentType = ContentType("text", "xml")
         public val EventStream: ContentType = ContentType("text", "event-stream")
+        public val TurboStream: ContentType = ContentType("text", "vnd.turbo-stream.html")
     }
 
     /**
