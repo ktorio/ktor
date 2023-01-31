@@ -11,22 +11,13 @@ import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 
 /**
- * QUIC Error codes.
- *
- * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-error-codes)
- */
-internal sealed interface Error_v1 {
-    fun writeToFrame(packetBuilder: BytePacketBuilder)
-}
-
-/**
  * Application error codes that are produced and managed by application layer protocol
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1d
  */
 @JvmInline
-internal value class AppError_v1(val intCode: Long) : Error_v1 {
-    override fun writeToFrame(packetBuilder: BytePacketBuilder) {
+internal value class AppError_v1(val intCode: Long) {
+    fun writeToFrame(packetBuilder: BytePacketBuilder) {
         packetBuilder.writeVarInt(intCode)
     }
 }
@@ -39,15 +30,17 @@ internal value class AppError_v1(val intCode: Long) : Error_v1 {
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1c
  */
-internal sealed interface QUICTransportError_v1 : Error_v1 {
+internal sealed interface QUICTransportError_v1 {
+    fun writeToFrame(packetBuilder: BytePacketBuilder)
+
     companion object {
         @OptIn(ExperimentalUnsignedTypes::class)
         fun readFromFrame(payload: ByteReadPacket): QUICTransportError_v1? {
-            val byte = payload.readUByteOrNull()?.toInt() ?: return null
+            val byte = payload.readUByteOrElse { return null }.toInt()
             val length = byte ushr 6
             return when {
                 length == 0 -> TransportError_v1.fromErrorCode(byte)
-                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readUByteOrNull() ?: return null)
+                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readUByteOrElse { return null })
                 else -> null
             }
         }
@@ -92,8 +85,7 @@ internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v
     }
 }
 
-@JvmInline
-internal value class CryptoHandshakeError_v1(val tlsAlertCode: UByte) : QUICTransportError_v1 {
+internal class CryptoHandshakeError_v1(val tlsAlertCode: UByte) : QUICTransportError_v1 {
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         // 0b01000001, where 0100 prefix - varint length,

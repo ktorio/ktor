@@ -74,26 +74,28 @@ class VarIntCodingTest {
 
         val packet = builder.build()
         with(packet) {
-            assertEquals(0, readVarIntOrNull())
-            assertEquals(1, readVarIntOrNull())
-            assertEquals(POW_2_06 - 1, readVarIntOrNull())
-            assertEquals(POW_2_06, readVarIntOrNull())
-            assertEquals(POW_2_14 - 10, readVarIntOrNull())
-            assertEquals(POW_2_14 - 1, readVarIntOrNull())
-            assertEquals(POW_2_14, readVarIntOrNull())
-            assertEquals(POW_2_30 - 42, readVarIntOrNull())
-            assertEquals(POW_2_30 - 1, readVarIntOrNull())
-            assertEquals(POW_2_30, readVarIntOrNull())
-            assertEquals(POW_2_62 - 7, readVarIntOrNull())
-            assertEquals(POW_2_62 - 1, readVarIntOrNull())
-            assertEquals(null, readVarIntOrNull())
+            assertEquals(0, readVarIntOrElse())
+            assertEquals(1, readVarIntOrElse())
+            assertEquals(POW_2_06 - 1, readVarIntOrElse())
+            assertEquals(POW_2_06, readVarIntOrElse())
+            assertEquals(POW_2_14 - 10, readVarIntOrElse())
+            assertEquals(POW_2_14 - 1, readVarIntOrElse())
+            assertEquals(POW_2_14, readVarIntOrElse())
+            assertEquals(POW_2_30 - 42, readVarIntOrElse())
+            assertEquals(POW_2_30 - 1, readVarIntOrElse())
+            assertEquals(POW_2_30, readVarIntOrElse())
+            assertEquals(POW_2_62 - 7, readVarIntOrElse())
+            assertEquals(POW_2_62 - 1, readVarIntOrElse())
+            assertEquals(-1, readVarIntOrElse())
         }
     }
+
+    private fun ByteReadPacket.readVarIntOrElse() = readVarIntOrElse { -1 }
 
     private fun ByteReadPacket.readRawVarInt(length: Int): Long {
         var long = 0L
         for (i in 0 until length) {
-            val next = readUByteOrNull()?.toLong() ?: error("Unexpected EOF")
+            val next = readUByteOrElse { error("Unexpected EOF") }.toLong()
             long = (long shl 8) + next
         }
         return long

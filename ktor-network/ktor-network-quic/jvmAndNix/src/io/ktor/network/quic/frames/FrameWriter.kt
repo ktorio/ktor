@@ -2,6 +2,8 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("LocalVariableName")
+
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
@@ -266,7 +268,7 @@ internal object FrameWriterImpl : FrameWriter {
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.RESET_STREAM)
         writeVarInt(streamId)
-        writeErrorCode(applicationProtocolErrorCode)
+        applicationProtocolErrorCode.writeToFrame(this)
         writeVarInt(finaSize)
     }
 
@@ -277,7 +279,7 @@ internal object FrameWriterImpl : FrameWriter {
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.STOP_SENDING)
         writeVarInt(streamId)
-        writeErrorCode(applicationProtocolErrorCode)
+        applicationProtocolErrorCode.writeToFrame(this)
     }
 
     override fun writeCrypto(
@@ -484,36 +486,21 @@ internal object FrameWriterImpl : FrameWriter {
         errorCode: QUICTransportError_v1,
         frameTypeV1: FrameType_v1?,
         reasonPhrase: ByteArray,
-    ) = writeConnectionClose(
-        packetBuilder = packetBuilder,
-        typeV1 = FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR,
-        errorCode = errorCode,
-        frameTypeV1 = frameTypeV1 ?: FrameType_v1.PADDING,
-        reasonPhrase = reasonPhrase
-    )
+    ) = with(packetBuilder) {
+        writeFrameType(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR)
+        errorCode.writeToFrame(this)
+        frameTypeV1?.let { writeFrameType(it) }
+        writeVarInt(reasonPhrase.size)
+        writeFully(reasonPhrase)
+    }
 
     override fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
         errorCode: AppError_v1,
         reasonPhrase: ByteArray,
-    ) = writeConnectionClose(
-        packetBuilder = packetBuilder,
-        typeV1 = FrameType_v1.CONNECTION_CLOSE_APP_ERR,
-        errorCode = errorCode,
-        frameTypeV1 = null,
-        reasonPhrase = reasonPhrase
-    )
-
-    private fun writeConnectionClose(
-        packetBuilder: BytePacketBuilder,
-        typeV1: FrameType_v1,
-        errorCode: Error_v1,
-        frameTypeV1: FrameType_v1?,
-        reasonPhrase: ByteArray,
-    ) = with(packetBuilder) {
-        writeFrameType(typeV1)
-        writeErrorCode(errorCode)
-        frameTypeV1?.let { writeFrameType(it) }
+    )= with(packetBuilder) {
+        writeFrameType(FrameType_v1.CONNECTION_CLOSE_APP_ERR)
+        errorCode.writeToFrame(this)
         writeVarInt(reasonPhrase.size)
         writeFully(reasonPhrase)
     }
@@ -536,9 +523,5 @@ internal object FrameWriterImpl : FrameWriter {
     private fun BytePacketBuilder.writeConnectionId(id: ByteArray) {
         writeUByte(id.size.toUByte())
         writeFully(id)
-    }
-
-    private fun BytePacketBuilder.writeErrorCode(errorCode: Error_v1) {
-        errorCode.writeToFrame(this)
     }
 }

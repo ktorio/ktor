@@ -10,4 +10,9 @@ import io.ktor.utils.io.core.*
  * Reads an unsigned byte from a [ByteReadPacket]. Returns null if EOF
  */
 @ExperimentalUnsignedTypes
-internal fun ByteReadPacket.readUByteOrNull() = if (isNotEmpty) readUByte() else null
+internal inline fun ByteReadPacket.readUByteOrElse(elseBlock: () -> UByte): UByte {
+    if (isEmpty) {
+        elseBlock()
+    }
+    return readUByte()
+}
