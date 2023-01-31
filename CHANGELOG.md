@@ -1,3 +1,23 @@
+# 2.2.3
+> Published 31 January 2023
+
+### Improvements
+
+* ContentNegotiation: "Skipping because the type is ignored" log message is unclear ([KTOR-5479](https://youtrack.jetbrains.com/issue/KTOR-5479))
+* Make OAuth2 functionality multiplatform ([KTOR-1144](https://youtrack.jetbrains.com/issue/KTOR-1144))
+* Log HTTP request time ([KTOR-1250](https://youtrack.jetbrains.com/issue/KTOR-1250))
+* Add Client Plugins Trace Logging ([KTOR-5264](https://youtrack.jetbrains.com/issue/KTOR-5264))
+
+### Bugfixes
+
+* FileStorage throws java.io.FileNotFoundException (File name too long) when request path is long ([KTOR-5443](https://youtrack.jetbrains.com/issue/KTOR-5443))
+* HttpRequestRetry retries on FileNotFoundException thrown by FileStorage ([KTOR-5444](https://youtrack.jetbrains.com/issue/KTOR-5444))
+* DropwizardMetricsPlugin logs status code incorrectly when is used together with StatusPages plugin ([KTOR-5420](https://youtrack.jetbrains.com/issue/KTOR-5420))
+* Server ContentNegotiation no longer allows multiple decoders for one Content-Type ([KTOR-5410](https://youtrack.jetbrains.com/issue/KTOR-5410))
+* Multipart File doesn't upload whole file, throws "Unexpected EOF: expected 4096 more bytes" for larger files ([KTOR-3455](https://youtrack.jetbrains.com/issue/KTOR-3455))
+* Netty: Unable to set the `tcpKeepAlive` ([KTOR-5370](https://youtrack.jetbrains.com/issue/KTOR-5370))
+* HOCON: CLI parameters don't override custom array properties since 2.1.0 ([KTOR-5100](https://youtrack.jetbrains.com/issue/KTOR-5100))
+
 # 2.2.2
 > Published 3 January 2023
 
