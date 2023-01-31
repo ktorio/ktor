@@ -238,6 +238,7 @@ class FrameReadWriteTest {
             }
         )
     }
+
     @Test
     fun testStream2() {
         val bytes1 = byteArrayOf(0x00, 0x00)
@@ -449,11 +450,11 @@ class FrameReadWriteTest {
                 }
             },
             validator = {
-                validateNewConnectionId { sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray ->
+                validateNewConnectionId { sequenceNumber, retirePriorTo, connectionId, resetToken ->
                     assertEquals(2, sequenceNumber, "Sequence Number")
                     assertEquals(1, retirePriorTo, "Retire Prior To")
                     assertContentEquals(bytes1, connectionId, "Connection Id")
-                    assertContentEquals(bytes2, statelessResetToken, "Stateless Reset Token")
+                    assertContentEquals(bytes2, resetToken, "Stateless Reset Token")
                 }
             },
             onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.NEW_CONNECTION_ID) {

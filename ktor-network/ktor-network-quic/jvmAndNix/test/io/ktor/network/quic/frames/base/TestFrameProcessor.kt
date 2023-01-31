@@ -191,46 +191,109 @@ internal class TestFrameProcessor(
 }
 
 internal class ReadFramesValidator {
-    val listACKValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray) -> Unit>()
+    val listACKValidators = mutableListOf<(
+        ackDelay: Long,
+        ackRanges: LongArray,
+    ) -> Unit>()
+
     val listACKWithECNValidators = mutableListOf<(
         ackDelay: Long,
         ackRanges: LongArray,
         ect0: Long,
         ect1: Long,
-        ectCE: Long
+        ectCE: Long,
     ) -> Unit>()
+
     val listResetStreamValidators = mutableListOf<(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-        finalSize: Long
+        finalSize: Long,
     ) -> Unit>()
-    val listStopSendingValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError) -> Unit>()
-    val listCryptoValidators = mutableListOf<(offset: Long, cryptoData: ByteArray) -> Unit>()
-    val listNewTokenValidators = mutableListOf<(token: ByteArray) -> Unit>()
-    val listStreamValidators = mutableListOf<(streamId: Long, offset: Long, fin: Boolean, streamData: ByteArray) -> Unit>()
-    val listMaxDataValidators = mutableListOf<(maximumData: Long) -> Unit>()
-    val listMaxStreamDataValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
-    val listMaxStreamsBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
-    val listMaxStreamsUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
-    val listDataBlockedValidators = mutableListOf<(maximumData: Long) -> Unit>()
-    val listStreamDataBlockedValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
-    val listStreamsBlockedBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
-    val listStreamsBlockedUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
+
+    val listStopSendingValidators = mutableListOf<(
+        streamId: Long,
+        applicationProtocolErrorCode: AppError,
+    ) -> Unit>()
+
+    val listCryptoValidators = mutableListOf<(
+        offset: Long,
+        cryptoData: ByteArray,
+    ) -> Unit>()
+
+    val listNewTokenValidators = mutableListOf<(
+        token: ByteArray,
+    ) -> Unit>()
+
+    val listStreamValidators = mutableListOf<(
+        streamId: Long,
+        offset: Long,
+        fin: Boolean,
+        streamData: ByteArray,
+    ) -> Unit>()
+
+    val listMaxDataValidators = mutableListOf<(
+        maximumData: Long,
+    ) -> Unit>()
+
+    val listMaxStreamDataValidators = mutableListOf<(
+        streamId: Long,
+        maximumStreamData: Long,
+    ) -> Unit>()
+
+    val listMaxStreamsBidirectionalValidators = mutableListOf<(
+        maximumStreams: Long,
+    ) -> Unit>()
+
+    val listMaxStreamsUnidirectionalValidators = mutableListOf<(
+        maximumStreams: Long,
+    ) -> Unit>()
+
+    val listDataBlockedValidators = mutableListOf<(
+        maximumData: Long,
+    ) -> Unit>()
+
+    val listStreamDataBlockedValidators = mutableListOf<(
+        streamId: Long,
+        maximumStreamData: Long,
+    ) -> Unit>()
+
+    val listStreamsBlockedBidirectionalValidators = mutableListOf<(
+        maximumStreams: Long,
+    ) -> Unit>()
+
+    val listStreamsBlockedUnidirectionalValidators = mutableListOf<(
+        maximumStreams: Long,
+    ) -> Unit>()
+
     val listNewConnectionIdValidators = mutableListOf<(
         sequenceNumber: Long,
         retirePriorTo: Long,
         connectionId: ByteArray,
-        statelessResetToken: ByteArray
+        statelessResetToken: ByteArray,
     ) -> Unit>()
-    val listRetireConnectionIdValidators = mutableListOf<(sequenceNumber: Long) -> Unit>()
-    val listPathChallengeValidators = mutableListOf<(data: ByteArray) -> Unit>()
-    val listPathResponseValidators = mutableListOf<(data: ByteArray) -> Unit>()
+
+    val listRetireConnectionIdValidators = mutableListOf<(
+        sequenceNumber: Long,
+    ) -> Unit>()
+
+    val listPathChallengeValidators = mutableListOf<(
+        data: ByteArray,
+    ) -> Unit>()
+
+    val listPathResponseValidators = mutableListOf<(
+        data: ByteArray,
+    ) -> Unit>()
+
     val listConnectionCloseWithTransportErrorValidators = mutableListOf<(
         errorCode: QUICTransportError_v1,
         frameType: FrameType_v1,
-        reasonPhrase: ByteArray
+        reasonPhrase: ByteArray,
     ) -> Unit>()
-    val listConnectionCloseWithAppErrorValidators = mutableListOf<(errorCode: AppError, reasonPhrase: ByteArray) -> Unit>()
+
+    val listConnectionCloseWithAppErrorValidators = mutableListOf<(
+        errorCode: AppError,
+        reasonPhrase: ByteArray,
+    ) -> Unit>()
 
     fun validateACK(body: (ackDelay: Long, ackRanges: LongArray) -> Unit) {
         listACKValidators.add(body)
@@ -293,7 +356,7 @@ internal class ReadFramesValidator {
     }
 
     fun validateNewConnectionId(
-        body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit
+        body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, resetToken: ByteArray) -> Unit,
     ) {
         listNewConnectionIdValidators.add(body)
     }
@@ -311,7 +374,7 @@ internal class ReadFramesValidator {
     }
 
     fun validateConnectionCloseWithTransportError(
-        body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit
+        body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit,
     ) {
         listConnectionCloseWithTransportErrorValidators.add(body)
     }

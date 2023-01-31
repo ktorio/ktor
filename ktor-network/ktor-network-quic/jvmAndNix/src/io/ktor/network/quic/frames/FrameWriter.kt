@@ -436,13 +436,16 @@ internal object FrameWriterImpl : FrameWriter {
         statelessResetToken: ByteArray,
     ) = with(packetBuilder) {
         require(retirePriorTo <= sequenceNumber) {
-            "The value in the 'Retire Prior To' field in NEW_CONNECTION_ID frame MUST be less than or equal to the value in the 'Sequence Number' field"
+            "The value in the 'Retire Prior To' field in NEW_CONNECTION_ID frame " +
+                "MUST be less than or equal to the value in the 'Sequence Number' field"
         }
         require(connectionId.size in 1..20) {
-            "The size of the value in the 'Connection ID' field in NEW_CONNECTION_ID frame MUST be at least 1 byte and at most 20 bytes"
+            "The size of the value in the 'Connection ID' field in NEW_CONNECTION_ID frame " +
+                "MUST be at least 1 byte and at most 20 bytes"
         }
         require(statelessResetToken.size == 16) {
-            "The size of the value in the 'Stateless Reset Token' field in NEW_CONNECTION_ID frame MUST be 16 bytes"
+            "The size of the value in the 'Stateless Reset Token' field in NEW_CONNECTION_ID frame " +
+                "MUST be 16 bytes"
         }
 
         writeFrameType(FrameType_v1.NEW_CONNECTION_ID)
