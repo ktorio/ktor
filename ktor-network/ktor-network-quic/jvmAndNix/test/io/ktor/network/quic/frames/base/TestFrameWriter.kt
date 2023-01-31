@@ -61,7 +61,7 @@ internal class TestFrameWriter : FrameWriter {
     override fun writeResetStream(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
         finaSize: Long,
     ) = withLog(FrameType_v1.RESET_STREAM) {
         writeResetStream(packetBuilder, streamId, applicationProtocolErrorCode, finaSize)
@@ -70,7 +70,7 @@ internal class TestFrameWriter : FrameWriter {
     override fun writeStopSending(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
     ) = withLog(FrameType_v1.STOP_SENDING) {
         writeStopSending(packetBuilder, streamId, applicationProtocolErrorCode)
     }
@@ -201,7 +201,7 @@ internal class TestFrameWriter : FrameWriter {
 
     override fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
-        errorCode: AppError_v1,
+        errorCode: AppError,
         reasonPhrase: ByteArray,
     ) = withLog(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
         writeConnectionCloseWithAppError(packetBuilder, errorCode, reasonPhrase)

@@ -10,7 +10,7 @@ kotlin {
                 api(project(":ktor-utils"))
             }
         }
-        jvmAndNixTest {
+        jvmTest {
             dependencies {
                 implementation(libs.kotlin.test.junit)
             }

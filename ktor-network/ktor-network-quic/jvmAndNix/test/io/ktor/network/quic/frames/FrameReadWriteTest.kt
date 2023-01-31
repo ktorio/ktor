@@ -105,7 +105,7 @@ class FrameReadWriteTest {
     @Test
     fun testResetStream() = frameTest(
         writeFrames = { packetBuilder ->
-            writeResetStream(packetBuilder, 1, AppError_v1(42), 13)
+            writeResetStream(packetBuilder, 1, AppError(42), 13)
         },
         validator = {
             validateResetStream { streamId, applicationProtocolErrorCode, finalSize ->
@@ -119,7 +119,7 @@ class FrameReadWriteTest {
     @Test
     fun testStopSending() = frameTest(
         writeFrames = { packetBuilder ->
-            writeStopSending(packetBuilder, 1, AppError_v1(42))
+            writeStopSending(packetBuilder, 1, AppError(42))
         },
         validator = {
             validateStopSending { streamId, applicationProtocolErrorCode ->
@@ -573,7 +573,7 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 1,
             writeFrames = { packetBuilder ->
-                writeConnectionCloseWithAppError(packetBuilder, AppError_v1(42), bytes1)
+                writeConnectionCloseWithAppError(packetBuilder, AppError(42), bytes1)
 
                 writeConnectionCloseWithTransportError(
                     packetBuilder = packetBuilder,
@@ -597,7 +597,7 @@ class FrameReadWriteTest {
                 )
 
                 writeCustomFrame(packetBuilder, FrameType_v1.CONNECTION_CLOSE_APP_ERR, shouldFailOnRead = true) {
-                    AppError_v1(42).writeToFrame(packetBuilder) // Error code
+                    AppError(42).writeToFrame(packetBuilder) // Error code
                     writeVarInt(2) // Reason Phrase Length
                     writeFully(byteArrayOf(0x00)) // Reason Phrase -- should fail here
                 }
@@ -664,6 +664,7 @@ class FrameReadWriteTest {
         processor.assertNoExpectedFramesLeft()
     }
 
+    @Suppress("SameParameterValue")
     private fun expectError(
         expectedError: QUICTransportError_v1,
         vararg expectedFrames: FrameType_v1,

@@ -433,14 +433,15 @@ internal object FrameReader {
 
     // HELPER FUNCTIONS AND VALUES
 
-    private inline fun ByteReadPacket.readAppErrorOrElse(elseBlock: () -> Nothing): AppError_v1 {
-        return AppError_v1(readVarIntOrElse(elseBlock))
+    private inline fun ByteReadPacket.readAppErrorOrElse(elseBlock: () -> Nothing): AppError {
+        return AppError(readVarIntOrElse(elseBlock))
     }
 
-    private inline fun ByteReadPacket.readTransportError(): QUICTransportError_v1? {
+    private fun ByteReadPacket.readTransportError(): QUICTransportError_v1? {
         return QUICTransportError_v1.readFromFrame(this)
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     @OptIn(ExperimentalUnsignedTypes::class)
     private inline fun ByteReadPacket.readFrameType(): FrameType_v1? {
         return FrameType_v1.fromByte(readUByteOrElse { return null })

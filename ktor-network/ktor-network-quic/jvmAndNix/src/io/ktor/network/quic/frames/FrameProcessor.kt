@@ -38,13 +38,13 @@ internal interface FrameProcessor {
 
     suspend fun acceptResetStream(
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
         finalSize: Long,
     ): QUICTransportError_v1?
 
     suspend fun acceptStopSending(
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
     ): QUICTransportError_v1?
 
     suspend fun acceptCrypto(
@@ -123,7 +123,7 @@ internal interface FrameProcessor {
     ): QUICTransportError_v1?
 
     suspend fun acceptConnectionCloseWithAppError(
-        errorCode: AppError_v1,
+        errorCode: AppError,
         reasonPhrase: ByteArray, // todo remove allocation?
     ): QUICTransportError_v1?
 

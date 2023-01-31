@@ -8,9 +8,10 @@ package io.ktor.network.quic.frames
 
 /**
  * QUIC version 1 frame types and corresponding values.
- * todo FRAME_ENCODING_ERROR for varint bigger than byte
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-frame-types-and-formats)
+ *
+ * This is QUIC version 1 frames, future versions of protocol may contain frames and corresponding codes
  */
 internal enum class FrameType_v1(val typeValue: UByte) {
     PADDING(0x00u),

@@ -16,7 +16,7 @@ import kotlin.jvm.*
  * Used in CONNECTION_CLOSED frames with the type of 0x1d
  */
 @JvmInline
-internal value class AppError_v1(val intCode: Long) {
+internal value class AppError(val intCode: Long) {
     fun writeToFrame(packetBuilder: BytePacketBuilder) {
         packetBuilder.writeVarInt(intCode)
     }
@@ -26,9 +26,11 @@ internal value class AppError_v1(val intCode: Long) {
  * Transport layer error codes.
  *
  * Codes are divided into general errors [TransportError_v1] and [CryptoHandshakeError_v1]
- * to write them into frame efficiently (as first are always 1 byte length, and last are 2 bytes)
+ * to write them into frame efficiently (as first are always 1 byte length, and the last are 2 bytes)
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1c
+ *
+ * This is QUIC version 1 errors, future versions of protocol may contain other errors and corresponding codes
  */
 internal sealed interface QUICTransportError_v1 {
     fun writeToFrame(packetBuilder: BytePacketBuilder)

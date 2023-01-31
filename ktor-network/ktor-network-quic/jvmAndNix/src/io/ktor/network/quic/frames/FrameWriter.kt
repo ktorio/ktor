@@ -55,14 +55,14 @@ internal interface FrameWriter {
     fun writeResetStream(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
         finaSize: Long,
     )
 
     fun writeStopSending(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
     )
 
     fun writeCrypto(
@@ -159,7 +159,7 @@ internal interface FrameWriter {
 
     fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
-        errorCode: AppError_v1,
+        errorCode: AppError,
         reasonPhrase: ByteArray,
     )
 
@@ -263,7 +263,7 @@ internal object FrameWriterImpl : FrameWriter {
     override fun writeResetStream(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
         finaSize: Long,
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.RESET_STREAM)
@@ -275,7 +275,7 @@ internal object FrameWriterImpl : FrameWriter {
     override fun writeStopSending(
         packetBuilder: BytePacketBuilder,
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.STOP_SENDING)
         writeVarInt(streamId)
@@ -324,6 +324,7 @@ internal object FrameWriterImpl : FrameWriter {
 
         val length = if (specifyLength) data.size.toLong() else null
 
+        @Suppress("KotlinConstantConditions")
         val type = when {
             offset == null && length == null && !fin -> FrameType_v1.STREAM
             offset == null && length == null && fin -> FrameType_v1.STREAM_FIN
@@ -489,16 +490,16 @@ internal object FrameWriterImpl : FrameWriter {
     ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR)
         errorCode.writeToFrame(this)
-        frameTypeV1?.let { writeFrameType(it) }
+        writeFrameType((frameTypeV1 ?: FrameType_v1.PADDING))
         writeVarInt(reasonPhrase.size)
         writeFully(reasonPhrase)
     }
 
     override fun writeConnectionCloseWithAppError(
         packetBuilder: BytePacketBuilder,
-        errorCode: AppError_v1,
+        errorCode: AppError,
         reasonPhrase: ByteArray,
-    )= with(packetBuilder) {
+    ) = with(packetBuilder) {
         writeFrameType(FrameType_v1.CONNECTION_CLOSE_APP_ERR)
         errorCode.writeToFrame(this)
         writeVarInt(reasonPhrase.size)

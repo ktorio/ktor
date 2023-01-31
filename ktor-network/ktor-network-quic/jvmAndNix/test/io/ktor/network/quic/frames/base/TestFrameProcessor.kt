@@ -37,7 +37,7 @@ internal class TestFrameProcessor(
 
     override suspend fun acceptResetStream(
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
         finalSize: Long,
     ) = testAccept(FrameType_v1.RESET_STREAM) {
         listResetStreamValidators[it](streamId, applicationProtocolErrorCode, finalSize)
@@ -45,7 +45,7 @@ internal class TestFrameProcessor(
 
     override suspend fun acceptStopSending(
         streamId: Long,
-        applicationProtocolErrorCode: AppError_v1,
+        applicationProtocolErrorCode: AppError,
     ) = testAccept(FrameType_v1.STOP_SENDING) {
         listStopSendingValidators[it](streamId, applicationProtocolErrorCode)
     }
@@ -158,7 +158,7 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptConnectionCloseWithAppError(
-        errorCode: AppError_v1,
+        errorCode: AppError,
         reasonPhrase: ByteArray,
     ) = testAccept(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
         listConnectionCloseWithAppErrorValidators[it](errorCode, reasonPhrase)
@@ -192,9 +192,19 @@ internal class TestFrameProcessor(
 
 internal class ReadFramesValidator {
     val listACKValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray) -> Unit>()
-    val listACKWithECNValidators = mutableListOf<(ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit>()
-    val listResetStreamValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit>()
-    val listStopSendingValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit>()
+    val listACKWithECNValidators = mutableListOf<(
+        ackDelay: Long,
+        ackRanges: LongArray,
+        ect0: Long,
+        ect1: Long,
+        ectCE: Long
+    ) -> Unit>()
+    val listResetStreamValidators = mutableListOf<(
+        streamId: Long,
+        applicationProtocolErrorCode: AppError,
+        finalSize: Long
+    ) -> Unit>()
+    val listStopSendingValidators = mutableListOf<(streamId: Long, applicationProtocolErrorCode: AppError) -> Unit>()
     val listCryptoValidators = mutableListOf<(offset: Long, cryptoData: ByteArray) -> Unit>()
     val listNewTokenValidators = mutableListOf<(token: ByteArray) -> Unit>()
     val listStreamValidators = mutableListOf<(streamId: Long, offset: Long, fin: Boolean, streamData: ByteArray) -> Unit>()
@@ -206,12 +216,21 @@ internal class ReadFramesValidator {
     val listStreamDataBlockedValidators = mutableListOf<(streamId: Long, maximumStreamData: Long) -> Unit>()
     val listStreamsBlockedBidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
     val listStreamsBlockedUnidirectionalValidators = mutableListOf<(maximumStreams: Long) -> Unit>()
-    val listNewConnectionIdValidators = mutableListOf<(sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit>()
+    val listNewConnectionIdValidators = mutableListOf<(
+        sequenceNumber: Long,
+        retirePriorTo: Long,
+        connectionId: ByteArray,
+        statelessResetToken: ByteArray
+    ) -> Unit>()
     val listRetireConnectionIdValidators = mutableListOf<(sequenceNumber: Long) -> Unit>()
     val listPathChallengeValidators = mutableListOf<(data: ByteArray) -> Unit>()
     val listPathResponseValidators = mutableListOf<(data: ByteArray) -> Unit>()
-    val listConnectionCloseWithTransportErrorValidators = mutableListOf<(errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit>()
-    val listConnectionCloseWithAppErrorValidators = mutableListOf<(errorCode: AppError_v1, reasonPhrase: ByteArray) -> Unit>()
+    val listConnectionCloseWithTransportErrorValidators = mutableListOf<(
+        errorCode: QUICTransportError_v1,
+        frameType: FrameType_v1,
+        reasonPhrase: ByteArray
+    ) -> Unit>()
+    val listConnectionCloseWithAppErrorValidators = mutableListOf<(errorCode: AppError, reasonPhrase: ByteArray) -> Unit>()
 
     fun validateACK(body: (ackDelay: Long, ackRanges: LongArray) -> Unit) {
         listACKValidators.add(body)
@@ -221,11 +240,11 @@ internal class ReadFramesValidator {
         listACKWithECNValidators.add(body)
     }
 
-    fun validateResetStream(body: (streamId: Long, applicationProtocolErrorCode: AppError_v1, finalSize: Long) -> Unit) {
+    fun validateResetStream(body: (streamId: Long, applicationProtocolErrorCode: AppError, finalSize: Long) -> Unit) {
         listResetStreamValidators.add(body)
     }
 
-    fun validateStopSending(body: (streamId: Long, applicationProtocolErrorCode: AppError_v1) -> Unit) {
+    fun validateStopSending(body: (streamId: Long, applicationProtocolErrorCode: AppError) -> Unit) {
         listStopSendingValidators.add(body)
     }
 
@@ -273,7 +292,9 @@ internal class ReadFramesValidator {
         listStreamsBlockedUnidirectionalValidators.add(body)
     }
 
-    fun validateNewConnectionId(body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit) {
+    fun validateNewConnectionId(
+        body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, statelessResetToken: ByteArray) -> Unit
+    ) {
         listNewConnectionIdValidators.add(body)
     }
 
@@ -289,11 +310,13 @@ internal class ReadFramesValidator {
         listPathResponseValidators.add(body)
     }
 
-    fun validateConnectionCloseWithTransportError(body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit) {
+    fun validateConnectionCloseWithTransportError(
+        body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit
+    ) {
         listConnectionCloseWithTransportErrorValidators.add(body)
     }
 
-    fun validateConnectionCloseWithAppError(body: (errorCode: AppError_v1, reasonPhrase: ByteArray) -> Unit) {
+    fun validateConnectionCloseWithAppError(body: (errorCode: AppError, reasonPhrase: ByteArray) -> Unit) {
         listConnectionCloseWithAppErrorValidators.add(body)
     }
 }
