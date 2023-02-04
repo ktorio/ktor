@@ -66,7 +66,7 @@ public fun resourceClasspathResource(url: URL, path: String, mimeResolve: (Strin
                 if (content.isFile) content else null
             }
         }
-        "jrt" -> {
+        "jrt", "resource" -> {
             URIFileContent(url, mimeResolve(url.path.extension()))
         }
         else -> null
