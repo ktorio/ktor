@@ -21,6 +21,7 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
     protected actual open fun clearInstance(instance: T): T = instance
     protected actual open fun validateInstance(instance: T) {}
 
+    @Suppress("DEPRECATION")
     public actual final override fun borrow(): T = synchronized(lock) {
         if (size == 0) return produceInstance()
         val idx = --size
@@ -32,6 +33,7 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
         return clearInstance(instance)
     }
 
+    @Suppress("DEPRECATION")
     public actual final override fun recycle(instance: T) {
         synchronized(lock) {
             validateInstance(instance)
@@ -43,6 +45,7 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
         }
     }
 
+    @Suppress("DEPRECATION")
     public actual final override fun dispose() {
         synchronized(lock) {
             for (i in 0 until size) {

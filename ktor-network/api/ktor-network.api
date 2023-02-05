@@ -221,7 +221,7 @@ public final class io/ktor/network/sockets/ServerSocket$DefaultImpls {
 	public static fun dispose (Lio/ktor/network/sockets/ServerSocket;)V
 }
 
-public abstract interface class io/ktor/network/sockets/Socket : io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AConnectedSocket, io/ktor/network/sockets/ReadWriteSocket {
+public abstract interface class io/ktor/network/sockets/Socket : io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AConnectedSocket, io/ktor/network/sockets/ReadWriteSocket, kotlinx/coroutines/CoroutineScope {
 }
 
 public final class io/ktor/network/sockets/Socket$DefaultImpls {
