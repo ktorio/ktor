@@ -1,0 +1,11 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.network.quic.util
+
+internal const val POW_2_06 = 64L
+internal const val POW_2_14 = 16384L
+internal const val POW_2_30 = 1073741823L
+internal const val POW_2_60 = 1152921504606846976L
+internal const val POW_2_62 = 4611686018427387904L
