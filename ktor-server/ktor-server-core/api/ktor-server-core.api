@@ -1001,6 +1001,16 @@ public final class io/ktor/server/routing/PathSegmentParameterRouteSelector : io
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/routing/PathSegmentRegexRouteSelector : io/ktor/server/routing/RouteSelector {
+	public static final field Companion Lio/ktor/server/routing/PathSegmentRegexRouteSelector$Companion;
+	public fun <init> (Lkotlin/text/Regex;)V
+	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/PathSegmentRegexRouteSelector$Companion {
+}
+
 public final class io/ktor/server/routing/PathSegmentSelectorBuilder {
 	public static final field INSTANCE Lio/ktor/server/routing/PathSegmentSelectorBuilder;
 	public final fun parseConstant (Ljava/lang/String;)Lio/ktor/server/routing/RouteSelector;
@@ -1032,6 +1042,18 @@ public final class io/ktor/server/routing/PathSegmentWildcardRouteSelector : io/
 	public static final field INSTANCE Lio/ktor/server/routing/PathSegmentWildcardRouteSelector;
 	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/RegexRoutingKt {
+	public static final fun delete (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun get (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun head (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun options (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun patch (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun post (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun put (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun route (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lio/ktor/http/HttpMethod;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun route (Lio/ktor/server/routing/Route;Lkotlin/text/Regex;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 }
 
 public final class io/ktor/server/routing/RootRouteSelector : io/ktor/server/routing/RouteSelector {
