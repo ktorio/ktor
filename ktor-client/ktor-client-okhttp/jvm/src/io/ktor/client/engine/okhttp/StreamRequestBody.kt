@@ -9,6 +9,8 @@ import io.ktor.utils.io.jvm.javaio.*
 import okhttp3.*
 import okio.*
 
+internal class StreamAdapterIOException(cause: Throwable) : IOException(cause)
+
 internal class StreamRequestBody(
     private val contentLength: Long?,
     private val block: () -> ByteReadChannel
@@ -24,7 +26,7 @@ internal class StreamRequestBody(
         } catch (cause: IOException) {
             throw cause
         } catch (cause: Throwable) {
-            throw IOException(cause)
+            throw StreamAdapterIOException(cause)
         }
     }
 

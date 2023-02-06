@@ -72,6 +72,7 @@ private fun mapOkHttpException(
     requestData: HttpRequestData,
     origin: IOException
 ): Throwable = when (val cause = origin.unwrapSuppressed()) {
+    is StreamAdapterIOException -> cause.cause ?: cause
     is SocketTimeoutException ->
         if (cause.isConnectException()) {
             ConnectTimeoutException(requestData, cause)

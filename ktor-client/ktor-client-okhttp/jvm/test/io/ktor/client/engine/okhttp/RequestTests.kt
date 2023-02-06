@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
@@ -103,6 +104,23 @@ class RequestTests : TestWithKtor() {
 
             val response = clientSuccess.get(requestBuilder).body<String>()
             assertEquals("OK", response)
+        }
+    }
+
+    class CustomException : IllegalStateException()
+
+    @Test
+    fun testBodyPropagatesExceptionType() = testWithEngine(OkHttp) {
+        test { client ->
+            assertFailsWith<CustomException> {
+                client.post("$testUrl/echo") {
+                    setBody(object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            throw CustomException()
+                        }
+                    })
+                }.body<String>()
+            }
         }
     }
 }
