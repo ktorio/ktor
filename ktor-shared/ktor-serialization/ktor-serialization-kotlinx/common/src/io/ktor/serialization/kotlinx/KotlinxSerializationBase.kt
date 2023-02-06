@@ -17,17 +17,11 @@ internal abstract class KotlinxSerializationBase<T>(
     internal suspend fun serialize(
         parameters: SerializationParameters
     ): T {
-        val result = try {
-            serializerFromTypeInfo(parameters.typeInfo, format.serializersModule).let {
-                parameters.serializer = it
-                serializeContent(parameters)
-            }
-        } catch (cause: SerializationException) {
-            // can fail due to
-            // 1. https://github.com/Kotlin/kotlinx.serialization/issues/1163)
-            // 2. mismatching between compile-time and runtime types of the response.
-            null
+        val result = serializerFromTypeInfo(parameters.typeInfo, format.serializersModule).let {
+            parameters.serializer = it
+            serializeContent(parameters)
         }
+
         if (result != null) {
             return result
         }
