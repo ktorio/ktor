@@ -6,6 +6,7 @@ package io.ktor.server.auth
 
 import io.ktor.client.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.errors.*
 
@@ -28,7 +29,7 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
     internal val urlProvider: ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
-        oauth1a(name, context)
+        if (PlatformUtils.IS_JVM) oauth1a(name, context)
         oauth2(name, context)
     }
 

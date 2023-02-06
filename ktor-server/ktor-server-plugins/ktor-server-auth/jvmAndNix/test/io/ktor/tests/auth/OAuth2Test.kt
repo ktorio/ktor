@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -22,16 +22,15 @@ import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
-import java.net.*
-import java.util.concurrent.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
 class OAuth2Test {
-    private val executor = Executors.newSingleThreadExecutor()
-    private val dispatcher = executor.asCoroutineDispatcher()
 
     private val DefaultSettings = OAuthServerSettings.OAuth2ServerSettings(
         name = "oauth2",
@@ -77,33 +76,6 @@ class OAuth2Test {
         clientId = "clientId1",
         clientSecret = "clientSecret1",
         requestMethod = HttpMethod.Post
-    )
-
-    private fun DefaultSettingsWithAccessTokenInterceptor(post: Boolean) = OAuthServerSettings.OAuth2ServerSettings(
-        name = "oauth2",
-        authorizeUrl = "https://login-server-com/authorize",
-        accessTokenUrl = "https://login-server-com/oauth/access_token",
-        clientId = "clientId1",
-        clientSecret = "clientSecret1",
-        requestMethod = when (post) {
-            false -> HttpMethod.Get
-            true -> HttpMethod.Post
-        },
-        accessTokenInterceptor = {
-            url.parameters.remove("state")
-
-            if (method == HttpMethod.Post) {
-                setBody(
-                    runBlocking {
-                        val query = parseQueryString((body as OutgoingContent).toByteReadPacket().readText())
-                        val filtered = ParametersBuilder().apply {
-                            appendFiltered(query) { key, _ -> key != "state" }
-                        }.build()
-                        TextContent(filtered.formUrlEncode(), ContentType.Application.FormUrlEncoded)
-                    }
-                )
-            }
-        }
     )
 
     private val testClient = createOAuth2Server(
@@ -216,7 +188,6 @@ class OAuth2Test {
     @AfterTest
     fun tearDown() {
         testClient.close()
-        executor.shutdownNow()
     }
 
     @Test
@@ -227,14 +198,14 @@ class OAuth2Test {
 
         assertEquals(HttpStatusCode.Found, result.response.status())
 
-        val url = URI(
+        val url = Url(
             result.response.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
-        assertEquals("/authorize", url.path)
+        assertEquals("/authorize", url.encodedPath)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.rawQuery)
+        val query = url.parameters
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
@@ -249,14 +220,14 @@ class OAuth2Test {
 
         assertEquals(HttpStatusCode.Found, result.response.status())
 
-        val url = URI(
+        val url = Url(
             result.response.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
-        assertEquals("/authorize", url.path)
+        assertEquals("/authorize", url.encodedPath)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.rawQuery)
+        val query = url.parameters
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
@@ -296,14 +267,14 @@ class OAuth2Test {
 
         assertEquals(HttpStatusCode.Found, result.response.status())
 
-        val url = URI(
+        val url = Url(
             result.response.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
-        assertEquals("/authorize", url.path)
+        assertEquals("/authorize", url.encodedPath)
         assertEquals("login-server-com", url.host)
 
-        val query = parseQueryString(url.rawQuery)
+        val query = url.parameters
         assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
@@ -320,8 +291,6 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-        waitExecutor()
-
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
 
@@ -333,8 +302,6 @@ class OAuth2Test {
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
         }
-
-        waitExecutor()
 
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
@@ -353,8 +320,6 @@ class OAuth2Test {
             )
         }
 
-        waitExecutor()
-
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
 
@@ -367,241 +332,18 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-        waitExecutor()
-
         assertEquals(HttpStatusCode.Found, call.response.status())
         assertNotNull(call.response.headers[HttpHeaders.Location])
         assertTrue { call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize") }
     }
 
     @Test
-    fun testRedirectLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthRespondRedirect(testClient, dispatcher, DefaultSettings, "http://localhost/login")
-                }
-            }
-
-            val result = handleRequest(HttpMethod.Get, "/login")
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-            val redirectUrl = URI.create(
-                result.response.headers[HttpHeaders.Location]
-                    ?: fail("Redirect uri is missing")
-            )
-            assertEquals("login-server-com", redirectUrl.host)
-            assertEquals("/authorize", redirectUrl.path)
-            val redirectParameters = redirectUrl.rawQuery?.parseUrlEncodedParameters() ?: fail("no redirect parameters")
-
-            assertEquals("clientId1", redirectParameters[OAuth2RequestParameters.ClientId])
-            assertEquals("code", redirectParameters[OAuth2RequestParameters.ResponseType])
-            assertNotNull(redirectParameters[OAuth2RequestParameters.State])
-            assertEquals("http://localhost/login", redirectParameters[OAuth2RequestParameters.RedirectUri])
-        }
-    }
-
-    @Test
-    fun testRequestTokenLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?" + listOf(
-                    OAuth2RequestParameters.Code to "code1",
-                    OAuth2RequestParameters.State to "state1"
-                ).formUrlEncode()
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertTrue { result.response.content!!.contains("OAuth2") }
-        }
-    }
-
-    @Test
-    fun testRequestTokenLowLevelBadCode() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?" + listOf(
-                    OAuth2RequestParameters.Code to "code2",
-                    OAuth2RequestParameters.State to "state1"
-                ).formUrlEncode()
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
-    @Test
-    fun testRequestTokenLowLevelErrorRedirect() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(HttpMethod.Get, "/login?error=failed")
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
-    @Test
-    @Suppress("DEPRECATION_ERROR")
-    fun testRequestTokenLowLevelBadContentType() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/",
-                        { url.parameters["badContentType"] = "true" }
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?" + listOf(
-                    OAuth2RequestParameters.Code to "code1",
-                    OAuth2RequestParameters.State to "state1"
-                ).formUrlEncode()
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertTrue { result.response.content!!.contains("OAuth2") }
-        }
-    }
-
-    @Test
-    fun testRequestTokenLowLevelBadStatus() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/",
-                        { url.parameters["respondHttpStatus"] = "500" }
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?" + listOf(
-                    OAuth2RequestParameters.Code to "code1",
-                    OAuth2RequestParameters.State to "state1"
-                ).formUrlEncode()
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
-    @Test
-    fun testRequestTokenLowLevelBadStatusNotFound() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettings,
-                        "http://localhost/login",
-                        "/",
-                        { url.parameters["respondHttpStatus"] = "404" }
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?" + listOf(
-                    OAuth2RequestParameters.Code to "code1",
-                    OAuth2RequestParameters.State to "state1"
-                ).formUrlEncode()
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
-    @Test
     fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
         handleRequestWithBasic("/resource", "user", "pass").let { result ->
-            waitExecutor()
             assertWWWAuthenticateHeaderExist(result)
         }
 
         handleRequestWithBasic("/resource", "user1", "password1").let { result ->
-            waitExecutor()
             assertFailures()
             assertEquals("ok", result.response.content)
         }
@@ -739,69 +481,8 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRemoveStateFromAccessTokenRequest(): Unit = withApplication(createTestEnvironment()) {
-        with(application) {
-            routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettingsWithAccessTokenInterceptor(post = false),
-                        "http://localhost/login",
-                        "/login"
-                    ) { token ->
-                        token as OAuthAccessTokenResponse.OAuth2
-                        call.respondText(token.extraParameters["noState"] ?: "Had state")
-                    }
-                }
-            }
-        }
-
-        val result = handleRequest(
-            HttpMethod.Get,
-            "/login?" + listOf(
-                OAuth2RequestParameters.Code to "code2",
-                OAuth2RequestParameters.State to "state1"
-            ).formUrlEncode()
-        ).response.content
-
-        assertEquals("Had no state", result)
-    }
-
-    @Test
-    fun testRemoveStateFromAccessTokenRequestMethodPost(): Unit = withApplication(createTestEnvironment()) {
-        with(application) {
-            routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient,
-                        dispatcher,
-                        DefaultSettingsWithAccessTokenInterceptor(post = true),
-                        "http://localhost/login",
-                        "/login"
-                    ) { token ->
-                        token as OAuthAccessTokenResponse.OAuth2
-                        call.respondText(token.extraParameters["noState"] ?: "Had state")
-                    }
-                }
-            }
-        }
-
-        val result = handleRequest(
-            HttpMethod.Get,
-            "/login?" + listOf(
-                OAuth2RequestParameters.Code to "code2",
-                OAuth2RequestParameters.State to "state1"
-            ).formUrlEncode()
-        ).response.content
-
-        assertEquals("Had no state", result)
-    }
-
-    @Test
     fun testApplicationState() = testApplication {
+        @Serializable
         class UserSession(val token: String)
 
         val client = createClient {
@@ -872,14 +553,6 @@ class OAuth2Test {
         assertEquals("some-url", response1.bodyAsText())
     }
 
-    private fun waitExecutor() {
-        val latch = CountDownLatch(1)
-        executor.submit {
-            latch.countDown()
-        }
-        latch.await(1L, TimeUnit.MINUTES)
-    }
-
     private fun assertFailures() {
         failures.forEach {
             throw it
@@ -907,7 +580,7 @@ private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))
 }
 
-private interface OAuth2Server {
+internal interface OAuth2Server {
     fun requestToken(
         clientId: String,
         clientSecret: String,
@@ -920,7 +593,7 @@ private interface OAuth2Server {
     ): OAuthAccessTokenResponse.OAuth2
 }
 
-private fun createOAuth2Server(server: OAuth2Server): HttpClient {
+internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
     val environment = createTestEnvironment {
         module {
             routing {
@@ -1000,5 +673,5 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     }
 }
 
-private fun Parameters.requireParameter(name: String) = get(name)
+internal fun Parameters.requireParameter(name: String) = get(name)
     ?: throw IllegalArgumentException("No parameter $name specified")

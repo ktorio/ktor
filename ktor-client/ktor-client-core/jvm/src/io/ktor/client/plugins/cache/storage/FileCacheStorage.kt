@@ -4,6 +4,7 @@
 
 package io.ktor.client.plugins.cache.storage
 
+import io.ktor.client.plugins.cache.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
@@ -14,6 +15,7 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import java.io.*
+import java.security.*
 
 /**
  * Creates storage that uses file system to store cache data.
@@ -77,21 +79,25 @@ private class FileCacheStorage(
         return readCache(key(url)).find { it.varyKeys == varyKeys }
     }
 
-    private fun key(url: Url) = hex(url.toString().encodeToByteArray())
+    private fun key(url: Url) = hex(MessageDigest.getInstance("MD5").digest(url.toString().encodeToByteArray()))
 
     private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val channel = ByteChannel()
-            File(directory, urlHex).outputStream().buffered().use { output ->
-                launch {
-                    channel.writeInt(caches.size)
-                    for (cache in caches) {
-                        writeCache(channel, cache)
+            try {
+                File(directory, urlHex).outputStream().buffered().use { output ->
+                    launch {
+                        channel.writeInt(caches.size)
+                        for (cache in caches) {
+                            writeCache(channel, cache)
+                        }
+                        channel.close()
                     }
-                    channel.close()
+                    channel.copyTo(output)
                 }
-                channel.copyTo(output)
+            } catch (cause: Exception) {
+                LOGGER.trace("Exception during saving a cache to a file: ${cause.stackTraceToString()}")
             }
         }
     }
@@ -102,15 +108,20 @@ private class FileCacheStorage(
             val file = File(directory, urlHex)
             if (!file.exists()) return emptySet()
 
-            file.inputStream().buffered().use {
-                val channel = it.toByteReadChannel()
-                val requestsCount = channel.readInt()
-                val caches = mutableSetOf<CachedResponseData>()
-                for (i in 0 until requestsCount) {
-                    caches.add(readCache(channel))
+            try {
+                file.inputStream().buffered().use {
+                    val channel = it.toByteReadChannel()
+                    val requestsCount = channel.readInt()
+                    val caches = mutableSetOf<CachedResponseData>()
+                    for (i in 0 until requestsCount) {
+                        caches.add(readCache(channel))
+                    }
+                    channel.discard()
+                    return caches
                 }
-                channel.discard()
-                return caches
+            } catch (cause: Exception) {
+                LOGGER.trace("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
+                return emptySet()
             }
         }
     }

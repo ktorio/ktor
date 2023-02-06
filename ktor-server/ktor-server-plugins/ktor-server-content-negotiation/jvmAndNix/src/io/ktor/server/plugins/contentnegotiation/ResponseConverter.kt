@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.utils.io.charsets.*
 
@@ -21,7 +22,13 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
     }
 
     if (pluginConfig.ignoredTypes.any { it.isInstance(subject) }) {
-        LOGGER.trace("Skipping because the type is ignored.")
+        val sourceClass = subject::class.simpleName
+        val requestInfo = "${call.request.httpMethod.value} ${call.request.uri}"
+
+        LOGGER.trace(
+            "Skipping response body transformation from $sourceClass to OutgoingContent for the $requestInfo request" +
+            " because the $sourceClass type is ignored. See [ContentNegotiationConfig::ignoreType]."
+        )
         return@onCallRespond
     }
 

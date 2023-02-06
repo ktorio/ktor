@@ -7,6 +7,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import java.nio.file.*
@@ -71,6 +72,40 @@ class FileCacheTest : ClientLoader() {
 
             assertEquals(3, publicStorage.findAll(url).size)
             assertEquals(0, privateStorage.findAll(url).size)
+        }
+    }
+
+    @Test
+    fun testLongPath() = clientTests {
+        config {
+            install(HttpCache) {
+                publicStorage(this@FileCacheTest.publicStorage)
+            }
+        }
+
+        test { client ->
+            val response = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}").body<String>()
+            assertEquals("abc", response)
+        }
+    }
+
+    @Test
+    fun testSkipCacheIfException() = clientTests {
+        val file = Files.createTempDirectory("cache-test-public-deleted").toFile()
+        val publicStorage = FileStorage(file)
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+        }
+        test { client ->
+            val first = client.get(Url("$TEST_SERVER/cache/public")).bodyAsText()
+            assertEquals("public", first)
+
+            file.deleteRecursively()
+
+            val second = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}")
+            assertEquals("abc", second.bodyAsText())
         }
     }
 }

@@ -13,6 +13,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.lang.Runnable
@@ -20,15 +22,13 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.system.*
 import kotlin.test.*
+import kotlin.text.Charsets
 
 @Suppress("DEPRECATION")
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
-        @OptIn(
-            ExperimentalCoroutinesApi::class,
-            InternalCoroutinesApi::class
-        )
+        @OptIn(InternalCoroutinesApi::class)
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
             object : CoroutineDispatcher(), Delay by delay {
                 override fun isDispatchNeeded(context: CoroutineContext): Boolean =
@@ -277,9 +277,54 @@ class TestApplicationEngineTest {
                     HttpHeaders.ContentType,
                     ContentType.MultiPart.FormData.withParameter("boundary", boundary).toString()
                 )
-                setBody(boundary, multipart)
+                bodyChannel = buildMultipart(boundary, multipart)
             }
             assertEquals(HttpStatusCode.OK, response.response.status())
         }
     }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal fun buildMultipart(
+    boundary: String,
+    parts: List<PartData>
+): ByteReadChannel = GlobalScope.writer {
+    if (parts.isEmpty()) return@writer
+
+    try {
+        append("\r\n\r\n")
+        parts.forEach {
+            append("--$boundary\r\n")
+            for ((key, values) in it.headers.entries()) {
+                append("$key: ${values.joinToString(";")}\r\n")
+            }
+            append("\r\n")
+            append(
+                when (it) {
+                    is PartData.FileItem -> {
+                        channel.writeFully(it.provider().readBytes())
+                        ""
+                    }
+                    is PartData.BinaryItem -> {
+                        channel.writeFully(it.provider().readBytes())
+                        ""
+                    }
+                    is PartData.FormItem -> it.value
+                    is PartData.BinaryChannelItem -> {
+                        it.provider().copyTo(channel)
+                        ""
+                    }
+                }
+            )
+            append("\r\n")
+        }
+
+        append("--$boundary--\r\n")
+    } finally {
+        parts.forEach { it.dispose() }
+    }
+}.channel
+
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
 }
