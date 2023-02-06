@@ -17,8 +17,14 @@ internal class StreamRequestBody(
     override fun contentType(): MediaType? = null
 
     override fun writeTo(sink: BufferedSink) {
-        block().toInputStream().source().use {
-            sink.writeAll(it)
+        try {
+            block().toInputStream().source().use {
+                sink.writeAll(it)
+            }
+        } catch (cause: IOException) {
+            throw cause
+        } catch (cause: Throwable) {
+            throw IOException(cause)
         }
     }
 
