@@ -12,7 +12,7 @@ import io.ktor.utils.io.core.*
 @ExperimentalUnsignedTypes
 internal inline fun ByteReadPacket.readUByteOrElse(elseBlock: () -> UByte): UByte {
     if (isEmpty) {
-        elseBlock()
+        return elseBlock()
     }
     return readUByte()
 }

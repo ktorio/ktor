@@ -11,6 +11,13 @@ import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 
 /**
+ * 0b01000001, where 0100 prefix - varint length, 0001 byte - prefix of crypto error.
+ *
+ * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9001#name-tls-errors)
+ */
+private const val CRYPTO_HANDSHAKE_ERROR_PREFIX = 0x41
+
+/**
  * Application error codes that are produced and managed by application layer protocol
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1d
@@ -42,7 +49,11 @@ internal sealed interface QUICTransportError_v1 {
             val length = byte ushr 6
             return when {
                 length == 0 -> TransportError_v1.fromErrorCode(byte)
-                length == 1 && byte == 0x41 -> CryptoHandshakeError_v1(payload.readUByteOrElse { return null })
+
+                length == 1 && byte == CRYPTO_HANDSHAKE_ERROR_PREFIX -> {
+                    CryptoHandshakeError_v1(payload.readUByteOrElse { return null })
+                }
+
                 else -> null
             }
         }
@@ -90,11 +101,7 @@ internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v
 internal class CryptoHandshakeError_v1(val tlsAlertCode: UByte) : QUICTransportError_v1 {
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
-        // 0b01000001, where 0100 prefix - varint length,
-        //                   0001 byte - prefix of crypto error (reserved range: 0x0100..0x01ff)
-        //
-        // RFC Reference: https://www.rfc-editor.org/rfc/rfc9001#name-tls-errors
-        packetBuilder.writeUByte(0x41u)
+        packetBuilder.writeUByte(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
         packetBuilder.writeUByte(tlsAlertCode)
     }
 }
