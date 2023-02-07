@@ -169,6 +169,6 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
     override fun toString(): String = "Regex(${regex.pattern})"
 
     public companion object {
-        private val GROUP_NAME_MATCHER = Regex("\\(\\?<([^>]+)>")
+        private val GROUP_NAME_MATCHER = Regex("\\(\\?<(\\p{Alpha}\\p{Alnum}*)>[^)]*\\)")
     }
 }

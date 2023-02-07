@@ -187,4 +187,21 @@ class RegexRoutingTest {
         val options = client.options("/tag/abc 123").bodyAsText()
         assertEquals("abc 123", options)
     }
+
+    @Test
+    fun testOnlyValidGroups() = testApplication {
+        application {
+            routing {
+                get(Regex("/\\(?<notGroup>")) {
+                    assertEquals(0, call.parameters.names().size)
+                }
+                get(Regex("/(?<group1>ok)")) {
+                    assertEquals(1, call.parameters.names().size)
+                }
+            }
+        }
+
+        client.get("/(<notGroup>")
+        client.get("/ok")
+    }
 }
