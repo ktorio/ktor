@@ -23,6 +23,7 @@ public class CallLoggingConfig {
     internal val mdcEntries = mutableListOf<MDCEntry>()
     internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
     internal var isColorsEnabled: Boolean = true
+    internal var ignoreStaticContent: Boolean = false
 
     /**
      * Specifies a logging level for the [CallLogging] plugin.
@@ -84,6 +85,13 @@ public class CallLoggingConfig {
      * */
     public fun disableDefaultColors() {
         isColorsEnabled = false
+    }
+
+    /**
+     * Disables logging of static content files.
+     * */
+    public fun disableStaticContent() {
+        ignoreStaticContent = true
     }
 
     private fun defaultFormat(call: ApplicationCall): String =

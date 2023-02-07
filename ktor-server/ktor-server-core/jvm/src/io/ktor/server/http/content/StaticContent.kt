@@ -318,3 +318,5 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
         }
     }
 }
+
+public fun ApplicationCall.isStaticContent(): Boolean = parameters.contains(pathParameterName)
