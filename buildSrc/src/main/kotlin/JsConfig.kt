@@ -67,9 +67,25 @@ private fun Project.configureJsTasks() {
 private fun Project.configureTestTask() {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
 
-    val jsLegacyBrowserTest by tasks.getting
-    jsLegacyBrowserTest.onlyIf { shouldRunJsBrowserTest }
+    val jsBrowserTest by tasks.getting
+    val jsNodeTest by tasks.getting
+    val cleanJsBrowserTest by tasks.getting
+    val cleanJsNodeTest by tasks.getting
+    jsBrowserTest.onlyIf { shouldRunJsBrowserTest }
 
-    val jsIrBrowserTest by tasks.getting
-    jsIrBrowserTest.onlyIf { shouldRunJsBrowserTest }
+    val jsIrBrowserTest by tasks.creating {
+        dependsOn(jsBrowserTest)
+    }
+
+    val jsIrNodeTasks by tasks.creating {
+        dependsOn(jsNodeTest)
+    }
+
+    val cleanJsIrBrowserTest by tasks.creating {
+        dependsOn(cleanJsBrowserTest)
+    }
+
+    val cleanJsIrNodeTasks by tasks.creating {
+        dependsOn(cleanJsNodeTest)
+    }
 }
