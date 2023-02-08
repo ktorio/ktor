@@ -88,9 +88,9 @@ public class CallLoggingConfig {
     }
 
     /**
-     * Disables logging of static content files.
+     * Disables logging for static content files.
      * */
-    public fun disableStaticContent() {
+    public fun disableForStaticContent() {
         ignoreStaticContent = true
     }
 

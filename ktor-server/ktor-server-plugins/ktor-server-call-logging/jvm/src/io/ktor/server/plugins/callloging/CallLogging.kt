@@ -48,11 +48,10 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     }
 
     fun logSuccess(call: ApplicationCall) {
-        if (filters.isEmpty() || filters.any { it(call) }) {
-            if (!(ignoreStaticContent && call.isStaticContent())) {
-                log(formatCall(call))
-            }
+        if ((ignoreStaticContent && call.isStaticContent()) || (filters.isNotEmpty() && filters.none { it(call) })) {
+            return
         }
+        log(formatCall(call))
     }
 
     setupMDCProvider()

@@ -441,7 +441,7 @@ class CallLoggingTest {
                     level = Level.INFO
                     clock { 0 }
                     disableDefaultColors()
-                    disableStaticContent()
+                    disableForStaticContent()
                 }
             }
             log = logger

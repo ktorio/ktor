@@ -319,4 +319,7 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
     }
 }
 
+/**
+ *  Checks if the application call is requesting static content
+ */
 public fun ApplicationCall.isStaticContent(): Boolean = parameters.contains(pathParameterName)
