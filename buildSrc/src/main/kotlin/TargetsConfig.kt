@@ -29,7 +29,7 @@ fun Project.configureTargets() {
 
     kotlin {
         if (hasJs) {
-            js {
+            js(IR) {
                 nodejs()
                 browser()
             }

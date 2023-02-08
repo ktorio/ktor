@@ -6,7 +6,6 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.pool.*
 
-// TODO: KT-21487: Support common way to get identity hash code in legacy and IR Kotlin/JS backends.
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun identityHashCode(instance: Any): Int = instance.hashCode()
 
