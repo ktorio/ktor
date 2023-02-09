@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.callloging
@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callid.*
 import io.ktor.server.plugins.statuspages.*
@@ -21,6 +22,7 @@ import kotlinx.coroutines.*
 import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
+import java.io.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -429,6 +431,33 @@ class CallLoggingTest {
 
         assertEquals("OK", client.get("/").bodyAsText())
         assertEquals(6, failed)
+    }
+
+    @Test
+    fun `ignore static file request`() = testApplication {
+        environment {
+            module {
+                install(CallLogging) {
+                    level = Level.INFO
+                    clock { 0 }
+                    disableDefaultColors()
+                    disableForStaticContent()
+                }
+            }
+            log = logger
+        }
+        application {
+            routing {
+                static {
+                    staticRootFolder = File("jvm/test/io/ktor/server/plugins/callloging")
+                    files(".")
+                    default("CallLoggingTest.kt")
+                }
+            }
+        }
+        val response = client.get("/CallLoggingTest.kt")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertFalse("INFO: 200 OK: GET - /CallLoggingTest.kt in 0ms" in messages)
     }
 
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)

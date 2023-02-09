@@ -7,6 +7,7 @@ package io.ktor.server.plugins.callloging
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import org.slf4j.event.*
@@ -36,6 +37,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     val filters = pluginConfig.filters
     val formatCall = pluginConfig.formatCall
     val clock = pluginConfig.clock
+    val ignoreStaticContent = pluginConfig.ignoreStaticContent
 
     fun log(message: String) = when (pluginConfig.level) {
         Level.ERROR -> log.error(message)
@@ -46,9 +48,10 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     }
 
     fun logSuccess(call: ApplicationCall) {
-        if (filters.isEmpty() || filters.any { it(call) }) {
-            log(formatCall(call))
+        if ((ignoreStaticContent && call.isStaticContent()) || (filters.isNotEmpty() && filters.none { it(call) })) {
+            return
         }
+        log(formatCall(call))
     }
 
     setupMDCProvider()

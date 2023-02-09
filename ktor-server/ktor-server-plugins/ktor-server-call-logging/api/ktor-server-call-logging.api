@@ -2,6 +2,7 @@ public final class io/ktor/server/plugins/callloging/CallLoggingConfig {
 	public fun <init> ()V
 	public final fun clock (Lkotlin/jvm/functions/Function0;)V
 	public final fun disableDefaultColors ()V
+	public final fun disableForStaticContent ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun format (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLevel ()Lorg/slf4j/event/Level;
