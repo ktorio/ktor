@@ -534,6 +534,7 @@ private val rawMimes: String
 .mj2,video/mj2
 .mjf,audio/x-vnd.audioexplosion.mjuicemediafile
 .mjpg,video/x-motion-jpeg
+.mjs,text/javascript
 .mkv,video/x-matroska
 .mkv,audio/x-matroska
 .mlp,application/vnd.dolby.mlp
