@@ -68,7 +68,7 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
 
     val isPrivate = CacheControl.PRIVATE in cacheControl
 
-    val maxAgeKey = if (isPrivate) "s-max-age" else "max-age"
+    val maxAgeKey = if (isPrivate) "s-maxage" else "max-age"
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
