@@ -296,4 +296,47 @@ class LoggingMockedTests {
             testLogger.verify()
         }
     }
+
+    @Test
+    fun testSanitizeHeaders() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger {
+            line("REQUEST: http://localhost/")
+            line("METHOD: HttpMethod(value=GET)")
+            line("COMMON HEADERS")
+            line("-> Accept: */*")
+            line("-> Accept-Charset: UTF-8")
+            line("-> Authorization: <secret>")
+            line("-> Sanitized: ***")
+            line("CONTENT HEADERS")
+            line("-> Content-Length: 0")
+            line("RESPONSE: 200 OK")
+            line("METHOD: HttpMethod(value=GET)")
+            line("FROM: http://localhost/")
+            line("COMMON HEADERS")
+            line("-> Sanitized: ***")
+        }
+        config {
+            engine {
+                addHandler { respond("OK", headers = headersOf("Sanitized", "response value")) }
+            }
+            install(Logging) {
+                logger = testLogger
+                level = LogLevel.HEADERS
+                sanitizeHeader("<secret>") { it == HttpHeaders.Authorization }
+                sanitizeHeader { it == "Sanitized" }
+                sanitizeHeader { it == HttpHeaders.ContentType }
+            }
+        }
+
+        test { client ->
+            client.get("http://localhost/") {
+                header(HttpHeaders.Authorization, "password")
+                header("Sanitized", "value")
+            }.body<String>()
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
 }
