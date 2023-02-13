@@ -17,12 +17,12 @@ import io.ktor.resources.Resources as ResourcesCore
  * Example:
  * ```kotlin
  * @Resource("/users")
- * data class Users {
+ * class Users {
  *   @Resource("/{id}")
- *   data class ById(val parent: Users = Users(), val id: Long)
+ *   class ById(val parent: Users = Users(), val id: Long)
  *
  *   @Resource("/add")
- *   data class Add(val parent: Users = Users(), val name: String)
+ *   class Add(val parent: Users = Users(), val name: String)
  * }
  *
  * // client-side
