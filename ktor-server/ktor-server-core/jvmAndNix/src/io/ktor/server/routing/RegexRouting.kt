@@ -241,29 +241,33 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
         val prefix = if (regex.pattern.startsWith('/')) "/" else ""
         val postfix = if (regex.pattern.endsWith('/')) "/" else ""
         val pathSegments = context.segments.drop(segmentIndex).joinToString("/", prefix, postfix)
-        return regex.find(pathSegments)?.let { result ->
-            val segmentIncrement = result.value.length.let {
-                if (pathSegments.length == it) {
-                    context.segments.size - segmentIndex
-                } else if (pathSegments[it] == '/') {
-                    val segments = result.value.substring(0, it)
-                    val count = segments.count { c -> c == '/' }
-                    if (prefix == "/") count else count + 1
-                } else {
-                    return RouteSelectorEvaluation.Failed
-                }
-            }
+        val result = regex.find(pathSegments) ?: return RouteSelectorEvaluation.Failed
 
-            val groups = result.groups as MatchNamedGroupCollection
-            val parameters = mutableListOf<Pair<String, List<String>>>()
-            GROUP_NAME_MATCHER.findAll(regex.pattern).forEach {
-                val (name) = it.destructured
-                val value = groups[name]?.value ?: ""
-                parameters += name to listOf(value)
+        val segmentIncrement = result.value.length.let { consumedLength ->
+            if (pathSegments.length == consumedLength) {
+                context.segments.size - segmentIndex
+            } else if (pathSegments[consumedLength] == '/') {
+                val segments = result.value.substring(0, consumedLength)
+                val count = segments.count { it == '/' }
+                if (prefix == "/") count else count + 1
+            } else {
+                return RouteSelectorEvaluation.Failed
             }
-            val values = parametersOf(*parameters.toTypedArray())
-            RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityQueryParameter, values, segmentIncrement)
-        } ?: RouteSelectorEvaluation.Failed
+        }
+
+        val groups = result.groups as MatchNamedGroupCollection
+        val parameters = Parameters.build {
+            GROUP_NAME_MATCHER.findAll(regex.pattern).forEach { matchResult ->
+                val (name) = matchResult.destructured
+                val value = groups[name]?.value ?: ""
+                append(name, value)
+            }
+        }
+        return RouteSelectorEvaluation.Success(
+            quality = RouteSelectorEvaluation.qualityQueryParameter,
+            parameters = parameters,
+            segmentIncrement = segmentIncrement
+        )
     }
 
     override fun toString(): String = "Regex(${regex.pattern})"
