@@ -14,14 +14,34 @@ import kotlin.jvm.*
 
 /**
  * Builds a route to match the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * route(Regex("/(?<number>\\d+)")) {
+ *     get("/hello") {
+ *         val number = call.parameters["number"]
+ *         ...
+ *     }
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.route(path: Regex, build: Route.() -> Unit): Route = createRouteFromRegexPath(path).apply(build)
 
 /**
  * Builds a route to match the specified HTTP [method] and regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * route(Regex("/(?<name>.+)/hello"), HttpMethod.Get) {
+ *     handle {
+ *         val name = call.parameters["name"]
+ *         ...
+ *     }
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit): Route {
@@ -31,7 +51,15 @@ public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit)
 
 /**
  * Builds a route to match `GET` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * get(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.get(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -40,7 +68,15 @@ public fun Route.get(path: Regex, body: PipelineInterceptor<Unit, ApplicationCal
 
 /**
  * Builds a route to match `POST` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * post(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.post(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -49,7 +85,15 @@ public fun Route.post(path: Regex, body: PipelineInterceptor<Unit, ApplicationCa
 
 /**
  * Builds a route to match `POST` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * post<String>(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 @JvmName("postTypedPath")
@@ -62,7 +106,15 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `HEAD` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * head(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.head(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -71,7 +123,15 @@ public fun Route.head(path: Regex, body: PipelineInterceptor<Unit, ApplicationCa
 
 /**
  * Builds a route to match `PUT` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * put(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.put(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -80,7 +140,15 @@ public fun Route.put(path: Regex, body: PipelineInterceptor<Unit, ApplicationCal
 
 /**
  * Builds a route to match `PUT` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * put<String>(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 @JvmName("putTypedPath")
@@ -93,7 +161,15 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PATCH` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * patch(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.patch(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -102,7 +178,15 @@ public fun Route.patch(path: Regex, body: PipelineInterceptor<Unit, ApplicationC
 
 /**
  * Builds a route to match `PATCH` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * patch<String>(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 @JvmName("patchTypedPath")
@@ -115,7 +199,15 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `DELETE` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * delete(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.delete(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
@@ -124,7 +216,15 @@ public fun Route.delete(path: Regex, body: PipelineInterceptor<Unit, Application
 
 /**
  * Builds a route to match `OPTIONS` requests with the specified regex [path].
- * @see [Application.routing]
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * options(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
  */
 @KtorDsl
 public fun Route.options(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
