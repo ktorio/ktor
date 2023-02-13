@@ -37,6 +37,16 @@ public interface ApplicationEngine {
          * Specifies the minimum size of a thread pool used to process application calls.
          */
         public var callGroupSize: Int = parallelism
+
+        /**
+         * Specifies the maximum amount of time in milliseconds for activity to cool down
+         */
+        public var shutdownGracePeriod: Long = 50
+
+        /**
+         * Specifies the maximum amount of time in milliseconds to wait until server stops gracefully
+         */
+        public var shutdownTimeout: Long = 5000
     }
 
     /**

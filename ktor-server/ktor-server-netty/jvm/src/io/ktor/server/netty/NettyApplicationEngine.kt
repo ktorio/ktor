@@ -209,6 +209,10 @@ public class NettyApplicationEngine(
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
+        addShutdownHook {
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        }
+
         environment.start()
 
         try {
@@ -225,11 +229,12 @@ public class NettyApplicationEngine(
 
         environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred = stopServerOnCancellation()
+        cancellationDeferred =
+            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
 
         if (wait) {
             channels?.map { it.closeFuture() }?.forEach { it.sync() }
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         }
         return this
     }
