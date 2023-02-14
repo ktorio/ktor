@@ -665,7 +665,7 @@ public final class io/ktor/client/plugins/api/TransformResponseBodyContext {
 
 public final class io/ktor/client/plugins/cache/HttpCache {
 	public static final field Companion Lio/ktor/client/plugins/cache/HttpCache$Companion;
-	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getPrivateStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 	public final fun getPublicStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 }
@@ -683,10 +683,12 @@ public final class io/ktor/client/plugins/cache/HttpCache$Config {
 	public fun <init> ()V
 	public final fun getPrivateStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 	public final fun getPublicStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
+	public final fun isShared ()Z
 	public final fun privateStorage (Lio/ktor/client/plugins/cache/storage/CacheStorage;)V
 	public final fun publicStorage (Lio/ktor/client/plugins/cache/storage/CacheStorage;)V
 	public final fun setPrivateStorage (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;)V
 	public final fun setPublicStorage (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;)V
+	public final fun setShared (Z)V
 }
 
 public final class io/ktor/client/plugins/cache/HttpCacheEntry {
@@ -748,8 +750,10 @@ public final class io/ktor/client/plugins/cache/storage/HttpCacheStorage$Compani
 }
 
 public final class io/ktor/client/plugins/cache/storage/HttpCacheStorageKt {
-	public static final fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun store$default (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cookies/AcceptAllCookiesStorage : io/ktor/client/plugins/cookies/CookiesStorage {
