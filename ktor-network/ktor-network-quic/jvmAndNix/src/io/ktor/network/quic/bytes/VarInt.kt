@@ -6,7 +6,7 @@
 
 package io.ktor.network.quic.bytes
 
-import io.ktor.network.quic.util.*
+import io.ktor.network.quic.consts.*
 import io.ktor.utils.io.core.*
 
 /**

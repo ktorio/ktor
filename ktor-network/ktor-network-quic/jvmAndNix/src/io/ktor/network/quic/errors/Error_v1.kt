@@ -39,19 +39,19 @@ internal value class AppError(val intCode: Long) {
  *
  * This is QUIC version 1 errors, future versions of protocol may contain other errors and corresponding codes
  */
-internal sealed interface QUICTransportError_v1 {
+internal sealed interface QUICTransportError_v1 : QUICTransportError {
     fun writeToFrame(packetBuilder: BytePacketBuilder)
 
     companion object {
         @OptIn(ExperimentalUnsignedTypes::class)
         fun readFromFrame(payload: ByteReadPacket): QUICTransportError_v1? {
-            val byte = payload.readUByteOrElse { return null }.toInt()
+            val byte = payload.readUInt8 { return null }.toInt()
             val length = byte ushr 6
             return when {
                 length == 0 -> TransportError_v1.fromErrorCode(byte)
 
                 length == 1 && byte == CRYPTO_HANDSHAKE_ERROR_PREFIX -> {
-                    CryptoHandshakeError_v1(payload.readUByteOrElse { return null })
+                    CryptoHandshakeError_v1(payload.readUInt8 { return null })
                 }
 
                 else -> null

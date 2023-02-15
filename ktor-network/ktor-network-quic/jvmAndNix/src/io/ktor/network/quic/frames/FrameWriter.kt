@@ -7,6 +7,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
@@ -334,7 +335,7 @@ internal object FrameWriterImpl : FrameWriter {
             offset != null && length == null && fin -> FrameType_v1.STREAM_OFF_FIN
             offset != null && length != null && !fin -> FrameType_v1.STREAM_OFF_LEN
             offset != null && length != null && fin -> FrameType_v1.STREAM_OFF_LEN_FIN
-            else -> error("unreachable")
+            else -> unreachable()
         }
 
         writeFrameType(type)
