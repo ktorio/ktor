@@ -10,7 +10,7 @@ package io.ktor.http
  * @param description is free form description of a status.
  */
 @Suppress("unused")
-public data class HttpStatusCode(val value: Int, val description: String) {
+public data class HttpStatusCode(val value: Int, val description: String) : Comparable<HttpStatusCode> {
     override fun toString(): String = "$value $description"
 
     override fun equals(other: Any?): Boolean = other is HttpStatusCode && other.value == value
@@ -21,6 +21,8 @@ public data class HttpStatusCode(val value: Int, val description: String) {
      * Returns a copy of `this` code with a description changed to [value].
      */
     public fun description(value: String): HttpStatusCode = copy(description = value)
+    
+    override fun compareTo(other: HttpStatusCode): Int = value - other.value
 
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     public companion object {
