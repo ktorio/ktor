@@ -20,8 +20,8 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
         ?.let { type ->
             if (type.arguments.isEmpty()) {
                 null // fallback to a simple case because of
-            } // https://github.com/Kotlin/kotlinx.serialization/issues/1870
-            else {
+                // https://github.com/Kotlin/kotlinx.serialization/issues/1870
+            } else {
                 module.serializerOrNull(type)
             }
         }
