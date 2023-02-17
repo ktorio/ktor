@@ -32,14 +32,12 @@ public class KotlinxWebsocketSerializationConverter(
     }
 
     override suspend fun serializeNullable(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
-        return serializationBase.serialize(
-            SerializationParameters(
-                format,
-                value,
-                typeInfo,
-                charset
-            )
-        )
+        val serializer = try {
+            format.serializersModule.serializerForTypeInfo(typeInfo)
+        } catch (cause: SerializationException) {
+            guessSerializer(value, format.serializersModule)
+        }
+        return serializeContent(serializer, format, value)
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any? {
@@ -77,16 +75,6 @@ public class KotlinxWebsocketSerializationConverter(
 
     override fun isApplicable(frame: Frame): Boolean {
         return frame is Frame.Text || frame is Frame.Binary
-    }
-
-    private val serializationBase = object : KotlinxSerializationBase<Frame>(format) {
-        override suspend fun serializeContent(parameters: SerializationParameters): Frame {
-            return serializeContent(
-                parameters.serializer,
-                parameters.format,
-                parameters.value
-            )
-        }
     }
 
     private fun serializeContent(
