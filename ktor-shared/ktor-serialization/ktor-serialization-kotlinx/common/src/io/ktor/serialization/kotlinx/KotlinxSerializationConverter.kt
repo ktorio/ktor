@@ -58,15 +58,14 @@ public class KotlinxSerializationConverter(
             .map { it.serialize(contentType, charset, typeInfo, value) }
             .firstOrNull { it != null }
 
-        return fromExtension ?: serializationBase.serialize(
-            SerializationNegotiationParameters(
-                format,
-                value,
-                typeInfo,
-                charset,
-                contentType
-            )
-        )
+        if (fromExtension != null) return fromExtension
+
+        val serializer = try {
+            format.serializersModule.serializerForTypeInfo(typeInfo)
+        } catch (cause: SerializationException) {
+            guessSerializer(value, format.serializersModule)
+        }
+        return serializeContent(serializer, format, value, contentType, charset)
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
@@ -89,24 +88,6 @@ public class KotlinxSerializationConverter(
             }
         } catch (cause: Throwable) {
             throw JsonConvertException("Illegal input", cause)
-        }
-    }
-
-    private val serializationBase = object : KotlinxSerializationBase<OutgoingContent.ByteArrayContent>(format) {
-        override suspend fun serializeContent(parameters: SerializationParameters): OutgoingContent.ByteArrayContent {
-            if (parameters !is SerializationNegotiationParameters) {
-                error(
-                    "parameters type is ${parameters::class.simpleName}," +
-                        " but expected ${SerializationNegotiationParameters::class.simpleName}"
-                )
-            }
-            return serializeContent(
-                parameters.serializer,
-                parameters.format,
-                parameters.value,
-                parameters.contentType,
-                parameters.charset
-            )
         }
     }
 
