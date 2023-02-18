@@ -35,44 +35,37 @@ internal object PacketReader {
 
     private const val RETRY_PACKET_INTEGRITY_TAG_LENGTH = 128
 
-    private const val HP_MASK_0 = 0x000000FF00000000L
-    private const val HP_MASK_1 = 0x00000000FF000000L
-    private const val HP_MASK_2 = 0x00000000FFFF0000L
-    private const val HP_MASK_3 = 0x00000000FFFFFF00L
-    private const val HP_MASK_4 = 0x00000000FFFFFFFFL
-
     /**
      * Returns a part of the header protection mask, that applies to first byte of packet's header
      *
-     * @param headerSpecificMask - 0x1F for Short headers, 0x0F for Long headers
+     * @param headerMask - 0x1F for Short headers, 0x0F for Long headers
      */
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun flagsHPMask(hp: Long, headerSpecificMask: UByte) =
-        (hp and HP_MASK_0 ushr 4).toUByte() and headerSpecificMask
+    private inline fun flagsHPMask(hp: Long, headerMask: UByte) = (hp ushr 4).toUByte() and headerMask
 
     /**
      * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 1 byte
      */
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask1(hp: Long) = (hp and HP_MASK_1 ushr 3).toUInt()
+    private inline fun pnHPMask1(hp: Long) = (hp ushr 3).toUInt() and 0x000000FFu
 
     /**
      * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 2 bytes
      */
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask2(hp: Long) = (hp and HP_MASK_2 ushr 2).toUInt()
+    private inline fun pnHPMask2(hp: Long) = (hp ushr 2).toUInt() and 0x0000FFFFu
 
     /**
      * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 3 bytes
      */
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask3(hp: Long) = (hp and HP_MASK_3 ushr 1).toUInt()
+    private inline fun pnHPMask3(hp: Long) = (hp ushr 1).toUInt() and 0x00FFFFFFu
 
     /**
      * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 4 bytes
      */
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask4(hp: Long) = (hp and HP_MASK_4).toUInt()
+    private inline fun pnHPMask4(hp: Long) = hp.toUInt()
 
 
     /**
