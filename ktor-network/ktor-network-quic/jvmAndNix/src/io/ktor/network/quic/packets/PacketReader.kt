@@ -79,19 +79,19 @@ internal object PacketReader {
         negotiatedVersion: UInt32,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket {
-        val flags = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
+        val flags: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
 
         val headerProtectionKey = "" // todo crypto
 
         if (flags and HEADER_TYPE == HEADER_TYPE) { // Long Header bit is set
             // Version independent properties of packets with the Long Header
 
-            val version = bytes.readUInt32 { raiseError(PROTOCOL_VIOLATION) }
+            val version: UInt32 = bytes.readUInt32 { raiseError(PROTOCOL_VIOLATION) }
 
             // Connection ID max size may vary between versions
-            val maxCIDLength = MaxCIDLength.fromVersion(version) { raiseError(FRAME_ENCODING_ERROR) }
+            val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { raiseError(FRAME_ENCODING_ERROR) }
 
-            val destinationConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
+            val destinationConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
             val sourceConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
 
             // End of version independent properties
@@ -110,11 +110,11 @@ internal object PacketReader {
                 raiseError = raiseError
             )
         } else { // Short Header bit is set
-            val maxCIDLength = MaxCIDLength.fromVersion(negotiatedVersion) { raiseError(FRAME_ENCODING_ERROR) }
+            val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(negotiatedVersion) { raiseError(FRAME_ENCODING_ERROR) }
 
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
+            val destinationConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
 
             // End of version independent properties
 
@@ -133,7 +133,7 @@ internal object PacketReader {
         maxCIDLength: UInt8,
         raiseError: (QUICTransportError) -> Nothing,
     ): ByteArray {
-        val connectionIDLength = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
+        val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
         if (connectionIDLength > maxCIDLength) {
             raiseError(PROTOCOL_VIOLATION)
         }
@@ -192,19 +192,19 @@ internal object PacketReader {
                     token = bytes.readBytes(tokenLength.toInt())
                 }
 
-                val length = bytes.readVarIntOrElse { raiseError(PROTOCOL_VIOLATION) }
+                val length: Long = bytes.readVarIntOrElse { raiseError(PROTOCOL_VIOLATION) }
 
-                val headerProtectionMask = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
-                val decodedFlags = flags xor flagsHPMask(headerProtectionMask, 0x0Fu)
+                val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
+                val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, 0x0Fu)
 
-                val packetNumber = readAndDecodePacketNumber(
+                val packetNumber: Long = readAndDecodePacketNumber(
                     bytes = bytes,
                     headerProtectionMask = headerProtectionMask,
                     packetNumberLength = decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH,
                     largestPacketNumberInSpace = -1, // todo
                 )
 
-                val reservedBits = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
+                val reservedBits: Int = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
 
                 when (type) {
                     PacketType_v1.Initial -> InitialPacket_v1(
@@ -267,19 +267,19 @@ internal object PacketReader {
         destinationConnectionID: ByteArray,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
-        val headerProtectionMask = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
-        val decodedFlags = flags xor flagsHPMask(headerProtectionMask, 0x1Fu)
+        val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
+        val decodedFlags: UByte = flags xor flagsHPMask(headerProtectionMask, 0x1Fu)
 
-        val packetNumber = readAndDecodePacketNumber(
+        val packetNumber: Long = readAndDecodePacketNumber(
             bytes = bytes,
             headerProtectionMask = headerProtectionMask,
             packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH,
             largestPacketNumberInSpace = -2, // todo
         )
 
-        val spinBit = decodedFlags and SHORT_HEADER_SPIN_BIT == SHORT_HEADER_SPIN_BIT
-        val reservedBits = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
-        val keyPhase = decodedFlags and SHORT_HEADER_KEY_PHASE == SHORT_HEADER_KEY_PHASE
+        val spinBit: Boolean = decodedFlags and SHORT_HEADER_SPIN_BIT == SHORT_HEADER_SPIN_BIT
+        val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
+        val keyPhase: Boolean = decodedFlags and SHORT_HEADER_KEY_PHASE == SHORT_HEADER_KEY_PHASE
 
         return OneRTTPacket_v1(
             destinationConnectionId = destinationConnectionID,
@@ -319,7 +319,7 @@ internal object PacketReader {
     ): Long {
         // read packet number and decrypt it with the header protection mask
         // see: https://www.rfc-editor.org/rfc/rfc9001#name-header-protection-applicati
-        val packetNumberEncoded = when (packetNumberLength.toInt()) {
+        val packetNumberEncoded: UInt32 = when (packetNumberLength.toInt()) {
             0 -> bytes.readUInt8().toUInt32() xor pnHPMask1(headerProtectionMask)
             1 -> bytes.readUInt16().toUInt32() xor pnHPMask2(headerProtectionMask)
             2 -> bytes.readUInt24() xor pnHPMask3(headerProtectionMask)
