@@ -18,7 +18,7 @@ internal object MaxCIDLength {
     private const val VERSION_NEGOTIATION_MAX_CID_LEN: UInt8 = 255u
 
     @Suppress("KotlinConstantConditions")
-    inline fun fromVersion(version: UInt, onError: () -> Nothing): UInt8 {
+    inline fun fromVersion(version: UInt32, onError: () -> Nothing): UInt8 {
         return when (version) {
             QUICVersion.VersionNegotiation -> VERSION_NEGOTIATION_MAX_CID_LEN
             QUICVersion.V1 -> V1_MAX_CID_LEN

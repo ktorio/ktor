@@ -26,8 +26,6 @@ internal abstract class QUICSocketBase(
         }
     }
 
-    abstract suspend fun processIncomingPacket(address: SocketAddress, datagram: QUICPacket)
-
     override fun dispose() {
         datagramSocket.dispose()
     }
@@ -38,17 +36,21 @@ internal abstract class QUICSocketBase(
 
     private suspend fun receiveAndProcessDatagram() {
         val datagram = datagramSocket.receive()
-        val packet = PacketReader.readSinglePacket(
-            bytes = datagram.packet,
-            negotiatedVersion = 0u, // todo
-            onError = {
-                handleTransportError(it)
-                return
-            }
-        )
 
-        processIncomingPacket(datagram.address, packet)
+        while (datagram.packet.isNotEmpty) {
+            val packet = PacketReader.readSinglePacket(
+                bytes = datagram.packet,
+                negotiatedVersion = 0u, // todo
+                raiseError = {
+                    handleTransportError(it)
+                    return
+                }
+            )
+            processIncomingPacket(datagram.address, packet)
+        }
     }
+
+    abstract suspend fun processIncomingPacket(address: SocketAddress, datagram: QUICPacket)
 
     private suspend fun handleTransportError(error: QUICTransportError) {
 

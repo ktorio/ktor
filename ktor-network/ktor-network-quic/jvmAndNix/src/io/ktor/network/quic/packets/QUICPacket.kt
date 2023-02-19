@@ -20,7 +20,7 @@ internal sealed interface QUICPacket {
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc8999.html#name-long-header)
      */
     sealed interface LongHeader : QUICPacket {
-        val version: UInt
+        val version: UInt32
         val destinationConnectionID: ByteArray
         val sourceConnectionID: ByteArray
     }
@@ -45,7 +45,7 @@ internal class VersionNegotiationPacket(
     override val sourceConnectionID: ByteArray,
     val supportedVersions: Array<Int>,
 ) : QUICPacket.LongHeader {
-    override val version: UInt = QUICVersion.VersionNegotiation
+    override val version: UInt32 = QUICVersion.VersionNegotiation
 }
 
 /**
@@ -54,7 +54,7 @@ internal class VersionNegotiationPacket(
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-initial-packet)
  */
 internal class InitialPacket_v1(
-    override val version: UInt,
+    override val version: UInt32,
     override val destinationConnectionID: ByteArray,
     override val sourceConnectionID: ByteArray,
     val reservedBits: Int,
@@ -70,7 +70,7 @@ internal class InitialPacket_v1(
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-0-rtt)
  */
 internal class ZeroRTTPacket_v1(
-    override val version: UInt,
+    override val version: UInt32,
     override val destinationConnectionID: ByteArray,
     override val sourceConnectionID: ByteArray,
     val reservedBits: Int,
@@ -85,7 +85,7 @@ internal class ZeroRTTPacket_v1(
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-handshake-packet)
  */
 internal class HandshakePacket_v1(
-    override val version: UInt,
+    override val version: UInt32,
     override val destinationConnectionID: ByteArray,
     override val sourceConnectionID: ByteArray,
     val reservedBits: Int,
@@ -100,7 +100,7 @@ internal class HandshakePacket_v1(
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
  */
 internal class RetryPacket_v1(
-    override val version: UInt,
+    override val version: UInt32,
     override val destinationConnectionID: ByteArray,
     override val sourceConnectionID: ByteArray,
     val retryToken: ByteArray,

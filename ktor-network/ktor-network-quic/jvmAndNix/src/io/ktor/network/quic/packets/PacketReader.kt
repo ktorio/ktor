@@ -10,6 +10,13 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
+import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_LONG_MASK
+import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_SHORT_MASK
+import io.ktor.network.quic.packets.HeaderProtection.flagsHPMask
+import io.ktor.network.quic.packets.HeaderProtection.pnHPMask1
+import io.ktor.network.quic.packets.HeaderProtection.pnHPMask2
+import io.ktor.network.quic.packets.HeaderProtection.pnHPMask3
+import io.ktor.network.quic.packets.HeaderProtection.pnHPMask4
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
@@ -20,52 +27,12 @@ internal object PacketReader {
     private const val FIXED_BIT: UInt8 = 0x40u
 
     private const val LONG_HEADER_PACKET_TYPE: UInt8 = 0x30u
-    private const val LONG_HEADER_PACKET_TYPE_INITIAL: UInt8 = 0x00u
-    private const val LONG_HEADER_PACKET_TYPE_0_RTT: UInt8 = 0x10u
-    private const val LONG_HEADER_PACKET_TYPE_HANDSHAKE: UInt8 = 0x20u
-    private const val LONG_HEADER_PACKET_TYPE_RETRY: UInt8 = 0x30u
 
     private const val LONG_HEADER_RESERVED_BITS: UInt8 = 0x0Cu
     private const val LONG_HEADER_PACKET_NUMBER_LENGTH: UInt8 = 0x03u
 
-    private const val SHORT_HEADER_SPIN_BIT: UInt8 = 0x20u
     private const val SHORT_HEADER_RESERVED_BITS: UInt8 = 0x18u
-    private const val SHORT_HEADER_KEY_PHASE: UInt8 = 0x04u
     private const val SHORT_HEADER_PACKET_NUMBER_LENGTH: UInt8 = 0x03u
-
-    private const val RETRY_PACKET_INTEGRITY_TAG_LENGTH = 128
-
-    /**
-     * Returns a part of the header protection mask, that applies to first byte of packet's header
-     *
-     * @param headerMask - 0x1F for Short headers, 0x0F for Long headers
-     */
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun flagsHPMask(hp: Long, headerMask: UByte) = (hp ushr 4).toUByte() and headerMask
-
-    /**
-     * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 1 byte
-     */
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask1(hp: Long) = (hp ushr 3).toUInt() and 0x000000FFu
-
-    /**
-     * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 2 bytes
-     */
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask2(hp: Long) = (hp ushr 2).toUInt() and 0x0000FFFFu
-
-    /**
-     * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 3 bytes
-     */
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask3(hp: Long) = (hp ushr 1).toUInt() and 0x00FFFFFFu
-
-    /**
-     * Returns a part of the header protection mask, that applies to encrypted packet number with the length of 4 bytes
-     */
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun pnHPMask4(hp: Long) = hp.toUInt()
 
 
     /**
@@ -177,10 +144,10 @@ internal object PacketReader {
         }
 
         val type = when (flags and LONG_HEADER_PACKET_TYPE) {
-            LONG_HEADER_PACKET_TYPE_INITIAL -> PacketType_v1.Initial
-            LONG_HEADER_PACKET_TYPE_0_RTT -> PacketType_v1.ZeroRTT
-            LONG_HEADER_PACKET_TYPE_HANDSHAKE -> PacketType_v1.Handshake
-            LONG_HEADER_PACKET_TYPE_RETRY -> PacketType_v1.Retry
+            PktConst.LONG_HEADER_PACKET_TYPE_INITIAL -> PacketType_v1.Initial
+            PktConst.LONG_HEADER_PACKET_TYPE_0_RTT -> PacketType_v1.ZeroRTT
+            PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE -> PacketType_v1.Handshake
+            PktConst.LONG_HEADER_PACKET_TYPE_RETRY -> PacketType_v1.Retry
             else -> unreachable()
         }
 
@@ -195,7 +162,7 @@ internal object PacketReader {
                 val length: Long = bytes.readVarIntOrElse { raiseError(PROTOCOL_VIOLATION) }
 
                 val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
-                val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, 0x0Fu)
+                val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_LONG_MASK)
 
                 val packetNumber: Long = readAndDecodePacketNumber(
                     bytes = bytes,
@@ -243,12 +210,12 @@ internal object PacketReader {
             }
 
             PacketType_v1.Retry -> {
-                val retryTokenLength = bytes.remaining - RETRY_PACKET_INTEGRITY_TAG_LENGTH
+                val retryTokenLength = bytes.remaining - PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH
                 if (retryTokenLength < 0) {
                     raiseError(PROTOCOL_VIOLATION)
                 }
                 val retryToken = bytes.readBytes(retryTokenLength.toInt())
-                val integrityTag = bytes.readBytes(RETRY_PACKET_INTEGRITY_TAG_LENGTH)
+                val integrityTag = bytes.readBytes(PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
 
                 RetryPacket_v1(version, destinationConnectionID, sourceConnectionID, retryToken, integrityTag)
             }
@@ -268,7 +235,7 @@ internal object PacketReader {
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
         val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
-        val decodedFlags: UByte = flags xor flagsHPMask(headerProtectionMask, 0x1Fu)
+        val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
         val packetNumber: Long = readAndDecodePacketNumber(
             bytes = bytes,
@@ -277,9 +244,9 @@ internal object PacketReader {
             largestPacketNumberInSpace = -2, // todo
         )
 
-        val spinBit: Boolean = decodedFlags and SHORT_HEADER_SPIN_BIT == SHORT_HEADER_SPIN_BIT
+        val spinBit: Boolean = decodedFlags and PktConst.SHORT_HEADER_SPIN_BIT == PktConst.SHORT_HEADER_SPIN_BIT
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
-        val keyPhase: Boolean = decodedFlags and SHORT_HEADER_KEY_PHASE == SHORT_HEADER_KEY_PHASE
+        val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
         return OneRTTPacket_v1(
             destinationConnectionId = destinationConnectionID,
@@ -308,7 +275,7 @@ internal object PacketReader {
         val array = ByteArray(128)
         bytes.peekTo(Memory.of(array), destinationOffset = 0, offset = 4)
 
-        return headerProtection(headerProtectionKey, array, raiseError)
+        return HeaderProtection.headerProtection(headerProtectionKey, array)
     }
 
     private fun readAndDecodePacketNumber(
@@ -320,8 +287,8 @@ internal object PacketReader {
         // read packet number and decrypt it with the header protection mask
         // see: https://www.rfc-editor.org/rfc/rfc9001#name-header-protection-applicati
         val packetNumberEncoded: UInt32 = when (packetNumberLength.toInt()) {
-            0 -> bytes.readUInt8().toUInt32() xor pnHPMask1(headerProtectionMask)
-            1 -> bytes.readUInt16().toUInt32() xor pnHPMask2(headerProtectionMask)
+            0 -> (bytes.readUInt8() xor pnHPMask1(headerProtectionMask)).toUInt32()
+            1 -> (bytes.readUInt16() xor pnHPMask2(headerProtectionMask)).toUInt32()
             2 -> bytes.readUInt24() xor pnHPMask3(headerProtectionMask)
             3 -> bytes.readUInt32() xor pnHPMask4(headerProtectionMask)
             else -> unreachable()
@@ -332,13 +299,5 @@ internal object PacketReader {
             truncatedPn = packetNumberEncoded,
             pnLen = packetNumberLength.toUInt32(),
         )
-    }
-
-    private inline fun headerProtection(
-        headerProtectionKey: String,
-        sample: ByteArray,
-        raiseError: (QUICTransportError) -> Nothing,
-    ): Long {
-        TODO("crypto")
     }
 }
