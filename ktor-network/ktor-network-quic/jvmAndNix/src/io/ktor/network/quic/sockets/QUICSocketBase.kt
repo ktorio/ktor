@@ -41,6 +41,7 @@ internal abstract class QUICSocketBase(
             val packet = PacketReader.readSinglePacket(
                 bytes = datagram.packet,
                 negotiatedVersion = 0u, // todo
+                dcidLength = 0u, // todo
                 raiseError = {
                     handleTransportError(it)
                     return

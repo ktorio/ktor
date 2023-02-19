@@ -18,7 +18,7 @@ internal fun decodePacketNumber(
     val pnNBits = (pnLen.toInt() + 1) * 8
     val expectedPn = largestPn + 1L
     val pnWin = 1L shl pnNBits
-    val pnHWin = pnWin / 2
+    val pnHWin = pnWin ushr 1
     val pnMask = pnWin - 1
 
     // The incoming packet number should be greater than
@@ -68,7 +68,7 @@ internal fun getPacketNumberLength(
     return when {
         numUnacked <= POW_2_07 -> 1u
         numUnacked <= POW_2_15 -> 2u
-        numUnacked <= POW_2_31 -> 3u
+        numUnacked <= POW_2_23 -> 3u
         else -> 4u
     }
 }
