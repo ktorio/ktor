@@ -9,7 +9,7 @@ import io.ktor.network.quic.bytes.*
 @Suppress("NOTHING_TO_INLINE")
 internal object HeaderProtection {
     const val HP_FLAGS_LONG_MASK: UInt8 = 0x0Fu
-    const val HP_FLAGS_SHORT_MASK: UInt8 = 0x0Fu
+    const val HP_FLAGS_SHORT_MASK: UInt8 = 0x1Fu
 
     /**
      * Returns a part of the header protection mask, that applies to first byte of packet's header
