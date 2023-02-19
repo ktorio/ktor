@@ -17,6 +17,7 @@ import io.ktor.network.quic.packets.HeaderProtection.pnHPMask1
 import io.ktor.network.quic.packets.HeaderProtection.pnHPMask2
 import io.ktor.network.quic.packets.HeaderProtection.pnHPMask3
 import io.ktor.network.quic.packets.HeaderProtection.pnHPMask4
+import io.ktor.network.quic.packets.PktConst.HP_SAMPLE_LENGTH
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
@@ -282,8 +283,10 @@ internal object PacketReader {
             raiseError(PROTOCOL_VIOLATION)
         }
 
-        val array = ByteArray(128)
-        bytes.peekTo(Memory.of(array), destinationOffset = 0, offset = 4)
+        val array = ByteArray(HP_SAMPLE_LENGTH)
+        array.useMemory(0, array.size) {
+            bytes.peekTo(it, destinationOffset = 0, offset = 4)
+        }
 
         return HeaderProtection.headerProtection(headerProtectionKey, array)
     }
