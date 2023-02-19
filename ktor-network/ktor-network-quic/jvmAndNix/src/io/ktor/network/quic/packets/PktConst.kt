@@ -18,5 +18,4 @@ internal object PktConst {
 
     const val SHORT_HEADER_SPIN_BIT: UInt8 = 0x20u
     const val SHORT_HEADER_KEY_PHASE: UInt8 = 0x04u
-
 }

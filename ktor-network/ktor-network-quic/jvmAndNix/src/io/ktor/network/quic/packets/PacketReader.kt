@@ -34,7 +34,6 @@ internal object PacketReader {
     private const val SHORT_HEADER_RESERVED_BITS: UInt8 = 0x18u
     private const val SHORT_HEADER_PACKET_NUMBER_LENGTH: UInt8 = 0x03u
 
-
     /**
      * Reads a single QUIC packet.
      *

@@ -54,6 +54,5 @@ internal abstract class QUICSocketBase(
     abstract suspend fun processIncomingPacket(address: SocketAddress, datagram: QUICPacket)
 
     private suspend fun handleTransportError(error: QUICTransportError) {
-
     }
 }

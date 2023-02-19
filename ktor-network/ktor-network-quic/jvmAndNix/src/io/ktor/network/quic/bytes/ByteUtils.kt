@@ -28,13 +28,12 @@ internal inline fun UInt64.toUInt16(): UInt16 = toUShort()
 internal inline fun UInt32.toUInt16(): UInt16 = toUShort()
 internal inline fun UInt64.toUInt32(): UInt32 = toUInt()
 
-
 @OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt8(): UInt8 = readUByte()
 @OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt16(): UInt16 = readUShort()
 @OptIn(ExperimentalUnsignedTypes::class)
-internal inline fun ByteReadPacket.readUInt24(): UInt24 =  (readUShort().toUInt32() shl 8) + readUByte()
+internal inline fun ByteReadPacket.readUInt24(): UInt24 = (readUShort().toUInt32() shl 8) + readUByte()
 @OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt32(): UInt32 = readUInt()
 
@@ -50,7 +49,6 @@ internal inline fun BytePacketBuilder.writeUInt24(value: UInt24) {
 @OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun BytePacketBuilder.writeUInt32(value: UInt32) = writeUInt(value)
 
-
 /**
  * Reads an unsigned 8-bit int from a [ByteReadPacket]. Executes elseBlock if EOF
  */
@@ -60,7 +58,6 @@ internal inline fun ByteReadPacket.readUInt8(elseBlock: () -> UInt8): UInt8 {
     }
     return readUInt8()
 }
-
 
 /**
  * Reads an unsigned 32-bit int from a [ByteReadPacket]. Executes elseBlock if EOF
