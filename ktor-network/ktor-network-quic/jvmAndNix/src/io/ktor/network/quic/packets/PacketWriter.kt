@@ -50,6 +50,51 @@ internal object PacketWriter {
     }
 
     /**
+     * header form = 0b1 (long header)
+     * fixed bit = 0b1
+     * packet type = 0b11 (retry type)
+     * unused = 0b0000
+     */
+    private const val RETRY_PACKET_FIRST_BYTE: UInt8 = 0xF0u
+
+    /**
+     * Writes Retry Packet to [packetBuilder] according to specification.
+     * Computes integrity tag based on the contents of packet
+     * (see [QUIC-TLS](https://www.rfc-editor.org/rfc/rfc9001#name-retry-packet-integrity))
+     *
+     * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
+     */
+    fun writeRetryPacket(
+        packetBuilder: BytePacketBuilder,
+        originalDestinationConnectionID: ByteArray,
+        version: UInt32,
+        destinationConnectionID: ByteArray,
+        sourceConnectionID: ByteArray,
+        retryToken: ByteArray,
+    ) {
+        checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
+
+        val pseudoPacket = buildPacket {
+            writeConnectionID(originalDestinationConnectionID)
+            writeUInt8(RETRY_PACKET_FIRST_BYTE)
+            writeUInt32(version)
+            writeConnectionID(destinationConnectionID)
+            writeConnectionID(sourceConnectionID)
+            writeFully(retryToken)
+        }.readBytes()
+
+        val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
+
+        // skip originalDestinationConnectionID and it's length
+        packetBuilder.writeFully(pseudoPacket, offset = 1 + originalDestinationConnectionID.size)
+        packetBuilder.writeFully(integrityTag)
+    }
+
+    private fun computeRetryIntegrityTag(pseudoPacket: ByteArray): ByteArray {
+        TODO("crypto")
+    }
+
+    /**
      * Writes Initial Packet to [packetBuilder] according to specification.
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
@@ -198,7 +243,7 @@ internal object PacketWriter {
 
             with(packetBuilder) {
                 writeUInt8(first xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK))
-                writeConnectionID(destinationConnectionID)
+                writeFully(destinationConnectionID) // no length as it should be known for the connection
                 encryptAndWritePacketNumber(packetNumber, packetNumberLength, headerProtectionMask)
                 writeFully(encryptedPayload)
             }
@@ -245,51 +290,6 @@ internal object PacketWriter {
     }
 
     private fun encryptPacketPayload(payload: ByteArray): ByteArray {
-        TODO("crypto")
-    }
-
-    /**
-     * header form = 0b1 (long header)
-     * fixed bit = 0b1
-     * packet type = 0b11 (retry type)
-     * unused = 0b0000
-     */
-    private const val RETRY_PACKET_FIRST_BYTE: UInt8 = 0xF0u
-
-    /**
-     * Writes Retry Packet to [packetBuilder] according to specification.
-     * Computes integrity tag based on the contents of packet
-     * (see [QUIC-TLS](https://www.rfc-editor.org/rfc/rfc9001#name-retry-packet-integrity))
-     *
-     * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
-     */
-    fun writeRetryPacket(
-        packetBuilder: BytePacketBuilder,
-        originalDestinationConnectionID: ByteArray,
-        version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
-        retryToken: ByteArray,
-    ) {
-        checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
-
-        val pseudoPacket = buildPacket {
-            writeConnectionID(originalDestinationConnectionID)
-            writeUInt8(RETRY_PACKET_FIRST_BYTE)
-            writeUInt32(version)
-            writeConnectionID(destinationConnectionID)
-            writeConnectionID(sourceConnectionID)
-            writeFully(retryToken)
-        }.readBytes()
-
-        val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
-
-        // skip originalDestinationConnectionID and it's length
-        packetBuilder.writeFully(pseudoPacket, offset = 1 + originalDestinationConnectionID.size)
-        packetBuilder.writeFully(integrityTag)
-    }
-
-    private fun computeRetryIntegrityTag(pseudoPacket: ByteArray): ByteArray {
         TODO("crypto")
     }
 

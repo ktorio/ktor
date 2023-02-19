@@ -60,7 +60,6 @@ internal class InitialPacket_v1(
     val reservedBits: Int,
     val token: ByteArray,
     val packetNumber: Long,
-    val length: Long,
     val payload: ByteReadPacket,
 ) : QUICPacket.LongHeader
 
@@ -75,7 +74,6 @@ internal class ZeroRTTPacket_v1(
     override val sourceConnectionID: ByteArray,
     val reservedBits: Int,
     val packetNumber: Long,
-    val length: Long,
     val payload: ByteReadPacket,
 ) : QUICPacket.LongHeader
 
@@ -90,7 +88,6 @@ internal class HandshakePacket_v1(
     override val sourceConnectionID: ByteArray,
     val reservedBits: Int,
     val packetNumber: Long,
-    val length: Long,
     val payload: ByteReadPacket,
 ) : QUICPacket.LongHeader
 

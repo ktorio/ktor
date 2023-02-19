@@ -40,10 +40,14 @@ internal object PacketReader {
      *
      * @param negotiatedVersion - used for the short headers.
      * Version of the protocol that is used for this connection.
+     *
+     * @param dcidLength - used for the short headers
+     * Length of the destinationConnectionID parameter that is used for this connection
      */
     inline fun readSinglePacket(
         bytes: ByteReadPacket,
         negotiatedVersion: UInt32,
+        dcidLength: UInt8,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
@@ -79,9 +83,13 @@ internal object PacketReader {
         } else { // Short Header bit is set
             val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(negotiatedVersion) { raiseError(FRAME_ENCODING_ERROR) }
 
+            if (dcidLength > maxCIDLength) {
+                raiseError(PROTOCOL_VIOLATION)
+            }
+
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
+            val destinationConnectionID: ByteArray = bytes.readBytes(dcidLength.toInt())
 
             // End of version independent properties
 
@@ -173,6 +181,8 @@ internal object PacketReader {
 
                 val reservedBits: Int = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
 
+                val payload = readAndDecryptPacketPayload(bytes, length)
+
                 when (type) {
                     PacketType_v1.Initial -> InitialPacket_v1(
                         version = version,
@@ -181,8 +191,7 @@ internal object PacketReader {
                         reservedBits = reservedBits,
                         token = token!!,
                         packetNumber = packetNumber,
-                        length = length,
-                        payload = bytes,
+                        payload = payload,
                     )
 
                     PacketType_v1.ZeroRTT -> ZeroRTTPacket_v1(
@@ -191,8 +200,7 @@ internal object PacketReader {
                         sourceConnectionID = sourceConnectionID,
                         reservedBits = reservedBits,
                         packetNumber = packetNumber,
-                        length = length,
-                        payload = bytes,
+                        payload = payload,
                     )
 
                     PacketType_v1.Handshake -> HandshakePacket_v1(
@@ -201,8 +209,7 @@ internal object PacketReader {
                         sourceConnectionID = sourceConnectionID,
                         reservedBits = reservedBits,
                         packetNumber = packetNumber,
-                        length = length,
-                        payload = bytes,
+                        payload = payload,
                     )
 
                     else -> unreachable()
@@ -254,8 +261,12 @@ internal object PacketReader {
             reservedBits = reservedBits,
             keyPhase = keyPhase,
             packetNumber = packetNumber,
-            payload = bytes
+            payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
         )
+    }
+
+    private fun readAndDecryptPacketPayload(bytes: ByteReadPacket, length: Long): ByteReadPacket {
+        TODO("crypto")
     }
 
     /**
