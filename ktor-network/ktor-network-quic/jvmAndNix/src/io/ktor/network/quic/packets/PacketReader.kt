@@ -2,7 +2,7 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("FunctionName")
+@file:Suppress("FunctionName", "UNUSED_PARAMETER")
 
 package io.ktor.network.quic.packets
 
@@ -21,7 +21,6 @@ import io.ktor.network.quic.packets.PktConst.HP_SAMPLE_LENGTH
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import kotlin.properties.*
 
 internal object PacketReader {
     private const val HEADER_TYPE: UInt8 = 0x80u

@@ -2,6 +2,8 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("UNUSED_PARAMETER")
+
 package io.ktor.network.quic.sockets
 
 import io.ktor.network.quic.errors.*
@@ -14,17 +16,6 @@ import kotlinx.coroutines.*
 internal abstract class QUICSocketBase(
     private val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                while (true) {
-                    receiveAndProcessDatagram()
-                }
-            } catch (_: CancellationException) {
-                // ignore
-            }
-        }
-    }
 
     override fun dispose() {
         datagramSocket.dispose()
@@ -53,6 +44,5 @@ internal abstract class QUICSocketBase(
 
     abstract suspend fun processIncomingPacket(address: SocketAddress, datagram: QUICPacket)
 
-    private suspend fun handleTransportError(error: QUICTransportError) {
-    }
+    private suspend fun handleTransportError(error: QUICTransportError) {}
 }
