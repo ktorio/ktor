@@ -19,7 +19,7 @@ package io.ktor.http
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
 public class Url internal constructor(
-    public val protocol: URLProtocol,
+    protocol: URLProtocol?,
     public val host: String,
     public val specifiedPort: Int,
     public val pathSegments: List<String>,
@@ -37,13 +37,16 @@ public class Url internal constructor(
         ) { "port must be between 0 and 65535, or $DEFAULT_PORT if not set" }
     }
 
+    public val protocolOrNull: URLProtocol? = protocol
+    public val protocol: URLProtocol = protocolOrNull ?: URLProtocol.HTTP
+
     public val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
 
     public val encodedPath: String by lazy {
         if (pathSegments.isEmpty()) {
             return@lazy ""
         }
-        val pathStartIndex = urlString.indexOf('/', protocol.name.length + 3)
+        val pathStartIndex = urlString.indexOf('/', this.protocol.name.length + 3)
         if (pathStartIndex == -1) {
             return@lazy ""
         }
@@ -65,7 +68,7 @@ public class Url internal constructor(
     }
 
     public val encodedPathAndQuery: String by lazy {
-        val pathStart = urlString.indexOf('/', protocol.name.length + 3)
+        val pathStart = urlString.indexOf('/', this.protocol.name.length + 3)
         if (pathStart == -1) {
             return@lazy ""
         }
@@ -79,7 +82,7 @@ public class Url internal constructor(
     public val encodedUser: String? by lazy {
         if (user == null) return@lazy null
         if (user.isEmpty()) return@lazy ""
-        val usernameStart = protocol.name.length + 3
+        val usernameStart = this.protocol.name.length + 3
         val usernameEnd = urlString.indexOfAny(charArrayOf(':', '@'), usernameStart)
         urlString.substring(usernameStart, usernameEnd)
     }
@@ -87,7 +90,7 @@ public class Url internal constructor(
     public val encodedPassword: String? by lazy {
         if (password == null) return@lazy null
         if (password.isEmpty()) return@lazy ""
-        val passwordStart = urlString.indexOf(':', protocol.name.length + 3) + 1
+        val passwordStart = urlString.indexOf(':', this.protocol.name.length + 3) + 1
         val passwordEnd = urlString.indexOf('@')
         urlString.substring(passwordStart, passwordEnd)
     }
