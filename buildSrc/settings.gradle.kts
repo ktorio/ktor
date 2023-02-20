@@ -10,6 +10,8 @@ pluginManagement {
         }
 
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+
     }
 }
 

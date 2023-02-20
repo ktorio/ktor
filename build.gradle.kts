@@ -30,6 +30,7 @@ buildscript {
         repositories {
             mavenLocal()
             maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
+            maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
         }
 
         configurations.classpath {
@@ -47,6 +48,7 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
         google()
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
@@ -109,6 +111,7 @@ allprojects {
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
     }
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
