@@ -525,6 +525,20 @@ class RoutingProcessingTest {
                     }
                 }
             }
+            route("/nested", HttpMethod.Post) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
+                    }
+                }
+            }
+            route("/nested", HttpMethod.Get) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
+                    }
+                }
+            }
         }
 
         client.get("/") {
@@ -546,6 +560,12 @@ class RoutingProcessingTest {
         }
 
         client.get("/") {
+            header(HttpHeaders.ContentType, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
+        }
+
+        client.get("/nested") {
             header(HttpHeaders.ContentType, "text/html")
         }.let {
             assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
