@@ -408,9 +408,8 @@ class HttpRequestRetryTest {
         }
 
         test { client ->
-            assertFailsWith<HttpRequestTimeoutException> {
-                client.get {}
-            }
+            val response = client.get {}
+            assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 }
