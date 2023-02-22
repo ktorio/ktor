@@ -568,7 +568,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
+    fun testPublicAndPrivateCache() = clientTests {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -589,29 +589,18 @@ class CacheTest : ClientLoader() {
             assertEquals(firstPrivate, "private")
             assertEquals(1, privateCache().size)
             assertEquals(0, publicCache().size)
-
             val privateCacheEntry = privateCache().first()
 
             val firstPublic = client.get(publicUrl).body<String>()
             assertEquals(firstPublic, "public")
             assertEquals(1, publicCache().size)
             assertEquals(1, privateCache().size)
-
-            assertSame(privateCacheEntry, privateCache().first())
             val publicCacheEntry = publicCache().first()
 
-            // Private is updated from server by server implementation.
             val secondPrivate = client.get(privateUrl).body<String>()
             assertEquals(secondPrivate, "private")
 
-            // Old entry should be replaced.
-            assertEquals(1, privateCache().size)
-
-            // Public keeps the same.
-            assertEquals(1, publicCache().size)
-
-            val actual = privateCache().first()
-            assertNotSame(privateCacheEntry, actual)
+            assertSame(privateCacheEntry, privateCache().first())
 
             // Public from cache.
             val secondPublic = client.get(publicUrl).body<String>()
@@ -645,6 +634,50 @@ class CacheTest : ClientLoader() {
             }
             val result = client.get("$TEST_SERVER/content/chunked-data?size=5000").bodyAsText()
             assertEquals(5000, result.length)
+        }
+    }
+
+    @Test
+    fun testCachesPrivateByDefault() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+        test { client ->
+            val privateUrl = Url("$TEST_SERVER/cache/private")
+
+            suspend fun privateCache() = privateStorage.findAll(privateUrl)
+
+            val firstPrivate = client.get(privateUrl).body<String>()
+            assertEquals(firstPrivate, "private")
+            assertEquals(1, privateCache().size)
+        }
+    }
+
+    @Test
+    fun testDoesntCachesPrivateWhenShared() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+                isShared = true
+            }
+        }
+        test { client ->
+            val privateUrl = Url("$TEST_SERVER/cache/private")
+
+            suspend fun privateCache() = privateStorage.findAll(privateUrl)
+            suspend fun publicCache() = publicStorage.findAll(privateUrl)
+
+            val firstPrivate = client.get(privateUrl).body<String>()
+            assertEquals(firstPrivate, "private")
+            assertEquals(0, privateCache().size)
         }
     }
 

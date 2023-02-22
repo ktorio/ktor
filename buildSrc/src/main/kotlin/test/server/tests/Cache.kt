@@ -91,7 +91,6 @@ internal fun Application.cacheTestServer() {
             }
             get("/private") {
                 call.response.cacheControl(CacheControl.MaxAge(60, visibility = CacheControl.Visibility.Private))
-                call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Private))
                 call.respondText("private")
             }
             get("/cache_${"a".repeat(3000)}") {
