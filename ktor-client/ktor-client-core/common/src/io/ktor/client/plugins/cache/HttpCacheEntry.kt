@@ -14,10 +14,10 @@ import io.ktor.utils.io.core.*
 import kotlin.collections.*
 
 @OptIn(InternalAPI::class)
-internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
+internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
     val body = response.content.readRemaining().readBytes()
     response.complete()
-    return HttpCacheEntry(response.cacheExpires(), response.varyKeys(), response, body)
+    return HttpCacheEntry(response.cacheExpires(isShared), response.varyKeys(), response, body)
 }
 
 /**
@@ -63,19 +63,17 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
+internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDate = { GMTDate() }): GMTDate {
     val cacheControl = cacheControl()
 
-    val isPrivate = CacheControl.PRIVATE in cacheControl
-
-    val maxAgeKey = if (isPrivate) "s-max-age" else "max-age"
+    val maxAgeKey = if (isShared && cacheControl.any { it.value.startsWith("s-maxage") }) "s-maxage" else "max-age"
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
         ?.get(1)?.toInt()
 
     if (maxAge != null) {
-        return call.response.requestTime + maxAge * 1000L
+        return requestTime + maxAge * 1000L
     }
 
     val expires = headers[HttpHeaders.Expires]
@@ -97,8 +95,8 @@ internal fun shouldValidate(
     request: HttpRequestBuilder
 ): ValidateStatus {
     val requestHeaders = request.headers
-    val responseCacheControl = parseHeaderValue(responseHeaders[HttpHeaders.CacheControl])
-    val requestCacheControl = parseHeaderValue(requestHeaders[HttpHeaders.CacheControl])
+    val responseCacheControl = parseHeaderValue(responseHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
+    val requestCacheControl = parseHeaderValue(requestHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
 
     if (CacheControl.NO_CACHE in requestCacheControl) {
         LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")

@@ -108,7 +108,7 @@ private suspend fun HttpCache.cacheResponse(response: HttpResponse): HttpRespons
         return response
     }
 
-    val cacheEntry = storage.store(request.url, response)
+    val cacheEntry = storage.store(request.url, response, isSharedClient)
     return cacheEntry.produceResponse()
 }
 
@@ -121,7 +121,7 @@ private fun HttpCache.findAndRefresh(request: HttpRequest, response: HttpRespons
     val varyKeysFrom304 = response.varyKeys()
     val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
     val newVaryKeys = varyKeysFrom304.ifEmpty { cache.varyKeys }
-    storage.store(url, HttpCacheEntry(response.cacheExpires(), newVaryKeys, cache.response, cache.body))
+    storage.store(url, HttpCacheEntry(response.cacheExpires(isSharedClient), newVaryKeys, cache.response, cache.body))
     return cache.produceResponse()
 }
 
