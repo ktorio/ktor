@@ -209,6 +209,36 @@ class TestApplicationTestJvm {
         }
     }
 
+    @Test
+    fun testCanPassCoroutineContextFromOutsideWithWS() = runBlocking(MyElement("test")) {
+        testApplication(coroutineContext) {
+            install(WebSockets)
+            routing {
+                webSocket("ws") {
+                    assertEquals("test", (incoming.receive() as Frame.Text).readText())
+                    outgoing.send(Frame.Text(coroutineContext[MyElement]!!.data))
+                }
+            }
+            val client = createClient {
+                install(ClientWebSockets)
+            }
+
+            client.webSocket("ws") {
+                outgoing.send(Frame.Text(coroutineContext[MyElement]!!.data))
+                assertEquals("test", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    class MyElement(val data: String) : CoroutineContext.Element {
+        override val key: CoroutineContext.Key<*>
+            get() = MyElement
+
+        companion object : CoroutineContext.Key<MyElement>
+
+        override fun toString(): String = "=====$data====="
+    }
+
     public fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }

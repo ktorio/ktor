@@ -23,12 +23,11 @@ internal actual class TestHttpClientEngineBridge actual constructor(
 
     actual val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeout)
 
-    @OptIn(InternalAPI::class)
     actual suspend fun runWebSocketRequest(
         url: String,
         headers: Headers,
         content: OutgoingContent,
-        coroutineContext: CoroutineContext
+        callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
         val sessionDeferred = CompletableDeferred<WebSocketSession>()
         val call = app.handleWebSocketConversationNonBlocking(
@@ -36,7 +35,7 @@ internal actual class TestHttpClientEngineBridge actual constructor(
             { with(engine) { appendRequestHeaders(headers, content) } },
             awaitCallback = false,
         ) { incoming, outgoing ->
-            val session = TestEngineWebsocketSession(coroutineContext, incoming, outgoing)
+            val session = TestEngineWebsocketSession(app.coroutineContext + callContext, incoming, outgoing)
             sessionDeferred.complete(session)
             session.run()
         }
