@@ -22,6 +22,7 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class TestApplicationTest {
@@ -371,5 +372,28 @@ class TestApplicationTest {
             port = 8081
         }
         assertEquals("8081", response8081.bodyAsText())
+    }
+
+    @Test
+    fun testCanPassCoroutineContextFromOutside() = runBlocking(MyElement("test")) {
+        testApplication(coroutineContext) {
+            assertEquals("test", coroutineContext[MyElement]!!.data)
+            withContext(Dispatchers.Unconfined) {
+                assertEquals("test", coroutineContext[MyElement]!!.data)
+            }
+            routing {
+                get {
+                    call.respond(coroutineContext[MyElement]!!.data)
+                }
+            }
+            assertEquals("test", client.get("/").bodyAsText())
+        }
+    }
+
+    class MyElement(val data: String) : CoroutineContext.Element {
+        override val key: CoroutineContext.Key<*>
+            get() = MyElement
+
+        companion object : CoroutineContext.Key<MyElement>
     }
 }

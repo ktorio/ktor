@@ -124,7 +124,7 @@ public class TestApplicationResponse(
         upgrade.upgrade(
             call.receiveChannel(),
             responseChannel(),
-            Dispatchers.Default,
+            call.application.coroutineContext,
             Dispatchers.Default
         ).invokeOnCompletion {
             webSocketCompleted.complete()
