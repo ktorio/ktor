@@ -7,6 +7,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
@@ -334,7 +335,7 @@ internal object FrameWriterImpl : FrameWriter {
             offset != null && length == null && fin -> FrameType_v1.STREAM_OFF_FIN
             offset != null && length != null && !fin -> FrameType_v1.STREAM_OFF_LEN
             offset != null && length != null && fin -> FrameType_v1.STREAM_OFF_LEN_FIN
-            else -> error("unreachable")
+            else -> unreachable()
         }
 
         writeFrameType(type)
@@ -517,15 +518,13 @@ internal object FrameWriterImpl : FrameWriter {
 
     // HELPER FUNCTIONS AND VALUES
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     private fun BytePacketBuilder.writeFrameType(typeV1: FrameType_v1) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
-        writeUByte(typeV1.typeValue)
+        writeUInt8(typeV1.typeValue)
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     private fun BytePacketBuilder.writeConnectionId(id: ByteArray) {
-        writeUByte(id.size.toUByte())
+        writeUInt8(id.size.toUByte())
         writeFully(id)
     }
 }

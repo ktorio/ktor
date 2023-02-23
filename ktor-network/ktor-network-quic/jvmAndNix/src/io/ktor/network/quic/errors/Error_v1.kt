@@ -39,19 +39,18 @@ internal value class AppError(val intCode: Long) {
  *
  * This is QUIC version 1 errors, future versions of protocol may contain other errors and corresponding codes
  */
-internal sealed interface QUICTransportError_v1 {
+internal sealed interface QUICTransportError_v1 : QUICTransportError {
     fun writeToFrame(packetBuilder: BytePacketBuilder)
 
     companion object {
-        @OptIn(ExperimentalUnsignedTypes::class)
         fun readFromFrame(payload: ByteReadPacket): QUICTransportError_v1? {
-            val byte = payload.readUByteOrElse { return null }.toInt()
+            val byte = payload.readUInt8 { return null }.toInt()
             val length = byte ushr 6
             return when {
                 length == 0 -> TransportError_v1.fromErrorCode(byte)
 
                 length == 1 && byte == CRYPTO_HANDSHAKE_ERROR_PREFIX -> {
-                    CryptoHandshakeError_v1(payload.readUByteOrElse { return null })
+                    CryptoHandshakeError_v1(payload.readUInt8 { return null })
                 }
 
                 else -> null
@@ -60,7 +59,7 @@ internal sealed interface QUICTransportError_v1 {
     }
 }
 
-internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v1 {
+internal enum class TransportError_v1(val intCode: UInt8) : QUICTransportError_v1 {
     NO_ERROR(0x00u),
     INTERNAL_ERROR(0x01u),
     CONNECTION_REFUSED(0x02u),
@@ -80,10 +79,9 @@ internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v
     NO_VIABLE_PATH(0x10u),
     ;
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         // it is varint with length 8 (leading bits are 00)
-        packetBuilder.writeUByte(intCode)
+        packetBuilder.writeUInt8(intCode)
     }
 
     companion object {
@@ -98,10 +96,9 @@ internal enum class TransportError_v1(val intCode: UByte) : QUICTransportError_v
     }
 }
 
-internal class CryptoHandshakeError_v1(val tlsAlertCode: UByte) : QUICTransportError_v1 {
-    @OptIn(ExperimentalUnsignedTypes::class)
+internal class CryptoHandshakeError_v1(val tlsAlertCode: UInt8) : QUICTransportError_v1 {
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
-        packetBuilder.writeUByte(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
-        packetBuilder.writeUByte(tlsAlertCode)
+        packetBuilder.writeUInt8(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
+        packetBuilder.writeUInt8(tlsAlertCode)
     }
 }

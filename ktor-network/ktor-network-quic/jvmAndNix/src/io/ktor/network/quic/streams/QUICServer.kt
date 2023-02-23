@@ -4,6 +4,7 @@
 
 package io.ktor.network.quic.streams
 
+import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.sockets.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.channels.*
@@ -16,4 +17,8 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket) :
         get() = TODO("Not yet implemented")
     override val incoming: ReceiveChannel<QUICStream>
         get() = TODO("Not yet implemented")
+
+    override suspend fun processIncomingPacket(address: SocketAddress, datagram: QUICPacket) {
+        TODO("Not yet implemented")
+    }
 }
