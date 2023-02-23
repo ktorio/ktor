@@ -6,6 +6,8 @@
 
 package io.ktor.network.quic.frames
 
+import io.ktor.network.quic.bytes.*
+
 /**
  * QUIC version 1 frame types and corresponding values.
  *
@@ -13,7 +15,7 @@ package io.ktor.network.quic.frames
  *
  * This is QUIC version 1 frames, future versions of protocol may contain frames and corresponding codes
  */
-internal enum class FrameType_v1(val typeValue: UByte) {
+internal enum class FrameType_v1(val typeValue: UInt8) {
     PADDING(0x00u),
     PING(0x01u),
 
@@ -70,7 +72,7 @@ internal enum class FrameType_v1(val typeValue: UByte) {
     companion object {
         private val array = FrameType_v1.values()
 
-        fun fromByte(byte: UByte): FrameType_v1? {
+        fun fromByte(byte: UInt8): FrameType_v1? {
             return when {
                 byte > 0x1Eu -> null
                 else -> array[byte.toInt()]

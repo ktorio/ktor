@@ -95,7 +95,7 @@ class VarIntCodingTest {
     private fun ByteReadPacket.readRawVarInt(length: Int): Long {
         var long = 0L
         for (i in 0 until length) {
-            val next = readUByteOrElse { error("Unexpected EOF") }.toLong()
+            val next = readUInt8 { error("Unexpected EOF") }.toLong()
             long = (long shl 8) + next
         }
         return long
