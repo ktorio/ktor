@@ -5,7 +5,10 @@
 package io.ktor.network.quic.util
 
 internal const val POW_2_06 = 64L
+internal const val POW_2_07 = 128L
 internal const val POW_2_14 = 16384L
-internal const val POW_2_30 = 1073741823L
+internal const val POW_2_15 = 32768L
+internal const val POW_2_23 = 4194304L
+internal const val POW_2_30 = 1073741824L
 internal const val POW_2_60 = 1152921504606846976L
 internal const val POW_2_62 = 4611686018427387904L
